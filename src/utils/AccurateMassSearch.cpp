@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
@@ -146,7 +147,7 @@ protected:
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 
-    if (file_ann.hasSuffix() == "oms")
+    if (file_ann.hasSuffix("oms"))
     {
       ams_param.setValue("id_format", "ID"); // enable novel ID data structure
     }
@@ -177,12 +178,13 @@ protected:
       // writing output
       //-------------------------------------------------------------
       // annotate output with data processing info
-      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-      if (file_ann.hasSuffix() == "featureXML")
+      // addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+      if (file_ann.hasSuffix("featureXML"))
       {
         FeatureXMLFile().store(file_ann, ms_feat_map);
       }
-      else if (file_ann.hasSuffix() == "oms")
+      else if (file_ann.hasSuffix("oms"))
       {      
         // TODO: support feature data in oms file
         OMSFile().store(file_ann, ms_feat_map.getIdentificationData());

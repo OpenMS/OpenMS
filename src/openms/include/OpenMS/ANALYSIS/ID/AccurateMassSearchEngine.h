@@ -296,6 +296,7 @@ private:
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
     void addMatchesToID_(
+      IdentificationData& id,
       const std::vector<AccurateMassSearchResult>& amr, 
       const IdentificationData::InputFileRef& file_ref,
       const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,

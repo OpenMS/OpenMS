@@ -579,14 +579,20 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
+    // TODO: initialize outside of the loop?
+    IdentificationData& id = fmap.getIdentificationData();
+    IdentificationData::InputFileRef file_ref;
+    IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
+    IdentificationData::ScoreTypeRef mass_error_Da_score_ref;
+    IdentificationData::ProcessingStepRef step_ref;
+
     if (!legacyID_)
     {
-      IdentificationData& id = fmap.getIdentificationData(); // TODO: Why is there no setter?
 
       StringList ms_run_paths;
       fmap.getPrimaryMSRunPath(ms_run_paths);
       IdentificationData::InputFile file(ms_run_paths[0]); // TODO: Is that correct?
-      auto file_ref = id.registerInputFile(file);
+      file_ref = id.registerInputFile(file);
 
       // register a score type 
       IdentificationData::ScoreType score("AccurateMassSearchScore", false); // TODO: which direction
@@ -597,18 +603,30 @@ namespace OpenMS
       sw.assigned_scores.push_back(score_ref);
       auto sw_ref = id.registerProcessingSoftware(sw);
 
+      // TODO: is that correct, or needs to be in software?
+      // TODO: probably only needed internally for every id.
+      // register additional scores for identification
+      IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
+      mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
+
+      IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
+      mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
+
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
       search_param.database = "AccurateMassSearchDB"; // TODO: How to set it automatically?
       search_param.database_version = "0"; // TODO: How to set it automatically?
-      search_param.precursor_mass_tolerance = 8.0; // TODO: How to set it automatically?
-      search_param.precursor_tolerance_ppm = true; // TODO: How to set it automatically?
+      // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value"); // TODO: How to set it automatically?
+      // auto ppm = AccurateMassSearchEngine.getValue("mass_error_unit") = ppm ? true : false;
+      // search_param.precursor_tolerance_ppm = ppm; // TODO: is that even possible to not get the default value?
+      search_param.precursor_mass_tolerance = 5.0;
+      search_param.precursor_tolerance_ppm = true;
       auto search_param_ref = id.registerDBSearchParam(search_param);
 
       // file has been processed by software
       IdentificationData::ProcessingStep step(sw_ref);
       step.input_file_refs.push_back(file_ref); // TODO: why does that not work?
-      auto step_ref = id.registerProcessingStep(step, search_param_ref);
+      step_ref = id.registerProcessingStep(step, search_param_ref);
       // all further data comes from this processing step
       id.setCurrentProcessingStep(step_ref);
     }
@@ -666,7 +684,7 @@ namespace OpenMS
       }
       else
       {
-        addMatchesToID_(query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, applied_ps, fmap[i]);
+        addMatchesToID_(id, query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, fmap[i]);
       }       
     }
 
@@ -693,20 +711,20 @@ namespace OpenMS
     return;
   }
 
+  // TODO: check the function and add the corresponding id data structures
   void AccurateMassSearchEngine::addMatchesToID_(
-    const std::vector<AccurateMassSearchResult>& amr, 
+    IdentificationData& id,
+    const std::vector<AccurateMassSearchResult>& amr,
     const IdentificationData::InputFileRef& file_ref,
     const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
     const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
     const IdentificationData::ProcessingStepRef& step_ref,
     BaseFeature& f) const
   {
-    // TODO: What has to be done here? What is the InputItem now?
-    // register feature as search item associated with input file 
-    IdentificationData::InputItem item(String(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
-    auto item_ref = id.registerInputItem(item);
-    f.getInputItemRefs().insert(item_ref); // connect ID data with feature
-    
+    // register feature as search item associated with input file
+    IdentificationData::Observation obs(String(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
+    auto obs_ref = id.registerObservation(obs);
+
     for (const AccurateMassSearchResult& r : amr)
     {
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
@@ -723,47 +741,34 @@ namespace OpenMS
         }
 
         // register compound
+        // TODO: what about applied processing step
         const String& name = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
-        IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i], r.getFormulaString(), name, smiles, inchi_key); // TODO: what about applied processing step
+        IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
+                                                        EmpiricalFormula(r.getFormulaString()),
+                                                        name,
+                                                        smiles,
+                                                        inchi_key,
+                                                        IdentificationDataInternal::AppliedProcessingSteps());
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
         // compound-feature match
-        IdentificationData::ObservationMatch match(compound_ref, item_ref, r.getCharge()); // match of compound to feature
+        IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge()); // match of compound to feature
         match.addScore(mass_error_Da_score_ref, r.getObservedMZ() - r.getCalculatedMZ(), step_ref);
         match.addScore(mass_error_ppm_score_ref, r.getMZErrorPPM(), step_ref);
 
+        // TODO: Check - should work for all charges!
         String adduct = r.getFoundAdduct(); // M+Na;1+
+
         if (!adduct.empty() || adduct != "null")
         {
-          String adduct_prefix = adduct.prefix(';').trim();
-          String adduct_suffix = adduct.suffix(';').trim();
-          std::size_t found = adduct_prefix.find_first_of("+-");
-          String formula = "";
-          if (found != std::string::npos)
-          {
-            formula = String(adduct_prefix.begin() + found, adduct_prefix.end()); // including + and - for mass calculation!
-          }        
-          String adduct_name = "[" + adduct_prefix + "]" + adduct_suffix;
-
-          int sign = 1;
-          if (adduct_suffix.back() == '+')
-          {
-            sign = 1;
-            adduct_suffix.pop_back();
-          }
-          else (adduct_suffix.back() == '-')
-          {
-            sign = -1;
-            adduct_suffix.pop_back();
-          }
-          // TODO: Adducts? AdductRef?
-          AdductInfo adduct(adduct_name, EmpiricalFormula(formula), sign * adduct_suffix.toInt());
-          adduct_ref = data.registerAdduct(adduct);
+          AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
+          auto adduct_ref = id.registerAdduct(ainfo);
           match.adduct_opt = adduct_ref;
         }
-        id.registerInputMatch(match);
+        auto obs_match_ref = id.registerObservationMatch(match);
+        f.addIDMatch(obs_match_ref);
       }
     }
   }
@@ -1193,7 +1198,7 @@ namespace OpenMS
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
 
-    legacy_ = (String)param_.getValue("id_format") == "legacy";
+    legacyID_ = (String)param_.getValue("id_format") == "legacy";
   }
 
 /// private methods
