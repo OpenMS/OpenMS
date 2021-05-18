@@ -95,7 +95,7 @@ namespace OpenMS
   IdentificationData::InputFileRef
   IdentificationData::registerInputFile(const InputFile& file)
   {
-    if (!no_checks_ && file.name.empty())
+    if (!no_checks_ && file.name.empty()) // key may not be empty
     {
       String msg = "input file must have a name";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -106,7 +106,7 @@ namespace OpenMS
     {
       input_files_.modify(result.first, [&file](InputFile& existing)
                           {
-                            existing += file;
+                            existing.merge(file);
                           });
     }
 
@@ -216,6 +216,7 @@ namespace OpenMS
   IdentificationData::ObservationRef
   IdentificationData::registerObservation(const Observation& obs)
   {
+
     if (!no_checks_)
     {
       // reference to spectrum or feature is required:
@@ -241,7 +242,7 @@ namespace OpenMS
     {
       observations_.modify(result.first, [&obs](Observation& existing)
                            {
-                             existing += obs;
+                             existing.merge(obs);
                            });
     }
 

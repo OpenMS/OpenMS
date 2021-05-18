@@ -725,6 +725,7 @@ namespace OpenMS
       query.bindValue(":id", Key(&obs)); // use address as primary key
       query.bindValue(":data_id", obs.data_id.toQString());
       query.bindValue(":input_file_id", Key(&(*obs.input_file)));
+
       if (obs.rt == obs.rt)
       {
         query.bindValue(":rt", obs.rt);

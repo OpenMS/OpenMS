@@ -89,9 +89,10 @@ public:
       // set these here because "checkParameters_" may not have been called yet:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
-      score_type_ = param_.getValue("score_type").toString();
+      score_type_ = (std::string)param_.getValue("score_type");
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
+
       if (reference_.empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not extract retention time information from the reference file");

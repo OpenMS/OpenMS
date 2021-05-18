@@ -67,9 +67,9 @@ namespace OpenMS
 
       IdentifiedSequence(const IdentifiedSequence& other) = default;
 
-      IdentifiedSequence& operator+=(const IdentifiedSequence& other)
+      IdentifiedSequence& merge(const IdentifiedSequence& other)
       {
-        ScoredProcessingResult::operator+=(other);
+        ScoredProcessingResult::merge(other);
         // merge parent matches:
         for (const auto& pair : other.parent_matches)
         {

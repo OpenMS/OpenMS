@@ -35,6 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
+#include <functional>
 
 ///////////////////////////
 
@@ -48,6 +49,7 @@
 
 using namespace OpenMS;
 using namespace std;
+using namespace std::placeholders;
 
 struct ComparePIdSize
 {
@@ -164,6 +166,7 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   vector<PeptideIdentification> peptides_in;
 
   String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
+  //String filename = OPENMS_GET_TEST_DATA_PATH("debug_fraction_1_IDs_after_transfer.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
   IdentificationData ids;
@@ -207,6 +210,28 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   TEST_EQUAL(all_of(hits_out.begin(), hits_out.end(), [&hits_in](const PeptideHit& hit)
   {
     return find(hits_in.begin(), hits_in.end(), hit) != hits_in.end();
+  }), true);
+
+  // and the other way round!
+  TEST_EQUAL(all_of(hits_in.begin(), hits_in.end(), [&hits_out](const PeptideHit& hit)
+  {
+    return find(hits_out.begin(), hits_out.end(), hit) != hits_out.end();
+  }), true);
+
+  auto mzrtcomp = [](const PeptideIdentification& p1, const PeptideIdentification& p2)
+      {return p1.getMZ() == p2.getMZ() && p1.getRT() == p2.getRT();};
+
+  TEST_EQUAL(peptides_in.size(), peptides_out.size());
+  // order of ids is different, check that every output one is in the input:
+  TEST_EQUAL(all_of(peptides_out.begin(), peptides_out.end(), [&peptides_in, &mzrtcomp](const PeptideIdentification& hit) -> bool
+  {
+    return std::find_if(peptides_in.begin(), peptides_in.end(), std::bind(mzrtcomp, hit, std::placeholders::_1)) != peptides_in.end();
+  }), true);
+
+  // and the other way round!
+  TEST_EQUAL(all_of(peptides_in.begin(), peptides_in.end(), [&peptides_out, &mzrtcomp](const PeptideIdentification& hit) -> bool
+  {
+    return std::find_if(peptides_out.begin(), peptides_out.end(), std::bind(mzrtcomp, hit, std::placeholders::_1)) != peptides_out.end();
   }), true);
 
   // filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.idXML");

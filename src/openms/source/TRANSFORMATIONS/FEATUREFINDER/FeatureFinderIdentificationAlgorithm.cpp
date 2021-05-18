@@ -43,7 +43,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
@@ -406,7 +405,6 @@ namespace OpenMS
     }
   }
 
-
   // represent seeds in IdentificationData format
   void FeatureFinderIdentificationAlgorithm::convertSeeds(
     const FeatureMap& seeds, IdentificationData& id_data, Size n_overlap_traces)
@@ -416,8 +414,7 @@ namespace OpenMS
 
     ID::ProcessingSoftware software("FeatureFinderIdentification",
                                         VersionInfo::getVersion());
-    ID::ProcessingSoftwareRef sw_ref =
-      id_data.registerProcessingSoftware(software);
+    ID::ProcessingSoftwareRef sw_ref = id_data.registerProcessingSoftware(software);
     ID::InputFile input(seeds.getLoadedFilePath());
     ID::InputFileRef file_ref = id_data.registerInputFile(input);
     ID::ProcessingStep step(sw_ref, {file_ref});
@@ -453,7 +450,7 @@ namespace OpenMS
         // RT or MZ values of seed match in range -> target already exists -> don't add seed
         double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * ref->mz : mz_window_;
         if ((fabs(seed_rt - ref->rt) <= rt_tolerance) &&
-            any_of(isotopes_mz.begin(), isotopes_mz.end(), [=](double isotope_mz)
+            any_of(isotopes_mz.begin(), isotopes_mz.end(), [&](double isotope_mz)
             {
               return fabs(isotope_mz - ref->mz) <= th_tolerance;
             }))

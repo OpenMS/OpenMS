@@ -64,7 +64,7 @@ namespace OpenMS
       /// Constructor
       explicit Observation(
         const String& data_id,
-        InputFileRef input_file,
+        const InputFileRef& input_file,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
         data_id(data_id), input_file(input_file), rt(rt), mz(mz)
@@ -72,7 +72,7 @@ namespace OpenMS
       }
 
       /// Merge in data from another object
-      Observation& operator+=(const Observation& other)
+      Observation& merge(const Observation& other)
       {
         // merge meta info - existing entries may be overwritten:
         std::vector<UInt> keys;
