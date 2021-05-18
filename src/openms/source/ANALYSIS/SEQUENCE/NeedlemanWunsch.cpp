@@ -2,6 +2,7 @@
 #include <iostream>
 #include <OpenMS/CONCEPT/Exception.h>
 #include  <utility> //swap
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 
 using namespace std;
 namespace OpenMS
@@ -65,43 +66,21 @@ std::vector<int> PAM30MS
         /* * */ -17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,  1
     };
 
-  NeedlemanWunsch::NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix matrix, int penalty)
+NeedlemanWunsch::NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix matrix, int penalty)
 {
- if (penalty >= 0)
- {
-   String msg = "Gap penalty should be negative";
-   throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg);
- }
+  setMatrix(matrix);
+  setPenalty(penalty);
 
-  gapPenalty_ = penalty;
-
-  if (matrix == ScoringMatrix::identityMatrix)
-  {
-    matrixPtr_ = &adaptedIdentity;
-  }
-
-  else if (matrix == ScoringMatrix::PAM30MSMatrix)
-  {
-    matrixPtr_ = &PAM30MS;
-  }
-  else
-  {
-    String msg = "Matrix is not known! Valid choices are: "
-                                       "'identityMatrix', 'PAM30MSMatrix'.";
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     msg);
-  }
 }
 
-void NeedlemanWunsch::setMatrix_(const NeedlemanWunsch::ScoringMatrix& matrix)
+void NeedlemanWunsch::setMatrix(const NeedlemanWunsch::ScoringMatrix& matrix)
 {
-  if (matrix == ScoringMatrix::identityMatrix)
+  if (matrix == ScoringMatrix::identity)
   {
     matrixPtr_ = &adaptedIdentity;
   }
 
-  else if (matrix == ScoringMatrix::PAM30MSMatrix)
+  else if (matrix == ScoringMatrix::PAM30MS)
   {
     matrixPtr_ = &PAM30MS;
   }
@@ -109,13 +88,15 @@ void NeedlemanWunsch::setMatrix_(const NeedlemanWunsch::ScoringMatrix& matrix)
   else
   {
     String msg = "Matrix is not known! Valid choices are: "
-                                       "'identityMatrix', 'PAM30MSMatrix'.";
+                                       "'identity', 'PAM30MS'.";
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      msg);
   }
+  // ConsensusIDAlgorithmPEPMatrix::updateParams_(matrix) dafür objekt erstellen ...
+
 }
 
-void NeedlemanWunsch::setPenalty_(const int& penalty)
+void NeedlemanWunsch::setPenalty(const int& penalty)
 {
 
     if (penalty >= 0)
@@ -125,21 +106,22 @@ void NeedlemanWunsch::setPenalty_(const int& penalty)
                                        msg);
     }
       gapPenalty_ = penalty;
+  // ConsensusIDAlgorithmPEPMatrix::updateParams_(matrix) dafür objekt erstellen ...
 }
 
-NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix_() const
+NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix() const
 {
     if (*matrixPtr_ == adaptedIdentity)
     {
-      return ScoringMatrix::identityMatrix;
+      return ScoringMatrix::identity;
     }
     else
     {
-      return ScoringMatrix::PAM30MSMatrix;
+      return ScoringMatrix::PAM30MS;
     }
 }
 
-int NeedlemanWunsch::getPenalty_() const
+int NeedlemanWunsch::getPenalty() const
 {
     return gapPenalty_;
 }
@@ -173,7 +155,7 @@ y = 23;
 return x + y*vec.size();
 }
 /*
-double NeedlemanWunsch::align_(const String& seq1, const String& seq2) //vollständige matrix
+double NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix
 {
   seq1len_ = seq1.length();
   seq2len_ = seq2.length();
@@ -197,7 +179,7 @@ double NeedlemanWunsch::align_(const String& seq1, const String& seq2) //vollst�
  */
 
 //linear space (2 Zeilen)
- double NeedlemanWunsch::align_(const String& seq1, const String& seq2)
+ int NeedlemanWunsch::align(const String& seq1, const String& seq2)
  {
    seq1len_ = seq1.length();
    seq2len_ = seq2.length();

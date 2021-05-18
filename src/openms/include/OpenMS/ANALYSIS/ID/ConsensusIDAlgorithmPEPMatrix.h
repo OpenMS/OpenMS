@@ -60,7 +60,7 @@ namespace OpenMS
 
   private:
 
-    NeedlemanWunsch object_ = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::identityMatrix , -5); //initialization //bisher wird hier die Matrix gewählt
+    NeedlemanWunsch object_ = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::PAM30MS, -5); //initialization //bisher wird hier die Matrix gewählt
 
     /// Not implemented
     ConsensusIDAlgorithmPEPMatrix(const ConsensusIDAlgorithmPEPMatrix&);
@@ -68,6 +68,11 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&);
 
+    /*
+    void ConsensusIDAlgorithmPEPMatrix::updateParams_(const NeedlemanWunsch::ScoringMatrix& matrix);
+
+    void ConsensusIDAlgorithmPEPMatrix::updateParams_(const int& penalty);
+*/
   };
 
 } // namespace OpenMS
