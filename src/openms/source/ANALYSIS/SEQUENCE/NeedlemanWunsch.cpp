@@ -208,7 +208,10 @@ int NeedlemanWunsch::getIndexNEW_(const char&a) const //Falls wir die Matrizen a
 
     for(Size i=0; i<alphabet.size(); i++)
     {
-        if(alphabet[i] == a) index = i;
+        if(alphabet[i] == a)
+        {  index = i;
+             break;
+        }
     }
     return index;
 }
