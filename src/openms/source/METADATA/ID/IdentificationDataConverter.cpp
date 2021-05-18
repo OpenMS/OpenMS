@@ -201,11 +201,11 @@ namespace OpenMS
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
-      ID::Observation obs(""); // fill in "data_id" later
+      ID::InputFileRef inputfile;
       if (!pep.getBaseName().empty())
       {
         const auto file_ref = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
-        obs.input_file_opt = file_ref;
+        inputfile = file_ref;
       }
       else
       {
@@ -215,7 +215,7 @@ namespace OpenMS
           {
             if (pep.metaValueExists("id_merge_idx"))
             {
-              obs.input_file_opt = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
+              inputfile = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
             }
             else
             {
@@ -229,7 +229,7 @@ namespace OpenMS
           }
           else // one file in the ProteinIdentification Run only
           {
-            obs.input_file_opt = step_ref->input_file_refs[0];
+            inputfile = step_ref->input_file_refs[0];
           }
         }
         else
@@ -237,31 +237,34 @@ namespace OpenMS
           String file = "UNKNOWN_INPUT_FILE_" + id;
           ID::InputFileRef file_ref =
               id_data.registerInputFile(ID::InputFile(file));
-          obs.input_file_opt = file_ref;
+          inputfile = file_ref;
         }
       }
-
-      obs.rt = pep.getRT();
-      obs.mz = pep.getMZ();
-      obs.addMetaValues(pep);
+      String data_id;
       if (pep.metaValueExists("spectrum_reference"))
       {
-        obs.data_id = pep.getMetaValue("spectrum_reference");
-        obs.removeMetaValue("spectrum_reference");
+        data_id = pep.getMetaValue("spectrum_reference");
       }
       else
       {
         if (pep.hasRT() && pep.hasMZ())
         {
-          obs.data_id = String("RT=") + String(float(obs.rt)) + "_MZ=" +
-            String(float(obs.mz));
+          data_id = String("RT=") + String(float(pep.getRT())) + "_MZ=" +
+            String(float(pep.getMZ()));
         }
         else
         {
-          obs.data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
+          data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
           ++unknown_obs_counter;
         }
       }
+      ID::Observation obs{data_id, inputfile, pep.getRT(), pep.getMZ()};
+      obs.addMetaValues(pep);
+      if (obs.metaValueExists("spectrum_reference"))
+      {
+        obs.removeMetaValue("spectrum_reference");
+      }
+
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
       ID::ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter());
