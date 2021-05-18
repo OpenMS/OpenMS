@@ -141,8 +141,9 @@ START_SECTION(static void applyVariableModifications(const set<ConstRibonucleoti
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, 1);
   // sum below corresponds to: 1 Am, 2 Am, 1 I, 1 Am + 1 I:
   TEST_EQUAL(ams.size(), 4 + 6 + 4 + 4 * 3);
-  TEST_STRING_EQUAL(ams[0].toString(), "AUAU[Am]U[Am]");
-  TEST_STRING_EQUAL(ams.back().toString(), "IUAUAUA");
+  sort(ams.begin(), ams.end()); // original order is not defined
+  TEST_STRING_EQUAL(ams[0].toString(), "AUAUAU[Am]");
+  TEST_STRING_EQUAL(ams.back().toString(), "IU[Am]UAUA");
 }
 END_SECTION
 
