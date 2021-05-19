@@ -181,10 +181,7 @@ bool MQEvidence::hasValidPepID(
 bool MQEvidence::hasPeptideIdentifications(const ConsensusFeature& cf)
 {
     const std::vector<PeptideIdentification> &pep_ids_c = cf.getPeptideIdentifications();
-    if(pep_ids_c.empty()){
-        return false;
-    }
-    return true;
+    return !pep_ids_c.empty();
 
 }
 
@@ -283,11 +280,10 @@ void MQEvidence::exportRowFromFeature(
     file_ << f.getCharge() << "\t"; // Charge
     file_ << f.getMZ() << "\t"; // MZ
     file_ << f.getRT()/60 << "\t"; // Retention time in min.
-    file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start")))/60 << "\t"; //Retention length in min.
+    f.metaValueExists("rt_raw_end") && f.metaValueExists("rt_raw_start") ?
+              file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start")))/60 << "\t" : file_ << "NA" << "\t";
     file_ << f.getIntensity() << "\t"; // Intensity
     file_ << f.getWidth()/60 << "\t";  // Resolution in min.
-
-    //pep_hits_max->getMetaValue("is_contaminant") == "1" ? file_ << '+' << "\t" : file_ << '\t'; // Potential Contaminant
 
     String pot_containment = pep_hits_max->getMetaValue("is_contaminant", "NA");
     if(pot_containment == "1")

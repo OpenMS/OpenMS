@@ -47,18 +47,12 @@ private:
     std::map<OpenMS::String,OpenMS::UInt64> protein_id_;
 
     /**
-  @brief ASHORTDESCRIPTION_HERE
-
-    Writes the header of MQEvidence.txt in file (Names of columns)
+  @brief Writes the header of MQEvidence.txt in file (Names of columns)
 */
     void exportHeader();
 
     /**
-      @brief ASHORTDESCRIPTION_HERE
-
-        Gets Protein and Returns corresponding number.
-
-      LONGER_DESCRIPTION HERE
+      @brief Gets Protein and Returns corresponding number.
 
         In MQEvidence.txt every protein gets a random but distinct number. The first protein
         a peptide is mapped to get the number one and so on. By this means, it can be seen very easily
@@ -71,9 +65,7 @@ private:
     OpenMS::UInt64 proteinGroupID(const OpenMS::String &protein);
 
     /**
-      @brief ASHORTDESCRIPTION_HERE
-
-        Creates map that has information which FeatureID is mapped to which ConsensusFeature
+      @brief Creates map that has information which FeatureUID is mapped to which ConsensusFeature
 
       @param cmap ConsensusMap for purpos
 
@@ -83,21 +75,14 @@ private:
     std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex(const OpenMS::ConsensusMap & cmap);
 
     /**
-      @brief ASHORTDESCRIPTION_HERE
+      @brief Checks if Feature has valid PeptideIdentifications
 
-        Set the given Pointer  to the best hit of the PeptideIdentifications of the Feature
+        If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
+        the functions returns false to show that something went wrong.
 
-      LONGER_DESCRIPTION HERE
+      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, f is used to extract PeptideIdentifications
 
-        Set the given Pointer to the best hit of the PeptideIdentifications of the Feature.
-        If there are no PeptideIdentifications, the best hit of the Feature cannot be found in corresponding ConsensusFeature
-        or the best hit does not have a sequence, the functions returns false to show that something went wrong.
-        getBestPeptideHit is used.
-
-      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, Feature to get information about the PeptideIdenfications.
-      best for saving the information about the best PeptideHit.
-
-      @return Returns true if the functions succeeds.
+      @return Returns true if the PeptideIdentifications are valid
     */
     bool hasValidPepID(
             const OpenMS::Feature & f,
@@ -106,21 +91,14 @@ private:
             const OpenMS::ProteinIdentification::Mapping &mp_f);
 
     /**
-      @brief ASHORTDESCRIPTION_HERE
+      @brief Checks if ConsensusFeature has valid PeptideIdentifications
 
-        Set the given Pointer to the best hit of the PeptideIdentifications of the ConsensusFeature
+      If there are no PeptideIdentifications,
+      the functions returns false to show that something went wrong.
 
-      LONGER_DESCRIPTION HERE
+      @param cf is used to extract PeptideIdentifications
 
-      Set the given Pointer to the best hit of the PeptideIdentifications of the ConsensusFeature
-      If there are no PeptideIdentifications, the best hit of the Feature cannot be found in corresponding ConsensusFeature
-      or the best hit does not have a sequence, the functions returns false to show that something went wrong.
-      getBestPeptideHit is used.
-
-      @param cmap and c_feature_number are used to identify the Consensusfeature and extract the information about the PeptideIdentifications
-      best for saving the information about the best PeptideHit.
-
-      @return Returns true if the functions succeeds.
+      @return Returns true if the PeptideIdentifications are valid
     */
     bool hasPeptideIdentifications(const OpenMS::ConsensusFeature& cf);
 
@@ -128,10 +106,12 @@ private:
       @brief Export one Feature as a row in MQEvidence.txt
 
         Export one Feature as a row in MQEvidence.txt.
-        exportFeaturePepID and exportConsensusFeaturePepID are used.
+        hasValidPepID and HasPeptideIdentifications are used.
         If there are problems (missing data or confusing data), no output will be generated.
 
-      @param cmap ConsensusMap for purpose XYZ...
+      @param f, cmap and c_number_feature to extract data out of Feature or ConsensusFeature,
+      raw_file is specifying the raw_file the feature belongs to,
+      c_feature_number, mp_f and UIDs are used in hasValidPepID
 
     */
     void exportRowFromFeature(
@@ -144,9 +124,7 @@ private:
 
 public:
         /**
-      @brief ASHORTDESCRIPTION_HERE
-
-         Creates file MQEvidence.txt in given path, opens f_stream and calls exportHeader
+      @brief Creates MQEvidence object and file MQEvidence.txt in given path, opens f_stream and calls exportHeader
 
       @param String that is the path where file has to be stored
 
@@ -154,16 +132,12 @@ public:
     explicit MQEvidence(const OpenMS::String & p);
 
     /**
-      @brief ASHORTDESCRIPTION_HERE.
-
-        Closes f_stream
+      @brief Closes f_stream and destruct MQEvidence object
     */
     ~MQEvidence();
 
         /**
-      @brief ASHORTDESCRIPTION_HERE.
-
-         Checks if file is writable
+      @brief Checks if file is writable
 
       @return Returns true if file is writable
     */
@@ -172,11 +146,10 @@ public:
     /**
       @brief ASHORTDESCRIPTION_HERE
 
-      LONGER_DESCRIPTION HERE
+      To export the Features of the FeatureMap the exportFeatureToRow function is used.
+      If there are problems (missing data or confusing data) with one feature, it will be skipped.
 
-      @param cmap ConsensusMap for purpose XYZ...
-
-      @return Returns true if ...
+      @param feature_map and cmap are used to extract data.
     */
     void exportFeatureMapTotxt(
             const OpenMS::FeatureMap& feature_map,

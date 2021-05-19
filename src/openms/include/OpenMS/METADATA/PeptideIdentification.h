@@ -168,25 +168,27 @@ public:
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
       /**
-        @brief ASHORTDESCRIPTION_HERE
+      @brief Checks if Feature has valid PeptideIdentifications
 
-        LONGER_DESCRIPTION HERE
+        If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
+        the functions returns false to show that something went wrong.
 
-        @param cmap ConsensusMap for purpose XYZ...
+      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, f is used to extract PeptideIdentifications
 
-        @return Returns true if ...
-      */
+      @return Returns true if the PeptideIdentifications are valid
+    */
     static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap);
 
       /**
-        @brief ASHORTDESCRIPTION_HERE
+      @brief Checks if Feature has valid PeptideIdentifications
 
-        LONGER_DESCRIPTION HERE
+        If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
+        the functions returns false to show that something went wrong.
 
-        @param cmap ConsensusMap for purpose XYZ...
+      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, f is used to extract PeptideIdentifications
 
-        @return Returns true if ...
-      */
+      @return Returns the correct UID
+    */
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
                                     const std::map<String, StringList>& fidentifier_to_msrunpath);
 
