@@ -37,9 +37,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
 
 namespace OpenMS
 {
@@ -58,30 +60,55 @@ namespace OpenMS
       const std::set<ConstRibonucleotidePtr>& fixed_mods,
       NASequence& sequence);
 
-    /// Applies variable modifications to a single NASequence. If keep_original is set the original (e.g. unmodified version) is also returned
+    /**
+       @brief Applies variable modifications to a single NASequence.
+
+       @param var_mods Set of variable modifications to consider
+       @param seq Input sequence to modify
+       @param max_var_mods Max. number of var. mods that can be added
+       @param all_modified_seqs Output list of modified sequences
+       @param keep_unmodified Include the original (unmodified) sequence in the results?
+       @param max_missed_cleavages Max. number of missed cleavages that can be introduced (by adding inosine)
+
+       @p max_missed_cleavages is ignored if the value is negative.
+    */
     static void applyVariableModifications(
       const std::set<ConstRibonucleotidePtr>& var_mods,
-      const NASequence& seq, Size max_variable_mods_per_NASequence,
-      std::vector<NASequence>& all_modified_NASequences,
-      bool keep_original = true);
+      const NASequence& seq, Size max_var_mods,
+      std::vector<NASequence>& all_modified_seqs,
+      bool keep_unmodified = true, Int max_missed_cleavages = -1);
 
   protected:
-    /// Recursively generate all combinatorial placements at compatible sites
-    static void recurseAndGenerateVariableModifiedSequences_(
-      const std::vector<int>& subset_indices,
-      const std::map<int, std::vector<ConstRibonucleotidePtr>>& map_compatibility,
-      int depth,
-      const NASequence& current_NASequence,
-      std::vector<NASequence>& modified_NASequences);
+    /// Sequence with modification information
+    struct ModSeqInfo_
+    {
+      NASequence seq; //< sequence (unmodified or partially modified)
+      Size var_mods_left; //< number of var. mods that can still be applied
+      Int missed_cleavages_left; //< for inosine/RNase T1 special case
 
-    /// Fast implementation of modification placement. No combinatorial placement is needed in this case
-    /// - just every site is modified once by each compatible modification.
-    /// Already modified residues are skipped
-    static void applyAtMostOneVariableModification_(
-      const std::set<ConstRibonucleotidePtr>& var_mods,
-      const NASequence& seq,
-      std::vector<NASequence>& all_modified_NASequences,
-      bool keep_original = true);
+      /// C'tor for convenience
+      ModSeqInfo_(NASequence seq, Size var_mods_left,
+                  Int missed_cleavages_left = -1):
+        seq(seq), var_mods_left(var_mods_left),
+        missed_cleavages_left(missed_cleavages_left)
+      {
+      }
+    };
+
+    /**
+       @brief Add a modification to a set of sequences using a functor
+
+       @param temp_seqs List of sequences that can be modified
+       @param n_temp_seqs Number of sequences from the list that should be modified
+       @param finished_seqs Output list of sequences that cannot be further modified
+       @param applyMod Functor that modifies a sequence (and optionally checks/updates missed cleavages), returns success status
+
+       Only the first @p n_temp_seqs from @p temp_seqs will be modified.
+       After the modification is applied, each new sequence is appended either to @p temp_seqs or @p finished_seqs, depending on whether the max. number of variable mods has been reached.
+    */
+    static void addModToSequences_(
+      std::vector<ModSeqInfo_>& temp_seqs, Size n_temp_seqs,
+      std::vector<NASequence>& finished_seqs,
+      const std::function<bool(NASequence&, Int&)>& applyMod);
   };
 }
-

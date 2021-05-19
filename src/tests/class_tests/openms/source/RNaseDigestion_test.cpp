@@ -38,6 +38,9 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+// these are only used for debugging if tests fail:
+// #include <OpenMS/CHEMISTRY/RNaseDB.h>
+// #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -181,6 +184,53 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   TEST_EQUAL(match_it->start_pos, 0);
   ++match_it;
   TEST_EQUAL(match_it->start_pos, 4);
+}
+END_SECTION
+
+START_SECTION((bool getVariableInosine()))
+{
+  RNaseDigestion rd;
+  TEST_EQUAL(rd.getVariableInosine(), false);
+  rd.setVariableInosine(true);
+  TEST_EQUAL(rd.getVariableInosine(), true);
+}
+END_SECTION
+
+START_SECTION((void setVariableInosine(bool value)))
+{
+  // if the test fails, make sure the right enzyme definition is loaded:
+  // const RNase* rnase = RNaseDB::getInstance()->getEnzyme("RNase_T1");
+  // STATUS(rnase->getCutsAfterRegEx());
+
+  IdentificationData id_data;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  id_data.registerParentMolecule(rna);
+
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
+  rd.setVariableInosine(true); // optional cuts after I (modified from A)
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 7);
+
+  rd.setMissedCleavages(1);
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 11);
+
+  // get oligos ordered by occurrence in the RNA - useful for debugging:
+  // set<tuple<Size, Size, String>> oligos;
+  // IdentificationData::ParentMoleculeRef rna_ref = id_data.getParentMolecules().begin();
+  // for (const auto& oligo : id_data.getIdentifiedOligos())
+  // {
+  //   const IdentificationData::MoleculeParentMatch match = *oligo.parent_matches.at(rna_ref).begin();
+  //   oligos.emplace(match.start_pos, match.end_pos, oligo.sequence.toString());
+  // }
+  // cout << "\n" << rna.sequence << endl;
+  // for (const auto &element : oligos)
+  // {
+  //   cout << get<0>(element) << "-" << get<1>(element) << ": " << get<2>(element) << endl;
+  // }
 }
 END_SECTION
 

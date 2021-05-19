@@ -71,12 +71,12 @@ START_SECTION((static void applyFixedModifications(const std::set<ModifiedNASequ
 }
 END_SECTION
 
-START_SECTION(static void applyVariableModifications(const std::set<ConstRibonucleotidePtr>& var_mods, const NASequence& seq, Size max_variable_mods_per_NASequence, std::vector<NASequence>& all_modified_NASequences, bool keep_original = true))
+START_SECTION(static void applyVariableModifications(const set<ConstRibonucleotidePtr>& var_mods, const NASequence& seq, Size max_var_mods, vector<NASequence>& all_modified_seqs, bool keep_unmodified, Int max_missed_cleavages))
 {
   set<ModifiedNASequenceGenerator::ConstRibonucleotidePtr> var_mods;
   // query modified ribos by code
   vector<string> mods_code = {"m3U", "s4U"};  // 3-methyluridine, 4-thiouridine
-  for (auto const & f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
+  for (const auto& f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
 
   NASequence sequence = NASequence::fromString("AUAUAUA");
   vector<NASequence> ams;
@@ -111,16 +111,42 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
   ams.clear();
   var_mods.clear();
   mods_code = {"s4U", "m3U", "m1A"};
-  for (auto const & f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
+  for (const auto& f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
 
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 7, ams, true);
   TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
+
+  // inosine/missed cleavages special case:
+  var_mods.clear();
+  var_mods.insert(db->getRibonucleotide("I"));
+  // no restriction on missed cleavages:
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, -1);
+  TEST_EQUAL(ams.size(), 4 + 6);
+  // no more missed cleavage allowed:
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, 0);
+  TEST_EQUAL(ams.size(), 0);
+  // one missed cleavage allowed:
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, 1);
+  TEST_EQUAL(ams.size(), 4);
+  // two missed cleavage allowed:
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, 2);
+  TEST_EQUAL(ams.size(), 4 + 6);
+  // with a separate mod:
+  var_mods.insert(db->getRibonucleotide("Am"));
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 2, ams, false, 1);
+  // sum below corresponds to: 1 Am, 2 Am, 1 I, 1 Am + 1 I:
+  TEST_EQUAL(ams.size(), 4 + 6 + 4 + 4 * 3);
+  sort(ams.begin(), ams.end()); // original order is not defined
+  TEST_STRING_EQUAL(ams[0].toString(), "AUAUAU[Am]");
+  TEST_STRING_EQUAL(ams.back().toString(), "IU[Am]UAUA");
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-
