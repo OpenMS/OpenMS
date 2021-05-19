@@ -177,16 +177,13 @@ for lib in add_libs:
 extra_link_args = []
 extra_compile_args = []
 
-# Set C++17 for all operating systems
-extra_link_args.append("-std=c++17")
-extra_compile_args.append("-std=c++17")
-
 if iswin:
     # /EHs is important. It sets _CPPUNWIND which causes boost to
     # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
+    extra_compile_args.append("-std=c++17")
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
@@ -205,6 +202,7 @@ if not iswin:
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
+        extra_compile_args.append("-std=c++17")
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
