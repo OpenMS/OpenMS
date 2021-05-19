@@ -175,7 +175,10 @@ protected:
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
-
+    for(ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
+    {
+      sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
+    }
     std::vector<FeatureMap> fmaps;
     if (in_postFDR.empty())
     {
@@ -231,7 +234,6 @@ protected:
 
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      //fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
 
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
@@ -239,7 +241,6 @@ protected:
 
 
     }
-    //fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
 
 
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
@@ -302,6 +303,10 @@ protected:
       else
       {
         fmap = &(fmaps[i]);
+      }
+      for(Feature & f: fmap_local) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
+      {
+          sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
       mp_f.create(fmap->getProteinIdentifications());
 
@@ -478,6 +483,17 @@ private:
       status |= req;
     }
     return files;
+  }
+
+  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification> pep_ids)
+  {
+      for(PeptideIdentification & pep_id : pep_ids)
+      {
+          pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
+      }
+      std::sort(pep_ids.begin(), pep_ids.end(), [](PeptideIdentification a, PeptideIdentification b) {
+          return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+      });
   }
 
   void addPepIDMetaValues_(
