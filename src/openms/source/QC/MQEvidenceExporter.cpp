@@ -287,7 +287,7 @@ void MQEvidence::exportRowFromFeature(
     file_ << f.getIntensity() << "\t"; // Intensity
     file_ << f.getWidth()/60 << "\t";  // Resolution in min.
 
-    file_ << (pep_hits_max->getMetaValue("is_contaminant") == "1" ? '+' : '-') << '\t'; // Potential Contaminant
+    file_ << (pep_hits_max->getMetaValue("is_contaminant") == "1" ? '+' : ' ') << '\t'; // Potential Contaminant
 
     file_<< type << "\t"; // Type
     file_ << pep_hits_max->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages

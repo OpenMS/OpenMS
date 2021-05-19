@@ -147,6 +147,7 @@ protected:
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     registerStringOption_("out_evd", "<Path>", "", "EvidenceTXT with QC information", false);
 
+
     //TODO get ProteinQuantifier output for PRT section
   }
 
