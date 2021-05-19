@@ -96,7 +96,7 @@ namespace OpenMS
     static String spath = [&]() -> String {
         String rpath = "";
 
-        char path[1024];
+        char path[1024]; // maximum path length
 
 #ifdef OPENMS_WINDOWSPLATFORM
         int size = sizeof(path);
@@ -105,9 +105,14 @@ namespace OpenMS
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
 #else // LINUX
-        int size = sizeof(path);
-        int ch = readlink("/proc/self/exe", path, size);
-        if (ch != -1)
+        // note: implementation as suggested by readlink man page
+        ssize_t len = ::readlink("/proc/self/exe", path, sizeof(path)-1);
+        if (len != -1) //add 0 terminator at end
+        {
+          path[len] = '\0';
+        }
+
+        if (len != -1)
 #endif
         {
           rpath = File::path(String(path));
