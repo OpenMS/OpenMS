@@ -9,7 +9,7 @@ OpenMS
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
 [![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
-
+[![Anaconda-Server Badge](https://anaconda.org/openms/pyopenms/badges/version.svg)](https://anaconda.org/openms/pyopenms)
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
 is an open-source software C++ library for LC-MS data management and
