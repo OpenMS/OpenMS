@@ -108,6 +108,7 @@ jobs:
             echo $CURRENT_PYTHON_EXECUTABLE
 
             # build pyopenms distribution
+            cmake --version
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             cmake --build . --config Release --target pyopenms
 
