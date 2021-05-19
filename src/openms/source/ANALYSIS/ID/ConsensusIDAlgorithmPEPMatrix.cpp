@@ -40,8 +40,53 @@ namespace OpenMS
 {
   ConsensusIDAlgorithmPEPMatrix::ConsensusIDAlgorithmPEPMatrix()
   {
+    setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
+
+    defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alignment-based similarity scoring");
+    defaults_.setValidStrings("matrix", {"identity","PAM30MS"});
+    defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
+    defaults_.setMinInt("penalty", -1);
+
+    defaultsToParam_();
+
   }
 
+  void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
+  {
+    //ConsenusIDAlgorithmSimilarity::updateMembers_(); // error: has not been declared
+
+    string matrix = param_.getValue("matrix");
+    int penalty = param_.getValue("penalty");
+    if (matrix == "identity")
+    {
+      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::identity);
+    }
+    else if (matrix == "PAM30MS")
+    {
+      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::PAM30MS);
+    }
+    else
+    {
+      String msg = "Matrix is not known! Valid choices are: "
+                   "'identity', 'PAM30MS'.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
+    }
+    if (penalty > 0)
+    {
+      object_.setPenalty(penalty);
+    }
+    else
+    {
+      String msg = "Gap penalty should be positive";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
+    }
+
+    // new parameters may affect the similarity calculation, so clear cache:
+    similarities_.clear();
+
+  }
 
   double ConsensusIDAlgorithmPEPMatrix::getSimilarity_(AASequence seq1,
                                                        AASequence seq2)
@@ -51,10 +96,16 @@ namespace OpenMS
     String unmod_seq2 = seq2.toUnmodifiedString();
     if (unmod_seq1 == unmod_seq2) return 1.0;
     if (unmod_seq1 < unmod_seq2) swap(unmod_seq1, unmod_seq2);
-
-    double score_self1 = object_.align_(unmod_seq1, unmod_seq1);
-    double score_sim = object_.align_(unmod_seq1, unmod_seq2);
-    double score_self2 = object_.align_(unmod_seq2, unmod_seq2);
+    /* testen ob es schneller mit oder ohne ist
+    AASequence s1 = AASequence::fromString(unmod_seq1);
+    AASequence s2 = AASequence::fromString(unmod_seq2);
+    pair<AASequence, AASequence> seq_pair = make_pair(s1, s2);
+    SimilarityCache::iterator pos = similarities_.find(seq_pair);
+    if (pos != similarities_.end()) return pos->second; // score found in cache
+    */
+    double score_self1 = object_.align(unmod_seq1, unmod_seq1);
+    double score_sim = object_.align(unmod_seq1, unmod_seq2);
+    double score_self2 = object_.align(unmod_seq2, unmod_seq2);
 
     if (score_sim < 0)
     {

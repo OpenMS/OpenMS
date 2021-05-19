@@ -3,6 +3,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include  <utility> //swap
 
+
 using namespace std;
 namespace OpenMS
 {
@@ -122,81 +123,46 @@ std::vector<int> PAM30MS
         /* * */ -17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,  1
     };
 
-  NeedlemanWunsch::NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix matrix, int penalty)
+NeedlemanWunsch::NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix matrix, int penalty)
 {
- if (penalty >= 0)
- {
-   String msg = "Gap penalty should be negative";
-   throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg);
- }
+  setMatrix(matrix);
+  setPenalty(penalty);
 
-  gapPenalty_ = penalty;
+}
 
-  if (matrix == ScoringMatrix::identityMatrix)
+void NeedlemanWunsch::setMatrix(const NeedlemanWunsch::ScoringMatrix& matrix)
+{
+  if (matrix == ScoringMatrix::identity)
   {
     matrixPtr_ = &adaptedIdentity;
   }
 
-  else if (matrix == ScoringMatrix::PAM30MSMatrix)
-  {
-    matrixPtr_ = &PAM30MS;
-  }
-  else
-  {
-    String msg = "Matrix is not known! Valid choices are: "
-                                       "'identityMatrix', 'PAM30MSMatrix'.";
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     msg);
-  }
-}
-
-void NeedlemanWunsch::setMatrix_(const NeedlemanWunsch::ScoringMatrix& matrix)
-{
-  if (matrix == ScoringMatrix::identityMatrix)
-  {
-    matrixPtr_ = &adaptedIdentity;
-  }
-
-  else if (matrix == ScoringMatrix::PAM30MSMatrix)
+  else if (matrix == ScoringMatrix::PAM30MS)
   {
     matrixPtr_ = &PAM30MS;
   }
 
-  else
-  {
-    String msg = "Matrix is not known! Valid choices are: "
-                                       "'identityMatrix', 'PAM30MSMatrix'.";
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     msg);
-  }
 }
 
-void NeedlemanWunsch::setPenalty_(const int& penalty)
+void NeedlemanWunsch::setPenalty(const int& penalty)
 {
 
-    if (penalty >= 0)
-    {
-      String msg = "Gap penalty should be negative";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       msg);
-    }
       gapPenalty_ = penalty;
 }
 
-NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix_() const
+NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix() const
 {
     if (*matrixPtr_ == adaptedIdentity)
     {
-      return ScoringMatrix::identityMatrix;
+      return ScoringMatrix::identity;
     }
     else
     {
-      return ScoringMatrix::PAM30MSMatrix;
+      return ScoringMatrix::PAM30MS;
     }
 }
 
-int NeedlemanWunsch::getPenalty_() const
+int NeedlemanWunsch::getPenalty() const
 {
     return gapPenalty_;
 }
@@ -245,21 +211,21 @@ y = 23;
 return x + y*vec.size();
 }
 /*
-double NeedlemanWunsch::align_(const String& seq1, const String& seq2) //vollst√§ndige matrix
+double NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollst√§ndige matrix
 {
   seq1len_ = seq1.length();
   seq2len_ = seq2.length();
 
   vector<int> matrix((seq1len_+1)*(seq2len_+1), 0);//matrix mit 0en initialisieren
   for (unsigned i = 1; i <= seq1len_; ++i) //vertikale mit gapkkosten initialisieren
-    matrix[i*(seq2len_+1)]=i*gapPenalty_;
+    matrix[i*(seq2len_+1)]=i*(-gapPenalty_);
   for (unsigned i =0; i<=seq2len_;++i)//horizontale mit gapkosten initialieren
-    matrix[i]=i*gapPenalty_;
+    matrix[i]=i*(-gapPenalty_);
   for (unsigned i=1;i<=seq1len_;++i)
   {
     for (unsigned j=1;j<=seq2len_;++j)
     {
-      matrix[i*(seq2len_ +1)+j]=max(max((matrix[i*(seq2len_+1)+j-1]+gapPenalty_), (matrix[(i-1)*(seq2len_+1)+j]+gapPenalty_)),
+      matrix[i*(seq2len_ +1)+j]=max(max((matrix[i*(seq2len_+1)+j-1]-gapPenalty_), (matrix[(i-1)*(seq2len_+1)+j]-gapPenalty_)),
                                     (matrix[(i-1)*(seq2len_+1)+j-1])+ (*matrixPtr_)[getIndex_(seq1[i-1], seq2[j-1])]);
     }
   }
@@ -269,7 +235,7 @@ double NeedlemanWunsch::align_(const String& seq1, const String& seq2) //vollst√
  */
 
 //linear space (2 Zeilen)
- double NeedlemanWunsch::align_(const String& seq1, const String& seq2)
+ int NeedlemanWunsch::align(const String& seq1, const String& seq2)
  {
    seq1len_ = seq1.length();
    seq2len_ = seq2.length();
@@ -282,17 +248,16 @@ double NeedlemanWunsch::align_(const String& seq1, const String& seq2) //vollst√
 
    for (unsigned i = 0; i <= seq2len_; ++i)//horizontale mit gapkosten initialieren
    {
-     firstRow.push_back(i * gapPenalty_);
+     firstRow.push_back(i * ((-1 * gapPenalty_)));
    }
 
    for (unsigned i = 1;i <= seq1len_; ++i) //second row berechnen und swappen
    {
-     (*secondRowPtr)[0] = i * gapPenalty_; //erster wert in der zeile mit gapkosten
+     (*secondRowPtr)[0] = i * ((-1 * gapPenalty_)); //erster wert in der zeile mit gapkosten
      for (unsigned j = 1; j <= seq2len_; ++j) //secondRow berechnen
      {
-       (*secondRowPtr)[j] = (max(max(((*secondRowPtr)[j-1] + gapPenalty_), ((*firstRowPtr)[j] + gapPenalty_)),
+       (*secondRowPtr)[j] = (max(max(((*secondRowPtr)[j-1] - gapPenalty_), ((*firstRowPtr)[j] - gapPenalty_)),
                                     ((*firstRowPtr)[j-1]) + (*matrixPtr_)[getIndex_(seq1[i-1], seq2[j-1])]));//statt getIndex: [seq1[i-1] - 'A'] [seq2[j-1] - 'A'] und matrix entsprechend aufbauen
-                                    //cout<<(*matrixPtr_)[getIndex_(seq1[i-1], seq2[j-1])]<<endl;
      }
      swap(firstRowPtr, secondRowPtr);
    }

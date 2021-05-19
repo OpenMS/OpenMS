@@ -1,6 +1,8 @@
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 
 
 namespace OpenMS
@@ -11,23 +13,24 @@ namespace OpenMS
   public:
     enum class ScoringMatrix
     {
-      PAM30MSMatrix,
-      identityMatrix
+      PAM30MS,
+      identity
     };
 
     NeedlemanWunsch(ScoringMatrix matrix, int penalty);
 
     ~NeedlemanWunsch()=default;
 
-    double align_(const String& seq1, const String& seq2);
+    int align(const String& seq1, const String& seq2);
 
-    void setMatrix_(const ScoringMatrix& matrix);
+    void setMatrix(const ScoringMatrix& matrix);
 
-    void setPenalty_(const int& penalty);
+    void setPenalty(const int& penalty);
 
-    ScoringMatrix getMatrix_() const;
+    ScoringMatrix getMatrix() const;
 
-    int getPenalty_() const;
+    int getPenalty() const;
+
 
   private:
     int getIndexNEW_(const char& a) const; // falls wir mit Matrix[i][j] Elementen arbeiten
