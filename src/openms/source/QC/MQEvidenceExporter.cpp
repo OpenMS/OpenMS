@@ -300,7 +300,8 @@ void MQEvidence::exportRowFromFeature(
 
         if(pep_seq.getResidue(i).isModified())
         {
-            ++modifications[pep_seq.getResidue(i).getModificationName()]; //TODO::Check
+            ++modifications[pep_seq.getResidue(i).getModificationName()];
+            ++modifications[pep_seq.getResidue(i).getResidueTypeName().]
         }
     }
     file_ <<  modifications["Oxidation [M]"] << "\t"; // Oxidation (M)
