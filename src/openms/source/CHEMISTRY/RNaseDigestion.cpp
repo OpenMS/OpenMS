@@ -48,10 +48,14 @@ namespace OpenMS
         dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
     String five_prime_code = rnase->getFivePrimeGain();
     if (five_prime_code == "p")
+    {
       five_prime_code = "5'-p";
+    }
     String three_prime_code = rnase->getThreePrimeGain();
     if (three_prime_code == "p")
+    {  
       three_prime_code = "3'-p";
+    }
 
     static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
     five_prime_gain_ = five_prime_code.empty() ?
@@ -88,14 +92,16 @@ namespace OpenMS
       const NASequence& rna, Size min_length, Size max_length) const
   {
     if (min_length == 0)
-      min_length = 1;
+      {
+        min_length = 1;
+      }
     if ((max_length == 0) || (max_length > rna.size()))
     {
       max_length = rna.size();
     }
 
     vector<pair<Size, Size>> result;
-    if (enzyme_->getName() == NoCleavage)// no cleavage
+    if (enzyme_->getName() == NoCleavage) // no cleavage
     {
       Size length = rna.size();
       if ((length >= min_length) && (length <= max_length))
@@ -103,7 +109,7 @@ namespace OpenMS
         result.emplace_back(0, length);
       }
     }
-    else if (enzyme_->getName() == UnspecificCleavage)// unspecific cleavage
+    else if (enzyme_->getName() == UnspecificCleavage) // unspecific cleavage
     {
       result.reserve(rna.size() * (max_length - min_length + 1));
       for (Size i = 0; i <= rna.size() - min_length; ++i)
@@ -115,7 +121,7 @@ namespace OpenMS
         }
       }
     }
-    else// proper enzyme cleavage
+    else // proper enzyme cleavage
     {
       vector<Size> fragment_pos(1, 0);
       for (Size i = 1; i < rna.size(); ++i)
@@ -126,14 +132,14 @@ namespace OpenMS
         {
           is_match = false;
         }
-        for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it)
+        for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it) // Check if the cuts_after_regexes all match
         {
           if (!boost::regex_search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode(), *it))
           {
             is_match = false;
           }
         }
-        for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it)
+        for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it) // Check if the cuts_before_regexes all match
         {
           if (!boost::regex_search(rna[i + (it - cuts_before_regexes_.begin())]->getCode(), *it))
           {
@@ -154,8 +160,7 @@ namespace OpenMS
         for (Size offset = 0; offset <= missed_cleavages_; ++offset)
         {
           Size end_it = start_it + offset + 1;
-          if (end_it >= fragment_pos.size())
-            break;
+          if (end_it >= fragment_pos.size()) break;
           Size end_pos = fragment_pos[end_it];
 
           Size length = end_pos - start_pos;
@@ -239,4 +244,4 @@ namespace OpenMS
     }
   }
 
-}// namespace OpenMS
+} // namespace OpenMS
