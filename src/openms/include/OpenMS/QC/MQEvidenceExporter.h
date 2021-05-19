@@ -85,18 +85,6 @@ private:
     /**
       @brief ASHORTDESCRIPTION_HERE
 
-        Gives a pointer best peptideHit referring to the score of a vector PeptideIdentifications
-        and the index of PeptideIdentification the best PeptideHit belongs to
-
-      @param vector of PeptideIdentifications
-
-      @return Returns pair of the index of the PeptideIdentification and the pointer to the best hit
-    */
-    std::pair<OpenMS::Size , const OpenMS::PeptideHit *> getBestPeptideHit(const std::vector<OpenMS::PeptideIdentification>& pep_ids);
-
-    /**
-      @brief ASHORTDESCRIPTION_HERE
-
         Set the given Pointer  to the best hit of the PeptideIdentifications of the Feature
 
       LONGER_DESCRIPTION HERE
@@ -113,11 +101,9 @@ private:
     */
     bool hasValidPepID(
             const OpenMS::Feature & f,
-            //const OpenMS::ConsensusMap &cmap,
             const OpenMS::Int64 c_feature_number,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
-            const OpenMS::ProteinIdentification::Mapping &mp_f,
-            const OpenMS::PeptideHit* & best);
+            const OpenMS::ProteinIdentification::Mapping &mp_f);
 
     /**
       @brief ASHORTDESCRIPTION_HERE
@@ -136,9 +122,7 @@ private:
 
       @return Returns true if the functions succeeds.
     */
-    bool hasPeptideIdentifications(
-            const OpenMS::ConsensusFeature& cf,
-            const OpenMS::PeptideHit*& best);
+    bool hasPeptideIdentifications(const OpenMS::ConsensusFeature& cf);
 
     /**
       @brief Export one Feature as a row in MQEvidence.txt

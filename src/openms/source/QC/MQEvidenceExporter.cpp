@@ -124,10 +124,7 @@ void MQEvidence::exportHeader()
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
-/*
- * Description:
- * Returns a distinct number for each protein
- */
+
 UInt64 MQEvidence::proteinGroupID(const String &protein)
 {
     auto it = protein_id_.find(protein);
@@ -142,33 +139,6 @@ UInt64 MQEvidence::proteinGroupID(const String &protein)
     }
 }
 
-/*
- * Description:
- * Returns a pair that includes the index of the PeptideIdentification
- * the best PeptideHit is refering to and a pointer to the best PeptideHit itself
- *
- */
-std::pair<Size , const PeptideHit *> MQEvidence::getBestPeptideHit(const std::vector<PeptideIdentification>& pep_ids)
-{   const PeptideHit * best = &pep_ids[0].getHits()[0];
-    Size pep_id = 0;
-    for(Size i = 0; i < pep_ids.size();++i)
-    {
-        for (const PeptideHit &hit : pep_ids[i].getHits()) {
-            if (best->getScore() < hit.getScore())
-            {
-                best = &hit;
-                pep_id = i;
-            }
-        }
-    }
-    return std::make_pair(pep_id,best);
-}
-
-/*
- * Description:
- * Returns a map that includes the information
- * which feature is mapped to which consensus feature
- */
 std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex(const ConsensusMap & cmap)
 {
     std::map<UInt64, Size> f_to_ci;
@@ -184,30 +154,18 @@ std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex(const Conse
     return f_to_ci;
 }
 
-/*
- * Description:
- * Checks if a PeptideIdentification of a Feature can be used
- * for the Export
- * Returns true for yes and false for no
- * changes the pointer of the best hit to the best hit
- * of the PeptideIdentifications of the Feature
- */
 bool MQEvidence::hasValidPepID(
         const Feature & f,
-        //const ConsensusMap &cmap,
         const Int64 c_feature_number,
         const std::multimap<OpenMS::String, std::pair<OpenMS::Size,OpenMS::Size>> &UIDs,
-        const ProteinIdentification::Mapping &mp_f,
-        const PeptideHit* & best)
+        const ProteinIdentification::Mapping &mp_f)
 {
     const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
     if(pep_ids_f.empty())
     {
         return false;
     }
-    std::pair<Size,const PeptideHit*> hit = getBestPeptideHit(pep_ids_f);
-    best = hit.second;
-    const PeptideIdentification & best_pep_id = pep_ids_f[hit.first];
+    const PeptideIdentification & best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
     String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
     const auto range = UIDs.equal_range(best_uid);
     for (auto it_pep = range.first; it_pep != range.second; ++it_pep)
@@ -220,27 +178,16 @@ bool MQEvidence::hasValidPepID(
     return false;
 }
 
-/*
- * Description:
- * export one Feature as one row in MQEvidence.txt
- */
-bool MQEvidence::hasPeptideIdentifications(
-        const ConsensusFeature& cf,
-        const PeptideHit*& best)
+bool MQEvidence::hasPeptideIdentifications(const ConsensusFeature& cf)
 {
     const std::vector<PeptideIdentification> &pep_ids_c = cf.getPeptideIdentifications();
     if(pep_ids_c.empty()){
         return false;
     }
-    best = getBestPeptideHit(pep_ids_c).second;
     return true;
 
 }
 
-/*
- * Description:
- * export Feature as one row in MQEvidence.txt
- */
 void MQEvidence::exportRowFromFeature(
         const Feature &f,
         const ConsensusMap &cmap,
@@ -250,9 +197,10 @@ void MQEvidence::exportRowFromFeature(
         const ProteinIdentification::Mapping &mp_f)
 {
     const PeptideHit * pep_hits_max; // the best hit referring to score
+    const ConsensusFeature & cf = cmap[c_feature_number];
     UInt64 pep_ids_size = 0;
     String type;
-    if(hasValidPepID(f, c_feature_number, UIDs, mp_f, pep_hits_max))
+    if(hasValidPepID(f, c_feature_number, UIDs, mp_f))
     {
         for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i)
         {
@@ -260,10 +208,12 @@ void MQEvidence::exportRowFromFeature(
             else break;
         }
         type = "MULTI-MSMS";
+        pep_hits_max = &f.getPeptideIdentifications()[0].getHits()[0];
     }
-    else if(hasPeptideIdentifications(cmap[c_feature_number], pep_hits_max))
+    else if(hasPeptideIdentifications(cf))
     {
         type = "MULTI-MATCH";
+        pep_hits_max = &cf.getPeptideIdentifications()[0].getHits()[0];
     }
     else
     {
@@ -411,10 +361,6 @@ void MQEvidence::exportRowFromFeature(
     file_ << "\n";
 }
 
-/*
- * Description:
- * export all Features as one row in MQEvidence.txt
- */
 void MQEvidence::exportFeatureMapTotxt(
         const FeatureMap& feature_map,
         const ConsensusMap& cmap)
@@ -443,7 +389,7 @@ void MQEvidence::exportFeatureMapTotxt(
         }
         else
         {
-            exportRowFromFeature(f, cmap, -1, raw_file, UIDs, mp_f); // Feature is not mapped to a ConsensusFeature
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature in FeatureMap has no associated ConsensusFeature.");
         }
     }
 }
