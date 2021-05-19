@@ -211,7 +211,7 @@ namespace OpenMS
     //general
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
     defaultsToParam_();
@@ -254,7 +254,7 @@ namespace OpenMS
     connect(desc_, SIGNAL(textChanged()), this, SLOT(descriptionUpdated_()));
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     // set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = File::getUniqueName(false).toQString();
@@ -1189,7 +1189,7 @@ namespace OpenMS
       return;
 
     //reset
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     //update if the current layer has a path associated TODO
     //if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")

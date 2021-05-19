@@ -48,6 +48,7 @@
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //STL
 #include <map>
@@ -151,11 +152,24 @@ public:
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    /// Used for deciding whether new tool/util params should be generated or reused from TOPPView's ini file
+    enum class TOOL_SCAN
+    {
+      /**
+         TVToolDiscovery does not generate params for each tool/util unless they are absolutely needed and could not be
+         extracted from TOPPView's ini file. This may be useful for testing.
+      */
+      SKIP_SCAN,
+      /// Only generate params for each tool/util if TOPPView's last ini file has an older version. (Default behaviour)
+      SCAN_IF_NEWER_VERSION,
+      /// Forces TVToolDiscovery to generate params and using them instead of the params in TOPPView's ini file
+      FORCE_SCAN
+    };
+
     ///Constructor
-    TOPPViewBase(QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
-
 
     enum class LOAD_RESULT
     {
@@ -426,6 +440,11 @@ protected:
     /// Log output window
     LogWindow* log_;
 
+    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    TOOL_SCAN scan_mode_;
+    /// Scans for tools/utils and generates a param for each.
+    TVToolDiscovery tool_scanner_;
+
     /** @name Toolbar
     */
     //@{
@@ -520,6 +539,9 @@ protected:
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
+
+    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
+    void addToolParamsToIni_();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

@@ -98,6 +98,11 @@ We only read the q-value for protein groups since Percolator has a more elaborat
 For proteins we add q-value as main score and PEP as metavalue.
 For PSMs you can choose the main score. Peptide level FDRs cannot be parsed and used yet.</p>
 
+Multithreading: The thread parameter is passed to percolator.
+Note: By default, a minimum of 3 threads is used (default of percolator) even if the number of threads
+is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
+by setting the force flag.     
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PercolatorAdapter.cli
   <B>INI file documentation of this tool:</B>
@@ -262,7 +267,7 @@ protected:
     registerFlag_("protein_level_fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy_pattern to set the Fasta file and decoy pattern.");
     
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: the data level selected for scoring.", !is_required);
-    setValidStrings_("osw_level", StringList(&OSWFile::names_of_oswlevel[0], &OSWFile::names_of_oswlevel[(int)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL]));
+    setValidStrings_("osw_level", StringList(OSWFile::names_of_oswlevel.begin(), OSWFile::names_of_oswlevel.end()));
     
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
     setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
@@ -1030,6 +1035,19 @@ protected:
         if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       }
       
+      int cv_threads = getIntOption_("threads"); // pass-through of OpenMS thread parameter
+
+      if (cv_threads != 3) // default in percolator is 3
+      {
+        // If a lower than default value (3) is chosen the user needs to enforce it.
+        // This ensures that existing workflows (which implicitly used 3 threads) don't slow down
+        // if e.g. the OpenMS version and this adapter is updated.
+        if (cv_threads > 3 || getFlag_("force"))
+        { 
+          arguments << "--num-threads" << String(cv_threads).toQString();
+        }
+      }
+      
       double cpos = getDoubleOption_("cpos");
       double cneg = getDoubleOption_("cneg");
       if (cpos != 0.0) arguments << "-p" << String(cpos).toQString();
@@ -1243,7 +1261,7 @@ protected:
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
         it->setSearchEngine("Percolator");
-        it->setSearchEngineVersion("3.02");
+        it->setSearchEngineVersion("3.05"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1268,7 +1286,7 @@ protected:
           if (protein_level_fdrs)
           {
             it->setInferenceEngine("Percolator");
-            it->setInferenceEngineVersion("3.02");
+            it->setInferenceEngineVersion("3.05");
           }
           it->setScoreType("q-value");
           it->setHigherScoreBetter(false);

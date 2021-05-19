@@ -271,6 +271,11 @@ public:
     {
       return s.toFloat();
     }
+    template<>
+    inline std::string convert(const String& s)
+    {
+        return static_cast<std::string>(s);
+    }
   }
 
   template <typename T>

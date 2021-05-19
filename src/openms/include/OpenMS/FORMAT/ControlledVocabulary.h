@@ -154,7 +154,7 @@ public:
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    void getAllChildTerms(std::set<String>& terms, const String& parent) const;
+    void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
         @brief Iterates over all children of parent recursively.
@@ -166,11 +166,12 @@ public:
                  you can just return false always to not quit early.
     */
     template <class LAMBDA>
-    bool iterateAllChildren(const String& parent, LAMBDA lbd) const
+    bool iterateAllChildren(const String& parent_id, LAMBDA lbd) const
     {
-      for (const auto& child : getTerm(parent).children)
+      for (const auto& child_id : getTerm(parent_id).children)
       {
-        if (lbd(child) || iterateAllChildren(child, lbd)) return true;
+        if (lbd(child_id) || iterateAllChildren(child_id, lbd))
+          return true;
       }
       return false;
     }

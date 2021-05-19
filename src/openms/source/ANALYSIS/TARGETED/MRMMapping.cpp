@@ -50,10 +50,10 @@ namespace OpenMS
       defaults_.setValue("product_tolerance", 0.1, "Product tolerance when mapping (in Th)");
 
       defaults_.setValue("map_multiple_assays", "false", "Allow to map multiple assays to chromatograms and duplicate these chromatograms in the output.");
-      defaults_.setValidStrings("map_multiple_assays", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("map_multiple_assays", {"true","false"});
 
       defaults_.setValue("error_on_unmapped", "false", "Treat remaining, unmapped chromatograms as an error");
-      defaults_.setValidStrings("error_on_unmapped", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("error_on_unmapped", {"true","false"});
 
       // write defaults into Param object param_
       defaultsToParam_();

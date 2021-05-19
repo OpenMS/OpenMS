@@ -57,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("resolver:min_length", 6, "Minimum length of peptide");
     defaults_.setMinInt("resolver:min_length", 1);
     defaults_.setValue("resolver:enzyme", "Trypsin", "Digestion enzyme");
-    defaults_.setValidStrings("resolver:enzyme", ListUtils::create<String>("Trypsin"));
+    defaults_.setValidStrings("resolver:enzyme", {"Trypsin"});
 
     defaults_.setSectionDescription("resolver", "Additional options for algorithm");
 
@@ -444,7 +444,7 @@ namespace OpenMS
                                            vector<ISDGroup> & isd_groups)
   {
     ProteaseDigestion digestor;
-    String enzyme_name = param_.getValue("resolver:enzyme");
+    String enzyme_name = param_.getValue("resolver:enzyme").toString();
     digestor.setEnzyme(enzyme_name);
     UInt min_size = param_.getValue("resolver:min_length");
     UInt missed_cleavages = param_.getValue("resolver:missed_cleavages");

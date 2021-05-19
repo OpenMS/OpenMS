@@ -65,7 +65,7 @@ public:
     ~EmgModel() override;
 
     /// assignment operator
-    virtual EmgModel & operator=(const EmgModel & source);
+    EmgModel & operator=(const EmgModel & source);
 
     /// create new EmgModel object (needed by Factory)
     static BaseModel<1> * create()

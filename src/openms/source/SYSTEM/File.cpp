@@ -92,49 +92,46 @@ namespace OpenMS
   String File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
-    static String spath = "";
-    static bool path_checked = false;
+    // Use immediately evaluated lambda to protect static variable from concurrent access.
+    static String spath = [&]() -> String {
+        String rpath = "";
 
-    // short route. Only inquire the path once. The result will be the same every time.
-    if (path_checked) return spath;
-
-    char path[1024]; // maximum path length
+        char path[1024]; // maximum path length
 
 #ifdef OPENMS_WINDOWSPLATFORM
-    int size = sizeof(path);
-    if (GetModuleFileName(NULL, path, size))
+        int size = sizeof(path);
+        if (GetModuleFileName(NULL, path, size))
 #elif  defined(__APPLE__)
-    uint size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0)
+        uint size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0)
 #else // LINUX
-    // note: implementation as suggested by readlink man page
-    ssize_t len = ::readlink("/proc/self/exe", path, sizeof(path)-1);
-    if (len != -1) //add 0 terminator at end
-    {
-      path[len] = '\0';
-    }
+        // note: implementation as suggested by readlink man page
+        ssize_t len = ::readlink("/proc/self/exe", path, sizeof(path)-1);
+        if (len != -1) //add 0 terminator at end
+        {
+          path[len] = '\0';
+        }
 
-    if (len != -1)
+        if (len != -1)
 #endif
-    {
-      spath = File::path(String(path));
-      if (File::exists(spath)) // check if directory exists
-      {
-        // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
-        spath.ensureLastChar('/');
-      }
-      else
-      {
-        std::cerr << "Path extracted from Executable Path does not exist! Returning empty string!\n";
-        spath = "";
-      }
-    }
-    else
-    {
-      std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
-    }
+        {
+          rpath = File::path(String(path));
+          if (File::exists(rpath)) // check if directory exists
+          {
+            // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
+            rpath.ensureLastChar('/');
+          } 
+          else 
+          {
+            std::cerr << "Path '" << rpath << "' extracted from Executable Path '" << path << "' does not exist! Returning empty string!\n";
+            rpath = "";
+          }
+        } else {
+          std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
+        }
 
-    path_checked = true; // enable short route for next run
+        return rpath;
+    }();
     return spath;
   }
 
@@ -315,15 +312,18 @@ namespace OpenMS
   }
 
   String File::basename(const String& file)
-  {
-    QFileInfo fi(file.toQString());
-    return fi.fileName();
+  { // using well-defined overflow of unsigned ints here if path separator is not found
+    return file.substr(file.find_last_of("\\/") + 1);
   }
 
   String File::path(const String& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.path();
+    size_t pos = file.find_last_of("\\/");
+    // do NOT return an empty string, because this leads to issues when in generic code you do:
+    // String new_path = path("a.txt") + '/' + basename("a.txt");
+    // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
+    String no_path = "."; 
+    return pos == string::npos ? no_path : file.substr(0, pos);
   }
 
   bool File::readable(const String& file)
@@ -452,7 +452,7 @@ namespace OpenMS
 #else
     pid = (String)getpid();
 #endif
-    static int number = 0;
+    static std::atomic_int number = 0;
     return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + (include_hostname ? String(QHostInfo::localHostName()) + "_" : "")  + pid + "_" + (++number);
   }
 
@@ -521,7 +521,7 @@ namespace OpenMS
         std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
       }
 #ifdef OPENMS_WINDOWSPLATFORM
-      String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
+      String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
 #else
       String share_dir = "/usr/share/OpenMS";
 #endif
@@ -553,9 +553,9 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    else if (p.exists("temp_dir") && String(p.getValue("temp_dir").toString()).trim() != "")
     {
-      dir = p.getValue("temp_dir");
+      dir = p.getValue("temp_dir").toString();
     }
     else
     {
@@ -573,9 +573,9 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    else if (p.exists("home_dir") && String(p.getValue("home_dir").toString()).trim() != "")
     {
-      dir = p.getValue("home_dir");
+      dir = p.getValue("home_dir").toString();
     }
     else
     {
@@ -591,12 +591,12 @@ namespace OpenMS
     String full_db_name;
     try
     {
-      full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
+      full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
       OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
     }
     catch (Exception::FileNotFound& e)
     {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
     }
 
@@ -661,7 +661,7 @@ namespace OpenMS
     p.setValue("version", VersionInfo::getVersion());
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
-    p.setValue("id_db_dir", ListUtils::create<String>(""),
+    p.setValue("id_db_dir", std::vector<std::string>(),
                String("Default directory for FASTA and psq files used as databased for id engines. ") + \
                "This allows you to specify just the filename of the DB in the " + \
                "respective TOPP tool, and the database will be searched in the directories specified here " + \
@@ -775,12 +775,14 @@ namespace OpenMS
   const String& File::TemporaryFiles_::newFile()
   {
     String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
+    std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
     return filenames_.back();
   }
 
   File::TemporaryFiles_::~TemporaryFiles_()
   {
+    std::lock_guard<std::mutex> _(mtx_);
     for (Size i = 0; i < filenames_.size(); ++i)
     {
       if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 

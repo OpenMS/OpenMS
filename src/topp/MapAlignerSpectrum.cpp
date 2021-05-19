@@ -135,7 +135,7 @@ protected:
     StringList outs = getStringList_("out");
     StringList trafos = getStringList_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
     model_params = model_params.copy(model_type + ":", true);
     std::vector<TransformationDescription> transformations;
 
