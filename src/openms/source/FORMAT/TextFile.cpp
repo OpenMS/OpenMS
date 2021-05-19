@@ -128,6 +128,7 @@ namespace OpenMS
     { // the stream has an error
       return is;
     }
+
     std::streambuf* sb = is.rdbuf();
 
     for (;;)

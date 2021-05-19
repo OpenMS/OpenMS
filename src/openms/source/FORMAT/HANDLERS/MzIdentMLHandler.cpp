@@ -1088,7 +1088,7 @@ namespace OpenMS
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
-        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\][(\\d+)\\+]*"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\][(\d+)\+]*)"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         String ionseries_index;
         String iontype;
         //String loss_gain;

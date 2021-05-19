@@ -87,7 +87,7 @@ public:
     Size reference_channel_;
 
     /// List of available channel names as they are presented to the user
-    static const std::vector<String> channel_names_;
+    static const std::vector<std::string> channel_names_;
 
   protected:
     /// implemented for DefaultParamHandler
