@@ -183,7 +183,7 @@ if iswin:
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
-    extra_compile_args.append("-std=c++17")
+    extra_compile_args.append("/std:c++17")
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
