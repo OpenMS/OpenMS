@@ -1,6 +1,8 @@
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 
 
 namespace OpenMS
@@ -28,6 +30,7 @@ namespace OpenMS
     ScoringMatrix getMatrix() const;
 
     int getPenalty() const;
+
 
   private:
     int getIndex_(const char& a, const char& b) const;

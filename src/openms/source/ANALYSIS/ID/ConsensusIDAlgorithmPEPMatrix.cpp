@@ -42,45 +42,51 @@ namespace OpenMS
   {
     setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
 
-    defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alognment-based similarity scoring");
+    defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alignment-based similarity scoring");
     defaults_.setValidStrings("matrix", {"identity","PAM30MS"});
-    defaults_.setValue("penalty", -5, "Alignment gap penalty (the same value is used for gap opening and extension)");
+    defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
     defaults_.setMinInt("penalty", -1);
 
     defaultsToParam_();
 
   }
-/*
-  void ConsensusIDAlgorithmPEPMatrix::updateParams_(const NeedlemanWunsch::ScoringMatrix& matrix)
+
+  void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
   {
-    if (matrix == NeedlemanWunsch::ScoringMatrix::identity)
+    //ConsenusIDAlgorithmSimilarity::updateMembers_(); // error: has not been declared
+
+    string matrix = param_.getValue("matrix");
+    int penalty = param_.getValue("penalty");
+    if (matrix == "identity")
     {
-      defaults_.setValue("matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");
+      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::identity);
+    }
+    else if (matrix == "PAM30MS")
+    {
+      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::PAM30MS);
+    }
+    else
+    {
+      String msg = "Matrix is not known! Valid choices are: "
+                   "'identity', 'PAM30MS'.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
+    }
+    if (penalty > 0)
+    {
+      object_.setPenalty(penalty);
+    }
+    else
+    {
+      String msg = "Gap penalty should be positive";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
     }
 
-    else if (matrix == NeedlemanWunsch::ScoringMatrix::PAM30MS)
-    {
-      defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alignment-based similarity scoring");
-    }
-
-    //params_ up to date machen und die funktion nach set matrix ud penalty aufrufen
-
-    defaultsToParam_();
+    // new parameters may affect the similarity calculation, so clear cache:
+    similarities_.clear();
 
   }
-
-    void ConsensusIDAlgorithmPEPMatrix::updateParams_(const int& penalty)
-  {
-
-      defaults_.setValue("penalty", penalty, "Alignment gap penalty (the same value is used for gap opening and extension)");
-
-    //params_ up to date machen und die funktion nach set matrix ud penalty aufrufen
-
-    defaultsToParam_();
-
-  }
-
-*/
 
   double ConsensusIDAlgorithmPEPMatrix::getSimilarity_(AASequence seq1,
                                                        AASequence seq2)
