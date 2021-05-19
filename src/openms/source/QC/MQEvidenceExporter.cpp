@@ -250,11 +250,11 @@ void MQEvidence::exportRowFromFeature(
 
         if(pep_seq.getResidue(i).isModified())
         {
-            ++modifications[pep_seq.getResidue(i).getModificationName()];
-            ++modifications[pep_seq.getResidue(i).getResidueTypeName().]
+            ++modifications[pep_seq.getResidue(i).getModification()->getFullId()];
         }
     }
-    file_ <<  modifications["Oxidation [M]"] << "\t"; // Oxidation (M)
+    modifications.find("Oxidation (M)") == modifications.end() ? file_<< "0" <<"\t" : file_ << modifications.find("Oxidation (M)")->second << "\t";
+
     if(modifications.empty())
     {
         file_ << "Unmodified" << "\t";
@@ -339,7 +339,6 @@ void MQEvidence::exportRowFromFeature(
     {
         file_ << double(f.getMetaValue("rt_align"))/60 << "\t"; // Calibrated Retention Time
         file_ << (f.getRT() - double(f.getMetaValue("rt_align")))/60 << "\t"; // Retention time calibration
-        file_ << double(f.getMetaValue("rt_align"))- cmap[c_feature_number].getRT() << "\t"; // Match time diff
     }
     else
     {
@@ -354,7 +353,7 @@ void MQEvidence::exportRowFromFeature(
     }
     else
     {
-        file_ << f.getRT() - cmap[c_feature_number].getRT() << "\t";    //Match time diff
+        f.metaValueExists("rt_align") ? file_ << double(f.getMetaValue("rt_align"))- cmap[c_feature_number].getRT() << "\t" : file_ << "NA" << "\t"; // Match time diff
         file_ << f.getMZ() - cmap[c_feature_number].getMZ() << "\t";    //Match mz diff
     }
     file_ << raw_file << "\t"; // Raw File
