@@ -39,6 +39,7 @@
 
 #include <string>
 
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -440,6 +441,30 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
   TEST_EQUAL(peptide_hits.size(), 2)
   TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
   TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
+}
+END_SECTION
+
+START_SECTION(fillConsensusPepIDMap)
+{
+  ConsensusMap cmap;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
+  std::multimap<String, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
+
+  auto b = map_of_UIDs.begin();
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=112")
+  TEST_EQUAL(b->second.first, Size(-1))
+  TEST_EQUAL(b->second.second, 4)
+  ++b;
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=113")
+  TEST_EQUAL(b->second.first, 11)
+  TEST_EQUAL(b->second.second, 0)
+  ++b;
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=118");
+  TEST_EQUAL(b->second.first, 4);
+  TEST_EQUAL(b->second.second, 0);
 }
 END_SECTION
 
