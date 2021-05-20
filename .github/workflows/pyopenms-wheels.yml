@@ -472,7 +472,7 @@ jobs:
         user: __token__
         password: ${{ secrets.pypi_api_token }}
         packages_dir: ${{ github.workspace }}/wheels
-        
+
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
       uses: pypa/gh-action-pypi-publish@master

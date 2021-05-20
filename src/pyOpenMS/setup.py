@@ -184,6 +184,7 @@ if iswin:
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
     extra_compile_args.append("/std:c++17")
+    extra_link_args.append("/std:c++17")
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
@@ -199,6 +200,7 @@ if not iswin:
     if isosx: # MacOS c++11
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
         extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
+        extra_link_args.append("-std=c++17")
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
