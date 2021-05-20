@@ -420,7 +420,7 @@ protected:
 
       if(export_evidence.isValid())
       {
-        export_evidence.exportFeatureMapTotxt(fmap_local,cmap);
+        export_evidence.exportFeatureMap(fmap_local,cmap);
       }
 
     }

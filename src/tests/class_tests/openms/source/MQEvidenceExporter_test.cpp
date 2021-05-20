@@ -62,20 +62,20 @@ START_SECTION(MQEvidence())
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION(exportFeatureMap())
+START_SECTION((void exportFeatureMap(const OpenMS::FeatureMap& feature_map,const OpenMS::ConsensusMap& cmap)))
 {
     MQEvidence evd(path);
     ConsensusMap cmap;
     ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
     FeatureMap fmap_one;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
-    evd.exportFeatureMapTotxt(fmap_one,cmap);
+    evd.exportFeatureMap(fmap_one,cmap);
     FeatureMap fmap_two;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
-    evd.exportFeatureMapTotxt(fmap_two,cmap);
+    evd.exportFeatureMap(fmap_two,cmap);
     FeatureMap fmap_three;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
-    evd.exportFeatureMapTotxt(fmap_three,cmap);
+    evd.exportFeatureMap(fmap_three,cmap);
     String filename = path + "/evidence.txt";
     TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }

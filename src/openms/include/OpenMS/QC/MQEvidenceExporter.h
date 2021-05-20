@@ -151,7 +151,7 @@ public:
 
       @param feature_map and cmap are used to extract data.
     */
-    void exportFeatureMapTotxt(
+    void exportFeatureMap(
             const OpenMS::FeatureMap& feature_map,
             const OpenMS::ConsensusMap& cmap);
 };

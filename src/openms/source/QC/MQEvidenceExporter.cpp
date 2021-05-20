@@ -367,7 +367,7 @@ void MQEvidence::exportRowFromFeature(
     file_ << "\n";
 }
 
-void MQEvidence::exportFeatureMapTotxt(
+void MQEvidence::exportFeatureMap(
         const FeatureMap& feature_map,
         const ConsensusMap& cmap)
 {
