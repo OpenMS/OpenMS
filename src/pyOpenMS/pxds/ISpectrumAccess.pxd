@@ -1,6 +1,6 @@
 from Types  cimport *
 from smart_ptr cimport shared_ptr
-from libcpp.string cimport string as libcpp_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 
@@ -25,5 +25,5 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>" namespace
 
       shared_ptr[OSChromatogram] getChromatogramById(int id_) nogil except +
       size_t getNrChromatograms() nogil except +
-      libcpp_string getChromatogramNativeID(int id_) nogil except +
+      libcpp_utf8_output_string getChromatogramNativeID(int id_) nogil except +
 

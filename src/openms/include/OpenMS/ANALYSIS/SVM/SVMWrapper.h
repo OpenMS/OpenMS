@@ -511,8 +511,8 @@ private:
     std::vector<std::vector<double> > gauss_tables_; ///< lookup table for fast computation of the combined oligo kernel
     Size kernel_type_; ///< the actual kernel type
     Size  border_length_; ///< the actual kernel type
-    svm_problem* training_set_; ///< the training set
-    svm_problem* training_problem_; ///< the training set
+    svm_problem* training_set_ = nullptr; ///< the training set
+    svm_problem* training_problem_ = nullptr; ///< the training set
     SVMData training_data_; ///< the training set (different encoding)
     Math::RandomShuffler shuffler_; ///< random shuffler to create training partitions
   };

@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 
@@ -152,6 +154,27 @@ namespace OpenMS
     {
       return true;
     }
+  }
+
+  FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)
+  {
+    FileTypes::Type t_file = getTypeByFileName(output_filename);
+    FileTypes::Type t_req = FileTypes::nameToType(requested_type);
+    // both UNKNOWN
+    if (t_file == FileTypes::Type::UNKNOWN && t_req == FileTypes::Type::UNKNOWN) 
+    {
+      OPENMS_LOG_ERROR << "Type of '" << output_filename << "' and requested output type '" << requested_type << "' are both unknown." << std::endl;
+      return FileTypes::Type::UNKNOWN;
+    }
+    // or inconsistent (while both are known)
+    if ((t_file != t_req) && (t_file != FileTypes::Type::UNKNOWN) + (t_req != FileTypes::Type::UNKNOWN) == 2)
+    {
+      OPENMS_LOG_ERROR << "Type of '" << output_filename << "' and requested output type '" << requested_type << "' are inconsistent." << std::endl;
+      return FileTypes::Type::UNKNOWN;
+    }
+
+    if (t_file != FileTypes::Type::UNKNOWN) return t_file;
+    else return t_req;
   }
 
   FileTypes::Type FileHandler::getTypeByContent(const String& filename)
@@ -585,7 +608,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
 
-    //load right file
+    // load right file
     switch (type)
     {
     case FileTypes::DTA:
@@ -595,65 +618,60 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       break;
 
     case FileTypes::DTA2D:
-    {
-      DTA2DFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.load(filename, exp);
-    }
-
-    break;
+      {
+        DTA2DFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
     case FileTypes::MZXML:
-    {
-      MzXMLFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.load(filename, exp);
-    }
-
-    break;
+      {
+        MzXMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
     case FileTypes::MZDATA:
-    {
-      MzDataFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.load(filename, exp);
-    }
-    break;
+      {
+        MzDataFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
     case FileTypes::MZML:
-    {
-      MzMLFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.load(filename, exp);
-      ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
-    }
-    break;
+      {
+        MzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
+      }
+      break;
 
     case FileTypes::MGF:
-    {
-      MascotGenericFile f;
-      f.setLogType(log);
-      f.load(filename, exp);
-    }
-
-    break;
+      {
+        MascotGenericFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
     case FileTypes::MS2:
-    {
-      MS2File f;
-      f.setLogType(log);
-      f.load(filename, exp);
-    }
-
-    break;
+      {
+        MS2File f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
     case FileTypes::SQMASS:
       SqMassFile().load(filename, exp);
-
       break;
 
     case FileTypes::XMASS:
@@ -661,7 +679,10 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.resize(1);
       XMassFile().load(filename, exp[0]);
       XMassFile().importExperimentalSettings(filename, exp);
-
+      break;
+  
+    case FileTypes::MSP:
+      MSPGenericFile().load(filename, exp);
       break;
 
     default:

@@ -192,7 +192,7 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)
@@ -225,7 +225,7 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)

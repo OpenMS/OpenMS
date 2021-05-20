@@ -134,7 +134,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
             for val in mdef.get_enumvalue():
                 enumr += "        %s\n" % val.get_name()
-            tres.setMessage(tres.getMessage() + enumr)
+            tres.setMessage(tres.what() + enumr)
         elif len(klass[0].items) != len(mdef.get_enumvalue()):
             tres.setPassed(False)
             tres.setMessage("TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
@@ -911,8 +911,8 @@ class TestResultHandler:
       ) )
                 xml_output.append(" " * 6 + '<Measurement>\n')
                 xml_output.append(" " * 8 + '<Value>\n')
-                if not tres.getMessage() is None:
-                    xml_output.append(" " * 10 +  xml_escape(tres.getMessage() ) + "\n")
+                if not tres.what() is None:
+                    xml_output.append(" " * 10 +  xml_escape(tres.what() ) + "\n")
                 xml_output.append(" " * 8 + '</Value>\n')
                 xml_output.append(" " * 6 + '</Measurement>\n')
 

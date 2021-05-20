@@ -203,37 +203,41 @@ namespace OpenMS
               .getValue("loopy_belief_propagation:dampening_lambda");
           double initConvergenceThreshold = param_.getValue(
               "loopy_belief_propagation:convergence_threshold");
-          String scheduler_type = param_.getValue(
+          std::string scheduler_type = param_.getValue(
               "loopy_belief_propagation:scheduling_type");
 
-          evergreen::Scheduler<IDBoostGraph::vertex_t>* scheduler;
+          std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>> scheduler;
           if (scheduler_type == "priority")
           {
-             scheduler =
-                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                     initConvergenceThreshold,
-                                                                     maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(
+                 initDampeningLambda,
+                 initConvergenceThreshold,
+                 maxMessages));
           }
           else if (scheduler_type == "subtree")
           {
-            scheduler =
-                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                          initConvergenceThreshold,
-                                                                          maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(
+                    initDampeningLambda,
+                    initConvergenceThreshold,
+                    maxMessages));
           }
           else if (scheduler_type == "fifo")
           {
-            scheduler =
-                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                 initConvergenceThreshold,
-                                                                 maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(
+                  initDampeningLambda,
+                  initConvergenceThreshold,
+                  maxMessages));
           }
           else
           {
-            scheduler =
-                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                     initConvergenceThreshold,
-                                                                     maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(
+                    initDampeningLambda,
+                    initConvergenceThreshold,
+                    maxMessages));
           }
           scheduler->add_ab_initio_edges(ig);
 
@@ -305,10 +309,10 @@ namespace OpenMS
           if (debug_lvl_ > 2)
           {
             std::ofstream ofs;
-            ofs.open ("failed_cc_a"+ String(param_.getValue("model_parameters:pep_emission")) +
-                "_b" + String(param_.getValue("model_parameters:pep_spurious_emission")) + "_g" +
-                String(param_.getValue("model_parameters:prot_prior")) + "_c" +
-                String(param_.getValue("model_parameters:pep_prior")) + "_p" + String(pnorm) + "_"
+            ofs.open ("failed_cc_a"+ (std::string)param_.getValue("model_parameters:pep_emission") +
+                "_b" + (std::string)param_.getValue("model_parameters:pep_spurious_emission") + "_g" +
+                (std::string)param_.getValue("model_parameters:prot_prior") + "_c" +
+                (std::string)param_.getValue("model_parameters:pep_prior") + "_p" + String(pnorm) + "_"
                 + String(idx) + ".dot"
                 , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
@@ -769,7 +773,7 @@ namespace OpenMS
     {
       switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
     }
-    catch (OpenMS::Exception::MissingInformation& e)
+    catch (OpenMS::Exception::MissingInformation& /*e*/)
     {
       throw OpenMS::Exception::MissingInformation(
           __FILE__,

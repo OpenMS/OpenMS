@@ -231,7 +231,7 @@ namespace OpenMS
     
     // determine prefix
     vector<String> split;
-    param.begin().getName().split(':', split);
+    String(param.begin().getName()).split(':', split);
     String prefix("");
     for (Size i = 0; i < split.size() - 1; ++i)
     {
@@ -242,10 +242,10 @@ namespace OpenMS
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
-      it.getName().split(':', split);
+      String(it.getName()).split(':', split);
       
       // new element started?
-      if (!it.getName().hasPrefix(prefix))
+      if (it.getName().compare(0, prefix.size(), prefix) != 0)
       {
         // update prefix
         prefix = "";
@@ -263,7 +263,7 @@ namespace OpenMS
 
       // top level: read the contents of the element section
       const String& key = split[2];
-      String value = it->value;
+      String value = String(it->value.toString());
       value.trim();
 
       // cout << "Key=" << key << endl;

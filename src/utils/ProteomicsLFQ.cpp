@@ -537,7 +537,7 @@ protected:
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
-      String model_type = model_params.getValue("type");
+      String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
       try
@@ -567,7 +567,7 @@ protected:
         if (getFlag_("force"))
         {
           OPENMS_LOG_ERROR
-            << "Error: alignment failed. Details:\n" << err.getMessage()
+            << "Error: alignment failed. Details:\n" << err.what()
             << "\nProcessing will continue using 'identity' transformations."
             << endl;
           model_type = "identity";
@@ -638,7 +638,7 @@ protected:
             transformations[i]);
         } catch (Exception::IllegalArgument& e)
         {
-          OPENMS_LOG_WARN << e.getMessage() << endl;
+          OPENMS_LOG_WARN << e.what() << endl;
         }
           
         if (debug_level_ > 666)
@@ -1709,7 +1709,7 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
         
-        if (getStringOption_("transfer_ids") != "false")
+        if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer

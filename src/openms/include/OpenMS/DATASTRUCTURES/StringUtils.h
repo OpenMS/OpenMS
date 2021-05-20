@@ -502,8 +502,8 @@ public:
     {
       if (method == String::ESCAPE)
       {
-        this_s.substitute(String("\\"), String("\\\\"));
-        this_s.substitute(String(q), "\\" + String(q));
+        this_s.substitute(String(R"(\)"), String(R"(\\)"));
+        this_s.substitute(String(q), R"(\)" + String(q));
       }
       else if (method == String::DOUBLE)
         this_s.substitute(String(q), String(q) + String(q));
@@ -523,8 +523,8 @@ public:
       this_s.std::string::operator=(this_s.substr(1, this_s.size() - 2)); // remove quotation marks
       if (method == String::ESCAPE)
       {
-        this_s.substitute("\\" + String(q), String(q));
-        this_s.substitute(String("\\\\"), String("\\"));
+        this_s.substitute(R"(\)" + String(q), String(q));
+        this_s.substitute(String(R"(\\)"), String(R"(\)"));
       }
       else if (method == String::DOUBLE)
         this_s.substitute(String(q) + String(q), String(q));

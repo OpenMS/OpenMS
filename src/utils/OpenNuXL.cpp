@@ -4658,12 +4658,12 @@ static void scoreXLIons_(
       p.setValue("precursor:mass_tolerance_unit", getStringOption_("precursor:mass_tolerance_unit"));
       p.setValue("fragment:mass_tolerance", fragment_mass_tolerance);
       p.setValue("fragment:mass_tolerance_unit", getStringOption_("fragment:mass_tolerance_unit"));
-      StringList var_mods = getStringList_("modifications:variable");
+      auto var_mods = ListUtils::create<std::string>(getStringList_("modifications:variable"));
       if (find(var_mods.begin(), var_mods.end(), "Phospho (S)") == var_mods.end()) { var_mods.push_back("Phospho (S)"); }
       if (find(var_mods.begin(), var_mods.end(), "Phospho (T)") == var_mods.end()) { var_mods.push_back("Phospho (T)"); }
       if (find(var_mods.begin(), var_mods.end(), "Phospho (Y)") == var_mods.end()) { var_mods.push_back("Phospho (Y)"); }
       if (find(var_mods.begin(), var_mods.end(), "Oxidation (M)") == var_mods.end()) { var_mods.push_back("Oxidation (M)"); }
-      StringList fixed_mods = getStringList_("modifications:fixed");
+      auto fixed_mods = ListUtils::create<std::string>(getStringList_("modifications:fixed"));
       p.setValue("modifications:fixed", fixed_mods);
       p.setValue("modifications:variable", var_mods);
       p.setValue("modifications:variable_max_per_peptide", 2);
@@ -4672,7 +4672,7 @@ static void scoreXLIons_(
       p.setValue("decoys", generate_decoys ? "true" : "false");
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", 
-        StringList{
+        vector<string>{
           Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
           Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
           Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,

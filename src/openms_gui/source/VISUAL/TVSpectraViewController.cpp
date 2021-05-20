@@ -57,7 +57,7 @@ namespace OpenMS
   void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
     auto ondisc_sptr = layer.getOnDiscPeakData();
@@ -68,9 +68,8 @@ namespace OpenMS
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
-      // fix legend and set layer name
+      // set layer name
       String caption = layer.getName() + "[" + index + "]";
-      w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, layer.filename, caption, false))
@@ -78,6 +77,11 @@ namespace OpenMS
         return;
       }
       w->canvas()->activateSpectrum(index);
+      
+      // set visible area to visible area in 2D view
+      // switch X/Y because now we want to have RT on the x-axis and not m/z
+      DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
+      w->canvas()->setVisibleArea(visible_area.swapDimensions());
     }
     else if (layer.type == LayerData::DT_PEAK)
     {
@@ -89,6 +93,14 @@ namespace OpenMS
         return;
       }
       w->canvas()->activateSpectrum(index);
+
+      //for MS1 spectra set visible area to visible area in 2D view.
+      UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
+      if (ms_level == 1)
+      {
+        // set visible area to visible area in 2D view
+        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
+      }
     }
     else
     {
@@ -100,30 +112,6 @@ namespace OpenMS
 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-
-    if (layer.type == LayerData::DT_PEAK)
-    {
-      //for MS1 spectra set visible area to visible area in 2D view.
-      UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-      if (ms_level == 1)
-      {
-        // set visible area to visible area in 2D view
-        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
-      }
-    }
-    else if (layer.type == LayerData::DT_CHROMATOGRAM)
-    {
-      // set visible area to visible area in 2D view
-      // switch X/Y because now we want to have RT on the x-axis and not m/z
-      DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-      int tmp_x1 = visible_area.minX();
-      int tmp_x2 = visible_area.maxX();
-      visible_area.setMinX(visible_area.minY());
-      visible_area.setMaxX(visible_area.maxY());
-      visible_area.setMinY(tmp_x1);
-      visible_area.setMaxY(tmp_x2);
-      w->canvas()->setVisibleArea(visible_area);
-    }
 
     // basic behavior 2
     String caption = layer.getName();
@@ -140,7 +128,6 @@ namespace OpenMS
 
   void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
   {
-
     // basic behavior 1
 
     // show multiple spectra together is only used for chromatograms directly
@@ -149,23 +136,19 @@ namespace OpenMS
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
-    // string for naming the different chromatogram layers with their index
-    String chromatogram_caption;
     // string for naming the tab title with the indices of the chromatograms
     String caption = layer.getName();
 
     //open new 1D widget
-    Plot1DWidget * w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
-    // fix legend if its a chromatogram
-    w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
+    Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
 
     for (const auto& index : indices)
     {
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
-        // fix legend and set layer name
+        // set layer name
         caption += String(" [") + index + "];";
-        chromatogram_caption = layer.getName() + "[" + index + "]";
+        String chromatogram_caption = layer.getName() + "[" + index + "]";
 
         // add chromatogram data as peak spectrum
         if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, layer.filename, chromatogram_caption, true))
@@ -176,13 +159,7 @@ namespace OpenMS
         // set visible area to visible area in 2D view
         // switch X/Y because now we want to have RT on the x-axis and not m/z
         DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-        int tmp_x1 = visible_area.minX();
-        int tmp_x2 = visible_area.maxX();
-        visible_area.setMinX(visible_area.minY());
-        visible_area.setMaxX(visible_area.maxY());
-        visible_area.setMinY(tmp_x1);
-        visible_area.setMaxY(tmp_x2);
-        w->canvas()->setVisibleArea(visible_area);
+        w->canvas()->setVisibleArea(visible_area.swapDimensions());
       }
     }
 

@@ -3,13 +3,13 @@ OpenMS
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/93e71bad214f46d2a534ec92dbc2efc9)](https://www.codacy.com/app/OpenMS/OpenMS?utm_source=github.com&utm_medium=referral&utm_content=OpenMS/OpenMS&utm_campaign=badger)
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS)
 [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.openhub.net/p/open-ms)
+[![Discord Shield](https://img.shields.io/discord/832282841836159006?logo=discord)](https://discord.gg/4TAGhqJ7s5)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
 [![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
-
+[![Anaconda-Server Badge](https://anaconda.org/openms/pyopenms/badges/version.svg)](https://anaconda.org/openms/pyopenms)
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
 is an open-source software C++ library for LC-MS data management and
@@ -38,7 +38,7 @@ Berlin, and the ETH Zürich.
 
 Features
 --------
-- Core C++ library under three-clause BSD licence using modern C++11
+- Core C++ library under three-clause BSD licence using modern C++17
 - Python bindings to the C++ API through pyOpenMS
 - Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML etc)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks

@@ -340,7 +340,6 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
     if (PDFLATEX_COMPILER)
-
       if (ENABLE_TUTORIALS)
         set(DOC_TUTORIALS_ACTIVE TRUE)
 
