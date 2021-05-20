@@ -168,24 +168,18 @@ public:
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
       /**
-      @brief Checks if Feature has valid PeptideIdentifications
+      @brief Builds MultiMap over UID and pair of index of ConsensusFeature in ConsensusMap and index of PeptideIdentification
 
-        If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
-        the functions returns false to show that something went wrong.
+      @param cmap is used to extract the ConsensusFeatures and their PeptideIdentifications and creates identifier_tomsrunpath out of it
 
-      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, f is used to extract PeptideIdentifications
-
-      @return Returns true if the PeptideIdentifications are valid
+      @return Returns the MultiMap
     */
     static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap);
 
       /**
-      @brief Checks if Feature has valid PeptideIdentifications
+      @brief Builds UID from PeptideIdentification
 
-        If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
-        the functions returns false to show that something went wrong.
-
-      @param cmap, c_feature_number, UIDs and mp_f for comparing Feature and ConsensusFeature, f is used to extract PeptideIdentifications
+      @param pep_id and fidentifier_tomsrunpath are used to determine the UID
 
       @return Returns the correct UID
     */
