@@ -33,10 +33,9 @@ namespace OpenMS
 
 
   private:
-    int getIndex_(const char& a, const char& b) const;
     unsigned seq1len_ = 0;
     unsigned seq2len_ = 0;
     int gapPenalty_ = 0;
-    std::vector<int>* matrixPtr_ = nullptr;
+    int(* matrixPtr_)[26][26] = nullptr;
   };
 }
