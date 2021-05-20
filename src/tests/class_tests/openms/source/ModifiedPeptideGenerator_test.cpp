@@ -43,7 +43,7 @@
 #endif
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 ///////////////////////////
 
 using namespace OpenMS;
