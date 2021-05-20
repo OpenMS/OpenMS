@@ -40,11 +40,12 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-class OPENMS_DLLAPI MQEvidence{
+class OPENMS_DLLAPI MQEvidence
+{
 private:
     std::fstream file_;
     int id_;
-    std::map<OpenMS::String,OpenMS::UInt64> protein_id_;
+    std::map<OpenMS::String, OpenMS::UInt64> protein_id_;
 
     /**
   @brief Writes the header of MQEvidence.txt in file (Names of columns)
@@ -72,7 +73,7 @@ private:
       @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
       in the vector of ConsensusMap
     */
-    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex(const OpenMS::ConsensusMap & cmap);
+    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex(const OpenMS::ConsensusMap &cmap);
 
     /**
       @brief Checks if Feature has valid PeptideIdentifications
@@ -85,7 +86,7 @@ private:
       @return Returns true if the PeptideIdentifications are valid
     */
     bool hasValidPepID(
-            const OpenMS::Feature & f,
+            const OpenMS::Feature &f,
             const OpenMS::Int64 c_feature_number,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
             const OpenMS::ProteinIdentification::Mapping &mp_f);
@@ -100,7 +101,7 @@ private:
 
       @return Returns true if the PeptideIdentifications are valid
     */
-    bool hasPeptideIdentifications(const OpenMS::ConsensusFeature& cf);
+    bool hasPeptideIdentifications(const OpenMS::ConsensusFeature &cf);
 
     /**
       @brief Export one Feature as a row in MQEvidence.txt
@@ -123,24 +124,24 @@ private:
             const OpenMS::ProteinIdentification::Mapping &mp_f);
 
 public:
-        /**
-      @brief Creates MQEvidence object and file MQEvidence.txt in given path, opens f_stream and calls exportHeader
+    /**
+  @brief Creates MQEvidence object and file MQEvidence.txt in given path, opens f_stream and calls exportHeader
 
-      @param String that is the path where file has to be stored
+  @param String that is the path where file has to be stored
 
-    */
-    explicit MQEvidence(const OpenMS::String & p);
+*/
+    explicit MQEvidence(const OpenMS::String &p);
 
     /**
       @brief Closes f_stream and destruct MQEvidence object
     */
     ~MQEvidence();
 
-        /**
-      @brief Checks if file is writable
+    /**
+  @brief Checks if file is writable
 
-      @return Returns true if file is writable
-    */
+  @return Returns true if file is writable
+*/
     bool isValid();
 
     /**
@@ -152,6 +153,6 @@ public:
       @param feature_map and cmap are used to extract data.
     */
     void exportFeatureMap(
-            const OpenMS::FeatureMap& feature_map,
-            const OpenMS::ConsensusMap& cmap);
+            const OpenMS::FeatureMap &feature_map,
+            const OpenMS::ConsensusMap &cmap);
 };

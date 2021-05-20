@@ -62,7 +62,7 @@ START_SECTION(MQEvidence())
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION((void exportFeatureMap(const OpenMS::FeatureMap& feature_map,const OpenMS::ConsensusMap& cmap)))
+START_SECTION((void exportFeatureMap(const OpenMS::FeatureMap &feature_map,const OpenMS::ConsensusMap &cmap)))
 {
     MQEvidence evd(path);
     ConsensusMap cmap;
