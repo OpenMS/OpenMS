@@ -145,7 +145,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.what()).c_str());
       arg_param_.clear();
       return;
     }
@@ -213,7 +213,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.what()).c_str());
       return;
     }
   }

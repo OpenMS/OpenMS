@@ -63,7 +63,6 @@
 #include <OpenMS/QC/MQEvidenceExporter.h>
 #include <cstdio>
 
-
 #include <map>
 
 using namespace OpenMS;
@@ -239,14 +238,10 @@ protected:
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
-
-
     }
 
 
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
-
-
 
 
     // check flags
@@ -282,6 +277,7 @@ protected:
     MQEvidence export_evidence(out_evidence);
 
 
+    vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -369,7 +365,7 @@ protected:
 
       if (qc_tic.isRunnable(status))
       {
-        qc_tic.compute(exp);
+        tic_results.push_back(qc_tic.compute(exp));
       }
 
       if (qc_ms2stats.isRunnable(status))
@@ -458,7 +454,7 @@ protected:
     {
       MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
       MzTabMetaData meta = mztab.getMetaData();
-      qc_tic.addMetaDataMetricsToMzTab(meta);
+      qc_tic.addMetaDataMetricsToMzTab(meta, tic_results);
       qc_ms2ir.addMetaDataMetricsToMzTab(meta);
       mztab.setMetaData(meta);
 

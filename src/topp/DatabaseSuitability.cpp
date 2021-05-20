@@ -126,7 +126,7 @@ class DatabaseSuitability :
 {
 public:
   DatabaseSuitability() :
-      TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", false, {c})
+      TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", true, {c})
   {
   }
 

@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -123,6 +124,7 @@ using namespace std;
   @ref OpenMS::SpecArrayFile "peplist"
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
+  @ref OpenMS::SqMassFile "sqmass"
 
   @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
@@ -336,7 +338,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
@@ -873,6 +875,11 @@ protected:
 
       IBSpectraFile ibfile;
       ibfile.store(out, cm);
+    }
+    else if (out_type == FileTypes::SQMASS)
+    {
+      SqMassFile sqm;
+      sqm.store(out, exp);
     }
     else
     {

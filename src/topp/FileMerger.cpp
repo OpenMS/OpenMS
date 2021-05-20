@@ -436,7 +436,7 @@ protected:
           }
           else if (rt_filename)
           {
-            static const boost::regex re("rt(\\d+(\\.\\d+)?)");
+            static const boost::regex re(R"(rt(\d+(\.\d+)?))");
             boost::smatch match;
             bool found = boost::regex_search(filename, match, re);
             if (found)

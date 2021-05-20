@@ -32,9 +32,8 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/QcMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -43,7 +42,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/QcMLFile.h>
 #include <fstream>
 #include <map>
 
@@ -1928,7 +1929,6 @@ namespace OpenMS
           qp.name = "number of identified features"; ///< Name
         }
         addRunQualityParameter(base_name, qp);
-
       }
       else if (inputfile_feature != "" && remove_duplicate_features)
       {
@@ -2037,7 +2037,6 @@ namespace OpenMS
 
   void QcMLFile::store(const String& filename) const 
   {
-
     //~ startProgress(0, 0, "storing qcML file");
     //~ progress_ = 0;
     //~ setProgress(++progress_);
