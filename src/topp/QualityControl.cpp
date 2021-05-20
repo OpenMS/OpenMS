@@ -144,7 +144,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "/buffer/ag_bsc/pmsb_2021/musch/evd", "EvidenceTXT with QC information", false);
+    registerStringOption_("out_evd", "<Path>", "", "EvidenceTXT with QC information", false);
 
 
     //TODO get ProteinQuantifier output for PRT section
