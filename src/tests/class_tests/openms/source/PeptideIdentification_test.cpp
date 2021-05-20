@@ -446,7 +446,7 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
 }
 END_SECTION
 
-START_SECTION(fillConsensusPepIDMap)
+START_SECTION((static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap)))
 {
   ConsensusMap cmap;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
@@ -478,11 +478,16 @@ START_SECTION(fillConsensusPepIDMap)
   String uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], identifier_to_msrunpath);
   String uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], identifier_to_msrunpath);
 
-  TEST_EQUAL(uid_zero,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=219")
+  TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=219")
   TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzMLspectrum=33")
   TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzMLspectrum=133")
 
+}
+END_SECTION
+
+START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_id,const std::map<String, StringList>& fidentifier_to_msrunpath)))
+{
+      NOT_TESTABLE //Tested above
 }
 END_SECTION
 

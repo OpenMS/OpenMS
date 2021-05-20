@@ -62,7 +62,7 @@ START_SECTION(MQEvidence())
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION(exportFeatureMapTotxt())
+START_SECTION(exportFeatureMap())
 {
     MQEvidence evd(path);
     ConsensusMap cmap;

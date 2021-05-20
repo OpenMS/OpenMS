@@ -97,7 +97,7 @@ void MQEvidence::exportHeader()
     file_ << "Modified Sequence" << "\t";
     file_ << "Mass" << "\t";
     file_ << "Score" << "\t";
-    file_ << "Protein" << "\t";
+    file_ << "Proteins" << "\t";
     file_ << "Protein group IDs" << "\t";
     file_ << "Charge" << "\t";
     file_ << "M/Z" << "\t";
@@ -105,6 +105,7 @@ void MQEvidence::exportHeader()
     file_ << "Retention Length" << "\t";
     file_ << "Intensity" << "\t";
     file_ << "Resolution" << "\t";
+    file_ << "Reverse" << "\t";
     file_ << "Potential contaminant" << "\t";
     file_ << "Type" << "\t";
     file_ << "Missed cleavages" << "\t";
@@ -284,6 +285,7 @@ void MQEvidence::exportRowFromFeature(
               file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start")))/60 << "\t" : file_ << "NA" << "\t";
     file_ << f.getIntensity() << "\t"; // Intensity
     file_ << f.getWidth()/60 << "\t";  // Resolution in min.
+    pep_hits_max->getMetaValue("target_decoy") == "decoy" ? file_ << "1" <<"\t" : file_ << "\t"; //reverse
 
     String pot_containment = pep_hits_max->getMetaValue("is_contaminant", "NA");
     if(pot_containment == "1")
