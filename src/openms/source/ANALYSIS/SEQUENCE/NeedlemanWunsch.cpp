@@ -118,8 +118,8 @@ int NeedlemanWunsch::getPenalty() const
 {
     return gapPenalty_;
 }
-/*
-double NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix
+
+int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix
 {
   seq1len_ = seq1.length();
   seq2len_ = seq2.length();
@@ -134,14 +134,13 @@ double NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollstä
     for (unsigned j=1;j<=seq2len_;++j)
     {
       matrix[i*(seq2len_ +1)+j]=max(max((matrix[i*(seq2len_+1)+j-1]-gapPenalty_), (matrix[(i-1)*(seq2len_+1)+j]-gapPenalty_)),
-                                    (matrix[(i-1)*(seq2len_+1)+j-1])+ (*matrixPtr_)[getIndex_(seq1[i-1], seq2[j-1])]);
+                                    (matrix[(i-1)*(seq2len_+1)+j-1])+ (*matrixPtr_)[seq1[i-1] - 'A'] [seq2[j-1] - 'A']);
     }
   }
-  cout<<matrix[(seq1len_+1)*(seq2len_+1)-1]<<endl;
   return matrix[(seq1len_+1)*(seq2len_+1)-1];
 }
- */
 
+/*
 //linear space (2 Zeilen)
  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
  {
@@ -169,8 +168,7 @@ double NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollstä
      }
      swap(firstRowPtr, secondRowPtr);
    }
-   cout<<(*firstRowPtr)[seq2len_]<<endl;
    return (*firstRowPtr)[seq2len_];
  }
-
+*/
 }
