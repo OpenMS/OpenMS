@@ -234,7 +234,6 @@ protected:
 
     for (Size i = 0; i < cmap.size(); ++i)
     {
-
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
@@ -418,7 +417,6 @@ protected:
       {
         export_evidence.exportFeatureMap(fmap_local,cmap);
       }
-
     }
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap

@@ -43,7 +43,7 @@
 
 using namespace OpenMS;
 
-MQEvidence::MQEvidence(const String& path) {
+MQEvidence::MQEvidence(const String &path) {
   if (path.empty())
   {
     return;
@@ -111,23 +111,24 @@ void MQEvidence::exportHeader_() {
   file_ << "Raw file" << "\n";
 }
 
-UInt64 MQEvidence::proteinGroupID_(const String& protein) {
+UInt64 MQEvidence::proteinGroupID_(const String &protein) {
   auto it = protein_id_.find(protein);
   if (it == protein_id_.end())
   {
     protein_id_.emplace(protein, protein_id_.size() + 1);
     return protein_id_.size();
-  } else
+  }
+  else
   {
     return it->second;
   }
 }
 
-std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap) {
+std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap &cmap) {
   std::map<UInt64, Size> f_to_ci;
   for (Size i = 0; i < cmap.size(); ++i)
   {
-    for (const auto& fh : cmap[i].getFeatures())
+    for (const auto &fh : cmap[i].getFeatures())
     {
       auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
       if (!was_created_newly)
@@ -140,19 +141,20 @@ std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const Cons
 }
 
 bool MQEvidence::hasValidPepID_(
-        const Feature& f,
+        const Feature &f,
         const Int64 c_feature_number,
-        const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f) {
-  const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
+        const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
+        const ProteinIdentification::Mapping &mp_f) {
+  const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
   {
     return false;
   }
-  const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
+  const PeptideIdentification &best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
   String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
   const auto range = UIDs.equal_range(best_uid);
-  for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first; it_pep != range.second; ++it_pep)
+  for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
+       it_pep != range.second; ++it_pep)
   {
     if (c_feature_number == it_pep->second.first)
     {
@@ -162,20 +164,20 @@ bool MQEvidence::hasValidPepID_(
   return false;
 }
 
-bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature& cf) {
-  const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
+bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature &cf) {
+  const std::vector<PeptideIdentification> &pep_ids_c = cf.getPeptideIdentifications();
   return !pep_ids_c.empty();
 }
 
 void MQEvidence::exportRowFromFeature_(
-        const Feature& f,
-        const ConsensusMap& cmap,
+        const Feature &f,
+        const ConsensusMap &cmap,
         const Int64 c_feature_number,
-        const String& raw_file,
-        const std::multimap<String, std::pair<Size, Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f) {
+        const String &raw_file,
+        const std::multimap<String, std::pair<Size, Size>> &UIDs,
+        const ProteinIdentification::Mapping &mp_f) {
   const PeptideHit *pep_hits_max; // the best hit referring to score
-  const ConsensusFeature& cf = cmap[c_feature_number];
+  const ConsensusFeature &cf = cmap[c_feature_number];
   UInt64 pep_ids_size = 0;
   String type;
   if (hasValidPepID_(f, c_feature_number, UIDs, mp_f))
@@ -189,16 +191,18 @@ void MQEvidence::exportRowFromFeature_(
     }
     type = "MULTI-MSMS";
     pep_hits_max = &f.getPeptideIdentifications()[0].getHits()[0];
-  } else if (hasPeptideIdentifications_(cf))
-  {
-    type = "MULTI-MATCH";
-    pep_hits_max = &cf.getPeptideIdentifications()[0].getHits()[0];
-  } else
-  {
-    return;
   }
-  const double& max_score = pep_hits_max->getScore();
-  const AASequence& pep_seq = pep_hits_max->getSequence();
+  else if (hasPeptideIdentifications_(cf))
+    {
+      type = "MULTI-MATCH";
+      pep_hits_max = &cf.getPeptideIdentifications()[0].getHits()[0];
+    }
+    else
+    {
+      return;
+    }
+  const double &max_score = pep_hits_max->getScore();
+  const AASequence &pep_seq = pep_hits_max->getSequence();
 
   if (pep_seq.empty())
   {
@@ -212,10 +216,11 @@ void MQEvidence::exportRowFromFeature_(
   std::map<String, int> modifications;
   if (pep_seq.hasNTerminalModification())
   {
-    const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
+    const String &n_terminal_modification = pep_seq.getNTerminalModificationName();
     modifications.emplace(std::make_pair(n_terminal_modification, 1));
     n_terminal_modification.hasSubstring("Acetyl") ? file_ << 1 << "\t" : file_ << 0 << "\t"; // Acetyl (Protein N-term)
-  } else
+  }
+  else
   {
     file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
@@ -237,9 +242,10 @@ void MQEvidence::exportRowFromFeature_(
   if (modifications.empty())
   {
     file_ << "Unmodified" << "\t";
-  } else
+  }
+  else
   {
-    for (const auto& m : modifications)
+    for (const auto &m : modifications)
     {
       file_ << m.first << ";"; // Modification
     }
@@ -248,13 +254,13 @@ void MQEvidence::exportRowFromFeature_(
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
   file_ << max_score << "\t"; // Score
-  const std::set<String>& accessions = pep_hits_max->extractProteinAccessionsSet();
-  for (const String& p : accessions)
+  const std::set<String> &accessions = pep_hits_max->extractProteinAccessionsSet();
+  for (const String &p : accessions)
   {
     file_ << p << ";"; // Protein
   }
   file_ << "\t";
-  for (const String& p : accessions)
+  for (const String &p : accessions)
   {
     file_ << proteinGroupID_(p) << ";"; // Protein group ids
   }
@@ -273,15 +279,16 @@ void MQEvidence::exportRowFromFeature_(
   if (pot_containment == "1")
   {
     file_ << "+" << "\t";   // Potential contaminant
-  } else
+  }
+  else
   {
     file_ << "\t";
   }
   file_ << type << "\t"; // Type
   file_ << pep_hits_max->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
 
-  const double& uncalibrated_mz_error_ppm = pep_hits_max->getMetaValue("uncalibrated_mz_error_ppm", NAN);
-  const double& calibrated_mz_error_ppm = pep_hits_max->getMetaValue("calibrated_mz_error_ppm", NAN);
+  const double &uncalibrated_mz_error_ppm = pep_hits_max->getMetaValue("uncalibrated_mz_error_ppm", NAN);
+  const double &calibrated_mz_error_ppm = pep_hits_max->getMetaValue("calibrated_mz_error_ppm", NAN);
 
   if (isnan(uncalibrated_mz_error_ppm) && isnan(calibrated_mz_error_ppm))
   {
@@ -291,32 +298,35 @@ void MQEvidence::exportRowFromFeature_(
     file_ << "NA" << "\t"; // Uncalibrated Mass error [Da]
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
-  } else if (isnan(calibrated_mz_error_ppm))
-  {
-    file_ << "NA" << "\t"; // Mass error [ppm]
-    file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
-    file_ << "NA" << "\t"; // Mass error [Da]
-    file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
-  } else if (isnan(uncalibrated_mz_error_ppm))
-  {
-    file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
-    file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
-    file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
-    file_ << "NA" << "\t"; // Uncalibrated Mass error [Da]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
-  } else
-  {
-    file_ << calibrated_mz_error_ppm << "\t";   //Mass error [ppm]
-    file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
-    file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
-    file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
-    file_ << uncalibrated_mz_error_ppm - calibrated_mz_error_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << OpenMS::Math::ppmToMass((uncalibrated_mz_error_ppm - calibrated_mz_error_ppm), f.getMZ())
-          << "\t"; // Uncalibrated - Calibrated m/z [Da]
   }
+  else if (isnan(calibrated_mz_error_ppm))
+    {
+      file_ << "NA" << "\t"; // Mass error [ppm]
+      file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
+      file_ << "NA" << "\t"; // Mass error [Da]
+      file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
+      file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+      file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+    }
+    else if (isnan(uncalibrated_mz_error_ppm))
+      {
+        file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
+        file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [Da]
+        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+      }
+      else
+      {
+        file_ << calibrated_mz_error_ppm << "\t";   //Mass error [ppm]
+        file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
+        file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
+        file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
+        file_ << uncalibrated_mz_error_ppm - calibrated_mz_error_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << OpenMS::Math::ppmToMass((uncalibrated_mz_error_ppm - calibrated_mz_error_ppm), f.getMZ())
+              << "\t"; // Uncalibrated - Calibrated m/z [Da]
+      }
   f.metaValueExists("rt_align_start") ? file_ << double(f.getMetaValue("rt_align_start")) / 60 << "\t" : file_ << "NA"
                                                                                                                << "\t"; //  Calibrated retention time start
   f.metaValueExists("rt_align_end") ? file_ << double(f.getMetaValue("rt_align_end")) / 60 << "\t" : file_ << "NA"
@@ -325,7 +335,8 @@ void MQEvidence::exportRowFromFeature_(
   {
     file_ << double(f.getMetaValue("rt_align")) / 60 << "\t"; // Calibrated Retention Time
     file_ << (f.getRT() - double(f.getMetaValue("rt_align"))) / 60 << "\t"; // Retention time calibration
-  } else
+  }
+  else
   {
     file_ << "NA" << "\t"; // calibrated retention time
     file_ << "NA" << "\t"; // Retention time calibration
@@ -335,7 +346,8 @@ void MQEvidence::exportRowFromFeature_(
   {
     file_ << "NA" << "\t"; // Match time diff
     file_ << "NA" << "\t"; // Match mz diff
-  } else
+  }
+  else
   {
     f.metaValueExists("rt_align") ? file_ << double(f.getMetaValue("rt_align")) - cmap[c_feature_number].getRT()
                                           << "\t" : file_ << "NA" << "\t"; // Match time diff
@@ -345,14 +357,14 @@ void MQEvidence::exportRowFromFeature_(
 }
 
 void MQEvidence::exportFeatureMap(
-        const FeatureMap& feature_map,
-        const ConsensusMap& cmap) {
+        const FeatureMap &feature_map,
+        const ConsensusMap &cmap) {
   if (!isValid())
   {
     OpenMS_Log_error << "MqEvidence object is not valid." << std::endl;
     throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MqEvidence object is not valid.");
   }
-  const std::map<UInt64, Size>& fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
+  const std::map<UInt64, Size> &fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
   StringList spectra_data;
   feature_map.getPrimaryMSRunPath(spectra_data);
   String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
@@ -362,14 +374,15 @@ void MQEvidence::exportFeatureMap(
 
   std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
 
-  for (const Feature& f : feature_map)
+  for (const Feature &f : feature_map)
   {
-    const UInt64& f_id = f.getUniqueId();
-    const auto& c_id = fTc.find(f_id);
+    const UInt64 &f_id = f.getUniqueId();
+    const auto &c_id = fTc.find(f_id);
     if (c_id != fTc.end())
     {
       exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f);
-    } else
+    }
+    else
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Feature in FeatureMap has no associated ConsensusFeature.");

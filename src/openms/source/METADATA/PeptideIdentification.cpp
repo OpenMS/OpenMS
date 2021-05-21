@@ -307,8 +307,8 @@ namespace OpenMS
   }
 
   String PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,
-                                                  const std::map<String, StringList> &fidentifier_to_msrunpath) {
-
+                                                  const std::map<String, StringList> &fidentifier_to_msrunpath)
+  {
     if (!pep_id.metaValueExists("spectrum_reference"))
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
