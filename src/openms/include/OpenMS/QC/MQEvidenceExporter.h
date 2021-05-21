@@ -41,6 +41,19 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 class OPENMS_DLLAPI MQEvidence
+    /**
+@brief Builds an MaxQuant Evidence.txt
+
+  This class is closely related to QualityControl, it creates an evidence file similar
+  to an MaxQuant evidence.txt. But not all columns of a MaxQuant file get exported.
+  By the construction of an object, the column names of the evidence values are added to the file.
+  For the construction a valid path is needed (check out constructor) where the evidence.txt can be stored.
+  To fill the output file with data from the MS/MS run use the exportFeatureMap function,
+  it needs a FeatureMap and the matching ConsensusMap as an input.
+  To check if the created file is writable use the function isValid.
+
+    @ingroup Metadata
+*/
 {
 private:
     std::fstream file_; // Stream where the data is added to create MQEvidence file
@@ -53,7 +66,7 @@ private:
     void exportHeader_();
 
     /**
-      @brief Gets Protein and Returns corresponding number.
+      @brief returns the MaxQuant unique evidence number of a protein accession
 
         In MQEvidence.txt every protein gets a random but distinct number. The first protein
         a peptide is mapped to get the number one and so on. By this means, it can be seen very easily
@@ -66,9 +79,9 @@ private:
     OpenMS::Size proteinGroupID_(const OpenMS::String &protein);
 
     /**
-      @brief Creates map that has information which FeatureUID is mapped to which ConsensusFeature
+      @brief Creates map that has the information which FeatureUID is mapped to which ConsensusFeature in ConsensusMap
 
-      @param cmap ConsensusMap for purpos
+      @param cmap ConsensusMap that includes ConsensusFeatures
 
       @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
       in the vector of ConsensusMap
@@ -124,13 +137,16 @@ private:
             const OpenMS::ProteinIdentification::Mapping &mp_f);
 
 public:
-    /**
-  @brief Creates MQEvidence object and file MQEvidence.txt in given path, opens f_stream and calls exportHeader
+/**
+  @brief Creates MQEvidence object and file MQEvidence.txt in given path
+
+        If the path for the constructor is empty (path not valid), no file is created.
+        If the creation of the fstream object is successful a constant header is added to the file
 
   @param String that is the path where file has to be stored
 
 */
-    explicit MQEvidence(const OpenMS::String &p);
+    explicit MQEvidence(const OpenMS::String &path);
 
     /**
       @brief Closes f_stream and destruct MQEvidence object
@@ -138,19 +154,23 @@ public:
     ~MQEvidence();
 
     /**
-  @brief Checks if file is writable
+        @brief Checks if file is writable
 
-  @return Returns true if file is writable
-*/
+                can be called anytime after MQEvidence is constructed
+
+        @return Returns true if file is writable
+    */
     bool isValid();
 
     /**
-      @brief ASHORTDESCRIPTION_HERE
+      @brief Exports a FeatureMap to the evidence file
 
-      To export the Features of the FeatureMap the exportFeatureToRow function is used.
-      If there are problems (missing data or confusing data) with one feature, it will be skipped.
+      export relevant evidence data from the featureMap and the ConsensusMAp to the evidence file.
+      Features without a PeptideIdentification or with a PeptideIdentification who doesnt match with
+      the PeptideIdentification of the ConsensusFeature from the ConsensusMap get skipped.
+      If the file not Valid the tool throws an exception.
 
-      @param feature_map and cmap are used to extract data.
+      @param feature_map and the cmap, which contains the fmap, are used to extract data.
     */
     void exportFeatureMap(
             const OpenMS::FeatureMap &feature_map,

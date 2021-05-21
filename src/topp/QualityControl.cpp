@@ -234,7 +234,6 @@ protected:
 
     for (Size i = 0; i < cmap.size(); ++i)
     {
-
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
@@ -418,7 +417,6 @@ protected:
       {
         export_evidence.exportFeatureMap(fmap_local,cmap);
       }
-
     }
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
@@ -482,14 +480,19 @@ private:
     return files;
   }
 
-  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification> pep_ids)
+  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
   {
       for(PeptideIdentification & pep_id : pep_ids)
       {
           pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
       }
-      std::sort(pep_ids.begin(), pep_ids.end(), [](PeptideIdentification a, PeptideIdentification b) {
-          return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+      std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
+      {
+        if(a.empty() || b.empty())
+        {
+          return a.empty() > b.empty();
+        }
+        return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
       });
   }
 
