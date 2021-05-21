@@ -43,14 +43,14 @@
 class OPENMS_DLLAPI MQEvidence
 {
 private:
-    std::fstream file_;
-    int id_;
-    std::map<OpenMS::String, OpenMS::UInt64> protein_id_;
+    std::fstream file_; // Stream where the data is added to create MQEvidence file
+    int id_; // number of rows in file to give each row a specific id
+    std::map<OpenMS::String, OpenMS::UInt64> protein_id_; // map that maps each Feature to the index of the associated ConsensusFeature in the ConsensusMap
 
     /**
   @brief Writes the header of MQEvidence.txt in file (Names of columns)
 */
-    void exportHeader();
+    void exportHeader_();
 
     /**
       @brief Gets Protein and Returns corresponding number.
@@ -63,7 +63,7 @@ private:
 
       @return Returns distinct number for every Protein that is part of the file.
     */
-    OpenMS::UInt64 proteinGroupID(const OpenMS::String &protein);
+    OpenMS::UInt64 proteinGroupID_(const OpenMS::String &protein);
 
     /**
       @brief Creates map that has information which FeatureUID is mapped to which ConsensusFeature
@@ -73,7 +73,7 @@ private:
       @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
       in the vector of ConsensusMap
     */
-    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex(const OpenMS::ConsensusMap &cmap);
+    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap &cmap);
 
     /**
       @brief Checks if Feature has valid PeptideIdentifications
@@ -85,7 +85,7 @@ private:
 
       @return Returns true if the PeptideIdentifications are valid
     */
-    bool hasValidPepID(
+    bool hasValidPepID_(
             const OpenMS::Feature &f,
             const OpenMS::Int64 c_feature_number,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
@@ -101,7 +101,7 @@ private:
 
       @return Returns true if the PeptideIdentifications are valid
     */
-    bool hasPeptideIdentifications(const OpenMS::ConsensusFeature &cf);
+    bool hasPeptideIdentifications_(const OpenMS::ConsensusFeature &cf);
 
     /**
       @brief Export one Feature as a row in MQEvidence.txt
@@ -115,7 +115,7 @@ private:
       c_feature_number, mp_f and UIDs are used in hasValidPepID
 
     */
-    void exportRowFromFeature(
+    void exportRowFromFeature_(
             const OpenMS::Feature &f,
             const OpenMS::ConsensusMap &cmap,
             const OpenMS::Int64 c_feature_number,

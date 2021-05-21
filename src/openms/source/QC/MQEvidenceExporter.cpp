@@ -62,7 +62,7 @@ MQEvidence::MQEvidence(const String &p) {
         OPENMS_LOG_FATAL_ERROR << filename << " wasn’t created" << std::endl;
         throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out_evd");
     }
-    exportHeader();
+    exportHeader_();
     id_ = 0;
 }
 
@@ -82,7 +82,7 @@ bool MQEvidence::isValid() {
  * Description:
  * Writes the header of the MQEvidence file
  */
-void MQEvidence::exportHeader() {
+void MQEvidence::exportHeader_() {
     file_ << "id" << "\t";
     file_ << "Sequence" << "\t";
     file_ << "Length" << "\t";
@@ -120,7 +120,7 @@ void MQEvidence::exportHeader() {
     file_ << "Raw file" << "\n";
 }
 
-UInt64 MQEvidence::proteinGroupID(const String &protein) {
+UInt64 MQEvidence::proteinGroupID_(const String &protein) {
     auto it = protein_id_.find(protein);
     if (it == protein_id_.end())
     {
@@ -134,7 +134,7 @@ UInt64 MQEvidence::proteinGroupID(const String &protein) {
     }
 }
 
-std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex(const ConsensusMap &cmap) {
+std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap &cmap) {
     std::map<UInt64, Size> f_to_ci;
     for (Size i = 0; i < cmap.size(); ++i)
     {
@@ -150,7 +150,7 @@ std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex(const Conse
     return f_to_ci;
 }
 
-bool MQEvidence::hasValidPepID(
+bool MQEvidence::hasValidPepID_(
         const Feature &f,
         const Int64 c_feature_number,
         const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
@@ -173,13 +173,13 @@ bool MQEvidence::hasValidPepID(
     return false;
 }
 
-bool MQEvidence::hasPeptideIdentifications(const ConsensusFeature &cf) {
+bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature &cf) {
     const std::vector<PeptideIdentification> &pep_ids_c = cf.getPeptideIdentifications();
     return !pep_ids_c.empty();
 
 }
 
-void MQEvidence::exportRowFromFeature(
+void MQEvidence::exportRowFromFeature_(
         const Feature &f,
         const ConsensusMap &cmap,
         const Int64 c_feature_number,
@@ -190,7 +190,7 @@ void MQEvidence::exportRowFromFeature(
     const ConsensusFeature &cf = cmap[c_feature_number];
     UInt64 pep_ids_size = 0;
     String type;
-    if (hasValidPepID(f, c_feature_number, UIDs, mp_f))
+    if (hasValidPepID_(f, c_feature_number, UIDs, mp_f))
     {
         for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i)
         {
@@ -202,7 +202,7 @@ void MQEvidence::exportRowFromFeature(
         type = "MULTI-MSMS";
         pep_hits_max = &f.getPeptideIdentifications()[0].getHits()[0];
     }
-    else if (hasPeptideIdentifications(cf))
+    else if (hasPeptideIdentifications_(cf))
     {
         type = "MULTI-MATCH";
         pep_hits_max = &cf.getPeptideIdentifications()[0].getHits()[0];
@@ -274,7 +274,7 @@ void MQEvidence::exportRowFromFeature(
     file_ << "\t";
     for (const String &p : accessions)
     {
-        file_ << proteinGroupID(p) << ";"; // Protein group ids
+        file_ << proteinGroupID_(p) << ";"; // Protein group ids
     }
 
     file_ << "\t";
@@ -379,7 +379,7 @@ void MQEvidence::exportFeatureMap(
         OpenMS_Log_error << "MqEvidence object is not valid." << std::endl;
         throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MqEvidence object is not valid.");
     }
-    const std::map<UInt64, Size> &fTc = makeFeatureUIDtoConsensusMapIndex(cmap);
+    const std::map<UInt64, Size> &fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
     StringList spectra_data;
     feature_map.getPrimaryMSRunPath(spectra_data);
     String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
@@ -395,7 +395,7 @@ void MQEvidence::exportFeatureMap(
         const auto &c_id = fTc.find(f_id);
         if (c_id != fTc.end())
         {
-            exportRowFromFeature(f, cmap, c_id->second, raw_file, UIDs, mp_f);
+            exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f);
         }
         else
         {

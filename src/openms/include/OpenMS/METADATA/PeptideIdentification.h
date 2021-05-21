@@ -179,7 +179,7 @@ public:
       /**
       @brief Builds UID from PeptideIdentification
 
-      @param pep_id and fidentifier_tomsrunpath are used to determine the UID
+      @param pep_id and @param fidentifier_to_msrunpath are used to determine the UID
 
       @return Returns the correct UID
     */

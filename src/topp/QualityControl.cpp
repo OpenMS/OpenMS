@@ -144,7 +144,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "", "EvidenceTXT with QC information", false);
+    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this repository. If the repository does not exist, it will created a s well.", false);
 
 
     //TODO get ProteinQuantifier output for PRT section
@@ -411,7 +411,7 @@ protected:
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath,cmap);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
       if(export_evidence.isValid())
