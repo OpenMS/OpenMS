@@ -120,7 +120,7 @@ void MQEvidence::exportHeader_() {
     file_ << "Raw file" << "\n";
 }
 
-UInt64 MQEvidence::proteinGroupID_(const String &protein) {
+Size MQEvidence::proteinGroupID_(const String &protein) {
     auto it = protein_id_.find(protein);
     if (it == protein_id_.end())
     {
@@ -134,8 +134,8 @@ UInt64 MQEvidence::proteinGroupID_(const String &protein) {
     }
 }
 
-std::map<UInt64, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap &cmap) {
-    std::map<UInt64, Size> f_to_ci;
+std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap &cmap) {
+    std::map<Size, Size> f_to_ci;
     for (Size i = 0; i < cmap.size(); ++i)
     {
         for (const auto &fh : cmap[i].getFeatures())
@@ -188,7 +188,7 @@ void MQEvidence::exportRowFromFeature_(
         const ProteinIdentification::Mapping &mp_f) {
     const PeptideHit *pep_hits_max; // the best hit referring to score
     const ConsensusFeature &cf = cmap[c_feature_number];
-    UInt64 pep_ids_size = 0;
+    Size pep_ids_size = 0;
     String type;
     if (hasValidPepID_(f, c_feature_number, UIDs, mp_f))
     {
@@ -240,7 +240,7 @@ void MQEvidence::exportRowFromFeature_(
     {
         modifications.emplace(std::make_pair(pep_seq.getCTerminalModificationName(), 1));
     }
-    for (uint i = 0; i < pep_seq.size(); ++i)
+    for(Size i = 0; i < pep_seq.size(); ++i)
     {
 
         if (pep_seq.getResidue(i).isModified())
@@ -379,7 +379,7 @@ void MQEvidence::exportFeatureMap(
         OpenMS_Log_error << "MqEvidence object is not valid." << std::endl;
         throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MqEvidence object is not valid.");
     }
-    const std::map<UInt64, Size> &fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
+    const std::map<Size, Size> &fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
     StringList spectra_data;
     feature_map.getPrimaryMSRunPath(spectra_data);
     String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
@@ -391,7 +391,7 @@ void MQEvidence::exportFeatureMap(
 
     for (const Feature &f : feature_map)
     {
-        const UInt64 &f_id = f.getUniqueId();
+        const Size &f_id = f.getUniqueId();
         const auto &c_id = fTc.find(f_id);
         if (c_id != fTc.end())
         {

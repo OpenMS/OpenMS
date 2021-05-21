@@ -45,7 +45,7 @@ class OPENMS_DLLAPI MQEvidence
 private:
     std::fstream file_; // Stream where the data is added to create MQEvidence file
     int id_; // number of rows in file to give each row a specific id
-    std::map<OpenMS::String, OpenMS::UInt64> protein_id_; // map that maps each Feature to the index of the associated ConsensusFeature in the ConsensusMap
+    std::map<OpenMS::String, OpenMS::Size> protein_id_; // map that maps each Feature to the index of the associated ConsensusFeature in the ConsensusMap
 
     /**
   @brief Writes the header of MQEvidence.txt in file (Names of columns)
@@ -63,7 +63,7 @@ private:
 
       @return Returns distinct number for every Protein that is part of the file.
     */
-    OpenMS::UInt64 proteinGroupID_(const OpenMS::String &protein);
+    OpenMS::Size proteinGroupID_(const OpenMS::String &protein);
 
     /**
       @brief Creates map that has information which FeatureUID is mapped to which ConsensusFeature
@@ -73,7 +73,7 @@ private:
       @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
       in the vector of ConsensusMap
     */
-    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap &cmap);
+    std::map<OpenMS::Size, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap &cmap);
 
     /**
       @brief Checks if Feature has valid PeptideIdentifications
