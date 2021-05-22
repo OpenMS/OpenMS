@@ -114,7 +114,7 @@ namespace OpenMS
     }
     catch (const Exception::FileNotFound& e)
     {
-      std::cerr <<  e << std::endl;
+      std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
       return tool_param;
     }
     // Write tool ini to temporary file
