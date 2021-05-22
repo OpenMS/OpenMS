@@ -105,7 +105,8 @@ namespace OpenMS
   {
     f
             << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
-               "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+               "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
+               "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -131,6 +132,7 @@ namespace OpenMS
                            //const std::vector<int> ptm_end,
                            const bool is_identified,
                            const double e_value,
+                           const double q_value,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                            std::fstream &f,
                            bool write_detail)
@@ -166,7 +168,7 @@ namespace OpenMS
       }
 
       //(pg.getIsotopeCosine() <=0 ? pg.getQScore(): getQScore(&pg, charge))
-      f << pg.getQScore() << "," << e_value << ",";
+      f << pg.getQScore() << "," << e_value << "," << q_value << ",";
       if (write_detail)
       {
         f << std::fixed << std::setprecision(2);

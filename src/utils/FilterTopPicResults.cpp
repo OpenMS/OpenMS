@@ -45,6 +45,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <QFile>
 #include <iomanip>
 #include <sstream>
@@ -76,36 +77,115 @@ protected:
     {
 
         registerInputFile_("in", "<file>", {}, "proteoform file");
+        registerInputFile_("in_msalign", "<msalign>", {}, "ms2 msalign file");
+
+        registerInputFile_("in_spec", "<mzML>", {}, "mzml file");
+
         registerOutputFile_("out", "<file>", "", "");
     }
+
+
+    double getCosine_(const std::vector<double> &a,
+                                            const int &a_start,
+                                            const int &a_end,
+                                            const IsotopeDistribution &b,
+                                            const int &b_size,
+                                            const int offset) {
+        double n = .0, a_norm = .0;
+        //int c = 0;
+        for (int j = a_start; j <= a_end; j++) {
+            int i = j - offset;
+            if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
+                continue;
+            }
+            a_norm += a[j] * a[j];
+            n += a[j] * b[i].getIntensity(); //
+        }
+        if (a_norm <= 0) {
+            return 0;
+        }
+        return n / sqrt(a_norm);
+    }
+
+
 
     ExitCodes main_(int, const char **) override
     {
         auto infile = getStringOption_("in");
-        auto outfile = getStringOption_("out");
-        auto attfile = getStringOption_("out") + ".csv";
+        auto outfile1 = getStringOption_("in") + "_filtered.tsv";
+        auto attfile0 = getStringOption_("in") + ".csv";
+        auto attfile1 = getStringOption_("in") + "_filtered.csv";
+        auto outfile2 = getStringOption_("in") + "_filtered2.tsv";
+        auto attfile2 = getStringOption_("in") + "_filtered2.csv";
+
+        auto inmsalignfile = getStringOption_("in_msalign");
+
+        map<int, int> scan_to_prescan;
+        std::ifstream in_alignstream(inmsalignfile);
+        String line;
+        int ms1scan = 0, ms2scan = 0;
+        while (std::getline(in_alignstream, line))
+        {
+            if(line.hasPrefix("#")){
+                continue;
+            }
+            if(line.hasPrefix("SCANS=")){
+                String n = line.substr(6);
+                ms2scan = atoi(n.c_str());
+                //cout<<n<< " " << ms2scan <<endl;
+            }
+            if(line.hasPrefix("MS_ONE_SCAN=")){
+                String n = line.substr(12);
+                ms1scan = atoi(n.c_str());
+                //cout<<n<< " * " << ms1scan <<endl;
+            }
+            if(line.hasPrefix("END IONS")){
+                scan_to_prescan[ms2scan] = ms1scan;
+            }
+        }
+        in_alignstream.close();
+
+        MSExperiment msmap;
+        MzMLFile mzml;
+        mzml.load(getStringOption_("in_spec"), msmap);
+
+        map<int, MSSpectrum> scan_spec_map;
+
+        for (auto it = msmap.begin(); it != msmap.end(); ++it) {
+            int scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
+                                                            msmap.getSourceFiles()[0].getNativeIDTypeAccession());
+            scan_spec_map[scan_number] = *it;
+        }
 
         auto fd = FLASHDeconvAlgorithm();
         fd.calculateAveragine(false);
         auto avg = fd.getAveragine();
 
-        fstream outstream, attstream;
-        outstream.open(outfile, fstream::out); //
-        attstream.open(attfile, fstream::out); //
+        fstream attstream0, outstream1, attstream1, outstream2, attstream2;
+        outstream1.open(outfile1, fstream::out); //
+        attstream1.open(attfile1, fstream::out); //
+        attstream0.open(attfile0, fstream::out); //
+
+        outstream2.open(outfile2, fstream::out); //
+        attstream2.open(attfile2, fstream::out); //
 
         map<String, vector<FLASHDeconvHelperStructs::TopPicItem>> results;
-        vector<FLASHDeconvHelperStructs::TopPicItem> to_out;
+        vector<FLASHDeconvHelperStructs::TopPicItem> to_out1, to_out2;
 
-        QScore::writeAttHeader(attstream, false);
+        QScore::writeAttHeader(attstream0, false);
+        QScore::writeAttHeader(attstream1, false);
+        QScore::writeAttHeader(attstream2, false);
 
         std::ifstream in_trainstream(infile);
-        String line;
+        //String line;
         bool start = true;
 
+        int cntr = 0;
         while (std::getline(in_trainstream, line))
         {
             if(start){
-                outstream << line << "\n";
+                outstream1 << line << "\n";
+                outstream2 << line << "\n";
                 if (line.hasPrefix("Data file name"))
                 {
                     start = false;
@@ -114,78 +194,169 @@ protected:
             }
 
             FLASHDeconvHelperStructs::TopPicItem item(line);
+
+            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
+            attstream0 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
+                       << item.proteform_id_
+                       << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
+                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+                       << ","
+                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
+                       << (item.unexp_mod_.size())
+                       <<",";
+            for(int k=0;k<3;k++){
+                if(k < item.unexp_mod_.size()){
+                    attstream0<<item.unexp_mod_[k]<<",";
+                }else{
+                    attstream0<<"nan,";
+                }
+            }
+
+            attstream0<<"0,0,0,0,0,0,0,"<<item.e_value_<< ","<<  item.proteofrom_q_value_ <<  ",T\n";
+
+            cntr++;
             if(results.find(item.protein_acc_) == results.end()){
                 results[item.protein_acc_] = vector<FLASHDeconvHelperStructs::TopPicItem>();
             }
             results[item.protein_acc_].push_back(item);
+
+
+        }
+
+
+        std::cout<<"Before "<<cntr;
+        double tol = 10;
+
+        in_trainstream.close();
+        cntr = 0;
+        for(auto &item: results){
+            if(false){
+                to_out1.push_back(item.second[0]);
+                to_out2.push_back(item.second[0]);
+            }else{
+                auto &ps = item.second;
+                for(int i=0;i<ps.size();i++){
+                    double p_mass = ps[i].adj_precursor_mass_;
+                    int charge = ps[i].charge_;
+
+                    int pre_scan = scan_to_prescan[ps[i].scan_];
+
+                    auto pre_spec = scan_spec_map[pre_scan];
+                    double min_mz = (avg.getAverageMassDelta(p_mass) - avg.getLeftCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
+                    double max_mz = (avg.getAverageMassDelta(p_mass) + avg.getRightCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
+                    double noise = 0, signal = 0;
+
+                    auto spec = scan_spec_map[ps[i].scan_];
+                    double start_mz = spec.getPrecursors()[0].getIsolationWindowLowerOffset() > 100.0 ?
+                               spec.getPrecursors()[0].getIsolationWindowLowerOffset() :
+                               -spec.getPrecursors()[0].getIsolationWindowLowerOffset() + spec.getPrecursors()[0].getMZ();
+                    double end_mz = spec.getPrecursors()[0].getIsolationWindowUpperOffset() > 100.0 ?
+                             spec.getPrecursors()[0].getIsolationWindowUpperOffset() :
+                             spec.getPrecursors()[0].getIsolationWindowUpperOffset() + spec.getPrecursors()[0].getMZ();
+
+
+                    int min_isotope_index = 1000, max_isotope_index = -1;
+                    vector<double> pii(min_isotope_index,.0);
+
+                    for(auto iter = pre_spec.MZBegin(min_mz);iter->getMZ() < max_mz;iter++){
+                        auto mz = iter->getMZ();
+                        if(mz < start_mz || mz > end_mz){
+                            continue;
+                        }
+                        auto o_mass = (mz - Constants::PROTON_MASS_U) * charge;
+                        int iso_index = round((o_mass-p_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
+                        max_isotope_index = max_isotope_index < iso_index? iso_index : max_isotope_index;
+                        min_isotope_index = min_isotope_index > iso_index? iso_index : min_isotope_index;
+
+                        double t_mass = p_mass + iso_index * Constants::ISOTOPE_MASSDIFF_55K_U;
+                        if(abs(o_mass- t_mass) < o_mass * tol / 1e6){
+                            pii[iso_index] += iter->getIntensity();
+                            signal += iter->getIntensity() * iter->getIntensity();
+                        }else{
+                            noise += iter->getIntensity() * iter->getIntensity();
+                        }
+                    }
+                    if(signal > noise){
+                        cntr++;
+                        to_out1.push_back(ps[i]);
+                    }
+
+                    auto iso_dist = avg.get(p_mass);
+                    int iso_size = (int) iso_dist.size();
+
+                    double cos_score = getCosine_(pii,
+                                                  min_isotope_index,
+                                                  max_isotope_index,
+                                                  iso_dist,
+                                                  iso_size,
+                                                  0);
+
+                    auto nom = cos_score * cos_score * signal;
+                    auto denom = noise
+                                 + (1 - cos_score * cos_score) * signal + 1;
+                    //cout<<cos_score<< " " << signal<<" " << noise << " "<< nom <<" " << denom<<endl;
+                    if(nom > denom){
+                        to_out2.push_back(ps[i]);
+                    }
+                }
+
+            }
+        }
+
+        std::sort(to_out1.begin(), to_out1.end());
+        std::sort(to_out2.begin(), to_out2.end());
+        for(auto &item : to_out1){
+            outstream1<<item.str_<<"\n";
+
             auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
-            attstream << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
+            attstream1 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
                       << item.proteform_id_
-                      << "," << item.rt_ << ",0," << item.scan_ << "," << item.adj_precursor_mass_ << ","
+                      << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
                       << ","
                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
                       << (item.unexp_mod_.size())
-            <<",";
+                      <<",";
             for(int k=0;k<3;k++){
                 if(k < item.unexp_mod_.size()){
-                    attstream<<item.unexp_mod_[k]<<",";
+                    attstream1<<item.unexp_mod_[k]<<",";
                 }else{
-                    attstream<<"nan,";
+                    attstream1<<"nan,";
                 }
             }
 
-            attstream<<"0,0,0,0,0,0,0,"<<item.e_value_<<",T\n";
-
+            attstream1<<"0,0,0,0,0,0,0,"<<item.e_value_<<","<<  item.spec_q_value_ << ",T\n";
         }
-        in_trainstream.close();
 
-        for(auto &item: results){
-            if(item.second.size() == 1){
-                to_out.push_back(item.second[0]);
-            }else{
-                auto &ps = item.second;
-                for(int i=0;i<ps.size();i++){
-                    bool write = true;
-                    double psm1 = ps[i].adj_precursor_mass_;
-                    if(!ps[i].unexp_mod_.empty()) {
-                        for (int j = i + 1; j < ps.size(); j++) {
-                            double psm2 = ps[j].adj_precursor_mass_;
-                            for (int k = 2; k <= 5; k++) {
-                                for (int off = -2; off <= 2; ++off) {
-                                    double hm1 = (psm1 + off * Constants::ISOTOPE_MASSDIFF_55K_U) * k;
-                                    double hm2 = (psm1 + off * Constants::ISOTOPE_MASSDIFF_55K_U) / k;
-                                    if (FLASHDeconvAlgorithm::getNominalMass(psm2) ==
-                                        FLASHDeconvAlgorithm::getNominalMass(hm1)
-                                        || FLASHDeconvAlgorithm::getNominalMass(psm2) ==
-                                           FLASHDeconvAlgorithm::getNominalMass(hm2)) {
+        for(auto &item : to_out2){
+            outstream2<<item.str_<<"\n";
 
-                                        if(ps[i].e_value_ > ps[j].e_value_) {
-                                            write = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if(write){
-                        to_out.push_back(ps[i]);
-                    }
+            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
+            attstream2 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
+                       << item.proteform_id_
+                       << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
+                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+                       << ","
+                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
+                       << (item.unexp_mod_.size())
+                       <<",";
+            for(int k=0;k<3;k++){
+                if(k < item.unexp_mod_.size()){
+                    attstream2<<item.unexp_mod_[k]<<",";
+                }else{
+                    attstream2<<"nan,";
                 }
-
             }
+
+            attstream2<<"0,0,0,0,0,0,0,"<<item.e_value_<<","<<  item.spec_q_value_ <<",T\n";
         }
 
-
-
-
-        std::sort(to_out.begin(), to_out.end());
-        for(auto &o : to_out){
-            outstream<<o.str_<<"\n";
-        }
-        attstream.close();
-        outstream.close();
+        attstream1.close();
+        attstream2.close();
+        outstream1.close();
+        outstream2.close();
+        attstream0.close();
+        std::cout<<" After "<<to_out1.size() << " After " << to_out2.size() <<"\n";
         return EXECUTION_OK;
     }
 };

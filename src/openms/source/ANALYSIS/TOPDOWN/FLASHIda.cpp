@@ -260,9 +260,6 @@ namespace OpenMS {
                 if (pg.getQScore() < qscore_threshold_) {
                     break;
                 }
-                if (pg.getSNR() < snr_threshold_) {
-                    continue;
-                }
 
                 if (pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold_) {
                     continue;

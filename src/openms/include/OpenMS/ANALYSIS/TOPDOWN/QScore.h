@@ -75,6 +75,7 @@ namespace OpenMS
                             //const std::vector<int> ptm_end,
                             const bool is_identified,
                             const double e_value,
+                            const double q_value,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                             std::fstream &f,
                             bool write_detail = false);

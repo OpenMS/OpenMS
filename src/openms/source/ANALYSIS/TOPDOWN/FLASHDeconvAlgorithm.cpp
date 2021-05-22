@@ -1346,7 +1346,7 @@ namespace OpenMS {
 
             peak_group.setChargeScore(cs);
 
-            // if (ms_level_ == 1)
+            //if (ms_level_ == 1)
             {
                 bool is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities);
                 //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
@@ -1379,7 +1379,6 @@ namespace OpenMS {
                 continue;
             }
             auto iso_dist = avg_.get(peak_group.getMonoMass());
-            //double iso_norm = avg_.getNorm(peak_group.getMonoMass());
             int iso_size = (int) iso_dist.size();
             float total_noise = .0;
             float total_signal = .0;
@@ -1444,8 +1443,6 @@ namespace OpenMS {
                                               max_isotope_index,
                                               iso_dist,
                                               iso_size,
-                        // norm,
-                        //1,
                                               0);
 
                 // double cos_score_squared = cos_score * cos_score;
@@ -2031,8 +2028,8 @@ namespace OpenMS {
         double p = .0;
         for (int i = max_index; i < last_index - 1; i++) {
             double diff = per_charge_intensity[i + 1] - per_charge_intensity[i];
-            double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
-            if (diff <= 0 && ratio < 5.0) {
+            //double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
+            if (diff <= 0) {
                 continue;
             }
             p += abs(diff);

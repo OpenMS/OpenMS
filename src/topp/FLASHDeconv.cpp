@@ -263,6 +263,10 @@ protected:
         double max_rt = getDoubleOption_("Algorithm:max_rt");
 
 #ifdef DEBUG_EXTRA_PARAMTER
+        auto out_topfd_file_log =  out_topfd_file[1] + ".log";
+        fstream f_out_topfd_file_log;
+        f_out_topfd_file_log.open(out_topfd_file_log, fstream::out);
+
         in_train_file = getStringOption_("in_train");
         out_train_file = getStringOption_("out_train");
         fstream fi_out;
@@ -332,7 +336,7 @@ protected:
 
 
         std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-        if (!in_log_file.empty()) // TODO fix this
+        if (!in_log_file.empty())
         {
             std::ifstream instream(in_log_file);
             if (instream.good()) {
@@ -446,8 +450,6 @@ protected:
                     }
                 }
 //precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-
-
                 instream.close();
             } else {
                 std::cout << in_log_file << " not found\n";
@@ -784,7 +786,7 @@ protected:
                                     deconvoluted_spectrum.getPrecursorCharge(),
                                     precursor_intensity, top_pic_map[scan_number].unexp_mod_,
                                     top_pic_map[scan_number].proteform_id_ >= 0,
-                                    top_pic_map[scan_number].e_value_,
+                                    top_pic_map[scan_number].e_value_, top_pic_map[scan_number].proteofrom_q_value_,
                                     avg, out_train_stream, write_detail_qscore_att);
 
             }
@@ -833,6 +835,14 @@ protected:
             }
             if (out_topfd_streams.size() > ms_level - 1) {
                 deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);
+
+                if(ms_level ==2 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
+                    f_out_topfd_file_log << scan_number <<","<<deconvoluted_spectrum.getPrecursorPeakGroup().getMonoMass()
+                    <<","<<deconvoluted_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
+                    <<deconvoluted_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
+                }
+
+
                 //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);
                 //double precursor_offset = ((double) rand() / (RAND_MAX)) * 90 + 10; // 10 - 100
                 //precursor_offset = ((double) rand() / (RAND_MAX))>.5? precursor_offset : -precursor_offset;
@@ -902,7 +912,7 @@ protected:
         }
 
 #ifdef DEBUG_EXTRA_PARAMTER
-
+        f_out_topfd_file_log.close();
         for (auto it = map.begin(); it != map.end(); ++it) {
 
             scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),

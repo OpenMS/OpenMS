@@ -41,6 +41,7 @@
 #include <QFile>
 #include <iomanip>
 #include <sstream>
+#include <stdlib.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -74,14 +75,98 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerInputFile_("in", "<file>", "", "Input msalign file");
+      registerInputFile_("log", "<file>", "", "Input log file");
+      registerOutputFile_("out", "<file>", "", "out msalign file");
+    //setValidFormats_("in", ListUtils::create<String>("mzML"));
   }
 
-  ExitCodes main_(int, const char **) override
+    std::vector<std::string> tokenise(const std::string &str){
+        std::vector<std::string> tokens;
+        int first = 0;
+        while(first<str.size()){
+            int second = str.find_first_of(',',first);
+            //first has index of start of token
+            //second has index of end of token + 1;
+            if(second==std::string::npos){
+                second = str.size();
+            }
+            std::string token = str.substr(first, second-first);\
+            tokens.push_back(token);
+            first = second + 1;
+        }
+        return tokens;
+    }
+
+    ExitCodes main_(int, const char **) override
   {
-    String in = getStringOption_("in");
-    String out = FileHandler::stripExtension(in);
+      String in = getStringOption_("in");
+      String log = getStringOption_("log");
+      String out = getStringOption_("out");
+
+      std::ifstream ins(in);
+      std::ifstream logs(log);
+      fstream outs;
+      outs.open(out, fstream::out);
+
+      std::map<int,std::vector<double>> maps;
+      String line;
+
+      while (std::getline(logs, line)) {
+        auto tokens = tokenise(line);
+        int scan = std::stoi(tokens[0]);
+        double mass = std::stod(tokens[1]);
+        double charge = std::stod(tokens[2]);
+        double intenisty = std::stod(tokens[3]);
+        vector<double> val;
+        val.push_back(mass);
+          val.push_back(charge);
+          val.push_back(intenisty);
+        maps[scan] = val;
+      }
+
+      int scan = 0;
+      vector<double> val;
+      bool exist = false;
+      outs<<"#FLASHIda precursor information used\n";
+      while (std::getline(ins, line)) {
+          if(line.hasPrefix("SCANS")){
+              scan = std::stoi(line.substr(6));
+              if(maps.find(scan) != maps.end()){
+                val = maps[scan];
+                exist = true;
+              }else{
+                  exist = false;
+              }
+
+          }
+
+          if(exist){
+          if(line.hasPrefix("PRECURSOR_CHARGE")){
+            outs<< "PRECURSOR_CHARGE="<< (int)val[1]<<"\n";
+            continue;
+          }
+          if(line.hasPrefix("PRECURSOR_MASS")){
+              outs<< "PRECURSOR_MASS="<< val[0]<<"\n";
+              continue;
+          }
+
+          if(line.hasPrefix("PRECURSOR_INTENSITY")){
+              outs<< "PRECURSOR_INTENSITY="<< val[2]<<"\n";
+              continue;
+          }
+}
+          outs<<line<<"\n";
+
+
+      }
+
+
+      logs.close();
+      outs.close();
+      ins.close();
+
+    /*String out = FileHandler::stripExtension(in);
 
     fstream matlabOut;
     matlabOut.open(out + ".m", fstream::out);
@@ -99,7 +184,7 @@ protected:
       }
       matlabOut << "];\n";
     }
-    matlabOut.close();
+    matlabOut.close();*/
     return EXECUTION_OK;
   }
 };
