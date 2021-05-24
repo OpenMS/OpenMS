@@ -175,7 +175,7 @@ protected:
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
-    for(ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
+    for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
     {
       sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
     }
@@ -300,7 +300,7 @@ protected:
       {
         fmap = &(fmaps[i]);
       }
-      for(Feature & f: fmap_local) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
+      for (Feature & f: fmap_local) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
       {
           sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
@@ -413,7 +413,7 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
-      if(export_evidence.isValid())
+      if (export_evidence.isValid())
       {
         export_evidence.exportFeatureMap(fmap_local,cmap);
       }
@@ -482,18 +482,18 @@ private:
 
   void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
   {
-      for(PeptideIdentification & pep_id : pep_ids)
+    for (PeptideIdentification& pep_id : pep_ids)
+    {
+      pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
+    }
+    std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
+    {
+      if (a.empty() || b.empty())
       {
-          pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
+        return a.empty() > b.empty();
       }
-      std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
-      {
-        if(a.empty() || b.empty())
-        {
-          return a.empty() > b.empty();
-        }
-        return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
-      });
+      return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+    });
   }
 
   void addPepIDMetaValues_(
@@ -516,7 +516,7 @@ private:
         //TODO check if first = best assumption is met!
         Size cf_index = it_pep->second.first;     //ConsensusFeature Index
         Size pi_index = it_pep->second.second;    //PeptideIdentification Index
-        if(cf_index != Size(-1))
+        if (cf_index != Size(-1))
         {
           cmap[cf_index].getPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
           cmap[cf_index].getPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
@@ -539,3 +539,4 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
+

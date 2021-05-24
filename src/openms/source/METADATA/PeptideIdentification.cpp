@@ -277,8 +277,7 @@ namespace OpenMS
     multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
 
     ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
-    const map<String, StringList> &identifier_to_msrunpath = mp_c.identifier_to_msrunpath;
-    //Iterates of the vector of PeptideIdentification to buil the UID
+    //Iterates of the vector of PeptideIdentification to build the UID
     //and the pep_index
     auto lamda = [](const vector<PeptideIdentification> &cpep_ids,
                     const map<String, StringList> &identifier_to_msrunpath,
@@ -318,11 +317,11 @@ namespace OpenMS
     const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
     if (ms_run_path.size() == 1)
     {
-      UID = ms_run_path[0] + pep_id.getMetaValue("spectrum_reference").toString();
+      UID = ms_run_path[0] + '|' + pep_id.getMetaValue("spectrum_reference").toString();
     }
     else if (pep_id.metaValueExists("map_index"))
       {
-        UID = pep_id.getMetaValue("map_index").toString() +
+        UID = pep_id.getMetaValue("map_index").toString() + '|' +
               pep_id.getMetaValue("spectrum_reference").toString();
       }
       else

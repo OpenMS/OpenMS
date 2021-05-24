@@ -181,6 +181,7 @@ public:
              The UID can be formed in two ways.
              Either it is composed of the map_index and the spectrum-reference
              or of the ms_run_path and the spectrum_references, if the path is unique.
+             The parts of the UID are separated by '|'.
       @param pep_id and @param fidentifier_to_msrunpath are used to determine the UID
 
       @return Returns the correct UID

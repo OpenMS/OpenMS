@@ -57,7 +57,7 @@ class OPENMS_DLLAPI MQEvidence
 {
 private:
     std::fstream file_; // Stream where the data is added to create MQEvidence file
-    int id_; // number of rows in file to give each row a specific id
+    OpenMS::Size id_; // number of rows in file to give each row a specific id
     std::map<OpenMS::String, OpenMS::Size> protein_id_; // map that maps each Feature to the index of the associated ConsensusFeature in the ConsensusMap
 
     /**
@@ -72,7 +72,7 @@ private:
         a peptide is mapped to get the number one and so on. By this means, it can be seen very easily
         which peptides are mapped to the same protein.
 
-      @param String that is a description of a protein
+      @param protein is a description of a protein
 
       @return Returns distinct number for every Protein that is part of the file.
     */
@@ -100,7 +100,7 @@ private:
     */
     bool hasValidPepID_(
             const OpenMS::Feature &f,
-            const OpenMS::Int64 c_feature_number,
+            const OpenMS::Size c_feature_number,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
             const OpenMS::ProteinIdentification::Mapping &mp_f);
 
@@ -131,7 +131,7 @@ private:
     void exportRowFromFeature_(
             const OpenMS::Feature &f,
             const OpenMS::ConsensusMap &cmap,
-            const OpenMS::Int64 c_feature_number,
+            const OpenMS::Size c_feature_number,
             const OpenMS::String &raw_file,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
             const OpenMS::ProteinIdentification::Mapping &mp_f);
@@ -143,7 +143,7 @@ public:
         If the path for the constructor is empty (path not valid), no file is created.
         If the creation of the fstream object is successful a constant header is added to the file
 
-  @param String that is the path where file has to be stored
+  @param path that is the path where file has to be stored
 
 */
     explicit MQEvidence(const OpenMS::String &path);

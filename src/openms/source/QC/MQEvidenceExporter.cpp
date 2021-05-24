@@ -125,7 +125,7 @@ Size MQEvidence::proteinGroupID_(const String &protein) {
 }
 
 std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap &cmap) {
-  std::map<UInt64, Size> f_to_ci;
+  std::map<Size, Size> f_to_ci;
   for (Size i = 0; i < cmap.size(); ++i)
   {
     for (const auto &fh : cmap[i].getFeatures())
@@ -142,7 +142,7 @@ std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const Consen
 
 bool MQEvidence::hasValidPepID_(
         const Feature &f,
-        const Int64 c_feature_number,
+        const Size c_feature_number,
         const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
         const ProteinIdentification::Mapping &mp_f) {
   const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
@@ -172,7 +172,7 @@ bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature &cf) {
 void MQEvidence::exportRowFromFeature_(
         const Feature &f,
         const ConsensusMap &cmap,
-        const Int64 c_feature_number,
+        const Size c_feature_number,
         const String &raw_file,
         const std::multimap<String, std::pair<Size, Size>> &UIDs,
         const ProteinIdentification::Mapping &mp_f) {
@@ -213,7 +213,7 @@ void MQEvidence::exportRowFromFeature_(
   file_ << pep_seq.toUnmodifiedString() << "\t"; // Sequence
   file_ << pep_seq.size() << "\t"; // Length
 
-  std::map<String, int> modifications;
+  std::map<String, Size> modifications;
   if (pep_seq.hasNTerminalModification())
   {
     const String &n_terminal_modification = pep_seq.getNTerminalModificationName();

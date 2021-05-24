@@ -454,17 +454,17 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> fillConsensus
 
   auto b = map_of_UIDs.begin();
   TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=112")
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=112")
   TEST_EQUAL(b->second.first, Size(-1))
   TEST_EQUAL(b->second.second, 4)
   ++b;
   TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=113")
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=113")
   TEST_EQUAL(b->second.first, 11)
   TEST_EQUAL(b->second.second, 0)
   ++b;
   TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=118")
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=118")
   TEST_EQUAL(b->second.first, 4)
   TEST_EQUAL(b->second.second, 0)
 
@@ -478,9 +478,9 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> fillConsensus
   String uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], identifier_to_msrunpath);
   String uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], identifier_to_msrunpath);
 
-  TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzMLspectrum=219")
-  TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzMLspectrum=33")
-  TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzMLspectrum=133")
+  TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=219")
+  TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzML|spectrum=33")
+  TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzML|spectrum=133")
 }
 END_SECTION
 
