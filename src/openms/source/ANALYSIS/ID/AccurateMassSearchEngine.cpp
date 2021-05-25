@@ -695,9 +695,9 @@ namespace OpenMS
 
     if (legacyID_)
     {
-      // add dummy protein identification which is required to keep peptidehits alive during store()
+      // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
       fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-      fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
+      fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchEngine");
       fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
       fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
     }
