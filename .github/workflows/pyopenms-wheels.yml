@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly, pyopenms3, py_nightly_test ]
+    branches: [ nightly, py_nightly_test ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,12 +27,6 @@ jobs:
 
     - name: Reduce PATH
       run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-    - name: Check ENV
-      run: echo $GITHUB_ENV
-
-    - name: Check PATH
-      run: echo $GITHUB_PATH
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -90,7 +84,7 @@ jobs:
           mkdir pyopenms_whls
 
           # The growing PATH leads to a failure in the last iteration of the pyopenms build process.
-          # We will store the PATH variable in the beginning and reset it with every iteration. 
+          # We will store the PATH variable in the beginning and reset it with every iteration.
           RESET_PATH=$PATH
 
           for py in $SUPPORTED_PYTHONS
@@ -101,11 +95,6 @@ jobs:
             # create and actiavte conda environment
             conda create -n pyoms-bld-$py python=$py
             source activate pyoms-bld-$py
-
-            # show path to see if it grows with the iterations! (debug)
-            echo "--------"
-            echo $PATH
-            echo "--------"
 
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -149,6 +138,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.20.x'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -281,6 +275,11 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.20.x'
 
     - name: Build on manylinux2014
       shell: bash
