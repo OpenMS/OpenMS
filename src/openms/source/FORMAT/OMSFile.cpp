@@ -917,24 +917,27 @@ namespace OpenMS
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
   }
 
-
-  void OMSFile::OMSFileStore::storeIdentifiedCompounds_(const IdentificationData& id_data)
+  void OMSFile::OMSFileStore::createTableIdentifiedCompound_()
   {
-    if (id_data.getIdentifiedCompounds().empty()) return;
+    if (!tableExists_(db_name_, "ID_IdentifiedMolecule")) createTableIdentifiedMolecule_();
 
-    if (!tableExists_(db_name_, "ID_IdentifiedMolecule"))
-    {
-      createTableIdentifiedMolecule_();
-    }
-
+    // use one table for all types of identified compounds to allow foreign key
+    // references from the input match table:
     createTable_(
       "ID_IdentifiedCompound",
-      "molecule_id UNIQUE INTEGER NOT NULL, "                           \
+      "molecule_id INTEGER NOT NULL UNIQUE, "                  \
       "formula TEXT, "                                                  \
       "name TEXT, "                                                     \
       "smile TEXT, "                                                    \
       "inchi TEXT, "                                                    \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
+  }
+
+  void OMSFile::OMSFileStore::storeIdentifiedCompounds_(const IdentificationData& id_data)
+  {
+    if (id_data.getIdentifiedCompounds().empty()) return;
+
+    if (!tableExists_(db_name_, "ID_IdentifiedCompound")) createTableIdentifiedCompound_();
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query_molecule(db);

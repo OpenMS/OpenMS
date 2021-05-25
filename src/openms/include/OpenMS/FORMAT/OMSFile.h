@@ -171,6 +171,8 @@ namespace OpenMS
 
       void createTableIdentifiedMolecule_();
 
+      void createTableIdentifiedCompound_();
+
       Key getAddress_(const IdentificationData::IdentifiedMolecule& molecule_var);
 
       void createTableParentMatches_();

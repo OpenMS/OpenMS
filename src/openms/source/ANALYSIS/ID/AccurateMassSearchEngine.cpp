@@ -628,6 +628,7 @@ namespace OpenMS
       auto search_param_ref = id.registerDBSearchParam(search_param);
 
       // file has been processed by software
+      // TODO: Data Processing übergeben?
       IdentificationData::ProcessingStep step(sw_ref);
       step.input_file_refs.push_back(file_ref); // TODO: why does that not work?
       step_ref = id.registerProcessingStep(step, search_param_ref);
@@ -749,12 +750,13 @@ namespace OpenMS
         const String& name = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
+        // TODO: or have an additional column for possible database, where is that stored?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         name,
                                                         smiles,
                                                         inchi_key,
-                                                        IdentificationDataInternal::AppliedProcessingSteps());
+                                                        IdentificationDataInternal::AppliedProcessingSteps()); // TODO: How/What to add here?
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
         // compound-feature match
@@ -762,16 +764,18 @@ namespace OpenMS
         match.addScore(mass_error_Da_score_ref, r.getObservedMZ() - r.getCalculatedMZ(), step_ref);
         match.addScore(mass_error_ppm_score_ref, r.getMZErrorPPM(), step_ref);
 
-        // TODO: Check - should work for all charges!
+        // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+
-
         if (!adduct.empty() || adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
           auto adduct_ref = id.registerAdduct(ainfo);
           match.adduct_opt = adduct_ref;
         }
+
+        // register ObservationMatch
         auto obs_match_ref = id.registerObservationMatch(match);
+        // add to Feature
         f.addIDMatch(obs_match_ref);
       }
     }
