@@ -24,6 +24,7 @@ namespace OpenMS
     int align(const String& seq1, const String& seq2);
 
     void setMatrix(const ScoringMatrix& matrix);
+    void setMatrix(const std::string& matrix);
 
     void setPenalty(const int& penalty);
 
@@ -37,5 +38,8 @@ namespace OpenMS
     unsigned seq2len_ = 0;
     int gapPenalty_ = 0;
     int(* matrixPtr_)[26][26] = nullptr;
+    std::vector<int> firstRow_{};
+    std::vector<int> secondRow_{};
+    std::string validMatrices_[2] = {"PAM30MS", "identity"};
   };
 }

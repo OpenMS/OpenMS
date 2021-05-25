@@ -93,13 +93,28 @@ void NeedlemanWunsch::setMatrix(const NeedlemanWunsch::ScoringMatrix& matrix)
   {
     matrixPtr_ = &PAM30MS;
   }
-
 }
+
+void NeedlemanWunsch::setMatrix(const std::string& matrix)
+{
+  auto first = &validMatrices_[0];
+  auto last = &validMatrices_[2];
+  const auto it = std::find(first, last, matrix);
+  if (it == last)
+  {
+    String msg = "Matrix is not known! Valid choices are: "
+                 "'identity', 'PAM30MS'.";
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     msg);
+  }
+  setMatrix(static_cast<NeedlemanWunsch::ScoringMatrix>(it - first));
+}
+
+
 
 void NeedlemanWunsch::setPenalty(const int& penalty)
 {
-
-      gapPenalty_ = penalty;
+  gapPenalty_ = penalty;
 }
 
 NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix() const
@@ -118,7 +133,7 @@ int NeedlemanWunsch::getPenalty() const
 {
     return gapPenalty_;
 }
-
+/*
 int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix
 {
   seq1len_ = seq1.length();
@@ -139,23 +154,23 @@ int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständi
   }
   return matrix[(seq1len_+1)*(seq2len_+1)-1];
 }
-
+*/
 /*
-//linear space (2 Zeilen)
+//linear space (2 Zeilen) //seit vectoren member sind: munmap_chunk(): invalid pointer
  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
  {
    seq1len_ = seq1.length();
    seq2len_ = seq2.length();
 
-   vector<int> firstRow{};
-   vector<int> secondRow(seq2len_+1,0);
-   vector<int>* firstRowPtr = &firstRow;
-   vector<int>* secondRowPtr = &secondRow;
+   firstRow_.resize(seq1len_);
+   secondRow_.resize(seq2len_+1);
+   vector<int>* firstRowPtr = &firstRow_;
+   vector<int>* secondRowPtr = &secondRow_;
 
 
    for (unsigned i = 0; i <= seq2len_; ++i)//horizontale mit gapkosten initialieren
    {
-     firstRow.push_back(i * ((-1 * gapPenalty_)));
+     firstRow_[i] = i * ((-1 * gapPenalty_));
    }
 
    for (unsigned i = 1;i <= seq1len_; ++i) //second row berechnen und swappen
@@ -170,5 +185,37 @@ int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständi
    }
    return (*firstRowPtr)[seq2len_];
  }
-*/
+ */
+
+
+  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
+  {
+    seq1len_ = seq1.length();
+    seq2len_ = seq2.length();
+
+    firstRow_.resize(seq2len_+1); // both rows have the same length
+    secondRow_.resize(seq2len_+1);
+
+    int* firstRowPtr = &(firstRow_[0]);
+    int* secondRowPtr = &(secondRow_[0]);
+
+
+    for (unsigned i = 0; i <= seq2len_; ++i)//horizontale mit gapkosten initialieren
+    {
+      firstRow_[i] = i * (-gapPenalty_);
+    }
+
+    for (unsigned i = 1;i <= seq1len_; ++i) //second row berechnen und swappen
+    {
+      (*secondRowPtr) = i * (-gapPenalty_); //erster wert in der zeile mit gapkosten //second row pointer muss auf die erste stelle zeigen
+      for (unsigned j = 1; j <= seq2len_; ++j) //secondRow berechnen
+      {
+        (*(secondRowPtr+j)) = max(max(((*(secondRowPtr+j-1)) - gapPenalty_), ((*(firstRowPtr+j)) - gapPenalty_)),
+                                  ((*(firstRowPtr+j-1)) + (*matrixPtr_)[seq1[i-1] - 'A'] [seq2[j-1] - 'A']));
+      }
+      swap(firstRowPtr, secondRowPtr);
+    }
+    return (*(firstRowPtr+seq2len_));
+  }
+
 }

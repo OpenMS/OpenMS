@@ -53,25 +53,13 @@ namespace OpenMS
 
   void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
   {
-    //ConsenusIDAlgorithmSimilarity::updateMembers_(); // error: has not been declared
+    ConsensusIDAlgorithmSimilarity::updateMembers_();
 
     string matrix = param_.getValue("matrix");
     int penalty = param_.getValue("penalty");
-    if (matrix == "identity")
-    {
-      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::identity);
-    }
-    else if (matrix == "PAM30MS")
-    {
-      object_.setMatrix(NeedlemanWunsch::ScoringMatrix::PAM30MS);
-    }
-    else
-    {
-      String msg = "Matrix is not known! Valid choices are: "
-                   "'identity', 'PAM30MS'.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       msg);
-    }
+
+    object_.setMatrix(matrix);
+
     if (penalty > 0)
     {
       object_.setPenalty(penalty);
