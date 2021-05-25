@@ -133,8 +133,8 @@ int NeedlemanWunsch::getPenalty() const
 {
     return gapPenalty_;
 }
-/*
-int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix
+
+int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständige matrix 26.59 CPU
 {
   seq1len_ = seq1.length();
   seq2len_ = seq2.length();
@@ -154,7 +154,7 @@ int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständi
   }
   return matrix[(seq1len_+1)*(seq2len_+1)-1];
 }
-*/
+
 /*
 //linear space (2 Zeilen) //seit vectoren member sind: munmap_chunk(): invalid pointer
  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
@@ -187,8 +187,8 @@ int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständi
  }
  */
 
-
-  int NeedlemanWunsch::align(const String& seq1, const String& seq2)
+/*
+  int NeedlemanWunsch::align(const String& seq1, const String& seq2) //25.30 s CPU
   {
     seq1len_ = seq1.length();
     seq2len_ = seq2.length();
@@ -217,5 +217,5 @@ int NeedlemanWunsch::align(const String& seq1, const String& seq2) //vollständi
     }
     return (*(firstRowPtr+seq2len_));
   }
-
+*/
 }

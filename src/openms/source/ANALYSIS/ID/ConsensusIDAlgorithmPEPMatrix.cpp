@@ -43,7 +43,7 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
 
     defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alignment-based similarity scoring");
-    defaults_.setValidStrings("matrix", {"identity","PAM30MS"});
+    //defaults_.setValidStrings("matrix", NeedlemanWunsch::validMatrices_; //hier auf unser member zugreifen
     defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
     defaults_.setMinInt("penalty", -1);
 
