@@ -449,7 +449,7 @@ END_SECTION
 START_SECTION((static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap)))
 {
   ConsensusMap cmap;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
   std::multimap<String, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
 
   auto b = map_of_UIDs.begin();

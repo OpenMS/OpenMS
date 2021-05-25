@@ -89,7 +89,7 @@ START_SECTION((void exportFeatureMap(
   FeatureMap fmap_six;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
   evd.exportFeatureMap(fmap_six, cmap_one);
-  String filename = path + "/evidence.txt";
+  String filename = path + "evidence.txt";
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION
