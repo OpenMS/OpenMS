@@ -130,7 +130,7 @@ std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const Consen
   {
     for (const auto &fh : cmap[i].getFeatures())
     {
-      auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
+      auto [it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
       if (!was_created_newly)
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "FeatureHandle exists twice in ConsensusMap!");
