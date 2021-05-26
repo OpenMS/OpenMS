@@ -542,14 +542,9 @@ private:
     /// Minimum score for a match to be considered valid in `matchSpectrum()`.
     double min_match_score_;
 
-    String output_format_;
-
-    int min_transitions_;
-    int max_transitions_;
-    double cosine_similarity_threshold_;
-    int transition_threshold_;
     double min_fragment_mz_;
     double max_fragment_mz_;
+
     double relative_allowable_product_mass_;
 
     bool deisotoping_use_deisotoper_;
@@ -562,12 +557,5 @@ private:
     bool deisotoping_keep_only_deisotoped_;
     bool deisotoping_annotate_charge_;
 
-    bool use_exact_mass_;
-    bool exclude_ms2_precursor_;
-
-    double precursor_mz_distance_;
-    double consensus_spectrum_precursor_rt_tolerance_;
-
-    std::string method_;
   };
 }

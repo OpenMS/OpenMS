@@ -85,10 +85,6 @@ namespace OpenMS
     top_matches_to_report_ = (Size)param_.getValue("top_matches_to_report");
     min_match_score_ = (double)param_.getValue("min_match_score");
     
-    min_transitions_ = param_.getValue("min_transitions");
-    max_transitions_ = param_.getValue("max_transitions");
-    cosine_similarity_threshold_ = (double) param_.getValue("cosine_similarity_threshold");
-    transition_threshold_ = param_.getValue("transition_threshold");
     min_fragment_mz_ = (double) param_.getValue("min_fragment_mz");
     max_fragment_mz_ = (double) param_.getValue("max_fragment_mz");
     relative_allowable_product_mass_ = (double) param_.getValue("relative_allowable_product_mass");
@@ -102,14 +98,6 @@ namespace OpenMS
     deisotoping_max_isopeaks_ = param_.getValue("deisotoping:max_isopeaks");
     deisotoping_keep_only_deisotoped_ = param_.getValue("deisotoping:keep_only_deisotoped").toBool();
     deisotoping_annotate_charge_ = param_.getValue("deisotoping:annotate_charge").toBool();
-
-    use_exact_mass_ = param_.getValue("use_exact_mass").toBool();
-    exclude_ms2_precursor_ = param_.getValue("exclude_ms2_precursor").toBool();
-
-    precursor_mz_distance_ = (double)param_.getValue("precursor_mz_distance");
-    consensus_spectrum_precursor_rt_tolerance_ = (double)param_.getValue("consensus_spectrum_precursor_rt_tolerance");
-
-    method_ = param_.getValue("method");
   }
 
   void TargetedSpectraExtractor::getDefaultParameters(Param& params) const
@@ -182,10 +170,6 @@ namespace OpenMS
     params.setMinFloat("min_match_score", 0.0);
     params.setMaxFloat("min_match_score", 1.0);
 
-    params.setValue("min_transitions", 3, "Minimal number of transitions");
-    params.setValue("max_transitions", 6, "Maximal number of transitions");
-    params.setValue("cosine_similarity_threshold", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation");
-    params.setValue("transition_threshold", 5, "Further transitions need at least x% of the maximum intensity (default 5%)");
     params.setValue("min_fragment_mz", 0.0, "Minimal m/z of a fragment ion choosen as a transition");
     params.setValue("max_fragment_mz", 2000.0, "Maximal m/z of a fragment ion choosen as a transition");
     params.setValue("relative_allowable_product_mass", 10.0, "Threshold m/z of a product relatively to the precurosor m/z (can be negative)");
@@ -205,14 +189,6 @@ namespace OpenMS
     params.setValue("deisotoping:keep_only_deisotoped", "false", "Only monoisotopic peaks of fragments with isotopic pattern are retained");
     params.setValue("deisotoping:annotate_charge", "false", "Annotate the charge to the peaks");
 
-    params.setValue("use_exact_mass", "false", "Use exact mass for precursor and fragment annotations");
-    params.setValue("exclude_ms2_precursor", "false", "Excludes precursor in ms2 from transition list");
-
-    params.setValue("precursor_mz_distance", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
-    params.setValue("consensus_spectrum_precursor_rt_tolerance", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)");
-
-    params.setValue("method", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).");
-    params.setValidStrings("method", {"highest_intensity","consensus_spectrum"});
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
