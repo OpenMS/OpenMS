@@ -43,9 +43,9 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
 
     defaults_.setValue("matrix", "PAM30MS", "Substitution matrix to use for alignment-based similarity scoring");
-    //defaults_.setValidStrings("matrix", NeedlemanWunsch::validMatrices_; //hier auf unser member zugreifen
+    defaults_.setValidStrings("matrix", NeedlemanWunsch::NamesOfScoringMatrices);
     defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
-    defaults_.setMinInt("penalty", -1);
+    defaults_.setMinInt("penalty", 1);
 
     defaultsToParam_();
 
@@ -58,11 +58,11 @@ namespace OpenMS
     string matrix = param_.getValue("matrix");
     int penalty = param_.getValue("penalty");
 
-    object_.setMatrix(matrix);
+    alignment_.setMatrix(matrix);
 
     if (penalty > 0)
     {
-      object_.setPenalty(penalty);
+      alignment_.setPenalty(penalty);
     }
     else
     {
@@ -85,15 +85,7 @@ namespace OpenMS
     if (unmod_seq1 == unmod_seq2) return 1.0;
     if (unmod_seq1 < unmod_seq2) swap(unmod_seq1, unmod_seq2);
 
-    AASequence s1 = AASequence::fromString(unmod_seq1);
-    AASequence s2 = AASequence::fromString(unmod_seq2);
-    pair<AASequence, AASequence> seq_pair = make_pair(s1, s2);
-    SimilarityCache::iterator pos = similarities_.find(seq_pair);
-    if (pos != similarities_.end()) return pos->second; // score found in cache
-
-    double score_self1 = object_.align(unmod_seq1, unmod_seq1);
-    double score_sim = object_.align(unmod_seq1, unmod_seq2);
-    double score_self2 = object_.align(unmod_seq2, unmod_seq2);
+    double score_sim = alignment_.align(unmod_seq1, unmod_seq2);
 
     if (score_sim < 0)
     {
@@ -101,6 +93,8 @@ namespace OpenMS
     }
     else
     {
+      double score_self1 = alignment_.align(unmod_seq1, unmod_seq1);
+      double score_self2 = alignment_.align(unmod_seq2, unmod_seq2);
       score_sim /= min(score_self1, score_self2); // normalize
     }
     return score_sim;
