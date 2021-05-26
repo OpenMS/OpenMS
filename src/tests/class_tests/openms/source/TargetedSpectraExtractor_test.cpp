@@ -42,6 +42,12 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -116,7 +122,7 @@ Param tsv_params = tsv_reader.getParameters();
 tsv_params.setValue("retentionTimeInterpretation", "minutes");
 tsv_reader.setParameters(tsv_params);
 tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-
+/*
 START_SECTION(TargetedSpectraExtractor())
 {
   ptr = new TargetedSpectraExtractor();
@@ -966,7 +972,167 @@ START_SECTION(void untargetedMatching(
   TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_comments"), comments)
 }
 END_SECTION
+*/
+START_SECTION(storeSpectra(const String& filename, MSExperiment& experiment) const)
+{
+  const String experiment_path = OPENMS_GET_TEST_DATA_PATH("Germicidin A standard 5e-2_GA1_01_27401.mzML");
+  MzMLFile mzml;
+  mzml.load(experiment_path, experiment);
 
+  //
+  // Keep only MS1 spectra
+  // input  : experiment read from mzML file
+  // output : ms_peakmap (PeakMap)
+  //
+  OpenMS::PeakMap ms1_peakmap;
+  for (OpenMS::MSSpectrum& spec : experiment.getSpectra())
+  {
+    // we want only MS1 specrtra
+    if (spec.getMSLevel() == 1)
+    {
+      ms1_peakmap.addSpectrum(spec);
+    }
+  }
+  ms1_peakmap.sortSpectra(true);
+
+  // Detect mass in MS1 spectra
+  // A mass trace extraction method that gathers peaks similar in m/z and moving along retention time
+  // (feature detection in the workflow)
+  //
+  //  input  : ms1_peakmap
+  //  output : detected_traces
+  //
+  OpenMS::MassTraceDetection mass_trace_detection;
+  std::vector<OpenMS::MassTrace> detected_traces;
+  mass_trace_detection.run(ms1_peakmap, detected_traces, 1000);
+
+  // FeatureFindingMetabo Method for the assembly of mass traces belonging to the same isotope
+  // pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
+  // and isotope abundances.
+  // (grouping in the workflow)
+  //
+  // input  : detected_traces
+  // output : metabo_found_features_map (FeatureMap), not_used_feat_chromatograms (not used)
+  //
+  OpenMS::FeatureFindingMetabo feature_finding_metabo;
+  OpenMS::FeatureMap metabo_found_features_map;
+  std::vector<std::vector<OpenMS::MSChromatogram>> not_used_feat_chromatograms;
+  for (auto& trace : detected_traces)// estimate FWHM, so .getIntensity() can be called later
+  {
+    trace.estimateFWHM(false);
+  }
+  OpenMS::Param feature_finding_metabo_param;
+  feature_finding_metabo_param.setValue("use_smoothed_intensities", "false");
+  feature_finding_metabo.setParameters(feature_finding_metabo_param);
+  feature_finding_metabo.run(detected_traces, metabo_found_features_map, not_used_feat_chromatograms);
+  FeatureXMLFile().store("c:\\tmp\\test\\01_FeatureFindingMetabo.featureXML", metabo_found_features_map);
+
+  // WORKFLOW STEP: searchSpectra (on MS1 spectra)
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  OpenMS::FeatureMap ms1_accurate_mass_found_feature_map;
+  targeted_spectra_extractor.searchSpectrum(metabo_found_features_map, ms1_accurate_mass_found_feature_map);
+  FeatureXMLFile().store("c:\\tmp\\test\\02_searchSpectrum.featureXML", ms1_accurate_mass_found_feature_map);
+
+  // WORKFLOW STEP: merge features (will be on MS1 spectra) - take from SmartPeak
+  OpenMS::FeatureMap ms1_merged_features;
+  targeted_spectra_extractor.mergeFeatures(ms1_accurate_mass_found_feature_map, ms1_merged_features);
+  FeatureXMLFile().store("c:\\tmp\\test\\03_mergeFeatures.featureXML", ms1_merged_features);
+
+  // WORKFLOW STEP: TSE.annotateSpectra
+  // annotateSpectra :  I would like to annotate my MS2 spectra with the likely MS1 feature that it was derived from
+  std::vector<MSSpectrum> annotated_spectra;
+  OpenMS::FeatureMap ms2_features; // will be the input of annoteSpectra
+  targeted_spectra_extractor.annotateSpectra(experiment.getSpectra(), ms1_merged_features, ms2_features, annotated_spectra);
+  // --------------------
+  {
+    MSExperiment experiment_debug;
+    experiment_debug.setSpectra(annotated_spectra);
+    MSPGenericFile debug_file;
+    debug_file.store("c:\\tmp\\test\\04_annotated_spectra.msp", experiment_debug);
+  }
+  FeatureXMLFile().store("c:\\tmp\\test\\04_annotated_spectra.featureXML", ms2_features);
+  // --------------------
+
+  // WORKFLOW STEP: TSE.pickSpectra
+  std::vector<MSSpectrum> picked_spectra;
+  for (const auto& spectrum : annotated_spectra)
+  {
+    MSSpectrum picked_spectrum;
+    targeted_spectra_extractor.pickSpectrum(spectrum, picked_spectrum);
+    // -----------------------------------------------------------------------------
+    // name = to write msp file (debug) we need a name, which is missing
+    if (picked_spectrum.getName().empty())
+    {
+      static int debug_name_counter = 0;
+      std::stringstream os;
+      os << "debug_name_" << debug_name_counter++;
+      picked_spectrum.setName(os.str());
+    }
+    // -----------------------------------------------------------------------------
+    picked_spectra.push_back(picked_spectrum);
+  }
+  // --------------------
+  {
+    MSExperiment experiment_debug;
+    experiment_debug.setSpectra(picked_spectra);
+    MSPGenericFile debug_file;
+    debug_file.store("c:\\tmp\\test\\05_pickSpectrum.msp", experiment_debug);
+  }
+  // --------------------
+  
+  // WORKFLOW STEP: score *and* select
+  // FeatureMap scored_features;
+  std::vector<MSSpectrum> scored_spectra;
+  targeted_spectra_extractor.scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
+  // --------------------
+  {
+    MSExperiment experiment_debug;
+    experiment_debug.setSpectra(scored_spectra);
+    MSPGenericFile debug_file;
+    debug_file.store("c:\\tmp\\test\\06_scored_spectra.msp", experiment_debug);
+  }
+  FeatureXMLFile().store("c:\\tmp\\test\\06_scored_spectra.featureXML", ms2_features);
+  // --------------------
+
+  std::vector<MSSpectrum> selected_spectra;
+  FeatureMap selected_features;
+  targeted_spectra_extractor.selectSpectra(scored_spectra, ms2_features, selected_spectra, selected_features, true);
+  // --------------------
+  {
+    MSExperiment experiment_debug;
+    experiment_debug.setSpectra(selected_spectra);
+    MSPGenericFile debug_file;
+    debug_file.store("c:\\tmp\\test\\07_selectSpectra.msp", experiment_debug);
+  }
+  FeatureXMLFile().store("c:\\tmp\\test\\07_selectSpectra.featureXML", selected_features);
+  // --------------------
+
+  // WORKFLOW STEP: searchSpectra (will be on MS2 spectra)
+  OpenMS::FeatureMap ms2_accurate_mass_found_feature_map;
+  targeted_spectra_extractor.searchSpectrum(selected_features, ms2_accurate_mass_found_feature_map);
+  FeatureXMLFile().store("c:\\tmp\\test\\08_searchSpectrum.featureXML", ms2_accurate_mass_found_feature_map);
+
+  // WORKFLOW STEP: merge features again (on MS2 spectra features)
+  OpenMS::FeatureMap ms2_merged_features;
+  targeted_spectra_extractor.mergeFeatures(ms2_accurate_mass_found_feature_map, ms2_merged_features);
+  FeatureXMLFile().store("c:\\tmp\\test\\09_mergeFeatures.featureXML", ms2_merged_features);
+
+  // WORKFLOW STEP: store - we want to store MS1 and the associated MS2 features 
+  // (do 2 functions MSP: MS2 spectra as input param, TraML : take features map as input param)
+  // we need a link between MS2 and MS1 features, so we may need the MS2 spectra as input parameter as well (to check).
+
+  // Store
+  Param params = targeted_spectra_extractor.getParameters();
+  params.setValue("output_format", "traML");
+  params.setValue("deisotoping:use_deisotoper", "true");
+  targeted_spectra_extractor.setParameters(params);
+  std::string tmp_filename = "c:\\tmp\\test\\11_store.TraML";
+  // NEW_TMP_FILE(tmp_filename);
+  targeted_spectra_extractor.storeSpectraTraML(tmp_filename, ms1_merged_features, ms2_merged_features);
+
+  std::cout << "End" << std::endl;
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

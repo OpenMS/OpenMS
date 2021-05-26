@@ -208,6 +208,34 @@ public:
     ) const;
 
     /**
+      @brief Annotates the MS2 spectra with the likely MS1 feature that it was derived from
+
+      Add support for annotating based off of MS1 features resulting from SearchAccurateMass.
+      In this case, the input will be e.g., const FeatureMap& ms1_features and the RTs and names (i.e., PeptideRef),
+      defined in the FeatureMap.
+
+      @param[in] spectra The spectra to filter
+      @param[in] ms1_features the MS1 features
+      @param[out] ms1_features the MS2 features
+      @param[out] annotated_spectra the resulting annotated spectra
+    */
+    void annotateSpectra(
+        const std::vector<MSSpectrum>& spectra,
+        const FeatureMap& ms1_features,
+        FeatureMap& ms2_features,
+        std::vector<MSSpectrum>& annotated_spectra) const;
+    
+    /**
+      @brief Search accurate masses and build add the the peptide hits as features/sub-features
+
+      @param[in] feat_map The feature map to search in
+      @param[in] feat_map_output The output feature map, with peptide identifaction as sub features
+    */
+    void searchSpectrum(
+        OpenMS::FeatureMap& feat_map,
+        OpenMS::FeatureMap& feat_map_output) const;
+
+    /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.
 
       The spectrum is first smoothed with a Gaussian filter (default) or using the
@@ -415,6 +443,31 @@ public:
       FeatureMap& features
     );
 
+    /**
+      @brief store MS1 and the associated MS2 features
+
+      @param[in] filename the filename of the file to write
+      @param[in] ms1_features the MS1 features
+      @param[in] ms2_features the MS2 features
+    */
+    void storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const;
+
+    /**
+      @brief store spectra in MSP format
+
+      @param[in] filename the filename of the file to write
+      @param[in] experiment the experiment to store
+    */
+    void storeSpectraMSP(const String& filename, MSExperiment& experiment) const;
+    
+    /**
+      @brief organize into a map by combining features and subordinates with the same `identifier`
+
+      @param[in] fmap_input input features map
+      @param[in] fmap_output output features map
+    */
+    void mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const;
+
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_() override;
@@ -488,5 +541,33 @@ private:
 
     /// Minimum score for a match to be considered valid in `matchSpectrum()`.
     double min_match_score_;
+
+    String output_format_;
+
+    int min_transitions_;
+    int max_transitions_;
+    double cosine_similarity_threshold_;
+    int transition_threshold_;
+    double min_fragment_mz_;
+    double max_fragment_mz_;
+    double relative_allowable_product_mass_;
+
+    bool deisotoping_use_deisotoper_;
+    double deisotoping_fragment_tolerance_;
+    std::string deisotoping_fragment_unit_;
+    int deisotoping_min_charge_;
+    int deisotoping_max_charge_;
+    int deisotoping_min_isopeaks_;
+    int deisotoping_max_isopeaks_;
+    bool deisotoping_keep_only_deisotoped_;
+    bool deisotoping_annotate_charge_;
+
+    bool use_exact_mass_;
+    bool exclude_ms2_precursor_;
+
+    double precursor_mz_distance_;
+    double consensus_spectrum_precursor_rt_tolerance_;
+
+    std::string method_;
   };
 }

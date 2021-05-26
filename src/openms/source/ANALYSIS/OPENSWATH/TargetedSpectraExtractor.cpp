@@ -39,6 +39,15 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
 namespace OpenMS
 {
@@ -75,6 +84,32 @@ namespace OpenMS
     snr_weight_ = (double)param_.getValue("snr_weight");
     top_matches_to_report_ = (Size)param_.getValue("top_matches_to_report");
     min_match_score_ = (double)param_.getValue("min_match_score");
+    
+    min_transitions_ = param_.getValue("min_transitions");
+    max_transitions_ = param_.getValue("max_transitions");
+    cosine_similarity_threshold_ = (double) param_.getValue("cosine_similarity_threshold");
+    transition_threshold_ = param_.getValue("transition_threshold");
+    min_fragment_mz_ = (double) param_.getValue("min_fragment_mz");
+    max_fragment_mz_ = (double) param_.getValue("max_fragment_mz");
+    relative_allowable_product_mass_ = (double) param_.getValue("relative_allowable_product_mass");
+
+    deisotoping_use_deisotoper_ = param_.getValue("deisotoping:use_deisotoper").toBool();
+    deisotoping_fragment_tolerance_ = (double) param_.getValue("deisotoping:fragment_tolerance");
+    deisotoping_fragment_unit_ = param_.getValue("deisotoping:fragment_unit");
+    deisotoping_min_charge_ = param_.getValue("deisotoping:min_charge");
+    deisotoping_max_charge_ = param_.getValue("deisotoping:max_charge");
+    deisotoping_min_isopeaks_ = param_.getValue("deisotoping:min_isopeaks");
+    deisotoping_max_isopeaks_ = param_.getValue("deisotoping:max_isopeaks");
+    deisotoping_keep_only_deisotoped_ = param_.getValue("deisotoping:keep_only_deisotoped").toBool();
+    deisotoping_annotate_charge_ = param_.getValue("deisotoping:annotate_charge").toBool();
+
+    use_exact_mass_ = param_.getValue("use_exact_mass").toBool();
+    exclude_ms2_precursor_ = param_.getValue("exclude_ms2_precursor").toBool();
+
+    precursor_mz_distance_ = (double)param_.getValue("precursor_mz_distance");
+    consensus_spectrum_precursor_rt_tolerance_ = (double)param_.getValue("consensus_spectrum_precursor_rt_tolerance");
+
+    method_ = param_.getValue("method");
   }
 
   void TargetedSpectraExtractor::getDefaultParameters(Param& params) const
@@ -146,6 +181,149 @@ namespace OpenMS
     );
     params.setMinFloat("min_match_score", 0.0);
     params.setMaxFloat("min_match_score", 1.0);
+
+    params.setValue("min_transitions", 3, "Minimal number of transitions");
+    params.setValue("max_transitions", 6, "Maximal number of transitions");
+    params.setValue("cosine_similarity_threshold", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation");
+    params.setValue("transition_threshold", 5, "Further transitions need at least x% of the maximum intensity (default 5%)");
+    params.setValue("min_fragment_mz", 0.0, "Minimal m/z of a fragment ion choosen as a transition");
+    params.setValue("max_fragment_mz", 2000.0, "Maximal m/z of a fragment ion choosen as a transition");
+    params.setValue("relative_allowable_product_mass", 10.0, "Threshold m/z of a product relatively to the precurosor m/z (can be negative)");
+
+    params.setValue("deisotoping:use_deisotoper", "false", "Use Deisotoper (if no fragment annotation is used)");
+    params.setValue("deisotoping:fragment_tolerance", 1.0, "Tolerance used to match isotopic peaks");
+    params.setValue("deisotoping:fragment_unit", "ppm", "Unit of the fragment tolerance");
+    params.setValidStrings("deisotoping:fragment_unit", {"ppm","Da"});
+    params.setValue("deisotoping:min_charge", 1, "The minimum charge considered");
+    params.setMinInt("deisotoping:min_charge", 1);
+    params.setValue("deisotoping:max_charge", 1, "The maximum charge considered");
+    params.setMinInt("deisotoping:max_charge", 1);
+    params.setValue("deisotoping:min_isopeaks", 2, "The minimum number of isotopic peaks (at least 2) required for an isotopic cluster");
+    params.setMinInt("deisotoping:min_isopeaks", 2);
+    params.setValue("deisotoping:max_isopeaks", 3, "The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster");
+    params.setMinInt("deisotoping:max_isopeaks", 3);
+    params.setValue("deisotoping:keep_only_deisotoped", "false", "Only monoisotopic peaks of fragments with isotopic pattern are retained");
+    params.setValue("deisotoping:annotate_charge", "false", "Annotate the charge to the peaks");
+
+    params.setValue("use_exact_mass", "false", "Use exact mass for precursor and fragment annotations");
+    params.setValue("exclude_ms2_precursor", "false", "Excludes precursor in ms2 from transition list");
+
+    params.setValue("precursor_mz_distance", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
+    params.setValue("consensus_spectrum_precursor_rt_tolerance", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)");
+
+    params.setValue("method", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).");
+    params.setValidStrings("method", {"highest_intensity","consensus_spectrum"});
+  }
+
+  void TargetedSpectraExtractor::annotateSpectra(
+      const std::vector<MSSpectrum>& spectra,
+      const FeatureMap& ms1_features,
+      FeatureMap& ms2_features,
+      std::vector<MSSpectrum>& annotated_spectra) const
+  {
+    annotated_spectra.clear();
+    for (const auto& spectrum : spectra)
+    {
+      if (spectrum.getMSLevel() == 1)
+      {
+        continue; // we want to annotate MS2 spectra only
+      }
+
+      const double spectrum_rt = spectrum.getRT();
+      const double rt_left_lim = spectrum_rt - rt_window_ / 2.0;
+      const double rt_right_lim = spectrum_rt + rt_window_ / 2.0;
+      const std::vector<Precursor>& precursors = spectrum.getPrecursors();
+      if (precursors.empty())
+      {
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+      }
+      const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
+
+      // When spectrum_mz is 0, the mz check on transitions is inhibited
+      const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
+      const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
+
+      for (const auto& feature : ms1_features)
+      {
+        for (const auto& subordinate : feature.getSubordinates())
+        {
+          const auto& peptide_ref = subordinate.getMetaValue("PeptideRef");
+          const double target_mz = subordinate.getMZ();
+          const double target_rt = subordinate.getRT();
+          if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
+          {
+            std::cout << "annotateSpectra(): " << peptide_ref << "]";
+            std::cout << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl
+                      << std::endl;
+            MSSpectrum annotated_spectrum = spectrum;
+            annotated_spectrum.setName(peptide_ref);
+            annotated_spectra.push_back(annotated_spectrum);
+            // fill the ms2 features map
+            Feature ms2_feature;
+            ms2_feature.setRT(spectrum_rt);
+            ms2_feature.setMZ(spectrum_mz);
+            ms2_feature.setIntensity(subordinate.getIntensity());
+            ms2_feature.setMetaValue("transition_name", peptide_ref);
+            ms2_features.push_back(ms2_feature);
+          }
+        }
+      }
+    }
+  }
+
+  void TargetedSpectraExtractor::searchSpectrum(
+      OpenMS::FeatureMap& feat_map,
+      OpenMS::FeatureMap& feat_map_output) const
+  {
+    OpenMS::AccurateMassSearchEngine ams;
+    OpenMS::MzTab output;
+    ams.init();
+    ams.run(feat_map, output);
+    // Remake the feature map replacing the peptide hits as features/sub-features
+    feat_map_output.clear();
+    for (const OpenMS::Feature& feature : feat_map)
+    {
+      for (const auto& ident : feature.getPeptideIdentifications())
+      {
+        for (const auto& hit : ident.getHits())
+        {
+          OpenMS::Feature f;
+          OpenMS::Feature s = feature;
+          f.setUniqueId();
+          f.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+          s.setUniqueId();
+          s.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+          std::string native_id = hit.getMetaValue("chemical_formula").toString() + ";" + hit.getMetaValue("modifications").toString();
+          s.setMetaValue("native_id", native_id);
+          s.setMetaValue("identifier", hit.getMetaValue("identifier"));
+          s.setMetaValue("description", hit.getMetaValue("description"));
+          s.setMetaValue("modifications", hit.getMetaValue("modifications"));
+          std::string adducts;
+          try
+          {
+            std::string str = hit.getMetaValue("modifications").toString();
+            std::string delimiter = ";";
+            adducts = str.substr(1, str.find(delimiter) - 1);
+          }
+          catch (const std::exception& e)
+          {
+            std::cout << e.what();
+          }
+          s.setMetaValue("adducts", adducts);
+          OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
+          double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
+          s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
+          s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
+          s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
+          s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
+          s.setCharge(hit.getCharge());
+          std::vector<OpenMS::Feature> subs = {s};
+          f.setSubordinates(subs);
+          feat_map_output.push_back(f);
+        }
+      }
+    }
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -313,12 +491,14 @@ namespace OpenMS
       }
 
       double avgFWHM { 0 };
-      for (Size j = 0; j < picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
+      if (picked_spectra[i].getFloatDataArrays().size())
       {
-        avgFWHM += picked_spectra[i].getFloatDataArrays()[0][j];
+        for (Size j = 0; j < picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
+        {
+          avgFWHM += picked_spectra[i].getFloatDataArrays()[0][j];
+        }
+        avgFWHM /= picked_spectra[i].getFloatDataArrays()[0].size();
       }
-      avgFWHM /= picked_spectra[i].getFloatDataArrays()[0].size();
-
       SignalToNoiseEstimatorMedian<MSSpectrum> sne;
       Param p;
       p.setValue("win_len", 40.0);
@@ -610,4 +790,209 @@ namespace OpenMS
 
     targetedMatching(picked, cmp, features);
   }
-}
+
+  void TargetedSpectraExtractor::storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const
+  { 
+    std::map<std::string, std::vector<const Feature*>> ms1_to_ms2;
+    for (const auto& feature : ms2_features)
+    {
+      for (const auto& subordinate : feature.getSubordinates())
+      {
+        ms1_to_ms2[subordinate.getMetaValue("transition_name")].push_back(&subordinate);
+      }
+    }
+
+    std::vector<ReactionMonitoringTransition> v_rmt_all;
+    std::vector<TargetedExperiment::Peptide> peptides;
+    for (const auto& ms1_feature : ms1_features)
+    {
+      std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
+      OpenMS::TargetedExperiment::Peptide peptide;
+      peptide.id = peptide_ref;
+      peptide.setChargeState(ms1_feature.getCharge());
+      peptide.addMetaValues(ms1_feature);
+      peptides.push_back(peptide);
+      
+      for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
+      {
+        auto current_mz = ms2_feature->getMZ();
+        if ((current_mz > min_fragment_mz_ && current_mz < max_fragment_mz_) &&
+            (current_mz < ms1_feature.getMZ() + relative_allowable_product_mass_))
+        {
+          std::string native_id = ms2_feature->getMetaValue("native_id");
+          OpenMS::ReactionMonitoringTransition rmt;
+          rmt.setLibraryIntensity(ms1_feature.getIntensity());
+          rmt.setName(ms2_feature->getMetaValue("native_id"));
+          std::ostringstream os;
+          os << ms2_feature->getMetaValue("native_id") << "_" << peptide_ref;
+          rmt.setNativeID(os.str());
+          rmt.setPeptideRef(peptide_ref);
+          rmt.setPrecursorMZ(ms1_feature.getMZ());
+          rmt.setProductMZ(ms2_feature->getMZ());
+          rmt.addMetaValues(*ms2_feature);
+          v_rmt_all.push_back(rmt);
+        }
+      }
+    }
+
+    TargetedExperiment t_exp;
+    t_exp.setPeptides(peptides);
+    t_exp.setTransitions(v_rmt_all);
+
+    // validate
+    OpenMS::TransitionTSVFile tsv_file;
+    tsv_file.validateTargetedExperiment(t_exp);
+
+    // write traML
+    TraMLFile traml_file;
+    traml_file.store(filename, t_exp);
+  }
+
+  void TargetedSpectraExtractor::mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const
+  {
+    try
+    {
+      // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
+      std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
+      for (const OpenMS::Feature& f : fmap_input)
+      {
+        if (f.metaValueExists("identifier"))
+        {
+          auto found_f = fmapmap.emplace(f.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({f}));
+          if (!found_f.second)
+          {
+            fmapmap.at(f.getMetaValue("identifier").toStringList().at(0)).push_back(f);
+          }
+        }
+        for (const OpenMS::Feature& s : f.getSubordinates())
+        {
+          if (s.metaValueExists("identifier"))
+          {
+            auto found_s = fmapmap.emplace(s.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({s}));
+            if (!found_s.second)
+            {
+              fmapmap.at(s.getMetaValue("identifier").toStringList().at(0)).push_back(s);
+            }
+          }
+        }
+      }
+
+      // Pass 2: compute the consensus manually
+      for (const auto& f_map : fmapmap)
+      {
+
+        // compute the total intensity for weighting
+        double total_intensity = 0;
+        for (const auto& f : f_map.second)
+        {
+          if (f.metaValueExists("peak_apex_int"))
+            total_intensity += (double) f.getMetaValue("peak_apex_int");
+          else
+            total_intensity += f.getIntensity();
+        }
+
+        // compute the weighted averages
+        double rt = 0.0, m = 0.0, intensity = 0.0, peak_apex_int = 0.0;
+        double weighting_factor = 1.0 / f_map.second.size();// will be updated
+        for (const auto& f : f_map.second)
+        {
+          // compute the weighting factor
+          if (f.metaValueExists("peak_apex_int"))
+            weighting_factor = (double) f.getMetaValue("peak_apex_int") / total_intensity;
+          else
+            weighting_factor = f.getIntensity() / total_intensity;
+
+          // compute the weighted averages
+          rt += f.getRT() * weighting_factor;
+          if (f.getCharge() == 0)
+            std::cout  << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!";
+          m += f.getMZ() * weighting_factor;
+          intensity += f.getIntensity();
+          if (f.metaValueExists("peak_apex_int"))
+            peak_apex_int += (double) f.getMetaValue("peak_apex_int");
+        }
+
+        // make the feature map and assign subordinates
+        OpenMS::Feature f;
+        f.setUniqueId();
+        f.setMetaValue("PeptideRef", f_map.first);
+        f.setMZ(m);
+        f.setRT(rt);
+        f.setMetaValue("scan_polarity", f_map.second.front().getMetaValue("scan_polarity"));
+        f.setIntensity(intensity);
+        f.setMetaValue("peak_apex_int", peak_apex_int);
+        f.setSubordinates(f_map.second);
+        fmap_output.push_back(f);
+      }
+    }
+    catch (const std::exception& e)
+    {
+      std::cout << e.what();
+    }
+  }
+
+
+  void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const
+  {
+    if (deisotoping_use_deisotoper_)
+    {
+      bool make_single_charged = false;
+      for (auto& peakmap_it : experiment.getSpectra())
+      {
+        MSSpectrum& spectrum = peakmap_it;
+        if (spectrum.getMSLevel() == 1)
+        {
+          continue;
+        }
+        else
+        {
+          bool fragment_unit_ppm = deisotoping_fragment_unit_ == "ppm" ? true : false;
+          Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                               deisotoping_fragment_tolerance_,
+                                               fragment_unit_ppm,
+                                               deisotoping_min_charge_,
+                                               deisotoping_max_charge_,
+                                               deisotoping_keep_only_deisotoped_,
+                                               deisotoping_min_isopeaks_,
+                                               deisotoping_max_isopeaks_,
+                                               make_single_charged,
+                                               deisotoping_annotate_charge_);
+        }
+      }
+    }
+
+    // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+    for (auto& peakmap_it : experiment.getSpectra())
+    {
+      MSSpectrum& spectrum = peakmap_it;
+      if (spectrum.getMSLevel() == 1)
+      {
+        continue;
+      }
+      else
+      {
+        // if peak mz higher than precursor mz set intensity to zero
+        double prec_mz = spectrum.getPrecursors()[0].getMZ();
+        double mass_diff = Math::ppmToMass(10.0, prec_mz);
+        for (auto& spec : spectrum)
+        {
+          if (spec.getMZ() > prec_mz + mass_diff)
+          {
+            spec.setIntensity(0);
+          }
+        }
+        spectrum.erase(remove_if(spectrum.begin(),
+                                 spectrum.end(),
+                                 InIntensityRange<PeakMap::PeakType>(1,
+                                                                     std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                     true)),
+                       spectrum.end());
+      }
+    }
+
+    // Store
+    MSPGenericFile msp_file;
+    msp_file.store(filename, experiment);
+  }
+
+}// namespace OpenMS
