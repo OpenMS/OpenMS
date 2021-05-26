@@ -120,7 +120,7 @@ void NeedlemanWunsch::setPenalty(const int penalty)
 
 NeedlemanWunsch::ScoringMatrix NeedlemanWunsch::getMatrix() const
 {
-      return ScoringMatrix::PAM30MS;
+      return static_cast<NeedlemanWunsch::ScoringMatrix>(my_matrix_);
 
 }
 
