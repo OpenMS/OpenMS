@@ -94,7 +94,7 @@ pi.setHits(std::vector<PeptideHit>(1,hit));
 START_SECTION((void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
 
   annot.annotateMatches(spec, hit, tg, sa);
-  string annotlist[] = {"y1+", "y2+", "b2+", "y3+", "b3+", "y4+", "b4+", "y5+", "b5+", "b6+", "y6+"};
+  string annotlist[] = {"y1", "y2", "b2", "y3", "b3", "y4", "b4", "y5", "b5", "b6", "y6"};
 
   PeakSpectrum::StringDataArray types = spec.getStringDataArrays().front();
 
