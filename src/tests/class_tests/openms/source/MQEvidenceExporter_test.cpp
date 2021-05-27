@@ -49,7 +49,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 
 File::TempDir dir;
-const String path = dir.getPath();
+const String path = "/buffer/ag_bsc/pmsb_2021/musch/project_max_quant";//dir.getPath();
 
 START_SECTION(MQEvidence())
 {
@@ -66,30 +66,32 @@ START_SECTION((void exportFeatureMap(
                     const OpenMS::FeatureMap &feature_map,
                     const OpenMS::ConsensusMap &cmap)))
 {
-  MQEvidence evd(path);
-  ConsensusMap cmap_one;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap_one);
-  ConsensusMap cmap_two;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap_two);
-  FeatureMap fmap_one;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
-  evd.exportFeatureMap(fmap_one, cmap_two);
-  FeatureMap fmap_two;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
-  evd.exportFeatureMap(fmap_two, cmap_two);
-  FeatureMap fmap_three;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
-  evd.exportFeatureMap(fmap_three, cmap_two);
-  FeatureMap fmap_four;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_4.featureXML"), fmap_four);
-  evd.exportFeatureMap(fmap_four, cmap_one);
-  FeatureMap fmap_five;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_5.featureXML"), fmap_five);
-  evd.exportFeatureMap(fmap_five, cmap_one);
-  FeatureMap fmap_six;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
-  evd.exportFeatureMap(fmap_six, cmap_one);
-  String filename = path + "evidence.txt";
+  {
+    MQEvidence evd(path);
+    ConsensusMap cmap_one;
+    ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap_one);
+    ConsensusMap cmap_two;
+    ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap_two);
+    FeatureMap fmap_one;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
+    evd.exportFeatureMap(fmap_one, cmap_two);
+    FeatureMap fmap_two;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
+    evd.exportFeatureMap(fmap_two, cmap_two);
+    FeatureMap fmap_three;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
+    evd.exportFeatureMap(fmap_three, cmap_two);
+    FeatureMap fmap_four;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_4.featureXML"), fmap_four);
+    evd.exportFeatureMap(fmap_four, cmap_one);
+    FeatureMap fmap_five;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_5.featureXML"), fmap_five);
+    evd.exportFeatureMap(fmap_five, cmap_one);
+    FeatureMap fmap_six;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
+    evd.exportFeatureMap(fmap_six, cmap_one);
+  }
+  String filename = path + "/evidence.txt";
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION

@@ -388,4 +388,5 @@ void MQEvidence::exportFeatureMap(
                                           "Feature in FeatureMap has no associated ConsensusFeature.");
     }
   }
+  file_.flush();
 }
