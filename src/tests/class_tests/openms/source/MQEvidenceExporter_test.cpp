@@ -92,7 +92,7 @@ START_SECTION((void exportFeatureMap(
     evd.exportFeatureMap(fmap_six, cmap_one);
   }
   String filename = path + "/evidence.txt";
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
+  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
