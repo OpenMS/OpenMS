@@ -973,6 +973,7 @@ START_SECTION(void untargetedMatching(
 }
 END_SECTION
 */
+/*
 START_SECTION(storeSpectra(const String& filename, MSExperiment& experiment) const)
 {
   const String experiment_path = OPENMS_GET_TEST_DATA_PATH("Germicidin A standard 5e-2_GA1_01_27401.mzML");
@@ -1131,6 +1132,84 @@ START_SECTION(storeSpectra(const String& filename, MSExperiment& experiment) con
   targeted_spectra_extractor.storeSpectraTraML(tmp_filename, ms1_merged_features, ms2_merged_features);
 
   std::cout << "End" << std::endl;
+}
+END_SECTION
+*/
+
+START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const)
+{
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  OpenMS::FeatureMap features;
+
+  OpenMS::Feature f1;
+  f1.setUniqueId();
+  std::vector<String> identifier1{"ident1"};
+  f1.setMetaValue("identifier", identifier1);
+  f1.setIntensity(1);
+  f1.setMZ(10);
+  f1.setRT(100);
+  features.push_back(f1);
+
+  OpenMS::Feature f2;
+  f2.setUniqueId();
+  std::vector<String> identifier2{"ident1", "ident2"};
+  f2.setMetaValue("identifier", identifier2);
+  f2.setIntensity(2);
+  f2.setMZ(20);
+  f2.setRT(200);
+  features.push_back(f2);
+
+  OpenMS::Feature f3;
+  f3.setUniqueId();
+  std::vector<String> identifier3{"ident3"};
+  f3.setMetaValue("identifier", identifier3);
+  f3.setIntensity(3);
+  f3.setMZ(30);
+  f3.setRT(300);
+  features.push_back(f3);
+
+  OpenMS::FeatureMap merged_features;
+  targeted_spectra_extractor.mergeFeatures(features, merged_features);
+
+  TEST_EQUAL(merged_features.size(), 3)
+
+  const auto& merged_f1 = merged_features[0];
+  TEST_EQUAL(merged_f1.getMetaValue("PeptideRef"), "ident1");
+  TEST_REAL_SIMILAR(merged_f1.getMZ(), 16.6667);
+  TEST_REAL_SIMILAR(merged_f1.getRT(), 166.667);
+  TEST_EQUAL(merged_f1.getSubordinates().size(), 2);
+
+  const auto& merged_f1_sub1 = merged_f1.getSubordinates().at(0);
+  TEST_EQUAL(merged_f1_sub1.getMetaValue("identifier"), identifier1);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getMZ(), 10);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getRT(), 100);
+
+  const auto& merged_f1_sub2 = merged_f1.getSubordinates().at(1);
+  TEST_EQUAL(merged_f1_sub2.getMetaValue("identifier"), identifier2);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getMZ(), 20);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 200);
+
+  const auto& merged_f2 = merged_features[1];
+  TEST_EQUAL(merged_f2.getMetaValue("PeptideRef"), "ident2");
+  TEST_REAL_SIMILAR(merged_f2.getMZ(), 20);
+  TEST_REAL_SIMILAR(merged_f2.getRT(), 200);
+  TEST_EQUAL(merged_f2.getSubordinates().size(), 1);
+
+  const auto& merged_f2_sub1 = merged_f2.getSubordinates().at(0);
+  TEST_EQUAL(merged_f2_sub1.getMetaValue("identifier"), identifier2);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getMZ(), 20);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getRT(), 200);
+
+  const auto& merged_f3 = merged_features[2];
+  TEST_EQUAL(merged_f3.getMetaValue("PeptideRef"), "ident3");
+  TEST_REAL_SIMILAR(merged_f3.getMZ(), 30);
+  TEST_REAL_SIMILAR(merged_f3.getRT(), 300);
+  TEST_EQUAL(merged_f3.getSubordinates().size(), 1);
+
+  const auto& merged_f3_sub1 = merged_f3.getSubordinates().at(0);
+  TEST_EQUAL(merged_f3_sub1.getMetaValue("identifier"), identifier3);
+  TEST_REAL_SIMILAR(merged_f3_sub1.getMZ(), 30);
+  TEST_REAL_SIMILAR(merged_f3_sub1.getRT(), 300);
 }
 END_SECTION
 

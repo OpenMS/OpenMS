@@ -834,20 +834,26 @@ namespace OpenMS
       {
         if (f.metaValueExists("identifier"))
         {
-          auto found_f = fmapmap.emplace(f.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({f}));
-          if (!found_f.second)
+          for (const auto& identifier : f.getMetaValue("identifier").toStringList())
           {
-            fmapmap.at(f.getMetaValue("identifier").toStringList().at(0)).push_back(f);
+            auto found_f = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({f}));
+            if (!found_f.second)
+            {
+              fmapmap.at(identifier).push_back(f);
+            }
           }
         }
         for (const OpenMS::Feature& s : f.getSubordinates())
         {
           if (s.metaValueExists("identifier"))
           {
-            auto found_s = fmapmap.emplace(s.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({s}));
-            if (!found_s.second)
+            for (const auto& identifier : s.getMetaValue("identifier").toStringList())
             {
-              fmapmap.at(s.getMetaValue("identifier").toStringList().at(0)).push_back(s);
+              auto found_s = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({s}));
+              if (!found_s.second)
+              {
+                fmapmap.at(identifier).push_back(s);
+              }
             }
           }
         }
@@ -880,8 +886,6 @@ namespace OpenMS
 
           // compute the weighted averages
           rt += f.getRT() * weighting_factor;
-          if (f.getCharge() == 0)
-            std::cout  << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!";
           m += f.getMZ() * weighting_factor;
           intensity += f.getIntensity();
           if (f.metaValueExists("peak_apex_int"))
