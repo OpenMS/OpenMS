@@ -49,7 +49,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 
 File::TempDir dir;
-const String path = "/buffer/ag_bsc/pmsb_2021/musch/project_max_quant";//dir.getPath();
+const String path = dir.getPath();
 
 START_SECTION(MQEvidence())
 {
