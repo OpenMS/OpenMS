@@ -860,7 +860,6 @@ namespace OpenMS
     id_data.cleanup();
   }
 
-
   void IDFilter::filterObservationMatchesByScore(
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)

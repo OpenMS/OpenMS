@@ -1362,6 +1362,15 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
+
+    template <typename PredicateType>
+    static void filterObservationMatchesByFunctor(
+        IdentificationData& id_data, PredicateType&& func, bool cleanup_affected = false)
+    {
+      id_data.removeFromSetIf_(id_data.observation_matches_, func);
+      if (cleanup_affected) id_data.cleanup();
+    }
+
     static void keepBestMatchPerObservation(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref);
