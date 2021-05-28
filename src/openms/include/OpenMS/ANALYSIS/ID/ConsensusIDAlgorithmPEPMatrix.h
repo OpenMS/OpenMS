@@ -58,6 +58,7 @@ namespace OpenMS
 
   private:
 
+    /// object for alignment score calculation
     NeedlemanWunsch alignment_;
 
     /// Not implemented

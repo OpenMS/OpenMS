@@ -1,6 +1,5 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <iostream>
 #include <OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h>
 
 using namespace OpenMS;
@@ -46,6 +45,12 @@ START_SECTION(void setMatrix(const ScoringMatrix& matrix))
   TEST_EQUAL(alignment.align(seq1, seq2), 93);
   TEST_EQUAL(alignment.align(seq1, seq1), 131);
   TEST_EQUAL(alignment.align(seq2, seq2), 151);
+}
+END_SECTION
+
+START_SECTION(void setMatrix(const std::string& matrix))
+{
+  NeedlemanWunsch alignment = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::PAM30MS, 5);
 
   TEST_EXCEPTION(Exception::IllegalArgument, alignment.setMatrix("Identity"))
 
@@ -64,7 +69,6 @@ START_SECTION(void setPenalty(const ScoringMatrix& matrix))
   TEST_EQUAL(alignment.getPenalty(), 1);
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

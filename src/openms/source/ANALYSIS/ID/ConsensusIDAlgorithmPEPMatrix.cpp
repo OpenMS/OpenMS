@@ -70,10 +70,8 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
-
     // new parameters may affect the similarity calculation, so clear cache:
     similarities_.clear();
-
   }
 
   double ConsensusIDAlgorithmPEPMatrix::getSimilarity_(AASequence seq1,
