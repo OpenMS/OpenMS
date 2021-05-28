@@ -54,9 +54,9 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
-  struct OPENMS_DLLAPI Row 
+  struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound 
   {    
-    Row(const String& _name, 
+    FeatureFinderMetaboIdentCompound(const String& _name, 
         const String& _formula, 
         double _mass, 
         const std::vector<int>& _charges, 
@@ -87,7 +87,7 @@ public:
   FeatureFinderAlgorithmMetaboIdent();
 
   /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
-  void run(const std::vector<Row>& metaboIdentTable, FeatureMap& features);
+  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features);
 
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }

@@ -163,12 +163,12 @@ namespace OpenMS
     candidates_out_ = param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::Row>& metaboIdentTable, FeatureMap& features)
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features)
   {
-    for (const FeatureFinderAlgorithmMetaboIdent::Row& r : metaboIdentTable)
+    for (const FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& c : metaboIdentTable)
     {
-      addTargetToLibrary_(r.name, r.formula, r.mass, r.charges, r.rts, r.rt_ranges,
-                      r.iso_distrib);
+      addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
+                      c.iso_distrib);
     }
 
     // initialize algorithm classes needed later:

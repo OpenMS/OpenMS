@@ -170,9 +170,9 @@ protected:
   ProgressLogger prog_log_; ///< progress logger
 
   /// Read input file with information about targets
-  vector<FeatureFinderAlgorithmMetaboIdent::Row> readTargets_(const String& in_path)
+  vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> readTargets_(const String& in_path)
   {
-    vector<FeatureFinderAlgorithmMetaboIdent::Row> metaboIdentTable;
+    vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> metaboIdentTable;
 
     const string header =
       "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
@@ -219,13 +219,13 @@ protected:
                          << " - skipping this line." << endl;
         continue;
       }
-      metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::Row(name,
-                                                                        parts[1],
-                                                                        parts[2].toDouble(),
-                                                                        ListUtils::create<Int>(parts[3]),
-                                                                        ListUtils::create<double>(parts[4]),
-                                                                        ListUtils::create<double>(parts[5]),
-                                                                        ListUtils::create<double>(parts[6])));
+      metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
+                                 parts[1],
+                                 parts[2].toDouble(),
+                                 ListUtils::create<Int>(parts[3]),
+                                 ListUtils::create<double>(parts[4]),
+                                 ListUtils::create<double>(parts[5]),
+                                 ListUtils::create<double>(parts[6])));
     }
     return metaboIdentTable;
   }
