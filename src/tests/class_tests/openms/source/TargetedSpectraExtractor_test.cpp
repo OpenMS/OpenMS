@@ -1213,6 +1213,66 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 }
 END_SECTION
 
+
+START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const FeatureMap& ms1_features, FeatureMap& ms2_features, std::vector<MSSpectrum>& annotated_spectra) const)
+{
+  OpenMS::FeatureMap ms1_features;
+
+  OpenMS::Feature f1;
+  f1.setUniqueId();
+  std::vector<String> identifier1{"ident1"};
+  f1.setMetaValue("identifier", identifier1);
+  f1.setIntensity(1);
+  f1.setMZ(10);
+  f1.setRT(100);
+
+  std::vector<OpenMS::Feature> subs1;
+
+  OpenMS::Feature f1_sub1;
+  f1_sub1.setUniqueId();
+  f1_sub1.setMetaValue("PeptideRef", "ident1");
+  f1_sub1.setIntensity(2);
+  f1_sub1.setMZ(9);
+  f1_sub1.setRT(110);
+  subs1.push_back(f1_sub1);
+
+  OpenMS::Feature f1_sub2; // this one will not be used in the annotation
+  f1_sub2.setUniqueId();
+  f1_sub2.setMetaValue("PeptideRef", "ident1");
+  f1_sub2.setIntensity(2);
+  f1_sub2.setMZ(29);
+  f1_sub2.setRT(210);
+  subs1.push_back(f1_sub2);
+
+  f1.setSubordinates(subs1);
+
+  ms1_features.push_back(f1);
+
+  std::vector<MSSpectrum> spectra;
+  MSSpectrum spectr1;
+  spectr1.setMSLevel(2);
+  spectr1.setRT(100);
+  spectra.push_back(spectr1);
+
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  FeatureMap ms2_features;
+  std::vector<MSSpectrum> annotated_spectra;
+  targeted_spectra_extractor.annotateSpectra(spectra, ms1_features, ms2_features, annotated_spectra);
+
+  TEST_EQUAL(ms2_features.size(), 1)
+  const auto& ms2_f1 = ms2_features[0];
+  TEST_REAL_SIMILAR(ms2_f1.getMZ(), 0.0)
+  TEST_REAL_SIMILAR(ms2_f1.getRT(), 100.0)
+  TEST_EQUAL(ms2_f1.getMetaValue("transition_name"), "ident1")
+  TEST_EQUAL(ms2_f1.getSubordinates().size(), 0)
+
+  TEST_EQUAL(annotated_spectra.size(), 1)
+  const auto& annotated_spectr1 = annotated_spectra[0];
+  TEST_EQUAL(annotated_spectr1.getName(), "ident1")
+  TEST_REAL_SIMILAR(annotated_spectr1.getRT(), 100.0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
