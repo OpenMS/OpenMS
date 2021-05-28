@@ -47,6 +47,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -1270,6 +1271,61 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
   const auto& annotated_spectr1 = annotated_spectra[0];
   TEST_EQUAL(annotated_spectr1.getName(), "ident1")
   TEST_REAL_SIMILAR(annotated_spectr1.getRT(), 100.0)
+}
+END_SECTION
+
+START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
+{
+  OpenMS::FeatureMap ms1_features;
+  OpenMS::Feature ms1_f1;
+  ms1_f1.setUniqueId();
+  ms1_f1.setMetaValue("PeptideRef", "ident1");
+  ms1_f1.setIntensity(1);
+  ms1_f1.setMZ(10);
+  ms1_f1.setRT(100);
+  ms1_features.push_back(ms1_f1);
+
+  OpenMS::FeatureMap ms2_features;
+  OpenMS::Feature ms2_f1;
+  ms2_f1.setUniqueId();
+  ms2_f1.setIntensity(1);
+  ms2_f1.setMZ(10);
+  ms2_f1.setRT(100);
+  std::vector<OpenMS::Feature> ms2_subs1;
+  OpenMS::Feature ms2_f1_sub1;
+  ms2_f1_sub1.setUniqueId();
+  ms2_f1_sub1.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub1.setMetaValue("native_id", "ms2_f1_sub1");
+  ms2_f1_sub1.setIntensity(2);
+  ms2_f1_sub1.setMZ(9);
+  ms2_f1_sub1.setRT(110);
+  ms2_subs1.push_back(ms2_f1_sub1);
+  OpenMS::Feature ms2_f1_sub2;
+  ms2_f1_sub2.setUniqueId();
+  ms2_f1_sub2.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub2.setMetaValue("native_id", "ms2_f1_sub2");
+  ms2_f1_sub2.setIntensity(2);
+  ms2_f1_sub2.setMZ(29);
+  ms2_f1_sub2.setRT(210);
+  ms2_subs1.push_back(ms2_f1_sub2);
+  ms2_f1.setSubordinates(ms2_subs1);
+  ms2_features.push_back(ms2_f1);
+
+  String output_filepath;
+  NEW_TMP_FILE(output_filepath)
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  targeted_spectra_extractor.storeSpectraTraML(output_filepath, ms1_features, ms2_features);
+
+  // read back the file
+  TraMLFile traml_file;
+  TargetedExperiment t_exp;
+  traml_file.load(output_filepath, t_exp);
+
+  TEST_EQUAL(t_exp.getTransitions().size(), 1)
+  const auto& transition = t_exp.getTransitions()[0];
+  TEST_EQUAL(transition.getPeptideRef(), "ident1");
+  TEST_EQUAL(transition.getMetaValue("transition_name"), "ident1");
+  TEST_EQUAL(transition.getMetaValue("native_id"), "ms2_f1_sub1");
 }
 END_SECTION
 
