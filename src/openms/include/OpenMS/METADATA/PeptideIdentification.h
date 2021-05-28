@@ -168,13 +168,14 @@ public:
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
       /**
-      @brief Builds MultiMap over UID and pair of index of ConsensusFeature in ConsensusMap and index of PeptideIdentification
+      @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
+             which is mapped to a index of PI therein, i.e. cm[p.first].getPeptideIdentifications()[p.second];
 
-      @param cmap is used to extract the ConsensusFeatures and their PeptideIdentifications and creates identifier_tomsrunpath out of it
+      @param cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
 
       @return Returns the MultiMap
     */
-    static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap);
+    static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap);
 
       /**
       @brief Builds UID from PeptideIdentification
@@ -182,9 +183,17 @@ public:
              Either it is composed of the map_index and the spectrum-reference
              or of the ms_run_path and the spectrum_references, if the path is unique.
              The parts of the UID are separated by '|'.
-      @param pep_id and @param fidentifier_to_msrunpath are used to determine the UID
 
-      @return Returns the correct UID
+      @throw Exception::MissingInformation if Spectrum reference missing at PeptideIdentification
+      @throw Exception::MissingInformation if Multiple files in a run, but no map_index in PeptideIdentification found
+
+      @param pep_id  PeptideIdentification for which the UID is computed
+      @param identifier_to_msrunpath Mapping required to build UID. Can be obtained from
+             ProteinIdentification::Mapping::identifier_to_msrunpath which can be created
+             from the corresponding ProtID's
+
+
+      @return Returns the UID for PeptideIdentification
     */
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
                                     const std::map<String, StringList>& fidentifier_to_msrunpath);

@@ -144,7 +144,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this repository. If the repository does not exist, it will created a s well.", false);
+    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
 
 
     //TODO get ProteinQuantifier output for PRT section
@@ -230,7 +230,7 @@ protected:
     multimap<String, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
 
-    customID_to_cpepID = PeptideIdentification::fillConsensusPepIDMap(cmap);
+    customID_to_cpepID = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
 
     for (Size i = 0; i < cmap.size(); ++i)
     {
@@ -300,7 +300,7 @@ protected:
       {
         fmap = &(fmaps[i]);
       }
-      for (Feature & f: fmap_local) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
+      for (Feature & f: *fmap) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
       {
           sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
@@ -415,7 +415,7 @@ protected:
 
       if (export_evidence.isValid())
       {
-        export_evidence.exportFeatureMap(fmap_local,cmap);
+        export_evidence.exportFeatureMap(*fmap,cmap);
       }
     }
 
