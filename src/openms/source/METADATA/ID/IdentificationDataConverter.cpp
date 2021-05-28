@@ -206,8 +206,7 @@ namespace OpenMS
       ID::InputFileRef inputfile;
       if (!pep.getBaseName().empty())
       {
-        const auto file_ref = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
-        inputfile = file_ref;
+        inputfile = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
       }
       else
       {
@@ -236,10 +235,7 @@ namespace OpenMS
         }
         else
         {
-          String file = "UNKNOWN_INPUT_FILE_" + id;
-          ID::InputFileRef file_ref =
-              id_data.registerInputFile(ID::InputFile(file));
-          inputfile = file_ref;
+          inputfile = id_data.registerInputFile(ID::InputFile("UNKNOWN_INPUT_FILE_" + id));
         }
       }
       String data_id;

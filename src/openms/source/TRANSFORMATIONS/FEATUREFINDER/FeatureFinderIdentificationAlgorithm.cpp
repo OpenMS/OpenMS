@@ -287,9 +287,7 @@ namespace OpenMS
       {
         n_seed_targets_++;
       }
-      else if (cat == "transfer")
-        {std::cout << "TRANSFER" << std::endl;}
-      else if (cat.empty())
+      else if (cat.empty()) // default to "internal"
       {
         id_data.setMetaValue(ref, "FFId_category", "internal");
       }
@@ -642,6 +640,8 @@ namespace OpenMS
         quantified_all.insert(target_id);
         if (feature.getIDMatches().empty()) continue;
         String category = (*feature.getIDMatches().begin())->getMetaValue("FFId_category");
+        // @TODO: we might need to introduce another category for transfers or even declare them external
+        // but we do not always want to trigger the SVM due to runtime.
         if (category == "internal" || category == "transfer")
         {
           quantified_internal.insert(target_id);
