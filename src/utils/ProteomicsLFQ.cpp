@@ -1098,7 +1098,7 @@ protected:
 
         //consensus_fraction.getIdentifier and getLoadedFilePath seems to be empty. Create temporary string.
         //TODO use same name as potential debug output file?
-        auto tmpfileref = id_data.registerInputFile(IdentificationData::InputFile("fraction"+String(fraction)+".consensusXML")); // "temporary" ConsensusXML for this fraction
+        auto tmpfileref = id_data.registerInputFile(IdentificationData::InputFile("fraction" + String(fraction) + ".consensusXML")); // "temporary" ConsensusXML for this fraction
         // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to (internal) id_data
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)

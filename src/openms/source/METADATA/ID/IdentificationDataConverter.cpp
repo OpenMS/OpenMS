@@ -213,7 +213,7 @@ namespace OpenMS
         if (!step_ref->input_file_refs.empty())
         {
           if (step_ref->input_file_refs.size() > 1)
-          {
+          { // Undo the hack needed in the legacy id datastructure to represent merged id files. Extract the actual input file name so we can properly register it.
             if (pep.metaValueExists("id_merge_idx"))
             {
               inputfile = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
@@ -234,13 +234,13 @@ namespace OpenMS
           }
         }
         else
-        {
+        { // no input file annotated in legacy data structure
           inputfile = id_data.registerInputFile(ID::InputFile("UNKNOWN_INPUT_FILE_" + id));
         }
       }
-      String data_id;
+      String data_id; // an identifier unique to the input file
       if (pep.metaValueExists("spectrum_reference"))
-      {
+      {  // use spectrum native id if present
         data_id = pep.getMetaValue("spectrum_reference");
       }
       else
