@@ -37,8 +37,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
 
         void storeSpectraTraML(const String&, FeatureMap&, FeatureMap&) nogil except +
         void storeSpectraMSP(const String&, FeatureMap&, MSExperiment&) nogil except +
-		
-		void mergeFeatures(FeatureMap&, FeatureMap&) nogil except +
+
+        void mergeFeatures(FeatureMap&, FeatureMap&) nogil except +
 
         # void matchSpectrum(MSSpectrum& input_spectrum, TSE_Comparator& cmp, libcpp_vector[ TSE_Match ]& matches) nogil except +
 
