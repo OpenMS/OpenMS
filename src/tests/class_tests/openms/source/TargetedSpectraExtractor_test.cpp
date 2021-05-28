@@ -1214,7 +1214,6 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 }
 END_SECTION
 
-
 START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const FeatureMap& ms1_features, FeatureMap& ms2_features, std::vector<MSSpectrum>& annotated_spectra) const)
 {
   OpenMS::FeatureMap ms1_features;
@@ -1329,6 +1328,48 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
 }
 END_SECTION
 
-/////////////////////////////////////////////////////////////
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+{
+  MSExperiment experiment;
+  
+  std::vector<MSSpectrum> spectra;
+  MSSpectrum spectr1;
+  spectr1.setMSLevel(2);
+  spectr1.setRT(100);
+  spectr1.setName("spectr1");
+  Precursor precursor1;
+  precursor1.setMZ(100);
+  spectr1.setPrecursors({precursor1});
+  Peak1D peak1;
+  peak1.setMZ(100);
+  peak1.setIntensity(10);
+  spectr1.push_back(peak1);
+  Peak1D peak2;
+  spectr1.push_back(peak2);
+  peak2.setMZ(200);
+  peak2.setIntensity(20);
+  spectra.push_back(spectr1);
+  
+  String output_filepath;
+  NEW_TMP_FILE(output_filepath)
+
+  experiment.setSpectra(spectra);
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  targeted_spectra_extractor.storeSpectraMSP(output_filepath, experiment);
+
+  // read back the file
+  MSPGenericFile msp_file;
+  msp_file.store(output_filepath, experiment);
+
+  TEST_EQUAL(experiment.getSpectra().size(), 1)
+  const auto& output_spectr1 = experiment.getSpectra()[0];
+  TEST_EQUAL(output_spectr1.size(), 1)
+  const auto& peak = output_spectr1[0];
+  TEST_EQUAL(peak.getIntensity(), 10);
+  TEST_EQUAL(peak.getMZ(), 100);
+}
+END_SECTION
+
+    /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
