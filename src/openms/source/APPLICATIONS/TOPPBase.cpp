@@ -2291,27 +2291,6 @@ namespace OpenMS
                                  {version_, tool_name_, docurl, category, tool_description_, cite_openms_.doi, citation_dois});
       String ctd_str(ss.str());
 
-      /*
-// morph to ctd format
-QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
-lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
-lines.insert(4, QString("<citations>"));
-lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
-int l = 5;
-for (const Citation& c : citations_)
-{
-  lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
-}
-lines.insert(++l, QString("</citations>"));
-
-lines.insert(lines.size(), "</tool>");
-String ctd_str = String(lines.join("\n")) + "\n";
-*/
-
-
       //write to file
       QFile file(write_ctd_file);
       if (!file.open(QIODevice::WriteOnly))
