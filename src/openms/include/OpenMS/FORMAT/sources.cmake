@@ -67,6 +67,7 @@ MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h

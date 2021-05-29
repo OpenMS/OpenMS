@@ -47,6 +47,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -2270,35 +2271,46 @@ namespace OpenMS
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      ParamXMLFile paramFile;
-      paramFile.writeXMLToStream(&ss, default_params);
-      String ini_file_str(ss.str());
+      ParamCTDFile paramFile;
 
-      //
-      QString docurl = getDocumentationURL().toQString();
-      QString category = "";
+      std::string docurl = getDocumentationURL();
+      std::string category;
       if (official_ || ToolHandler::getUtilList().count(tool_name_))
       { // we can only get the docurl/category from registered/official tools
-        category = ToolHandler::getCategory(tool_name_).toQString();
+        category = ToolHandler::getCategory(tool_name_);
       }
 
-      // morph to ctd format
-      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
-      lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-      lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
-      lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
-      int l = 5;
-      for (const Citation& c : citations_)
+      std::vector<std::string> citation_dois;
+      citation_dois.reserve(citations_.size());
+      for (auto& citation : citations_)
       {
-        lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
+        citation_dois.push_back(citation.doi);
       }
-      lines.insert(++l, QString("</citations>"));
 
-      lines.insert(lines.size(), "</tool>");
-      String ctd_str = String(lines.join("\n")) + "\n";
+      paramFile.writeCTDToStream(&ss, default_params,
+                                 {version_, tool_name_, docurl, category, tool_description_, cite_openms_.doi, citation_dois});
+      String ctd_str(ss.str());
+
+      /*
+// morph to ctd format
+QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
+lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
+lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
+lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
+lines.insert(4, QString("<citations>"));
+lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
+int l = 5;
+for (const Citation& c : citations_)
+{
+  lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
+}
+lines.insert(++l, QString("</citations>"));
+
+lines.insert(lines.size(), "</tool>");
+String ctd_str = String(lines.join("\n")) + "\n";
+*/
+
 
       //write to file
       QFile file(write_ctd_file);
