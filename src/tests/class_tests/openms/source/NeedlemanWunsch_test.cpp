@@ -61,7 +61,7 @@ START_SECTION(void setMatrix(const std::string& matrix))
 }
 END_SECTION
 
-START_SECTION(void setPenalty(const ScoringMatrix& matrix))
+START_SECTION(void setPenalty(const int penalty))
 {
   NeedlemanWunsch alignment = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::PAM30MS, 5);
   alignment.setPenalty(1);

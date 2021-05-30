@@ -25,8 +25,8 @@ namespace OpenMS
     /// Constructor that sets the scoring matrix and the gap penalty
     NeedlemanWunsch(ScoringMatrix matrix, int penalty);
 
-    /// Default constructor
-    NeedlemanWunsch();
+    /// Default constructor (scoring matrix PAM30MS and penalty 5)
+    NeedlemanWunsch() = default;
 
     /// Default destructor
     ~NeedlemanWunsch()=default;
@@ -59,7 +59,7 @@ namespace OpenMS
   private:
     unsigned seq1_len_ = 0; ///< length of first sequence
     unsigned seq2_len_ = 0; ///< length of second sequence
-    int gap_penalty_ = 0; ///< penalty for alignment score calculation
+    int gap_penalty_ = 5; ///< penalty for alignment score calculation
     ScoringMatrix my_matrix_ = ScoringMatrix::PAM30MS; ///< scoring matrix for the alignment score calculation
     std::vector<int> first_row_{}; ///< alignment score calculation with two rows
     std::vector<int> second_row_{};

@@ -78,11 +78,6 @@ namespace OpenMS
     setPenalty(penalty);
   }
 
-  NeedlemanWunsch::NeedlemanWunsch()
-  {
-    setMatrix(ScoringMatrix::PAM30MS);
-    setPenalty(5);
-  }
 
   const vector<string> NeedlemanWunsch::NamesOfScoringMatrices = {"identity", "PAM30MS"};
 

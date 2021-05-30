@@ -81,7 +81,6 @@ namespace OpenMS
     String unmod_seq1 = seq1.toUnmodifiedString();
     String unmod_seq2 = seq2.toUnmodifiedString();
     if (unmod_seq1 == unmod_seq2) return 1.0;
-    if (unmod_seq1 < unmod_seq2) swap(unmod_seq1, unmod_seq2);
 
     double score_sim = alignment_.align(unmod_seq1, unmod_seq2);
 
