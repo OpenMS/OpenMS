@@ -26,6 +26,24 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         #   The main output is a feature map of detected features, with annotations in meta data entries.
         #   Additional outputs are the extracted chromatograms/peak groups, the assay in TraML compatible format, and transformations 
         #   that contain the error between provided and observed peaks.
+        #   -----
+        #   Usage:
+        #       exp = MSExperiment()
+        #       MzMLFile().load(path_to_file, exp)
+        #       ff = FeatureFinderAlgorithmMetaboIdent()
+        #       ff.setMSData(exp)
+        #
+        #       fm = FeatureMap() # detected features will be stored here
+        #
+        #       library = []
+        #       # fill library with compounds: FeatureFinderMetaboIdentCompound(name, formula, mass, [charges] [RTs_in_sec], [RT_ranges], [isotope distributions])
+        #       # e.g. FeatureFinderMetaboIdentCompound('glucose','C6H12O6', 0.0, [-1], [123.4], [0.0], [0.0])
+        #       
+        #       params = ff.getParameters() # optional!
+        #       params[param_name] = new_value # e.g. params[b'extract:n_isotopes'] = 3
+        #       ff.setParameters(params)
+        #
+        #       ff.run(library, fm)
 
         FeatureFinderAlgorithmMetaboIdent() nogil except +
 

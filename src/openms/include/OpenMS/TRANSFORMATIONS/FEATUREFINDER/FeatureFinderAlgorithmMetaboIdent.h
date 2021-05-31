@@ -54,6 +54,7 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
+  /// @brief represents a compound in the assay library
   struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound 
   {    
     FeatureFinderMetaboIdentCompound(const String& _name, 
@@ -89,17 +90,24 @@ public:
   /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features);
 
+  /// @brief Retrieve chromatograms (empty if run was not executed)
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
+
+  /// @brief Set spectra
   void setMSData(const PeakMap& m) { ms_data_ = m; } // needed because pyOpenMS can't wrap the non-const reference version
 
+  /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }
   PeakMap& getChromatograms() { return chrom_data_; }
 
+  /// @brief Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
   const TargetedExperiment& getLibrary() const { return library_; }
   
+  /// @brief Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
   const TransformationDescription& getTransformations() const { return trafo_; }
 
+  /// @brief Retrieve number of features with shared identifications
   size_t getNShared() const  { return n_shared_; }
 
   String prettyPrintCompound(const TargetedExperiment::Compound& compound);
