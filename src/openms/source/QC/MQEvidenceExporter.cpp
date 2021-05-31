@@ -43,7 +43,8 @@
 
 using namespace OpenMS;
 
-MQEvidence::MQEvidence(const String& path) {
+MQEvidence::MQEvidence(const String& path)
+{
   if (path.empty())
   {
     return;
@@ -63,16 +64,19 @@ MQEvidence::MQEvidence(const String& path) {
   exportHeader_();
 }
 
-MQEvidence::~MQEvidence() {
+MQEvidence::~MQEvidence()
+{
   file_.close();
 }
 
 
-bool MQEvidence::isValid() {
+bool MQEvidence::isValid()
+{
   return File::writable(filename_);
 }
 
-void MQEvidence::exportHeader_() {
+void MQEvidence::exportHeader_()
+{
   file_ << "id" << "\t";
   file_ << "Sequence" << "\t";
   file_ << "Length" << "\t";
@@ -110,7 +114,8 @@ void MQEvidence::exportHeader_() {
   file_ << "Raw file" << "\n";
 }
 
-Size MQEvidence::proteinGroupID_(const String& protein_accession) {
+Size MQEvidence::proteinGroupID_(const String& protein_accession)
+{
   auto it = protein_id_.find(protein_accession);
   if (it == protein_id_.end())
   {
@@ -123,13 +128,14 @@ Size MQEvidence::proteinGroupID_(const String& protein_accession) {
   }
 }
 
-std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap) {
+std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap)
+{
   std::map<Size, Size> f_to_ci;
   for (Size i = 0; i < cmap.size(); ++i)
   {
     for (const auto& fh : cmap[i].getFeatures())
     {
-      auto [it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
+      auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
       if (!was_created_newly)
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "FeatureHandle exists twice in ConsensusMap!");
@@ -143,7 +149,8 @@ bool MQEvidence::hasValidPepID_(
         const Feature& f,
         const Size c_feature_number,
         const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f) {
+        const ProteinIdentification::Mapping& mp_f)
+{
   const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
   {
@@ -163,7 +170,8 @@ bool MQEvidence::hasValidPepID_(
   return false;
 }
 
-bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature& cf) {
+bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature& cf)
+{
   const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
   if(!pep_ids_c.empty())
   {
@@ -178,7 +186,8 @@ void MQEvidence::exportRowFromFeature_(
         const Size c_feature_number,
         const String& raw_file,
         const std::multimap<String, std::pair<Size, Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f) {
+        const ProteinIdentification::Mapping& mp_f)
+{
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
@@ -366,7 +375,8 @@ void MQEvidence::exportRowFromFeature_(
 
 void MQEvidence::exportFeatureMap(
         const FeatureMap& feature_map,
-        const ConsensusMap& cmap) {
+        const ConsensusMap& cmap)
+{
   if (!isValid())
   {
     OPENMS_LOG_ERROR << "MqEvidence object is not valid." << std::endl;

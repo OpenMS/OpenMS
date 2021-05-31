@@ -273,7 +273,8 @@ namespace OpenMS
   }
 
   std::multimap<String, std::pair<Size, Size>>
-  PeptideIdentification::buildUIDsFromAllPepIDs(const ConsensusMap &cmap) {
+  PeptideIdentification::buildUIDsFromAllPepIDs(const ConsensusMap &cmap)
+  {
     multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
 
     ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
