@@ -130,7 +130,7 @@ void ElutionModelFitter::fitAndValidateModel_(
   {
     OPENMS_LOG_ERROR << "Error fitting model to feature '"
                      << feature.getUniqueId() << "': " << except.getName()
-                     << " - " << except.getMessage() << endl;
+                     << " - " << except.what() << endl;
     fit_success = false;
   }
 

@@ -773,7 +773,7 @@ namespace OpenMS
     {
       switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
     }
-    catch (OpenMS::Exception::MissingInformation& e)
+    catch (OpenMS::Exception::MissingInformation& /*e*/)
     {
       throw OpenMS::Exception::MissingInformation(
           __FILE__,
