@@ -50,43 +50,6 @@ def main():
     write_predictions_to_idxml(infile, outfile, predict(peptide_df))
 
 
-def idxml_to_csv(idxml_file: str) -> StringIO:
-    """Parse a given idxml file to a csv compatible with DeepLC.
-
-    See https://github.com/compomics/DeepLC#input-files for more information.
-
-    Args:
-        idxml_file: The path of the idXML file to be parsed to a DeepLC csv.
-
-    Returns:
-        StringIO containing the csv string.
-    """
-    pep_ids = []
-    pms.IdXMLFile().load(idxml_file, [], pep_ids)
-
-    csv_str: StringIO = StringIO()
-    csv_str.write("seq,modifications,tr\n")
-    for pep_id in pep_ids:
-        pep_rt = pep_id.getRT()
-        for hit in pep_id.getHits():
-            seq = hit.getSequence()
-            csv_str.write("".join([seq.toUnmodifiedString(), ","]))
-            # Find all modifications. Store them as pos|mod where pos is the
-            # position of the residue and mod the modification at that position.
-            modifications = []
-            for pos in range(0, seq.size()):
-                residue = seq.getResidue(pos)
-                if residue.isModified():
-                    modifications.append("|".join([str(pos + 1), residue.getModificationName()]))
-            # separate each modifications with '|': seq,pos_1|mod_1|pos_2|mod_2|...,tr
-            csv_str.write("|".join(modifications))
-            csv_str.write("".join([",", str(pep_rt), "\n"]))
-
-    print(csv_str.getvalue())
-    assert len(pep_ids) == len(csv_str.getvalue().splitlines()) - 1
-    return csv_str
-
-
 def idxml_to_dataframe(idxml_file: str) -> pd.DataFrame:
     """Parse a given idxml file to a pandas DataFrame compatible with DeepLC.
 
@@ -107,16 +70,17 @@ def idxml_to_dataframe(idxml_file: str) -> pd.DataFrame:
     modifications = []
     tr = []
     for pep_id in pep_ids:
-        tr.append(pep_id.getRT())
+        rt = pep_id.getRT()
         for hit in pep_id.getHits():
             seq = hit.getSequence()
             sequences.append(seq.toUnmodifiedString())
-            m = []
+            tr.append(rt)
+            hit_mods = []
             for pos in range(0, seq.size()):
                 residue = seq.getResidue(pos)
                 if residue.isModified():
-                    m.append("|".join([str(pos + 1), residue.getModificationName()]))
-            modifications.append("|".join(m))
+                    hit_mods.append("|".join([str(pos + 1), residue.getModificationName()]))
+            modifications.append("|".join(hit_mods))
     data = {
         "seq": sequences,
         "modifications": modifications,
@@ -133,18 +97,26 @@ def write_predictions_to_idxml(infile: str, outfile: str, predictions: list):
     and store the data as a new idXML file at `outfile`.
 
     Args:
-        infile:     Path of the idXML file to be loaded.
-        outfile:    Path where the resulting idXML will be stored.
-        predictions:      A list predictions to be inserted into the resulting idXML file.
+        infile:         Path of the idXML file to be loaded.
+        outfile:        Path were the resulting idXML will be stored.
+        predictions:    A list predictions to be inserted into the resulting idXML file.
     """
+    # Load idXML file the predictions are based on
     pep_ids = []
     prot_ids = []
     pms.IdXMLFile().load(infile, prot_ids, pep_ids)
-    # Insert prediction for each peptide id as meta value
-    assert len(pep_ids) == len(predictions), "The number of peptides and predictions does not match."
-    for idx, pep_id in enumerate(pep_ids, 0):
-        pep_id.setMetaValue("prediction", str(predictions[idx]))
 
+    preds_iter = iter(predictions)
+    # Insert prediction for each hit of a peptide id as meta value
+    for pep_id in pep_ids:
+        new_hits = []
+        for hit in pep_id.getHits():
+            try:
+                hit.setMetaValue("prediction", str(next(preds_iter)))
+            except StopIteration:
+                raise SystemExit("Error: Number of predictions and peptide hits does not match.")
+            new_hits.append(hit)
+        pep_id.setHits(new_hits)
     pms.IdXMLFile().store(outfile, prot_ids, pep_ids)
 
 
