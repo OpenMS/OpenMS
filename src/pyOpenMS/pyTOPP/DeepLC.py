@@ -129,7 +129,7 @@ def predict(peptides: pd.DataFrame, calibration: pd.DataFrame = None) -> list:
         return dlc.make_preds(seq_df=peptides, calibrate=False)
     else:
         dlc.calibrate_preds(seq_df=calibration)
-        dlc.make_preds(seq_df=peptides)
+        return dlc.make_preds(seq_df=peptides)
 
 
 if __name__ == "__main__":
