@@ -28,37 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <QApplication>
-#include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/VISUAL/GoogleMap.h>
+#include <QApplication>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main(int argc, const char ** argv)
+Int main(int argc, const char** argv)
 {
-  /*
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
-  
-  QApplication app(argc, const_cast<char **>(argv));
-
-  PeakMap exp;
-  exp.resize(1);
-  DTAFile().load(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", exp[0]);
-  LayerData::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
-  LayerData::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
-  Plot1DWidget * widget = new Plot1DWidget(Param(), nullptr);
-  widget->canvas()->addLayer(exp_sptr, on_disc_exp_sptr);
-  widget->show();
-  */
+ 
   QApplication app(argc, const_cast<char**>(argv));
   GoogleMap* widget = new GoogleMap(nullptr);
   widget->show();
   return app.exec();
-} //end of main
+}//end of main

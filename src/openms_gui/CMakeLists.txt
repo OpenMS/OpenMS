@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg)
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg WebEngineWidgets)
 
 # On macOS the platform plugin of QT requires PrintSupport. We link
 # so it's packaged via the bundling/dependency tools/scripts
@@ -63,6 +63,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # TODO use the imported targets (e.g. Qt5::Widgets) instead, which add all defs, compile options, include dirs, etc
 # by just adding them to the target_link_libraries command
 add_definitions(${Qt5Widgets_DEFINITIONS})
+add_definitions(${Qt5WebEngineWidgets_DEFINITIONS})
 add_definitions(${Qt5Svg_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
 
@@ -91,6 +92,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                              ${Qt5Widgets_LIBRARIES}
                              ${Qt5Svg_LIBRARIES}
+                             ${Qt5WebEngineWidgets_LIBRARIES}
                              ${Qt5Network_LIBRARIES}
                             )
 set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
@@ -111,6 +113,7 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 		   # The Qt5Widgets_INCLUDES also includes the include directories for
 		   # dependencies QtCore and QtGui
                                      ${Qt5Widgets_INCLUDE_DIRS}
+                                     ${Qt5WebEngineWidgets_INCLUDE_DIRS}
 				                     ${Qt5Svg_INCLUDE_DIRS}
 				                     ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}

@@ -15,6 +15,8 @@ EnhancedWorkspace.cpp
 FilterList.cpp
 FilterList.ui
 GUIProgressLoggerImpl.cpp
+GoogleMap.cpp
+GoogleMap.ui
 HistogramWidget.cpp
 InputFile.cpp
 InputFile.ui

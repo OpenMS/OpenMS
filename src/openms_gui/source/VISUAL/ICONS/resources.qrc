@@ -29,5 +29,9 @@
         <file>tile_horizontal.png</file>
         <file>tile_vertical.png</file>
         <file>unassigned.png</file>
+        <file alias="google_map">map.html</file>
+    </qresource>
+    <qresource prefix="/new/prefix">
+        <file>google_map</file>
     </qresource>
 </RCC>

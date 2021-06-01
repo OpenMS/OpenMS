@@ -1,0 +1,27 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "Boost_INCLUDE_DIR",
+          "value": "E:/GSoC21OpenMS/OpenMS/contrib_win64_build/include",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "OPENMS_CONTRIB_LIBS",
+          "value": "E:/GSoC21OpenMS/OpenMS/contrib_win64_build",
+          "type": "FILEPATH"
+        }
+      ]
+    }
+  ]
+}

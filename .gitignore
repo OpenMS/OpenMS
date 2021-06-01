@@ -33,3 +33,5 @@ cmake-build-release
 cmake-build-*
 *.code-workspace
 .vs
+contrib_win64_build
+OpenMS_Win64
