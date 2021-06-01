@@ -87,7 +87,7 @@ namespace OpenMS
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
+    defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
@@ -135,8 +135,16 @@ namespace OpenMS
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
-    defaults_.setValue("annotate:PSM", std::vector<std::string>{}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", std::vector<std::string>{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM", 
+      std::vector<std::string>{
+        "ALL",
+        Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
+        Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
+        Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
+        Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+      );
+
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -166,8 +174,20 @@ namespace OpenMS
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
+    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    if (fixed_unique.size() != modifications_fixed_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
+      modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
+    }    
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
+    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    if (var_unique.size() != modifications_variable_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
+      modifications_variable_.assign(var_unique.begin(), var_unique.end());
+    }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
 
@@ -264,6 +284,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
+    bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
+
+    // "ALL" adds all annotations
+    if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
+    {
+      annotation_precursor_error_ppm = true;
+      annotation_fragment_error_ppm = true;
+      annotation_prefix_fraction = true;
+      annotation_suffix_fraction = true;
+    }
 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -328,6 +359,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
+
+          if (annotation_prefix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+          }
+
+          if (annotation_suffix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+          }
+
           // store PSM
           phs.push_back(ph);
         }
@@ -373,6 +415,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
+
+    // add additional percolator features or post-processing
+    StringList feature_set{"score"};
+    if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+    if (annotation_prefix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+    if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+    // note: precursor error is calculated by percolator itself
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
@@ -383,21 +434,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
-
-    if (fixed_unique.size() != modifications_fixed_.size())
-    {
-      cout << "duplicate fixed modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
-
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
-    if (var_unique.size() != modifications_variable_.size())
-    {
-      cout << "duplicate variable modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
 
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
@@ -568,13 +604,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (precursor_mass_tolerance_unit_ppm) // ppm
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
           }
           else // Dalton
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance_);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance_);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance_);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance_);
           }
 
           // no matching precursor in data
@@ -594,7 +630,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             const Size& scan_index = low_it->second;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
             // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
-            const double& score = HyperScore::compute(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            HyperScore::PSMDetail detail;
+            const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
             if (score == 0) { continue; } // no hit?
 
@@ -603,6 +640,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
+            ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
+            ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
+            ah.mean_error = detail.mean_error;            
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));
