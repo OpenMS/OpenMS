@@ -312,6 +312,9 @@ private:
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
+    // void AccurateMassSearchEngine::exportMzTabM_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTabM& mztabm_out) const;
+
+
     void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const;
 
     /// private member variables

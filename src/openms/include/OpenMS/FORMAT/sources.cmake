@@ -62,7 +62,9 @@ MzDataFile.h
 MzMLFile.h
 MzQCFile.h
 MzTab.h
+MzTabM.h
 MzTabFile.h
+MztabMFile.h
 MzXMLFile.h
 OMSFile.h
 OMSSACSVFile.h

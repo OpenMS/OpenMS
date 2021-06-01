@@ -29,55 +29,29 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka  $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
+
+#include <OpenMS/FORMAT/TextFile.h>
+
+#include <boost/regex.hpp>
+
+using namespace std;
+
+// TODO fix all the shadowed "String s"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 namespace OpenMS
 {
-  class String;
-  class SVOutStream;
 
-  /**
-    @brief File adapter for MzTab-M files
+  MzTabMFile::MzTabMFile(){}
 
-    @ingroup FileIO
-  */
+  MzTabMFile::~MzTabMFile(){}
 
-  class OPENMS_DLLAPI MzTabMFile
-  {
-  public:
-    /// Default Constructor
-    MzTabMFile();
-    /// Default Destructor
-    ~MzTabMFile();
+}
 
-    /// store MzTabM file
-    // void store(const String& filename, const MzTabM& mztab_m) const;
-
-    //TODO: Store of featureMap
-    //TODO: Store of consensusMap
-
-    //TODO: Load Mztab-M into data model (MzTabM.h)
-
-  protected:
-
-    //void generateMzTabMMetaDataSection_(const MzTabMMetaData& map, StringList& sl) const;
-
-    //String generateMzTabSmallMoleculeFeatureHeader_() const;
-
-    //void generateMzTabSmallMoleculeFeatureSection_() const;
-
-    //String generateMzTabSmallMoleculeFeatureSectionRow_() const;
-
-    //String generateMzTabSmallMoleculeEvidenceHeader_() const;
-
-    //void generateMzTabSmallMoleculeEvidenceSection_() const;
-
-    //String generateMzTabSmallMoleculeEvidenceSectionRow_() const;
-
-
-  };
-
-} // namespace OpenMS
+#pragma clang diagnostic pop

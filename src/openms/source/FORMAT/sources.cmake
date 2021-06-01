@@ -51,7 +51,9 @@ MzMLFile.cpp
 MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
+MzTabM.cpp
 MzTabFile.cpp
+MzTabMFile.cpp
 MzXMLFile.cpp
 OMSFile.cpp
 OMSSACSVFile.cpp
