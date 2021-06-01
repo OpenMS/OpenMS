@@ -64,9 +64,7 @@ namespace OpenMS
   FeatureFinderAlgorithmMetaboIdent::FeatureFinderAlgorithmMetaboIdent() :
     DefaultParamHandler("FeatureFinderAlgorithmMetaboIdent")
   {
-    StringList output_file_tags;
-    output_file_tags.push_back("output file");
-    defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", output_file_tags);
+    defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", vector<string>{"output file"});
 
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
@@ -75,7 +73,7 @@ namespace OpenMS
       "extract:rt_window", 
       0.0, 
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
-      ListUtils::create<String>("advanced"));
+      vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
@@ -84,7 +82,7 @@ namespace OpenMS
       "extract:isotope_pmin",
       0.0, 
       "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.",
-      ListUtils::create<String>("advanced"));
+      vector<string>{"advanced"});
     defaults_.setMinFloat("extract:isotope_pmin", 0.0);
     defaults_.setMaxFloat("extract:isotope_pmin", 1.0);
 
@@ -96,22 +94,21 @@ namespace OpenMS
       "detect:min_peak_width", 
       0.2, 
       "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.",
-      ListUtils::create<String>("advanced"));
+      vector<string>{"advanced"});
     defaults_.setMinFloat("detect:min_peak_width", 0.0);
 
     defaults_.setValue(
       "detect:signal_to_noise", 
       0.8, 
       "Signal-to-noise threshold for OpenSWATH feature detection",
-       ListUtils::create<String>("advanced"));
+      vector<string>{"advanced"});
     defaults_.setMinFloat("detect:signal_to_noise", 0.1);
 
     defaults_.setSectionDescription("detect", "Parameters for detecting features in extracted ion chromatograms");  
 
     // parameters for model fitting (via ElutionModelFitter):
-    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
-    defaults_.setValue("model:type", models[0], "Type of elution model to fit to features");
-    defaults_.setValidStrings("model:type", models);
+    defaults_.setValue("model:type", "symmetric", "Type of elution model to fit to features");
+    defaults_.setValidStrings("model:type", {"symmetric", "asymmetric", "none"});
     defaults_.insert("model:", ElutionModelFitter().getParameters()); // copy parameters
     defaults_.remove("model:asymmetric");
 
@@ -124,7 +121,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
 
-    defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("debug", 0, "Debug level for feature detection.", vector<string>{"advanced"});
     defaults_.setMinInt("debug", 0);
 
     defaultsToParam_();
