@@ -58,7 +58,6 @@ namespace OpenMS
 
     //TODO: Store of featureMap
     //TODO: Store of consensusMap
-
     //TODO: Load Mztab-M into data model (MzTabM.h)
 
   protected:
@@ -76,7 +75,6 @@ namespace OpenMS
     //void generateMzTabSmallMoleculeEvidenceSection_() const;
 
     //String generateMzTabSmallMoleculeEvidenceSectionRow_() const;
-
 
   };
 

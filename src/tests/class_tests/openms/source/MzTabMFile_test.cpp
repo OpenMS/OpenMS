@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-class MzTabMFile2 : public MzTabMFile
+class MzTabMFile : public MzTabMFile
 {
 public:
   String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns, const MzTabMetaData& meta) const

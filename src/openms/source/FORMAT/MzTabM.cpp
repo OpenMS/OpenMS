@@ -89,117 +89,117 @@ namespace OpenMS
   // TODO: Check what is needed and rewrite to fit MztabM
   // TODO: How does that work with the identification data
 
-  MzTabM MzTabM::exportFeatureMapToMzTabM(
-      const FeatureMap & feature_map,
-      const String & filename)
-  {
-    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
-    MzTabM mztabm;
-    MzTabMetaData m_meta_data;
-
- TODO: use identification data instead of ProteinIdentification!
-
-    const std::vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();
-    MzTabString db, db_version;
-    if (!prot_ids.empty())
-    {
-      const ProteinIdentification::SearchParameters &sp = prot_ids[0].getSearchParameters();
-      db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
-      db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
-    }
-
-    // mandatory meta values
-    m_meta_data.mz_tab_id = MzTabString("ID"); //TODO: How should that be filled?
-    // meta_data.title (not mandatory)
-    m_meta_data.description = MzTabString("OpenMS export from featureXML");
-
-    // sample_processing (not mandatory)
-    // instrument-name (not mandatory)
-    // instrument-source (not mandatory)
-    // instrument-analyzer (not mandatory)
-    // instrument-decector (not mandatory)
-
-    // TODO: software (?) - how to get the version?
-    // MTD software[1] [MS, MS:1002879, Progenesis QI, 3.0]
-
-    // software-settings (not man)
-    // publication (not man)
-    // contact name (not man)
-    // contact aff (not man)
-    // contact mail (not man)
-    // uri (nm)
-    // ext. study uri (nm)
-
-    // TODO: quant. method : Parameter
-    // MTD quantification_method [MS, MS:1001834, LC-MS label-free quantitation analysis, ]
-
-    // sample (nm) - only if experimental design
-
-    MzTabMSRunMetaData ms_run;
-    StringList spectra_data;
-    feature_map.getPrimaryMSRunPath(spectra_data);
-
-    // is that created per assay?
-    if (!spectra_data.empty())
-    {
-      // prepend file:// if not there yet
-      String m = spectra_data[0];
-      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
-      ms_run.location = MzTabString(m);
-    }
-    else
-    {
-      ms_run.location = MzTabString();
-    }
-
-    // TODO: What kind of score is needed?
-    m_meta_data.ms_run[1] = ms_run;
-    m_meta_data.uri[1] = MzTabString(filename);
-
-    // TODO: not sure if needed?!
-    // m_meta_data.peptide_search_engine_score[1] = MzTabParameter();
-
-    // TODO: scan polarity
-    // MTD ms_run[1]-scan_polarity[1] [MS, MS:1000130, positive scan, ]
-
-    // TODO: assay
-    // MTD assay[1] first assay
-
-    // TODO: assay msrun-ref
-    // MTD assay[1]-ms_run_ref ms_run[1]
-
-    // TODO: study_variable - how should that work?! No information provided in the data?!
-    // MTD study_variable[1] “control”
-
-    // TODO: study_variable[1-n]-assay_refs
-    // MTD study_variable[1]-assay_refs assay[1]| assay[2]| assay[3]
-
-    // TODO: study_variable[1-n]-description
-    // MTD study_variable[1]-description Group B (spike-in 0.74 fmol/uL)
-
-    // TODO: cv[1-n]-label - what labels will/have been used in the mztab file!
-    // MTD cv[1]-label MS
-
-    // TODO: cv[1-n]-full_name
-    // TODO: cv[1-n]-version
-    // TODO: cv[1-n]-uri
-    // TODO: database[1-n] - where can you find the database???
-    // TODO: database[1-n]-prefix
-    // TODO: database[1-n]-version
-    // TODO: database[1-n]-uri
-    // TODO: small_molecule-quantification_unit
-    // MTD small_molecule-quantification_unit [MS, MS:1002887, Progenesis QI normalised abundance, ]
-
-    // if feature section
-    // TODO: small_molecule_feature-quantification_unit
-    // TODO: id_confidence_measure[1-
-    // id_confidence_measure[1]	[MS,MS:1002889,Progenesis MetaScope Score,]
-
-    mztabm.setMetaData(m_meta_data);
-
-    // TODO: Test exit for Metadata section!
-    return mztabm;
-  }
+//  MzTabM MzTabM::exportFeatureMapToMzTabM(
+//      const FeatureMap & feature_map,
+//      const String & filename)
+//  {
+//    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
+//    MzTabM mztabm;
+//    MzTabMetaData m_meta_data;
+//
+// TODO: use identification data instead of ProteinIdentification!
+//
+//    const std::vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();
+//    MzTabString db, db_version;
+//    if (!prot_ids.empty())
+//    {
+//      const ProteinIdentification::SearchParameters &sp = prot_ids[0].getSearchParameters();
+//      db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
+//      db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
+//    }
+//
+//    // mandatory meta values
+//    m_meta_data.mz_tab_id = MzTabString("ID"); //TODO: How should that be filled?
+//    // meta_data.title (not mandatory)
+//    m_meta_data.description = MzTabString("OpenMS export from featureXML");
+//
+//    // sample_processing (not mandatory)
+//    // instrument-name (not mandatory)
+//    // instrument-source (not mandatory)
+//    // instrument-analyzer (not mandatory)
+//    // instrument-decector (not mandatory)
+//
+//    // TODO: software (?) - how to get the version?
+//    // MTD software[1] [MS, MS:1002879, Progenesis QI, 3.0]
+//
+//    // software-settings (not man)
+//    // publication (not man)
+//    // contact name (not man)
+//    // contact aff (not man)
+//    // contact mail (not man)
+//    // uri (nm)
+//    // ext. study uri (nm)
+//
+//    // TODO: quant. method : Parameter
+//    // MTD quantification_method [MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+//
+//    // sample (nm) - only if experimental design
+//
+//    MzTabMSRunMetaData ms_run;
+//    StringList spectra_data;
+//    feature_map.getPrimaryMSRunPath(spectra_data);
+//
+//    // is that created per assay?
+//    if (!spectra_data.empty())
+//    {
+//      // prepend file:// if not there yet
+//      String m = spectra_data[0];
+//      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+//      ms_run.location = MzTabString(m);
+//    }
+//    else
+//    {
+//      ms_run.location = MzTabString();
+//    }
+//
+//    // TODO: What kind of score is needed?
+//    m_meta_data.ms_run[1] = ms_run;
+//    m_meta_data.uri[1] = MzTabString(filename);
+//
+//    // TODO: not sure if needed?!
+//    // m_meta_data.peptide_search_engine_score[1] = MzTabParameter();
+//
+//    // TODO: scan polarity
+//    // MTD ms_run[1]-scan_polarity[1] [MS, MS:1000130, positive scan, ]
+//
+//    // TODO: assay
+//    // MTD assay[1] first assay
+//
+//    // TODO: assay msrun-ref
+//    // MTD assay[1]-ms_run_ref ms_run[1]
+//
+//    // TODO: study_variable - how should that work?! No information provided in the data?!
+//    // MTD study_variable[1] “control”
+//
+//    // TODO: study_variable[1-n]-assay_refs
+//    // MTD study_variable[1]-assay_refs assay[1]| assay[2]| assay[3]
+//
+//    // TODO: study_variable[1-n]-description
+//    // MTD study_variable[1]-description Group B (spike-in 0.74 fmol/uL)
+//
+//    // TODO: cv[1-n]-label - what labels will/have been used in the mztab file!
+//    // MTD cv[1]-label MS
+//
+//    // TODO: cv[1-n]-full_name
+//    // TODO: cv[1-n]-version
+//    // TODO: cv[1-n]-uri
+//    // TODO: database[1-n] - where can you find the database???
+//    // TODO: database[1-n]-prefix
+//    // TODO: database[1-n]-version
+//    // TODO: database[1-n]-uri
+//    // TODO: small_molecule-quantification_unit
+//    // MTD small_molecule-quantification_unit [MS, MS:1002887, Progenesis QI normalised abundance, ]
+//
+//    // if feature section
+//    // TODO: small_molecule_feature-quantification_unit
+//    // TODO: id_confidence_measure[1-
+//    // id_confidence_measure[1]	[MS,MS:1002889,Progenesis MetaScope Score,]
+//
+//    mztabm.setMetaData(m_meta_data);
+//
+//    // TODO: Test exit for Metadata section!
+//    return mztabm;
+//  }
 //
 //    // pre-analyze data for occurring meta values at feature and peptide hit level
 //    // these are used to build optional columns containing the meta values in internal data structures
