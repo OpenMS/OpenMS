@@ -135,9 +135,10 @@ namespace OpenMS
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
-    defaults_.setValue("annotate:PSM",  std::vector<std::string>{}, "Annotations added to each PSM.");
+    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM", 
       std::vector<std::string>{
+        "ALL",
         Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
         Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
         Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
@@ -286,6 +287,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
 
+    // "ALL" adds all annotations
+    if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
+    {
+      annotation_precursor_error_ppm = true;
+      annotation_fragment_error_ppm = true;
+      annotation_prefix_fraction = true;
+      annotation_suffix_fraction = true;
+    }
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -407,11 +417,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
 
     // add additional percolator features or post-processing
-    search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
     StringList feature_set{"score"};
     if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
     if (annotation_prefix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
     if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+    // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;

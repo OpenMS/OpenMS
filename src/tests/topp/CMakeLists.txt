@@ -2772,6 +2772,16 @@ add_test("UTILS_SimpleSearchEngine_1_out" ${DIFF} -in1 SimpleSearchEngine_1_out.
 set_tests_properties("UTILS_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "UTILS_SimpleSearchEngine_1")
 
+# extra percolator features
+add_test("UTILS_SimpleSearchEngine_2" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_2_out.tmp
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("UTILS_SimpleSearchEngine_2_out" ${DIFF} -in1 SimpleSearchEngine_2_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("UTILS_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
+"UTILS_SimpleSearchEngine_2")
+
+
 # FeatureFinderMetaboIdent:
 add_test("UTILS_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out FeatureFinderMetaboIdent_1_output.tmp -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
 add_test("UTILS_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetaboIdent_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
