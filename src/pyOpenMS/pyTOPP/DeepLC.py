@@ -2,7 +2,6 @@ import sys
 from CTDopts.CTDopts import CTDModel
 from CTDsupport import addParamToCTDopts, parseCTDCommandLine
 import pyopenms as pms
-from io import StringIO
 from deeplc import DeepLC
 import pandas as pd
 
