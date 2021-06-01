@@ -35,6 +35,7 @@ Plot3DCanvas.h
 Plot3DOpenGLCanvas.h
 Plot3DWidget.h
 PlotCanvas.h
+PlotlyGraph.h
 PlotWidget.h
 RecentFilesMenu.h
 SpectraTreeTab.h

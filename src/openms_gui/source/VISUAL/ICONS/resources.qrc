@@ -33,5 +33,6 @@
     </qresource>
     <qresource prefix="/new/prefix">
         <file>google_map</file>
+        <file alias="plotly_graph">PlotlyGraph.html</file>
     </qresource>
 </RCC>

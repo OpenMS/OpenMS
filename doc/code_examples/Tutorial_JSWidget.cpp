@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/VISUAL/GoogleMap.h>
+#include <OpenMS/VISUAL/PlotlyGraph.h>
 #include <QApplication>
 
 using namespace OpenMS;
@@ -40,7 +40,7 @@ Int main(int argc, const char** argv)
 {
  
   QApplication app(argc, const_cast<char**>(argv));
-  GoogleMap* widget = new GoogleMap(nullptr);
+  PlotlyGraph* widget = new PlotlyGraph(nullptr);
   widget->show();
   return app.exec();
 }//end of main

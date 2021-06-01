@@ -41,6 +41,8 @@ Plot3DCanvas.cpp
 Plot3DOpenGLCanvas.cpp
 Plot3DWidget.cpp
 PlotCanvas.cpp
+PlotlyGraph.cpp
+PlotlyGraph.ui
 PlotWidget.cpp
 RecentFilesMenu.cpp
 SpectraIDViewTab.cpp
