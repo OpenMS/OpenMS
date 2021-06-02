@@ -170,11 +170,19 @@ namespace OpenMS
         {
           if (*pos_it == 0)
           {
-            temp_sequence.setNTerminalModification(modification);
+            // Check first to make sure ending residue is NTerm modifiable
+            const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification);
+            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) ) {
+              temp_sequence.setNTerminalModification(modification);
+            }
           }
           else if (*pos_it == temp_sequence.size() + 1)
           {
-            temp_sequence.setCTerminalModification(modification);
+            // Check first to make sure ending residue is CTerm modifiable
+            const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification);
+            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) ){
+              temp_sequence.setCTerminalModification(modification);
+            }
           }
           else
           {
