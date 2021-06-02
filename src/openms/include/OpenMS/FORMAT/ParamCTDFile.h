@@ -35,7 +35,6 @@
 #pragma once
 
 #include <string>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
@@ -62,7 +61,7 @@ namespace OpenMS
    only storing is possible at this time !
 
 */
-  class ParamCTDFile
+  class OPENMS_DLLAPI ParamCTDFile
   {
   public:
 
