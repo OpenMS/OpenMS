@@ -290,17 +290,6 @@ namespace OpenMS
       */
       inline const std::string   FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
-      /** User parameter name for the fraction of matched prefix ions in a PSM
-              String
-      */
-      extern OPENMS_DLLAPI const std::string   MATCHED_PREFIX_IONS_FRACTION;
-
-      /** User parameter name for the fraction of matched suffix ions in a PSM
-              String
-      */
-      extern OPENMS_DLLAPI const std::string   MATCHED_SUFFIX_IONS_FRACTION;
-
-
       /** User parameter name for fragment annotations
               String
       */
