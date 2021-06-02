@@ -126,9 +126,13 @@ namespace OpenMS
         ParamValue::ValueType value_type = param_it->value.valueType();
         bool stringParamIsFlag = false;
 
-        if (value_type <= ParamValue::DOUBLE_VALUE)
+        if (value_type < ParamValue::STRING_LIST)
         {
           os << std::string(indentations, ' ') << "<ITEM name=\"" << escapeXML(param_it->name) << R"(" value=")";
+        }
+        else
+        {
+          os << std::string(indentations, ' ') << "<ITEMLIST name=\"" << escapeXML(param_it->name);
         }
 
         switch (value_type)
@@ -169,7 +173,6 @@ namespace OpenMS
           }
         break;
         case ParamValue::STRING_LIST:
-          os << std::string(indentations, ' ') << "<ITEMLIST name=\"" << escapeXML(param_it->name);
           if (tag_list.find("input file") != tag_list.end())
           {
             os << R"(" type="input-file")";
@@ -186,10 +189,10 @@ namespace OpenMS
           }
         break;
         case ParamValue::INT_LIST:
-          os << std::string(indentations, ' ') << "<ITEMLIST name=\"" << escapeXML(param_it->name) << R"(" type="int")";
+          os << R"(" type="int")";
         break;
         case ParamValue::DOUBLE_LIST:
-          os << std::string(indentations, ' ') << "<ITEMLIST name=\"" << escapeXML(param_it->name) << R"(" type="double")";
+          os << R"(" type="double")";
         break;
         default:
         break;
@@ -306,15 +309,11 @@ namespace OpenMS
           }
         }
 
+        os << " />\n";
+
         switch (value_type)
         {
-        case ParamValue::INT_VALUE:
-        case ParamValue::DOUBLE_VALUE:
-        case ParamValue::STRING_VALUE:
-          os << " />\n";
-        break;
         case ParamValue::STRING_LIST:
-          os << ">\n";
           for (auto item : static_cast<std::vector<std::string> >(param_it->value))
           {
             if (item.find('\t') != std::string::npos)
@@ -323,33 +322,34 @@ namespace OpenMS
             }
             os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << escapeXML(item) << "\"/>\n";
           }
-          os << std::string(indentations, ' ') << "</ITEMLIST>\n";
         break;
         case ParamValue::INT_LIST:
-          os << ">\n";
           for (int item : static_cast<std::vector<int> >(param_it->value))
           {
             os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
           }
-          os << std::string(indentations, ' ') << "</ITEMLIST>\n";
         break;
         case ParamValue::DOUBLE_LIST:
-          os << ">\n";
           for (double item : static_cast<std::vector<double> >(param_it->value))
           {
             os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
           }
-          os << std::string(indentations, ' ') << "</ITEMLIST>\n";
         break;
         default:
         break;
         }
+
+        if (value_type > ParamValue::DOUBLE_VALUE && value_type)
+        {
+          os << std::string(indentations, ' ') << "</ITEMLIST>\n";
+        }
+
       }
     }
 
     if (param.begin() != param.end())
     {
-      for(auto& trace : param_it.getTrace())
+      for (auto& trace : param_it.getTrace())
       {
         indentations -= 2;
         os << std::string(indentations, ' ') << "</NODE>\n";

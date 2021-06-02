@@ -2287,17 +2287,8 @@ namespace OpenMS
         citation_dois.push_back(citation.doi);
       }
 
-      paramFile.writeCTDToStream(&ss, default_params,
-                                 {version_, tool_name_, docurl, category, tool_description_, cite_openms_.doi, citation_dois});
-      String ctd_str(ss.str());
-
-      //write to file
-      QFile file(write_ctd_file);
-      if (!file.open(QIODevice::WriteOnly))
-      {
-        return false;
-      }
-      file.write(ctd_str.c_str());
+      paramFile.store(write_ctd_file.toStdString(), default_params,
+                      {version_, tool_name_, docurl, category, tool_description_, cite_openms_.doi, citation_dois});
     }
 
     return true;
