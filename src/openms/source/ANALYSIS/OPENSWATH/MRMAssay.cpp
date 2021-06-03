@@ -171,16 +171,18 @@ namespace OpenMS
           if (*pos_it == 0)
           {
             // Check first to make sure ending residue is NTerm modifiable
-            const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification);
-            if ( temp_sequence[0].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) || OpenMS::String(modifiable_nterm->getOrigin()) == "X" ) {
+            const ResidueModification* modifiable_any_nterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::N_TERM);
+            const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification,temp_sequence[0].getOneLetterCode(),ResidueModification::N_TERM);
+            if ( temp_sequence[0].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) || OpenMS::String(modifiable_any_nterm->getOrigin()) == "X" ) {
               temp_sequence.setNTerminalModification(modification);
             }
           }
           else if (*pos_it == temp_sequence.size() + 1)
           {
             // Check first to make sure ending residue is CTerm modifiable
-            const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification);
-            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_cterm->getOrigin()) == "X" ){
+            const ResidueModification* modifiable_any_cterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::C_TERM);
+            const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification,temp_sequence[temp_sequence.size() - 1].getOneLetterCode(),ResidueModification::C_TERM);
+            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_any_cterm->getOrigin()) == "X" ){
               temp_sequence.setCTerminalModification(modification);
             }
           }
