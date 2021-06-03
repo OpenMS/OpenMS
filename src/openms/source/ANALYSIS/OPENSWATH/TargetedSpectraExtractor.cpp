@@ -912,26 +912,7 @@ namespace OpenMS
   {
     if (deisotoping_use_deisotoper_)
     {
-      bool make_single_charged = false;
-      for (auto& peakmap_it : experiment.getSpectra())
-      {
-        MSSpectrum& spectrum = peakmap_it;
-        if (spectrum.getMSLevel() == 1)
-        {
-          continue;
-        }
-        bool fragment_unit_ppm = deisotoping_fragment_unit_ == "ppm" ? true : false;
-        Deisotoper::deisotopeAndSingleCharge(spectrum,
-                                              deisotoping_fragment_tolerance_,
-                                              fragment_unit_ppm,
-                                              deisotoping_min_charge_,
-                                              deisotoping_max_charge_,
-                                              deisotoping_keep_only_deisotoped_,
-                                              deisotoping_min_isopeaks_,
-                                              deisotoping_max_isopeaks_,
-                                              make_single_charged,
-                                              deisotoping_annotate_charge_);
-      }
+      deisotopeMS2Spectra_(experiment);
     }
 
     // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
@@ -964,5 +945,28 @@ namespace OpenMS
     MSPGenericFile msp_file;
     msp_file.store(filename, experiment);
   }
-
+  
+  void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const
+  {
+    for (auto& peakmap_it : experiment.getSpectra())
+    {
+      MSSpectrum& spectrum = peakmap_it;
+      if (spectrum.getMSLevel() == 1)
+      {
+        continue;
+      }
+      bool fragment_unit_ppm = deisotoping_fragment_unit_ == "ppm" ? true : false;
+      bool make_single_charged = false;
+      Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                           deisotoping_fragment_tolerance_,
+                                           fragment_unit_ppm,
+                                           deisotoping_min_charge_,
+                                           deisotoping_max_charge_,
+                                           deisotoping_keep_only_deisotoped_,
+                                           deisotoping_min_isopeaks_,
+                                           deisotoping_max_isopeaks_,
+                                           make_single_charged,
+                                           deisotoping_annotate_charge_);
+    }  
+  }
 }// namespace OpenMS

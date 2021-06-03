@@ -472,6 +472,9 @@ protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_() override;
 
+    /// Utility method to deisotope MS2 spectra
+    void deisotopeMS2Spectra_(MSExperiment& experiment) const;
+
 private:
     /**
       Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.
