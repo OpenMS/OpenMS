@@ -472,11 +472,14 @@ protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_() override;
 
-    /// Utility method to deisotope MS2 spectra
+    /// Deisotope MS2 spectra
     void deisotopeMS2Spectra_(MSExperiment& experiment) const;
 
-    /// Utility method to remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+    /// Remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
     void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
+
+    /// organize into a map by combining features and subordinates with the same `identifier`
+    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const;
 
   private:
     /**

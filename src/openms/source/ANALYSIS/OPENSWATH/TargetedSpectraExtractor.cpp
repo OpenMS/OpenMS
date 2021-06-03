@@ -827,34 +827,7 @@ namespace OpenMS
     {
       // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
       std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
-      for (const OpenMS::Feature& f : fmap_input)
-      {
-        if (f.metaValueExists("identifier"))
-        {
-          for (const auto& identifier : f.getMetaValue("identifier").toStringList())
-          {
-            auto found_f = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({f}));
-            if (!found_f.second)
-            {
-              fmapmap.at(identifier).push_back(f);
-            }
-          }
-        }
-        for (const OpenMS::Feature& s : f.getSubordinates())
-        {
-          if (s.metaValueExists("identifier"))
-          {
-            for (const auto& identifier : s.getMetaValue("identifier").toStringList())
-            {
-              auto found_s = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({s}));
-              if (!found_s.second)
-              {
-                fmapmap.at(identifier).push_back(s);
-              }
-            }
-          }
-        }
-      }
+      organizeMapWithSameIdentifier(fmap_input, fmapmap);
 
       // Pass 2: compute the consensus manually
       for (const auto& f_map : fmapmap)
@@ -974,4 +947,37 @@ namespace OpenMS
                      spectrum.end());
     }
   }
+
+  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const
+  {
+    for (const OpenMS::Feature& f : fmap_input)
+    {
+      if (f.metaValueExists("identifier"))
+      {
+        for (const auto& identifier : f.getMetaValue("identifier").toStringList())
+        {
+          auto found_f = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({f}));
+          if (!found_f.second)
+          {
+            fmapmap.at(identifier).push_back(f);
+          }
+        }
+      }
+      for (const OpenMS::Feature& s : f.getSubordinates())
+      {
+        if (s.metaValueExists("identifier"))
+        {
+          for (const auto& identifier : s.getMetaValue("identifier").toStringList())
+          {
+            auto found_s = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({s}));
+            if (!found_s.second)
+            {
+              fmapmap.at(identifier).push_back(s);
+            }
+          }
+        }
+      }
+    }
+  }
+
 }// namespace OpenMS
