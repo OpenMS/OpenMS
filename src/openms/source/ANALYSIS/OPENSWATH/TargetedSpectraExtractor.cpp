@@ -186,7 +186,6 @@ namespace OpenMS
     params.setMinInt("deisotoping:max_isopeaks", 3);
     params.setValue("deisotoping:keep_only_deisotoped", "false", "Only monoisotopic peaks of fragments with isotopic pattern are retained");
     params.setValue("deisotoping:annotate_charge", "false", "Annotate the charge to the peaks");
-
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -860,7 +859,6 @@ namespace OpenMS
       // Pass 2: compute the consensus manually
       for (const auto& f_map : fmapmap)
       {
-
         // compute the total intensity for weighting
         double total_intensity = 0;
         for (const auto& f : f_map.second)
@@ -922,20 +920,17 @@ namespace OpenMS
         {
           continue;
         }
-        else
-        {
-          bool fragment_unit_ppm = deisotoping_fragment_unit_ == "ppm" ? true : false;
-          Deisotoper::deisotopeAndSingleCharge(spectrum,
-                                               deisotoping_fragment_tolerance_,
-                                               fragment_unit_ppm,
-                                               deisotoping_min_charge_,
-                                               deisotoping_max_charge_,
-                                               deisotoping_keep_only_deisotoped_,
-                                               deisotoping_min_isopeaks_,
-                                               deisotoping_max_isopeaks_,
-                                               make_single_charged,
-                                               deisotoping_annotate_charge_);
-        }
+        bool fragment_unit_ppm = deisotoping_fragment_unit_ == "ppm" ? true : false;
+        Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                              deisotoping_fragment_tolerance_,
+                                              fragment_unit_ppm,
+                                              deisotoping_min_charge_,
+                                              deisotoping_max_charge_,
+                                              deisotoping_keep_only_deisotoped_,
+                                              deisotoping_min_isopeaks_,
+                                              deisotoping_max_isopeaks_,
+                                              make_single_charged,
+                                              deisotoping_annotate_charge_);
       }
     }
 
@@ -947,25 +942,22 @@ namespace OpenMS
       {
         continue;
       }
-      else
+      // if peak mz higher than precursor mz set intensity to zero
+      double prec_mz = spectrum.getPrecursors()[0].getMZ();
+      double mass_diff = Math::ppmToMass(10.0, prec_mz);
+      for (auto& spec : spectrum)
       {
-        // if peak mz higher than precursor mz set intensity to zero
-        double prec_mz = spectrum.getPrecursors()[0].getMZ();
-        double mass_diff = Math::ppmToMass(10.0, prec_mz);
-        for (auto& spec : spectrum)
+        if (spec.getMZ() > prec_mz + mass_diff)
         {
-          if (spec.getMZ() > prec_mz + mass_diff)
-          {
-            spec.setIntensity(0);
-          }
+          spec.setIntensity(0);
         }
-        spectrum.erase(remove_if(spectrum.begin(),
-                                 spectrum.end(),
-                                 InIntensityRange<PeakMap::PeakType>(1,
-                                                                     std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                     true)),
-                       spectrum.end());
       }
+      spectrum.erase(remove_if(spectrum.begin(),
+                               spectrum.end(),
+                                InIntensityRange<PeakMap::PeakType>(1,
+                                                                    std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                    true)),
+                      spectrum.end());
     }
 
     // Store
