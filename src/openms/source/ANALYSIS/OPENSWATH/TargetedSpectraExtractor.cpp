@@ -915,31 +915,7 @@ namespace OpenMS
       deisotopeMS2Spectra_(experiment);
     }
 
-    // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
-    for (auto& peakmap_it : experiment.getSpectra())
-    {
-      MSSpectrum& spectrum = peakmap_it;
-      if (spectrum.getMSLevel() == 1)
-      {
-        continue;
-      }
-      // if peak mz higher than precursor mz set intensity to zero
-      double prec_mz = spectrum.getPrecursors()[0].getMZ();
-      double mass_diff = Math::ppmToMass(10.0, prec_mz);
-      for (auto& spec : spectrum)
-      {
-        if (spec.getMZ() > prec_mz + mass_diff)
-        {
-          spec.setIntensity(0);
-        }
-      }
-      spectrum.erase(remove_if(spectrum.begin(),
-                               spectrum.end(),
-                                InIntensityRange<PeakMap::PeakType>(1,
-                                                                    std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                    true)),
-                      spectrum.end());
-    }
+    removeMS2SpectraPeaks_(experiment);
 
     // Store
     MSPGenericFile msp_file;
@@ -968,5 +944,34 @@ namespace OpenMS
                                            make_single_charged,
                                            deisotoping_annotate_charge_);
     }  
+  }
+
+  void TargetedSpectraExtractor::removeMS2SpectraPeaks_(MSExperiment& experiment) const
+  {
+    // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+    for (auto& peakmap_it : experiment.getSpectra())
+    {
+      MSSpectrum& spectrum = peakmap_it;
+      if (spectrum.getMSLevel() == 1)
+      {
+        continue;
+      }
+      // if peak mz higher than precursor mz set intensity to zero
+      double prec_mz = spectrum.getPrecursors()[0].getMZ();
+      double mass_diff = Math::ppmToMass(10.0, prec_mz);
+      for (auto& spec : spectrum)
+      {
+        if (spec.getMZ() > prec_mz + mass_diff)
+        {
+          spec.setIntensity(0);
+        }
+      }
+      spectrum.erase(remove_if(spectrum.begin(),
+                               spectrum.end(),
+                               InIntensityRange<PeakMap::PeakType>(1,
+                                                                   std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                   true)),
+                     spectrum.end());
+    }
   }
 }// namespace OpenMS

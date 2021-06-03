@@ -475,7 +475,10 @@ protected:
     /// Utility method to deisotope MS2 spectra
     void deisotopeMS2Spectra_(MSExperiment& experiment) const;
 
-private:
+    /// Utility method to remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+    void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
+
+  private:
     /**
       Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.
     */
