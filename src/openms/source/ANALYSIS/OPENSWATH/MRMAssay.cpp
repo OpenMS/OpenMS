@@ -180,7 +180,7 @@ namespace OpenMS
           {
             // Check first to make sure ending residue is CTerm modifiable
             const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification);
-            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_nterm->getOrigin()) == "X" ){
+            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_cterm->getOrigin()) == "X" ){
               temp_sequence.setCTerminalModification(modification);
             }
           }
