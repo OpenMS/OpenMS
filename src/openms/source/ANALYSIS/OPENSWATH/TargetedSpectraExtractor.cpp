@@ -880,7 +880,6 @@ namespace OpenMS
     }
   }
 
-
   void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const
   {
     if (deisotoping_use_deisotoper_)
