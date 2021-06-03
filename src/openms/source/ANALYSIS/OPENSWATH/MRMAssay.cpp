@@ -172,10 +172,8 @@ namespace OpenMS
           {
             // Check first to make sure ending residue is NTerm modifiable
             const ResidueModification* modifiable_any_nterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::N_TERM);
-            OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
-            std::set<const ResidueModification*> modifiable_nterm;
-             ptr->searchModifications(modifiable_nterm, modification, "", ResidueModification::N_TERM);
-            if ( !modifiable_nterm.empty() || OpenMS::String(modifiable_any_nterm->getOrigin()) == "X" ) {
+            const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::N_TERM);
+            if ( temp_sequence[0].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) || OpenMS::String(modifiable_any_nterm->getOrigin()) == "X" ) {
               temp_sequence.setNTerminalModification(modification);
             }
           }
@@ -183,10 +181,8 @@ namespace OpenMS
           {
             // Check first to make sure ending residue is CTerm modifiable
             const ResidueModification* modifiable_any_cterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::C_TERM);
-            OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
-            std::set<const ResidueModification*> modifiable_cterm;
-            ptr->searchModifications(modifiable_cterm, modification, "", ResidueModification::C_TERM);
-            if ( !modifiable_cterm.empty() || OpenMS::String(modifiable_any_cterm->getOrigin()) == "X" ){
+            const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::C_TERM);
+            if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_any_cterm->getOrigin()) == "X" ){
               temp_sequence.setCTerminalModification(modification);
             }
           }
