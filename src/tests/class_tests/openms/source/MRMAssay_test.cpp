@@ -343,7 +343,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
   sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p, String("Phospho"));
 
-  TEST_EQUAL(sequences.size(), 13)
+  TEST_EQUAL(sequences.size(), 10)
   TEST_EQUAL(sequences[0].toString(), String("P(Oxidation)EPT(Phospho)DIEK"));
   TEST_EQUAL(sequences[1].toString(), String("P(Oxidation)EPTD(Phospho)IEK"));
   TEST_EQUAL(sequences[2].toString(), String("P(Oxidation)EPTDIEK(Phospho)"));
@@ -354,9 +354,6 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   TEST_EQUAL(sequences[7].toString(), String("PEPTD(Oxidation)IEK(Phospho)"));
   TEST_EQUAL(sequences[8].toString(), String("PEPT(Phospho)DIEK(Oxidation)"));
   TEST_EQUAL(sequences[9].toString(), String("PEPTD(Phospho)IEK(Oxidation)"));
-  TEST_EQUAL(sequences[10].toString(), String("PEPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[11].toString(), String("PEPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[12].toString(), String("PEPTDIEK(Phospho)"));
 }
 
 END_SECTION

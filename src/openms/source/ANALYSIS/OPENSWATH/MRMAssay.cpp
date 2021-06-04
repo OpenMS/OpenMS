@@ -159,12 +159,14 @@ namespace OpenMS
   {
     std::vector<OpenMS::AASequence> modified_sequences;
     bool multi_mod_switch = false;
+    bool skip_invalid_mod_seq = false;
 
     for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
     {
       for (std::vector<std::vector<size_t> >::const_iterator mc_it = mods_combs.begin(); mc_it != mods_combs.end(); ++mc_it)
       {
         multi_mod_switch = false;
+        skip_invalid_mod_seq = false;
         OpenMS::AASequence temp_sequence = *sq_it;
         for (std::vector<size_t>::const_iterator pos_it = mc_it->begin(); pos_it != mc_it->end(); ++pos_it)
         {
@@ -175,6 +177,12 @@ namespace OpenMS
             const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::N_TERM);
             if ( temp_sequence[0].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) || OpenMS::String(modifiable_any_nterm->getOrigin()) == "X" ) {
               temp_sequence.setNTerminalModification(modification);
+            } else {
+              OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String(modifiable_nterm->getId()) <<
+                                   " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
+                                   " , because it does not match viable C-Term residue specificity (" <<
+                                   OpenMS::String(modifiable_nterm->getOrigin()) << ") in ModificatioDB." << std::endl;
+              skip_invalid_mod_seq = true;
             }
           }
           else if (*pos_it == temp_sequence.size() + 1)
@@ -184,6 +192,12 @@ namespace OpenMS
             const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::C_TERM);
             if ( temp_sequence[temp_sequence.size() - 1].getOneLetterCode() == OpenMS::String(modifiable_cterm->getOrigin()) || OpenMS::String(modifiable_any_cterm->getOrigin()) == "X" ){
               temp_sequence.setCTerminalModification(modification);
+            } else {
+              OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String(modifiable_cterm->getId()) <<
+                                   " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
+                                   " , because it does not match viable C-Term residue specificity (" <<
+                                   OpenMS::String(modifiable_cterm->getOrigin()) << ") in ModificatioDB." << std::endl;
+              skip_invalid_mod_seq = true;
             }
           }
           else
@@ -198,6 +212,7 @@ namespace OpenMS
             }
           }
         }
+        if (skip_invalid_mod_seq) { continue; }
         if (!multi_mod_switch) { modified_sequences.push_back(temp_sequence); }
       }
     }
