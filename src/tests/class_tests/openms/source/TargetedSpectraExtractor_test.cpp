@@ -968,7 +968,7 @@ START_SECTION(void untargetedMatching(
   TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_comments"), comments)
 }
 END_SECTION
-
+/*
 START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const)
 {
   TargetedSpectraExtractor targeted_spectra_extractor;
@@ -1159,7 +1159,7 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
   TEST_EQUAL(transition.getMetaValue("native_id"), "ms2_f1_sub1");
 }
 END_SECTION
-
+*/
 START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
 {
   MSExperiment experiment;
