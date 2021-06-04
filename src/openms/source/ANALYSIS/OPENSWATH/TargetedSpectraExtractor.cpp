@@ -89,7 +89,7 @@ namespace OpenMS
 
     deisotoping_use_deisotoper_ = param_.getValue("deisotoping:use_deisotoper").toBool();
     deisotoping_fragment_tolerance_ = (double) param_.getValue("deisotoping:fragment_tolerance");
-    deisotoping_fragment_unit_ = param_.getValue("deisotoping:fragment_unit");
+    deisotoping_fragment_unit_ = param_.getValue("deisotoping:fragment_unit").toString();
     deisotoping_min_charge_ = param_.getValue("deisotoping:min_charge");
     deisotoping_max_charge_ = param_.getValue("deisotoping:max_charge");
     deisotoping_min_isopeaks_ = param_.getValue("deisotoping:min_isopeaks");
