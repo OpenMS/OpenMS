@@ -178,10 +178,10 @@ namespace OpenMS
             if ( temp_sequence[0].getOneLetterCode() == OpenMS::String(modifiable_nterm->getOrigin()) || OpenMS::String(modifiable_any_nterm->getOrigin()) == "X" ) {
               temp_sequence.setNTerminalModification(modification);
             } else {
-              OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String(modifiable_nterm->getId()) <<
+              OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of N-Term " << OpenMS::String(modifiable_nterm->getId()) <<
                                    " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
-                                   " , because it does not match viable C-Term residue specificity (" <<
-                                   OpenMS::String(modifiable_nterm->getOrigin()) << ") in ModificatioDB." << std::endl;
+                                   " , because it does not match viable N-Term residue specificity (" <<
+                                   OpenMS::String(modifiable_nterm->getOrigin()) << ") in ModificationDB." << std::endl;
               skip_invalid_mod_seq = true;
             }
           }
@@ -196,7 +196,7 @@ namespace OpenMS
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String(modifiable_cterm->getId()) <<
                                    " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable C-Term residue specificity (" <<
-                                   OpenMS::String(modifiable_cterm->getOrigin()) << ") in ModificatioDB." << std::endl;
+                                   OpenMS::String(modifiable_cterm->getOrigin()) << ") in ModificationDB." << std::endl;
               skip_invalid_mod_seq = true;
             }
           }
