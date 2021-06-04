@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <vector>
 
 using namespace std;
 
@@ -201,39 +203,66 @@ namespace OpenMS
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
-      ID::InputFileRef file_ref;
-      if (!step_ref->input_file_refs.empty())
+      ID::InputFileRef inputfile;
+      if (!pep.getBaseName().empty())
       {
-        // @TODO: what if there's more than one input file?
-        file_ref = step_ref->input_file_refs[0];
+        inputfile = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
       }
       else
       {
-        String file = "UNKNOWN_INPUT_FILE_" + id;
-        file_ref = id_data.registerInputFile(ID::InputFile(file));
+        if (!step_ref->input_file_refs.empty())
+        {
+          if (step_ref->input_file_refs.size() > 1)
+          { // Undo the hack needed in the legacy id datastructure to represent merged id files. Extract the actual input file name so we can properly register it.
+            if (pep.metaValueExists("id_merge_idx"))
+            {
+              inputfile = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
+            }
+            else
+            {
+              throw Exception::ElementNotFound(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION,
+                  "Multiple file origins in ProteinIdentification Run but no 'id_merge_idx' metavalue in PeptideIdentification."
+                  );
+            }
+          }
+          else // one file in the ProteinIdentification Run only
+          {
+            inputfile = step_ref->input_file_refs[0];
+          }
+        }
+        else
+        { // no input file annotated in legacy data structure
+          inputfile = id_data.registerInputFile(ID::InputFile("UNKNOWN_INPUT_FILE_" + id));
+        }
       }
-      ID::Observation obs("", file_ref); // fill in "data_id" later
-      obs.rt = pep.getRT();
-      obs.mz = pep.getMZ();
-      obs.addMetaValues(pep);
+      String data_id; // an identifier unique to the input file
       if (pep.metaValueExists("spectrum_reference"))
-      {
-        obs.data_id = pep.getMetaValue("spectrum_reference");
-        obs.removeMetaValue("spectrum_reference");
+      {  // use spectrum native id if present
+        data_id = pep.getMetaValue("spectrum_reference");
       }
       else
       {
         if (pep.hasRT() && pep.hasMZ())
         {
-          obs.data_id = String("RT=") + String(float(obs.rt)) + "_MZ=" +
-            String(float(obs.mz));
+          data_id = String("RT=") + String(float(pep.getRT())) + "_MZ=" +
+            String(float(pep.getMZ()));
         }
         else
         {
-          obs.data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
+          data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
           ++unknown_obs_counter;
         }
       }
+      ID::Observation obs{data_id, inputfile, pep.getRT(), pep.getMZ()};
+      obs.addMetaValues(pep);
+      if (obs.metaValueExists("spectrum_reference"))
+      {
+        obs.removeMetaValue("spectrum_reference");
+      }
+
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
       ID::ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter());
@@ -316,23 +345,16 @@ namespace OpenMS
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
         id_data.registerObservationMatch(match);
-/*        for (const auto& m : id_data.getObservationMatches())
-        {
-          const auto& pep_ref = m.identified_molecule_var.getIdentifiedPeptideRef();
-          if (fabs(m.observation_ref->mz - pep_ref->sequence.getMZ(m.charge)) > 3)
-          {
-            std::cerr << "InSIDE IDC after register: STH WENT WRONG WITH " << pep_ref->sequence.toString() << std::endl;
-          }
-        }*/
       }
     }
     progresslogger.endProgress();
   }
 
 
-  void IdentificationDataConverter::exportIDs(
-    const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides)
+  void IdentificationDataConverter::exportIDs(IdentificationData const& id_data,
+                                              vector <ProteinIdentification>& proteins,
+                                              vector <PeptideIdentification>& peptides,
+                                              bool export_ids_wo_scores)
   {
     // "Observation" roughly corresponds to "PeptideIdentification",
     // "ProcessingStep" roughly corresponds to "ProteinIdentification";
@@ -341,8 +363,6 @@ namespace OpenMS
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name =
-      Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const ID::ObservationMatch& input_match :
            id_data.getObservationMatches())
@@ -384,8 +404,8 @@ namespace OpenMS
       // generate hits in different ID runs for different processing steps:
       for (const ID::AppliedProcessingStep& applied : input_match.steps_and_scores)
       {
-        // @TODO: allow peptide hits without scores?
-        if (applied.scores.empty())
+        //Note: this skips ObservationMatches without score if not prevented. This often removes fake/dummy/transfer/seed IDs.
+        if (applied.scores.empty() && !export_ids_wo_scores)
         {
           OPENMS_LOG_WARN << "Warning: trying to export ObservationMatch without score. Skipping.." << std::endl;
           continue;
@@ -1052,7 +1072,7 @@ namespace OpenMS
     }
 
     exportIDs(features.getIdentificationData(), features.getProteinIdentifications(),
-              features.getUnassignedPeptideIdentifications());
+              features.getUnassignedPeptideIdentifications(), false);
 
     // map converted IDs back to features using meta values assigned in "handleFeatureExport_";
     // in principle, different "observation matches" from one "observation"

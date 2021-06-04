@@ -282,11 +282,12 @@ namespace OpenMS
     for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
          ref != id_data.getObservationMatches().end(); ++ref)
     {
-      if (ref->getMetaValue("FFId_category", "") == "seed")
+      const String& cat = ref->getMetaValue("FFId_category", "");
+      if (cat == "seed")
       {
         n_seed_targets_++;
       }
-      else
+      else if (cat.empty()) // default to "internal"
       {
         id_data.setMetaValue(ref, "FFId_category", "internal");
       }
@@ -639,7 +640,9 @@ namespace OpenMS
         quantified_all.insert(target_id);
         if (feature.getIDMatches().empty()) continue;
         String category = (*feature.getIDMatches().begin())->getMetaValue("FFId_category");
-        if (category == "internal")
+        // @TODO: we might need to introduce another category for transfers or even declare them external
+        // but we do not always want to trigger the SVM due to runtime.
+        if (category == "internal" || category == "transfer")
         {
           quantified_internal.insert(target_id);
         }
