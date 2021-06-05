@@ -93,6 +93,7 @@ namespace OpenMS
             {
             }
 
+
             FASTAEntry& operator=(const FASTAEntry& rhs) = default;
 
             bool operator==(const FASTAEntry& rhs) const
