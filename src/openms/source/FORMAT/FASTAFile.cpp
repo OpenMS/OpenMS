@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer, Chris Bielow, Tinatin Kasradze, Nora Wild $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow, Nora Wild $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -46,14 +47,17 @@ namespace OpenMS
 
   bool FASTAFile::readEntry_(std::string& id, std::string& description, std::string& seq)
   {
-    std::streambuf *sb = infile_.rdbuf();
+    std::streambuf* sb = infile_.rdbuf();
     bool keep_reading = true;
     bool description_exists = true;
 
-    if (sb->sbumpc() != '>') return false; // was in wrong position for reading ID
-    while (keep_reading) // reading the ID
+    if (sb->sbumpc() != '>')
     {
-      int c = sb->sbumpc(); // get and advance to next char
+      return false;     // was in wrong position for reading ID
+    }
+    while (keep_reading)// reading the ID
+    {
+      int c = sb->sbumpc();// get and advance to next char
       switch (c)
       {
         case ' ':
@@ -63,7 +67,7 @@ namespace OpenMS
             keep_reading = false; // ID finished
           }
           break;
-        case '\n': // ID finished and no description available
+        case '\n':                // ID finished and no description available
           keep_reading = false;
           description_exists = false;
           break;
@@ -77,20 +81,27 @@ namespace OpenMS
       }
     }
 
-    if (id.empty()) return false;
-
-    if (description_exists) keep_reading = true;
-
-    while (keep_reading) // reading the description
+    if (id.empty())
     {
-      int c = sb->sbumpc(); // get and advance to next char
+      return false;
+    }
+      
+
+    if (description_exists)
+    {
+      keep_reading = true;
+    }
+
+    // reading the description
+    while (keep_reading)       
+    {
+      int c = sb->sbumpc();    // get and advance to next char
       switch (c)
       {
-        case '\n': // description finished
+        case '\n':             // description finished
           keep_reading = false;
           break;
-        case '\r':
-          break;
+        case '\r': // .. or
         case '\t':
           break;
         case std::streambuf::traits_type::eof():
@@ -100,22 +111,22 @@ namespace OpenMS
           description += (char) c;
       }
     }
+    
+    // reading the sequence
     keep_reading = true;
-    while (keep_reading) // reading the sequence
+    while (keep_reading)
     {
       int c = sb->sbumpc(); // get and advance to next char
       switch (c)
       {
         case '\n':
-          if (sb->sgetc() == '>') // reaching the beginning of the next protein-entry
+          if (sb->sgetc() == '>')// reaching the beginning of the next protein-entry
           {
             keep_reading = false;
           }
           break;
-        case '\r':
-          break;
-        case ' ': // not saving white spaces
-          break;
+        case '\r': // not saving white spaces
+        case ' ': 
         case '\t':
           break;
         case std::streambuf::traits_type::eof():
@@ -133,93 +144,7 @@ namespace OpenMS
     return !seq.empty();
   }
 
-  bool FASTAFile::readEntry_(std::string &id, std::string &description, std::string &seq)
-  {
-    std::streambuf *sb = infile_.rdbuf();
-    bool keep_reading = true;
-    bool description_exists = true;
-
-    if (sb->sbumpc() != '>') return false; // was in wrong position for reading ID
-    while (keep_reading) // reading the ID
-    {
-      int c = sb->sbumpc(); // get and advance to next char
-      switch (c)
-      {
-        case ' ':
-        case '\t':
-          if (!id.empty())
-          {
-            keep_reading = false; // ID finished
-          }
-          break;
-        case '\n': // ID finished and no description available
-          keep_reading = false;
-          description_exists = false;
-          break;
-        case '\r':
-          break;
-        case std::streambuf::traits_type::eof():
-          infile_.setstate(std::ios::eofbit);
-          return false;
-        default:
-          id += (char) c;
-      }
-    }
-    if (id.empty()) return false;
-    if (description_exists) keep_reading = true;
-    while (keep_reading) //reading the description
-    {
-      int c = sb->sbumpc(); // get and advance to next char
-      switch (c)
-      {
-        case '\n': // description finished
-          keep_reading = false;
-          break;
-        case '\r':
-          break;
-        case '\t':
-          break;
-        case std::streambuf::traits_type::eof():
-          infile_.setstate(std::ios::eofbit);
-          return false;
-        default:
-          description += (char) c;
-      }
-    }
-    keep_reading = true;
-    while (keep_reading) // reading the sequence
-    {
-      int c = sb->sbumpc(); // get and advance to next char
-      switch (c)
-      {
-        case '\n':
-          if (sb->sgetc() == '>') // reaching the beginning of the next protein-entry
-          {
-            keep_reading = false;
-          }
-          break;
-        case '\r':
-          break;
-        case ' ': // not saving white spaces
-          break;
-        case '\t':
-          break;
-        case std::streambuf::traits_type::eof():
-          infile_.setstate(std::ios::eofbit);
-          if (seq.empty())
-          {
-            infile_.setstate(std::ios::badbit);
-            return false;
-          }
-          return true;
-        default:
-          seq += (char) c;
-      }
-    }
-    return !seq.empty();
-  }
-
-  void FASTAFile::readStart(const String &filename)
+  void FASTAFile::readStart(const String& filename)
   {
 
     if (!File::exists(filename))
@@ -284,7 +209,6 @@ namespace OpenMS
   {
     return infile_.tellg();
   }
-
 
   bool FASTAFile::setPosition(const std::streampos &pos)
   {
