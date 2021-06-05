@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>PlotlyGraph</string>
   </property>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="AddLineBtn">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -37,7 +37,7 @@
    </property>
    <layout class="QGridLayout" name="gridLayout"/>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -55,18 +55,18 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="xValues">
       <property name="text">
        <string/>
       </property>
       <property name="placeholderText">
-       <string>comma seperated, e.g, 4, 6, 10. 16</string>
+       <string>comma seperated, e.g, 4, 6, 10, 16</string>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -84,9 +84,9 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit_2">
+     <widget class="QLineEdit" name="yValues">
       <property name="placeholderText">
-       <string>comma seperated, e.g, 4, 6, 10. 16</string>
+       <string>comma seperated, e.g, 4, 6, 10, 16</string>
       </property>
      </widget>
     </item>
