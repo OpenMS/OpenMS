@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -493,4 +494,5 @@ namespace OpenMS
       }
     }
   }
+
 }
