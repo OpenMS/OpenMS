@@ -1,8 +1,43 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Nora Wild $
+// $Authors: Nora Wild $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
-#include  <utility>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <utility>
 
 using namespace std;
 namespace OpenMS
@@ -63,7 +98,7 @@ namespace OpenMS
       /* R */       {-7,  5, -8,-10, -9, -9, -9, -2, -5, INT16_MAX,  0, -7, -4, -6, INT16_MAX, -4, -2,  8, -3, -6, INT16_MAX, -8, -2, 0, 10, -1},
       /* S */       { 0, -4, -3, -4, -4, -6, -2, -6, -7, INT16_MAX, -4, -8, -5,  0, INT16_MAX, -2, -5, -3,  6,  0, INT16_MAX, -6, -5, 0, -7, -5},
       /* T */       {-1, -5, -8, -5, -6, -9, -6, -7, -2, INT16_MAX, -3, -5, -4, -2, INT16_MAX, -4, -5, -6,  0,  7, INT16_MAX, -3,-13, 0, -6, -4},
-      /* I */       {INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX,},
+      /* U */       {INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX, INT16_MAX,},
       /* V */       {-2, -9, -6, -8, -6, -8, -5, -6,  2, INT16_MAX, -9,  0, -1, -8, INT16_MAX, -6, -7, -8, -6, -3, INT16_MAX,  7,-15, 0, -7, -8},
       /* W */       {-13,-7,-15,-15,-17, -4,-15, -7,-14, INT16_MAX,-12,-10,-13, -8, INT16_MAX,-14,-13, -2, -5,-13, INT16_MAX,-15, 13, 0, -5,-13},
       /* X */       { 0,  0,  0,  0,  0,  0,  0,  0,  0, INT16_MAX,  0,  0,  0,  0, INT16_MAX,  0,  0,  0,  0,  0, INT16_MAX,  0,  0, 0,  0,  0},
@@ -119,33 +154,33 @@ namespace OpenMS
 
   int NeedlemanWunsch::align(const String& seq1, const String& seq2)
   {
-    seq1_len_ = seq1.length();
-    seq2_len_ = seq2.length();
+    unsigned seq1_len = (unsigned)seq1.length();
+    unsigned seq2_len = (unsigned)seq2.length();
 
-    first_row_.resize(seq2_len_+1); // both rows have the same length
-    second_row_.resize(seq2_len_+1);
+    first_row_.resize(seq2_len+1); // both rows have the same length
+    second_row_.resize(seq2_len+1);
 
-    int* firstRowPtr = &(first_row_[0]);
-    int* secondRowPtr = &(second_row_[0]);
+    int* p_firstrow = &(first_row_[0]);
+    int* p_secondrow = &(second_row_[0]);
 
     int (*matrix_ptr)[26][26] = &matrices[static_cast<int>(my_matrix_)];
 
-    for (unsigned i = 0; i <= seq2_len_; ++i) // initialize using gap-penalty
+    for (unsigned i = 0; i <= seq2_len; ++i) // initialize using gap-penalty
     {
       first_row_[i] = i * (-gap_penalty_);
     }
 
-    for (unsigned i = 1;i <= seq1_len_; ++i)
+    for (unsigned i = 1;i <= seq1_len; ++i)
     {
-      (*secondRowPtr) = i * (-gap_penalty_); // the first value in a row
-      for (unsigned j = 1; j <= seq2_len_; ++j)
+      (*p_secondrow) = i * (-gap_penalty_); // the first value in a row
+      for (unsigned j = 1; j <= seq2_len; ++j)
       {
-        (*(secondRowPtr+j)) = max(max(((*(secondRowPtr+j-1)) - gap_penalty_), ((*(firstRowPtr+j)) - gap_penalty_)),
-                                  ((*(firstRowPtr+j-1)) + (*matrix_ptr)[seq1[i-1] - 'A'] [seq2[j-1] - 'A']));
+        (*(p_secondrow+j)) = max(max(((*(p_secondrow+j-1)) - gap_penalty_), ((*(p_firstrow+j)) - gap_penalty_)),
+                                  ((*(p_firstrow+j-1)) + (*matrix_ptr)[seq1[i-1] - 'A'] [seq2[j-1] - 'A']));
       }
-      swap(firstRowPtr, secondRowPtr);
+      swap(p_firstrow, p_secondrow);
     }
-    return (*(firstRowPtr+seq2_len_));
+    return (*(p_firstrow + seq2_len));
   }
 
 }
