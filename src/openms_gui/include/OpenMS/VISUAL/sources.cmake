@@ -13,7 +13,6 @@ EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
 FilterList.h
-GoogleMap.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
 InputFile.h
