@@ -34,3 +34,4 @@ cmake-build-*
 .vs
 contrib_win64_build
 OpenMS_Win64
+CMakeSettings.json
