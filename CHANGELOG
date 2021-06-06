@@ -20,6 +20,7 @@ Adapters/Third-party support:
 - ParamEditor with more convenient StringList editing  (#5135)
 - TOPPAS: add a `recent files` submenu
 - removed InspectAdapter
+- Added QtWebEngine module
 
 Further fixes:
 - support for GLPK 5.x (#5127)
