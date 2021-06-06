@@ -316,21 +316,23 @@ class OpenMSDoubleListConverter(AbstractOpenMSListConverter):
     def __init__(self):
         pass
 
+
 class StdVectorStringConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "libcpp_vector",
+        return "libcpp_vector", # libcpp_vector is the base type
 
     def matches(self, cpp_type):
         inner_t, = cpp_type.template_args
-        return inner_t == "String"
+        return inner_t == "String" # check if template argument is String (as in libcpp_vector[String])
 
     def matching_python_type(self, cpp_type):
-        return "list"
+        return "list" # corresponding type on python side is list
 
     def type_check_expression(self, cpp_type, arg_var):
+        # Allow list elements to be unicode, str, bytes and OpenMS::String
         return Code().add("""
-          |isinstance($arg_var, list) and all(isinstance(i, bytes) for i in
+          |isinstance($arg_var, list) and all(isinstance(i, (bytes, str, unicode, String)) for i in
           + $arg_var)
           """, locals()).render()
 
@@ -338,11 +340,15 @@ class StdVectorStringConverter(TypeConverterBase):
         temp_var = "v%d" % arg_num
         temp_it = "it_%d" % arg_num
         item = "item%d" % arg_num
+        # convert list elements to smart_ptr[String] using convString and push actual _String:
+        # 1. create cython vector that can hold OpenMS::String objects (cython _String == C++ OpenMS::String)
+        # 2. in loop: use conversion function to creates a cython String object from str and bytes (cython String = smart_ptr<OpenMS::String>)
+        #             and store _String. Note: we could skip the redundant wrapping+unwrapping if we split the convString method into
+        #             conversion and wrapping and use only the conversion part.
         code = Code().add("""
             |cdef libcpp_vector[_String] * $temp_var = new libcpp_vector[_String]()
-            |cdef bytes $item
             |for $item in $argument_var:
-            |   $temp_var.push_back(_String(<char *>$item))
+            |   $temp_var.push_back(deref((convString($item)).get()))
             """, locals())
         if cpp_type.is_ref:
             cleanup_code = Code().add("""
@@ -401,8 +407,8 @@ class OpenMSStringListConverter(StdVectorStringConverter):
 
     def type_check_expression(self, cpp_type, argument_var):
         return\
-            "isinstance(%s, list) and all(isinstance(li, %s) for li in %s)"\
-            % (argument_var, self.inner_py_type, argument_var)
+            "isinstance(%s, list) and all(isinstance(li, (bytes, str, unicode, String)) for li in %s)"\
+            % (argument_var, argument_var)
 
 class StdSetStringConverter(TypeConverterBase):
 
@@ -465,7 +471,6 @@ class StdSetStringConverter(TypeConverterBase):
             |   inc($it)
             """, locals())
         return code
-
 
 class OpenMSMapConverter(StdMapConverter):
 
