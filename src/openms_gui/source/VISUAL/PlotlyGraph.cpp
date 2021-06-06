@@ -18,7 +18,7 @@ namespace OpenMS
     QWebEngineView* view = new QWebEngineView(parent);
     QWebChannel* channel = new QWebChannel(this);
     view->page()->setWebChannel(channel);
-    channel->registerObject(QString("webobj"), this);
+    channel->registerObject(QString("plotlyGraph"), this);
     view->load(QUrl("qrc:/new/prefix/plotly_graph"));
     ui->gridLayout->addWidget(view);
   }
@@ -46,16 +46,26 @@ namespace OpenMS
       y_val.push_back(num.toInt());
     }
 
-    QJsonObject xy_vals;
-    xy_vals["x_val"] = x_val;
-    xy_vals["y_val"] = y_val;
+    if (x_val.size() == y_val.size())
+    {
+      QJsonObject xy_vals;
+      xy_vals["x_val"] = x_val;
+      xy_vals["y_val"] = y_val;
 
+      QJsonObject obj;
+      obj["plottingData"] = xy_vals;
+      qDebug() << "correct number of input... Plotting graph :)";
 
-    QJsonObject obj;
-    obj["plottingData"] = xy_vals;
+      emit dataChanged(obj);
+    }
+    else
+    {
+      qDebug() << "incorrect number of input :(";
+      QJsonObject err_obj;
+      err_obj["error"] = "Please enter same number of x & y values";
 
-    qDebug() << "emitting signal";
-    emit dataChanged(obj);
+      emit dataChanged(err_obj);
+    }
   }
 
 }// namespace OpenMS

@@ -8,29 +8,23 @@
     <script src="https://cdn.plot.ly/plotly-1.58.4.min.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
     <script defer>
-        var trace1 = {
-        x: [1, 2, 3, 4],
-        y: [10, 15, 13, 17],
-        type: "scatter",
-        };
-
-        var trace2 = {
-        x: [1, 2, 3, 4],
-        y: [16, 5, 11, 9],
-        type: "scatter",
-        };
-
-        var data = [trace1, trace2];
+        
         document.addEventListener("DOMContentLoaded", function () {
-        Plotly.newPlot("plotly_graph", data);
+        Plotly.newPlot("plotly_graph", []);
         new QWebChannel(qt.webChannelTransport,
         function(channel){
 
-        var JSobject = channel.objects.webobj;
+        var JSobject = channel.objects.plotlyGraph;
 
         JSobject.dataChanged.connect(function(arg) {
 
-                console.log("Line plotted!")
+                if(arg.error != undefined) {
+                    document.getElementById("text").innerHTML = arg.error;
+                    return;
+                }
+
+                document.getElementById("text").innerHTML = "Enter x and y values above to view data on graph:";
+               
                 Plotly.addTraces('plotly_graph', {
                 x: arg.plottingData.x_val,
                 y: arg.plottingData.y_val,
@@ -43,7 +37,7 @@
     </script>
 </head>
   <body>
-      <p id="text">Hi</p>
+      <p id="text">Enter x and y values above to view data on graph:</p>
     <div id="plotly_graph"></div>
   </body>
 </html>
