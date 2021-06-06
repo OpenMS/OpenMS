@@ -171,7 +171,9 @@ protected:
 
         map<String, vector<FLASHDeconvHelperStructs::TopPicItem>> results;
         vector<FLASHDeconvHelperStructs::TopPicItem> to_out1, to_out2;
+        vector<double> to_out1_snr, to_out2_snr, to_out1_cos, to_out2_cos, to_out1_mz1, to_out1_mz2, to_out2_mz1, to_out2_mz2;
 
+        vector<double> chargeSNRs;
         QScore::writeAttHeader(attstream0, false);
         QScore::writeAttHeader(attstream1, false);
         QScore::writeAttHeader(attstream2, false);
@@ -195,7 +197,7 @@ protected:
 
             FLASHDeconvHelperStructs::TopPicItem item(line);
 
-            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
+            auto avgpmass = avg.getAverageMassDelta(item.precursor_mass_) + item.precursor_mass_;
             attstream0 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
                        << item.proteform_id_
                        << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
@@ -230,55 +232,55 @@ protected:
         in_trainstream.close();
         cntr = 0;
         for(auto &item: results){
-            if(false){
-                to_out1.push_back(item.second[0]);
-                to_out2.push_back(item.second[0]);
-            }else{
+            {
                 auto &ps = item.second;
-                for(int i=0;i<ps.size();i++){
+                for(int i=0;i<ps.size();i++) {
                     double p_mass = ps[i].adj_precursor_mass_;
                     int charge = ps[i].charge_;
 
                     int pre_scan = scan_to_prescan[ps[i].scan_];
 
                     auto pre_spec = scan_spec_map[pre_scan];
-                    double min_mz = (avg.getAverageMassDelta(p_mass) - avg.getLeftCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
-                    double max_mz = (avg.getAverageMassDelta(p_mass) + avg.getRightCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
+                    //double min_mz = (avg.getAverageMassDelta(p_mass) - avg.getLeftCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
+                    // double max_mz = (avg.getAverageMassDelta(p_mass) + avg.getRightCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
                     double noise = 0, signal = 0;
 
                     auto spec = scan_spec_map[ps[i].scan_];
                     double start_mz = spec.getPrecursors()[0].getIsolationWindowLowerOffset() > 100.0 ?
-                               spec.getPrecursors()[0].getIsolationWindowLowerOffset() :
-                               -spec.getPrecursors()[0].getIsolationWindowLowerOffset() + spec.getPrecursors()[0].getMZ();
+                                      spec.getPrecursors()[0].getIsolationWindowLowerOffset() :
+                                      -spec.getPrecursors()[0].getIsolationWindowLowerOffset() +
+                                      spec.getPrecursors()[0].getMZ();
                     double end_mz = spec.getPrecursors()[0].getIsolationWindowUpperOffset() > 100.0 ?
-                             spec.getPrecursors()[0].getIsolationWindowUpperOffset() :
-                             spec.getPrecursors()[0].getIsolationWindowUpperOffset() + spec.getPrecursors()[0].getMZ();
-
+                                    spec.getPrecursors()[0].getIsolationWindowUpperOffset() :
+                                    spec.getPrecursors()[0].getIsolationWindowUpperOffset() +
+                                    spec.getPrecursors()[0].getMZ();
 
                     int min_isotope_index = 1000, max_isotope_index = -1;
                     vector<double> pii(min_isotope_index,.0);
 
-                    for(auto iter = pre_spec.MZBegin(min_mz);iter->getMZ() < max_mz;iter++){
+                    for (auto iter = pre_spec.MZBegin(start_mz); iter->getMZ() < end_mz; iter++) {
                         auto mz = iter->getMZ();
-                        if(mz < start_mz || mz > end_mz){
+                        auto o_mass = (mz - Constants::PROTON_MASS_U) * charge;
+                        int iso_index = round((o_mass - p_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
+
+                        if (iso_index < 0 || iso_index > avg.getRightCountFromApex(p_mass) + avg.getApexIndex(p_mass)) {
                             continue;
                         }
-                        auto o_mass = (mz - Constants::PROTON_MASS_U) * charge;
-                        int iso_index = round((o_mass-p_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
-                        max_isotope_index = max_isotope_index < iso_index? iso_index : max_isotope_index;
-                        min_isotope_index = min_isotope_index > iso_index? iso_index : min_isotope_index;
+
+                        max_isotope_index = max_isotope_index < iso_index ? iso_index : max_isotope_index;
+                        min_isotope_index = min_isotope_index > iso_index ? iso_index : min_isotope_index;
 
                         double t_mass = p_mass + iso_index * Constants::ISOTOPE_MASSDIFF_55K_U;
-                        if(abs(o_mass- t_mass) < o_mass * tol / 1e6){
+                        if (abs(o_mass - t_mass) < o_mass * tol / 1e6) {
                             pii[iso_index] += iter->getIntensity();
                             signal += iter->getIntensity() * iter->getIntensity();
-                        }else{
+                        } else {
                             noise += iter->getIntensity() * iter->getIntensity();
                         }
                     }
                     if(signal > noise){
                         cntr++;
-                        to_out1.push_back(ps[i]);
+
                     }
 
                     auto iso_dist = avg.get(p_mass);
@@ -291,43 +293,64 @@ protected:
                                                   iso_size,
                                                   0);
 
+                    if (false) {
+                        cout << "* " << pre_scan << " : " << cos_score << "\n";
+                        for (int j = min_isotope_index; j < max_isotope_index; ++j) {
+                            cout << j << " " << pii[j] << "\n";
+                        }
+                        cout << endl;
+                    }
+
                     auto nom = cos_score * cos_score * signal;
                     auto denom = noise
                                  + (1 - cos_score * cos_score) * signal + 1;
                     //cout<<cos_score<< " " << signal<<" " << noise << " "<< nom <<" " << denom<<endl;
-                    if(nom > denom){
+                    if (nom > denom) {
+                        to_out2_cos.push_back(cos_score);
+                        to_out2_snr.push_back(nom / denom);
                         to_out2.push_back(ps[i]);
+                        to_out2_mz1.push_back(start_mz);
+                        to_out2_mz2.push_back(end_mz);
+                    } else {
+                        to_out1_cos.push_back(cos_score);
+                        to_out1_snr.push_back(nom / denom);
+                        to_out1.push_back(ps[i]);
+                        to_out1_mz1.push_back(start_mz);
+                        to_out1_mz2.push_back(end_mz);
                     }
                 }
 
             }
         }
 
-        std::sort(to_out1.begin(), to_out1.end());
-        std::sort(to_out2.begin(), to_out2.end());
-        for(auto &item : to_out1){
-            outstream1<<item.str_<<"\n";
-
+        //std::sort(to_out1.begin(), to_out1.end());
+        //std::sort(to_out2.begin(), to_out2.end());
+        int qq = 0;
+        for (auto &item : to_out1) {
+            outstream1 << item.str_ << "\n";
             auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
             attstream1 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
-                      << item.proteform_id_
-                      << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
-                      << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
-                      << ","
-                      << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
-                      << (item.unexp_mod_.size())
-                      <<",";
-            for(int k=0;k<3;k++){
-                if(k < item.unexp_mod_.size()){
-                    attstream1<<item.unexp_mod_[k]<<",";
-                }else{
-                    attstream1<<"nan,";
+                       << item.proteform_id_
+                       << "," << item.rt_ << "," << item.scan_ << "," << scan_to_prescan[item.scan_] << ","
+                       << item.adj_precursor_mass_ << ","
+                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+                       << ","
+                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
+                       << (item.unexp_mod_.size())
+                       << ",";
+            for (int k = 0; k < 3; k++) {
+                if (k < item.unexp_mod_.size()) {
+                    attstream1 << item.unexp_mod_[k] << ",";
+                } else {
+                    attstream1 << "nan,";
                 }
             }
 
-            attstream1<<"0,0,0,0,0,0,0,"<<item.e_value_<<","<<  item.spec_q_value_ << ",T\n";
+            attstream1 << to_out1_cos[qq] << "," << to_out1_snr[qq] << "," << to_out1_mz1[qq] << "," << to_out1_mz2[qq]
+                       << ",0,0,0," << item.e_value_ << "," << item.spec_q_value_ << ",T\n";
+            qq++;
         }
-
+        qq = 0;
         for(auto &item : to_out2){
             outstream2<<item.str_<<"\n";
 
@@ -348,7 +371,8 @@ protected:
                 }
             }
 
-            attstream2<<"0,0,0,0,0,0,0,"<<item.e_value_<<","<<  item.spec_q_value_ <<",T\n";
+            attstream2 << to_out2_cos[qq] << "," << to_out2_snr[qq] << "," << to_out2_mz1[qq] << "," << to_out2_mz2[qq]
+                       << ",0,0,0," << item.e_value_ << "," << item.spec_q_value_ << ",T\n";
         }
 
         attstream1.close();
