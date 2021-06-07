@@ -210,7 +210,7 @@ public:
     /**
       @brief Annotates the MS2 spectra with the likely MS1 feature that it was derived from
 
-      Add support for annotating based off of MS1 features resulting from SearchAccurateMass.
+      Annotating based on MS1 feature results from AccurateMassSearch.
       In this case, the input will be e.g., const FeatureMap& ms1_features and the RTs and names (i.e., PeptideRef),
       defined in the FeatureMap.
 
