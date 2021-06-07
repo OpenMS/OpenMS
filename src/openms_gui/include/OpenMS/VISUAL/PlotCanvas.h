@@ -905,9 +905,6 @@ protected:
     /// Whether to recalculate the data in the buffer when repainting
     bool update_buffer_;
 
-    /// Changes the size of the paint buffer to the currently required size
-    void adjustBuffer_();
-
     /// Back-pointer to the enclosing spectrum widget
     PlotWidget * spectrum_widget_;
 

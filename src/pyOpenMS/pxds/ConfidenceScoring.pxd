@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
 from FeatureMap cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *

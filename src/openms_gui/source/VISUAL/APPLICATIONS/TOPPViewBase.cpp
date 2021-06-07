@@ -91,6 +91,9 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
+
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
+
 //Qt
 #include <QCloseEvent>
 #include <QPainter>
@@ -104,11 +107,8 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QToolTip>
@@ -118,7 +118,6 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -130,16 +129,16 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
-
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
                                                   FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -1572,6 +1571,8 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
+    bool tool_params_added = false;
+
     if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
@@ -1587,14 +1588,13 @@ namespace OpenMS
       {
         error = true;
       }
-
       //apply preferences if they are of the current TOPPView version
       if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
-          setParameters(tmp);
+          setParameters(tmp.copy("preferences:"));
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1605,13 +1605,18 @@ namespace OpenMS
       {
         error = true;
       }
+      // Load tool/util params
+      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+      {
+        param_.insert("tool_params:", tmp.copy("tool_params:", true));
+        tool_params_added = true;
+      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1619,6 +1624,12 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      tool_scanner_.loadParams();
+    }
+
     param_.setValue("PreferencesFile", filename);
 
     // set the recent files
@@ -1633,15 +1644,32 @@ namespace OpenMS
 
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
-
-    // save only the subsection that begins with "preferences:"
+    // Make sure TOPP tool/util params have been inserted
+    if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      addToolParamsToIni_();
+    }
+    // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
-      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), param_.copy("preferences:"));
+      Param p;
+      p.insert("preferences:", param_.copy("preferences:", true));
+      p.insert("tool_params:", param_.copy("tool_params:", true));
+      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), p);
     }
     catch (Exception::UnableToCreateFile& /*e*/)
     {
       cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+  void TOPPViewBase::addToolParamsToIni_()
+  {
+    tool_scanner_.waitForParams();
+    param_.addSection("tool_params", "");
+    for (const auto& pair : tool_scanner_.getToolParams())
+    {
+      param_.insert("tool_params:", pair.second);
     }
   }
 
@@ -1698,7 +1726,11 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    if (!param_.hasSection("tool_params:"))
+    {
+      addToolParamsToIni_();
+    }
+    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -2136,65 +2168,115 @@ namespace OpenMS
     updateMenu();
   }
 
+  /**
+    @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
+   
+    The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
+
+    To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
+      
+    @param im_frame Concatenated spectrum representing a frame
+    @param number_of_bins In how many bins should ion mobility values be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
+    @return IM frame split into multiple bins (= 1 spectrum per bin)
+
+    @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
+  */
+  MSExperiment splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins = -1)
+  {          
+    MSExperiment out;
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    // can throw if IM float data array is missing
+    auto& im_data = im_frame.getIMData(); 
+    if (im_data.empty())
+    {
+      return out;
+    }
+
+    // check if data is sorted by IM... if not, sort
+    if (!std::is_sorted(im_data.begin(), im_data.end()))
+    {
+      im_frame.sort([&im_data](const Size i1, const Size i2) {
+        return im_data[i1] < im_data[i2];
+      });
+    }
+
+    
+    using IMV_t = MSSpectrum::FloatDataArray::value_type;
+    out.clear(true);
+    // adds a new spectrum with drift time to `out`
+    auto addBinnedSpec = [&out, &im_frame](double drift_time_avg) {
+      out.addSpectrum(MSSpectrum());
+      auto& spec = out.getSpectra().back();
+      // copy drift-time unit from parent scan
+      spec.setDriftTime(drift_time_avg);
+      spec.setDriftTimeUnit(im_frame.getDriftTimeUnit());
+      // keep RT identical for all scans, since they are from the same IM-frame
+      //spec.setRT(im_frame.getRT());
+      spec.setRT(drift_time_avg); // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
+      // keep MSlevel
+      spec.setMSLevel(im_frame.getMSLevel());
+      return &spec;
+    };
+
+    MSSpectrum* last_spec{};
+    if (number_of_bins == (UInt)-1)
+    { // Separate spec for each IM value:
+      OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
+      IMV_t im_last = std::numeric_limits<IMV_t>::max();
+      for (Size i = 0; i < im_data.size(); ++i)// is sorted now!
+      {
+        const IMV_t im = im_data[i];
+        if (im != im_last)
+        {
+          im_last = im;
+          last_spec = addBinnedSpec(im);
+        }
+        last_spec->push_back(im_frame[i]); // copy the peak
+      }
+
+    }
+    else
+    {
+      auto min_IM = im_data.front();
+      auto max_IM = im_data.back();
+      Histogram<double, double> hist(min_IM, max_IM, (max_IM - min_IM) / number_of_bins);
+      out.reserveSpaceSpectra(number_of_bins);
+      Size i_data = 0;
+      for (Size i_bin = 0; i_bin < number_of_bins; ++i_bin)
+      {
+        last_spec = addBinnedSpec(hist.centerOfBin(i_bin));
+        double right_end_of_bin = hist.rightBorderOfBin(i_bin);
+        while (i_data < im_data.size() && im_data[i_data] < right_end_of_bin)
+        {
+          last_spec->push_back(im_frame[i_data]);// copy the peak
+          ++i_data; // next peak
+        }
+      }
+      assert(i_data == im_data.size());
+    }
+
+    out.updateRanges();
+    return out;
+  }
+
   void TOPPViewBase::showCurrentPeaksAsIonMobility()
   {
-    double IM_BINNING = 1e5;
-
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
-    MSSpectrum tmps = layer.getCurrentSpectrum();
-
-    if (!tmps.containsIMData())
-    {
-      std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
-        " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
-      return;
-    }
-
-    // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
-    auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
-    for (Size k = 0;  k < tmps.size(); k++)
-    {
-      double im = im_arr[ k ];
-      if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
-      {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
-        news->setRT(im);
-        news->setMSLevel(1);
-        im_map[ int(im*IM_BINNING) ] = news;
-      }
-      im_map[ int(im*IM_BINNING) ]->push_back( tmps[k] );
-    }
-
-    // Add spectra into a MSExperiment, sort and prepare it for display
-    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
-    for (const auto& s : im_map)
-    {
-      tmpe->addSpectrum( *(s.second) );
-    }
-    tmpe->sortSpectra();
-    tmpe->updateRanges();
-    tmpe->setMetaValue("is_ion_mobility", "true");
-    tmpe->setMetaValue("ion_mobility_unit", "ms");
+    
+    ExperimentSharedPtrType exp(new MSExperiment(splitByIonMobility(layer.getCurrentSpectrum())));
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
-    w->xAxis()->setLegend(PlotWidget::IM_MS_AXIS_TITLE);
-
-    if (im_arr.getName().find("1002815") != std::string::npos)
-    {
-      w->xAxis()->setLegend(PlotWidget::IM_ONEKZERO_AXIS_TITLE);
-      tmpe->setMetaValue("ion_mobility_unit", "1/K0");
-    }
+    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
     String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())

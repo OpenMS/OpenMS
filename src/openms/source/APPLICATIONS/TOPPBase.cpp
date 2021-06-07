@@ -212,7 +212,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.getMessage()) + ". Aborting!");
+      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.what()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
