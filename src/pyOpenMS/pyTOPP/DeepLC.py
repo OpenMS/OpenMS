@@ -63,7 +63,18 @@ def idxml_to_dataframe(idxml_file: str) -> pd.DataFrame:
     """
     pep_ids = []
     pms.IdXMLFile().load(idxml_file, [], pep_ids)
+    return peptide_ids_to_dataframe(pep_ids)
 
+
+def peptide_ids_to_dataframe(pep_ids: list) -> pd.DataFrame:
+    """Parse a given list of peptide identification to a pandas DataFrame.
+
+    Args:
+        pep_ids: List containing PeptideIdentification.
+
+    Returns:
+        The returned pandas DataFrame can be used directly by DeepLC.
+    """
     columns = ["seq", "modifications", "tr"]
     sequences = []
     modifications = []
@@ -86,6 +97,31 @@ def idxml_to_dataframe(idxml_file: str) -> pd.DataFrame:
         "tr": tr
     }
     return pd.DataFrame(data, columns=columns)
+
+
+def create_calibration_data(pep_ids: list) -> pd.DataFrame:
+    """Create pandas DataFrame to be used by DeepLC for calibration.
+
+    Args:
+        pep_ids: List containing PeptideIdentification
+    """
+    # check if target_decoy information present
+    has_target_decoy = False
+    for pep_id in pep_ids:
+        for hit in pep_id.getHits():
+            if hit.metaValueExists("target_decoy"):
+                has_target_decoy = True
+    if has_target_decoy:
+        # annotate q-value
+        fdr = pms.FalseDiscoveryRate()
+        fdr.apply(pep_ids)
+
+        # filter by 1% PSM FDR (q < 0.01)
+        idfilter = pms.IDFilter()
+        idfilter.filterHitsByScore(pep_ids, 0.01)
+        idfilter.removeDecoyHits(pep_ids)
+
+    return peptide_ids_to_dataframe(pep_ids)
 
 
 def write_predictions_to_idxml(infile: str, outfile: str, predictions: list):
