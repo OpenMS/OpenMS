@@ -210,14 +210,14 @@ public:
     /**
       @brief Annotates the MS2 spectra with the likely MS1 feature that it was derived from
 
-      Add support for annotating based off of MS1 features resulting from SearchAccurateMass.
+      Annotating based on MS1 feature results from AccurateMassSearch.
       In this case, the input will be e.g., const FeatureMap& ms1_features and the RTs and names (i.e., PeptideRef),
       defined in the FeatureMap.
 
       @param[in] spectra The spectra to filter
       @param[in] ms1_features the MS1 features
-      @param[out] ms1_features the MS2 features
-      @param[out] annotated_spectra the resulting annotated spectra
+      @param[out] ms1_features The MS2 features
+      @param[out] annotated_spectra The resulting annotated spectra
     */
     void annotateSpectra(
         const std::vector<MSSpectrum>& spectra,
@@ -226,7 +226,7 @@ public:
         std::vector<MSSpectrum>& annotated_spectra) const;
     
     /**
-      @brief Search accurate masses and build add the the peptide hits as features/sub-features
+      @brief Search accurate masses and add identification (peptide hits) as features/sub-features
 
       @param[in] feat_map The feature map to search in
       @param[in] feat_map_output The output feature map, with peptide identifaction as sub features
