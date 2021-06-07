@@ -61,6 +61,22 @@ vector<MSSpectrum>::const_iterator findSpectrumByName(const vector<MSSpectrum>& 
   return it;
 }
 
+namespace std
+{
+  std::ostream& operator<<(ostream& os, const std::vector<OpenMS::String> string_list)
+  {
+    os << "[";
+    std::string separator = "";
+    for (const auto& string_item : string_list)
+    {
+      os << separator << string_item;
+      separator = ", ";
+    }
+    os << "])";
+    return os;
+  }
+}// namespace std
+
 START_TEST(TargetedSpectraExtractor, "$Id$")
 
 /////////////////////////////////////////////////////////////
