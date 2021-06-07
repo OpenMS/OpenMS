@@ -1014,35 +1014,35 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 
   const auto& merged_f1_sub1 = merged_f1.getSubordinates().at(0);
   TEST_EQUAL(merged_f1_sub1.getMetaValue("identifier"), identifier1);
-  TEST_REAL_SIMILAR(merged_f1_sub1.getMZ(), 10);
-  TEST_REAL_SIMILAR(merged_f1_sub1.getRT(), 100);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getMZ(), 10.0);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getRT(), 100.0);
 
   const auto& merged_f1_sub2 = merged_f1.getSubordinates().at(1);
   TEST_EQUAL(merged_f1_sub2.getMetaValue("identifier"), identifier2);
-  TEST_REAL_SIMILAR(merged_f1_sub2.getMZ(), 20);
-  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 200);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getMZ(), 20.0);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 200.0);
 
   const auto& merged_f2 = merged_features[1];
   TEST_EQUAL(merged_f2.getMetaValue("PeptideRef"), "ident2");
-  TEST_REAL_SIMILAR(merged_f2.getMZ(), 20);
-  TEST_REAL_SIMILAR(merged_f2.getRT(), 200);
+  TEST_REAL_SIMILAR(merged_f2.getMZ(), 20.0);
+  TEST_REAL_SIMILAR(merged_f2.getRT(), 200.0);
   TEST_EQUAL(merged_f2.getSubordinates().size(), 1);
 
   const auto& merged_f2_sub1 = merged_f2.getSubordinates().at(0);
   TEST_EQUAL(merged_f2_sub1.getMetaValue("identifier"), identifier2);
-  TEST_REAL_SIMILAR(merged_f2_sub1.getMZ(), 20);
-  TEST_REAL_SIMILAR(merged_f2_sub1.getRT(), 200);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getMZ(), 20.0);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getRT(), 200.0);
 
   const auto& merged_f3 = merged_features[2];
   TEST_EQUAL(merged_f3.getMetaValue("PeptideRef"), "ident3");
-  TEST_REAL_SIMILAR(merged_f3.getMZ(), 30);
-  TEST_REAL_SIMILAR(merged_f3.getRT(), 300);
+  TEST_REAL_SIMILAR(merged_f3.getMZ(), 30.0);
+  TEST_REAL_SIMILAR(merged_f3.getRT(), 300.0);
   TEST_EQUAL(merged_f3.getSubordinates().size(), 1);
 
   const auto& merged_f3_sub1 = merged_f3.getSubordinates().at(0);
   TEST_EQUAL(merged_f3_sub1.getMetaValue("identifier"), identifier3);
-  TEST_REAL_SIMILAR(merged_f3_sub1.getMZ(), 30);
-  TEST_REAL_SIMILAR(merged_f3_sub1.getRT(), 300);
+  TEST_REAL_SIMILAR(merged_f3_sub1.getMZ(), 30.0);
+  TEST_REAL_SIMILAR(merged_f3_sub1.getRT(), 300.0);
 }
 END_SECTION
 
