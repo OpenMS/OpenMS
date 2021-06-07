@@ -94,7 +94,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         
         void keepBestPerPeptide(libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
 
-        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
+        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
         
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
 
