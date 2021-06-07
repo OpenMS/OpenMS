@@ -226,7 +226,7 @@ public:
         std::vector<MSSpectrum>& annotated_spectra) const;
     
     /**
-      @brief Search accurate masses and build add the the peptide hits as features/sub-features
+      @brief Search accurate masses and add identification (peptide hits) as features/sub-features
 
       @param[in] feat_map The feature map to search in
       @param[in] feat_map_output The output feature map, with peptide identifaction as sub features
