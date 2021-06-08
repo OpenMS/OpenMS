@@ -1132,7 +1132,7 @@ namespace OpenMS
       double value;
 
       // TODO: deal with different scores
-      if (name == "expect") // X!Tandem or Mascot E-value
+      if (name == "expect") // X!Tandem, Mascot or MSFragger E-value
       {
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
@@ -1192,6 +1192,16 @@ namespace OpenMS
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
         peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
+      }
+      else if (name == "hyperscore") // MSFragger subscore
+      {
+        value = attributeAsDouble_(attributes, "value");
+        peptide_hit_.setMetaValue("MSFragger:hyperscore", value);
+      }
+      else if (name == "nextscore") // MSFragger subscore
+      {
+        value = attributeAsDouble_(attributes, "value");
+        peptide_hit_.setMetaValue("MSFragger:nextscore", value);
       }
       else
       {
