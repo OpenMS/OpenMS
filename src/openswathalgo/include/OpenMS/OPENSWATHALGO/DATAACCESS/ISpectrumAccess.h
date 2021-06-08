@@ -78,8 +78,6 @@ public:
 
     /// Return a pointer to a chromatogram at the given id
     virtual ChromatogramPtr getChromatogramById(int id) = 0;
-    //virtual std::vector<std::size_t> getChromatogramByPrecursorMZ(double mz,
-    //    double deltaMZ) const = 0;
     /// Returns the number of chromatograms available
     virtual std::size_t getNrChromatograms() const = 0;
     /// Returns the native id of the chromatogram at the given id

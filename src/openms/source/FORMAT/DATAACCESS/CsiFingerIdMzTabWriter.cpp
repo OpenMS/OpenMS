@@ -87,7 +87,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
         // extract column name and index from header
-        std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
+        std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
@@ -126,7 +126,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-4.6.0");
+        md.description = MzTabString("CSI:FingerID-4.8.2");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;

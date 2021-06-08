@@ -98,7 +98,7 @@ If the filename is empty, the application name + ".ini" is used as filename
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const StringList& list, QSplashScreen* splash_screen);
+    void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window

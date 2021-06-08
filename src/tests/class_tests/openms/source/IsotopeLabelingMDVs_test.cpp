@@ -92,11 +92,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_1_normmax.setSubordinates(L1_subordinates_normmax);
   
-//  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_1_normalized_normmax.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_normalized_normmax.getSubordinates().at(i).getIntensity(), L1_norm_max.at(i));
+    TEST_REAL_SIMILAR(lactate_1_normalized_normmax.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_norm_max.at(i));
   }
 
   OpenMS::Feature               lactate_2_normmax;
@@ -113,11 +113,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_2_normmax.setSubordinates(L2_subordinates_normmax);
 
-//  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_2_normalized_normmax.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getIntensity(), L2_norm_max.at(i));
+    TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getMetaValue("peak_apex_int"), L2_norm_max.at(i));
   }
 
   // Lactate1 & Lactate2 - peak_apex_int - norm_sum
@@ -135,11 +135,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_1_normsum.setSubordinates(L1_subordinates_normsum);
 
-//  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_1_normalized_normsum.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_normalized_normsum.getSubordinates().at(i).getIntensity(), L1_norm_sum.at(i));
+    TEST_REAL_SIMILAR(lactate_1_normalized_normsum.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_norm_sum.at(i));
   }
 
   OpenMS::Feature lactate_2_normsum; OpenMS::Feature lactate_2_normalized_normsum;
@@ -202,11 +202,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_1_normmax.setSubordinates(L1_subordinates_normmax);
   
-//  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_1_normalized_normmax.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_normalized_normmax.getSubordinates().at(i).getIntensity(), L1_norm_max.at(i));
+    TEST_REAL_SIMILAR(lactate_1_normalized_normmax.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_norm_max.at(i));
   }
 
   OpenMS::Feature               lactate_2_normmax;
@@ -223,11 +223,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_2_normmax.setSubordinates(L2_subordinates_normmax);
 
-//  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_2_normalized_normmax.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getIntensity(), L2_norm_max.at(i));
+    TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getMetaValue("peak_apex_int"), L2_norm_max.at(i));
   }
 
   // Lactate1 & Lactate2 - peak_apex_int - norm_sum
@@ -245,11 +245,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_1_normsum.setSubordinates(L1_subordinates_normsum);
 
-//  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_1_normalized_normsum.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_normalized_normsum.getSubordinates().at(i).getIntensity(), L1_norm_sum.at(i));
+    TEST_REAL_SIMILAR(lactate_1_normalized_normsum.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_norm_sum.at(i));
   }
 
   OpenMS::Feature lactate_2_normsum; OpenMS::Feature lactate_2_normalized_normsum;
@@ -265,11 +265,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_2_normsum.setSubordinates(L2_subordinates_normsum);
 
-//  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_2_normalized_normsum.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_2_normalized_normsum.getSubordinates().at(i).getIntensity(), L2_norm_sum.at(i));
+    TEST_REAL_SIMILAR(lactate_2_normalized_normsum.getSubordinates().at(i).getMetaValue("peak_apex_int"), L2_norm_sum.at(i));
   }
 
   OpenMS::FeatureMap  lactate_normmax;
@@ -283,8 +283,8 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   lactate_normsum.push_back(lactate_1_normsum);
   lactate_normsum.push_back(lactate_2_normsum);
 
-//  isotopelabelingmdvs.calculateMDVs(lactate_normmax, lactate_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
-//  isotopelabelingmdvs.calculateMDVs(lactate_normsum, lactate_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDVs(lactate_normmax, lactate_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, "peak_apex_int");
+  isotopelabelingmdvs.calculateMDVs(lactate_normsum, lactate_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, "peak_apex_int");
 
   for(size_t i = 0; i < lactate_normalized_normmax.size(); ++i)
   {
@@ -292,11 +292,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
     {
       if (i == 0) // lactate_1
       {
-        TEST_REAL_SIMILAR(lactate_normalized_normmax.at(i).getSubordinates().at(j).getIntensity(), L1_norm_max.at(j));
+        TEST_REAL_SIMILAR(lactate_normalized_normmax.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L1_norm_max.at(j));
       }
       else if (i == 1) // lactate_2
       {
-        TEST_REAL_SIMILAR(lactate_normalized_normmax.at(i).getSubordinates().at(j).getIntensity(), L2_norm_max.at(j));
+        TEST_REAL_SIMILAR(lactate_normalized_normmax.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L2_norm_max.at(j));
       }
     }
   }
@@ -307,11 +307,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
     {
       if (i == 0) // lactate_1
       {
-        TEST_REAL_SIMILAR(lactate_normalized_normsum.at(i).getSubordinates().at(j).getIntensity(), L1_norm_sum.at(j));
+        TEST_REAL_SIMILAR(lactate_normalized_normsum.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L1_norm_sum.at(j));
       }
       else if (i == 1) // lactate_2
       {
-        TEST_REAL_SIMILAR(lactate_normalized_normsum.at(i).getSubordinates().at(j).getIntensity(), L2_norm_sum.at(j));
+        TEST_REAL_SIMILAR(lactate_normalized_normsum.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L2_norm_sum.at(j));
       }
     }
   }
@@ -360,16 +360,20 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   }
   lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
 
-isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS, IsotopeLabelingMDVs::DerivatizationAgent::NOT_SELECTED);
+  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected,
+                                         correction_matrix_tBDMS, IsotopeLabelingMDVs::DerivatizationAgent::NOT_SELECTED);
+
   for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
+    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_corrected[i]);
   }
 
-isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, {}, IsotopeLabelingMDVs::DerivatizationAgent::TBDMS);
+  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected,
+                                         {}, IsotopeLabelingMDVs::DerivatizationAgent::TBDMS);
+
   for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
   {
-    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
+    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getMetaValue("peak_apex_int"), L1_corrected[i]);
   }
 
 END_SECTION
@@ -426,7 +430,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
   {
     for(uint8_t j = 0; j < lactate_1_corrected_featureMap.at(i).getSubordinates().size(); ++j)
     {
-      TEST_REAL_SIMILAR(lactate_1_corrected_featureMap.at(i).getSubordinates().at(j).getIntensity(), L1_corrected[j]);
+      TEST_REAL_SIMILAR(lactate_1_corrected_featureMap.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L1_corrected[j]);
     }
   }
 
@@ -437,7 +441,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
   {
     for(uint8_t j = 0; j <lactate_1_corrected_featureMap.at(i).getSubordinates().size(); ++j)
     {
-      TEST_REAL_SIMILAR(lactate_1_corrected_featureMap.at(i).getSubordinates().at(j).getIntensity(), L1_corrected[j]);
+      TEST_REAL_SIMILAR(lactate_1_corrected_featureMap.at(i).getSubordinates().at(j).getMetaValue("peak_apex_int"), L1_corrected[j]);
     }
   }
 
@@ -568,7 +572,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
 
   std::vector<OpenMS::Feature>  L1_subordinates, L2_subordinates;
   
-  feature_1.setMetaValue("peptideRef", "accoa");
+  feature_1.setMetaValue("PeptideRef", "accoa");
   for (uint16_t i = 0; i < accoa_C23H37N7O17P3S_MRM_measured_13.size(); ++i)
   {
     OpenMS::Feature sub;
@@ -578,7 +582,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
   }
   feature_1.setSubordinates(L1_subordinates);
 
-  feature_2.setMetaValue("peptideRef", "fad");
+  feature_2.setMetaValue("PeptideRef", "fad");
   for (uint16_t i = 0; i < fad_C27H32N9O15P2_EPI_measured_48.size(); ++i)
   {
     OpenMS::Feature sub;
@@ -632,7 +636,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
 
   std::vector<OpenMS::Feature>      L1_subordinates, L2_subordinates;
   
-  feature_1.setMetaValue("peptideRef", "accoa");
+  feature_1.setMetaValue("PeptideRef", "accoa");
   for (uint16_t i = 0; i < accoa_C23H37N7O17P3S_MRM_measured_13.size(); ++i)
   {
     OpenMS::Feature sub;
@@ -647,7 +651,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
     featureMap_1.push_back(feature_1);
   }
 
-  feature_2.setMetaValue("peptideRef", "fad");
+  feature_2.setMetaValue("PeptideRef", "fad");
   for (uint16_t i = 0; i < fad_C27H32N9O15P2_EPI_measured_48.size(); ++i)
   {
     OpenMS::Feature sub;
@@ -665,22 +669,24 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   isotopelabelingmdvs.calculateMDVAccuracies(featureMap_1, "peak_apex_int", theoretical_formulas);
   for (size_t i = 0; i < featureMap_1.size(); ++i)
   {
-    TEST_REAL_SIMILAR( featureMap_1.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0] );
+    TEST_REAL_SIMILAR(featureMap_1.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0]);
     
     for (size_t feature_subordinate = 0; feature_subordinate < featureMap_1.at(i).getSubordinates().size(); ++feature_subordinate)
     {
-      TEST_REAL_SIMILAR( featureMap_1.at(i).getSubordinates().at(feature_subordinate).getMetaValue("absolute_difference"), accoa_C23H37N7O17P3S_abs_diff[feature_subordinate] );
+      TEST_REAL_SIMILAR(featureMap_1.at(i).getSubordinates().at(feature_subordinate).getMetaValue("absolute_difference"),
+                        accoa_C23H37N7O17P3S_abs_diff[feature_subordinate]);
     }
   }
 
   isotopelabelingmdvs.calculateMDVAccuracies(featureMap_2, "peak_apex_int", theoretical_formulas);
   for (size_t i = 0; i < featureMap_2.size(); ++i)
   {
-    TEST_REAL_SIMILAR( featureMap_2.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );
+    TEST_REAL_SIMILAR(featureMap_2.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1]);
     
     for (size_t feature_subordinate = 0; feature_subordinate < featureMap_2.at(i).getSubordinates().size(); ++feature_subordinate)
     {
-      TEST_REAL_SIMILAR( featureMap_2.at(i).getSubordinates().at(feature_subordinate).getMetaValue("absolute_difference"), fad_C27H32N9O15P2_abs_diff[feature_subordinate] );
+      TEST_REAL_SIMILAR(featureMap_2.at(i).getSubordinates().at(feature_subordinate).getMetaValue("absolute_difference"),
+                        fad_C27H32N9O15P2_abs_diff[feature_subordinate]);
     }
   }
 
