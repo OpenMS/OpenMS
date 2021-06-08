@@ -90,7 +90,8 @@ struct OPENMS_DLLAPI NuXLReportRowHeader
 /// create PSM report
 struct OPENMS_DLLAPI NuXLReport
 {
-  static std::vector<NuXLReportRow> annotate(const PeakMap& spectra, 
+  static std::vector<NuXLReportRow> annotate(
+    const PeakMap& spectra, 
     std::vector<PeptideIdentification>& peptide_ids, 
     const StringList& meta_values_to_export,
     double marker_ions_tolerance);
