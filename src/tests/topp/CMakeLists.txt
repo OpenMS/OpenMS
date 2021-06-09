@@ -1995,16 +1995,6 @@ add_test("TOPP_RTPredict_5_out1" ${DIFF} -in1 RTPredict_5_output.tmp -in2 ${DATA
 set_tests_properties("TOPP_RTPredict_5_out1" PROPERTIES DEPENDS "TOPP_RTPredict_5")
 
 #------------------------------------------------------------------------------
-# InspectAdapter tests
-add_test("TOPP_InspectAdapter_1" ${TOPP_BIN_PATH}/InspectAdapter -test -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/Inspect.mzXML -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -inspect_in -out InspectAdapter_2_output.tmp)
-add_test("TOPP_InspectAdapter_1_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in )
-set_tests_properties("TOPP_InspectAdapter_1_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_1")
-
-add_test("TOPP_InspectAdapter_2" ${TOPP_BIN_PATH}/InspectAdapter -test -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/Inspect.mzData -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -inspect_in -out InspectAdapter_3_output.tmp)
-add_test("TOPP_InspectAdapter_2_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in )
-set_tests_properties("TOPP_InspectAdapter_2_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_2")
-
-#------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out SeedListGenerator_1_output.tmp)
 add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 SeedListGenerator_1_output.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
@@ -2782,6 +2772,16 @@ add_test("UTILS_SimpleSearchEngine_1_out" ${DIFF} -in1 SimpleSearchEngine_1_out.
 set_tests_properties("UTILS_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "UTILS_SimpleSearchEngine_1")
 
+# extra percolator features
+add_test("UTILS_SimpleSearchEngine_2" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_2_out.tmp
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("UTILS_SimpleSearchEngine_2_out" ${DIFF} -in1 SimpleSearchEngine_2_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("UTILS_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
+"UTILS_SimpleSearchEngine_2")
+
+
 # FeatureFinderMetaboIdent:
 add_test("UTILS_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out FeatureFinderMetaboIdent_1_output.tmp -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
 add_test("UTILS_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetaboIdent_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
@@ -3105,3 +3105,15 @@ set_tests_properties("UTILS_Epifany_2_out" PROPERTIES DEPENDS "UTILS_Epifany_2")
 add_test("UTILS_Epifany_3" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:keep_best_PSM_only false -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_3_out.tmp -out_type consensusXML)
 add_test("UTILS_Epifany_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_3_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML)
 set_tests_properties("UTILS_Epifany_3_out" PROPERTIES DEPENDS "UTILS_Epifany_3")
+
+#------------------------------------------------------------------------------
+# QCCalculator:
+# test for qcML file export
+add_test("UTILS_QCCalculator_1" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -out QCCalculator_1.qcML)
+add_test("UTILS_QCCalculator_1_out" ${DIFF} -in1 QCCalculator_1.qcML -in2 ${DATA_DIR_TOPP}/QCCalculator_1_output.qcML)
+set_tests_properties("UTILS_QCCalculator_1_out" PROPERTIES DEPENDS "UTILS_QCCalculator_1")
+
+# test for mzQC file export
+add_test("UTILS_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out QCCalculator_2.mzQC)
+add_test("UTILS_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" -in1 QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)
+set_tests_properties("UTILS_QCCalculator_2_out" PROPERTIES DEPENDS "UTILS_QCCalculator_2")

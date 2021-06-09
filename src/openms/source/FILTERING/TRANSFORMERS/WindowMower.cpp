@@ -45,7 +45,7 @@ namespace OpenMS
     defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
     defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.");
     defaults_.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    defaults_.setValidStrings("movetype", ListUtils::create<String>("slide,jump"));
+    defaults_.setValidStrings("movetype", {"slide","jump"});
     defaultsToParam_();
   }
 
@@ -69,7 +69,7 @@ namespace OpenMS
 
   void WindowMower::filterPeakSpectrum(PeakSpectrum & spectrum)
   {
-    bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
+    bool sliding = param_.getValue("movetype").toString() == "slide" ? true : false;
 
     if (sliding)
     {
@@ -83,7 +83,7 @@ namespace OpenMS
 
   void WindowMower::filterPeakMap(PeakMap & exp)
   {
-    bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
+    bool sliding = param_.getValue("movetype").toString() == "slide" ? true : false;
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (sliding)
