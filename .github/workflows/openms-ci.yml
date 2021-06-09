@@ -85,8 +85,8 @@ jobs:
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
           mkdir -p _thirdparty
-          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
-          cp -R THIRDPARTY/All/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/Windows/64bit/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
           echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
@@ -218,8 +218,8 @@ jobs:
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
           mkdir -p _thirdparty
-          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
-          cp -R THIRDPARTY/All/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/MacOS/64bit/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
           echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
@@ -332,8 +332,8 @@ jobs:
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
           mkdir -p _thirdparty
-          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
-          cp -R THIRDPARTY/All/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/Linux/64bit/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
           echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
