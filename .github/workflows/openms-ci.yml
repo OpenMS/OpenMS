@@ -63,12 +63,13 @@ jobs:
         ref=${ref//\//-}
         echo "RUN_NAME=$ref" >> $GITHUB_ENV
       id: extract_branch
+
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
       run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-      
+
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.8
       with:
@@ -77,9 +78,29 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          # initialize THIRDPARTY
           cd OpenMS
           git submodule update --init THIRDPARTY
-          
+          cd ..
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+          cp -R THIRDPARTY/All/* _thirdparty/
+          # add third-party binaries to PATH
+          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
+
     - name: Tests windows
       shell: bash
       run: |
@@ -98,7 +119,6 @@ jobs:
       env:
           CMAKE_GENERATOR: "Visual Studio 16 2019"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
-          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Windows-testClass-testTOPP"
@@ -191,8 +211,28 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          # initialize THIRDPARTY
           cd OpenMS
           git submodule update --init THIRDPARTY
+          cd ..
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+          cp -R THIRDPARTY/All/* _thirdparty/
+          # add third-party binaries to PATH
+          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
 
     - name: Build and test osx
       run: |
@@ -209,7 +249,6 @@ jobs:
           fi
       env:
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
-          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -286,8 +325,28 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          # initialize THIRDPARTY
           cd OpenMS
           git submodule update --init THIRDPARTY
+          cd ..
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+          cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+          cp -R THIRDPARTY/All/* _thirdparty/
+          # add third-party binaries to PATH
+          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
 
     - name: Build and test lnx
       run: |
@@ -307,7 +366,6 @@ jobs:
 
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
-          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
