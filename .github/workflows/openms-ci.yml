@@ -77,6 +77,7 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          cd OpenMS
           git submodule update --init THIRDPARTY
           
     - name: Tests windows
@@ -190,6 +191,7 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          cd OpenMS
           git submodule update --init THIRDPARTY
 
     - name: Build and test osx
@@ -284,6 +286,7 @@ jobs:
     - name: Add THIRDPARTY
       shell: bash
       run: |
+          cd OpenMS
           git submodule update --init THIRDPARTY
 
     - name: Build and test lnx
