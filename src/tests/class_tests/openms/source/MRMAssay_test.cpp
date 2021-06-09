@@ -354,6 +354,16 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   TEST_EQUAL(sequences[7].toString(), String("PEPTD(Oxidation)IEK(Phospho)"));
   TEST_EQUAL(sequences[8].toString(), String("PEPT(Phospho)DIEK(Oxidation)"));
   TEST_EQUAL(sequences[9].toString(), String("PEPTD(Phospho)IEK(Oxidation)"));
+
+  std::vector<std::string> sequence_list {};
+  for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
+  {
+	  OpenMS::AASequence temp_sequence = *sq_it;
+	  sequence_list.push_back(temp_sequence.toString());
+  }
+
+  bool check_terminal_mod_present = (std::find(sequence_list.begin(), sequence_list.end(), "PEPT(Phospho)DIEK.(Oxidation)") != sequence_list.end());
+  TEST_EQUAL(check_terminal_mod_present, false)
 }
 
 END_SECTION
