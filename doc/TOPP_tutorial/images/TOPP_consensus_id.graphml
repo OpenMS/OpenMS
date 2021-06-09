@@ -15,7 +15,7 @@
           <y:Geometry height="51.0" width="149.0" x="45.5" y="4.5"/>
           <y:Fill color="#CCCCCC" color2="#CCCCCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="100.7890625" x="24.10546875" y="15.536865234375">OMSSAAdapter</y:NodeLabel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="100.7890625" x="24.10546875" y="15.536865234375">CometAdapter</y:NodeLabel>
           <y:Shape type="ellipse"/>
         </y:ShapeNode>
       </data>
@@ -61,7 +61,7 @@
           <y:Geometry height="51.0" width="155.0" x="224.5" y="4.5"/>
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="143.40087890625" x="5.799560546875" y="7.57373046875">OMSSA identifications
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="143.40087890625" x="5.799560546875" y="7.57373046875">Comet identifications
 (idXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>

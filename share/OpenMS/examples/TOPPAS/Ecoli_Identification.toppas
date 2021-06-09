@@ -140,7 +140,7 @@
     <NODE name="2" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="OMSSAAdapter" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="TODO" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-100" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-40" type="double" description="" required="false" advanced="false" />
