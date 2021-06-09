@@ -178,8 +178,6 @@ namespace OpenMS
           if (*pos_it == 0)
           {
             // Check first to make sure ending residue is NTerm modifiable
-            //const ResidueModification* modifiable_any_nterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::N_TERM);
-            //const ResidueModification* modifiable_nterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::N_TERM);
             if ( !modifiable_nterm.empty() && (temp_sequence[0].getOneLetterCode() == OpenMS::String((*modifiable_nterm.begin())->getOrigin()) || (*modifiable_nterm.begin())->getOrigin() == 'X') ) {
               temp_sequence.setNTerminalModification(modification);
             } else {
@@ -193,8 +191,6 @@ namespace OpenMS
           else if (*pos_it == temp_sequence.size() + 1)
           {
             // Check first to make sure ending residue is CTerm modifiable
-            //const ResidueModification* modifiable_any_cterm = ModificationsDB::getInstance()->getModification(modification,"X",ResidueModification::C_TERM);
-            //const ResidueModification* modifiable_cterm = ModificationsDB::getInstance()->getModification(modification,"",ResidueModification::C_TERM);
             if ( !modifiable_cterm.empty() && (temp_sequence.toUnmodifiedString().back() == (*modifiable_cterm.begin())->getOrigin() || (*modifiable_cterm.begin())->getOrigin() == 'X') ){
               temp_sequence.setCTerminalModification(modification);
             } else {
