@@ -73,7 +73,12 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1.8
       with:
         cmake-version: '3.20.x'
-        
+
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          git submodule update --init THIRDPARTY
+          
     - name: Tests windows
       shell: bash
       run: |
@@ -105,6 +110,7 @@ jobs:
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-p:CL_MPCount=2"
+          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
 
 
   build-macos:
@@ -175,11 +181,18 @@ jobs:
         ref=${ref//\//-}
         echo "RUN_NAME=$ref" >> $GITHUB_ENV
       id: extract_branch
+
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
       run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
+
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          git submodule update --init THIRDPARTY
+
     - name: Build and test osx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -195,6 +208,7 @@ jobs:
           fi
       env:
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -239,6 +253,7 @@ jobs:
         ref=${ref//\//-}
         echo "RUN_NAME=$ref" >> $GITHUB_ENV
       id: extract_branch
+
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
@@ -266,7 +281,12 @@ jobs:
     - name: Install Xvfb package
       run: |
             yum -y install xorg-x11-server-Xvfb
- 
+
+    - name: Add THIRDPARTY tests
+      shell: bash
+      run: |
+          git submodule update --init THIRDPARTY
+
     - name: Build and test lnx
       run: |
             export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -285,6 +305,7 @@ jobs:
 
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
+          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
