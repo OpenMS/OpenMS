@@ -1499,8 +1499,6 @@ def testFeatureFinderAlgorithmSH():
     # _testParam(ff.getParameters())
 
     assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
     ff.setParameters(pyopenms.Param())
 
     ff.setName("test")

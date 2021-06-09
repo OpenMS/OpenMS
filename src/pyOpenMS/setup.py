@@ -103,13 +103,13 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
+    libraries = ["OpenMS", "OpenSwathAlgo"]
 else:
     print("\n")
     print("platform", sys.platform, "not supported yet")
