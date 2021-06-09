@@ -97,6 +97,7 @@ jobs:
       env:
           CMAKE_GENERATOR: "Visual Studio 16 2019"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Windows-testClass-testTOPP"
@@ -110,8 +111,6 @@ jobs:
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-p:CL_MPCount=2"
-          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/OpenMS/THIRDPARTY"
-
 
   build-macos:
     runs-on: macos-latest
@@ -282,7 +281,7 @@ jobs:
       run: |
             yum -y install xorg-x11-server-Xvfb
 
-    - name: Add THIRDPARTY tests
+    - name: Add THIRDPARTY
       shell: bash
       run: |
           git submodule update --init THIRDPARTY
