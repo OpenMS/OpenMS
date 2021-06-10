@@ -88,18 +88,10 @@ jobs:
           cp -R OpenMS/THIRDPARTY/Windows/64bit/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
-          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
+          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          do
+            echo $thirdpartytool >> $GITHUB_PATH
+          done
 
     - name: Tests windows
       shell: bash
@@ -221,18 +213,10 @@ jobs:
           cp -R OpenMS/THIRDPARTY/MacOS/64bit/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
-          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
+          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          do
+            echo $thirdpartytool >> $GITHUB_PATH
+          done
 
     - name: Build and test osx
       run: |
@@ -335,18 +319,10 @@ jobs:
           cp -R OpenMS/THIRDPARTY/Linux/64bit/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
-          echo "${{ github.workspace }}/_thirdparty/MyriMatch" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/OMSSA" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/XTandem" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MSGFPlus" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Fido" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Comet" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Sirius" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/SpectraST" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/ThermoRawFileParser" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/Percolator" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/MaRaCluster" >> $GITHUB_PATH
-          echo "${{ github.workspace }}/_thirdparty/crux">> $GITHUB_PATH
+          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          do
+            echo $thirdpartytool >> $GITHUB_PATH
+          done
 
     - name: Build and test lnx
       run: |
