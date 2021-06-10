@@ -946,8 +946,6 @@ PyOpenMSChecker:
         - create
     OpenMS::ComplementFilter:
         - create
-    OpenMS::FeatureFinderAlgorithmSH:
-        - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Base class problem :
@@ -1221,7 +1219,6 @@ PyOpenMSChecker:
     - OpenMS::GaussModel
     - OpenMS::ExtendedIsotopeFitter1D
     - OpenMS::LmaIsotopeModel
-    - OpenMS::FeatureFinderAlgorithmSHCtrl
 
     # Interfaces - they are not ready yet
     - OpenMS::Interfaces::ISpectraWriter
