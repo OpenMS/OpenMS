@@ -100,6 +100,8 @@ namespace OpenMS
     deisotoping_max_isopeaks_ = param_.getValue("deisotoping:max_isopeaks");
     deisotoping_keep_only_deisotoped_ = param_.getValue("deisotoping:keep_only_deisotoped").toBool();
     deisotoping_annotate_charge_ = param_.getValue("deisotoping:annotate_charge").toBool();
+
+    max_precursor_mass_threashold_ = (double) param_.getValue("max_precursor_mass_threashold");
   }
 
   void TargetedSpectraExtractor::getDefaultParameters(Param& params) const
@@ -190,6 +192,8 @@ namespace OpenMS
     params.setMinInt("deisotoping:max_isopeaks", 3);
     params.setValue("deisotoping:keep_only_deisotoped", "false", "Only monoisotopic peaks of fragments with isotopic pattern are retained");
     params.setValue("deisotoping:annotate_charge", "false", "Annotate the charge to the peaks");
+
+    params.setValue("max_precursor_mass_threashold", 10.0, "Tolerance used to set intensity to zero for peaks with mz higher than precursor mz");
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -935,7 +939,7 @@ namespace OpenMS
       }
       // if peak mz higher than precursor mz set intensity to zero
       double prec_mz = spectrum.getPrecursors()[0].getMZ();
-      double mass_diff = Math::ppmToMass(10.0, prec_mz);
+      double mass_diff = Math::ppmToMass(max_precursor_mass_threashold_, prec_mz);
       for (auto& spec : spectrum)
       {
         if (spec.getMZ() > prec_mz + mass_diff)

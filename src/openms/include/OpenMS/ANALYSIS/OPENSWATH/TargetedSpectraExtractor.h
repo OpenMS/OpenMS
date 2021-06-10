@@ -565,5 +565,7 @@ protected:
     int deisotoping_max_isopeaks_;
     bool deisotoping_keep_only_deisotoped_;
     bool deisotoping_annotate_charge_;
+
+    double max_precursor_mass_threashold_;
   };
 }
