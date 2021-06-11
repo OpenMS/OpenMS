@@ -32,6 +32,7 @@ Dependencies:
 
 Library:
 - removed SuperHirn library
+- Hard-coded elements for better performance/startup times. Removed Elements.xml 
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----

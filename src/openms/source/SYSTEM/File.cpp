@@ -356,7 +356,7 @@ namespace OpenMS
   String File::find(const String& filename, StringList directories)
   {
     // maybe we do not need to do anything?!
-    // This check is required since calling File::find(File::find("CHEMISTRY/Elements.xml")) will otherwise fail
+    // This check is required since calling File::find(File::find("CHEMISTRY/unimod.xml")) will otherwise fail
     // because the outer call receives an absolute path already
     if (exists(filename)) return filename;
 
@@ -535,7 +535,7 @@ namespace OpenMS
 
   bool File::isOpenMSDataPath_(const String& path)
   {
-    bool found = exists(path + "/CHEMISTRY/Elements.xml");
+    bool found = exists(path + "/CHEMISTRY/unimod.xml");
     return found;
   }
 
