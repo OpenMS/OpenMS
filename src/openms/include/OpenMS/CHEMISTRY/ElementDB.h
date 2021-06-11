@@ -48,7 +48,7 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-          @brief Stores elements
+          @brief Singleton that stores elements.
 
       The elements weights (in the default file) are taken from
       "Isotopic Compositions of the Elements 1997", Pure Appl. Chem., 70(1), 217-235, 1998.
@@ -58,9 +58,6 @@ namespace OpenMS
           "Atomic weights of the elements. Review 2000" (IUPAC Technical Report)
           Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
           doi:10.1351/pac200375060683
-
-          This singleton stores all elements. The elements are taken from the publications given
-          above and are stored in share/OpenMS/CHEMISTRY/Elements.xml.
 
           Specific isotopes of elements can be accessed by writing the atomic number of the isotope
           in brackets followed by the element name, e.g. "(2)H" for deuterium.
@@ -77,7 +74,6 @@ public:
     */
     //@{
     /// returns a pointer to the singleton instance of the element db
-    /// Upon first call, the Elements.xml file is parsed
     /// This is thread safe upon first and subsequent calls.
     static const ElementDB* getInstance();
 
