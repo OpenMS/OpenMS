@@ -41,12 +41,15 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <sqlite3.h>
 
 #include <numeric>
 
+
+
 namespace OpenMS
 {
-
+  namespace Sql = Internal::SqliteHelper;
   const char* AccurateMassSearchEngine::search_engine_identifier = "AccurateMassSearch";
 
   AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
@@ -784,6 +787,8 @@ namespace OpenMS
 
     parseAdductsFile_(pos_adducts_fname_, pos_adducts_);
     parseAdductsFile_(neg_adducts_fname_, neg_adducts_);
+    //TODO allow one or multiple?
+    sqlite_connector_ = std::make_unique<SqliteConnector>(db_mapping_file_[0], SqliteConnector::SqlOpenMode::READONLY);
 
     is_initialized_ = true;
   }
@@ -1285,6 +1290,10 @@ namespace OpenMS
     pos_adducts_fname_ = param_.getValue("positive_adducts").toString();
     neg_adducts_fname_ = param_.getValue("negative_adducts").toString();
 
+    //TODO with empty adducts, do we fall back to defaults, or do we really assume no adducts should be searched?
+    pos_adducts_ = parseAdducts_(param_.getValue("positive_adducts").toStringVector());
+    neg_adducts_ = parseAdducts_(param_.getValue("negative_adducts").toStringVector());
+
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
@@ -1449,6 +1458,17 @@ namespace OpenMS
     return;
   }
 
+  std::vector<AdductInfo> AccurateMassSearchEngine::parseAdducts_(const std::vector<std::string>& adduct_strs)
+  {
+    std::vector<AdductInfo> result;
+    // search for mapping file
+    for (const auto& str : adduct_strs)
+    {
+      result.push_back(AdductInfo::parseAdductString(str));
+    }
+    return result;
+  }
+
   void AccurateMassSearchEngine::parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result)
   {
     result.clear();
@@ -1489,6 +1509,38 @@ namespace OpenMS
 
     hit_indices.first = start_idx;
     hit_indices.second = end_idx;
+
+    return;
+  }
+
+  std::vector<AccurateMassSearchEngine::MappingEntry_> AccurateMassSearchEngine::searchMassInDB_(double neutral_query_mass, double diff_mass) const
+  {
+    //OPENMS_LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
+
+    std::vector<MappingEntry_> result;
+    /*
+    double mass;
+    std::vector<String> massIDs;
+    String formula;
+     */
+    sqlite3_stmt * stmt;
+
+    sqlite_connector_->prepareStatement(&stmt, String(
+          "SELECT"
+          "Mz"
+          "Id"
+          "Formula"
+          " FROM compounds WHERE Mz BETWEEN ") + (neutral_query_mass - diff_mass) + " and " + (neutral_query_mass + diff_mass) +
+          " GROUP BY Mz");
+    while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+    {
+      MappingEntry_ m;
+      Sql::extractValue<double>(&m.mass, stmt, 0);
+      m.massIDs.emplace_back("");
+      Sql::extractValue<std::string>(&m.massIDs.back(), stmt, 1);
+      Sql::extractValue<std::string>(&m.formula, stmt, 2);
+      result.push_back(m);
+    }
 
     return;
   }

@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <iosfwd>
 #include <vector>
@@ -347,6 +348,7 @@ private:
     void parseMappingFile_(const StringList&);
     void parseStructMappingFile_(const StringList&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
+    std::vector<AdductInfo> parseAdducts_(const std::vector<std::string>& adduct_strs);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
@@ -417,6 +419,7 @@ private:
     String database_version_;
 
     bool keep_unidentified_masses_;
+    std::unique_ptr<SqliteConnector> sqlite_connector_;
   };
 
 }
