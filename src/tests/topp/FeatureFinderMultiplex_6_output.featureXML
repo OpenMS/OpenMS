@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_17749660155506638460" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[FeatureFinderMultiplex_6_input.mzML]"/>
 	<featureList count="2">
 		<feature id="f_7804704400743266335">
 			<position dim="0">2170.51847326083</position>
