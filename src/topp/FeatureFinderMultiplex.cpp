@@ -258,13 +258,13 @@ public:
     // write feature map, consensus maps and blacklist
     if (!(out_.empty()))
     {
-      FeatureMap feature_map = algorithm.getFeatureMap();
+      FeatureMap& feature_map = algorithm.getFeatureMap();
       feature_map.setPrimaryMSRunPath({in_}, exp);
       writeFeatureMap_(out_, feature_map);
     }
     if (!(out_multiplets_.empty()))
     {
-      ConsensusMap consensus_map = algorithm.getConsensusMap();
+      ConsensusMap& consensus_map = algorithm.getConsensusMap();
       consensus_map.setPrimaryMSRunPath({in_}, exp);
       writeConsensusMap_(out_multiplets_, consensus_map);
     }
