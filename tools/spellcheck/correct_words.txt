@@ -1018,7 +1018,6 @@ msdata
 pwiz
 Mz
 Myoglobin
-Superhirn
 Bioinformatics
 Destructor
 Contrib
@@ -1623,69 +1622,6 @@ Tyr
 Verloop
 VINM
 Wilce
-# }}}
-
-# Superhirn stuff / commented out {{{
-BaseInterScanDistance
-debugDirectory
-debugMonoIsoMassMax
-debugMonoIsoMassMin
-fMassTolDa
-fMassTolPpm
-fragmentMassScanLevels
-getDebugMonoIsoMassMax
-getDebugMonoIsoMassMin
-getMonoIsoDebugging
-IntensityApexPercentilCutoff
-monoIsoDebugging
-peakExtractionScanLevels
-PeakProcessing
-reportMonoPeaks
-reportScanNumber
-sfReportMonoPeaks
-DebugMonoIsoMassMax
-DebugMonoIsoMassMin
-MonoIsoDebugging
-sfIntensityFloor
-sfMassTolDa
-sfMassTolPpm
-sfMinIntensity
-lc
-TRANSFORME
-getParsedData
-getParsedDataEmpty
-LCelutionPeakDebugging
-LCelutionPeakMassMax
-LCelutionPeakMassMin
-SearchedM
-pkunszt
-getDebugStream
-getMassBounds
-pDebug
-pIdx
-pIsotope
-pLower
-pStream
-pUpper
-sfDebug
-fDetectableIsoFact
-fIntensityCV
-pTol
-sfStream
-printConsensIsotopPattern
-printIsotopClusters
-deconvoluted
-sfCentroidWindowWidth
-MODUS
-percentil
-processConsenusSpectraFragments
-removeWaterLossRegion
-fakeFeatureList
-getDebug
-getDistribution
-isodist
-setDebug
-setDebugStream
 # }}}
 
 # All of MapAlignmentAlgorithmSpectrumAlignment {{{

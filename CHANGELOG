@@ -31,7 +31,9 @@ Dependencies:
 - Promoted SeqAn v1 to C17. Moved from contrib to main source tree as it is not officially maintained anymore.
 
 Library:
+- removed SuperHirn library
 - Hard-coded elements for better performance/startup times. Removed Elements.xml 
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
 ------------------------------------------------------------------------------------------
