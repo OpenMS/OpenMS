@@ -962,26 +962,20 @@ namespace OpenMS
     {
       if (f.metaValueExists("identifier"))
       {
-        for (const auto& identifier : f.getMetaValue("identifier").toStringList())
+        auto found_f = fmapmap.emplace(f.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({f}));
+        if (!found_f.second)
         {
-          auto found_f = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({f}));
-          if (!found_f.second)
-          {
-            fmapmap.at(identifier).push_back(f);
-          }
+          fmapmap.at(f.getMetaValue("identifier").toStringList().at(0)).push_back(f);
         }
       }
       for (const OpenMS::Feature& s : f.getSubordinates())
       {
         if (s.metaValueExists("identifier"))
         {
-          for (const auto& identifier : s.getMetaValue("identifier").toStringList())
+          auto found_s = fmapmap.emplace(s.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({s}));
+          if (!found_s.second)
           {
-            auto found_s = fmapmap.emplace(identifier, std::vector<OpenMS::Feature>({s}));
-            if (!found_s.second)
-            {
-              fmapmap.at(identifier).push_back(s);
-            }
+            fmapmap.at(s.getMetaValue("identifier").toStringList().at(0)).push_back(s);
           }
         }
       }
