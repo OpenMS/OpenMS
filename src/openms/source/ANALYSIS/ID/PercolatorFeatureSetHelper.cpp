@@ -163,8 +163,16 @@ namespace OpenMS
       }
     }
 
+    void PercolatorFeatureSetHelper::addMSFRAGGERFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    {
+      feature_set.push_back("MS:1001330"); // expect_score
+      feature_set.push_back("hyperscore");
+      feature_set.push_back("nextscore");
+    }
+
     void PercolatorFeatureSetHelper::addCOMETFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
+
       feature_set.push_back("COMET:deltCn"); // recalculated deltCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:deltLCn"); // deltLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:lnExpect"); // log(E-value)

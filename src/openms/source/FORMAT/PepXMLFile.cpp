@@ -1193,15 +1193,15 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(true);
         peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
       }
-      else if (name == "hyperscore") // MSFragger subscore
+      else if (name == "hyperscore")
       {
         value = attributeAsDouble_(attributes, "value");
-        peptide_hit_.setMetaValue("MSFragger:hyperscore", value);
+        peptide_hit_.setMetaValue("hyperscore", value);
       }
-      else if (name == "nextscore") // MSFragger subscore
+      else if (name == "nextscore")
       {
         value = attributeAsDouble_(attributes, "value");
-        peptide_hit_.setMetaValue("MSFragger:nextscore", value);
+        peptide_hit_.setMetaValue("nextscore", value);
       }
       else
       {
