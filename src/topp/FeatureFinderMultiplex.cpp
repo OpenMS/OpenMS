@@ -209,6 +209,28 @@ public:
     file.store(filename, blacklist);
   }
 
+  /**
+   * @brief determine the number of samples
+   * for example n=2 for SILAC, or n=1 for simple feature detection
+   *
+   * @param labels    string describing the labels
+   */
+  static size_t number_of_samples(String labels)
+  {
+    // samples can be deliminated by any kind of brackets
+    labels.substitute("(", "[");
+    labels.substitute("{", "[");
+    size_t n = std::count(labels.begin(), labels.end(), '[');
+    // if no labels are specified, we have n=1 for simple feature detection
+    if (n == 0)
+    {
+      n = 1;
+    }
+
+    return n;
+  }
+
+
   ExitCodes main_(int, const char**) override
   {
 
@@ -264,21 +286,8 @@ public:
     }
     if (!(out_multiplets_.empty()))
     {
-      // determine the number of samples
-      // for example n=2 for SILAC, or n=1 for simple feature detection
-      String labels = params.getValue("algorithm:labels").toString();
-      // samples can be deliminated by any kind of brackets
-      boost::replace_all(labels, "(", "[");
-      boost::replace_all(labels, "{", "[");
-      size_t n = std::count(labels.begin(), labels.end(), '[');
-      // if no labels are specified, we have n=1 for simple feature detection
-      if (n == 0)
-      {
-        n = 1;
-      }
-
       ConsensusMap& consensus_map = algorithm.getConsensusMap();
-      StringList ms_run_paths(n, in_);
+      StringList ms_run_paths(number_of_samples(params.getValue("algorithm:labels").toString()), in_);
       consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
       writeConsensusMap_(out_multiplets_, consensus_map);
     }
