@@ -215,7 +215,7 @@ public:
    *
    * @param labels    string describing the labels
    */
-  static size_t number_of_samples(String labels)
+  static size_t numberOfSamples(String labels)
   {
     // samples can be deliminated by any kind of brackets
     labels.substitute("(", "[");
@@ -287,7 +287,7 @@ public:
     if (!(out_multiplets_.empty()))
     {
       ConsensusMap& consensus_map = algorithm.getConsensusMap();
-      StringList ms_run_paths(number_of_samples(params.getValue("algorithm:labels").toString()), in_);
+      StringList ms_run_paths(numberOfSamples(params.getValue("algorithm:labels").toString()), in_);
       consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
       writeConsensusMap_(out_multiplets_, consensus_map);
     }
