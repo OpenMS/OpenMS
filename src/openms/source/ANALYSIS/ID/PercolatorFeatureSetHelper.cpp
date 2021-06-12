@@ -364,7 +364,6 @@ namespace OpenMS
           {
             hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
           }
-
         }
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
