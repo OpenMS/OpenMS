@@ -258,14 +258,28 @@ public:
     // write feature map, consensus maps and blacklist
     if (!(out_.empty()))
     {
-      FeatureMap feature_map = algorithm.getFeatureMap();
+      FeatureMap& feature_map = algorithm.getFeatureMap();
       feature_map.setPrimaryMSRunPath({in_}, exp);
       writeFeatureMap_(out_, feature_map);
     }
     if (!(out_multiplets_.empty()))
     {
-      ConsensusMap consensus_map = algorithm.getConsensusMap();
-      consensus_map.setPrimaryMSRunPath({in_}, exp);
+      // determine the number of samples
+      // for example n=2 for SILAC, or n=1 for simple feature detection
+      String labels = params.getValue("algorithm:labels").toString();
+      // samples can be deliminated by any kind of brackets
+      boost::replace_all(labels, "(", "[");
+      boost::replace_all(labels, "{", "[");
+      size_t n = std::count(labels.begin(), labels.end(), '[');
+      // if no labels are specified, we have n=1 for simple feature detection
+      if (n == 0)
+      {
+        n = 1;
+      }
+
+      ConsensusMap& consensus_map = algorithm.getConsensusMap();
+      StringList ms_run_paths(n, in_);
+      consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
       writeConsensusMap_(out_multiplets_, consensus_map);
     }
     if (!(out_blacklist_.empty()))
