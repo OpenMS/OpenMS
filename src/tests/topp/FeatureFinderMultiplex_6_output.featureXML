@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_17749660155506638460" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_11437515171079151450" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[FeatureFinderMultiplex_6_input.mzML]"/>
 	<featureList count="2">
-		<feature id="f_7804704400743266335">
+		<feature id="f_7732458177811267107">
 			<position dim="0">2170.518473260826795</position>
 			<position dim="1">392.937235597873496</position>
 			<intensity>1.604332e09</intensity>
@@ -35,7 +35,7 @@
 				<pt x="2165.791259765625" y="393.948112800143861" />
 			</convexhull>
 		</feature>
-		<feature id="f_15004869347769368353">
+		<feature id="f_2383438427355564053">
 			<position dim="0">2173.496300296150821</position>
 			<position dim="1">388.916474205616908</position>
 			<intensity>1.794527e09</intensity>
