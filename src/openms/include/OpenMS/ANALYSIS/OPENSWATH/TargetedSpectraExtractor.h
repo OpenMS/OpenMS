@@ -216,7 +216,7 @@ public:
 
       @param[in] spectra The spectra to filter
       @param[in] ms1_features The MS1 features
-      @param[out] ms1_features The MS2 features
+      @param[out] ms2_features The MS2 features
       @param[out] annotated_spectra The resulting annotated spectra
     */
     void annotateSpectra(
