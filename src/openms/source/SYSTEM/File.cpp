@@ -458,77 +458,77 @@ namespace OpenMS
 
   String File::getOpenMSDataPath()
   {
-    static String path;
-    static bool path_checked = false;
+    // Use immediately evaluated lambda to protect static variable from concurrent access.
+    static String path = [&]() -> String {
+      String path;
+      bool path_checked = false;
 
-    // we already checked the path, just return it
-    // we do not support moving the path while OpenMS is running
-    if (path_checked) return path;
-
-    String found_path_from;
-    bool from_env(false);
-    if (getenv("OPENMS_DATA_PATH") != nullptr)
-    {
-      path = getenv("OPENMS_DATA_PATH");
-      from_env = true;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
-    }
-
-    // probe the install path
-    if (!path_checked)
-    {
-      path = OPENMS_INSTALL_DATA_PATH;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
-    }
-
-    // probe the OPENMS_DATA_PATH macro
-    if (!path_checked)
-    {
-      path = OPENMS_DATA_PATH;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
-    }
-
-#if defined(__APPLE__)
-    // try to find it relative to the executable in the bundle (e.g. TOPPView)
-    if (!path_checked)
-    {
-      path = getExecutablePath() + "../../../share/OpenMS";
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "bundle path (run time)";
-    }
-#endif
-    
-    // On Linux and Apple check relative from the executable
-    if (!path_checked)
-    {
-      path = getExecutablePath() + "../share/OpenMS";
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "tool path (run time)";
-    }
-
-    // make its a proper path:
-    path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
-
-    if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
-    { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
-      std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
-      if (from_env)
+      String found_path_from;
+      bool from_env(false);
+      if (getenv("OPENMS_DATA_PATH") != nullptr)
       {
-        String p = getenv("OPENMS_DATA_PATH");
-        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+        path = getenv("OPENMS_DATA_PATH");
+        from_env = true;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
       }
-#ifdef OPENMS_WINDOWSPLATFORM
-      String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
-#else
-      String share_dir = "/usr/share/OpenMS";
-#endif
-      std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
-      std::cerr << "Exiting now.\n";
-      exit(1);
-    }
+
+      // probe the install path
+      if (!path_checked)
+      {
+        path = OPENMS_INSTALL_DATA_PATH;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+      }
+
+      // probe the OPENMS_DATA_PATH macro
+      if (!path_checked)
+      {
+        path = OPENMS_DATA_PATH;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
+      }
+
+  #if defined(__APPLE__)
+      // try to find it relative to the executable in the bundle (e.g. TOPPView)
+      if (!path_checked)
+      {
+        path = getExecutablePath() + "../../../share/OpenMS";
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "bundle path (run time)";
+      }
+  #endif
+      
+      // On Linux and Apple check relative from the executable
+      if (!path_checked)
+      {
+        path = getExecutablePath() + "../share/OpenMS";
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "tool path (run time)";
+      }
+
+      // make its a proper path:
+      path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
+
+      if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
+      { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
+        std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+        if (from_env)
+        {
+          String p = getenv("OPENMS_DATA_PATH");
+          std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+        }
+  #ifdef OPENMS_WINDOWSPLATFORM
+        String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
+  #else
+        String share_dir = "/usr/share/OpenMS";
+  #endif
+        std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
+        std::cerr << "Exiting now.\n";
+        exit(1);
+      }
+      return path;
+    }();
 
     return path;
   }
