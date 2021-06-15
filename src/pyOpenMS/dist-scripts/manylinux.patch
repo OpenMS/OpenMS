@@ -3,7 +3,7 @@
 @@ -8,16 +8,6 @@
  here = os.path.abspath(os.path.dirname(__file__))
  os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
- 
+
 -import sys
 -if sys.platform.startswith("linux"):
 -    # load local shared libries before we import pyopenms.so, else
