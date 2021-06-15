@@ -38,7 +38,6 @@ if sys.platform.startswith("linux"):
     import ctypes
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libSuperHirn.so"))
 
 try:
     from .all_modules import *

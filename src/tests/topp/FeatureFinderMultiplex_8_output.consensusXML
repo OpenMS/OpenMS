@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/OpenMS-develop/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
 <consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="3">
 		<map id="0" name="FeatureFinderMultiplex_8_input.mzML" label="label 0" size="2">
