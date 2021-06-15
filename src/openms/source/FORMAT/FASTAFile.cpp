@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer, Chris Bielow, Tinatin Kasradze, Nora Wild $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow, Nora Wild $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -43,17 +44,20 @@
 namespace OpenMS
 {
   using namespace std;
-  
+
   bool FASTAFile::readEntry_(std::string& id, std::string& description, std::string& seq)
   {
-    std::streambuf *sb = infile_.rdbuf();
+    std::streambuf* sb = infile_.rdbuf();
     bool keep_reading = true;
     bool description_exists = true;
 
-    if (sb->sbumpc() != '>') return false; // was in wrong position for reading ID
-    while (keep_reading) // reading the ID
+    if (sb->sbumpc() != '>')
     {
-      int c = sb->sbumpc(); // get and advance to next char
+      return false;     // was in wrong position for reading ID
+    }
+    while (keep_reading)// reading the ID
+    {
+      int c = sb->sbumpc();// get and advance to next char
       switch (c)
       {
         case ' ':
@@ -63,7 +67,7 @@ namespace OpenMS
             keep_reading = false; // ID finished
           }
           break;
-        case '\n': // ID finished and no description available
+        case '\n':                // ID finished and no description available
           keep_reading = false;
           description_exists = false;
           break;
@@ -77,20 +81,27 @@ namespace OpenMS
       }
     }
 
-    if (id.empty()) return false;
-
-    if (description_exists) keep_reading = true;
-
-    while (keep_reading) // reading the description
+    if (id.empty())
     {
-      int c = sb->sbumpc(); // get and advance to next char
+      return false;
+    }
+      
+
+    if (description_exists)
+    {
+      keep_reading = true;
+    }
+
+    // reading the description
+    while (keep_reading)       
+    {
+      int c = sb->sbumpc();    // get and advance to next char
       switch (c)
       {
-        case '\n': // description finished
+        case '\n':             // description finished
           keep_reading = false;
           break;
-        case '\r':
-          break;
+        case '\r': // .. or
         case '\t':
           break;
         case std::streambuf::traits_type::eof():
@@ -100,22 +111,22 @@ namespace OpenMS
           description += (char) c;
       }
     }
+    
+    // reading the sequence
     keep_reading = true;
-    while (keep_reading) // reading the sequence
+    while (keep_reading)
     {
       int c = sb->sbumpc(); // get and advance to next char
       switch (c)
       {
         case '\n':
-          if (sb->sgetc() == '>') // reaching the beginning of the next protein-entry
+          if (sb->sgetc() == '>')// reaching the beginning of the next protein-entry
           {
             keep_reading = false;
           }
           break;
-        case '\r':
-          break;
-        case ' ': // not saving white spaces
-          break;
+        case '\r': // not saving white spaces
+        case ' ': 
         case '\t':
           break;
         case std::streambuf::traits_type::eof():
@@ -135,6 +146,7 @@ namespace OpenMS
 
   void FASTAFile::readStart(const String& filename)
   {
+
     if (!File::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -160,7 +172,7 @@ namespace OpenMS
     entries_read_ = 0;
   }
 
-  bool FASTAFile::readNext(FASTAEntry& protein)
+  bool FASTAFile::readNext(FASTAEntry &protein)
   {
     if (infile_.eof())
     {
@@ -198,7 +210,7 @@ namespace OpenMS
     return infile_.tellg();
   }
 
-  bool FASTAFile::setPosition(const std::streampos& pos)
+  bool FASTAFile::setPosition(const std::streampos &pos)
   {
     if (pos <= fileSize_)
     {
@@ -214,7 +226,7 @@ namespace OpenMS
     return (infile_.peek() == std::streambuf::traits_type::eof());
   }
 
-  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) const
+  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
   {
     startProgress(0, 1, "Loading FASTA file");
     data.clear();
@@ -228,7 +240,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void FASTAFile::writeStart(const String& filename)
+  void FASTAFile::writeStart(const String &filename)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
@@ -245,10 +257,10 @@ namespace OpenMS
     }
   }
 
-  void FASTAFile::writeNext(const FASTAEntry& protein)
+  void FASTAFile::writeNext(const FASTAEntry &protein)
   {
     outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
-    const String& tmp(protein.sequence);
+    const String &tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks
     Size chunk_pos(0);
@@ -271,7 +283,7 @@ namespace OpenMS
     outfile_.close();
   }
 
-  void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
+  void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const
   {
     startProgress(0, data.size(), "Writing FASTA file");
     FASTAFile f;

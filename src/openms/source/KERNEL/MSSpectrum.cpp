@@ -372,27 +372,13 @@ namespace OpenMS
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+      return;
     }
-    else
-    {
-      //sort index list
-      std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-      }
-      std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
 
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+    // sort index list
+    sort([this](const Size i1, const Size i2) -> bool {
+      return this->operator[](i1).getPosition() < this->operator[](i2).getPosition();
+    });
   }
 
   void MSSpectrum::sortByIntensity(bool reverse)
@@ -410,35 +396,23 @@ namespace OpenMS
       {
         std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
       }
+      return;
+    }
+
+    // sort index list
+    if (reverse)
+    {
+      this->sort([this](const Size i1, const Size i2) -> bool 
+      {
+        return this->operator[](i2).getIntensity() < this->operator[](i1).getIntensity();
+      });
     }
     else
     {
-      // sort index list
-      std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
-      }
-
-      if (reverse)
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
-      }
-      else
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
-      }
-
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+      this->sort([this](const Size i1, const Size i2) -> bool {
+        return this->operator[](i1).getIntensity() < this->operator[](i2).getIntensity();
+      });
+    };
   }
 
   bool MSSpectrum::isSorted() const
@@ -538,6 +512,11 @@ namespace OpenMS
   MSSpectrum::DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
   {
     return drift_time_unit_;
+  }
+
+  String MSSpectrum::getDriftTimeUnitAsString() const
+  {
+    return Precursor::NamesOfDriftTimeUnit[drift_time_unit_];
   }
 
   void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
@@ -700,14 +679,29 @@ namespace OpenMS
     return a.getRT() < b.getRT();
   }
 
+  constexpr uint IM_FLOAT_DATA_ARRAY_INDEX = 0;
+
   bool MSSpectrum::containsIMData() const
   {
     const auto& s = *this;
     return (!s.getFloatDataArrays().empty() &&
-      ( s.getFloatDataArrays()[0].getName().hasPrefix("Ion Mobility") ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+            (s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName().hasPrefix("Ion Mobility") ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility array" ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "mean inverse reduced ion mobility array" ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility drift time")
       );
+  }
+  const MSSpectrum::FloatDataArray& MSSpectrum::getIMData() const
+  {
+    if (!this->containsIMData())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Cannot get ion mobility data. No float array with the correct name available."
+                                          " Number of float arrays: " +
+                                              String(this->getFloatDataArrays().size()));
+    }
+
+    return this->getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX];
+
   }
 }

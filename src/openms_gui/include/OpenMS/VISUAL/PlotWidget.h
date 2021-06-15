@@ -40,13 +40,13 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
 
-class QGridLayout;
-class QScrollBar;
 class QCloseEvent;
+class QGridLayout;
 class QMimeData;
+class QScrollBar;
 
 namespace OpenMS
 {

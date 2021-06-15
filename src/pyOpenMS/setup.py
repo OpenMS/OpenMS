@@ -183,6 +183,8 @@ if iswin:
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
+    extra_compile_args.append("/std:c++17")
+    extra_link_args.append("/std:c++17")
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
@@ -195,14 +197,14 @@ if IS_DEBUG:
 
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
-    extra_link_args.append("-std=c++17")
     if isosx: # MacOS c++11
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
         extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
-    extra_compile_args.append("-std=c++17")
+        extra_link_args.append("-std=c++17")
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
+        extra_compile_args.append("-std=c++17")
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
