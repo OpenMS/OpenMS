@@ -277,7 +277,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     p.setIsolationWindowUpperOffset(7);
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
-    p.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+    p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
     p.setMetaValue("peptide_sequence", "PEPTIDEK");
 
     std::vector<Precursor> prec;
@@ -392,7 +392,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     p.setIsolationWindowUpperOffset(7);
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
-    p.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+    p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
     p.setMetaValue("peptide_sequence", "PEPTIDEK");
 
     std::vector<Precursor> prec;
