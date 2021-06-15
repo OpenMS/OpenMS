@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_13440783915218733453" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[FeatureFinderMultiplex_3_input.mzML]"/>
 	<featureList count="5">
 		<feature id="f_15916652588957785155">
 			<position dim="0">2787.981191238075098</position>
 			<position dim="1">681.975463555800047</position>
-			<intensity>42824.632813</intensity>
+			<intensity>4.282463e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.0</overallquality>
@@ -67,7 +68,7 @@
 		<feature id="f_15157403601844400700">
 			<position dim="0">2788.787525743667175</position>
 			<position dim="1">678.28229965160358</position>
-			<intensity>87152.609375</intensity>
+			<intensity>8.715261e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.0</overallquality>
@@ -106,7 +107,7 @@
 		<feature id="f_6408859317243173796">
 			<position dim="0">2789.175777284965534</position>
 			<position dim="1">683.773677729167957</position>
-			<intensity>51276.890625</intensity>
+			<intensity>5.127689e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.0</overallquality>
@@ -208,7 +209,7 @@
 		<feature id="f_12999979801269632061">
 			<position dim="0">2789.541650904639027</position>
 			<position dim="1">683.873513001520564</position>
-			<intensity>48202.601563</intensity>
+			<intensity>4.82026e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.0</overallquality>
