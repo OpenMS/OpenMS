@@ -46,6 +46,7 @@
 #include <numeric>
 
 
+using namespace std;
 
 namespace OpenMS
 {
@@ -280,6 +281,7 @@ namespace OpenMS
   found_adduct_(),
   empirical_formula_(),
   matching_hmdb_ids_(),
+  matching_names_(),
   mass_trace_intensities_(),
   isotopes_sim_score_(-1.0)
   {
@@ -306,6 +308,7 @@ namespace OpenMS
     found_adduct_(source.found_adduct_),
     empirical_formula_(source.empirical_formula_),
     matching_hmdb_ids_(source.matching_hmdb_ids_),
+    matching_names_(source.matching_names_),
     mass_trace_intensities_(source.mass_trace_intensities_),
     isotopes_sim_score_(source.isotopes_sim_score_)
   {
@@ -330,6 +333,7 @@ namespace OpenMS
     found_adduct_ = rhs.found_adduct_;
     empirical_formula_ = rhs.empirical_formula_;
     matching_hmdb_ids_ = rhs.matching_hmdb_ids_;
+    matching_names_ = rhs.matching_names_;
     mass_trace_intensities_ = rhs.mass_trace_intensities_;
     isotopes_sim_score_ = rhs.isotopes_sim_score_;
 
@@ -476,6 +480,16 @@ namespace OpenMS
     matching_hmdb_ids_ = match_ids;
   }
 
+  const std::vector<String>& AccurateMassSearchResult::getMatchingNames() const
+  {
+    return matching_names_;
+  }
+
+  void AccurateMassSearchResult::setMatchingNames(const std::vector<String>& match_names)
+  {
+    matching_names_ = match_names;
+  }
+
   const std::vector<double>& AccurateMassSearchResult::getMasstraceIntensities() const
   {
     return mass_trace_intensities_;
@@ -539,18 +553,17 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", {"false", "true"});
 
-    defaults_.setValue("db:mapping", std::vector<std::string>{"CHEMISTRY/HMDBMappingFile.tsv"}, "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
+    //TODO should we really support multiple databases? Not sure
+    defaults_.setValue("db:mapping", std::vector<std::string>{"CHEMISTRY/HMDB.sqlite"}, "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("db:struct", std::vector<std::string>{"CHEMISTRY/HMDB2StructMapping.tsv"}, "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
-                                                                                 "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used.", {"advanced"});
-    defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
-                                                                                 "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used.", {"advanced"});
+    defaults_.setValue("positive_adducts", std::vector<std::string>{"M+H;1+","M+Na;1+","M+K;1+","M+3CH3CN+2H;2+","M+3H;3+"}, "This is the list of potential positive adducts that will be looked for in the database. "
+                                                                                 "Edit the list if you wish to exclude/include adducts.", {"advanced"});
+    defaults_.setValue("negative_adducts", std::vector<std::string>{"M-H;1-","M+Cl;1-","M+Br;1-"}, "This is the list of potential negative adducts that will be looked for in the database. "
+                                                                                 "Edit the list if you wish to exclude/include adducts. ", {"advanced"});
 
     defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
     defaults_.setValidStrings("use_feature_adducts", {"false", "true"});
@@ -595,22 +608,21 @@ namespace OpenMS
     }
 
     std::pair<Size, Size> hit_idx;
-    for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
+    for (std::vector<AdductInfo>::const_iterator adductinfo_it = it_s; adductinfo_it != it_e; ++adductinfo_it)
     {
-      if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
+      if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(adductinfo_it->getCharge())))
       { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
 
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
+      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != adductinfo_it->getEmpiricalFormula()))
       { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
         continue;
       }
 
-
       // get potential hits as indices in masskey_table
-      double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
+      double neutral_mass = adductinfo_it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
 
       // Our database is just a set of neutral masses (i.e., without adducts)
       // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
@@ -636,44 +648,41 @@ namespace OpenMS
       // The adduct mass multiplier has to be taken into account when calculating the diff_mass (observed = 228 Da; Multiplier = 2M; theoretical mass = 114 Da)
       // if not the allowed mass error will be the one from 228 Da instead of 114 Da (in this example twice as high).
 
-      double diff_mass = (diff_mz * std::abs(it->getCharge())) / it->getMolMultiplier(); // do not use observed charge (could be 0=unknown)
+      double diff_mass = (diff_mz * std::abs(adductinfo_it->getCharge())) / adductinfo_it->getMolMultiplier(); // do not use observed charge (could be 0=unknown)
 
-      searchMass_(neutral_mass, diff_mass, hit_idx);
+      //searchMass_(neutral_mass, diff_mass, hit_idx);
+      std::vector<AccurateMassSearchResult> entries = searchMassInDB_(neutral_mass, diff_mass);
 
       //std::cerr << ion_mode_internal_ << " adduct: " << adduct_name << ", " << adduct_mass << " Da, " << query_mass << " qm(against DB), " << charge << " q\n";
 
       // store information from query hits in AccurateMassSearchResult objects
-      for (Size i = hit_idx.first; i < hit_idx.second; ++i)
+      for (auto& entry : entries)
       {
+        EmpiricalFormula formula = EmpiricalFormula(entry.getFormulaString());
         // check if DB entry is compatible to the adduct
-        if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
+        if (!adductinfo_it->isCompatible(formula))
         {
           // only written if TOPP tool has --debug
-          OPENMS_LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+          OPENMS_LOG_DEBUG << "'" << entry.getFormulaString() << "' cannot have adduct '" << adductinfo_it->getName() << "'. Omitting.\n";
           continue;
         }
 
         // compute ppm errors
-        double db_mass = mass_mappings_[i].mass;
-        double theoretical_mz = it->getMZ(db_mass);
+        //TODO can't this be done in the AMSResult class?? It feels weird to set different parts of a class at different points anyway.
+        double db_mass = formula.getMonoWeight();
+        double theoretical_mz = adductinfo_it->getMZ(db_mass);
         double error_ppm_mz = Math::getPPM(observed_mz, theoretical_mz); // negative values are allowed!
 
-        AccurateMassSearchResult ams_result;
-        ams_result.setObservedMZ(observed_mz);
-        ams_result.setCalculatedMZ(theoretical_mz);
-        ams_result.setQueryMass(neutral_mass);
-        ams_result.setFoundMass(db_mass);
-        ams_result.setCharge(std::abs(it->getCharge())); // use theoretical adducts charge (is always valid); native charge might be zero
-        ams_result.setMZErrorPPM(error_ppm_mz);
-        ams_result.setMatchingIndex(i);
-        ams_result.setFoundAdduct(it->getName());
-        ams_result.setEmpiricalFormula(mass_mappings_[i].formula);
-        ams_result.setMatchingHMDBids(mass_mappings_[i].massIDs);
+        entry.setObservedMZ(observed_mz);
+        entry.setCalculatedMZ(theoretical_mz);
+        entry.setCharge(std::abs(adductinfo_it->getCharge())); // use theoretical adducts charge (is always valid); native charge might be zero
+        entry.setMZErrorPPM(error_ppm_mz);
+        //TODO What to do about that index. Is this really needed?
+        //ams_result.setMatchingIndex(i);
+        entry.setFoundAdduct(adductinfo_it->getName());
 
-        results.push_back(ams_result);
-
-        // ams_result.outputResults();
-        // std::cout << "****************************************************" << std::endl;
+        results.insert(results.end(), std::make_move_iterator(entries.begin()),
+                  std::make_move_iterator(entries.end()));
       }
 
     }
@@ -781,12 +790,12 @@ namespace OpenMS
   void AccurateMassSearchEngine::init()
   {
     // Loads the default mapping file (chemical formulas -> HMDB IDs)
-    parseMappingFile_(db_mapping_file_);
+    //parseMappingFile_(db_mapping_file_);
     // This loads additional properties like common name, smiles, and inchi key for each HMDB id
-    parseStructMappingFile_(db_struct_file_);
+    //parseStructMappingFile_(db_struct_file_);
 
-    parseAdductsFile_(pos_adducts_fname_, pos_adducts_);
-    parseAdductsFile_(neg_adducts_fname_, neg_adducts_);
+    //parseAdductsFile_(pos_adducts_fname_, pos_adducts_);
+    //parseAdductsFile_(neg_adducts_fname_, neg_adducts_);
     //TODO allow one or multiple?
     sqlite_connector_ = std::make_unique<SqliteConnector>(db_mapping_file_[0], SqliteConnector::SqlOpenMode::READONLY);
 
@@ -816,7 +825,7 @@ namespace OpenMS
       // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
-      if (query_results.size() == 0) continue; // cannot happen if a 'not-found' dummy was added
+      if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
 
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
@@ -853,7 +862,7 @@ namespace OpenMS
     fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
     fmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
     fmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
-    fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
+    fmap.getProteinIdentifications().back().setDateTime(DateTime::now());
 
     if (fmap.empty())
     {
@@ -879,23 +888,8 @@ namespace OpenMS
     {
       PeptideHit hit;
       hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
-      StringList names;
-      for (Size i = 0; i < it_row->getMatchingHMDBids().size(); ++i)
-      { // mapping ok?
-        if (!hmdb_properties_mapping_.count(it_row->getMatchingHMDBids()[i]))
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' not found in struct file!");
-        }
-        // get name from index 0 (2nd column in structMapping file)
-        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(it_row->getMatchingHMDBids()[i]);
-        if  (entry == hmdb_properties_mapping_.end())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
-        }
-        names.push_back(entry->second[0]);
-      }
       hit.setCharge(it_row->getCharge());
-      hit.setMetaValue("description", names);
+      hit.setMetaValue("description", it_row->getMatchingNames());
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
       hit.setMetaValue("mz_error_ppm", it_row->getMZErrorPPM());
@@ -935,7 +929,7 @@ namespace OpenMS
     cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
     cmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
     cmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
-    cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
+    cmap.getProteinIdentifications().back().setDateTime(DateTime::now());
 
     exportMzTab_(overall_results, num_of_maps, mztab_out);
     return;
@@ -1003,6 +997,7 @@ namespace OpenMS
 
         // iterate over multiple IDs, generate a new row for each one
 
+        //TODO for mzTab with sqlite we either need to store the additional info in the AMSResult or we query the DB again.
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
@@ -1029,7 +1024,7 @@ namespace OpenMS
 
             mztab_row_record.chemical_formula = chem_form;
 
-            HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
+            auto entry = hmdb_properties_mapping_.find(hid_temp);
 
             // set the smiles field
             String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
@@ -1098,7 +1093,7 @@ namespace OpenMS
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
-          bool single_intensity = (indiv_ints.size() == 0);
+          bool single_intensity = indiv_ints.empty();
           if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
@@ -1282,13 +1277,15 @@ namespace OpenMS
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
 
     // use defaults if empty for all .tsv files
-    db_mapping_file_ = ListUtils::toStringList<std::string>(param_.getValue("db:mapping"));
-    if (db_mapping_file_.empty()) db_mapping_file_ = ListUtils::toStringList<std::string>(defaults_.getValue("db:mapping"));
-    db_struct_file_ = ListUtils::toStringList<std::string>(param_.getValue("db:struct"));
-    if (db_struct_file_.empty()) db_struct_file_ = ListUtils::toStringList<std::string>(defaults_.getValue("db:struct"));
+    db_mapping_file_ = param_.getValue("db:mapping").toStringVector();
+    if (db_mapping_file_.empty()) db_mapping_file_ = param_.getValue("db:mapping").toStringVector();
+    db_struct_file_ = param_.getValue("db:struct").toStringVector();
+    if (db_struct_file_.empty()) db_struct_file_ = param_.getValue("db:struct").toStringVector();
 
+    /*
     pos_adducts_fname_ = param_.getValue("positive_adducts").toString();
     neg_adducts_fname_ = param_.getValue("negative_adducts").toString();
+    */
 
     //TODO with empty adducts, do we fall back to defaults, or do we really assume no adducts should be searched?
     pos_adducts_ = parseAdducts_(param_.getValue("positive_adducts").toStringVector());
@@ -1513,36 +1510,48 @@ namespace OpenMS
     return;
   }
 
-  std::vector<AccurateMassSearchEngine::MappingEntry_> AccurateMassSearchEngine::searchMassInDB_(double neutral_query_mass, double diff_mass) const
+  std::vector<AccurateMassSearchResult> AccurateMassSearchEngine::searchMassInDB_(double neutral_query_mass, double diff_mass, const std::string& groupByCol) const
   {
     //OPENMS_LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
-    std::vector<MappingEntry_> result;
-    /*
-    double mass;
-    std::vector<String> massIDs;
-    String formula;
-     */
+    std::vector<AccurateMassSearchResult> result;
     sqlite3_stmt * stmt;
 
     sqlite_connector_->prepareStatement(&stmt, String(
-          "SELECT"
-          "Mz"
-          "Id"
-          "Formula"
-          " FROM compounds WHERE Mz BETWEEN ") + (neutral_query_mass - diff_mass) + " and " + (neutral_query_mass + diff_mass) +
-          " GROUP BY Mz");
+          "SELECT "
+          "Formula, "
+          "AVG(Mz), "
+          "GROUP_CONCAT(Id,',') as Ids, "
+          "GROUP_CONCAT(Name,',') as Names "
+          "FROM compounds WHERE Mz BETWEEN ") + (neutral_query_mass - diff_mass) + " and " + (neutral_query_mass + diff_mass) + " "
+          "GROUP BY " + groupByCol);
+    sqlite3_step(stmt);
     while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
     {
-      MappingEntry_ m;
-      Sql::extractValue<double>(&m.mass, stmt, 0);
-      m.massIDs.emplace_back("");
-      Sql::extractValue<std::string>(&m.massIDs.back(), stmt, 1);
-      Sql::extractValue<std::string>(&m.formula, stmt, 2);
-      result.push_back(m);
-    }
+      AccurateMassSearchResult m;
+      m.setQueryMass(neutral_query_mass);
 
-    return;
+      std::string f;
+      Sql::extractValue<std::string>(&f, stmt, 0);
+      m.setEmpiricalFormula(f);
+
+      double db_mass;
+      Sql::extractValue<double>(&db_mass, stmt, 1);
+      m.setFoundMass(db_mass);
+
+      std::string ids;
+      Sql::extractValue<std::string>(&ids, stmt, 2);
+      m.setMatchingHMDBids(ListUtils::create<String>(ids));
+
+      std::string names;
+      Sql::extractValue<std::string>(&names, stmt, 3);
+      m.setMatchingNames(ListUtils::create<String>(names));
+
+      sqlite3_step( stmt );
+    }
+    sqlite3_finalize(stmt);
+
+    return result;
   }
 
   double AccurateMassSearchEngine::computeCosineSim_( const std::vector<double>& x, const std::vector<double>& y ) const

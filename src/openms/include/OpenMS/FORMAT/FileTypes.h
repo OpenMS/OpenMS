@@ -110,6 +110,7 @@ namespace OpenMS
       NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       SPECXML,            ///< xQuest XML file format for matched spectra for spectra visualization in the xQuest results manager (.spec.xml)
+      SQLITE,             ///< Sqlite on-disc database (e.g. for AccurateMassSearch) (.sqlite)
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
       EXE,                ///< Executable (.exe)
