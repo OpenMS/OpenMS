@@ -178,9 +178,12 @@ namespace OpenMS
           if (*pos_it == 0)
           {
             // Check first to make sure ending residue is NTerm modifiable
-            if ( !modifiable_nterm.empty() && (temp_sequence[0].getOneLetterCode() == OpenMS::String((*modifiable_nterm.begin())->getOrigin()) || (*modifiable_nterm.begin())->getOrigin() == 'X') ) {
+            if ( !modifiable_nterm.empty() && (temp_sequence[0].getOneLetterCode() == OpenMS::String((*modifiable_nterm.begin())->getOrigin()) || (*modifiable_nterm.begin())->getOrigin() == 'X') ) 
+            {
               temp_sequence.setNTerminalModification(modification);
-            } else {
+            } 
+            else 
+            {
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of N-Term " << OpenMS::String((*modifiable_nterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable N-Term residue specificity (" <<
@@ -191,9 +194,12 @@ namespace OpenMS
           else if (*pos_it == temp_sequence.size() + 1)
           {
             // Check first to make sure ending residue is CTerm modifiable
-            if ( !modifiable_cterm.empty() && (temp_sequence.toUnmodifiedString().back() == (*modifiable_cterm.begin())->getOrigin() || (*modifiable_cterm.begin())->getOrigin() == 'X') ){
+            if ( !modifiable_cterm.empty() && (temp_sequence.toUnmodifiedString().back() == (*modifiable_cterm.begin())->getOrigin() || (*modifiable_cterm.begin())->getOrigin() == 'X') )
+            {
               temp_sequence.setCTerminalModification(modification);
-            } else {
+            } 
+            else 
+            {
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String((*modifiable_cterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence.toUnmodifiedString().back() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable C-Term residue specificity (" <<
