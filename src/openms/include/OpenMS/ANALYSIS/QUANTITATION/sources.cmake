@@ -4,6 +4,7 @@ set(directory include/OpenMS/ANALYSIS/QUANTITATION)
 ### list all header files of the directory here
 set(sources_list_h
 FeatureFindingIntact.h
+FLASHDeconvQuant.h
 IsobaricChannelExtractor.h
 IsobaricIsotopeCorrector.h
 IsobaricNormalizer.h

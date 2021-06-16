@@ -43,6 +43,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/FeatureFindingIntact.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/FLASHDeconvQuant.h>
 
 // for testing
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -131,6 +132,7 @@ public:
                          " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
+    OPENMS_LOG_INFO << "using " << ms_peakmap.getNrSpectra() << " MS1 spectra" << endl;
 
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
@@ -174,12 +176,16 @@ public:
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
-//    std::vector<FeatureHypothesis> feat_hypos;
-//    build_feature_hypotheses_(m_traces_final, feat_hypos);
-    FeatureFindingIntact ffi;
-    ffi.setParameters(ffi_param);
+//    FeatureFindingIntact ffi;
+//    ffi.setParameters(ffi_param);
+//    FeatureMap out_map;
+//    ffi.run(m_traces_final, out_map, in);
+
+    FLASHDeconvQuant fdq;
+    fdq.setParameters(ffi_param);
+    fdq.outfile_path = in.substr(0, last_index) + ".features.tsv";
     FeatureMap out_map;
-    ffi.run(m_traces_final, out_map, in);
+    fdq.run(m_traces_final, out_map);
 
     //-------------------------------------------------------------
     // writing output
