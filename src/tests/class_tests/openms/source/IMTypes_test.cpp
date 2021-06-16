@@ -109,7 +109,7 @@ const MSSpectrum IMwithDrift = [&]() {
   spec.setDriftTime(123.4);
   spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
   return spec;
-};
+}();
 
 // convert to IM-Frame with float meta-data array
 const MSSpectrum IMwithFDA = [&]() {
@@ -117,7 +117,7 @@ const MSSpectrum IMwithFDA = [&]() {
   exp.addSpectrum(IMwithDrift);
   auto single = IMDataConverter::collapseFramesToSingle(exp);
   return single[0];
-};
+}();
 
 START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
 

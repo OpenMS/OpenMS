@@ -557,7 +557,7 @@ namespace OpenMS
 
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
   {
-    static const ControlledVocabulary cv = [](){
+    static const ControlledVocabulary cv = []() {
       ControlledVocabulary cv;
       cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
