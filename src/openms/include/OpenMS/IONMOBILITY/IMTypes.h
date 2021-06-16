@@ -68,6 +68,7 @@ namespace OpenMS
     NONE,            ///< no ion mobility
     CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
     MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
+    MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat
@@ -86,8 +87,10 @@ namespace OpenMS
     /// If drift time for a spectrum is unavailable (i.e. not an IM spectrum), it will have this value
     inline static constexpr double DRIFTTIME_NOT_SET = -1.0;
 
-    /// Checks the first spectrum for its type (see overload)
-    /// If @p exp is empty, IMFormat::NONE is returned
+    /// Checks the all spectra for their type (see overload)
+    /// and returns the common type (or IMFormat::MIXED if both CONCATENATED and MULTIPLE_SPECTRA are present)
+    /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
+    /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
     static IMFormat determineIMFormat(const MSExperiment& exp);
 
     /** 
@@ -96,7 +99,7 @@ namespace OpenMS
         If neither is found, IMFormat::NONE is returned.
         If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
 
-        @throws Exception::InvalidValue if both IM values are filled
+        @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given pectrum
     */
     static IMFormat determineIMFormat(const MSSpectrum& spec);
   };

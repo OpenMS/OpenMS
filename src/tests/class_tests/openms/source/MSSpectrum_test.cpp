@@ -561,7 +561,7 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(empty==edit, false);
+  TEST_EQUAL(empty==edit, true);
 }
 END_SECTION
 
@@ -621,7 +621,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_EQUAL(edit == empty,true);
 }
 END_SECTION
 
@@ -777,10 +777,10 @@ START_SECTION((void sortByPosition()))
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
   Size size = intensities.size();
-  ABORT_IF(ds.size() == size);
-  ABORT_IF(ds.getFloatDataArrays()[1].size() == size);
-  ABORT_IF(ds.getStringDataArrays()[0].size() == size);
-  ABORT_IF(ds.getIntegerDataArrays()[0].size() == size);
+  ABORT_IF(ds.size() != size);
+  ABORT_IF(ds.getFloatDataArrays()[1].size() != size);
+  ABORT_IF(ds.getStringDataArrays()[0].size() != size);
+  ABORT_IF(ds.getIntegerDataArrays()[0].size() != size);
   MSSpectrum::iterator it1 = ds.begin();
   MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
@@ -847,10 +847,10 @@ START_SECTION((void sortByPositionPresorted()))
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
   Size size = intensities.size();
-  ABORT_IF(ds.size() == size);
-  ABORT_IF(ds.getFloatDataArrays()[1].size() == size);
-  ABORT_IF(ds.getStringDataArrays()[0].size() == size);
-  ABORT_IF(ds.getIntegerDataArrays()[0].size() == size);
+  ABORT_IF(ds.size() != size);
+  ABORT_IF(ds.getFloatDataArrays()[1].size() != size);
+  ABORT_IF(ds.getStringDataArrays()[0].size() != size);
+  ABORT_IF(ds.getIntegerDataArrays()[0].size() != size);
   MSSpectrum::iterator it1 = ds.begin();
   MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();

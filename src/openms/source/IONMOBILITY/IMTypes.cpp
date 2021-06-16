@@ -42,7 +42,7 @@ namespace OpenMS
 {
 
   const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV"};
-  const std::string NamesOfIMFormat[] = {"none", "concatenated", "multiple_spectra"};
+  const std::string NamesOfIMFormat[] = {"none", "concatenated", "multiple_spectra", "mixed"};
 
 
  DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)
@@ -89,11 +89,27 @@ namespace OpenMS
 
   IMFormat IMTypes::determineIMFormat(const MSExperiment& exp)
   {
-    if (exp.getSpectra().empty())
+    std::set<IMFormat> occs;
+    for (const auto& spec : exp.getSpectra())
+    {
+      occs.insert(determineIMFormat(spec));
+    }
+    occs.erase(IMFormat::NONE); // ignore NONE (i.e. normal spectra)
+
+    if (occs.empty())
     {
       return IMFormat::NONE;
     }
-    return determineIMFormat(exp[0]);
+    if (occs.size() == 1 && (occs.find(IMFormat::CONCATENATED) != occs.end() || occs.find(IMFormat::MULTIPLE_SPECTRA) != occs.end()))
+    {
+      return *occs.begin();
+    }
+    if (occs.size() == 2 && occs.find(IMFormat::CONCATENATED) != occs.end() && occs.find(IMFormat::MULTIPLE_SPECTRA) != occs.end())
+    {
+      return IMFormat::MIXED;
+    }
+
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
   }
 
   IMFormat IMTypes::determineIMFormat(const MSSpectrum& spec)

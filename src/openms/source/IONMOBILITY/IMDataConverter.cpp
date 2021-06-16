@@ -304,7 +304,14 @@ namespace OpenMS
     const auto& cv = ControlledVocabulary::getPSIMSCV();
     if (fda.getName().hasPrefix("Ion Mobility"))
     { // fallback for non-standard IM arrays (as created by Mobi-DIK)
-      unit = DriftTimeUnit::MILLISECOND;
+      if (fda.getName().hasSubstring("MS:1002815"))
+      {
+        unit = DriftTimeUnit::VSSC;
+      }
+      else
+      {
+        unit = DriftTimeUnit::MILLISECOND;
+      }
       return true;
     }
     try

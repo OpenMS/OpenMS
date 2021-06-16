@@ -103,10 +103,53 @@ START_SECTION(const String& toString(const IMFormat value))
 END_SECTION
 
 
+// single IM value for whole spec
+const MSSpectrum IMwithDrift = [&]() { 
+  MSSpectrum spec; 
+  spec.setDriftTime(123.4);
+  spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  return spec;
+};
+
+// convert to IM-Frame with float meta-data array
+const MSSpectrum IMwithFDA = [&]() {
+  MSExperiment exp;
+  exp.addSpectrum(IMwithDrift);
+  auto single = IMDataConverter::collapseFramesToSingle(exp);
+  return single[0];
+};
+
 START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
 
   TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment()) == IMFormat::NONE, true)
-  //.. everything else is tested in the overload below
+
+  {
+    MSExperiment exp;
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(MSSpectrum());
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::NONE, true)
+  }
+  
+  {
+    MSExperiment exp;
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(IMwithDrift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MULTIPLE_SPECTRA, true)
+  }
+
+  {
+    MSExperiment exp;
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(IMwithFDA);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::CONCATENATED, true)
+  }
+
+  {
+    MSExperiment exp;
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(IMwithFDA);
+    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp))
+  }
 
 END_SECTION
 
@@ -114,20 +157,15 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    TEST_EQUAL(IMTypes::determineIMFormat(MSSpectrum()) == IMFormat::NONE, true)
    
    // single IM value for whole spec
-   MSSpectrum spec;
-   spec.setDriftTime(123.4);
-   spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-   TEST_EQUAL(IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::MULTIPLE_SPECTRA, true)
 
    // convert to IM-Frame with float meta-data array
-   MSExperiment exp;
-   exp.addSpectrum(spec);
-   auto single = IMDataConverter::collapseFramesToSingle(exp);
-   TEST_EQUAL(IMTypes::determineIMFormat(single[0]) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
 
    // set both ... invalid!
-   single[0].setDriftTime(123.4);
-   TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(single[0]))
+   auto IMwithFDA2 = IMwithFDA;
+   IMwithFDA2.setDriftTime(123.4);
+   TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(IMwithFDA2))
 
 END_SECTION
 

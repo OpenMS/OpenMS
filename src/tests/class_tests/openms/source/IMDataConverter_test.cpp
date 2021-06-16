@@ -38,7 +38,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/IONMOBILITY/IMDataConverter.h >
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
