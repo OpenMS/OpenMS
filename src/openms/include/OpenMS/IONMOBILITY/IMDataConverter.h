@@ -143,7 +143,6 @@ namespace OpenMS
         @return true if @p fda is a IM array, false otherwise
       */
       static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit);
-
     };
 
 } //end namespace OpenMS
