@@ -84,7 +84,7 @@ namespace OpenMS
     @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
 
     **/
-    Result compute(const MSExperiment& exp, float bin_size=0);
+    Result compute(const MSExperiment& exp, float bin_size=0, int ms_level=1);
 
     const String& getName() const override;
 

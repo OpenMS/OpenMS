@@ -42,10 +42,10 @@ using namespace std;
 namespace OpenMS
 { 
 
-  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
+  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, int ms_level)
   {
     TIC::Result result;
-    MSChromatogram tic = exp.getTIC(bin_size);
+    MSChromatogram tic = exp.getTIC(bin_size, ms_level);
     if (!tic.empty())
     {
       for (const auto& p : tic)
