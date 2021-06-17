@@ -129,14 +129,15 @@ namespace OpenMS
 
     if (tic.isRunnable(status))
     {
+      // MS1
       auto result = tic.compute(exp);
       if (!result.intensities.empty())
       {
         json chrom;
         chrom["Relative intensity"] = result.intensities;
         chrom["Retention time"] = result.retention_times;
-        // Total ion current chromatogram
-        addMetric("QC:4000067", chrom);
+        // MS1 Total ion current chromatogram
+        addMetric("QC:4000069", chrom);
         // Area under TIC
         addMetric("QC:4000077", result.area);
         // MS1 signal jump (10x) count
@@ -144,7 +145,19 @@ namespace OpenMS
         // MS1 signal fall (10x) count
         addMetric("QC:4000173", result.fall);
       }
+      // MS2
+      auto result = tic.compute(exp, ms_level = 2);
+      if (!result.intensities.empty())
+      {
+        json chrom;
+        chrom["Relative intensity"] = result.intensities;
+        chrom["Retention time"] = result.retention_times;
+        // MS2 Total ion current chromatogram
+        addMetric("QC:4000070", chrom);
+      }
     }
+
+    
 
     // ---------------------------------------------------------------
     // writing mzQC file

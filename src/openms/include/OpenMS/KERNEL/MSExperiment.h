@@ -544,7 +544,7 @@ public:
     @param bin_size RT bin size in seconds
     @return TIC Chromatogram
     **/
-    const MSChromatogram getTIC(float rt_bin_size = 0) const;
+    const MSChromatogram getTIC(float rt_bin_size = 0, int ms_level = 1) const;
 
     /**
       @brief Clears all data and meta data
