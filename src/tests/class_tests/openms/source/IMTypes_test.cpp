@@ -146,8 +146,19 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
 
   {
     MSExperiment exp;
-    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+  }
+
+  {
+    // set both ... invalid!
+    auto IMwithFDA2 = IMwithFDA;
+    IMwithFDA2.setDriftTime(123.4);
+    MSExperiment exp;
+    exp.addSpectrum(IMwithDrift);
+    exp.addSpectrum(IMwithFDA);
+    exp.addSpectrum(IMwithFDA2);
     TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp))
   }
 
