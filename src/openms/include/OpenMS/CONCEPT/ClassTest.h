@@ -40,21 +40,13 @@
 // Includes in the C-file are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <cmath> // fabs
-#include <cstdio> // tmpnam()
-#include <cstdlib> // getenv()
 #include <cstring>
-#include <fstream>
 #include <iostream>
-#include <list>
 #include <string>
 #include <vector>
 
@@ -183,6 +175,13 @@ namespace OpenMS
       void OPENMS_DLLAPI
       printWithPrefix(const std::string& text, const int marked = -1);
 
+      /// init main stuff
+      void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
+
+      void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
+
+      void OPENMS_DLLAPI removeTempFiles();
+      
       /// set the whitelist_
       void OPENMS_DLLAPI
       setWhitelist(const char* const /* file */, const int line,
@@ -396,24 +395,10 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @hideinitializer
  */
-#define START_TEST(class_name, version)                                                  \
-  int main(int argc, char** argv)                                                        \
+#define START_TEST(class_name, version)                                                   \
+  int main(int argc, char** argv)                                                         \
   {                                                                                       \
-    OpenMS::UInt64 seed = 2453440375;                                                     \
-    OpenMS::UniqueIdGenerator::setSeed(seed);                                             \
-    TEST::version_string = version;                                                       \
-                                                                                          \
-    if (argc > 1)                                                                         \
-    {                                                                                     \
-      std::cerr                                                                           \
-        << "This is " << argv[0] << ", the test program for the\n"                          \
-        << # class_name " class.\n"                                                         \
-                      "\n"                                                                \
-                      "On successful operation it returns PASSED,\n"                      \
-                      "otherwise FAILED is printed.\n";                                   \
-      return 1;                                                                           \
-    }                                                                                     \
-                                                                                          \
+    TEST::mainInit(version, #class_name, argc, argv[0]);                                        \
     try {
 
 /**	@brief End of the test program for a class.  @sa #START_TEST.
@@ -456,8 +441,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
     TEST::all_tests = false;                                                              \
     {                                                                                     \
       TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected std::exception" << std::endl;                \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
+      stdcout << "Error: Caught unexpected std::exception\n";                             \
+      stdcout << " - Message: " << e.what() << std::endl;                                 \
     }                                                                                     \
   }                                                                                       \
   /* catch all other exceptions */                                                        \
@@ -495,16 +480,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   else                                                                                    \
   {                                                                                       \
     /* remove temporary files*/                                                           \
-    for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)                         \
-    {                                                                                     \
-      if (!OpenMS::File::remove(TEST::tmp_file_list[i]))                                  \
-      {                                                                                   \
-        stdcout << "Warning: unable to remove temporary file '"                         \
-                  << TEST::tmp_file_list[i]                                               \
-                  << "'"                                                                  \
-                  << std::endl;                                                           \
-      }                                                                                   \
-    }                                                                                     \
+    TEST::removeTempFiles();                                                              \
     stdcout << "PASSED";                                                                \
     if (TEST::add_message != "") stdcout << " (" << TEST::add_message << ")";           \
     stdcout << std::endl;                                                               \
@@ -619,31 +595,22 @@ namespace TEST = OpenMS::Internal::ClassTest;
   {                                                                                       \
     if (TEST::test)                                                                       \
     {                                                                                     \
-      stdcout << ": passed" << std::endl;                                               \
+      stdcout << ": passed\n";                                                            \
     }                                                                                     \
     else                                                                                  \
     {                                                                                     \
-      stdcout << ": failed" << std::endl;                                               \
+      stdcout << ": failed\n";                                                            \
     }                                                                                     \
   }                                                                                       \
   /* issue a warning if no tests were performed (unless in destructor)*/                  \
   if (TEST::test_count == 0)                                                              \
   {                                                                                       \
-    bool destructor = false;                                                              \
-    for (OpenMS::Size i = 0; i != TEST::test_name.size(); ++i)                            \
-    {                                                                                     \
-      if (TEST::test_name[i] == '~')                                                      \
-      {                                                                                   \
-        destructor = true;                                                                \
-        break;                                                                            \
-      }                                                                                   \
-    }                                                                                     \
-    if (!destructor) stdcout << "Warning: no subtests performed in '"                   \
+    if (OpenMS::String(TEST::test_name).has('~'))                                         \
+                       stdcout << "Warning: no subtests performed in '"                   \
                                << TEST::test_name                                         \
                                << "' (line "                                              \
                                << __LINE__                                                \
-                               << ")!"                                                    \
-                               << std::endl;                                              \
+                               << ")!\n";                                                 \
   }                                                                                       \
   stdcout << std::endl;
 
@@ -713,96 +680,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    ++TEST::test_count;                                                                   \
-    TEST::test_line = __LINE__;                                                           \
-                                                                                          \
-    TEST::equal_files = true;                                                             \
-    TEST::infile.open(filename, std::ios::in);                                            \
-    TEST::templatefile.open(templatename, std::ios::in);                                  \
-                                                                                          \
-    if (TEST::infile.good() && TEST::templatefile.good())                                 \
-    {                                                                                     \
-      std::string TEST_FILE__template_line;                                               \
-      std::string TEST_FILE__line;                                                        \
-                                                                                          \
-      while (TEST::infile.good() && TEST::templatefile.good())                            \
-      {                                                                                   \
-        TEST::templatefile.getline(TEST::line_buffer, 65535);                             \
-        TEST_FILE__template_line = TEST::line_buffer;                                     \
-        TEST::infile.getline(TEST::line_buffer, 65535);                                   \
-        TEST_FILE__line = TEST::line_buffer;                                              \
-                                                                                          \
-        TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);               \
-        if (TEST_FILE__template_line != TEST_FILE__line)                                  \
-        {                                                                                 \
-          {                                                                               \
-            TEST::initialNewline();                                                       \
-            stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"            \
-                      << TEST_FILE__line << "'\n    expected: '"                          \
-                      << TEST_FILE__template_line << "'\n";                               \
-          }                                                                               \
-        }                                                                                 \
-      }                                                                                   \
-    }                                                                                     \
-    else                                                                                  \
-    {                                                                                     \
-      TEST::equal_files = false;                                                          \
-      {                                                                                   \
-        TEST::initialNewline();                                                           \
-        stdcout << " +  line "                                                          \
-                  << __LINE__                                                             \
-                  << ": TEST_FILE_EQUAL("                                                 \
-                  << # filename                                                           \
-                  << ", "                                                                 \
-                  << # templatename;                                                      \
-        stdcout << ") : " << " cannot open file: \"";                                   \
-        if (!TEST::infile.good())                                                         \
-        {                                                                                 \
-          stdcout << filename << "\" (input file) ";                                    \
-        }                                                                                 \
-        if (!TEST::templatefile.good())                                                   \
-        {                                                                                 \
-          stdcout << templatename << "\" (template file) ";                             \
-        }                                                                                 \
-        stdcout << "'\n";                                                               \
-                                                                                          \
-      }                                                                                   \
-    }                                                                                     \
-    TEST::infile.close();                                                                 \
-    TEST::templatefile.close();                                                           \
-    TEST::infile.clear();                                                                 \
-    TEST::templatefile.clear();                                                           \
-                                                                                          \
-    TEST::this_test = TEST::equal_files;                                                  \
-    TEST::test = TEST::test && TEST::this_test;                                           \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      if (TEST::this_test)                                                                \
-      {                                                                                   \
-        stdcout << " +  line "                                                          \
-                  << __LINE__                                                             \
-                  << ": TEST_FILE_EQUAL("                                                 \
-                  << # filename                                                           \
-                  << ", "                                                                 \
-                  << # templatename                                                       \
-                  << "): true";                                                           \
-      }                                                                                   \
-      else                                                                                \
-      {                                                                                   \
-        stdcout << " -  line "                                                          \
-                  << __LINE__                                                             \
-                  << ": TEST_FILE_EQUAL("                                                 \
-                  << # filename                                                           \
-                  << ", "                                                                 \
-                  << # templatename                                                       \
-                  << "): false (different files: "                                        \
-                  << filename                                                             \
-                  << " "                                                                  \
-                  << templatename                                                         \
-                  << " )\n";                                                              \
-        TEST::failed_lines_list.push_back(TEST::test_line);                               \
-      }                                                                                   \
-    }                                                                                     \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
   }
 
 /**	@brief Floating point similarity macro.

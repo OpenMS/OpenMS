@@ -34,6 +34,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 

@@ -47,6 +47,8 @@ using namespace OpenMS;
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <fstream>
+
 /////////////////////////////////////////////////////////////
 
 START_TEST(FuzzyStringComparator, "$Id$")

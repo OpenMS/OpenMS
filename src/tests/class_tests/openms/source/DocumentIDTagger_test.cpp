@@ -37,6 +37,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+
 ///////////////////////////
 #include <OpenMS/METADATA/DocumentIDTagger.h>
 ///////////////////////////

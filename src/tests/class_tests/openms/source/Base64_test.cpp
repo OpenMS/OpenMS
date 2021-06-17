@@ -38,10 +38,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/Base64.h>
-
-///////////////////////////
-
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 using namespace std;
 

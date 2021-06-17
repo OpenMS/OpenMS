@@ -51,7 +51,7 @@
 ///////////////////////////
 
 using namespace OpenMS;
-using namespace Logger;
+//using namespace Logger;
 using namespace std;
 
 
