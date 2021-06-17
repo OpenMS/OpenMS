@@ -122,6 +122,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   std::vector< std::vector<size_t> > clusters;
   std::vector<int> charges_of_extensions;
   const float averagine_check_threshold[5] = { 0.05f,0.1f,0.2f,0.4f,0.6f };
+  CoarseIsotopePatternGenerator gen(max_isopeaks);
 
   bool has_precursor_data(false);
   double precursor_mass(0);
@@ -152,7 +153,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       //   - save charge q in mono_isotopic_peak[]
       //   - annotate_charge all isotopic peaks with feature number
 
-      bool has_min_isopeaks = true;
       const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
 
       // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
@@ -165,78 +165,82 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
         }
       }
 
+      // Try to fail early if you do not find a single extension
+      const double expected_first_mz = current_mz + Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
+      const int first_extension = old_spectrum.findNearest(expected_first_mz, tolerance_dalton);
+      if (first_extension == -1)// test for missing peak
+      {
+        continue;
+      }
+
+      bool found_first_extension = true;
+
+      bool has_min_isopeaks = true;
+
       extensions.clear();
       extensions.push_back(current_peak);
 
       // generate averagine distribution for monoisotopic peak with a mass corresponding to the current peak and charge
-      CoarseIsotopePatternGenerator gen;
       IsotopeDistribution distr = gen.estimateFromPeptideWeight(old_spectrum[current_peak].getMZ() * q - (q - 1) * Constants::PROTON_MASS_U);
 
       // sum of intensities of both observed and generated peaks is needed for normalization
-      Int num_of_peaks = 1;
       double spec_total_intensity = old_spectrum[current_peak].getIntensity();
       double dist_total_intensity = distr[0].getIntensity();
+
       for (unsigned int i = 1; i < max_isopeaks; ++i)
       {
         const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
-        const int p = old_spectrum.findNearest(expected_mz, tolerance_dalton);
+        const int p = found_first_extension ? first_extension : old_spectrum.findNearest(expected_mz, tolerance_dalton);
+        found_first_extension = false;
         if (p == -1)// test for missing peak
         {
           has_min_isopeaks = (i >= min_isopeaks);
           break;
         }
-        else
+
+        // compare to averagine distribution
+        if (use_averagine_model)
         {
-          // compare to averagine distribution
-          if (use_averagine_model)
+          // update sums of intensities
+          spec_total_intensity += old_spectrum[p].getIntensity();
+          dist_total_intensity += distr[extensions.size()].getIntensity();
+
+          // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
+          float KL = 0;
+          for (unsigned int peak = 0; peak != extensions.size(); ++peak)
           {
-            // update sums of intensities
-            spec_total_intensity += old_spectrum[p].getIntensity();
-            dist_total_intensity += distr[num_of_peaks].getIntensity();
-
-            // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
-            float KL = 0;
-            for (unsigned int peak = 0; peak != extensions.size(); ++peak)
+            // normalize spectrum intensities to the sum of the corresponding averagine peaks as this is a density measure
+            double Px = old_spectrum[extensions[peak]].getIntensity() * (dist_total_intensity / spec_total_intensity);
+            if (Px != 0.0)// Term converges to 0 for P(x) -> 0
             {
-              // normalize spectrum intensities to the sum of the corresponding averagine peaks as this is a density measure
-              double Px = old_spectrum[extensions[peak]].getIntensity() * (dist_total_intensity / spec_total_intensity);
-              if (Px != 0.0)// Term converges to 0 for P(x) -> 0
-              {
-                KL += Px * log(Px / distr[peak].getIntensity());
-              }
-            }
-
-            // if not enough distr peaks are available, fail the test
-            float curr_threshold = -1;
-            if (distr.size() > num_of_peaks)
-            {
-              // also consider current peak
-              double Px = old_spectrum[p].getIntensity() * (dist_total_intensity / spec_total_intensity);
-              if (Px != 0.0)
-              {
-                KL += Px * log(Px / distr[num_of_peaks].getIntensity());
-              }
-
-              // choose threshold corresponding to cluster size
-              curr_threshold = (extensions.size() + 1 > 6) ? averagine_check_threshold[4] : averagine_check_threshold[extensions.size() - 1];
-            }
-
-
-            // compare to threshold and stop extension if distribution does not fit well enough
-            if (KL > curr_threshold)
-            {
-              has_min_isopeaks = (i >= min_isopeaks);
-              break;
+              KL += Px * log(Px / distr[peak].getIntensity());
             }
           }
-          // after model checks passed:
-          extensions.push_back(p);
-          num_of_peaks++;
-          if (annotate_iso_peak_count)
+
+          // also consider current peak
+          double Px = old_spectrum[p].getIntensity() * (dist_total_intensity / spec_total_intensity);
+          if (Px != 0.0)
           {
-            iso_peak_count[current_peak] = i + 1;// with "+ 1" the monoisotopic peak is counted as well
+            KL += Px * log(Px / distr[extensions.size()].getIntensity());
+          }
+
+          // choose threshold corresponding to cluster size
+          float curr_threshold = (extensions.size() + 1 > 6) ? averagine_check_threshold[4] : averagine_check_threshold[extensions.size() - 1];
+          
+          // compare to threshold and stop extension if distribution does not fit well enough
+          if (KL > curr_threshold)
+          {
+            has_min_isopeaks = (i >= min_isopeaks);
+            break;
           }
         }
+        // after model checks passed:
+        extensions.push_back(p);
+        if (annotate_iso_peak_count)
+        {
+          iso_peak_count[current_peak] = i + 1;// with "+ 1" the monoisotopic peak is counted as well
+        }
+        
       }
 
       if (has_min_isopeaks)
@@ -261,6 +265,8 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           best_idx = i;
         }
       }
+
+      // save result
       mono_isotopic_peak_charge[current_peak] = charges_of_extensions[best_idx];
       for (unsigned int i = 0; i != clusters[best_idx].size(); ++i)
       {
