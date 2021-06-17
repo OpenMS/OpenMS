@@ -73,14 +73,14 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
   if (spec.empty()) { return; }
 
+  // remove 0 intensity peaks
+  ThresholdMower threshold_mower_filter;
+  threshold_mower_filter.filterPeakSpectrum(spec);
+
   // discard low-intensity peaks
   if (rem_low_intensity)
   { 
     Size max_num_peaks = used_for_open_search ? 1000 : 5000;
-
-    // remove 0 intensity peaks
-    ThresholdMower threshold_mower_filter;
-    threshold_mower_filter.filterPeakSpectrum(spec);
 
     // only keep max_num_peaks highest peaks
     NLargest nlargest_filter = NLargest(max_num_peaks);
@@ -112,7 +112,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   const MSSpectrum& old_spectrum = spec;
 
   // determine charge seeds and extend them
-  std::vector<size_t> mono_isotopic_peak(old_spectrum.size(), 0);
+  std::vector<size_t> mono_isotopic_peak_charge(old_spectrum.size(), 0);
   std::vector<int> features(old_spectrum.size(), -1);
   std::vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
   std::vector<Size> iso_peak_count(old_spectrum.size(), 1);
@@ -137,9 +137,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     // only process peaks which are not already in a cluster. Would form clusters identical to the cluster they are assigned to,
     // excluding its first peak(s), since peaks with lower mz are not considered for cluster-formation.
     if (features[current_peak] != -1) continue;
-
-    // Monoisotopic peaks with intensity 0.0 interfere with averagine check when normalizing the spectrum peaks height
-    if (use_averagine_model && !rem_low_intensity && old_spectrum[current_peak].getIntensity() == 0.0) continue;
 
     const double current_mz = old_spectrum[current_peak].getMZ();
     if (add_up_intensity)
@@ -171,8 +168,14 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       extensions.clear();
       extensions.push_back(current_peak);
 
-      float total_weight = old_spectrum[current_peak].getIntensity() * (old_spectrum[current_peak].getMZ() * q - (q - 1) * Constants::PROTON_MASS_U);
-      float total_intensity = old_spectrum[current_peak].getIntensity();
+      // generate averagine distribution for monoisotopic peak with a mass corresponding to the current peak and charge
+      CoarseIsotopePatternGenerator gen;
+      IsotopeDistribution distr = gen.estimateFromPeptideWeight(old_spectrum[current_peak].getMZ() * q - (q - 1) * Constants::PROTON_MASS_U);
+
+      // sum of intensities of both observed and generated peaks is needed for normalization
+      Int num_of_peaks = 1;
+      double spec_total_intensity = old_spectrum[current_peak].getIntensity();
+      double dist_total_intensity = distr[0].getIntensity();
       for (unsigned int i = 1; i < max_isopeaks; ++i)
       {
         const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
@@ -187,33 +190,31 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           // compare to averagine distribution
           if (use_averagine_model)
           {
-            // compute average weight (weighted by intensity)
-            total_weight += old_spectrum[p].getIntensity() * (old_spectrum[p].getMZ() * q - (q - 1) * Constants::PROTON_MASS_U);
-            total_intensity += old_spectrum[p].getIntensity();
-
-            // generate averagine distribution
-            CoarseIsotopePatternGenerator gen(extensions.size() + 1);
-            IsotopeDistribution distr = gen.estimateFromPeptideWeight(total_weight / total_intensity);
+            // update sums of intensities
+            spec_total_intensity += old_spectrum[p].getIntensity();
+            dist_total_intensity += distr[num_of_peaks].getIntensity();
 
             // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
-            // normalize spectrum intensities as this is a density measure and the averagine distribution is also normalized to 1
             float KL = 0;
             for (unsigned int peak = 0; peak != extensions.size(); ++peak)
             {
-              double Px = old_spectrum[extensions[peak]].getIntensity() / total_intensity;
+              // normalize spectrum intensities to the sum of the corresponding averagine peaks as this is a density measure
+              double Px = old_spectrum[extensions[peak]].getIntensity() * (dist_total_intensity / spec_total_intensity);
               if (Px != 0.0)// Term converges to 0 for P(x) -> 0
               {
                 KL += Px * log(Px / distr[peak].getIntensity());
               }
             }
+
+            // if not enough distr peaks are available, fail the test
             float curr_threshold = -1;
-            if (distr.size() > extensions.size())
+            if (distr.size() > num_of_peaks)
             {
               // also consider current peak
-              double Px = old_spectrum[p].getIntensity() / total_intensity;
+              double Px = old_spectrum[p].getIntensity() * (dist_total_intensity / spec_total_intensity);
               if (Px != 0.0)
               {
-                KL += Px * log(Px / distr[extensions.size()].getIntensity());
+                KL += Px * log(Px / distr[num_of_peaks].getIntensity());
               }
 
               // choose threshold corresponding to cluster size
@@ -230,6 +231,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           }
           // after model checks passed:
           extensions.push_back(p);
+          num_of_peaks++;
           if (annotate_iso_peak_count)
           {
             iso_peak_count[current_peak] = i + 1;// with "+ 1" the monoisotopic peak is counted as well
@@ -259,7 +261,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           best_idx = i;
         }
       }
-      mono_isotopic_peak[current_peak] = charges_of_extensions[best_idx];
+      mono_isotopic_peak_charge[current_peak] = charges_of_extensions[best_idx];
       for (unsigned int i = 0; i != clusters[best_idx].size(); ++i)
       {
         features[clusters[best_idx][i]] = feature_number;
@@ -279,7 +281,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   for (size_t i = 0; i != spec.size(); ++i)
   {
 
-    Size z = mono_isotopic_peak[i];
+    Size z = mono_isotopic_peak_charge[i];
     if (annotate_charge)
     {
       spec.getIntegerDataArrays()[charge_index].push_back((int)z);

@@ -59,7 +59,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<spectrumList count="1" defaultDataProcessingRef="dp_sp_0">
-			<spectrum id="controllerType=0 controllerNumber=1 scan=2" index="0" defaultArrayLength="104" dataProcessingRef="dp_sp_0">
+			<spectrum id="controllerType=0 controllerNumber=1 scan=2" index="0" defaultArrayLength="105" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
@@ -86,17 +86,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="1112">
+					<binaryDataArray encodedLength="1120">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>jvQpnlLfckBLDCPBoFNzQDz06nfjX3NATz5lfv2ec0AHDsIgNbBzQAOt117eznNAYw3EruTPc0D6Lp4eMzF0QJyRXy04T3RAm+IKAyFwdEC9IlJwE5B0QCR257MHsHRATex6xcrOdECB12tfH791QMw/OnwH0HVAL0yytDffdUD0TkCk+u91QGYsyAAI/3VAoczbHxgQdkCKLyKipG92QDPCT42i73ZAnxJgedL+dkDVn+ufjw93QCzNMmO+D3dADfozbGkvd0DfZy2DCDV3QH1KnTRTUHdACTBmVDsPeEDG+K02CxR4QMZ8whjQHnhAPHt0NyIweEBsKvZte0V4QHI1qXf1TnhAJ4OEWYNPeEDddNKI5294QEnJEqiOdHhAZQMxOIt/eEC9NmM2aZB4QDBB5afjvnhAbfnwZs7eeECIMAiuIQ95QP04sUXAHnlASA2+BJQfeUB4f2RPrT55QGD0/X1bUHlASZuWH01weUDI47Hlh395QEHD9edDkHlAesRldQGveUDCq6Iq1K95QNvgaf89/3lAX+iNAdH/eUCjBcuVDjV6QMBmig4rP3pA5E5gpN9DekAImi6ZzpV6QO+z8B6+r3pA1KmE6BC2ekDJlm426r56QE3aqIByv3pAbTMjCx/fekCtCLRs95J7QMohwWPp0XtA3p0ukon1e0BE0pa/izB8QAaIe+xX4nxAk/+kLEwCfUBGQRupH1B9QOkcPRbpv31ANYl50l7vfUDhDnUQyP99QJ/HU1r1L35AuYb0daKOfkAoE1DIah9/QMca4M0egH9A+gliLs+ff0APpSpHGqB/QLEg2WIeOYBATIReIr5fgEBDaSvMUcGAQGsNdLlO0YBAM3WUEenngEAq5ZU3fi+BQNR6Y+fKD4JA7KaMunwRg0CX+NmR3heDQAilX1KQHYRAwA/D89kvhEA46025X2+EQE85+SyiYYVAZFhDYfxXhkDyIEgNxLGHQGSSkByooYlAi2R5w9Dpi0DmsSiFDamOQN2PJctoR5BACva/3Rl7kkAgb21fsRyUQOdpMZLMzpVApSegwuKylkC1yosq39yYQBiUUYDtJ5xAfCZUb0osnkAZCQpOEragQA==</binary>
+						<binary>jvQpnlLfckBLDCPBoFNzQDz06nfjX3NATz5lfv2ec0AHDsIgNbBzQAOt117eznNAYw3EruTPc0D6Lp4eMzF0QJyRXy04T3RAm+IKAyFwdEC9IlJwE5B0QCR257MHsHRATex6xcrOdECB12tfH791QMw/OnwH0HVAL0yytDffdUD0TkCk+u91QGYsyAAI/3VAoczbHxgQdkCKLyKipG92QDPCT42i73ZAnxJgedL+dkDVn+ufjw93QCzNMmO+D3dADfozbGkvd0DfZy2DCDV3QH1KnTRTUHdACTBmVDsPeEDG+K02CxR4QMZ8whjQHnhAPHt0NyIweEBsKvZte0V4QHI1qXf1TnhAJ4OEWYNPeEDddNKI5294QEnJEqiOdHhAZQMxOIt/eEC9NmM2aZB4QDBB5afjvnhAbfnwZs7eeECIMAiuIQ95QP04sUXAHnlASA2+BJQfeUB4f2RPrT55QGD0/X1bUHlASZuWH01weUDI47Hlh395QEHD9edDkHlAesRldQGveUDCq6Iq1K95QNvgaf89/3lAX+iNAdH/eUCjBcuVDjV6QMBmig4rP3pA5E5gpN9DekAImi6ZzpV6QO+z8B6+r3pA1KmE6BC2ekDJlm426r56QE3aqIByv3pAbTMjCx/fekCtCLRs95J7QMohwWPp0XtA3p0ukon1e0BE0pa/izB8QAaIe+xX4nxAk/+kLEwCfUBGQRupH1B9QOkcPRbpv31ANYl50l7vfUDhDnUQyP99QJ/HU1r1L35AuYb0daKOfkAoE1DIah9/QMca4M0egH9A+gliLs+ff0APpSpHGqB/QLEg2WIeOYBATIReIr5fgEBDaSvMUcGAQGsNdLlO0YBAM3WUEenngEAq5ZU3fi+BQNR6Y+fKD4JA7KaMunwRg0CX+NmR3heDQAilX1KQHYRAwA/D89kvhEA46025X2+EQE85+SyiYYVAZFhDYfxXhkDyIEgNxLGHQGSSkByooYlAi2R5w9Dpi0DmsSiFDamOQN2PJctoR5BAyRDALvGCkEAK9r/dGXuSQCBvbV+xHJRA52kxkszOlUClJ6DC4rKWQLXKiyrf3JhAGJRRgO0nnEB8JlRvSiyeQBkJCk4StqBA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="556">
+					<binaryDataArray encodedLength="560">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>GO2+Rk7Lj0edxcFFsAIzR7QEfUZjVwZH8+iARznNYEZFz4hHaQvwSJiw7EjyQiBIWSggSOTObkeVb0hJuv0yR8ipz0c2Q8BGWsgKR4CZbka+QCRJ4B7tRo1nmkftTjVIKz6hRqxcJ0hjiQNIZr9nR3itlEZ57BtGRkI5RtYgQEfkemdFz4wuRv9YxUeXgvxHBE8NR4i/wUbhENZHp/CFRgQn4kZ5Rg1IExDNRzQVsUbZjYNIYKqCSLgCREgUo65HZSyHRp/vt0XL37NGipx1RjC0GUfsqElHK8aMRspmRUaH31tHMBkzRjpgekWpb5RGWXarRenaLkZXTu1FyNJWSAlkiEcmghhHJSvjRefEmEeTYJ5F/LeRR3DtjUeeuUhGM822RYfXA0cos6ZHAROMRlxoGEYzh6ZFoP3DRqUWGkc8SUtGXwx+RjBEVUYcS49FEWBhRvpuBUcm7cpFXL0gRQfNjEXAUgpGt0j2RZ84g0WudJxF3D94RW+GlUVqATpFerAFRTgOeEWz0INGqAfFRbpZkkWI6uxE5HYERVmW2kQ=</binary>
+						<binary>GO2+Rk7Lj0edxcFFsAIzR7QEfUZjVwZH8+iARznNYEZFz4hHaQvwSJiw7EjyQiBIWSggSOTObkeVb0hJuv0yR8ipz0c2Q8BGWsgKR4CZbka+QCRJ4B7tRo1nmkftTjVIKz6hRqxcJ0hjiQNIZr9nR3itlEZ57BtGRkI5RtYgQEfkemdFz4wuRv9YxUeXgvxHBE8NR4i/wUbhENZHp/CFRgQn4kZ5Rg1IExDNRzQVsUbZjYNIYKqCSLgCREgUo65HZSyHRp/vt0XL37NGipx1RjC0GUfsqElHK8aMRspmRUaH31tHMBkzRjpgekWpb5RGWXarRenaLkZXTu1FyNJWSAlkiEcmghhHJSvjRefEmEeTYJ5F/LeRR3DtjUeeuUhGM822RYfXA0cos6ZHAROMRlxoGEYzh6ZFoP3DRqUWGkc8SUtGXwx+RjBEVUYcS49FEWBhRvpuBUcm7cpFXL0gRQfNjEXAUgpGt0j2RZ84g0WudJxF3D94RW+GlUVqATpFSuS0RXqwBUU4DnhFs9CDRqgHxUW6WZJFiOrsROR2BEVZltpE</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -108,6 +108,6 @@
 		<offset idRef="controllerType=0 controllerNumber=1 scan=2">3816</offset>
 	</index>
 </indexList>
-<indexListOffset>8726</indexListOffset>
+<indexListOffset>8738</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

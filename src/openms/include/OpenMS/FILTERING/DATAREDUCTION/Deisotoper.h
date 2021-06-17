@@ -61,7 +61,8 @@ class OPENMS_DLLAPI Deisotoper
     subclusters starting at the base peak as well), the largest one with the 
     highest charge is kept.
 
-    Deisotoping is done in-place, and if @p rem_low_intensity is true,
+    Deisotoping is done in-place, and the algorithm removes peaks with 
+    intensity 0. If @p rem_low_intensity is true,
     peaks not belonging to the highest 1000/5000 peaks are removed (see 
     @p used_for_open_search). If @p annotate_charge is true,
     an additional IntegerDataArray "charge" will be appended. If
@@ -83,7 +84,7 @@ class OPENMS_DLLAPI Deisotoper
    * @param [annotate_iso_peak_count] Annotate the number of isotopic peaks in a pattern for each monoisotopic peak in the IntegerDataArray: "iso_peak_count"
    * @param [use_averagine_model] Compares observed patterns with theoretical averagine distributions using KL-divergence. If false, no intensity checks are applied.
    * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
-   * @param [rem_low_intensity] Only keep the 1000 or 5000 (see @p used_for_open_search ) most intense peaks in the spectrum. Also removes peaks with intensity 0.
+   * @param [rem_low_intensity] Only keep the 1000 or 5000 (see @p used_for_open_search ) most intense peaks in the spectrum.
    * @param [used_for_open_search] If true, all but the 1000 most intense peaks are removed, else 5000 peaks are kept
    */
     static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
