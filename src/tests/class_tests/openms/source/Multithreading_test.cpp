@@ -46,7 +46,7 @@
 #ifdef _OPENMP
     #include <omp.h>
 #endif
-#include <limits>
+#include <climits>
 
 ///////////////////////////
 
