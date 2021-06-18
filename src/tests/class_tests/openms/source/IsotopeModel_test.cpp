@@ -72,6 +72,7 @@ START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = IsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "IsotopeModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

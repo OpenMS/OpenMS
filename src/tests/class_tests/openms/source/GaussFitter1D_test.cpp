@@ -110,6 +110,7 @@ START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = GaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "GaussFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

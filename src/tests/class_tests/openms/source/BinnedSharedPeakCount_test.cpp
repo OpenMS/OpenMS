@@ -116,6 +116,7 @@ START_SECTION((static BinnedSpectrumCompareFunctor* create()))
   BinnedSharedPeakCount bsp;
   TEST_EQUAL(bsf->getParameters(), bsp.getParameters())
   TEST_EQUAL(bsf->getName(), bsp.getName())
+  delete bsf;
 }
 END_SECTION
 
@@ -125,6 +126,7 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

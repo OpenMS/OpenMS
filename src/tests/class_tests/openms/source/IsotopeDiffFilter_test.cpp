@@ -100,6 +100,7 @@ START_SECTION((static FilterFunctor* create()))
 	IsotopeDiffFilter filter;
 	TEST_EQUAL(ff->getParameters(), filter.getParameters())
 	TEST_EQUAL(ff->getName(), filter.getName())
+	delete ff;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

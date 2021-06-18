@@ -70,7 +70,7 @@ START_SECTION((ClusterAnalyzer(const ClusterAnalyzer &source)))
 }
 END_SECTION
 
-	ptr = new ClusterAnalyzer();
+ptr = new ClusterAnalyzer();
 
 START_SECTION((std::vector< float > averageSilhouetteWidth(const std::vector< BinaryTreeNode > &tree, const DistanceMatrix< float > &original)))
 {
@@ -355,6 +355,7 @@ START_SECTION((String newickTree(const std::vector<BinaryTreeNode>& tree, const 
 }
 END_SECTION
 
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

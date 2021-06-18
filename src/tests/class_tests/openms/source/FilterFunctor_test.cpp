@@ -74,14 +74,23 @@ END_SECTION
 START_SECTION(static void registerChildren())
 	FilterFunctor* ff = Factory<FilterFunctor>::create("ComplementFilter");
 	TEST_EQUAL(ff->getName(), "ComplementFilter")
+	delete ff;
+
 	ff = Factory<FilterFunctor>::create("IntensityBalanceFilter");
-	TEST_EQUAL(ff->getName(), "IntensityBalanceFilter")	
+	TEST_EQUAL(ff->getName(), "IntensityBalanceFilter")
+	delete ff;
+
 	ff = Factory<FilterFunctor>::create("NeutralLossDiffFilter");
 	TEST_EQUAL(ff->getName(), "NeutralLossDiffFilter")
+	delete ff;
+
 	ff = Factory<FilterFunctor>::create("IsotopeDiffFilter");
 	TEST_EQUAL(ff->getName(), "IsotopeDiffFilter")
+	delete ff;
+
 	ff = Factory<FilterFunctor>::create("TICFilter");
 	TEST_EQUAL(ff->getName(), "TICFilter")
+	delete ff;
 END_SECTION
 
 START_SECTION(template<typename SpectrumType> double apply(SpectrumType&))

@@ -196,6 +196,7 @@ START_SECTION((static BaseModel<1>* create()))
   BaseModel<1>* ptr = EGHModel::create();
   TEST_EQUAL(ptr->getName(), "EGHModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

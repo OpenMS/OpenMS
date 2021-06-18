@@ -85,14 +85,17 @@ START_SECTION((static void registerChildren()))
   ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
   AverageLinkage* avl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cfp) , avl_nullPointer)
+  delete cfp;
 
   cfp = Factory<ClusterFunctor>::create("SingleLinkage");
   SingleLinkage* sl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cfp) , sl_nullPointer)
+  delete cfp;
 
   cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
   CompleteLinkage* cl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cfp) , cl_nullPointer)
+  delete cfp;
 }
 END_SECTION
 

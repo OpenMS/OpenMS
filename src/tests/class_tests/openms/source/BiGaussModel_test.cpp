@@ -74,6 +74,7 @@ START_SECTION( static BaseModel<1>* create() )
 	BaseModel<1>* ptr = BiGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 // assignment operator

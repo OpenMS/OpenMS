@@ -85,6 +85,8 @@ START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& p
   TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(), "ETPSERTTPREID")
 END_SECTION
 
+delete dg;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

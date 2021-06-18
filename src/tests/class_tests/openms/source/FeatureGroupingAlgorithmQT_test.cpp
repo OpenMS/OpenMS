@@ -65,6 +65,7 @@ START_SECTION((static FeatureGroupingAlgorithm* create()))
   FeatureGroupingAlgorithm* base_NullPointer = nullptr;
 	ptr2 = FeatureGroupingAlgorithmQT::create();
   TEST_NOT_EQUAL(ptr2, base_NullPointer)
+  delete ptr2;
 END_SECTION
 
 START_SECTION((static String getProductName()))

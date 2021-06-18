@@ -87,6 +87,10 @@ START_SECTION(FlagSet())
 }
 END_SECTION
 
+START_SECTION(~FlagSet())
+  delete ptr;
+END_SECTION
+
 
 START_SECTION(explicit FlagSet(const ENUM& en))
 {

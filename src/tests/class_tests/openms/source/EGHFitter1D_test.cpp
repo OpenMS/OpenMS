@@ -182,6 +182,7 @@ START_SECTION((static Fitter1D* create()))
   Fitter1D* ptr = EGHFitter1D::create();
   TEST_EQUAL(ptr->getName(), "EGHFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

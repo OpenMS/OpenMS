@@ -105,4 +105,6 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
 }
 END_SECTION
 
+delete ptr;
+
 END_TEST
