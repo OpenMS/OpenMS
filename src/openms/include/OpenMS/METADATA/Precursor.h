@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <set>
 
@@ -101,18 +102,6 @@ public:
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
-
-    /// Drift time unit
-    enum DriftTimeUnit
-    {
-      NONE,                        ///< No unit
-      MILLISECOND,                 ///< milliseconds
-      VSSC,                        ///< volt-second per square centimeter (i.e. 1/K_0)
-      FAIMS_COMPENSATION_VOLTAGE,  ///< compensation voltage
-      SIZE_OF_DRIFTTIMEUNIT
-    };
-    /// Names of IM Units. Should be usable as axis annotation.
-    static const std::string NamesOfDriftTimeUnit[SIZE_OF_DRIFTTIMEUNIT];
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
