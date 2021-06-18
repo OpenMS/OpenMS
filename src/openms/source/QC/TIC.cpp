@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 { 
 
-  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, int ms_level)
+  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
   {
     TIC::Result result;
     MSChromatogram tic = exp.getTIC(bin_size, ms_level);
@@ -52,6 +52,18 @@ namespace OpenMS
       {
         result.intensities.push_back(p.getIntensity());
         result.retention_times.push_back(p.getRT());
+      }
+
+      int max_int = *max_element(result.intensities.begin(), result.intensities.end());
+      for (const auto& i : result.intensities)
+      {
+        if (i == 0)
+        {
+          result.relative_intensities.push_back(0);
+        } else
+        {
+          result.relative_intensities.push_back(max_int/i*100);
+        }
       }
 
       result.area = result.intensities[0];
