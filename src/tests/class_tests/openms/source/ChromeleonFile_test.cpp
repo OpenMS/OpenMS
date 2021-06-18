@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 using namespace OpenMS;

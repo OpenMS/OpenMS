@@ -95,7 +95,7 @@ public:
       // make sure min_frequency is within [0,100]
       min_frequency = std::min(100.0f, std::max(0.0f, min_frequency));
 
-      std::map<String, uint> counter;
+      std::map<String, UInt> counter;
       typedef std::vector<String> KeysType;
       KeysType keys;
       for (typename T_In::const_iterator it = it_start; it != it_end; ++it)
@@ -107,13 +107,13 @@ public:
         }
       }
       // pick the keys which occur often enough
-      const uint required_counts = uint(min_frequency / 100.0 * std::distance(it_start, it_end));
+      const UInt required_counts = UInt(min_frequency / 100.0 * std::distance(it_start, it_end));
       T_Out common_keys;
-      for (std::map<String, uint>::const_iterator it = counter.begin(); it != counter.end(); ++it)
+      for (const auto& [key, count] : counter)
       {
-        if (it->second >= required_counts) 
+        if (count >= required_counts) 
         {
-          common_keys.insert(common_keys.end(), it->first);
+          common_keys.insert(common_keys.end(), key);
         }
       }
       return common_keys;

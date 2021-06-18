@@ -46,10 +46,12 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <iomanip>
+#include <fstream>
 
 #include <QFileInfo>
 
@@ -93,6 +95,131 @@ namespace OpenMS
 
     namespace ClassTest
     {
+
+      void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
+      {
+        OpenMS::UniqueIdGenerator::setSeed(2453440375);
+        TEST::version_string = version;
+
+        if (argc > 1)
+        {
+          std::cerr
+              << "This is " << argv0 << ", the test program for the\n"
+              << class_name << " class.\n"
+                             "\n"
+                             "On successful operation it returns PASSED,\n"
+                             "otherwise FAILED is printed.\n";
+          exit(1);
+        }
+      }
+
+      void filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified)
+      {
+        ++TEST::test_count;
+        TEST::test_line = line;
+
+        TEST::equal_files = true;
+        TEST::infile.open(filename, std::ios::in);
+        TEST::templatefile.open(templatename, std::ios::in);
+
+        if (TEST::infile.good() && TEST::templatefile.good())
+        {
+          std::string TEST_FILE__template_line;
+          std::string TEST_FILE__line;
+
+          while (TEST::infile.good() && TEST::templatefile.good())
+          {
+            TEST::templatefile.getline(TEST::line_buffer, 65535);
+            TEST_FILE__template_line = TEST::line_buffer;
+            TEST::infile.getline(TEST::line_buffer, 65535);
+            TEST_FILE__line = TEST::line_buffer;
+
+            TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);
+            if (TEST_FILE__template_line != TEST_FILE__line)
+            {
+              {
+                TEST::initialNewline();
+                stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
+                        << TEST_FILE__line << "'\n    expected: '"
+                        << TEST_FILE__template_line << "'\n";
+              }
+            }
+          }
+        }
+        else
+        {
+          TEST::equal_files = false;
+          {
+            TEST::initialNewline();
+            stdcout << " +  line "
+                    << line
+                    << ": TEST_FILE_EQUAL("
+                    << filename_stringified
+                    << ", "
+                    << templatename_stringified;
+            stdcout << ") : "
+                    << " cannot open file: \"";
+            if (!TEST::infile.good())
+            {
+              stdcout << filename << "\" (input file) ";
+            }
+            if (!TEST::templatefile.good())
+            {
+              stdcout << templatename << "\" (template file) ";
+            }
+            stdcout << "'\n";
+          }
+        }
+        TEST::infile.close();
+        TEST::templatefile.close();
+        TEST::infile.clear();
+        TEST::templatefile.clear();
+
+        TEST::this_test = TEST::equal_files;
+        TEST::test = TEST::test && TEST::this_test;
+        {
+          TEST::initialNewline();
+          if (TEST::this_test)
+          {
+            stdcout << " +  line "
+                    << line
+                    << ": TEST_FILE_EQUAL("
+                    << filename_stringified
+                    << ", "
+                    << templatename_stringified
+                    << "): true";
+          }
+          else
+          {
+            stdcout << " -  line "
+                    << line
+                    << ": TEST_FILE_EQUAL("
+                    << filename_stringified
+                    << ", "
+                    << templatename_stringified
+                    << "): false (different files: "
+                    << filename
+                    << " "
+                    << templatename
+                    << " )\n";
+            TEST::failed_lines_list.push_back(TEST::test_line);
+          }
+        } 
+      }
+
+      void removeTempFiles()
+      {
+        for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)
+          {
+            if (!OpenMS::File::remove(TEST::tmp_file_list[i]))
+            {
+              stdcout << "Warning: unable to remove temporary file '"
+                      << TEST::tmp_file_list[i]
+                      << "'"
+                      << std::endl;
+            }
+          }
+      }
 
       void
       setWhitelist(const char* const /* file */, const int line,
@@ -319,7 +446,6 @@ namespace OpenMS
       bool
       isRealSimilar(long double number_1, long double number_2)
       {
-
         // Note: The original version of the stuff below was copied from
         // FuzzyStringComparator and then heavily modified for ClassTest.
         // But still the case distinctions should be similar.

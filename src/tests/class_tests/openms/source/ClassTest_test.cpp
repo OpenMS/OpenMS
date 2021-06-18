@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 
 bool intentionally_failed_tests_okay = true;

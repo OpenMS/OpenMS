@@ -401,7 +401,7 @@ y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.5030703
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  std::vector<uint> result = Scoring::computeRank(data1);
+  auto result = Scoring::computeRank(data1);
 
   TEST_EQUAL (result[0],7);
   TEST_EQUAL (result[1],4);

@@ -43,6 +43,8 @@
 
 ///////////////////////////
 
+#include <fstream>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 
