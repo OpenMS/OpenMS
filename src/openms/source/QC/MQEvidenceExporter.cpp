@@ -137,8 +137,10 @@ std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const Consen
     {
       auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
       if (!was_created_newly)
+      {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "FeatureHandle exists twice in ConsensusMap!");
+                                      "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
+      }
       f_to_ci[fh.getUniqueId()] = i;
     }
   }
@@ -173,7 +175,7 @@ bool MQEvidence::hasValidPepID_(
 bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature& cf)
 {
   const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
-  if(!pep_ids_c.empty())
+  if (!pep_ids_c.empty())
   {
     return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
   }
@@ -196,7 +198,7 @@ void MQEvidence::exportRowFromFeature_(
   {
     for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
     {
-      if(!f.getPeptideIdentifications()[i].getHits().empty())
+      if (!f.getPeptideIdentifications()[i].getHits().empty())
       {
         if (f.getPeptideIdentifications()[i].getHits()[0].getSequence() ==
             f.getPeptideIdentifications()[0].getHits()[0].getSequence())

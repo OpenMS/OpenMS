@@ -946,8 +946,6 @@ PyOpenMSChecker:
         - create
     OpenMS::ComplementFilter:
         - create
-    OpenMS::FeatureFinderAlgorithmSH:
-        - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Base class problem :
@@ -1221,7 +1219,6 @@ PyOpenMSChecker:
     - OpenMS::GaussModel
     - OpenMS::ExtendedIsotopeFitter1D
     - OpenMS::LmaIsotopeModel
-    - OpenMS::FeatureFinderAlgorithmSHCtrl
 
     # Interfaces - they are not ready yet
     - OpenMS::Interfaces::ISpectraWriter
@@ -1450,37 +1447,6 @@ PyOpenMSChecker:
     - OpenMS::OpenSwathRetentionTimeNormalization
     - OpenMS::SONARScoring
     - OpenSwath::OSSpectrumMeta::RTLess
-
-    # SuperHirn classes
-    - OpenMS::DeconvPeak
-    - OpenMS::MS1FeatureMerger::OPERATOR_FEATURE_TR
-    - OpenMS::MS1Signal
-    - OpenMS::LCMS::OPERATOR_MZ
-    - OpenMS::LCMS::OPERATOR_FeatureCompare
-    - OpenMS::BackgroundControl
-    - OpenMS::BackgroundIntensityBin
-    - OpenMS::CentroidData
-    - OpenMS::CentroidPeak
-    - OpenMS::ClusteredMS2ConsensusSpectrum
-    - OpenMS::ConsensusIsotopePattern
-    - OpenMS::Deisotoper
-    - OpenMS::FeatureLCProfile
-    - OpenMS::FTPeakDetectController
-    - OpenMS::IsotopicDist
-    - OpenMS::LCElutionPeak
-    - OpenMS::LCMSCData
-    - OpenMS::LCMS
-    - OpenMS::MS1FeatureMerger
-    - OpenMS::MS2ConsensusSpectrum
-    - OpenMS::MS2Feature
-    - OpenMS::MS2Fragment
-    - OpenMS::MS2Info
-    - OpenMS::MSPeak
-    - OpenMS::ProcessData
-    - OpenMS::RawData
-    - OpenMS::SHFeature
-    - OpenMS::SuperHirnParameters
-    - OpenMS::SuperHirnUtil
 
     ########################################################################
     #        List of classes we cannot wrap (whole types of classes)

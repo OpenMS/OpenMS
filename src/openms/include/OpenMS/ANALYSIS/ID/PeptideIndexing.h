@@ -212,6 +212,12 @@ public:
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
+      if ((enzyme_name_ == "Chymotrypsin" || enzyme_name_ == "Chymotrypsin/P" || enzyme_name_ == "TrypChymo")
+        && IL_equivalent_)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+         "The used enzyme " + enzyme_name_ + "differentiates between I and L, therefore the IL_equivalent option cannot be used.");
+      }
       // no decoy string provided? try to deduce from data
       if (decoy_string_.empty())
       {
