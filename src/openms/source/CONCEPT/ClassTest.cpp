@@ -98,9 +98,7 @@ namespace OpenMS
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
-      
-      OpenMS::UInt64 seed = 2453440375;
-        OpenMS::UniqueIdGenerator::setSeed(seed);
+        OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
         if (argc > 1)
@@ -448,7 +446,6 @@ namespace OpenMS
       bool
       isRealSimilar(long double number_1, long double number_2)
       {
-
         // Note: The original version of the stuff below was copied from
         // FuzzyStringComparator and then heavily modified for ClassTest.
         // But still the case distinctions should be similar.

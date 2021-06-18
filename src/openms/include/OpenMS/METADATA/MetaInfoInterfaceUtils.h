@@ -109,11 +109,11 @@ public:
       // pick the keys which occur often enough
       const UInt required_counts = UInt(min_frequency / 100.0 * std::distance(it_start, it_end));
       T_Out common_keys;
-      for (auto it = counter.begin(); it != counter.end(); ++it)
+      for (const auto& [key, count] : counter)
       {
-        if (it->second >= required_counts) 
+        if (count >= required_counts) 
         {
-          common_keys.insert(common_keys.end(), it->first);
+          common_keys.insert(common_keys.end(), key);
         }
       }
       return common_keys;

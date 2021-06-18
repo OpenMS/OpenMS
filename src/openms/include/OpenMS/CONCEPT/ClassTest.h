@@ -175,11 +175,29 @@ namespace OpenMS
       void OPENMS_DLLAPI
       printWithPrefix(const std::string& text, const int marked = -1);
 
-      /// init main stuff
+      /**
+         @brief Set up some classtest variables as obtained from the 'START_TEST' macro 
+                and check that no additional arguments were passed to the test executable.
+
+         @param version A version string, obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param class_name The class under test (used for error messages etc), obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
+         @param argv0 Name of the executable (for debug output)
+      */
       void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
 
+      /**
+        @brief Test if two files are exactly equal (used in TEST_FILE_EQUAL macro)
+        
+        @param line The line where the macro was called (for reporting)
+        @param filename The temp file
+        @param templatename The ground truth file
+        @param filename_stringified The expression used as the first macro argument
+        @param templatename_stringified The expression used as the second macro argument
+      */
       void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
 
+      /// removed all temporary files created with the NEW_TMP_FILE macro
       void OPENMS_DLLAPI removeTempFiles();
       
       /// set the whitelist_
