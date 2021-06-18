@@ -301,5 +301,7 @@ START_SECTION(bool operator!=(String cleavage_regex) const)
   TEST_EQUAL(*e_ptr != "?<=[P]", true)
 END_SECTION
 
+delete e_ptr;
+
 END_TEST
 

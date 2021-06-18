@@ -59,6 +59,7 @@ START_SECTION((DateTime()))
 {
   ptr = new DateTime();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 }
 END_SECTION
 
