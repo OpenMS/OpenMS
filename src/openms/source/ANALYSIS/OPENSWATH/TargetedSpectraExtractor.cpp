@@ -219,11 +219,6 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
-      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
-
-      // When spectrum_mz is 0, the mz check on transitions is inhibited
-      const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
-      const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
 
       for (const auto& feature : ms1_features)
       {
@@ -234,9 +229,8 @@ namespace OpenMS
           const double target_rt = subordinate.getRT();
           if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
           {
-            std::cout << "annotateSpectra(): " << peptide_ref << "]";
-            std::cout << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl
-                      << std::endl;
+            OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref << "]";
+            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
             MSSpectrum annotated_spectrum = spectrum;
             annotated_spectrum.setName(peptide_ref);
             annotated_spectra.push_back(annotated_spectrum);
@@ -290,7 +284,7 @@ namespace OpenMS
           }
           catch (const std::exception& e)
           {
-            std::cout << e.what();
+            OPENMS_LOG_ERROR << e.what();
           }
           s.setMetaValue("adducts", adducts);
           OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
@@ -473,7 +467,7 @@ namespace OpenMS
       }
 
       double avgFWHM { 0 };
-      if (picked_spectra[i].getFloatDataArrays().size())
+      if (!picked_spectra[i].getFloatDataArrays().empty())
       {
         for (Size j = 0; j < picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
         {
@@ -680,8 +674,6 @@ namespace OpenMS
       const double spec_score { scores[i].second };
       matches.emplace_back(cmp.getLibrary()[spec_idx], spec_score);
     }
-
-    // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
   void TargetedSpectraExtractor::targetedMatching(
@@ -703,7 +695,7 @@ namespace OpenMS
     {
       std::vector<Match> matches;
       matchSpectrum(spectra[i], cmp, matches);
-      if (matches.size())
+      if (!matches.empty())
       {
         features[i].setMetaValue("spectral_library_name", matches[0].spectrum.getName());
         features[i].setMetaValue("spectral_library_score", matches[0].score);
@@ -722,7 +714,7 @@ namespace OpenMS
 
     top_matches_to_report_ = tmp;
 
-    if (no_matches_idx.size())
+    if (!no_matches_idx.empty())
     {
       String warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
       for (const Size idx : no_matches_idx)
@@ -885,7 +877,7 @@ namespace OpenMS
     }
     catch (const std::exception& e)
     {
-      std::cout << e.what();
+      OPENMS_LOG_ERROR << e.what();
     }
   }
 
