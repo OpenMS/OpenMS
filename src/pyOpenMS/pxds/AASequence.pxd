@@ -53,72 +53,72 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String getNTerminalModificationName() nogil except + # wrap-doc:returns the name (ID) of the N-terminal modification, or an empty string if none is set
 
         # sets the C-terminal modification
-        void setCTerminalModification(String modification) nogil except +
+        void setCTerminalModification(String modification) nogil except + # wrap-doc:sets the C-terminal modification
 
         const ResidueModification * getNTerminalModification() nogil except +
 
-        # returns the name (ID) of the C-terminal modification, or an empty string if none is set nogil except +
-        String getCTerminalModificationName() nogil except +
+        # returns the name (ID) of the C-terminal modification, or an empty string if none is set
+        String getCTerminalModificationName() nogil except + # wrap-doc:returns the name (ID) of the C-terminal modification, or an empty string if none is set
 
         const ResidueModification * getCTerminalModification() nogil except +
 
         # returns the residue at position index
-        Residue getResidue(Size index) nogil except +
+        Residue getResidue(Size index) nogil except + # wrap-doc:returns the residue at position index
 
         # returns the formula of the peptide
         EmpiricalFormula getFormula() nogil except + # wrap-doc:convenience function with ResidueType=Full and charge = 0 by default
         EmpiricalFormula getFormula(ResidueType type_, Int charge) nogil except +
 
         # returns the average weight of the peptide
-        double getAverageWeight() nogil except +
+        double getAverageWeight() nogil except + # wrap-doc:returns the average weight of the peptide
         double getAverageWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the mono isotopic weight of the peptide
-        double getMonoWeight() nogil except +
+        double getMonoWeight() nogil except + # wrap-doc:returns the mono isotopic weight of the peptide
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the mass-to-charge ratio of the peptide
-        double getMZ(Int charge) nogil except +
+        double getMZ(Int charge) nogil except + # wrap-doc:returns the mass-to-charge ratio of the peptide
         double getMZ(Int charge, ResidueType type_) nogil except +
 
         # returns the number of residues
-        Size size() nogil except +
+        Size size() nogil except + # wrap-doc:returns the number of residues
 
         # returns a peptide sequence of the first index residues
-        AASequence getPrefix(Size index) nogil except +
+        AASequence getPrefix(Size index) nogil except + # wrap-doc:returns a peptide sequence of the first index residues
 
         # returns a peptide sequence of the last index residues
-        AASequence getSuffix(Size index) nogil except +
+        AASequence getSuffix(Size index) nogil except + # wrap-doc:returns a peptide sequence of the last index residues
 
         # returns a peptide sequence of number residues, beginning at position index
-        AASequence getSubsequence(Size index, UInt number) nogil except +
+        AASequence getSubsequence(Size index, UInt number) nogil except + # wrap-doc:returns a peptide sequence of number residues, beginning at position index
 
         # compute frequency table of amino acids
         void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
 
         # returns true if the peptide contains the given residue
-        bool has(Residue residue) nogil except +
+        bool has(Residue residue) nogil except + # wrap-doc:returns true if the peptide contains the given residue
 
         # returns true if the peptide contains the given peptide
         # @note c-term and n-term mods are ignored
-        bool hasSubsequence(AASequence peptide) nogil except +
+        bool hasSubsequence(AASequence peptide) nogil except + # wrap-doc:returns true if the peptide contains the given peptide
 
         # returns true if the peptide has the given prefix
         # n-term mod is also checked (c-term as well, if prefix is of same length)
-        bool hasPrefix(AASequence peptide) nogil except +
+        bool hasPrefix(AASequence peptide) nogil except + # wrap-doc:returns true if the peptide has the given prefix
 
         # returns true if the peptide has the given suffix
         # c-term mod is also checked (n-term as well, if suffix is of same length)
-        bool hasSuffix(AASequence peptide) nogil except +
+        bool hasSuffix(AASequence peptide) nogil except + # wrap-doc:returns true if the peptide has the given suffix
 
         # predicate which is true if the peptide is N-term modified
-        bool hasNTerminalModification() nogil except +
+        bool hasNTerminalModification() nogil except + # wrap-doc:predicate which is true if the peptide is N-term modified
 
         # predicate which is true if the peptide is C-term modified
-        bool hasCTerminalModification() nogil except +
+        bool hasCTerminalModification() nogil except + # wrap-doc:predicate which is true if the peptide is C-term modified
 
         # returns true if any of the residues or termini are modified
-        bool isModified() nogil except +
+        bool isModified() nogil except + # wrap-doc:returns true if any of the residues or termini are modified
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
