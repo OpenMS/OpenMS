@@ -123,8 +123,8 @@ namespace OpenMS
 
   void NeedlemanWunsch::setMatrix(const std::string& matrix)
   {
-    auto first = &NamesOfScoringMatrices[0];
-    auto last = &NamesOfScoringMatrices[static_cast<int>(ScoringMatrix::SIZE_OF_SCORINGMATRIX)];
+    auto first = NamesOfScoringMatrices.begin();
+    auto last = NamesOfScoringMatrices.end();
     const auto it = std::find(first, last, matrix);
     if (it == last)
     {
