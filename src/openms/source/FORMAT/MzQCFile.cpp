@@ -179,8 +179,6 @@ namespace OpenMS
       addMetric("QC:4000257", detected_compounds.compute(input_file_feature));
     }
 
-    
-
     // ---------------------------------------------------------------
     // writing mzQC file
     // ---------------------------------------------------------------
