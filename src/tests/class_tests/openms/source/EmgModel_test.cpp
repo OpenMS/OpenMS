@@ -220,10 +220,6 @@ START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 	em2.setParameters(tmp);
 	ABORT_IF(boost::math::isinf(float(!em2.getIntensity(2.0))))
 
-	tmp.setValue("emg:symmetry", 0.2);
-	em2.setParameters(tmp);
-	ABORT_IF(!boost::math::isinf(em2.getIntensity(2.0)))
-
 END_SECTION
 
 START_SECTION((void setOffset(CoordinateType offset)))
