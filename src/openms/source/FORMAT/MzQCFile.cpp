@@ -176,7 +176,8 @@ namespace OpenMS
     // Detected compounds from featureXML file
     if (detected_compounds.isRunnable(status))
     {
-      addMetric("QC:4000257", detected_compounds.compute(input_file_feature));
+      auto result = detected_compounds.compute(input_file_feature);
+      addMetric("QC:4000257", result.detected_compounds);
     }
 
     // ---------------------------------------------------------------
