@@ -54,7 +54,7 @@ namespace OpenMS
         result.retention_times.push_back(p.getRT());
       }
 
-      int max_int = *max_element(result.intensities.begin(), result.intensities.end());
+      float max_int = *max_element(result.intensities.begin(), result.intensities.end());
       for (const auto& i : result.intensities)
       {
         if (i == 0)
@@ -62,7 +62,7 @@ namespace OpenMS
           result.relative_intensities.push_back(0);
         } else
         {
-          result.relative_intensities.push_back(max_int/i*100);
+          result.relative_intensities.push_back(i / max_int * 100);
         }
       }
 
