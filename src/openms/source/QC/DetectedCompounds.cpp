@@ -42,17 +42,23 @@ using namespace std;
 namespace OpenMS
 { 
 
-  UInt DetectedCompounds::compute(const String& pathToFeatureXMLFile)
+  DetectedCompounds::Result DetectedCompounds::compute(const String& pathToFeatureXMLFile)
   {
-    UInt result;
+    DetectedCompounds::Result result;
     FeatureMap map;
     FeatureXMLFile f;
     f.load(pathToFeatureXMLFile, map);
     for (const auto& f : map)
     {
-      result += 1;
+      result.detected_compounds += 1;
     }
     return result;
+  }
+
+  bool DetectedCompounds::Result::operator==(const Result& rhs) const
+  {
+    return detected_compounds == rhs.detected_compounds
+          && rt_shift_mean == rhs.rt_shift_mean;
   }
 
   /// Returns the name of the metric

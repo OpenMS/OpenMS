@@ -49,6 +49,21 @@ namespace OpenMS
   class OPENMS_DLLAPI DetectedCompounds : public QCBase
   {
   public:
+    /// Constructor
+    DetectedCompounds() = default;
+
+    /// Destructor
+    virtual ~DetectedCompounds() = default;
+
+    // stores DetectedCompounds values calculated by compute function
+    struct OPENMS_DLLAPI Result
+    {
+      int detected_compounds = 0;
+      float rt_shift_mean;
+
+      bool operator==(const Result& rhs) const;
+    };
+
      /**
     @brief computes the number of detected compounds in a featureXML file
 
@@ -56,7 +71,7 @@ namespace OpenMS
     @return number of detected compounds from a given library of target compounds in a specific run
 
     **/
-    UInt compute(const String& pathToFeatureXMLFile);
+    Result compute(const String& pathToFeatureXMLFile);
 
     const String& getName() const override;
 
