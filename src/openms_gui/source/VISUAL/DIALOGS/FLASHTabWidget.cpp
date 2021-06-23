@@ -125,8 +125,13 @@ namespace OpenMS
       FLASHGUILock lock(this); // forbid user interaction
 
       // get parameter
+      updateFLASHDeconvParamFromWidgets_();
       Param tmp_param;
       tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_);
+      for (const auto& p : flashdeconv_param_)
+      {
+        OPENMS_LOG_INFO << p.name << "\t" << p.value << endl;
+      }
       String tmp_ini = File::getTemporaryFile();
       ParamXMLFile().store(tmp_ini, tmp_param);
 
@@ -157,11 +162,16 @@ namespace OpenMS
       progress.close();
     }
 
+    void FLASHTabWidget::updateFLASHDeconvParamFromWidgets_()
+    {
+      ui->list_editor->store();
+    }
+
     void FLASHTabWidget::on_edit_advanced_parameters_clicked()
     {
       // refresh 'flashdeconv_param_' from data within the Wizards controls
-//      updateFLASHDeconvParamFromWidgets_();
-      ui->list_editor->store();
+      updateFLASHDeconvParamFromWidgets_();
+
       Param tmp_param = flashdeconv_param_;
 
       // show the parameters to the user
