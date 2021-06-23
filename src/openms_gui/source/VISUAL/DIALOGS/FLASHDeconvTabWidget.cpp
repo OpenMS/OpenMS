@@ -32,8 +32,8 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/FLASHTabWidget.h>
-#include <ui_FLASHTabWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
+#include <ui_FLASHDeconvTabWidget.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -58,7 +58,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    FLASHGUILock::FLASHGUILock(FLASHTabWidget* ftw)
+    FLASHDeconvGUILock::FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw)
       :
       ftw_(ftw),
       old_(ftw->currentWidget()),
@@ -67,7 +67,7 @@ namespace OpenMS
       ftw->setCurrentWidget(ftw->ui->tab_log);
     }
 
-    FLASHGUILock::~FLASHGUILock()
+    FLASHDeconvGUILock::~FLASHDeconvGUILock()
     {
       ftw_->setCurrentWidget(old_);
     }
@@ -84,9 +84,9 @@ namespace OpenMS
       return dir;
     }
 
-    FLASHTabWidget::FLASHTabWidget(QWidget* parent) :
+    FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
-        ui(new Ui::FLASHTabWidget),
+        ui(new Ui::FLASHDeconvTabWidget),
         ep_([&](const String& out) {writeLog_(out.toQString());},
             [&](const String& out) {writeLog_(out.toQString());})
     {
@@ -95,7 +95,7 @@ namespace OpenMS
       writeLog_(QString("Welcome to the Wizard!"), Qt::darkGreen, true);
 
       // keep the group of input widgets in sync with respect to their current-working-dir, when browsing for new files
-      connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHTabWidget::broadcastNewCWD_);
+      connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHDeconvTabWidget::broadcastNewCWD_);
 
       // param setting
       setWidgetsfromFDDefaultParam_();
@@ -103,7 +103,7 @@ namespace OpenMS
       ui->out_dir->setDirectory(getFDDefaultOutDir());
     }
 
-    FLASHTabWidget::~FLASHTabWidget()
+    FLASHDeconvTabWidget::~FLASHDeconvTabWidget()
     {
       delete ui;
     }
@@ -113,27 +113,25 @@ namespace OpenMS
       return FileHandler::swapExtension(File::basename(infile), FileTypes::TSV);
     }
 
-    StringList FLASHTabWidget::getMzMLInputFiles() const
+    StringList FLASHDeconvTabWidget::getMzMLInputFiles() const
     {
       return ui->input_mzMLs->getFilenames();
     }
 
-    void FLASHTabWidget::on_run_fd_clicked()
+    void FLASHDeconvTabWidget::on_run_fd_clicked()
     {
       if (!checkFDInputReady_()) return;
       
-      FLASHGUILock lock(this); // forbid user interaction
+      FLASHDeconvGUILock lock(this); // forbid user interaction
 
       // get parameter
       updateFLASHDeconvParamFromWidgets_();
+      updateOutputParamFromWidgets_();
       Param tmp_param;
       tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_);
-      for (const auto& p : flashdeconv_param_)
-      {
-        OPENMS_LOG_INFO << p.name << "\t" << p.value << endl;
-      }
+//      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_); // dummy to be updated
+
       String tmp_ini = File::getTemporaryFile();
-      ParamXMLFile().store(tmp_ini, tmp_param);
 
       StringList in_mzMLs = getMzMLInputFiles();
       writeLog_(QString("Starting FLASHDeconv with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
@@ -146,12 +144,16 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
+        updateOutputParamFromPerInputFile(mzML.toQString());
+        tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
+
+        ParamXMLFile().store(tmp_ini, tmp_param);
+
         auto r = ep_.run(this,
                          getFLASHDeconvExe().toQString(),
                          QStringList() << "-ini" << tmp_ini.toQString()
                                             << "-in" << mzML.toQString()
                                             << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(),
-//                                       << "-out_chrom" << getCurrentOutDir_() + "/" + infileToChrom(mzML).toQString(),
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
@@ -162,12 +164,7 @@ namespace OpenMS
       progress.close();
     }
 
-    void FLASHTabWidget::updateFLASHDeconvParamFromWidgets_()
-    {
-      ui->list_editor->store();
-    }
-
-    void FLASHTabWidget::on_edit_advanced_parameters_clicked()
+    void FLASHDeconvTabWidget::on_edit_advanced_parameters_clicked()
     {
       // refresh 'flashdeconv_param_' from data within the Wizards controls
       updateFLASHDeconvParamFromWidgets_();
@@ -187,7 +184,116 @@ namespace OpenMS
       flashdeconv_param_.update(tmp_param, false);
     }
 
-    void FLASHTabWidget::setWidgetsfromFDDefaultParam_()
+    void FLASHDeconvTabWidget::updateFLASHDeconvParamFromWidgets_()
+    {
+      ui->list_editor->store();
+    }
+
+    void FLASHDeconvTabWidget::updateOutputParamFromWidgets_()
+    {
+      // refresh output params with default values
+      flashdeconv_output_tags_.clear();
+
+      // get checkbox results from the Wizard control
+      if( ui->checkbox_spec->isChecked() )
+      {
+        flashdeconv_output_tags_.push_back("out_spec");
+      }
+      if( ui->checkbox_mzml->isChecked() )
+      {
+        flashdeconv_output_tags_.push_back("out_mzml");
+      }
+      if( ui->checkbox_promex->isChecked() )
+      {
+        flashdeconv_output_tags_.push_back("out_promex");
+      }
+      if( ui->checkbox_topfd_spec->isChecked() )
+      {
+        flashdeconv_output_tags_.push_back("out_topFD");
+      }
+      if( ui->checkbox_topfd_feat->isChecked() )
+      {
+        flashdeconv_output_tags_.push_back("out_topFD_feature");
+      }
+    }
+
+    void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString &input_file_name)
+    {
+      const Size max_ms_level = flashdeconv_param_.getValue("max_MS_level");
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/"
+          + FileHandler::stripExtension(File::basename(input_file_name)) ;
+
+      for (const auto& param : flashdeconv_param_outputs_)
+      {
+        const std::string tag = param.name;
+
+        std::string org_desc = param.description;
+        auto org_tags = flashdeconv_param_outputs_.getTags(tag);
+
+        // if this output format is requested by the user
+        bool is_requested = false;
+        if (!flashdeconv_output_tags_.empty() &&
+            std::find(flashdeconv_output_tags_.begin(), flashdeconv_output_tags_.end(), tag) != flashdeconv_output_tags_.end())
+        {
+          is_requested = true;
+        }
+
+        if (tag == "out_mzml" || tag == "out_promex") // two params having string values
+        {
+          // if not requested, set default value
+          if (!is_requested)
+          {
+            flashdeconv_param_outputs_.setValue(tag, "", org_desc, org_tags);
+            continue;
+          }
+
+          // if requested, set file path accordingly
+          String out_path = filepath_without_ext;
+          if (tag == "out_mzml")
+          {
+            out_path += "_deconv.mzML";
+          }
+          else // (tag == "out_promex")
+          {
+            out_path += ".ms1ft";
+          }
+          flashdeconv_param_outputs_.setValue(tag, out_path, org_desc, org_tags);
+        }
+        else // Params with values as stringList
+        {
+          // if not requested, set default value
+          if (!is_requested)
+          {
+            std::vector<std::string> tmp;
+            flashdeconv_param_outputs_.setValue(tag, tmp, org_desc, org_tags);
+            continue;
+          }
+
+          // if requested, set file path accordingly
+          std::string out_extension = "";
+          if (tag == "out_spec")
+          {
+            out_extension = ".tsv";
+          }
+          if (tag == "out_topFD")
+          {
+            out_extension = ".msalign";
+          }
+          if (tag == "out_topFD_feature")
+          {
+            out_extension = ".feature";
+          }
+          std::vector<std::string> files_paths;
+          for(Size i = 0; i < max_ms_level; ++i)
+          {
+            files_paths.push_back(filepath_without_ext + "_ms" + std::to_string(i+1) + out_extension);
+          }
+          flashdeconv_param_outputs_.setValue(tag, files_paths, org_desc, org_tags);
+        }
+      }
+    }
+
+    void FLASHDeconvTabWidget::setWidgetsfromFDDefaultParam_()
     {
       // create a default INI of FLASHDeconv
       String tmp_file = File::getTemporaryFile();
@@ -216,7 +322,7 @@ namespace OpenMS
       ui->list_editor->load(flashdeconv_param_);
     }
 
-    QString FLASHTabWidget::getCurrentOutDir_() const
+    QString FLASHDeconvTabWidget::getCurrentOutDir_() const
     {
       QString out_dir(ui->out_dir->dirNameValid() ?
         ui->out_dir->getDirectory() :
@@ -224,7 +330,7 @@ namespace OpenMS
       return out_dir;
     }
 
-    void FLASHTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
+    void FLASHDeconvTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
     {
       QColor tc = ui->log_text->textColor();
       if (new_section)
@@ -239,12 +345,12 @@ namespace OpenMS
       ui->log_text->setTextColor(tc); // restore old color
     }
 
-    void FLASHTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
+    void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
       writeLog_(text.toQString(), color, new_section);
     }
     
-    bool FLASHTabWidget::checkFDInputReady_()
+    bool FLASHDeconvTabWidget::checkFDInputReady_()
     {
       if (ui->input_mzMLs->getFilenames().empty())
       {
@@ -255,7 +361,7 @@ namespace OpenMS
       return true;
     }
 
-    void FLASHTabWidget::broadcastNewCWD_(const QString& new_cwd)
+    void FLASHDeconvTabWidget::broadcastNewCWD_(const QString& new_cwd)
     {
       // RAII to avoid infinite loop (setCWD signals updatedCWD which is connected to slot broadcastNewCWD_)
       QSignalBlocker blocker1(ui->input_mzMLs);

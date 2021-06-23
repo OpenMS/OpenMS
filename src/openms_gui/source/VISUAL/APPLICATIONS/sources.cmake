@@ -3,8 +3,8 @@ set(directory source/VISUAL/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-FLASHWizardBase.cpp
-FLASHWizardBase.ui
+FLASHDeconvWizardBase.cpp
+FLASHDeconvWizardBase.ui
 INIFileEditorWindow.cpp
 SwathWizardBase.cpp
 SwathWizardBase.ui

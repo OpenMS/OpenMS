@@ -32,14 +32,14 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/FLASHWizardBase.h>
-#include <ui_FLASHWizardBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
+#include <ui_FLASHDeconvWizardBase.h>
 
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/VISUAL/DIALOGS/FLASHTabWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
 
 //Qt
 #include <QtCore/QDir>
@@ -54,41 +54,41 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  FLASHWizardBase::FLASHWizardBase(QWidget* parent) :
+  FLASHDeconvWizardBase::FLASHDeconvWizardBase(QWidget* parent) :
     QMainWindow(parent),
-    DefaultParamHandler("FLASHWizardBase"),
+    DefaultParamHandler("FLASHDeconvWizardBase"),
     //clipboard_scene_(nullptr),
-    ui(new Ui::FLASHWizardBase)
+    ui(new Ui::FLASHDeconvWizardBase)
   {
     ui->setupUi(this);
-    QSettings settings("OpenMS", "FLASHWizard");
+    QSettings settings("OpenMS", "FLASHDeconvWizard");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
-    setWindowTitle("FLASHWizard");
+    setWindowTitle("FLASHDeconvWizard");
     setWindowIcon(QIcon(":/SwathWizard.png")); // TODO : change
 
-    FLASHTabWidget* cwidget = new FLASHTabWidget(this);
+    FLASHDeconvTabWidget* cwidget = new FLASHDeconvTabWidget(this);
     setCentralWidget(cwidget);
   }
 
 
-  FLASHWizardBase::~FLASHWizardBase()
+  FLASHDeconvWizardBase::~FLASHDeconvWizardBase()
   {
     delete ui;
   }
 
 
-  void FLASHWizardBase::showAboutDialog()
+  void FLASHDeconvWizardBase::showAboutDialog()
   {
-    QApplicationTOPP::showAboutDialog(this, "FLASHWizard");
+    QApplicationTOPP::showAboutDialog(this, "FLASHDeconvWizard");
   }
 
-  void OpenMS::FLASHWizardBase::on_actionExit_triggered()
+  void OpenMS::FLASHDeconvWizardBase::on_actionExit_triggered()
   {
       QApplicationTOPP::exit();
   }
 
-  void OpenMS::FLASHWizardBase::on_actionVisit_FLASHDeconv_homepage_triggered()
+  void OpenMS::FLASHDeconvWizardBase::on_actionVisit_FLASHDeconv_homepage_triggered()
   {
     const char* url = "https://www.openms.de/comp/flashdeconv/";
     if (!QDesktopServices::openUrl(QUrl(url)))
@@ -97,7 +97,7 @@ namespace OpenMS
     }
   }
 
-  void OpenMS::FLASHWizardBase::on_actionReport_new_issue_triggered()
+  void OpenMS::FLASHDeconvWizardBase::on_actionReport_new_issue_triggered()
   {
     const char* url = "https://github.com/OpenMS/OpenMS/issues"; // TODO: change?
     if (!QDesktopServices::openUrl(QUrl(url)))

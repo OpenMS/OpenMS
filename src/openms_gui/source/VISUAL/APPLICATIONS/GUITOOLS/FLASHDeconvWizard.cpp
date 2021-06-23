@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 /**
-  @page TOPP_FLASHWizard FLASHWizard
+  @page TOPP_FLASHDeconvWizard FLASHDeconvWizard
 
   @brief An assistant for FLASHDeconv execution.
 
@@ -56,7 +56,7 @@
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/VISUAL/APPLICATIONS/FLASHWizardBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 //STL
@@ -77,7 +77,7 @@ using namespace std;
 //-------------------------------------------------------------
 // command line name of this tool
 //-------------------------------------------------------------
-const char* tool_name = "FLASHWizard";
+const char* tool_name = "FLASHDeconvWizard";
 
 //-------------------------------------------------------------
 // description of the usage of this TOPP tool
@@ -140,7 +140,7 @@ int main(int argc, const char** argv)
   QApplicationTOPP a(argc, const_cast<char**>(argv));
   a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-  FLASHWizardBase fw;
+  FLASHDeconvWizardBase fw;
   fw.show();
 
 //  if (param.exists("ini"))

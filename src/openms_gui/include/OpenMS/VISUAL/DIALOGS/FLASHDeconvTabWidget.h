@@ -51,7 +51,7 @@
 
 namespace Ui
 {
-  class FLASHTabWidget;
+  class FLASHDeconvTabWidget;
 }
 
 namespace OpenMS
@@ -63,33 +63,33 @@ namespace OpenMS
 
   namespace Internal
   {
-    class FLASHTabWidget;
+    class FLASHDeconvTabWidget;
 
     /**
       @brief RAII class to switch to certain TabWidget, disable the GUI and go back to the orignal Tab when this class is destroyed
     */
-    class FLASHGUILock
+    class FLASHDeconvGUILock
     {
       public:
-      FLASHGUILock(FLASHTabWidget* ftw);
+      FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw);
 
-      ~FLASHGUILock();
+      ~FLASHDeconvGUILock();
       private:
-        FLASHTabWidget* ftw_;
+        FLASHDeconvTabWidget* ftw_;
         QWidget* old_;
         GUIHelpers::GUILock glock_;
     };
 
-    /// A multi-tabbed widget for the FLASHWizard offering setting of parameters, input-file specification and running FLASHDeconv and more
-    class OPENMS_GUI_DLLAPI FLASHTabWidget : public QTabWidget
+    /// A multi-tabbed widget for the FLASHDeconvWizard offering setting of parameters, input-file specification and running FLASHDeconv and more
+    class OPENMS_GUI_DLLAPI FLASHDeconvTabWidget : public QTabWidget
     {
       Q_OBJECT
 
     public:
-      friend class FLASHGUILock;
+      friend class FLASHDeconvGUILock;
 
-      explicit FLASHTabWidget(QWidget *parent = nullptr);
-      ~FLASHTabWidget();
+      explicit FLASHDeconvTabWidget(QWidget *parent = nullptr);
+      ~FLASHDeconvTabWidget();
 
       StringList getMzMLInputFiles() const;
 
@@ -103,8 +103,11 @@ namespace OpenMS
       /// collect all parameters throughout the Wizard's controls and update 'flashdeconv_param_'
       void updateFLASHDeconvParamFromWidgets_();
 
-      /// update Widgets given a param object
-      void updateWidgetsFromFLASHDeconvParam_();
+      /// collect output format parameters from the Wizard's control and update 'flashdeconv_output_tags_'
+      void updateOutputParamFromWidgets_();
+
+      /// update 'flashdeconv_param_outputs' with given input file name
+      void updateOutputParamFromPerInputFile(const QString& input_file_name);
 
       /// update Widgets given a param object
       void setWidgetsfromFDDefaultParam_();
@@ -119,23 +122,22 @@ namespace OpenMS
       /// @brief convenient overload for String
       void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);
 
-      /// Ensure all input widgets are filled with data by the user to run FLASHDeconvWorkflow
+      /// Ensure all input widgets are filled with data by the user to run FLASHDeconv
       /// If anything is missing: show a Messagebox and return false.
       bool checkFDInputReady_();
 
-      Ui::FLASHTabWidget *ui;
+      Ui::FLASHDeconvTabWidget *ui;
       Param flashdeconv_param_; ///< the global FLASHDeconv parameters which will be passed to FLASHDeconv.exe, once updated with parameters the Wizard holds separately
       Param flashdeconv_param_outputs_; ///< Parameter set for different output formats
+      StringList flashdeconv_output_tags_; ///< list of output parameter names checked by the user
 
-      StringList fd_result_files_; ///< list of output files produced by FLASHDeconv which are currently available
       ExternalProcessMBox ep_; ///< to run external programs and pipe their output into our log
     };
 
   }
 } // ns OpenMS
 
-// this is required to allow Ui_FLASHTabWidget (auto UIC'd from .ui) to have a InputFile member
+// this is required to allow Ui_FLASHDeconvTabWidget (auto UIC'd from .ui) to have a InputFile member
 using InputFile = OpenMS::InputFile;
 using OutputDirectory = OpenMS::OutputDirectory;
 using ParamEditor = OpenMS::ParamEditor;
-using TableView = OpenMS::TableView;

@@ -61,16 +61,16 @@ class QNetworkAccessManager;
 
 namespace Ui
 {
-  class FLASHWizardBase;
+  class FLASHDeconvWizardBase;
 }
 
 namespace OpenMS
 {
   /**
-    @brief Main window of the FLASHWizard tool
+    @brief Main window of the FLASHDeconvWizard tool
 
   */
-  class OPENMS_GUI_DLLAPI FLASHWizardBase :
+  class OPENMS_GUI_DLLAPI FLASHDeconvWizardBase :
     public QMainWindow,
     public DefaultParamHandler
   {
@@ -78,9 +78,9 @@ namespace OpenMS
 
 public:
     /// Constructor
-    FLASHWizardBase(QWidget* parent = nullptr);
+    FLASHDeconvWizardBase(QWidget* parent = nullptr);
     /// Destructor
-    ~FLASHWizardBase() override;
+    ~FLASHDeconvWizardBase() override;
  
     void showAboutDialog();
 
@@ -105,7 +105,7 @@ protected:
     void on_actionReport_new_issue_triggered();
 
   private:
-    Ui::FLASHWizardBase* ui;
+    Ui::FLASHDeconvWizardBase* ui;
     
   }; //class
 

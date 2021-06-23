@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FLASHWizardBase</class>
- <widget class="QMainWindow" name="FLASHWizardBase">
+ <class>FLASHDeconvWizardBase</class>
+ <widget class="QMainWindow" name="FLASHDeconvWizardBase">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>FLASHWizardBase</string>
+   <string>FLASHDeconvWizardBase</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
