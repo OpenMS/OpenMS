@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
+#include <OpenMS/QC/DetectedCompounds.h>
 
 #include <nlohmann/json.hpp>
 
@@ -54,14 +55,14 @@ using namespace std;
 
 namespace OpenMS
 { 
-
   void MzQCFile::store(const String& input_file,
                        const String& output_file,
                        const MSExperiment& exp,
                        const String& contact_name,
                        const String& contact_address,
                        const String& description,
-                       const String& label) const
+                       const String& label,
+                       const String& input_file_feature) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -83,10 +84,16 @@ namespace OpenMS
     QCBase::Status status;
     if (input_file != "")
     {
-    status |= QCBase::Requires::RAWMZML;
+      status |= QCBase::Requires::RAWMZML;
+    }
+    if (input_file_feature != "")
+    {
+      status |= QCBase::Requires::PREFDRFEAT;
     }
     TIC tic;
     SpectrumCount spectrum_count;
+    DetectedCompounds detected_compounds;
+
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -126,9 +133,10 @@ namespace OpenMS
     addMetric("QC:4000053", UInt(exp.getMaxRT() - exp.getMinRT()));
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
-
+    // TICs
     if (tic.isRunnable(status))
     {
+      // complete TIC (all ms levels) with area
       auto result = tic.compute(exp,0,0);
       if (!result.intensities.empty())
       {
@@ -164,6 +172,11 @@ namespace OpenMS
         // MS2 Total ion current chromatogram
         addMetric("QC:4000070", chrom);
       }
+    }
+    // Detected compounds from featureXML file
+    if (detected_compounds.isRunnable(status))
+    {
+      addMetric("QC:4000257", detected_compounds.compute(input_file_feature));
     }
 
     

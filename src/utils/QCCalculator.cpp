@@ -175,7 +175,8 @@ protected:
     else if (out_type == FileTypes::MZQC)
     {
       MzQCFile mzqcfile;
-      mzqcfile.store(inputfile_raw, outputfile_name, exp, contact_name, contact_address, description, label);
+      mzqcfile.store(inputfile_raw, outputfile_name, exp, contact_name, contact_address,
+                     description, label, inputfile_feature);
     }
 
     return EXECUTION_OK;
