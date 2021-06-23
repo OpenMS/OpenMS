@@ -32,42 +32,39 @@
 // $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-#pragma once
-#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/QC/DetectedCompounds.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
+using namespace std;
 
 namespace OpenMS
-{
-  /**
-      @brief File adapter for mzQC files used to load and store mzQC files
+{ 
 
-      This Class is supposed to internally collect the data for the mzQC File
-
-      @ingroup FileIO
-  */
-  class OPENMS_DLLAPI MzQCFile
+  UInt DetectedCompounds::compute(const String& pathToFeatureXMLFile)
   {
-  public:
-    // Default constructor
-    MzQCFile() = default;
+    UInt result;
+    FeatureMap map;
+    FeatureXMLFile f;
+    f.load(pathToFeatureXMLFile, map);
+    for (const auto& f : map)
+    {
+      result += 1;
+    }
+    return result;
+  }
 
-    /**
-      @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param input_file_feature feature file
-    */
-    void store(const String& input_file,
-               const String& output_file,
-               const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
-               const String& input_file_feature) const;
-  };
+  /// Returns the name of the metric
+  const String& DetectedCompounds::getName() const
+  {
+    return name_;
+  }
+
+  /// Returns required file input i.e. MzML.
+  /// This is encoded as a bit in a Status object.
+  QCBase::Status DetectedCompounds::requires() const
+  {
+    return QCBase::Status(QCBase::Requires::PREFDRFEAT);
+  }
 }

@@ -4,6 +4,7 @@ set(directory include/OpenMS/QC)
 ### list all header files of the directory here
 set(sources_list_h
   Contaminants.h
+  DetectedCompounds.h
   FragmentMassError.h
   FWHM.h
   MissedCleavages.h
