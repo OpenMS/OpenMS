@@ -1062,13 +1062,15 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define ABORT_IF(condition)                                                               \
   if (condition)                                                                          \
   {                                                                                       \
-    TEST::test_line = __LINE__;                                                           \
-    TEST::this_test = false;                                                              \
-    TEST::test = TEST::test && TEST::this_test;                                           \
-    TEST::failed_lines_list.push_back(TEST::test_line);                                   \
-    TEST::initialNewline();                                                               \
-    stdcout << " -  line " << TEST::test_line <<                                          \
-      ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                    \
+    {                                                                                     \
+      TEST::test_line = __LINE__;                                                           \
+      TEST::this_test = false;                                                              \
+      TEST::test = TEST::test && TEST::this_test;                                           \
+      TEST::failed_lines_list.push_back(TEST::test_line);                                   \
+      TEST::initialNewline();                                                               \
+      stdcout << " -  line " << TEST::test_line <<                                          \
+        ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                    \
+    }                                                                                       \
     break;                                                                                \
   }
 
