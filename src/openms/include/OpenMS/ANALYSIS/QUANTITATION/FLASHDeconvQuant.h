@@ -403,6 +403,11 @@ namespace OpenMS
       return ltrace_indices_;
     }
 
+    double getCentroidRtOfApices() const
+    {
+      return centroid_rt_of_apices;
+    }
+
     void setChargeRange(const int min_c, const int max_c) {
       min_charge_ = min_c;
       max_charge_ = max_c;
@@ -501,6 +506,46 @@ namespace OpenMS
       }
     }
 
+    void filterMassTracesWithLowIntensities()
+    {
+      // get maximum intensity
+      double max_intensity = .0;
+      for (const auto& lmt : *this)
+      {
+        if (lmt.getIntensity() > max_intensity)
+        {
+          max_intensity = lmt.getIntensity();
+        }
+      }
+
+      // filter out mass traces with intensity lower than threshold
+      double threshold = max_intensity * 0.2;
+      std::vector<LogMassTrace> tmpPeaks;
+      tmpPeaks.swap(*this);
+      reserve(tmpPeaks.size());
+
+      for (const auto& p : tmpPeaks)
+      {
+        if (p.getIntensity() >= threshold)
+        {
+          push_back(p);
+        }
+      }
+    }
+
+    void setCentroidRtOfApices()
+    {
+      double tmp_rt;
+
+      for(const auto& lmt : *this)
+      {
+        Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(true);
+        tmp_rt += (*lmt.getMassTrace())[max_idx].getRT();
+      }
+      tmp_rt /= this->size();
+      centroid_rt_of_apices = tmp_rt;
+    }
+
   private:
     /// information on the deconvouted mass
     double monoisotopic_mass_;
@@ -516,6 +561,13 @@ namespace OpenMS
 
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
+
+    double centroid_rt_of_apices;
+
+//    int most_intense_charge_;
+//    double most_intense_mt_intensity;
+//    std::vector<int> most_intense_charges;
+//    int most_intense_iso_of_most_intense_charge_;
   };
 
   class OPENMS_DLLAPI CmpLogMassTraceByRT
@@ -898,9 +950,11 @@ namespace OpenMS
 
     void buildMassTraceGroups_(std::vector<LogMassTrace> &log_mtraces, std::vector<FeatureGroup>& features);
 
+    bool scoreFeatureGroup_(FeatureGroup& fg) const;
+
     void scoreAndFilterPeakGroups_(std::vector<FeatureGroup> &local_fgroup);
 
-    std::vector<int> calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
+    void calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
                                                         std::vector<double> &per_charge_intensity,
                                                         const int max_isotope_count,
                                                         FeatureGroup &fg) const;
@@ -941,7 +995,7 @@ namespace OpenMS
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
-    void updateFeatureGroupInformation_(FeatureGroup& fg) const;
+    bool rescoreFeatureGroup_(FeatureGroup& fg) const;
 
     void addFeatureGroup_(std::vector<FeatureGroup>& features, std::vector<FeatureGroup>& local_fgroup) const;
 
@@ -949,7 +1003,11 @@ namespace OpenMS
 
     bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2) const;
 
-    void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces) const;
+    void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
+                               std::vector<MassTrace>& input_mtraces) const;
+
+    void resolveSharedMassTraces(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
+                                 std::vector<MassTrace>& input_mtraces) const;
 
     void resolveConflictInCluster_(const std::vector<FeatureGroup>& feat_hypo,
                                                      const std::vector<std::vector<Size> >& shared_m_traces_indices,
@@ -971,7 +1029,7 @@ namespace OpenMS
     double max_mass_;
     double mz_tolerance_; // ppm
 
-    const double mass_tolerance_ = 1.5; // Da, for feature mass collection
+    const double mass_tolerance_ = 3; // Da, for feature mass collection
 
     // advanced parameter?
     Size min_nr_mtraces_ = 3; // minimum number of mass traces to support feature

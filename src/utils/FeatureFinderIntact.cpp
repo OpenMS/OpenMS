@@ -80,7 +80,7 @@ protected:
     registerInputFile_("in", "<file>", "", "input file", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-//    registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
+    registerOutputFile_("out", "<string>", "", "FeatureXML file with metabolite features", false);
 //    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
@@ -115,6 +115,7 @@ public:
     // loading input
     //-------------------------------------------------------------
     String in = getStringOption_("in");
+    String out_dir = getStringOption_("out");
 
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
@@ -170,7 +171,7 @@ public:
 
     // for test output TODO: remove
     Size last_index = in.find_last_of(".");
-    String out = in.substr(0, last_index) + ".mt.FeatureXML";
+//    String out = in.substr(0, last_index) + ".mt.FeatureXML";
 //    write_mtraces(in, m_traces_final, out);
 
     //-------------------------------------------------------------
@@ -183,7 +184,20 @@ public:
 
     FLASHDeconvQuant fdq;
     fdq.setParameters(ffi_param);
-    fdq.outfile_path = in.substr(0, last_index) + ".features.tsv";
+    if (!out_dir.empty())
+    {
+      Size dirindex = in.find_last_of("/");
+      String dirpath = in.substr(0, dirindex) + "/" + out_dir + "/";
+
+      String filename = in.substr(dirindex+1);
+      Size file_extension_idx = filename.find_last_of(".");
+      filename = filename.substr(0, file_extension_idx) + ".features.tsv";
+      fdq.outfile_path = dirpath + filename;
+    }
+    else
+    {
+      fdq.outfile_path = in.substr(0, last_index) + ".features.tsv";
+    }
     FeatureMap out_map;
     fdq.run(m_traces_final, out_map);
 
