@@ -41,8 +41,12 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLabel>
+
+
 #include <QRegExp>
 
 #include <vector>
@@ -199,8 +203,7 @@ namespace OpenMS
     {
         // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
       QString acsn = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
-      std::cout << acsn << "<->";
-      std::cout << table_widget_->item(0, 8)->data(Qt::DisplayRole).toString() <<std::endl;
+     
       QString delimiter = "|";
       
       //This only stores the part of accession to use as an url part, eg, "P02769"
@@ -231,7 +234,7 @@ namespace OpenMS
 
       if (reg_uniprot_acsn.exactMatch(pep_acsn))
       {
-        qDebug() << "Accession valid " << pep_acsn;
+        std::cout << "Accession valid " << pep_acsn;
 
         QString base_url = "https://www.uniprot.org/uniprot/";
 
@@ -241,11 +244,38 @@ namespace OpenMS
       }
       else
       {
-        qDebug() << "Accession not valid " << pep_acsn;
+        std::cout << "Accession not valid " << pep_acsn;
       }
-
-     
     }
+
+    if (column == Clmn::SEQUENCE)
+    {
+      QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      
+        // initialize window,
+        if (protein_window_ != nullptr)
+        {
+          delete protein_window_;
+        }
+        protein_window_ = new QWidget();
+        protein_window_->resize(400, 400);
+        std::cout << sequence << "->" << row << std::endl;
+        QLabel* seq = new QLabel();
+        QVBoxLayout* layout = new QVBoxLayout();
+        seq->setText(sequence);
+        layout->addWidget(seq);
+        protein_window_->setLayout(layout);
+        protein_window_->setWindowTitle("Protein Sequence");
+        
+
+        protein_window_->show();
+        protein_window_->setFocus(Qt::ActiveWindowFocusReason);
+        QApplication::setActiveWindow(protein_window_);
+        /*delete seq;
+        delete layout;*/
+        protein_window_->layout()->deleteLater();
+     }
+    
     //
     // show extra peak-fragment window
     //

@@ -44,6 +44,7 @@
 #include <QComboBox>
 #include <QTableWidget>
 #include <QCheckBox>
+#include <QWidget>
 
 namespace OpenMS
 {
@@ -99,6 +100,7 @@ namespace OpenMS
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
+    QWidget* protein_window_ = nullptr;
     bool is_ms1_shown_ = false;
   
   private slots:
