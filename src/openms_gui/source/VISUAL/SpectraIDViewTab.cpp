@@ -38,12 +38,15 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
+#include <QRegExp>
 
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -191,6 +194,58 @@ namespace OpenMS
       emit spectrumSelected(current_spectrum_index, current_identification_index, current_peptide_hit_index);
     }
 
+    // Open browser with accession when clicked on the accession column on a row
+    if (column == Clmn::ACCESSIONS)
+    {
+        // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
+      QString acsn = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
+      std::cout << acsn << "<->";
+      std::cout << table_widget_->item(0, 8)->data(Qt::DisplayRole).toString() <<std::endl;
+      QString delimiter = "|";
+      
+      //This only stores the part of accession to use as an url part, eg, "P02769"
+      QString pep_acsn;
+
+      size_t pos = 0;
+      QString token;
+
+      //Match regex
+      QRegExp reg_pre_acsn("(tr|sp)");
+      reg_pre_acsn.setCaseSensitivity(Qt::CaseInsensitive);
+      QRegExp reg_uniprot_acsn("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
+
+      while ((pos = acsn.indexOf(delimiter)) != -1)
+      {
+        QStringRef token(&acsn, 0, pos);
+        if (reg_pre_acsn.exactMatch(token.toString()))
+        {
+          acsn.remove(0, pos + delimiter.length());
+          continue;
+        }
+        else
+        {
+          pep_acsn = token.toString();
+          break;
+        }
+      }
+
+      if (reg_uniprot_acsn.exactMatch(pep_acsn))
+      {
+        qDebug() << "Accession valid " << pep_acsn;
+
+        QString base_url = "https://www.uniprot.org/uniprot/";
+
+        QString url = base_url + pep_acsn;
+
+        GUIHelpers::openURL(url);
+      }
+      else
+      {
+        qDebug() << "Accession not valid " << pep_acsn;
+      }
+
+     
+    }
     //
     // show extra peak-fragment window
     //

@@ -81,6 +81,7 @@ namespace OpenMS
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
+
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
