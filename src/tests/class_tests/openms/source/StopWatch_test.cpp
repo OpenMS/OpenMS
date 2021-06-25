@@ -170,7 +170,8 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s.getCPUTime() > t_wait / 2, true) // waiting costs CPU time in our implementation... just not sure how much...
   TEST_EQUAL(s.getClockTime() > t_wait * 0.95, true) // and must consume wall time
   TEST_EQUAL(s.getClockTime() < t_wait * 3, true) // be a bit more loose if e.g. a VM is busy
-  TEST_EQUAL(s.getUserTime() > 0, true) //  and some user time
+  std::cout << "Usertime: " << s.getUserTime() << "\n";
+  TEST_EQUAL(s.getUserTime() > 0, true)//  and some user time
   TEST_EQUAL(s.getUserTime() < t_wait * 2, true)
   TEST_EQUAL(s.getSystemTime() < t_wait, true) // and usually quite few system time
                                                //(not guaranteed on VMs, therefore do a trivial check)
@@ -178,7 +179,8 @@ START_SECTION((bool stop()))
   // the watch that never stopped should be ahead...
   TEST_EQUAL(s.getCPUTime() < s_nostop.getCPUTime(), true) 
   TEST_EQUAL(s.getClockTime() < s_nostop.getClockTime(), true)
-  TEST_EQUAL(s.getUserTime() < s_nostop.getUserTime(), true)
+  std::cout << "compare: " << s.getUserTime() << " <> " << s_nostop.getUserTime() << "\n";
+  TEST_EQUAL(s.getUserTime() <= s_nostop.getUserTime(), true)
   TEST_EQUAL(s.getSystemTime() <= s_nostop.getSystemTime(), true)
 
   s.reset(); // was stopped, so remains stopped
