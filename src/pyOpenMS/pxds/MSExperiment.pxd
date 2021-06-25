@@ -76,8 +76,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         double getMinMZ() nogil except + # wrap-doc:returns the minimal m/z value
         double getMaxMZ() nogil except + # wrap-doc:returns the maximal m/z value
-        double getMinRT() nogil except + # wrap-doc:eturns the minimal retention time value
-        double getMaxRT() nogil except + # wrap-doc:eturns the maximal retention time value
+        double getMinRT() nogil except + # wrap-doc:returns the minimal retention time value
+        double getMaxRT() nogil except + # wrap-doc:returns the maximal retention time value
 
         # Size of experiment
         UInt64 getSize() nogil except + # wrap-doc:returns the total number of peaks
