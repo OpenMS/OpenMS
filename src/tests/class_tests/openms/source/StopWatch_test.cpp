@@ -178,8 +178,9 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s.getUserTime() > t_wait / 2, true)//  and some user time
 #endif
   TEST_EQUAL(s.getUserTime() < t_wait * 2, true)
-  TEST_EQUAL(s.getSystemTime() < t_wait, true) // and usually quite few system time
-                                               //(not guaranteed on VMs, therefore do a trivial check)
+  std::cout << "Systemtime: " << s.getSystemTime() << "\n";
+  TEST_EQUAL(s.getSystemTime() < t_wait * 2, true)// and usually quite few system time
+                                                  // (not guaranteed on VMs, therefore do a trivial check)
 
   // the watch that never stopped should be ahead...
   TEST_EQUAL(s.getCPUTime() < s_nostop.getCPUTime(), true) 
