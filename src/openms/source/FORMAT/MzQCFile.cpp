@@ -173,11 +173,17 @@ namespace OpenMS
         addMetric("QC:4000070", chrom);
       }
     }
-    // Detected compounds from featureXML file
+    // Meabolomics: Detected compounds from featureXML file
     if (detected_compounds.isRunnable(status))
     {
       auto result = detected_compounds.compute(input_file_feature);
+      // Detected compounds
       addMetric("QC:4000257", result.detected_compounds);
+      // Retention time mean shift (sec)
+      if (result.rt_shift_mean != 0)
+      {
+        addMetric("QC:4000262", result.rt_shift_mean);
+      }   
     }
 
     // ---------------------------------------------------------------

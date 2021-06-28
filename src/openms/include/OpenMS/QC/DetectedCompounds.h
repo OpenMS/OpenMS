@@ -59,7 +59,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI Result
     {
       int detected_compounds = 0;
-      float rt_shift_mean;
+      float rt_shift_mean = 0;
 
       bool operator==(const Result& rhs) const;
     };
