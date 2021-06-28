@@ -42,12 +42,12 @@ using namespace std;
 namespace OpenMS
 { 
 
-  DetectedCompounds::Result DetectedCompounds::compute(const String& pathToFeatureXMLFile)
+  DetectedCompounds::Result DetectedCompounds::compute(const String& inputfile_feature)
   {
     DetectedCompounds::Result result;
     FeatureMap map;
     FeatureXMLFile f;
-    f.load(pathToFeatureXMLFile, map);
+    f.load(inputfile_feature, map);
     float sum_rt_deviations;
     UInt rt_count = 0;
     map.updateRanges();

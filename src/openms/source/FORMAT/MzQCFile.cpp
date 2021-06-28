@@ -62,7 +62,7 @@ namespace OpenMS
                        const String& contact_address,
                        const String& description,
                        const String& label,
-                       const String& input_file_feature) const
+                       const String& inputfile_feature) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -86,7 +86,7 @@ namespace OpenMS
     {
       status |= QCBase::Requires::RAWMZML;
     }
-    if (input_file_feature != "")
+    if (inputfile_feature != "")
     {
       status |= QCBase::Requires::PREFDRFEAT;
     }
@@ -176,7 +176,7 @@ namespace OpenMS
     // Meabolomics: Detected compounds from featureXML file
     if (detected_compounds.isRunnable(status))
     {
-      auto result = detected_compounds.compute(input_file_feature);
+      auto result = detected_compounds.compute(inputfile_feature);
       // Detected compounds
       addMetric("QC:4000257", result.detected_compounds);
       // Retention time mean shift (sec)
