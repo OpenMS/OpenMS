@@ -73,8 +73,10 @@ namespace OpenMS
     platform = "Win";
 #elif __APPLE__
     platform = "Mac";
-#elif __unix__
+#elif __linux__
     platform = "Linux";
+#elif __unix__
+    platform = "Unix";
 #else
     platform = "unknown";
 #endif
