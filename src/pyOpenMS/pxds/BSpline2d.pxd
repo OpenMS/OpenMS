@@ -10,15 +10,15 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         bool solve(libcpp_vector[double] y) nogil except +
 
-        double eval(double x) nogil except +
+        double eval(double x) nogil except + # wrap-doc:Return the evaluation of the smoothed curve at a particular x value. If current state is not ok(), returns zero.
 
         double derivative(double x) nogil except +
 
         bool ok() nogil except +
 
-        void debug(bool enable) nogil except +
+        void debug(bool enable) nogil except + # wrap-doc:Enable or disable debug messages from the B-spline library.
 
-        double derivatives(double x, unsigned order) nogil except +
+        double derivatives(double x, unsigned order) nogil except + # wrap-doc:Return the first derivative of the spline curve at the given x.
 
 cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 

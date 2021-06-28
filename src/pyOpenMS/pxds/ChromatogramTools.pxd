@@ -9,10 +9,10 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
         void convertChromatogramsToSpectra(
                 MSExperiment & epx
-                ) nogil except +
+                ) nogil except + # wrap-doc:Converts the chromatogram to a list of spectra with instrument settings SRM
 
         void convertSpectraToChromatograms(
                 MSExperiment & epx,
                 bool remove_spectra,
                 bool force_conversion
-                ) nogil except +
+                ) nogil except + # wrap-doc:Converts e.g. SRM spectra to chromatograms
