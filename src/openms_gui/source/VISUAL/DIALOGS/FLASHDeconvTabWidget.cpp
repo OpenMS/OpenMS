@@ -207,12 +207,9 @@ namespace OpenMS
       {
         flashdeconv_output_tags_.push_back("out_promex");
       }
-      if( ui->checkbox_topfd_spec->isChecked() )
+      if( ui->checkbox_topfd->isChecked() )
       {
         flashdeconv_output_tags_.push_back("out_topFD");
-      }
-      if( ui->checkbox_topfd_feat->isChecked() )
-      {
         flashdeconv_output_tags_.push_back("out_topFD_feature");
       }
     }

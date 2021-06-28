@@ -149,22 +149,13 @@
           </widget>
          </item>
          <item row="0" column="3">
-          <widget class="QCheckBox" name="checkbox_topfd_spec">
+          <widget class="QCheckBox" name="checkbox_topfd">
            <property name="text">
-            <string>TopFD (*.msalign)</string>
+            <string>TopFD (*.msalign, *feature)</string>
            </property>
            <property name="toolTip">
-            <string>TopFD format output files (msalign) - spectrum level deconvoluted masses per ms level.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QCheckBox" name="checkbox_topfd_feat">
-           <property name="text">
-            <string>TopFD (*.feature)</string>
-           </property>
-           <property name="toolTip">
-            <string>TopFD format output feature file (feature) format per MS level</string>
+            <string>TopFD format output files (*.msalign and *.feature) - [*.msalign] for spectrum level deconvoluted masses and
+                    [*.feature] for feature respectively, per ms level.</string>
            </property>
           </widget>
          </item>
