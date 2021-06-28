@@ -67,11 +67,11 @@ namespace OpenMS
      /**
     @brief computes the number of detected compounds in a featureXML file
 
-    @param featureXML featureXML file created by FeatureFinderMetaboIdent based on a given library of target compounds
+    @param inputfile_feature featureXML file created by FeatureFinderMetaboIdent based on a given library of target compounds
     @return number of detected compounds from a given library of target compounds in a specific run
 
     **/
-    Result compute(const String& pathToFeatureXMLFile);
+    Result compute(const String& inputfile_feature);
 
     const String& getName() const override;
 

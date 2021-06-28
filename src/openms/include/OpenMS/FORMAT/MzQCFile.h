@@ -59,7 +59,7 @@ namespace OpenMS
       @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param description description and comments about the mzQC file contents
       @param label unique and informative label for the run
-      @param input_file_feature feature file
+      @param inputfile_feature feature file
     */
     void store(const String& input_file,
                const String& output_file,
@@ -68,6 +68,6 @@ namespace OpenMS
                const String& contact_address,
                const String& description,
                const String& label,
-               const String& input_file_feature) const;
+               const String& inputfile_feature) const;
   };
 }
