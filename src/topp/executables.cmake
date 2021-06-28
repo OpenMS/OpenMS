@@ -63,7 +63,6 @@ MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
-OMSSAAdapter
 OpenPepXL
 OpenPepXLLF
 OpenSwathAnalyzer

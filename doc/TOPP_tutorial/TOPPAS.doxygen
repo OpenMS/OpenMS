@@ -81,7 +81,7 @@
 		If the file types of the selected input and output parameters are not compatible with each other,
 		@b TOPPAS will refuse to add the connection. It will also refuse to add a connection if it
 		would create a cycle in the workflow, or if it just would not make sense, e.g., if
-		its target is an input file node. The connection between the input file node (#1) and the OMSSAAdapter (#5)
+		its target is an input file node. The connection between the input file node (#1) and the CometAdapter (#5)
 		tool is painted yellow which indicates it is not ready yet, because no input files have been
 		specified.
 			
@@ -277,13 +277,13 @@
 		run on an Orbitrap instrument as well as an E. coli target-decoy database.
 
 		We use the search engine
-		OMSSA (Geer et al., 2004) for peptide identification. Therefore, 
-		OMSSA must be installed and the path to the OMSSA executable (omssacl) must
-		be set in the parameters of the OMSSAAdapter node.
+		Comet for peptide identification. Therefore, 
+		Comet must be installed and the path to the Comet executable (comet) must
+		be set in the parameters of the CometAdapter node.
 		
 		- Node #1 accepts mzML files containing MS2 spectra.
 		- Node #2 provides the database and is set to "recycling mode" to allow the database to be reused when there is more than one input file in node #1.
-		- OMSSAAdapter calls OMSSA which performs the actual search.
+		- CometAdapter calls Comet which performs the actual search.
 		- PeptideIndexer annotates for each search result whether it is a target or a decoy hit.
 		- FalseDiscoveryRate computes q-values for the IDs.
 		- Finally, IDFilter selects only those IDs with a q-value of less than 1%.

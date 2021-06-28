@@ -686,14 +686,14 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	identification for a HPLC-MS\\MS experiment.
 
 	%OpenMS offers adapters for the following commercial and free peptide identification engines:
-	Sequest, Mascot, OMSSA, PepNovo, XTandem and Inspect.@n
+	Sequest, Mascot, PepNovo, XTandem and Inspect.@n
 	The adapters allow setting the input parameters and data for the identification
 	engine and return the result in the %OpenMS idXML format.
 
 	In order to improve the identification accuracy, several identification engines
 	can be used and a consensus identification can be calculated from the results.
-	The image below shows an example where Mascot and OMSSA results are fed to
-	the @b ConsensusID tool (ConsensusID is currently usable for Mascot, OMSSA and XTandem).
+	The image below shows an example where Mascot and Comet results are fed to
+	the @b ConsensusID tool (ConsensusID is currently usable for Mascot, Comet and XTandem).
 
 	@image html TOPP_consensus_id.png
 	@image latex TOPP_consensus_id.png "" width=14cm
@@ -970,7 +970,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	The predicted retention time can be used in IDFilter to filter out
 	false identifications. Assume you have data from several identification runs. You should
 	first align the data using MapAligner. Then you can use the various identification
-	wrappers like MascotAdapter, OMSSAAdapter, ... to get the identifications. To train a model using RTModel you can now use
+	wrappers like MascotAdapter, CometAdapter, ... to get the identifications. To train a model using RTModel you can now use
 	IDFilter for one of the runs to get the high scoring identifications (40 to 200 distinct peptides should be enough). 
 	Then you use RTModel as described in the documentation to train a model for these spectra. 
 	With this model you can use RTPredict to predict the retention times for the remaining runs.
