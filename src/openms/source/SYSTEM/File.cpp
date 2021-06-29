@@ -621,8 +621,16 @@ namespace OpenMS
   Param File::getSystemParameters()
   {
     String home_path = File::getOpenMSHomePath();
-
-    String filename = home_path + "/.OpenMS/OpenMS.ini";
+    String filename;
+    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+      if(getenv("XDG_CONFIG_HOME"))
+        filename = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+      else
+        filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
+    #else
+      filename = home_path + "/.OpenMS/OpenMS.ini";
+    #endif
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way

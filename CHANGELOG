@@ -1,3 +1,5 @@
+
+
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
@@ -95,6 +97,7 @@ Various:
 - Some further clarifications, standardization/consolidation of outputs formats/consistency
 - Continued fixes/improvement of documentation
 - Removed deprecated version of PeakPickerHiRes (LowMemPeakPickerHiResRandomAccess and LowMemPeakPickerHiRes). Their functionality can be accessed through options of PeakPickerHiRes
+- moved the config storage location for unix installations to comply with X Display Group (freedesktop.org) guidelines.
 
 
 ------------------------------------------------------------------------------------------
