@@ -41,6 +41,8 @@ Plot3DWidget.cpp
 PlotCanvas.cpp
 PlotWidget.cpp
 RecentFilesMenu.cpp
+SequenceVisualizer.cpp
+SequenceVisualizer.ui
 SpectraIDViewTab.cpp
 SpectraTreeTab.cpp
 SwathLibraryStats.cpp

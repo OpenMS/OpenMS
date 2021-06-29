@@ -56,7 +56,7 @@ include_directories(${PROJECT_BINARY_DIR})
 add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
-find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Widgets WebEngineWidgets Svg OpenGL REQUIRED)
 if (NOT Qt5Widgets_FOUND)
   message(STATUS "QtWidgets module not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

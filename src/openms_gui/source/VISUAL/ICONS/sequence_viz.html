@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sequence Visualizer</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script defer>
+
+        document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM Loaded...");
+        new QWebChannel(qt.webChannelTransport,
+        function(channel){
+
+        var SequenceVisualizer = channel.objects.SequenceVisualizer;
+        console.log(SequenceVisualizer.sequence);
+        console.log(SequenceVisualizer.num);
+        document.getElementById("Sequence").innerHTML = SequenceVisualizer.sequence;
+        SequenceVisualizer.sendDataToJS.connect(function(seq) {
+                console.log("Inside connect!");
+                console.log("seq->", seq);
+                document.getElementById("Sequence").innerHTML = seq;
+
+            });
+        });
+        });
+    </script>
+</head>
+  <body>
+      <p>The Sequence is:</p>
+      <p id="Sequence"></p>
+  </body>
+</html>

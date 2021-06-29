@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SequenceVisualizer.h>
+
 
 #include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -144,6 +146,7 @@ namespace OpenMS
     table_widget_->clear();
     layer_ = nullptr;
   }
+ 
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
@@ -251,29 +254,57 @@ namespace OpenMS
     if (column == Clmn::SEQUENCE)
     {
       QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
+      if (item_pepid){
+        
+          int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+          int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+
+          //peptide
+          const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
+          const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+          const PeptideHit& hit = phits[current_peptide_hit_index];
+          const String& seq = hit.getSequence().toString();
+          //protein
+          const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+          const vector<ProteinHit>& protein_hits = prot_id[0].getHits();
+
+          for (int i = 0; i < protein_hits.size(); ++i) {
+            const String& protein_accession = protein_hits[i].getAccession();
+            const String& protein_sequence = protein_hits[i].getSequence();
+            std::cout << protein_accession << "<->" << protein_sequence << std::endl;
+          }
+            // initialize window,
+          std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
+          std::cout << "pep_hit size->" << phits.size() << std::endl;
+          std::cout << "seq->" << seq << std::endl;
+
+          std::cout << "protein_identification size->" << prot_id.size() << std::endl;
+          std::cout << "pro_hit size->" << protein_hits.size() << std::endl;
+          
+          SequenceVisualizer* widget = new SequenceVisualizer();
+          widget->getData(seq.toQString()); 
+          widget->show();
+      }
       
-        // initialize window,
-        if (protein_window_ != nullptr)
+       /* if (protein_window_ != nullptr)
         {
           delete protein_window_;
         }
-        protein_window_ = new QWidget();
+       protein_window_ = new QWidget();
         protein_window_->resize(400, 400);
         std::cout << sequence << "->" << row << std::endl;
+
         QLabel* seq = new QLabel();
         QVBoxLayout* layout = new QVBoxLayout();
         seq->setText(sequence);
         layout->addWidget(seq);
-        protein_window_->setLayout(layout);
+        protein_window_->setLayout(layout)
         protein_window_->setWindowTitle("Protein Sequence");
-        
-
         protein_window_->show();
         protein_window_->setFocus(Qt::ActiveWindowFocusReason);
         QApplication::setActiveWindow(protein_window_);
-        /*delete seq;
-        delete layout;*/
-        protein_window_->layout()->deleteLater();
+        protein_window_->layout()->deleteLater();*/
      }
     
     //
