@@ -302,14 +302,22 @@ namespace OpenMS
                 param_it->tags.find("output file") != param_it->tags.end())
             {
               os << " supported_formats=\"" << escapeXML(restrictions) << "\"";
-            } else
+            }
+            else
             {
               os << " restrictions=\"" << escapeXML(restrictions) << "\"";
             }
           }
         }
 
-        os << " />\n";
+        if (value_type < ParamValue::STRING_LIST)
+        {
+          os << " />\n";
+        }
+        else
+        {
+          os << " >\n";
+        }
 
         switch (value_type)
         {
@@ -367,7 +375,7 @@ namespace OpenMS
     if(copy.find('&') != std::string::npos) replace(copy, '&', "&amp;");
     if(copy.find('>') != std::string::npos) replace(copy, '>', "&gt;");
     if(copy.find('"') != std::string::npos) replace(copy, '"', "&quot;");
-    if(copy.find('>') != std::string::npos) replace(copy, '>', "&lt;");
+    if(copy.find('<') != std::string::npos) replace(copy, '<', "&lt;");
     if(copy.find('\'') != std::string::npos) replace(copy, '\'', "&apos;");
 
     return copy;

@@ -232,6 +232,7 @@ set(format_executables_list
   OMSSAXMLFile_test
   OSWFile_test
   PTMXMLFile_test
+  ParamCTDFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
