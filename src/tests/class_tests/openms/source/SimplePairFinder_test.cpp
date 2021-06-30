@@ -68,9 +68,9 @@ START_SECTION((virtual ~SimplePairFinder()))
 END_SECTION
 
 START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = nullptr;
-	base_ptr = SimplePairFinder::create();
+	BaseGroupFinder* base_ptr = SimplePairFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
+  delete base_ptr;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

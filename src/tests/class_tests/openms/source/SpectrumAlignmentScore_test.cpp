@@ -141,11 +141,14 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	SpectrumAlignmentScore sas;
 	TEST_EQUAL(pscf->getParameters(), sas.getParameters())
 	TEST_EQUAL(pscf->getName(), sas.getName())
+	delete pscf;
 END_SECTION
 
 START_SECTION(static const String getProductName())
 	TEST_STRING_EQUAL(SpectrumAlignmentScore::getProductName(), "SpectrumAlignmentScore")
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

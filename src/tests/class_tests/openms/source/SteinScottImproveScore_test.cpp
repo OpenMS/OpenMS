@@ -126,11 +126,15 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	SteinScottImproveScore stein;
 	TEST_EQUAL(psf->getParameters(), stein.getParameters())
 	TEST_EQUAL(psf->getName(), stein.getName())
+	delete psf;
 END_SECTION
 
 START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "SteinScottImproveScore")
 END_SECTION
+
+delete ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

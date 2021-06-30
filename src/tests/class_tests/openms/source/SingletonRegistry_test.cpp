@@ -54,11 +54,11 @@ START_TEST(<SingletonRegistry>, "$Id$")
 FactoryBase* nullPointer = nullptr;
 
 START_SECTION(static FactoryBase* getFactory(const String& name))
-	Factory<FilterFunctor>::create("TICFilter");
+	auto ptr = Factory<FilterFunctor>::create("TICFilter");
 	String myName = typeid(Factory<FilterFunctor>).name();
 
-
   TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), nullPointer)
+  delete ptr;
 END_SECTION
 
 
@@ -67,6 +67,7 @@ START_SECTION(static void registerFactory(const String& name, FactoryBase* insta
 	FactoryBase* fb = new FactoryBase;
 	SingletonRegistry::registerFactory(myName, fb);
   TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), nullPointer)
+  delete fb;
 END_SECTION
 
 START_SECTION(static bool isRegistered(String name))

@@ -128,6 +128,7 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	SpectrumCheapDPCorr corr;
 	TEST_EQUAL(cf->getParameters(), corr.getParameters())
 	TEST_EQUAL(cf->getName(), corr.getName())
+	delete cf;
 END_SECTION
 
 START_SECTION(static const String getProductName())
