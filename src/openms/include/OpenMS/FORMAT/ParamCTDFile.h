@@ -58,7 +58,7 @@ namespace OpenMS
   @brief The file pendant of the Param class used to ( load ) and store the param
          datastructure as paramCTD.
 
-   only storing is possible at this time !
+   only storing is currently possible !
 
 */
   class OPENMS_DLLAPI ParamCTDFile

@@ -35,6 +35,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
