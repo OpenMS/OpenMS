@@ -58,6 +58,7 @@ START_SECTION((ParamXMLFile()))
 {
   ptr = new ParamXMLFile();
   TEST_NOT_EQUAL(ptr, nullPtr)
+  delete ptr;
 }
 END_SECTION
 

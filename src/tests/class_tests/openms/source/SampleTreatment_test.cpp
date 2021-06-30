@@ -179,6 +179,8 @@ START_SECTION((virtual SampleTreatment* clone() const=0))
 	//get
 	TEST_EQUAL(dp->getComment(),"TTEST")
 	TEST_EQUAL(dp->getMetaValue("origin"),"horse")
+
+	delete st;
 END_SECTION
 
 START_SECTION((bool operator== (const SampleTreatment& rhs) const))
