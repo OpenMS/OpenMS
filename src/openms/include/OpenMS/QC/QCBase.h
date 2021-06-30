@@ -66,6 +66,7 @@ namespace OpenMS
       PREFDRFEAT,   //< Features with unfiltered pepIDs
       CONTAMINANTS, //< Contaminant Database
       TRAFOALIGN,   //< transformationXMLs for RT-alignment
+      ID,           //< idXML with protein IDs
       SIZE_OF_REQUIRES
     };
     /// strings corresponding to enum Requires

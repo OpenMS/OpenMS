@@ -33,43 +33,55 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/QC/QCBase.h>
+
+/**
+ * @brief Detected Proteins/Peptides as a Proteomics QC metric
+ *
+ * Simple class to return the number of detected proteins/peptides
+ * from a given idXML file.
+ *
+ */
 
 namespace OpenMS
 {
-  /**
-      @brief File adapter for mzQC files used to load and store mzQC files
-
-      This Class is supposed to internally collect the data for the mzQC File
-
-      @ingroup FileIO
-  */
-  class OPENMS_DLLAPI MzQCFile
+  class OPENMS_DLLAPI Identifications : public QCBase
   {
   public:
-    // Default constructor
-    MzQCFile() = default;
+    /// Constructor
+    Identifications() = default;
 
-    /**
-      @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param inputfile_feature feature file (featureXML)
-      @param inputfile_id ID file (idXML)
-    */
-    void store(const String& input_file,
-               const String& output_file,
-               const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
-               const String& inputfile_feature,
-               const String& inputfile_id) const;
+    /// Destructor
+    virtual ~Identifications() = default;
+
+    // stores DetectedCompounds values calculated by compute function
+    struct OPENMS_DLLAPI Result
+    {
+      UInt peptide_spectrum_matches = 0;
+      std::tuple<UInt, float> unique_peptides = {0, 0.0};
+      std::tuple<UInt, float> unique_proteins = {0, 0.0};
+      float missed_cleavages_mean = 0;
+      double protein_hit_scores_mean = 0;
+      double peptide_length_mean = 0;
+
+      bool operator==(const Result& rhs) const;
+    };
+
+     /**
+    @brief computes the number of detected compounds in a featureXML file
+
+    @param inputfile_id idXML file 
+    @return ??
+
+    **/
+    Result compute(const String& inputfile_id);
+
+    const String& getName() const override;
+
+    QCBase::Status requires() const override;
+
+  private:
+    const String name_ = "Detected Proteins and Peptides from idXML file";
   };
 }
