@@ -42,7 +42,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
-#include <OpenMS/QC/DetectedCompounds.h>
+#include <OpenMS/QC/Features.h>
+#include <OpenMS/QC/Identifications.h>
 
 #include <nlohmann/json.hpp>
 
@@ -62,7 +63,8 @@ namespace OpenMS
                        const String& contact_address,
                        const String& description,
                        const String& label,
-                       const String& inputfile_feature) const
+                       const String& inputfile_feature,
+                       const String& inputfile_id) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -90,10 +92,15 @@ namespace OpenMS
     {
       status |= QCBase::Requires::PREFDRFEAT;
     }
+    if (inputfile_id != "")
+    {
+      status |= QCBase::Requires::ID;
+    }
+
     TIC tic;
     SpectrumCount spectrum_count;
-    DetectedCompounds detected_compounds;
-
+    Features features;
+    Identifications identifications;
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -174,9 +181,9 @@ namespace OpenMS
       }
     }
     // Meabolomics: Detected compounds from featureXML file
-    if (detected_compounds.isRunnable(status))
+    if (features.isRunnable(status))
     {
-      auto result = detected_compounds.compute(inputfile_feature);
+      auto result = features.compute(inputfile_feature);
       // Detected compounds
       addMetric("QC:4000257", result.detected_compounds);
       // Retention time mean shift (sec)
@@ -184,6 +191,23 @@ namespace OpenMS
       {
         addMetric("QC:4000262", result.rt_shift_mean);
       }   
+    }
+    // peptides and proteins from idXML file
+    if (identifications.isRunnable(status))
+    {
+      auto result = identifications.compute(inputfile_id);
+      // Total number of PSM
+      addMetric("QC:4000186", result.peptide_spectrum_matches);
+      // Number of identified peptides at given FDR threshold
+      addMetric("QC:4000187", result.unique_peptides);
+      // Identified peptide lengths - mean
+      addMetric("QC:4000214", result.peptide_length_mean);
+      // Missed cleavages - mean
+      addMetric("QC:4000209", result.missed_cleavages_mean);
+      // Number of identified proteins at given FDR threshold
+      addMetric("QC:4000185", result.unique_proteins);
+      // Identification score mean (of protein hits)
+      addMetric("QC:4000204", result.protein_hit_scores_mean);
     }
 
     // ---------------------------------------------------------------

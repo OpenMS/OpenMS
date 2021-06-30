@@ -176,7 +176,7 @@ protected:
     {
       MzQCFile mzqcfile;
       mzqcfile.store(inputfile_raw, outputfile_name, exp, contact_name, contact_address,
-                     description, label, inputfile_feature);
+                     description, label, inputfile_feature, inputfile_id);
     }
 
     return EXECUTION_OK;

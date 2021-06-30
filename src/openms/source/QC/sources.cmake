@@ -4,9 +4,10 @@ set(directory source/QC)
 ### list all filenames of the directory here
 set(sources_list
   Contaminants.cpp
-  DetectedCompounds.cpp
+  Features.cpp
   FragmentMassError.cpp
   FWHM.cpp
+  Identifications.cpp
   MissedCleavages.cpp
   MQEvidenceExporter.cpp
   Ms2IdentificationRate.cpp

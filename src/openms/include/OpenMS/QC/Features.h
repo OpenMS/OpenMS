@@ -32,67 +32,52 @@
 // $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
+#pragma once
 
-#include <OpenMS/QC/DetectedCompounds.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/QCBase.h>
 
-using namespace std;
+/**
+ * @brief Detected Compounds as a Metabolomics QC metric
+ *
+ * Simple class to return the number of detected compounds
+ * from a given library of target compounds in a specific run.
+ *
+ */
 
 namespace OpenMS
-{ 
-
-  DetectedCompounds::Result DetectedCompounds::compute(const String& inputfile_feature)
+{
+  class OPENMS_DLLAPI Features : public QCBase
   {
-    DetectedCompounds::Result result;
-    FeatureMap map;
-    FeatureXMLFile f;
-    f.load(inputfile_feature, map);
-    float sum_rt_deviations;
-    UInt rt_count = 0;
-    map.updateRanges();
-    result.detected_compounds = map.size();
-    for (const auto& f : map)
+  public:
+    /// Constructor
+    Features() = default;
+
+    /// Destructor
+    virtual ~Features() = default;
+
+    // stores DetectedCompounds values calculated by compute function
+    struct OPENMS_DLLAPI Result
     {
-      // if feature has peak_apex_position, get the meassured rt 
-      if (f.getSubordinates()[0].metaValueExists("peak_apex_position"))
-      {
-        float rt_meassured = f.getSubordinates()[0].getMetaValue("peak_apex_position");
-        // if feature has native id, get substring with theoretical rt, convert to float
-        // and add absolute rt deviation for this feature to sum_rt_deviations, increment rt_count
-        if (f.getSubordinates()[0].metaValueExists("native_id"))
-        {
-          String native_id = f.getSubordinates()[0].getMetaValue("native_id");
-          UInt start = native_id.find("_rt") + 3;
-          UInt end = native_id.find("_i");
-          float rt_th = stof(native_id.substr(start, end-start));
-          sum_rt_deviations += abs(rt_th - rt_meassured);
-          rt_count += 1;
-        }      
-      }
+      int detected_compounds = 0;
+      float rt_shift_mean = 0;
 
-    }
-    // calculate mean rt shift (sec)
-    result.rt_shift_mean = sum_rt_deviations/rt_count;
-    return result;
-  }
+      bool operator==(const Result& rhs) const;
+    };
 
-  bool DetectedCompounds::Result::operator==(const Result& rhs) const
-  {
-    return detected_compounds == rhs.detected_compounds
-          && rt_shift_mean == rhs.rt_shift_mean;
-  }
+     /**
+    @brief computes the number of detected compounds in a featureXML file
 
-  /// Returns the name of the metric
-  const String& DetectedCompounds::getName() const
-  {
-    return name_;
-  }
+    @param inputfile_feature featureXML file created by FeatureFinderMetaboIdent based on a given library of target compounds
+    @return number of detected compounds and their mean absolute retention time shift
 
-  /// Returns required file input i.e. MzML.
-  /// This is encoded as a bit in a Status object.
-  QCBase::Status DetectedCompounds::requires() const
-  {
-    return QCBase::Status(QCBase::Requires::PREFDRFEAT);
-  }
+    **/
+    Result compute(const String& inputfile_feature);
+
+    const String& getName() const override;
+
+    QCBase::Status requires() const override;
+
+  private:
+    const String name_ = "Detected Compounds from featureXML file";
+  };
 }
