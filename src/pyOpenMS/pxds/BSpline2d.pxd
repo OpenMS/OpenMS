@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         double derivative(double x) nogil except +
 
-        bool ok() nogil except +
+        bool ok() nogil except + # wrap-doc:Return whether the spline fit was successful.
 
         void debug(bool enable) nogil except + # wrap-doc:Enable or disable debug messages from the B-spline library.
 
@@ -24,4 +24,3 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 
     cdef enum BoundaryCondition:
         BC_ZERO_ENDPOINTS, BC_ZERO_FIRST, BC_ZERO_SECOND
-
