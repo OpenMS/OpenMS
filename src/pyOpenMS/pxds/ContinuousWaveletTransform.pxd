@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
         SignedSize getSignalLength() nogil except + # wrap-doc:Non-mutable access to signal length [end_left_padding,begin_right_padding]
         void setSignalLength(SignedSize signal_length) nogil except + # wrap-doc:Mutable access to signal length [end_left_padding,begin_right_padding]
         int getSize() nogil except + # wrap-doc:Non-mutable access to signal length including padded zeros [0,end]
-        void init(double scale, double spacing) nogil except + # wrap-doc:Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
+        void init(double scale, double spacing) nogil except + # wrap-doc:Perform possibly necessary preprocessing steps, like tabulating the Wavelet
         # double <](unsigned int i) nogil except +
         # double <](unsigned int i) nogil except +
 

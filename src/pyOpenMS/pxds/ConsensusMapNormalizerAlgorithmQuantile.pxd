@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQu
 
         void normalizeMaps(ConsensusMap & input_map) nogil except +
 
-        void resample(libcpp_vector[ double ] & data_in, libcpp_vector[ double ] & data_out, UInt n_resampling_points) nogil except + # wrap-doc:resamples data_in and writes the results to data_out
-        void extractIntensityVectors(ConsensusMap & map_, libcpp_vector[ libcpp_vector[ double ] ] & out_intensities) nogil except + # wrap-doc:extracts the intensities of the features of the different maps
-        void setNormalizedIntensityValues(libcpp_vector[ libcpp_vector[ double ] ] & feature_ints, ConsensusMap & map_) nogil except + # wrap-doc:writes the intensity values in feature_ints to the corresponding features in map
+        void resample(libcpp_vector[ double ] & data_in, libcpp_vector[ double ] & data_out, UInt n_resampling_points) nogil except + # wrap-doc:Resamples data_in and writes the results to data_out
+        void extractIntensityVectors(ConsensusMap & map_, libcpp_vector[ libcpp_vector[ double ] ] & out_intensities) nogil except + # wrap-doc:Extracts the intensities of the features of the different maps
+        void setNormalizedIntensityValues(libcpp_vector[ libcpp_vector[ double ] ] & feature_ints, ConsensusMap & map_) nogil except + # wrap-doc:Writes the intensity values in feature_ints to the corresponding features in map
 

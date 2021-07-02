@@ -85,21 +85,21 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         void setProteinIdentifications(
                 libcpp_vector[ProteinIdentification]
-                ) nogil except + # wrap-doc:sets the protein identifications
+                ) nogil except + # wrap-doc:Sets the protein identifications
 
         libcpp_vector[PeptideIdentification]\
                 getUnassignedPeptideIdentifications() nogil except +
 
         void setUnassignedPeptideIdentifications(
                 libcpp_vector[PeptideIdentification]
-                ) nogil except + # wrap-doc:sets the unassigned peptide identifications
+                ) nogil except + # wrap-doc:Sets the unassigned peptide identifications
 
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except + # wrap-doc:returns a const reference to the description of the applied data processing
-        void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:sets the description of the applied data processing
+        libcpp_vector[DataProcessing] getDataProcessing() nogil except + # wrap-doc:Returns a const reference to the description of the applied data processing
+        void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:Sets the description of the applied data processing
 
-        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:set the file paths to the primary MS run (stored in ColumnHeaders)
+        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Set the file paths to the primary MS run (stored in ColumnHeaders)
         void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
-        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:returns the MS run path (stored in ColumnHeaders)
+        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
 
         libcpp_vector[ConsensusFeature].iterator begin(
                 ) nogil except # wrap-iter-begin:__iter__(ConsensusFeature)

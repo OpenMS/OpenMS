@@ -17,9 +17,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMe
         Size computeMedians(ConsensusMap & input_map,
                             libcpp_vector[double] & medians,
                             const String & acc_filter,
-                            const String & desc_filter) nogil except + # wrap-doc:computes medians of all maps and returns index of map with most features
+                            const String & desc_filter) nogil except + # wrap-doc:Computes medians of all maps and returns index of map with most features
 
         void normalizeMaps(ConsensusMap & input_map,
                            NormalizationMethod method,
                            const String & acc_filter,
-                           const String & desc_filter) nogil except + # wrap-doc:normalizes the maps of the consensusMap
+                           const String & desc_filter) nogil except + # wrap-doc:Normalizes the maps of the consensusMap

@@ -33,6 +33,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
         double getEdgeScore() nogil except + # wrap-doc:Returns the ILP edge score
         void setEdgeScore(double score) nogil except + # wrap-doc:Sets the ILP edge score
     
-        bool isActive() nogil except + # wrap-doc:is this pair realized?
+        bool isActive() nogil except + # wrap-doc:Is this pair realized?
         void setActive( bool active) nogil except +
 

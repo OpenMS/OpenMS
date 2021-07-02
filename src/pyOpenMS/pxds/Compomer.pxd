@@ -21,39 +21,39 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         void setID(Size id) nogil except + # wrap-doc:Set an Id which allows unique identification of a compomer
 
         # /// return Id which allows unique identification of this compomer
-        Size getID() nogil except + # wrap-doc:return Id which allows unique identification of this compomer
+        Size getID() nogil except + # wrap-doc:Return Id which allows unique identification of this compomer
 
         # /// left and right adducts of this compomer
         # TODO OpenMS Map type
         libcpp_vector[Map[String, Adduct] ] getComponent() nogil except + # wrap-ignore
     
         # /// net charge of compomer (i.e. difference between left and right side of compomer)
-        Int getNetCharge() nogil except + # wrap-doc:net charge of compomer (i.e. difference between left and right side of compomer)
+        Int getNetCharge() nogil except + # wrap-doc:Net charge of compomer (i.e. difference between left and right side of compomer)
 
         # /// mass of all contained adducts
-        double getMass() nogil except + # wrap-doc:mass of all contained adducts
+        double getMass() nogil except + # wrap-doc:Mass of all contained adducts
 
         # /// summed positive charges of contained adducts
-        Int getPositiveCharges() nogil except + # wrap-doc:summed positive charges of contained adducts
+        Int getPositiveCharges() nogil except + # wrap-doc:Summed positive charges of contained adducts
 
         # /// summed negative charges of contained adducts
-        Int getNegativeCharges() nogil except + # wrap-doc:summed negative charges of contained adducts
+        Int getNegativeCharges() nogil except + # wrap-doc:Summed negative charges of contained adducts
 
         # /// return log probability
-        double getLogP() nogil except + # wrap-doc:return log probability
+        double getLogP() nogil except + # wrap-doc:Return log probability
 
         # /// return log probability
-        double getRTShift() nogil except + # wrap-doc:return log probability
+        double getRTShift() nogil except + # wrap-doc:Return log probability
 
         # /// get adducts with their abundance as compact string for both sides
-        String getAdductsAsString() nogil except + # wrap-doc:get adducts with their abundance as compact string for both sides
+        String getAdductsAsString() nogil except + # wrap-doc:Get adducts with their abundance as compact string for both sides
 
         # /// get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
         # /// @param side Use LEFT for left, RIGHT for right
-        String getAdductsAsString(UInt side) nogil except + # wrap-doc:get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
+        String getAdductsAsString(UInt side) nogil except + # wrap-doc:Get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
 
         # /// check if Compomer only contains a single adduct on side @p side
-        bool isSingleAdduct(Adduct & a, UInt side) nogil except + # wrap-doc:check if Compomer only contains a single adduct on side @p side
+        bool isSingleAdduct(Adduct & a, UInt side) nogil except + # wrap-doc:Check if Compomer only contains a single adduct on side @p side
 
         Compomer removeAdduct(Adduct & a) nogil except + # wrap-doc:Remove ALL instances of the given adduct
 
@@ -81,45 +81,45 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
   
         void add(Adduct & a, UInt side) nogil except + # wrap-doc:Add a.amount of Adduct @param a to Compomer's @param side and update its properties
 
-        bool isConflicting(Compomer & cmp, UInt side_this, UInt side_other) nogil except + # wrap-doc:indicates if these two compomers can coexist for one feature
+        bool isConflicting(Compomer & cmp, UInt side_this, UInt side_other) nogil except + # wrap-doc:Indicates if these two compomers can coexist for one feature
 
         # /// set an Id which allows unique identification of a compomer
-        void setID(Size id) nogil except + # wrap-doc:set an Id which allows unique identification of a compomer
+        void setID(Size id) nogil except + # wrap-doc:Set an Id which allows unique identification of a compomer
 
         # /// return Id which allows unique identification of this compomer
-        Size getID() nogil except + # wrap-doc:return Id which allows unique identification of this compomer
+        Size getID() nogil except + # wrap-doc:Return Id which allows unique identification of this compomer
 
         # /// left and right adducts of this compomer
         # TODO OpenMS Map type
         libcpp_vector[Map[String, Adduct] ] getComponent() nogil except + # wrap-ignore
     
         # /// net charge of compomer (i.e. difference between left and right side of compomer)
-        Int getNetCharge() nogil except + # wrap-doc:net charge of compomer (i.e. difference between left and right side of compomer)
+        Int getNetCharge() nogil except + # wrap-doc:Net charge of compomer (i.e. difference between left and right side of compomer)
 
         # /// mass of all contained adducts
-        double getMass() nogil except + # wrap-doc:mass of all contained adducts
+        double getMass() nogil except + # wrap-doc:Mass of all contained adducts
 
         # /// summed positive charges of contained adducts
-        Int getPositiveCharges() nogil except + # wrap-doc:summed positive charges of contained adducts
+        Int getPositiveCharges() nogil except + # wrap-doc:Summed positive charges of contained adducts
 
         # /// summed negative charges of contained adducts
-        Int getNegativeCharges() nogil except + # wrap-doc:summed negative charges of contained adducts
+        Int getNegativeCharges() nogil except + # wrap-doc:Summed negative charges of contained adducts
 
         # /// return log probability
-        double getLogP() nogil except + # wrap-doc:return log probability
+        double getLogP() nogil except + # wrap-doc:Return log probability
 
         # /// return log probability
-        double getRTShift() nogil except + # wrap-doc:return log probability
+        double getRTShift() nogil except + # wrap-doc:Return log probability
 
         # /// get adducts with their abundance as compact string for both sides
-        String getAdductsAsString() nogil except + # wrap-doc:get adducts with their abundance as compact string for both sides
+        String getAdductsAsString() nogil except + # wrap-doc:Get adducts with their abundance as compact string for both sides
 
         # /// get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
         # /// @param side Use LEFT for left, RIGHT for right
-        String getAdductsAsString(UInt side) nogil except + # wrap-doc:get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
+        String getAdductsAsString(UInt side) nogil except + # wrap-doc:Get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
 
         # /// check if Compomer only contains a single adduct on side @p side
-        bool isSingleAdduct(Adduct & a, UInt side) nogil except + # wrap-doc:check if Compomer only contains a single adduct on side @param side
+        bool isSingleAdduct(Adduct & a, UInt side) nogil except + # wrap-doc:Check if Compomer only contains a single adduct on side @param side
 
         Compomer removeAdduct(Adduct & a) nogil except + # wrap-doc:Remove all adducts of type @param a
 
