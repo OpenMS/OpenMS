@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         double eval(double x) nogil except + # wrap-doc:Return the evaluation of the smoothed curve at a particular x value. If current state is not ok(), returns zero.
 
-        double derivative(double x) nogil except +
+        double derivative(double x) nogil except + # wrap-doc:Return the first derivative of the spline curve at the given position x. Returns zero if the current state is not ok().
 
         bool ok() nogil except + # wrap-doc:Return whether the spline fit was successful.
 
