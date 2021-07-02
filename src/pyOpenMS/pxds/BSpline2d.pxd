@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
                   double wave_length, BoundaryCondition boundary_condition, 
                   Size num_nodes) nogil except +
 
-        bool solve(libcpp_vector[double] y) nogil except +
+        bool solve(libcpp_vector[double] y) nogil except + # wrap-doc:Solve the spline curve for a new set of y values. Returns false if the solution fails.
 
         double eval(double x) nogil except + # wrap-doc:Return the evaluation of the smoothed curve at a particular x value. If current state is not ok(), returns zero.
 
