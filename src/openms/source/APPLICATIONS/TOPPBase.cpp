@@ -1116,6 +1116,13 @@ namespace OpenMS
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_PREFIX, argument, default_value, description, required, advanced));
+  }
+
+  void TOPPBase::registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
+  {
+    if (required && !default_value.empty())
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputPrefix param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
   }
 
@@ -1213,7 +1220,7 @@ namespace OpenMS
   String TOPPBase::getStringOption_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
-    if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::INPUT_FILE && p.type != ParameterInformation::OUTPUT_FILE)
+    if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::INPUT_FILE && p.type != ParameterInformation::OUTPUT_FILE && p.type != ParameterInformation::OUTPUT_PREFIX)
     {
       throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1352,7 +1359,10 @@ namespace OpenMS
     {
       outputFileWritable_(param_value, param_name);
     }
-
+    else if (p.type == ParameterInformation::OUTPUT_PREFIX)
+    {
+      outputFileWritable_(param_value + "write_test", param_name);
+    }
     // check restrictions
     if (p.valid_strings.empty()) return;
 
@@ -1400,6 +1410,8 @@ namespace OpenMS
         }
         break;
       }
+      case ParameterInformation::OUTPUT_PREFIX: /* no file extension check for out prefixes */
+        break;
       default: /*nothing */
         break;
     }

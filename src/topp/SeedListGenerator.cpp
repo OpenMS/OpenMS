@@ -43,6 +43,11 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
 
+// TODO REMOVE
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <OpenMS/SYSTEM/File.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -128,8 +133,8 @@ protected:
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
       setValidFormats_("in", ListUtils::create<String>("mzML,idXML,featureXML,consensusXML"));
-      registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
-      setValidFormats_("out", ListUtils::create<String>("featureXML"));
+      registerOutputPrefix_("out_prefix", "<prefix>", String(), "Output file prefix");
+      setValidFormats_("out_prefix", ListUtils::create<String>("featureXML"));
       addEmptyLine_();
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
@@ -137,7 +142,8 @@ protected:
     ExitCodes main_(int, const char **) override
     {
       String in = getStringOption_("in");
-      StringList out = getStringList_("out");
+      String out_prefix = getStringOption_("out_prefix");
+      StringList out;
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
       Map<UInt64, SeedListGenerator::SeedList> seed_lists;
@@ -150,6 +156,12 @@ protected:
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
         num_maps = consensus.getColumnHeaders().size();
+	ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
+	for(ConsensusMap::ColumnHeaders::iterator it = ch.begin(); it != ch.end(); ++it)
+        {
+	  out.push_back(out_prefix + File::removeExtension(File::basename(it->second.filename)));
+	}
+
         if (out.size() != num_maps)
         {
           writeLog_("Error: expected " + String(num_maps) +
