@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         bool isConflicting(Compomer & cmp, UInt side_this, UInt side_other) nogil except +
 
         # /// set an Id which allows unique identification of a compomer
-        void setID(Size id) nogil except + # wrap-doc:set# wrap-doc:an Id which allows unique identification of a compomer
+        void setID(Size id) nogil except + # wrap-doc:Set an Id which allows unique identification of a compomer
 
         # /// return Id which allows unique identification of this compomer
         Size getID() nogil except + # wrap-doc:return Id which allows unique identification of this compomer
