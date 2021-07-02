@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
         bool operator==(AcquisitionInfo) nogil except +
         bool operator!=(AcquisitionInfo) nogil except +
 
-        String getMethodOfCombination() nogil except + # wrap-doc:returns the method of combination
-        void setMethodOfCombination(String method) nogil except + # wrap-doc:sets the method of combination
+        String getMethodOfCombination() nogil except + # wrap-doc:Returns the method of combination
+        void setMethodOfCombination(String method) nogil except + # wrap-doc:Sets the method of combination
 
         Size size() nogil except + #wrap-doc:Number a Acquisition objects
         Acquisition& operator[](int) nogil except + # wrap-upper-limit:size()

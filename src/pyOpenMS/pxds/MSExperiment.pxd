@@ -74,19 +74,19 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +
 
-        double getMinMZ() nogil except + # wrap-doc:returns the minimal m/z value
-        double getMaxMZ() nogil except + # wrap-doc:returns the maximal m/z value
-        double getMinRT() nogil except + # wrap-doc:returns the minimal retention time value
-        double getMaxRT() nogil except + # wrap-doc:returns the maximal retention time value
+        double getMinMZ() nogil except + # wrap-doc:Returns the minimal m/z value
+        double getMaxMZ() nogil except + # wrap-doc:Returns the maximal m/z value
+        double getMinRT() nogil except + # wrap-doc:Returns the minimal retention time value
+        double getMaxRT() nogil except + # wrap-doc:Returns the maximal retention time value
 
         # Size of experiment
-        UInt64 getSize() nogil except + # wrap-doc:returns the total number of peaks
+        UInt64 getSize() nogil except + # wrap-doc:Returns the total number of peaks
         int size() nogil except +
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        Size getNrSpectra() nogil except + # wrap-doc:return the number of MS spectra
-        Size getNrChromatograms() nogil except + # wrap-doc:returns the number of chromatograms
+        Size getNrSpectra() nogil except + # wrap-doc:Return the number of MS spectra
+        Size getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms
         libcpp_vector[unsigned int] getMSLevels() nogil except +  # wrap-ignore
 
         void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sort spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
