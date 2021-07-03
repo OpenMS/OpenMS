@@ -264,14 +264,14 @@ namespace OpenMS
 
           //peptide
           const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
-          const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
-          const PeptideHit& hit = phits[current_peptide_hit_index];
+          const vector<PeptideHit>& pep_hits = peptide_ids[current_identification_index].getHits();
+          const PeptideHit& hit = pep_hits[current_peptide_hit_index];
           const String& pep_seq = hit.getSequence().toString();
 
           //start and end positions-
-          for (int i = 0; i != phits.size(); ++i)
+          for (int i = 0; i != pep_hits.size(); ++i)
           {
-            const vector<PeptideEvidence>& evidences = phits[i].getPeptideEvidences();
+            const vector<PeptideEvidence>& evidences = pep_hits[i].getPeptideEvidences();
             for (int j = 0; j != evidences.size(); ++j)
             {
               Int pep_start = evidences[j].getStart();
@@ -304,7 +304,7 @@ namespace OpenMS
 
             // initialize window,
           std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
-          std::cout << "pep_hit size->" << phits.size() << std::endl;
+          std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
           std::cout << "pep_seq->" << pep_seq << std::endl;
 
 
@@ -351,8 +351,8 @@ namespace OpenMS
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
-        const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
-        const PeptideHit& hit = phits[current_peptide_hit_index];
+        const vector<PeptideHit>& pep_hits = peptide_ids[current_identification_index].getHits();
+        const PeptideHit& hit = pep_hits[current_peptide_hit_index];
 
         // initialize window, when the table is requested for the first time
         // afterwards the size will stay at the manually resized window size
