@@ -21,12 +21,7 @@ namespace OpenMS
     channel->registerObject(QString("SequenceVisualizer"), this);
     connect(btn, SIGNAL(clicked()), this, SLOT(slotSendDataToJS()));
     view->load(QUrl("qrc:/new/sequence_viz.html"));
-    /*bool res = connect(view, &QWebEngineView::loadFinished, this, &SequenceVisualizer::slotSendDataToJS);
-    qDebug() << res << "!!<->!!";
-    connect(view, &QObject::destroyed,
-            [] { qDebug() << "Sender got deleted!"; });
-    connect(this, &QObject::destroyed,
-            [] { qDebug() << "Receiver got deleted!"; });*/
+    
     ui->gridLayout->addWidget(btn);
     ui->gridLayout->addWidget(view);
   }
@@ -34,11 +29,12 @@ namespace OpenMS
   {
     delete ui;
   }
-  void SequenceVisualizer::getData(QString seq)
+  void SequenceVisualizer::getData(const QString& pep_seq,const QJsonArray& accessionArr,const QJsonArray& sequenceArr)
   {
-    m_sequence = seq;
-    m_num = 20;
-    qDebug() << "getdata clicked" << m_num << "<->" << m_sequence;
+    m_json_data_obj["protein_accession_data"] = accessionArr;
+    m_json_data_obj["protein_sequence_data"] = sequenceArr;
+    m_json_data_obj["pep_seq"] = pep_seq;
+    qDebug() << "getdata clicked";
   }
 
   void SequenceVisualizer::jscallme(const QString& datafromjs)
@@ -50,7 +46,6 @@ namespace OpenMS
   void SequenceVisualizer::slotSendDataToJS()
   {
     
-    qDebug() << "emitting signal..." << m_sequence;
-    emit sendDataToJS(m_sequence);
+   
   }
 }// namespace OpenMS

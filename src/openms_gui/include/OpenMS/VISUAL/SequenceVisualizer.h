@@ -4,6 +4,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>
+#include <QJsonObject>
 
 namespace Ui
 {
@@ -16,8 +17,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI SequenceVisualizer : public QWidget
   {
     Q_OBJECT
-    Q_PROPERTY(QString sequence MEMBER m_sequence)
-    Q_PROPERTY(int num MEMBER m_num)
+    Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj)
 
   public:
     SequenceVisualizer(QWidget* parent = nullptr);
@@ -27,14 +27,13 @@ namespace OpenMS
 
     void jscallme(const QString& datafromjs);
     void slotSendDataToJS();
-    void getData(QString txt);
+    void getData(const QString& txt,const QJsonArray& accessionArr,const QJsonArray& sequenceArr);
 
   signals:
     void sendDataToJS(const QString&);
 
   private:
     Ui::SequenceVisualizer* ui;
-    QString m_sequence;
-    int m_num = 10;
+    QJsonObject m_json_data_obj;
   };
 }// namespace OpenMS

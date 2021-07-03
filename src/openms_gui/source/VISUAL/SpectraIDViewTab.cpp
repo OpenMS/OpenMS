@@ -47,9 +47,11 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
-
-
 #include <QRegExp>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include <vector>
 #include <string>
@@ -264,26 +266,53 @@ namespace OpenMS
           const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
           const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
           const PeptideHit& hit = phits[current_peptide_hit_index];
-          const String& seq = hit.getSequence().toString();
+          const String& pep_seq = hit.getSequence().toString();
+
+          //start and end positions-
+          for (int i = 0; i != phits.size(); ++i)
+          {
+            const vector<PeptideEvidence>& evidences = phits[i].getPeptideEvidences();
+            for (int j = 0; j != evidences.size(); ++j)
+            {
+              Int pep_start = evidences[j].getStart();
+              Int pep_end = evidences[j].getEnd();
+              std::cout <<"start->" << pep_start << "::end->" << pep_end << std::endl;
+            }
+          }
+
+
           //protein
           const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
           const vector<ProteinHit>& protein_hits = prot_id[0].getHits();
 
+          QJsonArray proteinAccessionArray;
+          QJsonArray proteinSequenceArray;
+
           for (int i = 0; i < protein_hits.size(); ++i) {
+
             const String& protein_accession = protein_hits[i].getAccession();
             const String& protein_sequence = protein_hits[i].getSequence();
+            QJsonValue protein_accession_json_val(protein_accession.toQString());
+            proteinAccessionArray.append(protein_accession_json_val);
+
+            QJsonValue protein_sequence_json_val(protein_sequence.toQString());
+            proteinSequenceArray.append(protein_sequence_json_val);
             std::cout << protein_accession << "<->" << protein_sequence << std::endl;
           }
+          std::cout << proteinAccessionArray.size() <<std::endl;
+          std::cout << proteinSequenceArray.size() << std::endl;
+
             // initialize window,
           std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
           std::cout << "pep_hit size->" << phits.size() << std::endl;
-          std::cout << "seq->" << seq << std::endl;
+          std::cout << "pep_seq->" << pep_seq << std::endl;
+
 
           std::cout << "protein_identification size->" << prot_id.size() << std::endl;
           std::cout << "pro_hit size->" << protein_hits.size() << std::endl;
-          
+
           SequenceVisualizer* widget = new SequenceVisualizer();
-          widget->getData(seq.toQString()); 
+          widget->getData(pep_seq.toQString(), proteinAccessionArray, proteinSequenceArray); 
           widget->show();
       }
       

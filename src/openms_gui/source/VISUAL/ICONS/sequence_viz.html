@@ -14,15 +14,17 @@
         function(channel){
 
         var SequenceVisualizer = channel.objects.SequenceVisualizer;
-        console.log(SequenceVisualizer.sequence);
-        console.log(SequenceVisualizer.num);
-        document.getElementById("Sequence").innerHTML = SequenceVisualizer.sequence;
-        SequenceVisualizer.sendDataToJS.connect(function(seq) {
-                console.log("Inside connect!");
-                console.log("seq->", seq);
-                document.getElementById("Sequence").innerHTML = seq;
+        
+        console.log(SequenceVisualizer.json_data_obj.pep_seq)
+        console.log(SequenceVisualizer.json_data_obj.protein_accession_data.length)
+        console.log(SequenceVisualizer.json_data_obj.protein_sequence_data.length)
+        document.getElementById("Sequence").innerHTML = SequenceVisualizer.json_data_obj.pep_seq;
+        
+        for(let i = 0; i < SequenceVisualizer.json_data_obj.protein_sequence_data.length; ++i){
+            console.log(SequenceVisualizer.json_data_obj.protein_sequence_data[i])
+        }
 
-            });
+
         });
         });
     </script>
