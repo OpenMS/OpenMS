@@ -232,7 +232,7 @@ namespace OpenMS
 
   Plot1DWidget::~Plot1DWidget()
   {
-
+    delete spacer_;
   }
 
   void Plot1DWidget::showGoToDialog()
