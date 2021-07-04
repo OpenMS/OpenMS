@@ -38,10 +38,10 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the peptide as string without any modifications
         String toUniModString() nogil except + # wrap-doc:Returns the peptide as string with UniMod-style modifications embedded in brackets
 
-        String toBracketString() nogil except + #wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation. Uses integer mass by default.
-        String toBracketString(bool integer_mass) nogil except + #wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation.
+        String toBracketString() nogil except + # wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation. Uses integer mass by default
+        String toBracketString(bool integer_mass) nogil except + # wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation
         String toBracketString(bool integer_mass, bool mass_delta) nogil except + #wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation.
-        String toBracketString(bool integer_mass, bool mass_delta, libcpp_vector[String] fixed_modifications) nogil except + #wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation.
+        String toBracketString(bool integer_mass, bool mass_delta, libcpp_vector[String] fixed_modifications) nogil except + # wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation
 
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except + # wrap-doc:Set the modification of the residue at position index
@@ -128,4 +128,3 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence
         
         # static members
         AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
-
