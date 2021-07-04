@@ -12,6 +12,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>" namespace "OpenMS
         AhoCorasickAmbiguous(const String & protein_sequence) nogil except +
         void setProtein(const String & protein_sequence) nogil except +
         # bool findNext(const FuzzyACPattern & pattern) nogil except +
-        Size getHitDBIndex() nogil except + # wrap-doc:Get index of hit into peptide database of the pattern.
-        Int getHitProteinPosition() nogil except + # wrap-doc:Offset into protein sequence where hit was found.
+        Size getHitDBIndex() nogil except + # wrap-doc:Get index of hit into peptide database of the pattern
+        Int getHitProteinPosition() nogil except + # wrap-doc:Offset into protein sequence where hit was found
 

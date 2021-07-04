@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
 
         # libcpp_map[ String, AbsoluteQuantitationMethod ] getQuantMethodsAsMap() nogil except +
 
-        double calculateBias(double actual_concentration, double calculated_concentration) nogil except + # wrap-doc:This function calculates the bias of the calibration.
+        double calculateBias(double actual_concentration, double calculated_concentration) nogil except + # wrap-doc:This function calculates the bias of the calibration
 
         Param fitCalibration(libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
                              const String & feature_name,
