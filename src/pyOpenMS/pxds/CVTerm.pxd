@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
          void setName(String name) nogil except + # wrap-doc:Sets the name of the term
          String getName() nogil except + # wrap-doc:Returns the name of the term
 
-         void setCVIdentifierRef(String cv_id_ref) nogil except + # wrap-doc:Sets the cv identifier reference string, e.g. UO for unit obo
-         String getCVIdentifierRef() nogil except + # wrap-doc:Returns the cv identifier reference string
+         void setCVIdentifierRef(String cv_id_ref) nogil except + # wrap-doc:Sets the CV identifier reference string, e.g. UO for unit obo
+         String getCVIdentifierRef() nogil except + # wrap-doc:Returns the CV identifier reference string
 
          DataValue getValue()   nogil except + # wrap-doc:Returns the value of the term
          void setValue(DataValue value) nogil except + # wrap-doc:Set the value of the term

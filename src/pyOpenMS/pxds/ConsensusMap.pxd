@@ -81,14 +81,14 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void updateRanges() nogil except + # wrap-doc:Docu in base class
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications(
-                ) nogil except +
+                ) nogil except + # TODO
 
         void setProteinIdentifications(
                 libcpp_vector[ProteinIdentification]
                 ) nogil except + # wrap-doc:Sets the protein identifications
 
         libcpp_vector[PeptideIdentification]\
-                getUnassignedPeptideIdentifications() nogil except +
+                getUnassignedPeptideIdentifications() nogil except + # TODO
 
         void setUnassignedPeptideIdentifications(
                 libcpp_vector[PeptideIdentification]
@@ -111,13 +111,13 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         void sortByIntensity(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending intensity.
         void sortByIntensity() nogil except +
-        void sortByRT() nogil except + # wrap-doc:Sorts the peaks to RT position.
-        void sortByMZ() nogil except + # wrap-doc:Sorts the peaks to m/z position.
-        void sortByPosition() nogil except + # wrap-doc:Lexicographically sorts the peaks by their position (First RT then m/z).
+        void sortByRT() nogil except + # wrap-doc:Sorts the peaks according to RT position
+        void sortByMZ() nogil except + # wrap-doc:Sorts the peaks according to m/z position
+        void sortByPosition() nogil except + # wrap-doc:Lexicographically sorts the peaks by their position (First RT then m/z)
         void sortByQuality(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending quality.
         void sortByQuality() nogil except +
         void sortBySize() nogil except + # wrap-doc:Sorts with respect to the size (number of elements)
-        void sortByMaps() nogil except + # wrap-doc:Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
+        void sortByMaps() nogil except + # wrap-doc:Sorts with respect to the sets of maps covered by the consensus features (lexicographically)
 
         # wrapped in ../addons/ConsensusMap.pyx:
         void setColumnHeaders(ColumnHeaders &)   #wrap-ignore

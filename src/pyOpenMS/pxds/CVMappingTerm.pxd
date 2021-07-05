@@ -42,13 +42,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingTerm.h>" namespace "OpenMS":
         void setAllowChildren(bool allow_children) nogil except + # wrap-doc:Sets whether children of this term are allowed
 
         # returns true if the children of this term are allowed to be used
-        bool getAllowChildren() nogil except + returns true if the children of this term are allowed to be used
+        bool getAllowChildren() nogil except + # wrap-doc:Returns true if the children of this term are allowed to be used
 
         # sets the cv identifier reference string, e.g. UO for unit obo
-        void setCVIdentifierRef(String cv_identifier_ref) nogil except + sets the cv identifier reference string, e.g. UO for unit obo
+        void setCVIdentifierRef(String cv_identifier_ref) nogil except + # wrap-doc:Sets the cv identifier reference string, e.g. UO for unit obo
 
         # returns the cv identifier reference string
-        String getCVIdentifierRef() nogil except + returns the cv identifier reference string.
+        String getCVIdentifierRef() nogil except + # wrap-doc:Returns the cv identifier reference string.
 
         # equality operator
         bool operator==(CVMappingTerm rhs) nogil except +
