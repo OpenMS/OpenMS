@@ -35,6 +35,8 @@ def main():
         description="Output file"
     )
 
+    # TODO: add flag to create calibrants to model
+
     defaults = {}
     addParamToCTDopts(defaults, model)
 
@@ -45,34 +47,31 @@ def main():
 
     infile = arg_dict["input"]
     outfile = arg_dict["output"]
-    peptide_df = idxml_to_dataframe(infile)
-    write_predictions_to_idxml(infile, outfile, predict(peptide_df))
 
-
-def idxml_to_dataframe(idxml_file: str) -> pd.DataFrame:
-    """Parse a given idxml file to a pandas DataFrame compatible with DeepLC.
-
-    See https://github.com/compomics/DeepLC#input-files for more information.
-
-    Args:
-        idxml_file: The path of the idXML file to be parsed to a pandas DataFrame.
-
-    Returns:
-        pandas DataFrame with three columns: seq, modifications and tr containing
-        the data read from idxml_file.
-    """
+    # load search engine results
     pep_ids = []
-    pms.IdXMLFile().load(idxml_file, [], pep_ids)
-    return peptide_ids_to_dataframe(pep_ids)
+    prot_ids = []
+    pms.IdXMLFile().load(infile, prot_ids, pep_ids)
+
+    # TODO: if calibrants flag is set use calibrants
+
+    # annotate predictions
+    prot_ids, pep_ids = annotate_predictions(prot_ids, pep_ids, outfile, predict(peptide_ids_to_dataframe(pep_ids)))
+
+    #calibrants = create_calibration_data(pep_ids)
+    #prot_ids, pep_ids = annotate_predictions(prot_ids, pep_ids, outfile, predict(peptide_ids_to_dataframe(pep_ids), calibrants))
 
 
 def peptide_ids_to_dataframe(pep_ids: list) -> pd.DataFrame:
-    """Parse a given list of peptide identification to a pandas DataFrame.
+    """Parse a given list of peptide identification to a pandas DataFrame compatible with DeepLC.
+
+    See https://github.com/compomics/DeepLC#input-files for more information.
 
     Args:
         pep_ids: List containing PeptideIdentification.
 
     Returns:
+        pandas DataFrame with three columns: seq, modifications and tr.
         The returned pandas DataFrame can be used directly by DeepLC.
     """
     columns = ["seq", "modifications", "tr"]
@@ -124,22 +123,16 @@ def create_calibration_data(pep_ids: list) -> pd.DataFrame:
     return peptide_ids_to_dataframe(pep_ids)
 
 
-def write_predictions_to_idxml(infile: str, outfile: str, predictions: list):
-    """Write a new idXML file to `outfile` with the given predictions.
+def annotate_predictions(prot_ids: list, pep_ids: list, predictions: list) -> list:
+    """Annotates predictions and returns proteins and peptides.
 
-    Load an existing idXML file (`infile`), copy and modify the peptide identification
-    data by adding a custom meta value containing the prediction made by DeepLC
-    and store the data as a new idXML file at `outfile`.
+    Adds a custom meta value containing the prediction made by DeepLC.
 
     Args:
-        infile:         Path of the idXML file to be loaded.
-        outfile:        Path were the resulting idXML will be stored.
+        prot_ids:       the protein identifications
+        pep_ids:        the peptide identifications (PSMs)
         predictions:    A list predictions to be inserted into the resulting idXML file.
     """
-    # Load idXML file the predictions are based on
-    pep_ids = []
-    prot_ids = []
-    pms.IdXMLFile().load(infile, prot_ids, pep_ids)
 
     preds_iter = iter(predictions)
     # Insert prediction for each hit of a peptide id as meta value
@@ -152,7 +145,7 @@ def write_predictions_to_idxml(infile: str, outfile: str, predictions: list):
                 raise SystemExit("Error: Number of predictions and peptide hits does not match.")
             new_hits.append(hit)
         pep_id.setHits(new_hits)
-    pms.IdXMLFile().store(outfile, prot_ids, pep_ids)
+    return [prot_ids, pep_is]
 
 
 def predict(peptides: pd.DataFrame, calibration: pd.DataFrame = None) -> list:
