@@ -4,6 +4,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
+from DigestionEnzyme cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS":
 
@@ -16,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         DigestionEnzymeProtein() nogil except +
 
-        DigestionEnzymeProtein(DigestionEnzymeProtein) nogil except +
+        DigestionEnzymeProtein(DigestionEnzyme) nogil except +
 
         # detailed constructor
         DigestionEnzymeProtein(String name,
