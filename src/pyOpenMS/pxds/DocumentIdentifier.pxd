@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/METADATA/DocumentIdentifier.h>" namespace "OpenMS":
         int getLoadedFileType() nogil except + # wrap-doc:Get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
 
         # set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
-        void setLoadedFilePath(String file_name) nogil except + # wrap-doc:Set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
+        void setLoadedFilePath(String file_name) nogil except + # wrap-doc:Set the file_name according to absolute path of the file loaded, preferably done whilst loading
         # get the file_name_ which is the absolute path to the file loaded from
         String getLoadedFilePath() nogil except + # wrap-doc:Get the file_name which is the absolute path to the file loaded
 
