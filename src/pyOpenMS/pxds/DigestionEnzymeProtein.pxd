@@ -79,6 +79,3 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         # equality operator for cleavage regex
         bool operator!=(String cleavage_regex) nogil except +
-
-        bool setValueFromFile(const String & key, const String & value) nogil except + # wrap-doc:Set the value of a member variable based on an entry from an input file
-

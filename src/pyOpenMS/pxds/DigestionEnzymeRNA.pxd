@@ -51,9 +51,3 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
         # returns the 5' gain
         String getFivePrimeGain() nogil except + # wrap-doc:Returns the 5' gain
-
-        # set the value of a member variable based on an entry from an input file
-        bool setValueFromFile(const String & key, const String & value) nogil except + # wrap-doc:Set the value of a member variable based on an entry from an input file
-
-
-
