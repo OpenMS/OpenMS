@@ -30,33 +30,6 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
                                UInt comet_id,
                                UInt omssa_id) nogil except +
 
-        # sets the name of the Enzyme
-        void setName(String name) nogil except + # wrap-doc:Sets the name of the enzyme
-
-        # returns the name of the Enzyme
-        String getName() nogil except + # wrap-doc:Returns the name of the enzyme
-
-        # sets the synonyms
-        void setSynonyms(libcpp_set[String] synonyms) nogil except + # wrap-doc:Sets the synonyms
-
-        # adds a synonym
-        void addSynonym(String synonym) nogil except + # wrap-doc:Adds a synonym
-
-        # returns the sysnonyms
-        libcpp_set[String] getSynonyms() nogil except + # wrap-doc:Returns the sysnonyms
-
-        # sets the name of the Enzyme as three letter code
-        void setRegEx(String three_letter_code) nogil except + # wrap-doc:Sets the name of the Enzyme as three letter code
-
-        # returns the name of the Enzyme as three letter code
-        String getRegEx() nogil except + # wrap-doc:Returns the name of the Enzyme as three letter code
-
-        # sets the regex description
-        void setRegExDescription(String one_letter_code) nogil except + # wrap-doc:Sets the regex description
-
-        # returns the regex description
-        String getRegExDescription() nogil except + # wrap-doc:Returns the regex description
-
         # sets the N-term gain
         void setNTermGain(EmpiricalFormula value) nogil except + # wrap-doc:Sets the N-term gain
 
@@ -92,16 +65,19 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         Int getMSGFID() nogil except + # wrap-doc:Returns the MSGFPlus enzyme id
 
         # equality operator
-        bool operator==(DigestionEnzymeProtein& Enzyme) nogil except +
+        bool operator==(DigestionEnzymeProtein& enzyme) nogil except +
 
         # inequality operator
-        bool operator!=(DigestionEnzymeProtein& Enzyme) nogil except +
+        bool operator!=(DigestionEnzymeProtein& enzyme) nogil except +
+
+        # order operator
+        bool operator<(DigestionEnzymeProtein& enzyme) nogil except +
 
         # equality operator for cleavage regex
-        bool operator==(EmpiricalFormula cleavage_regex) nogil except +
+        bool operator==(String cleavage_regex) nogil except +
 
         # equality operator for cleavage regex
-        bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
+        bool operator!=(String cleavage_regex) nogil except +
 
         bool setValueFromFile(const String & key, const String & value) nogil except + # wrap-doc:Set the value of a member variable based on an entry from an input file
 
