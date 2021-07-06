@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
         DigestionEnzymeRNA(DigestionEnzymeRNA) nogil except +
 
         # sets the "cuts after ..." regular expression
-        void setCutsAfterRegEx(String value) nogile except + # wrap-doc:Sets the "cuts after ..." regular expression
+        void setCutsAfterRegEx(String value) nogil except + # wrap-doc:Sets the "cuts after ..." regular expression
 
         # returns the "cuts after ..." regular expression
         String getCutsAfterRegEx() nogil except + # wrap-doc:Returns the "cuts after ..." regular expression
