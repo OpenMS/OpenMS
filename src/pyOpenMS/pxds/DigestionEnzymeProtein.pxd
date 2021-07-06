@@ -8,7 +8,7 @@ from DigestionEnzyme cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS":
 
-    cdef cppclass DigestionEnzymeProtein:
+    cdef cppclass DigestionEnzymeProtein(DigestionEnzyme):
         # wrap-inherits:
         #    DigestionEnzyme
         #
@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         DigestionEnzymeProtein() nogil except +
 
-        DigestionEnzymeProtein(DigestionEnzyme) nogil except +
+        DigestionEnzymeProtein(DigestionEnzymeProtein) nogil except +
 
         # detailed constructor
         DigestionEnzymeProtein(String name,
