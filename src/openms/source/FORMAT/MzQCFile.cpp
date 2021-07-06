@@ -42,8 +42,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
-#include <OpenMS/QC/Features.h>
-#include <OpenMS/QC/Identifications.h>
+#include <OpenMS/QC/FeatureSummary.h>
+#include <OpenMS/QC/IdentificationSummary.h>
 
 #include <nlohmann/json.hpp>
 
@@ -99,8 +99,8 @@ namespace OpenMS
 
     TIC tic;
     SpectrumCount spectrum_count;
-    Features features;
-    Identifications identifications;
+    FeatureSummary feature_summary;
+    IdentificationSummary identification_summary;
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -181,9 +181,9 @@ namespace OpenMS
       }
     }
     // Meabolomics: Detected compounds from featureXML file
-    if (features.isRunnable(status))
+    if (feature_summary.isRunnable(status))
     {
-      auto result = features.compute(inputfile_feature);
+      auto result = feature_summary.compute(inputfile_feature);
       // Detected compounds
       addMetric("QC:4000257", result.detected_compounds);
       // Retention time mean shift (sec)
@@ -193,9 +193,9 @@ namespace OpenMS
       }   
     }
     // peptides and proteins from idXML file
-    if (identifications.isRunnable(status))
+    if (identification_summary.isRunnable(status))
     {
-      auto result = identifications.compute(inputfile_id);
+      auto result = identification_summary.compute(inputfile_id);
       // Total number of PSM
       addMetric("QC:4000186", result.peptide_spectrum_matches);
       // Number of identified peptides at given FDR threshold

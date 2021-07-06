@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/Features.h>
+#include <OpenMS/QC/FeatureSummary.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -42,9 +42,9 @@ using namespace std;
 namespace OpenMS
 { 
 
-  Features::Result Features::compute(const String& inputfile_feature)
+  FeatureSummary::Result FeatureSummary::compute(const String& inputfile_feature)
   {
-    Features::Result result;
+    FeatureSummary::Result result;
     FeatureMap map;
     FeatureXMLFile f;
     f.load(inputfile_feature, map);
@@ -77,21 +77,21 @@ namespace OpenMS
     return result;
   }
 
-  bool Features::Result::operator==(const Result& rhs) const
+  bool FeatureSummary::Result::operator==(const Result& rhs) const
   {
     return detected_compounds == rhs.detected_compounds
           && rt_shift_mean == rhs.rt_shift_mean;
   }
 
   /// Returns the name of the metric
-  const String& Features::getName() const
+  const String& FeatureSummary::getName() const
   {
     return name_;
   }
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status Features::requires() const
+  QCBase::Status FeatureSummary::requires() const
   {
     return QCBase::Status(QCBase::Requires::PREFDRFEAT);
   }
