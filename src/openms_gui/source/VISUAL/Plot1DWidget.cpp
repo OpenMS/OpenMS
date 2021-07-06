@@ -366,7 +366,7 @@ namespace OpenMS
     }
     else // raster graphics formats
     {
-      QPixmap pixmap = QPixmap::grabWidget(this);
+      QPixmap pixmap = this->grab();
       x_scrollbar_->setVisible(x_visible);
       y_scrollbar_->setVisible(y_visible);
       pixmap.save(file_name);
