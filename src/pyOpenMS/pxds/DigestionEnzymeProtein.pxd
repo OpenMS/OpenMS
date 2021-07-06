@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         void addSynonym(String synonym) nogil except + # wrap-doc:Adds a synonym
 
         # returns the sysnonyms
-        libcpp_set[String] getSynonyms() nogil except + # wrap-doc:Returns the sysnonyms
+        libcpp_set[String] getSynonyms() nogil except + # wrap-doc:Returns the synonyms
 
         # sets the name of the Enzyme as three letter code
         void setRegEx(String three_letter_code) nogil except + # wrap-doc:Sets the name of the Enzyme as three letter code
