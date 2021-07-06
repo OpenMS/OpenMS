@@ -81,14 +81,14 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         void setCruxID(const String & value) nogil except + # wrap-doc:Sets the Crux enzyme ID
         String getCruxID() nogil except + # wrap-doc:Returns the Crux enzyme ID
 
-        void setCometID(int value) nogil except + sets the Comet enzyme ID
+        void setCometID(int value) nogil except + # wrap-doc:Sets the Comet enzyme ID
         int getCometID() nogil except + # wrap-doc:Returns the Comet enzyme ID
 
         # sets the OMSSA ID
-        void setOMSSAID(int value) nogil except + sets the OMSSA enzyme ID
+        void setOMSSAID(int value) nogil except + # wrap-doc:Sets the OMSSA enzyme ID
         int getOMSSAID() nogil except + # wrap-doc:Returns the OMSSA enzyme ID
 
-        void setMSGFID(Int value) nogil except + sets the MSGFPlus enzyme id
+        void setMSGFID(Int value) nogil except + # wrap-doc:Sets the MSGFPlus enzyme id
         Int getMSGFID() nogil except + # wrap-doc:Returns the MSGFPlus enzyme id
 
         # equality operator
