@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
         bool setValueFromFile(const String & key, const String & value) nogil except +
 
         # sets the name of the Enzyme
-        void setName(String name) nogil except + # wrap-doc:Sets the name of the Enzyme
+        void setName(String name) nogil except + # wrap-doc:Sets the name of the enzyme
 
         # returns the name of the Enzyme
         String getName() nogil except + # wrap-doc:Returns the name of the Enzyme
