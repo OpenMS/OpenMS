@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
                                UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
-        void setName(String name) nogil except + # wrap-doc:Sets the name of the Enzyme
+        void setName(String name) nogil except + # wrap-doc:Sets the name of the enzyme
 
         # returns the name of the Enzyme
         String getName() nogil except + # wrap-doc:Returns the name of the Enzyme
@@ -98,4 +98,3 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
 
         bool setValueFromFile(const String & key, const String & value) nogil except + # TODO
-
