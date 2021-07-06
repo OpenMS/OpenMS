@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
         void setRegEx(String three_letter_code) nogil except + # wrap-doc:Sets the name of the Enzyme as three letter code
 
         # returns the name of the Enzyme as three letter code
-        String getRegEx() nogil except + # wrap-doc:Returns the name of the Enzyme as three letter code
+        String getRegEx() nogil except + # wrap-doc:Returns the name of the enzyme as three letter code
 
         # sets the regex description
         void setRegExDescription(String one_letter_code) nogil except + # wrap-doc:Sets the regex description
@@ -64,4 +64,3 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
         # equality operator for cleavage regex
         bool operator!=(EmpiricalFormula cleavage_regex) nogil except + # wrap-doc:Equality operator for cleavage regex
-
