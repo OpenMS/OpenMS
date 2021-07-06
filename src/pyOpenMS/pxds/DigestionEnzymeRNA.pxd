@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
         #   -----
         #   The cutting sites of these enzymes are defined using two different mechanisms:
         #   First, a single regular expression that is applied to strings of unmodified RNA sequence and defines cutting sites via zero-length matches (using lookahead/lookbehind assertions).
-        #   This is the same mechanism that is used for proteases (@see @ref ProteaseDigestion).
+        #   This is the same mechanism that is used for proteases (see ProteaseDigestion).
         #   However, due to the complex notation involved, this approach is not practical for modification-aware digestion.
         #   Thus, the second mechanism uses two regular expressions ("cuts after"/"cuts before"), which are applied to the short codes (e.g. "m6A") of sequential ribonucleotides.
         #   If both expressions match, then there is a cutting site between the two ribonucleotides.
