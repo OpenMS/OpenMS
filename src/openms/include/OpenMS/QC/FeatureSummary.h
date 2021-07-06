@@ -37,33 +37,29 @@
 #include <OpenMS/QC/QCBase.h>
 
 /**
- * @brief Detected Proteins/Peptides as a Proteomics QC metric
+ * @brief Detected Compounds as a Metabolomics QC metric
  *
- * Simple class to return the number of detected proteins/peptides
- * from a given idXML file.
+ * Simple class to return the number of detected compounds
+ * from a given library of target compounds in a specific run.
  *
  */
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI Identifications : public QCBase
+  class OPENMS_DLLAPI FeatureSummary : public QCBase
   {
   public:
     /// Constructor
-    Identifications() = default;
+    FeatureSummary() = default;
 
     /// Destructor
-    virtual ~Identifications() = default;
+    virtual ~FeatureSummary() = default;
 
     // stores DetectedCompounds values calculated by compute function
     struct OPENMS_DLLAPI Result
     {
-      UInt peptide_spectrum_matches = 0;
-      std::tuple<UInt, float> unique_peptides = {0, 0.0};
-      std::tuple<UInt, float> unique_proteins = {0, 0.0};
-      float missed_cleavages_mean = 0;
-      double protein_hit_scores_mean = 0;
-      double peptide_length_mean = 0;
+      int detected_compounds = 0;
+      float rt_shift_mean = 0;
 
       bool operator==(const Result& rhs) const;
     };
@@ -71,17 +67,17 @@ namespace OpenMS
      /**
     @brief computes the number of detected compounds in a featureXML file
 
-    @param inputfile_id idXML file 
-    @return ??
+    @param inputfile_feature featureXML file created by FeatureFinderMetaboIdent based on a given library of target compounds
+    @return number of detected compounds and their mean absolute retention time shift
 
     **/
-    Result compute(const String& inputfile_id);
+    Result compute(const String& inputfile_feature);
 
     const String& getName() const override;
 
     QCBase::Status requires() const override;
 
   private:
-    const String name_ = "Detected Proteins and Peptides from idXML file";
+    const String name_ = "Summary of features from featureXML file";
   };
 }

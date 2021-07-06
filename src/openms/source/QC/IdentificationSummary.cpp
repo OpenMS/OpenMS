@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/Identifications.h>
+#include <OpenMS/QC/IdentificationSummary.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <iostream>
 using namespace std;
@@ -41,9 +41,9 @@ using namespace std;
 namespace OpenMS
 { 
 
-  Identifications::Result Identifications::compute(const String& inputfile_id)
+  IdentificationSummary::Result IdentificationSummary::compute(const String& inputfile_id)
   {
-    Identifications::Result result;
+    IdentificationSummary::Result result;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
@@ -99,7 +99,7 @@ namespace OpenMS
     return result;
   }
 
-  bool Identifications::Result::operator==(const Result& rhs) const
+  bool IdentificationSummary::Result::operator==(const Result& rhs) const
   {
     return peptide_spectrum_matches == rhs.peptide_spectrum_matches
           && unique_peptides == rhs.unique_peptides
@@ -111,14 +111,14 @@ namespace OpenMS
  
 
   /// Returns the name of the metric
-  const String& Identifications::getName() const
+  const String& IdentificationSummary::getName() const
   {
     return name_;
   }
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status Identifications::requires() const
+  QCBase::Status IdentificationSummary::requires() const
   {
     return QCBase::Status(QCBase::Requires::ID);
   }
