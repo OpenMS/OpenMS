@@ -85,15 +85,15 @@ namespace OpenMS
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
 
     QCBase::Status status;
-    if (input_file != "")
+    if (!input_file.empty())
     {
       status |= QCBase::Requires::RAWMZML;
     }
-    if (inputfile_feature != "")
+    if (!inputfile_feature.empty())
     {
       status |= QCBase::Requires::PREFDRFEAT;
     }
-    if (inputfile_id != "")
+    if (!inputfile_id.empty())
     {
       status |= QCBase::Requires::ID;
     }

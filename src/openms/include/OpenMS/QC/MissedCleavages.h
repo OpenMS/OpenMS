@@ -36,6 +36,9 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <vector>
 #include <map>
@@ -54,6 +57,10 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI MissedCleavages : public QCBase
   {
+  private:
+    typedef std::map<UInt32, UInt32> MapU32;
+    /// collects number of missed cleavages from PeptideIdentification in a result map (missed cleavages: occurences)
+    void get_missed_cleavages_from_peptide_identification(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id);
   public:
     ///constructor
     MissedCleavages() = default;
@@ -71,6 +78,7 @@ namespace OpenMS
      * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
+    void compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     /// returns the name of the metric
     const String& getName() const override;
