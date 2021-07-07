@@ -55,7 +55,7 @@ namespace OpenMS
       const std::string& mod,
       const std::string& res)
   {
-    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
+    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
 
     if (term == 'c')
     {
