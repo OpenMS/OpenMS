@@ -48,12 +48,11 @@ namespace OpenMS
     result.detected_compounds = feature_map.size();
     for (const auto& f : feature_map)
     {
-      // if feature has peak_apex_position, get the meassured rt 
-      if (f.getSubordinates()[0].metaValueExists("peak_apex_position"))
+      float rt_meassured = f.getRT();
+      // if feature has native id, get substring with theoretical rt, convert to float
+      // and add absolute rt deviation for this feature to sum_rt_deviations, increment rt_count
+      if (!f.getSubordinates().empty())
       {
-        float rt_meassured = f.getSubordinates()[0].getMetaValue("peak_apex_position");
-        // if feature has native id, get substring with theoretical rt, convert to float
-        // and add absolute rt deviation for this feature to sum_rt_deviations, increment rt_count
         if (f.getSubordinates()[0].metaValueExists("native_id"))
         {
           String native_id = f.getSubordinates()[0].getMetaValue("native_id");
@@ -62,9 +61,8 @@ namespace OpenMS
           float rt_th = stof(native_id.substr(start, end-start));
           sum_rt_deviations += abs(rt_th - rt_meassured);
           rt_count += 1;
-        }      
+        }
       }
-
     }
     // calculate mean rt shift (sec)
     result.rt_shift_mean = sum_rt_deviations/rt_count;
