@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
 #include <OpenMS/QC/FeatureSummary.h>
@@ -183,7 +184,11 @@ namespace OpenMS
     // Meabolomics: Detected compounds from featureXML file
     if (feature_summary.isRunnable(status))
     {
-      auto result = feature_summary.compute(inputfile_feature);
+      FeatureMap feature_map;
+      FeatureXMLFile f;
+      f.load(inputfile_feature, feature_map);
+      feature_map.updateRanges();
+      auto result = feature_summary.compute(feature_map);
       // Detected compounds
       addMetric("QC:4000257", result.detected_compounds);
       // Retention time mean shift (sec)
@@ -195,7 +200,10 @@ namespace OpenMS
     // peptides and proteins from idXML file
     if (identification_summary.isRunnable(status))
     {
-      auto result = identification_summary.compute(inputfile_id);
+      vector<ProteinIdentification> prot_ids;
+      vector<PeptideIdentification> pep_ids;
+      IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
+      auto result = identification_summary.compute(prot_ids, pep_ids);
       // Total number of PSM
       addMetric("QC:4000186", result.peptide_spectrum_matches);
       // Number of identified peptides at given FDR threshold

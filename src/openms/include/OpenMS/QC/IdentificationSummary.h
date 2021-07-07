@@ -35,7 +35,9 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <vector>
 /**
  * @brief Detected Proteins/Peptides as a Proteomics QC metric
  *
@@ -75,7 +77,8 @@ namespace OpenMS
     @return ??
 
     **/
-    Result compute(const String& inputfile_id);
+    Result compute(const std::vector<ProteinIdentification>& prot_ids,
+                   const std::vector<PeptideIdentification>& pep_ids);
 
     const String& getName() const override;
 
