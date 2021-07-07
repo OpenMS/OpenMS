@@ -41,7 +41,7 @@
 /**
  * @brief Detected Proteins/Peptides as a Proteomics QC metric
  *
- * Simple class to return the number of detected proteins/peptides
+ * Simple class to return a summary of detected proteins/peptides
  * from a given idXML file.
  *
  */
@@ -57,7 +57,7 @@ namespace OpenMS
     /// Destructor
     virtual ~IdentificationSummary() = default;
 
-    // stores DetectedCompounds values calculated by compute function
+    // stores identification summary values calculated by compute function
     struct OPENMS_DLLAPI Result
     {
       UInt peptide_spectrum_matches = 0;
@@ -71,10 +71,17 @@ namespace OpenMS
     };
 
      /**
-    @brief computes the number of detected compounds in a featureXML file
+    @brief computes a summary of an idXML file
 
-    @param inputfile_id idXML file 
-    @return ??
+    @param prot_ids vector with ProteinIdentifications
+    @param pep_ids vector with PeptideIdentifications
+    @return result object with summary values:
+            total number of PSM (peptide_spectrum_matches),
+            number of identified peptides with given FDR threshold (unique_peptides),
+            number of identified proteins with given FDR threshold (unique_proteins),
+            missed cleavages mean (missed_cleavages_mean),
+            identification score mean of protein hits (protein_hit_scores_mean),
+            identified peptide lengths mean (peptide_length_mean)
 
     **/
     Result compute(const std::vector<ProteinIdentification>& prot_ids,

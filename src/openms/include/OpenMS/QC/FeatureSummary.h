@@ -40,8 +40,8 @@
 /**
  * @brief Detected Compounds as a Metabolomics QC metric
  *
- * Simple class to return the number of detected compounds
- * from a given library of target compounds in a specific run.
+ * Simple class to return a summary of detected compounds
+ * from a featureXML file.
  *
  */
 
@@ -56,7 +56,7 @@ namespace OpenMS
     /// Destructor
     virtual ~FeatureSummary() = default;
 
-    // stores DetectedCompounds values calculated by compute function
+    // stores feature summary values calculated by compute function
     struct OPENMS_DLLAPI Result
     {
       int detected_compounds = 0;
@@ -66,11 +66,12 @@ namespace OpenMS
     };
 
      /**
-    @brief computes the number of detected compounds in a featureXML file
+    @brief computes a summary of a featureXML file
 
-    @param inputfile_feature featureXML file created by FeatureFinderMetaboIdent based on a given library of target compounds
-    @return number of detected compounds and their mean absolute retention time shift
-
+    @param feature_map FeatureMap
+    @return result object with summary values: 
+            number of detected compounds (detected_compounds),
+            retention time shift mean (rt_shift_mean)
     **/
     Result compute(const FeatureMap& feature_map);
 
