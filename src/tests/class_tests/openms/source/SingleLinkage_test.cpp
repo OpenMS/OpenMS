@@ -151,9 +151,11 @@ START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = SingleLinkage::create();
   TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cf) , nullPointer)
+  delete cf;
 }
 END_SECTION
 
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

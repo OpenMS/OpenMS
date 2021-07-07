@@ -63,6 +63,7 @@ START_SECTION((NASequence()=default))
   TEST_EQUAL(ptr->getFivePrimeMod(), (void*) nullptr);
   TEST_EQUAL(ptr->getThreePrimeMod(), (void*) nullptr);
   TEST_EQUAL(ptr->size(), 0);
+  delete ptr;
 }
 END_SECTION
 

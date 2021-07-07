@@ -90,6 +90,10 @@ START_SECTION([EXTRA]int nnls_(double *a, integer *mda, integer *m, integer *n, 
 	{
 		TEST_EQUAL(x_vec[i], x_solution[i])
 	}
+	delete[] x_vec;
+	delete[] w;
+	delete[] zz;
+	delete[] indx;
 			
 END_SECTION			
 
