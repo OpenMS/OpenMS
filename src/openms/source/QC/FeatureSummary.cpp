@@ -34,25 +34,19 @@
 
 
 #include <OpenMS/QC/FeatureSummary.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;
 
 namespace OpenMS
 { 
 
-  FeatureSummary::Result FeatureSummary::compute(const String& inputfile_feature)
+  FeatureSummary::Result FeatureSummary::compute(const FeatureMap& feature_map)
   {
     FeatureSummary::Result result;
-    FeatureMap map;
-    FeatureXMLFile f;
-    f.load(inputfile_feature, map);
     float sum_rt_deviations = 0;
     UInt rt_count = 0;
-    map.updateRanges();
-    result.detected_compounds = map.size();
-    for (const auto& f : map)
+    result.detected_compounds = feature_map.size();
+    for (const auto& f : feature_map)
     {
       // if feature has peak_apex_position, get the meassured rt 
       if (f.getSubordinates()[0].metaValueExists("peak_apex_position"))

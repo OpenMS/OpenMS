@@ -34,19 +34,17 @@
 
 
 #include <OpenMS/QC/IdentificationSummary.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <iostream>
+#include <set>
 using namespace std;
 
 namespace OpenMS
 { 
 
-  IdentificationSummary::Result IdentificationSummary::compute(const String& inputfile_id)
+  IdentificationSummary::Result IdentificationSummary::compute(const vector<ProteinIdentification>& prot_ids,
+                                                               const vector<PeptideIdentification>& pep_ids)
   {
     IdentificationSummary::Result result;
-    vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
-    IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
     set<String> peptides;
     set<String> proteins;
     // PSMs and collect unique peptides in set

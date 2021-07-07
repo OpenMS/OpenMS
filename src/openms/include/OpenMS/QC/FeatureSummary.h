@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 /**
  * @brief Detected Compounds as a Metabolomics QC metric
@@ -71,7 +72,7 @@ namespace OpenMS
     @return number of detected compounds and their mean absolute retention time shift
 
     **/
-    Result compute(const String& inputfile_feature);
+    Result compute(const FeatureMap& feature_map);
 
     const String& getName() const override;
 
