@@ -20,8 +20,6 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
         String getRegExDescription() nogil except +
         bool operator==(const DigestionEnzyme & enzyme) nogil except +
         bool operator!=(const DigestionEnzyme & enzyme) nogil except +
-        bool operator==(String cleavage_regex) nogil except +
-        bool operator!=(String cleavage_regex) nogil except +
         bool operator<(const DigestionEnzyme & enzyme) nogil except +
         bool setValueFromFile(String key, String value) nogil except +
 
