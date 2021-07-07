@@ -48,20 +48,10 @@ namespace OpenMS
     result.detected_compounds = feature_map.size();
     for (const auto& f : feature_map)
     {
-      float rt_meassured = f.getRT();
-      // if feature has native id, get substring with theoretical rt, convert to float
-      // and add absolute rt deviation for this feature to sum_rt_deviations, increment rt_count
-      if (!f.getSubordinates().empty())
+      if (f.metaValueExists("rt_deviation"))
       {
-        if (f.getSubordinates()[0].metaValueExists("native_id"))
-        {
-          String native_id = f.getSubordinates()[0].getMetaValue("native_id");
-          UInt start = native_id.find("_rt") + 3;
-          UInt end = native_id.find("_i");
-          float rt_th = stof(native_id.substr(start, end-start));
-          sum_rt_deviations += abs(rt_th - rt_meassured);
-          rt_count += 1;
-        }
+        sum_rt_deviations += (float)f.getMetaValue("rt_deviation");
+        rt_count += 1;
       }
     }
     // calculate mean rt shift (sec)

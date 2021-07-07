@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   typedef std::map<UInt32, UInt32> MapU32;
-  //lambda function: digests the Sequence in PeptideHit and counts the number of missed cleavages
+  //digests the Sequence in PeptideHit and counts the number of missed cleavages
   void MissedCleavages::get_missed_cleavages_from_peptide_identification(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id)
   {
     if (pep_id.getHits().empty())
@@ -138,6 +138,7 @@ namespace OpenMS
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
 
+    // small lambda functon to apply get_missed_cleavages_from_peptide_identification on pep_ids
     auto l = [&](PeptideIdentification& pep_id)
     {
       get_missed_cleavages_from_peptide_identification(digestor, result, max_mc, pep_id);
