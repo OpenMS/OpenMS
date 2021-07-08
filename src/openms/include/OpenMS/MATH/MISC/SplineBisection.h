@@ -70,7 +70,7 @@ namespace OpenMS
       do
       {
         double mid = (lefthand + righthand) / 2.0;
-        double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
+        double midpoint_deriv_val = peak_spline.derivative(mid);
 
         // if deriv nearly zero then maximum already found
         if (!(std::fabs(midpoint_deriv_val) > eps))

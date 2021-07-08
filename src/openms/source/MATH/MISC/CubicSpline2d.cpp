@@ -105,6 +105,11 @@ namespace OpenMS
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
+  double CubicSpline2d::derivative(const double x) const
+  {
+    return derivatives(x, 1);
+  }
+
   double CubicSpline2d::derivatives(double x, unsigned order) const
   {
     if (x < x_.front() || x > x_.back())
