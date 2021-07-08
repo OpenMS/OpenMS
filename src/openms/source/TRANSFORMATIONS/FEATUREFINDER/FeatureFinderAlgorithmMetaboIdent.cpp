@@ -153,11 +153,11 @@ namespace OpenMS
 
     iso_gen_.setMaxIsotope(n_isotopes_);
 
-    elution_model_ = param_.getValue("model:type");
+    elution_model_ = (string)param_.getValue("model:type");
 
     // debug
     debug_level_ = param_.getValue("debug");
-    candidates_out_ = param_.getValue("candidates_out");
+    candidates_out_ = (vector<string>)param_.getValue("candidates_out");
   }
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features)
