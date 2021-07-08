@@ -34,6 +34,7 @@
 
 
 #include <OpenMS/QC/IdentificationSummary.h>
+#include <OpenMS/QC/MissedCleavages.h>
 #include <iostream>
 #include <set>
 using namespace std;
@@ -41,8 +42,8 @@ using namespace std;
 namespace OpenMS
 { 
 
-  IdentificationSummary::Result IdentificationSummary::compute(const vector<ProteinIdentification>& prot_ids,
-                                                               const vector<PeptideIdentification>& pep_ids)
+  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids,
+                                                               vector<PeptideIdentification>& pep_ids)
   {
     IdentificationSummary::Result result;
     set<String> peptides;
@@ -52,31 +53,35 @@ namespace OpenMS
     {
       if (!pep_id.empty())
       {
-        result.peptide_spectrum_matches += pep_id.getHits().size();
+        result.peptide_spectrum_matches += 1;
         const auto& temp_hits = pep_id.getHits();
         for (const auto& temp_hit : temp_hits)
         {
-          peptides.insert(temp_hit.getSequence().toString());
+          peptides.insert(temp_hit.getSequence().toUnmodifiedString());
         }
       }
     }
     // get sum of all peptide length for mean calculation
-    // get missed cleavages, check if Lys or Arg in the middle of sequence
-    UInt missed_cleavages = 0;
     UInt peptide_length_sum = 0;
     for (const auto& pep : peptides)
     {
       peptide_length_sum += pep.size();
-      for (const auto& aa : pep)
-      {
-        if (aa == 'K' || aa == 'R')
-        {
-          ++missed_cleavages;
-        }
-      }
     }
     result.peptide_length_mean = (double)peptide_length_sum / peptides.size();
-    result.missed_cleavages_mean = (double)missed_cleavages / peptides.size();
+    // get missed cleavages
+    UInt missed_cleavages = 0;
+    UInt pep_count = 0;
+    MissedCleavages mc;
+    mc.compute(prot_ids, pep_ids);
+    for (const auto& m : mc.getResults())
+    {
+      for (const auto& [key, val] : m)
+      {
+        missed_cleavages += key * val;
+        pep_count += val;
+      }
+    }
+    result.missed_cleavages_mean = (double)missed_cleavages / pep_count;
     // collect unique proteins in sets and scores mean
     double protein_hit_scores_sum = 0;
     UInt protein_hit_count = 0;
@@ -92,16 +97,27 @@ namespace OpenMS
     }
     result.protein_hit_scores_mean = protein_hit_scores_sum/protein_hit_count;
     // unique peptides and proteins with their significance threshhold (always the same in idXML file)
-    result.unique_peptides = {peptides.size(), pep_ids.front().getSignificanceThreshold()};
-    result.unique_proteins = {proteins.size(), prot_ids.front().getSignificanceThreshold()};
+    // get significance threshhold if score type is FDR, else -1
+    result.unique_peptides.count = peptides.size();
+    result.unique_proteins.count = proteins.size();
+    if (pep_ids.front().getScoreType() == "FDR")
+    {
+      result.unique_peptides.fdr_threshold = pep_ids.front().getSignificanceThreshold();
+    }
+    if (pep_ids.front().getScoreType() == "FDR")
+    {
+      result.unique_peptides.fdr_threshold = pep_ids.front().getSignificanceThreshold();
+    }
     return result;
   }
 
   bool IdentificationSummary::Result::operator==(const Result& rhs) const
   {
     return peptide_spectrum_matches == rhs.peptide_spectrum_matches
-          && unique_peptides == rhs.unique_peptides
-          && unique_proteins == rhs.unique_proteins
+          && unique_peptides.count == rhs.unique_peptides.count
+          && unique_peptides.fdr_threshold == rhs.unique_peptides.fdr_threshold
+          && unique_proteins.count == rhs.unique_proteins.count
+          && unique_proteins.fdr_threshold == rhs.unique_proteins.fdr_threshold
           && missed_cleavages_mean == rhs.missed_cleavages_mean
           && protein_hit_scores_mean == rhs.protein_hit_scores_mean
           && peptide_length_mean == rhs.peptide_length_mean;
