@@ -6,6 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sequence Visualizer</title>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-polyfill" defer></script>
+    <!-- Web component polyfill (only loads what it needs) -->
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/custom-elements@latest"
+            defer></script>
+    <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/custom-elements@latest/src/native-shim.js"
+            defer></script>
+
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- d3 -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2" defer></script>
+
+    <!-- protvista -->
+    <script src="https://cdn.jsdelivr.net/npm/protvista-manager@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-utils@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-zoomable@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-track@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-navigation@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-sequence@latest" defer></script>
     <script defer>
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -14,23 +34,84 @@
         function(channel){
 
         var SequenceVisualizer = channel.objects.SequenceVisualizer;
-        
-        console.log(SequenceVisualizer.json_data_obj.pep_seq)
-        console.log(SequenceVisualizer.json_data_obj.protein_accession_data.length)
-        console.log(SequenceVisualizer.json_data_obj.protein_sequence_data.length)
-        document.getElementById("Sequence").innerHTML = SequenceVisualizer.json_data_obj.pep_seq;
-        
-        for(let i = 0; i < SequenceVisualizer.json_data_obj.protein_sequence_data.length; ++i){
-            console.log(SequenceVisualizer.json_data_obj.protein_sequence_data[i])
+
+        function hashCode(str) {
+        let hash = 0;
+        for (var i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return hash;
+        }
+
+        function pickColor(str) {
+        return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
+        }
+
+        console.log(SequenceVisualizer.json_data_obj.protein_sequence_data)
+        console.log(SequenceVisualizer.json_data_obj.peptides_start_end_pos.length)
+
+        let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data
+        let peptides_start_end_pos_arr = SequenceVisualizer.json_data_obj.peptides_start_end_pos;
+        let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length
+
+        let peptide_obj = [];
+
+
+        for (const key of peptides_start_end_pos_arr) {
+            let obj = {};
+            obj["start"] = key.start;
+            obj["end"] = key.end;
+            obj["accession"] = key.accession;
+            obj["color"] = pickColor(key.accession);
+            peptide_obj.push(obj);
         }
 
 
+        let protNav = `
+        <protvista-navigation  
+        length="${protlen}"
+        displaystart="1"
+        displayend="100"
+        />
+        `
+        let protSeq = `
+        <protvista-sequence id="seq"
+        sequence="${protein_seq}"
+        length="${protlen}"
+        displaystart="1"
+        displayend="50"
+        use-ctrl-to-zoom="true"
+        highlight-event="onmouseover"
+        highlightstart="23" 
+		highlightend="45"
+        />
+        `
+        let protTrack = `
+        <protvista-track id="track"
+        length="${protlen}" 
+        displaystart="1"
+        displayend="${protlen}"
+        highlightstart="10"
+        highlightend="45"
+        use-ctrl-to-zoom="true"
+        />
+        `
+         document.querySelector("#toppview_prot_visualizer").data = protein_seq;
+        $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
+        $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
+        $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
+        document.querySelector("protvista-track").data = peptide_obj;
+       
         });
         });
     </script>
 </head>
   <body>
-      <p>The Sequence is:</p>
-      <p id="Sequence"></p>
+      <protvista-manager attributes="length displaystart displayend highlight"
+                         id="toppview_prot_visualizer">
+          
+          
+          
+      </protvista-manager>
   </body>
 </html>

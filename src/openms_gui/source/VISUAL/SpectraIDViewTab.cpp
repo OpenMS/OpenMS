@@ -79,6 +79,7 @@ namespace Clmn
 
 namespace OpenMS
 {
+
   SpectraIDViewTab::SpectraIDViewTab(const Param&, QWidget* parent) :
     QWidget(parent),
     DefaultParamHandler("SpectraIDViewTab")
@@ -150,6 +151,7 @@ namespace OpenMS
   }
  
 
+
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
@@ -206,116 +208,189 @@ namespace OpenMS
     // Open browser with accession when clicked on the accession column on a row
     if (column == Clmn::ACCESSIONS)
     {
+
         // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
-      QString acsn = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
-     
-      QString delimiter = "|";
+      QString accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
       
-      //This only stores the part of accession to use as an url part, eg, "P02769"
-      QString pep_acsn;
+      //Check if the accession column of the peptide row includes multiple accession
+      QStringList single_accessions = accession.split(",");
+      
+      //regex for matching accession
+      QRegExp reg_pre_accession("(tr|sp)");
+      reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
+      QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
+      
+      //store peptide accessions, eg- {P02769, A9GWQ1}
+      QStringList pep_accession;
 
-      size_t pos = 0;
-      QString token;
-
-      //Match regex
-      QRegExp reg_pre_acsn("(tr|sp)");
-      reg_pre_acsn.setCaseSensitivity(Qt::CaseInsensitive);
-      QRegExp reg_uniprot_acsn("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
-
-      while ((pos = acsn.indexOf(delimiter)) != -1)
+      foreach (QString substr, single_accessions)
       {
-        QStringRef token(&acsn, 0, pos);
-        if (reg_pre_acsn.exactMatch(token.toString()))
+        //eg, substr = tr|P02769|ALBU_BOVIN
+        QStringList acsn = substr.split("|");
+
+        foreach (QString substr2, acsn)
         {
-          acsn.remove(0, pos + delimiter.length());
-          continue;
-        }
-        else
-        {
-          pep_acsn = token.toString();
-          break;
+          //eg, substr2 = tr, substr2 = p02769 etc
+          if (reg_pre_accession.exactMatch(substr2.simplified()))
+          {
+            continue;
+          }
+          else
+          {
+            pep_accession.append(substr2.simplified());
+            break;
+          }
         }
       }
 
-      if (reg_uniprot_acsn.exactMatch(pep_acsn))
+      //Open one browser window for each accession
+       /*foreach (QString acsn, pep_accession)
+       {
+           if (reg_uniprot_accession.exactMatch(acsn))
+           {
+             std::cout << "Accession valid " << acsn;
+               QString base_url = "https://www.uniprot.org/uniprot/";
+               QString url = base_url + acsn;
+
+               GUIHelpers::openURL(url);
+           }
+           else
+           {
+               std::cout << "Accession not valid " << acsn;
+           }
+       }*/
+      //Open browser for first accession
+      if (reg_uniprot_accession.exactMatch(pep_accession.at(0)))
       {
-        std::cout << "Accession valid " << pep_acsn;
-
+        std::cout << "Accession valid " << pep_accession.at(0);
         QString base_url = "https://www.uniprot.org/uniprot/";
-
-        QString url = base_url + pep_acsn;
+        QString url = base_url + pep_accession.at(0);
 
         GUIHelpers::openURL(url);
       }
       else
       {
-        std::cout << "Accession not valid " << pep_acsn;
+        std::cout << "Accession not valid " << pep_accession.at(0);
       }
+     
     }
 
     if (column == Clmn::SEQUENCE)
     {
+      //current sequence clicked
       QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      //return whole accession as string, might have multiple accessions
+      QString current_accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
+      //store each accession in QStringList(doesnot matter if it has or dont have multiple accessions
+      QStringList single_accessions = current_accession.split(",");
+
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid){
         
           int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
           int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
-
+          
           //peptide
-          const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
-          const vector<PeptideHit>& pep_hits = peptide_ids[current_identification_index].getHits();
-          const PeptideHit& hit = pep_hits[current_peptide_hit_index];
-          const String& pep_seq = hit.getSequence().toString();
 
-          //start and end positions-
-          for (int i = 0; i != pep_hits.size(); ++i)
-          {
-            const vector<PeptideEvidence>& evidences = pep_hits[i].getPeptideEvidences();
-            for (int j = 0; j != evidences.size(); ++j)
-            {
-              Int pep_start = evidences[j].getStart();
-              Int pep_end = evidences[j].getEnd();
-              std::cout <<"start->" << pep_start << "::end->" << pep_end << std::endl;
-            }
-          }
+          //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
 
+          //array to store object of start and end postion of peptides;
+          QJsonArray peptides_start_end_pos;
+           
+          //get the current peptideIdentification(the clicked one)
+          /*const vector<PeptideIdentification>& pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+           std::cout << "pep_id size->" << pep_id.size() << spectrum_index << std::endl;*/
+
+          // loop through each peptideIdentifications and add peptide start and peptide end position
+           for (const auto& spec : *layer_->getPeakData())
+           {
+            
+              if (!spec.getPeptideIdentifications().empty()) {
+                  const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+
+                  for (int i = 0; i < peptide_ids.size(); ++i)
+                  {
+
+                    const vector<PeptideHit>& pep_hits = peptide_ids[i].getHits();
+                    std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
+                    const PeptideHit& hit = pep_hits[i];
+                    const String& pep_seq = hit.getSequence().toString();
+
+                    std::cout <<"peptide sequence->" << pep_seq << std::endl;
+
+                    //start and end positions-
+
+                    for (int j = 0; j < pep_hits.size(); ++j)
+                    {
+                      const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
+
+                      for (int k = 0; k < evidences.size(); ++k)
+                      {
+                        const String& id_accession = evidences[k].getProteinAccession();
+
+                        if (id_accession == current_accession)
+                        {
+                          int pep_start = evidences[k].getStart();
+                          int pep_end = evidences[k].getEnd();
+
+                          QJsonObject data;
+                          data.insert(QStringLiteral("start"), pep_start);
+                          data.insert(QStringLiteral("end"), pep_end);
+                          data.insert(QStringLiteral("accession"), pep_seq.toQString());
+                          peptides_start_end_pos.push_back(data);
+
+                          std::cout << "start->" << pep_start << "::end->" << pep_end << "id_accession->" << id_accession << std::endl;
+                        }
+                        else
+                        {
+                          std::cout << id_accession << std::endl;
+                          continue;
+                        }
+                      }
+                    }
+                  }
+               }
+           }
+           std::cout << std::endl;
+           std::cout << "Array size->" << peptides_start_end_pos.size() << std::endl;
 
           //protein
           const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
-          const vector<ProteinHit>& protein_hits = prot_id[0].getHits();
-
-          QJsonArray proteinAccessionArray;
-          QJsonArray proteinSequenceArray;
-
-          for (int i = 0; i < protein_hits.size(); ++i) {
+          const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
+          QString pro_sequence;
+          std::cout << "Protein data->";
+          for (int i = 0; i < protein_hits.size(); ++i)
+          {
 
             const String& protein_accession = protein_hits[i].getAccession();
             const String& protein_sequence = protein_hits[i].getSequence();
-            QJsonValue protein_accession_json_val(protein_accession.toQString());
-            proteinAccessionArray.append(protein_accession_json_val);
-
-            QJsonValue protein_sequence_json_val(protein_sequence.toQString());
-            proteinSequenceArray.append(protein_sequence_json_val);
             std::cout << protein_accession << "<->" << protein_sequence << std::endl;
+            if (protein_accession == current_accession)
+            {
+              pro_sequence = protein_sequence.toQString();
+              break;
+            }
           }
-          std::cout << proteinAccessionArray.size() <<std::endl;
-          std::cout << proteinSequenceArray.size() << std::endl;
+          std::cout << std::endl;
 
-            // initialize window,
-          std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
-          std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
-          std::cout << "pep_seq->" << pep_seq << std::endl;
+
+          // initialize window,
+          //std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
+          //std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
+          //std::cout << "pep_seq->" << pep_seq << std::endl;
 
 
           std::cout << "protein_identification size->" << prot_id.size() << std::endl;
           std::cout << "pro_hit size->" << protein_hits.size() << std::endl;
 
           SequenceVisualizer* widget = new SequenceVisualizer();
-          widget->getData(pep_seq.toQString(), proteinAccessionArray, proteinSequenceArray); 
+          widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_start_end_pos); 
           widget->show();
       }
-      
+
+   
+     
+     
        /* if (protein_window_ != nullptr)
         {
           delete protein_window_;

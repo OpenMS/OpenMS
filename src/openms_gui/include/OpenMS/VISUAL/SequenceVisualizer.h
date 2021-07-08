@@ -25,12 +25,7 @@ namespace OpenMS
 
   public slots:
 
-    void jscallme(const QString& datafromjs);
-    void slotSendDataToJS();
-    void getData(const QString& txt,const QJsonArray& accessionArr,const QJsonArray& sequenceArr);
-
-  signals:
-    void sendDataToJS(const QString&);
+    void setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray peptides_start_end_pos);
 
   private:
     Ui::SequenceVisualizer* ui;
