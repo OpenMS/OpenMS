@@ -37,6 +37,7 @@ MatchedIterator.cpp
 Matrix.cpp
 OSWData.cpp
 Param.cpp
+ParamValue.cpp
 QTCluster.cpp
 String.cpp
 StringListUtils.cpp

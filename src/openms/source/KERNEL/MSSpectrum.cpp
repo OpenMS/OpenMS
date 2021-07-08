@@ -28,13 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 namespace OpenMS
 {
@@ -172,24 +175,25 @@ namespace OpenMS
   {
     ContainerType::clear();
 
+    clearRanges();
+    float_data_arrays_.clear();
+    string_data_arrays_.clear();
+    integer_data_arrays_.clear();
+
     if (clear_meta_data)
     {
       ContainerType::shrink_to_fit();
+      float_data_arrays_.shrink_to_fit();
+      string_data_arrays_.shrink_to_fit();
+      integer_data_arrays_.shrink_to_fit();
 
-      clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;
-      drift_time_ = -1.0;
-      drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
+      drift_time_ = IMTypes::DRIFTTIME_NOT_SET;
+      drift_time_unit_ = DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
       name_.shrink_to_fit();
-      float_data_arrays_.clear();
-      float_data_arrays_.shrink_to_fit();
-      string_data_arrays_.clear();
-      string_data_arrays_.shrink_to_fit();
-      integer_data_arrays_.clear();
-      integer_data_arrays_.shrink_to_fit();
     }
   }
 
@@ -372,27 +376,13 @@ namespace OpenMS
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+      return;
     }
-    else
-    {
-      //sort index list
-      std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-      }
-      std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
 
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+    // sort index list
+    sort([this](const Size i1, const Size i2) -> bool {
+      return this->operator[](i1).getPosition() < this->operator[](i2).getPosition();
+    });
   }
 
   void MSSpectrum::sortByIntensity(bool reverse)
@@ -410,35 +400,23 @@ namespace OpenMS
       {
         std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
       }
+      return;
+    }
+
+    // sort index list
+    if (reverse)
+    {
+      this->sort([this](const Size i1, const Size i2) -> bool 
+      {
+        return this->operator[](i2).getIntensity() < this->operator[](i1).getIntensity();
+      });
     }
     else
     {
-      // sort index list
-      std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
-      }
-
-      if (reverse)
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
-      }
-      else
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
-      }
-
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+      this->sort([this](const Size i1, const Size i2) -> bool {
+        return this->operator[](i1).getIntensity() < this->operator[](i2).getIntensity();
+      });
+    };
   }
 
   bool MSSpectrum::isSorted() const
@@ -491,7 +469,7 @@ namespace OpenMS
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
-    drift_time_unit_(MSSpectrum::DriftTimeUnit::NONE),
+    drift_time_unit_(DriftTimeUnit::NONE),
     ms_level_(1),
     name_(),
     float_data_arrays_(),
@@ -535,9 +513,14 @@ namespace OpenMS
     retention_time_ = rt;
   }
 
-  MSSpectrum::DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
+  DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
   {
     return drift_time_unit_;
+  }
+
+  String MSSpectrum::getDriftTimeUnitAsString() const
+  {
+    return NamesOfDriftTimeUnit[(size_t)drift_time_unit_];
   }
 
   void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
@@ -700,14 +683,39 @@ namespace OpenMS
     return a.getRT() < b.getRT();
   }
 
+  bool getIonMobilityArray__(const MSSpectrum::FloatDataArrays& fdas, Size& index, DriftTimeUnit& unit)
+  {
+    for (index = 0; index < fdas.size(); ++index)
+    {
+      if (IMDataConverter::getIMUnit(fdas[index], unit))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool MSSpectrum::containsIMData() const
   {
-    const auto& s = *this;
-    return (!s.getFloatDataArrays().empty() &&
-      ( s.getFloatDataArrays()[0].getName().hasPrefix("Ion Mobility") ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
-      );
+    Size index;
+    DriftTimeUnit unit;
+    return getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+  }
+
+  std::pair<Size, DriftTimeUnit> MSSpectrum::getIMData() const
+  {
+    Size index;
+    DriftTimeUnit unit;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+    
+    if (!has_IM)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Cannot get ion mobility data. No float array with the correct name available."
+                                          " Number of float arrays: " +
+                                              String(this->getFloatDataArrays().size()));
+    }
+
+    return {index, unit };
   }
 }

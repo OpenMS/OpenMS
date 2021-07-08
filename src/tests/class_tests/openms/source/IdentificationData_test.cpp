@@ -50,11 +50,15 @@ START_TEST(IdentificationData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdentificationData* ptr = 0;
-IdentificationData* null = 0;
+IdentificationData* ptr = nullptr;
+IdentificationData* null = nullptr;
 START_SECTION((IdentificationData()))
   ptr = new IdentificationData();
   TEST_NOT_EQUAL(ptr, null);
+END_SECTION
+
+START_SECTION((~IdentificationData()))
+  delete ptr;
 END_SECTION
 
 IdentificationData data;

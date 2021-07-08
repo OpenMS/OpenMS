@@ -56,9 +56,9 @@ namespace OpenMS
 
   void IDScoreSwitcherAlgorithm::updateMembers_()
   {
-    new_score_ = param_.getValue("new_score");
-    new_score_type_ = param_.getValue("new_score_type");
-    old_score_ = param_.getValue("old_score");
+    new_score_ = param_.getValue("new_score").toString();
+    new_score_type_ = param_.getValue("new_score_type").toString();
+    old_score_ = param_.getValue("old_score").toString();
     higher_better_ = (param_.getValue("new_score_orientation").toString() ==
                       "higher_better");
 

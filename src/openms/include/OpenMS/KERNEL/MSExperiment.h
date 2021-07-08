@@ -562,16 +562,13 @@ public:
     /// do any of the spectra have a peptideID?
     bool hasPeptideIdentifications() const;
 
-protected:
-
+  protected:
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
     /// Number of all data points
     UInt64 total_size_;
-
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
-
     /// spectra
     std::vector<SpectrumType> spectra_;
 

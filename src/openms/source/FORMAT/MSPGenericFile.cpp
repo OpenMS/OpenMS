@@ -64,7 +64,7 @@ namespace OpenMS
 
   void MSPGenericFile::updateMembers_()
   {
-    synonyms_separator_ = (String)param_.getValue("synonyms_separator");
+    synonyms_separator_ = param_.getValue("synonyms_separator").toString();
   }
 
   void MSPGenericFile::load(const String& filename, MSExperiment& library)
@@ -85,9 +85,9 @@ namespace OpenMS
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
-    boost::regex re_points_line("^\\d");
-    boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
-    boost::regex re_cas_nist("^CAS#: ([\\d-]+);  NIST#: (\\d+)"); // specific to NIST db
+    boost::regex re_points_line(R"(^\d)");
+    boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
+    boost::regex re_cas_nist(R"(^CAS#: ([\d-]+);  NIST#: (\d+))"); // specific to NIST db
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
 
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
@@ -160,7 +160,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "The current spectrum misses the Name information.");
       }
-      output_file << "Name: " << spectrum.getName() << std::endl;
+      output_file << "Name: " << spectrum.getName() << '\n';
       const auto& synonyms = spectrum.getMetaValue("Synon");
       if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
       {
@@ -171,12 +171,12 @@ namespace OpenMS
         while ((start = synonyms_str.find_first_not_of(separator, end)) != std::string::npos)
         {
           end = synonyms_str.find(separator, start);
-          output_file << "Synon: " << synonyms_str.substr(start, end - start) << std::endl;
+          output_file << "Synon: " << synonyms_str.substr(start, end - start) << '\n';
         }
       }
       if (spectrum.metaValueExists("CAS#") && spectrum.metaValueExists("NIST#"))
       {
-        output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << std::endl;
+        output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
       }
       // Other metadata
       const std::vector<std::string> ignore_metadata = { "Synon", "CAS#", "NIST#", "Num Peaks" };
@@ -187,23 +187,22 @@ namespace OpenMS
         const auto& value = spectrum.getMetaValue(key);
         if (std::find(ignore_metadata.begin(), ignore_metadata.end(), key) == ignore_metadata.end())
         {
-          output_file << key << ": " << value << std::endl;
+          output_file << key << ": " << value << '\n';
         }
       }
       // Peaks
-      output_file << "Num Peaks: " << spectrum.size() << std::endl;
+      output_file << "Num Peaks: " << spectrum.size() << '\n';
       int peak_counter = 0;
       for (const auto& peak : spectrum)
       {
         output_file << peak.getPos() << ":" << peak.getIntensity() << " ";
-        if ((++peak_counter % 5) == 0) output_file << std::endl;
+        if ((++peak_counter % 5) == 0) output_file << '\n';
       }
-      if ((peak_counter % 5) != 0) output_file << std::endl;
+      if ((peak_counter % 5) != 0) output_file << '\n';
       // separator
-      output_file << std::endl;
+      output_file << '\n';
     }
 
-    output_file.flush();
     output_file.close();
   }
 
@@ -256,6 +255,11 @@ namespace OpenMS
       }
 
       spectrum.removeMetaValue("is_valid");
+      if (spectrum.getRT() < 0) 
+      { // set RT to spectrum index
+        spectrum.setRT(library.getSpectra().size());
+      }
+
       library.addSpectrum(spectrum);
       loaded_spectra_names_.insert(spectrum.getName());
 

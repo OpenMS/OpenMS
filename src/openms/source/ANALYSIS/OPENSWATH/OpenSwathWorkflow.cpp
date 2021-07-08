@@ -203,7 +203,7 @@ namespace OpenMS
 
     // 5. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
-    String outlier_method = irt_detection_param.getValue("outlierMethod");
+    String outlier_method = irt_detection_param.getValue("outlierMethod").toString();
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
     {
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
@@ -289,7 +289,7 @@ namespace OpenMS
     model_params.setValue("symmetric_regression", "false");
     model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-    String model_type = irt_detection_param.getValue("alignmentMethod");
+    String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
     OPENMS_LOG_DEBUG << "Final RT mapping:" << std::endl;

@@ -79,6 +79,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file"),
     TypeNameBinding(FileTypes::MZQUANTML, "mzq", "mzQuantML file"),
     TypeNameBinding(FileTypes::QCML, "qcml", "quality control file"),
+    TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format"),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file"),
     TypeNameBinding(FileTypes::TRAML, "traML", "transition file"),
     TypeNameBinding(FileTypes::MSP, "msp", "NIST spectra library file format"),

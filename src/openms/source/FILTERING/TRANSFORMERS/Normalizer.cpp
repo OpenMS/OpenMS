@@ -42,7 +42,7 @@ namespace OpenMS
     DefaultParamHandler("Normalizer")
   {
     defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum or normalize to max. intensity of one ('to_one') per spectrum.");
-    defaults_.setValidStrings("method", ListUtils::create<String>("to_one,to_TIC"));
+    defaults_.setValidStrings("method", {"to_one","to_TIC"});
     defaultsToParam_();
   }
 
@@ -79,7 +79,7 @@ namespace OpenMS
 
   void Normalizer::updateMembers_()
   {
-    method_ = param_.getValue("method");
+    method_ = param_.getValue("method").toString();
   }
 
 }

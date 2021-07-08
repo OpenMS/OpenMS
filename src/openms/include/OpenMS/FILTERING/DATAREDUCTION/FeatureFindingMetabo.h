@@ -59,16 +59,16 @@ namespace OpenMS
   {
 public:
     /// default constructor
-    FeatureHypothesis();
+    FeatureHypothesis() = default;
 
     /// default destructor
-    ~FeatureHypothesis();
+    ~FeatureHypothesis() = default;
 
     /// copy constructor
-    FeatureHypothesis(const FeatureHypothesis&);
+    FeatureHypothesis(const FeatureHypothesis&) = default;
 
     /// assignment operator
-    FeatureHypothesis& operator=(const FeatureHypothesis& rhs);
+    FeatureHypothesis& operator=(const FeatureHypothesis& rhs) = default;
 
     // getter & setter
     Size getSize() const;
@@ -103,6 +103,9 @@ public:
     void addMassTrace(const MassTrace&);
     double getMonoisotopicFeatureIntensity(bool) const;
     double getSummedFeatureIntensity(bool) const;
+
+    /// return highest apex of all isotope traces
+    double getMaxIntensity(bool smoothed = false) const;
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;

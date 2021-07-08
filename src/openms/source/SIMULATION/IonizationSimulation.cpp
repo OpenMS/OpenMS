@@ -152,14 +152,14 @@ namespace OpenMS
   void IonizationSimulation::setDefaultParams_()
   {
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 
-    defaults_.setValue("esi:ionized_residues", ListUtils::create<String>("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization");
-    StringList valid_ionized_residues = ListUtils::create<String>("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
+    defaults_.setValue("esi:ionized_residues", std::vector<std::string>{"Arg","Lys","His"}, "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization");
+    std::vector<std::string> valid_ionized_residues = {"Ala","Cys","Asp","Glu","Phe","Gly","His","Ile","Lys","Leu","Met","Asn","Pro","Gln","Arg","Sec","Ser","Thr","Val","Trp","Tyr"};
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
-    defaults_.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1"), "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
+    defaults_.setValue("esi:charge_impurity", std::vector<std::string>{"H+:1"}, "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
 
-    defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given a certain 'charge_impurity' constraints), but no '3H+, 2H+Na+, 3Na+'", ListUtils::create<String>("advanced"));
+    defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given a certain 'charge_impurity' constraints), but no '3H+, 2H+Na+, 3Na+'", {"advanced"});
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
@@ -176,7 +176,7 @@ namespace OpenMS
 
   void IonizationSimulation::updateMembers_()
   {
-    String type = param_.getValue("ionization_type");
+    const std::string& type = param_.getValue("ionization_type");
     if (type == "ESI")
     {
       ionization_type_ = ESI;
@@ -193,14 +193,14 @@ namespace OpenMS
 
     // get basic residues from params
     basic_residues_.clear();
-    StringList basic_residues = param_.getValue("esi:ionized_residues");
-    for (StringList::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
+    const std::vector<std::string>& basic_residues = param_.getValue("esi:ionized_residues");
+    for (std::vector<std::string>::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
     {
       basic_residues_.insert(*it);
     }
 
     // parse possible ESI adducts
-    StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
+    StringList esi_charge_impurity = ListUtils::toStringList<std::string>(param_.getValue("esi:charge_impurity"));
     if (esi_charge_impurity.empty())
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
     StringList components;

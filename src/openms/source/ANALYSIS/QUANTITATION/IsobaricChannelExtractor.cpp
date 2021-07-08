@@ -163,7 +163,7 @@ namespace OpenMS
   void IsobaricChannelExtractor::setDefaultParams_()
   {
     defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
-    StringList activation_list;
+    std::vector<std::string> activation_list;
     activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this
 
@@ -177,13 +177,13 @@ namespace OpenMS
     defaults_.setMinFloat("min_precursor_intensity", 0.0);
 
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
-    defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("keep_unannotated_precursor", {"true","false"});
 
     defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
     defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in 'min_reporter_intensity'.");
-    defaults_.setValidStrings("discard_low_intensity_quantifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("discard_low_intensity_quantifications", {"true","false"});
 
     defaults_.setValue("min_precursor_purity", 0.0, "Minimum fraction of the total intensity in the isolation window of the precursor spectrum attributable to the selected precursor.");
     defaults_.setMinFloat("min_precursor_purity", 0.0);
@@ -194,7 +194,7 @@ namespace OpenMS
     defaults_.addTag("precursor_isotope_deviation", "advanced");
 
     defaults_.setValue("purity_interpolation", "true", "If set to true the algorithm will try to compute the purity as a time weighted linear combination of the precursor scan and the following scan. If set to false, only the precursor scan will be used.");
-    defaults_.setValidStrings("purity_interpolation", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("purity_interpolation", {"true","false"});
     defaults_.addTag("purity_interpolation", "advanced");
 
     defaultsToParam_();
@@ -202,7 +202,7 @@ namespace OpenMS
 
   void IsobaricChannelExtractor::updateMembers_()
   {
-    selected_activation_ = getParameters().getValue("select_activation");
+    selected_activation_ = getParameters().getValue("select_activation").toString();
     reporter_mass_shift_ = getParameters().getValue("reporter_mass_shift");
     min_precursor_intensity_ = getParameters().getValue("min_precursor_intensity");
     keep_unannotated_precursor_ = getParameters().getValue("keep_unannotated_precursor") == "true";

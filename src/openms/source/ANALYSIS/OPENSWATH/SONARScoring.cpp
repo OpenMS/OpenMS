@@ -55,9 +55,9 @@ namespace OpenMS
     defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
     defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
-    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValidStrings("dia_extraction_unit", {"Th","ppm"});
     defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
-    defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("dia_centroided", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();

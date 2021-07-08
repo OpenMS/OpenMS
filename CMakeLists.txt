@@ -230,6 +230,14 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable clang compile time profiling
+#------------------------------------------------------------------------------
+option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
+if(CLANG_TIME_TRACE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace")
+endif()
+
+#------------------------------------------------------------------------------
 # Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
 option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" ON)

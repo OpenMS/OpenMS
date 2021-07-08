@@ -85,14 +85,14 @@ namespace OpenMS
   // $        # Match the end of the line
   boost::sregex_token_iterator end;
 
-  boost::regex rx_first_number("^.*?\\[(\\d+)\\].*$");
+  boost::regex rx_first_number(R"(^.*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it1(s.begin(), s.end(), rx_first_number, 1);
   if (it1 != end)
   {
     pair.first = String(*it1++).toInt();
   }
 
-  boost::regex  rx_second_number("^.*?\\[\\d+\\].*?\\[(\\d+)\\].*$");
+  boost::regex  rx_second_number(R"(^.*?\[\d+\].*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it2(s.begin(), s.end(), rx_second_number, 1);
   if (it2 != end)
   {

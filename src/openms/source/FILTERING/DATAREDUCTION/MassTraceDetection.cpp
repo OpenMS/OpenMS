@@ -48,19 +48,19 @@ namespace OpenMS
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
       defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
-      defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
       defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
-      defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
+      defaults_.setValidStrings("quant_method", std::vector<std::string>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
       // advanced parameters
-      defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("trace_termination_criterion", ListUtils::create<String>("outlier,sample_rate"));
-      defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", {"advanced"});
+      defaults_.setValidStrings("trace_termination_criterion", {"outlier","sample_rate"});
+      defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", {"advanced"});
 
-      defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-      defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", {"advanced"});
+      defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", {"advanced"});
+      defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", {"advanced"});
 
       defaultsToParam_();
 
@@ -567,9 +567,9 @@ namespace OpenMS
       mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
+      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
 
-      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
+      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion").toString();
       trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");

@@ -39,6 +39,7 @@
 class QListWidgetItem;
 class QListWidget;
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace Ui
 {

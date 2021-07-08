@@ -350,6 +350,7 @@ namespace OpenMS
     }
   }
 
+  //  projection above the 2D area
   void Plot2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
@@ -367,7 +368,7 @@ namespace OpenMS
 
     grid_->setColumnStretch(3, 2);
 
-        if (canvas()->isMzToXAxis())
+    if (canvas()->isMzToXAxis())
     {
       projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
       projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
@@ -386,6 +387,7 @@ namespace OpenMS
     projection_box_->show();
   }
 
+  // projection on the right side of the 2D area
   void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());

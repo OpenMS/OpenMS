@@ -48,7 +48,6 @@ x    IDPosteriorErrorProbability.cpp # 300 lines PosteriorErrorProbabilityModel 
 xx   IDRipper.cpp         # TODO - not yet done on my side, needs hand-wrapping
 x    IDRTCalibration.cpp # 100 lines
 x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
-x    InspectAdapter.cpp # 750 lines
 ok   InternalCalibration.cpp
 ok   MapAlignerIdentification.cpp
 ok   MapAlignerPoseClustering.cpp
@@ -114,7 +113,6 @@ x    DeMeanderize.cpp  # 100 lines
 ok   Digestor.cpp
 ok   DigestorMotif.cpp
 x    ERPairFinder.cpp   # 400 lines
-ok   FeatureFinderSuperHirn.cpp
 n    FFEval.cpp
 n    FuzzyDiff.cpp
 ok   IDDecoyProbability.cpp
@@ -199,7 +197,6 @@ x   SeedListGenerator - Generates seed lists for feature detection. # needs more
 Protein/Peptide Identification
 
 ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
-x   InspectAdapter - Identifies MS/MS spectra using Inspect (external).
 x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
 x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
 x   OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).

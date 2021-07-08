@@ -119,7 +119,7 @@ START_SECTION((void selectFragments(std::vector< Peak1D > &selected_peaks, const
   MRMFragmentSelection mrmfs;
   Param p(mrmfs.getParameters());
   p.setValue("num_top_peaks", 1);
-  p.setValue("allowed_ion_types", ListUtils::create<String>("y"));
+  p.setValue("allowed_ion_types", std::vector<std::string>{"y"});
   mrmfs.setParameters(p);
 
   vector<Peak1D> selected_peaks;

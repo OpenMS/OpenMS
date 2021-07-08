@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iostream>
 #include <map>

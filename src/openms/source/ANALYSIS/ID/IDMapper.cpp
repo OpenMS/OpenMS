@@ -56,12 +56,12 @@ namespace OpenMS
     defaults_.setValue("mz_tolerance", mz_tolerance_, "m/z tolerance (in ppm or Da) for the matching");
     defaults_.setMinFloat("mz_tolerance", 0);
     defaults_.setValue("mz_measure", "ppm", "unit of 'mz_tolerance' (ppm or Da)");
-    defaults_.setValidStrings("mz_measure", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("mz_measure", {"ppm","Da"});
     defaults_.setValue("mz_reference", "precursor", "source of m/z values for peptide identifications");
-    defaults_.setValidStrings("mz_reference", ListUtils::create<String>("precursor,peptide"));
+    defaults_.setValidStrings("mz_reference", {"precursor","peptide"});
 
     defaults_.setValue("ignore_charge", "false", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
-    defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("ignore_charge", {"true","false"});
 
     defaultsToParam_();
   }

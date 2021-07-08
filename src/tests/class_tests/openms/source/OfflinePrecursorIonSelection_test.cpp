@@ -188,6 +188,9 @@ START_SECTION((void createProteinSequenceBasedLPInclusionList(String include, St
   TEST_EQUAL(precursors[4].getMetaValue("protein"),"P10599")
 }
 END_SECTION
+
+delete ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

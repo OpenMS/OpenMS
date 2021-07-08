@@ -65,7 +65,7 @@ namespace OpenMS
     defaults_.setValue("rt_settings:gauss_mean", -1.0, "mean of the gauss curve");
     defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
-    defaults_.setValidStrings("precursor_mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("precursor_mass_tolerance_unit", {"ppm","Da"});
     defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
@@ -245,7 +245,7 @@ namespace OpenMS
   void PrecursorIonSelectionPreprocessing::loadPreprocessing()
   {
     // first check if preprocessed db already exists
-    String path = param_.getValue("preprocessed_db_path");
+    String path = param_.getValue("preprocessed_db_path").toString();
 
     // check if file exists
     std::ifstream test(path.c_str());
@@ -313,7 +313,7 @@ namespace OpenMS
     {
 
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -612,7 +612,7 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDBWithRT_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDBWithRT_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
   }
 
@@ -636,7 +636,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -821,7 +821,7 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDB_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDB_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
 
   }
@@ -841,7 +841,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -917,7 +917,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -933,7 +933,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);

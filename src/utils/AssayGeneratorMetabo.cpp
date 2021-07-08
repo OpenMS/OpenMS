@@ -386,18 +386,16 @@ protected:
 
       // always use preprocessing: 
       // run masstrace filter and feature mapping
-      vector<FeatureMap> v_fp; // copy FeatureMap via push_back
-      KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
+      FeatureMapping::FeatureMappingInfo fm_info;
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
       algorithm.preprocessingSirius(id[file_counter],
-                                                  spectra,
-                                                  v_fp,
-                                                  fp_map_kd,
-                                                  feature_mapping);
+                                    spectra,
+                                    fm_info,
+                                    feature_mapping);
     
       // filter known_unkowns based on description (UNKNOWN) (AMS)
-      Map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
-      Map<const BaseFeature*, std::vector<size_t>> known_features;
+      std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
+      std::map<const BaseFeature*, std::vector<size_t>> known_features;
       if (!use_known_unknowns)
       {
         for (auto it = feature_ms2_spectra_map.begin(); it != feature_ms2_spectra_map.end(); ++it)
@@ -434,27 +432,32 @@ protected:
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
         SiriusMSFile::store(spectra,
-            sirius_tmp.getTmpMsFile(),
-            feature_mapping,
-            algorithm.isFeatureOnly(),
-            algorithm.getIsotopePatternIterations(),
-            algorithm.isNoMasstraceInfoIsotopePattern(),
-            v_cmpinfo);
+                            sirius_tmp.getTmpMsFile(),
+                            feature_mapping,
+                            algorithm.isFeatureOnly(),
+                            algorithm.getIsotopePatternIterations(),
+                            algorithm.isNoMasstraceInfoIsotopePattern(),
+                            v_cmpinfo);
 
         algorithm.logFeatureSpectraNumber(id[file_counter],
-            feature_mapping,
-            spectra);
+                                          feature_mapping,
+                                          spectra);
 
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
         subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
-            sirius_tmp.getTmpOutDir(),
-            executable,
-            out_csifingerid,
-            decoy_generation);
+                                               sirius_tmp.getTmpOutDir(),
+                                               executable,
+                                               out_csifingerid,
+                                               decoy_generation);
   
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
+
+        if (subdirs.empty())
+        {
+            throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
+        }
 
         // sort vector path list
         SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);

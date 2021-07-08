@@ -175,7 +175,7 @@ namespace OpenMS
         if (it.decoy_compound_ref.empty())
         {
           // add a potential decoy with the new decoy masses to the mapping
-          it.decoy_compound_ref = std::regex_replace(it.target_compound_ref, std::regex("_\\["), "_decoy_[");
+          it.decoy_compound_ref = std::regex_replace(it.target_compound_ref, std::regex(R"(_\[)"), "_decoy_[");
           std::transform(it.target_product_masses.begin(),
                          it.target_product_masses.end(),
                          std::back_inserter(it.decoy_product_masses),
@@ -245,7 +245,7 @@ namespace OpenMS
           {
             potential_decoy_transitions[i]
                 .setNativeID(std::regex_replace(potential_decoy_transitions[i].getNativeID(),
-                                                std::regex("_\\["),
+                                                std::regex(R"(_\[)"),
                                                 "_decoy_["));
             potential_decoy_transitions[i]
                 .setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);

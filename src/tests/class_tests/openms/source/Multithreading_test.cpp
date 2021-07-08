@@ -46,12 +46,12 @@
 #ifdef _OPENMP
     #include <omp.h>
 #endif
-#include <limits>
+#include <climits>
 
 ///////////////////////////
 
 using namespace OpenMS;
-using namespace Logger;
+//using namespace Logger;
 using namespace std;
 
 

@@ -178,6 +178,9 @@ namespace OpenMS
     {
       return false;
     }
+    
+    // fix legend
+    spectrum_widget_->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
     setIntensityMode(Plot1DCanvas::IM_NONE);
@@ -747,7 +750,7 @@ namespace OpenMS
 
     // clear
     painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(param_.getValue("background_color").toQString()));
+                      QColor(String(param_.getValue("background_color").toString()).toQString()));
 
     // only fill background if no layer is present
     if (getLayerCount() == 0)
@@ -770,8 +773,8 @@ namespace OpenMS
       const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
 
       // get default icon and peak color
-      QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-      QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+      QPen icon_pen = QPen(QColor(String(layer.param.getValue("icon_color").toString()).toQString()), 1);
+      QPen pen(QColor(String(layer.param.getValue("peak_color").toString()).toQString()), 1);
       pen.setStyle(peak_penstyle_[i]);
 
       // TODO option for variable pen width
@@ -901,7 +904,7 @@ namespace OpenMS
         if (tmp != spectrum.end())
         {
           PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
           item.draw(this, *painter);
         }
       }
@@ -998,7 +1001,7 @@ namespace OpenMS
       }
       const ExperimentType::PeakType& sel = spec[peak.peak];
 
-      painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
+      painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
 
       updatePercentageFactor_(layer_index);
 
@@ -1049,7 +1052,7 @@ namespace OpenMS
     QVector<qreal> dashes;
     dashes << 5 << 5 << 1 << 5;
     pen.setDashPattern(dashes);
-    pen.setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
+    pen.setColor(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()));
     painter.save();
     painter.setPen(pen);
     painter.drawLine(from, to);
@@ -1060,7 +1063,7 @@ namespace OpenMS
   {
     LayerData& layer = getLayer(layer_index);
     updatePercentageFactor_(layer_index);
-    QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
+    QColor col{ QColor(String(layer.param.getValue("annotation_color").toString()).toQString()) };
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
 
@@ -1270,18 +1273,16 @@ namespace OpenMS
     {
       return;
     }              
-
-    //determine coordinates;
-    double mz = 0.0;
-    float it = 0.0;
     // only peak data is supported here
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-    mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
-    it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
+
+    //determine coordinates;
+    double mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
+    double it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
 
     //draw text
     QStringList lines;
@@ -1409,19 +1410,19 @@ namespace OpenMS
     ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
     ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 
-    peak_color->setColor(QColor(layer.param.getValue("peak_color").toQString()));
-    icon_color->setColor(QColor(layer.param.getValue("icon_color").toQString()));
-    annotation_color->setColor(QColor(layer.param.getValue("annotation_color").toQString()));
-    bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
-    selected_color->setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
+    peak_color->setColor(QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
+    icon_color->setColor(QColor(String(layer.param.getValue("icon_color").toString()).toQString()));
+    annotation_color->setColor(QColor(String(layer.param.getValue("annotation_color").toString()).toQString()));
+    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
+    selected_color->setColor(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()));
 
     if (dlg.exec())
     {
-      layer.param.setValue("peak_color", peak_color->getColor().name());
-      layer.param.setValue("icon_color", icon_color->getColor().name());
-      layer.param.setValue("annotation_color", annotation_color->getColor().name());
-      param_.setValue("background_color", bg_color->getColor().name());
-      param_.setValue("highlighted_peak_color", selected_color->getColor().name());
+      layer.param.setValue("peak_color", peak_color->getColor().name().toStdString());
+      layer.param.setValue("icon_color", icon_color->getColor().name().toStdString());
+      layer.param.setValue("annotation_color", annotation_color->getColor().name().toStdString());
+      param_.setValue("background_color", bg_color->getColor().name().toStdString());
+      param_.setValue("highlighted_peak_color", selected_color->getColor().name().toStdString());
 
       emit preferencesChange();
     }
@@ -1437,7 +1438,6 @@ namespace OpenMS
     if (layers_.empty()) { return; }
 
     QMenu* context_menu = new QMenu(this);
-    QAction* result = nullptr;
 
     Annotations1DContainer& annots_1d = getCurrentLayer().getCurrentAnnotations();
     Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
@@ -1447,24 +1447,18 @@ namespace OpenMS
       annots_1d.selectItemAt(e->pos());
       update_(OPENMS_PRETTY_FUNCTION);
 
-      context_menu->addAction("Edit");
-      context_menu->addAction("Delete");
-      if ((result = context_menu->exec(mapToGlobal(e->pos()))))
-      {
-        if (result->text() == "Delete")
-        {
-          vector<Annotation1DItem*> as;
-          as.push_back(annot_item);
-          getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
-          annots_1d.removeSelectedItems();
-        }
-        else if (result->text() == "Edit")
-        {
+      context_menu->addAction("Edit", [&]() {
           annot_item->editText();
           getCurrentLayer().synchronizePeakAnnotations();
-        }
+          update_(OPENMS_PRETTY_FUNCTION);
+      });
+      context_menu->addAction("Delete", [&]() {
+        vector<Annotation1DItem*> as;
+        as.push_back(annot_item);
+        getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
+        annots_1d.removeSelectedItems();
         update_(OPENMS_PRETTY_FUNCTION);
-      }
+      });
     }
     else // !annot_item
     {
@@ -1475,47 +1469,94 @@ namespace OpenMS
         layer_name += " (invisible)";
       }
       context_menu->addAction(layer_name.toQString())->setEnabled(false);
+
       context_menu->addSeparator();
-      QAction* new_action = context_menu->addAction("Add label");
-      if (mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2)))
-      {
-        new_action->setEnabled(false);
-      }
-      new_action = context_menu->addAction("Add peak annotation");
+      
+      context_menu->addAction("Add label", [&]() {
+        addUserLabelAnnotation_(e->pos());
+      })->setEnabled(!(mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2))));
+
       PeakIndex near_peak = findPeakAtPosition_(e->pos());
-      if (!near_peak.isValid())
-      {
-        new_action->setEnabled(false);
-      }
-      new_action = context_menu->addAction("Add peak annotation mz");
-      if (!near_peak.isValid())
-      {
-        new_action->setEnabled(false);
-      }
+      context_menu->addAction("Add peak annotation", [&]() {
+        addUserPeakAnnotation_(near_peak);
+      })->setEnabled(near_peak.isValid());
+      
+      context_menu->addAction("Add peak annotation mz", [&]() {
+        QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
+        addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+      })->setEnabled(near_peak.isValid());
+      
       context_menu->addSeparator();
-      new_action = context_menu->addAction("Reset alignment");
-      if (!show_alignment_)
-      {
-        new_action->setEnabled(false);
-      }
+      
+      context_menu->addAction("Reset alignment", [&]() { 
+        resetAlignment();
+      })->setEnabled(show_alignment_);
+
       context_menu->addSeparator();
 
-      context_menu->addAction("Layer meta data");
+      context_menu->addAction("Layer meta data", [&]() {
+        showMetaData(true);
+      });
 
       QMenu* save_menu = new QMenu("Save");
-      save_menu->addAction("Layer");
-      save_menu->addAction("Visible layer data");
-      save_menu->addAction("As image");
+      
+      save_menu->addAction("Layer", [&]() {
+        saveCurrentLayer(false);
+      });
+
+      save_menu->addAction("Visible layer data", [&]() {
+        saveCurrentLayer(true);
+      });
+      
+      save_menu->addAction("As image", [&]() {
+        spectrum_widget_->saveAsImage();
+      });
 
       QMenu* settings_menu = new QMenu("Settings");
-      settings_menu->addAction("Show/hide grid lines");
-      settings_menu->addAction("Show/hide axis legends");
-      settings_menu->addAction("Style: Stick <--> Area");
-      settings_menu->addAction("Intensity: Absolute <--> Percent");
-      settings_menu->addAction("Show/hide ion ladder in ID view");
-      settings_menu->addAction("Show/hide automated m/z annotations");
+      
+      settings_menu->addAction("Show/hide grid lines", [&]() { 
+        showGridLines(!gridLinesShown()); 
+      });
+      
+      settings_menu->addAction("Show/hide axis legends", [&]() {
+        emit changeLegendVisibility();
+      });
+      
+      settings_menu->addAction("Style: Stick <--> Area", [&]() {
+        if (getDrawMode() != DM_PEAKS)
+        {
+          setDrawMode(DM_PEAKS);
+        }
+        else
+        {
+          setDrawMode(DM_CONNECTEDLINES);
+        }
+       });
+
+      settings_menu->addAction("Intensity: Absolute <--> Percent", [&]() {
+        if (getIntensityMode() != IM_PERCENTAGE)
+        {
+          setIntensityMode(IM_PERCENTAGE);
+        }
+        else
+        {
+          setIntensityMode(IM_SNAP);
+        } 
+      });
+
+      settings_menu->addAction("Show/hide ion ladder in ID view", [&]() {
+        setIonLadderVisible(!isIonLadderVisible());
+      });
+
+      settings_menu->addAction("Show/hide automated m/z annotations", [&]() {
+        setDrawInterestingMZs(!draw_interesting_MZs_);
+      });
+
       settings_menu->addSeparator();
-      settings_menu->addAction("Preferences");
+
+      settings_menu->addAction("Preferences", [&]() {
+        showCurrentLayerPreferences();
+      });
 
       context_menu->addMenu(save_menu);
       context_menu->addMenu(settings_menu);
@@ -1523,120 +1564,39 @@ namespace OpenMS
       // only add to context menu if there is a MS1 map
       if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
       {
-        context_menu->addAction("Switch to 2D view");
-        context_menu->addAction("Switch to 3D view");
+        context_menu->addAction("Switch to 2D view", [&]() {
+          emit showCurrentPeaksAs2D();
+        });
+        context_menu->addAction("Switch to 3D view", [&]() {
+          emit showCurrentPeaksAs3D();
+        });
       }
 
       if (getCurrentLayer().getCurrentSpectrum().containsIMData())
       {
-        context_menu->addAction("Switch to ion mobility view");
+        context_menu->addAction("Switch to ion mobility view", [&]() {
+          emit showCurrentPeaksAsIonMobility();
+        });
       }
 
       if (getCurrentLayer().isDIAData())
       {
-        context_menu->addAction("Switch to DIA-MS view");
+        context_menu->addAction("Switch to DIA-MS view", [&]() {
+          emit showCurrentPeaksAsDIA();
+        });
       }
 
-      //add external context menu
+      // add external context menu
       if (context_add_)
       {
         context_menu->addSeparator();
         context_menu->addMenu(context_add_);
       }
-
-      //evaluate menu
-      if ((result = context_menu->exec(mapToGlobal(e->pos()))))
-      {
-        if (result->text() == "Preferences")
-        {
-          showCurrentLayerPreferences();
-        }
-        else if (result->text() == "Show/hide grid lines")
-        {
-          showGridLines(!gridLinesShown());
-        }
-        else if (result->text() == "Show/hide axis legends")
-        {
-          emit changeLegendVisibility();
-        }
-        else if (result->text() == "Show/hide automated m/z annotations")
-        {
-          setDrawInterestingMZs(!draw_interesting_MZs_);
-        }
-        else if (result->text() == "Layer" || result->text() == "Visible layer data")
-        {
-          saveCurrentLayer(result->text() == "Visible layer data");
-        }
-        else if (result->text() == "As image")
-        {
-          spectrum_widget_->saveAsImage();
-        }
-        else if (result->text() == "Style: Stick <--> Area")
-        {
-          if (getDrawMode() != DM_PEAKS)
-          {
-            setDrawMode(DM_PEAKS);
-          }
-          else
-          {
-            setDrawMode(DM_CONNECTEDLINES);
-          }
-        }
-        else if (result->text() == "Intensity: Absolute <--> Percent")
-        {
-          if (getIntensityMode() != IM_PERCENTAGE)
-          {
-            setIntensityMode(IM_PERCENTAGE);
-          }
-          else
-          {
-            setIntensityMode(IM_SNAP);
-          }
-        }
-        else if (result->text() == "Layer meta data")
-        {
-          showMetaData(true);
-        }
-        else if (result->text() == "Add label")
-        {
-          addUserLabelAnnotation_(e->pos());
-        }
-        else if (result->text() == "Add peak annotation")
-        {
-          addUserPeakAnnotation_(near_peak);
-        }
-        else if (result->text() == "Add peak annotation mz")
-        {
-          QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
-          addPeakAnnotation(near_peak, label, getCurrentLayer().param.getValue("peak_color").toQString());
-        }
-        else if (result->text() == "Reset alignment")
-        {
-          resetAlignment();
-        }
-        else if (result->text() == "Switch to 2D view")
-        {
-          emit showCurrentPeaksAs2D();
-        }
-        else if (result->text() == "Switch to 3D view")
-        {
-          emit showCurrentPeaksAs3D();
-        }
-        else if (result->text() == "Switch to ion mobility view")
-        {
-          emit showCurrentPeaksAsIonMobility();
-        }
-        else if (result->text() == "Switch to DIA-MS view")
-        {
-          emit showCurrentPeaksAsDIA();
-        }
-        else if (result->text() == "Show/hide ion ladder in ID view")
-        {
-          // toggle visibility of ion ladder
-          setIonLadderVisible(!isIonLadderVisible());
-        }
-      }
     }
+
+    // evaluate menu
+    context_menu->exec(mapToGlobal(e->pos()));
+
     e->accept();
   }
 
@@ -1672,7 +1632,7 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, QColor(getCurrentLayer().param.getValue("peak_color").toQString()));
+      addPeakAnnotation(near_peak, text, QColor(String(getCurrentLayer().param.getValue("peak_color").toString()).toQString()));
     }
   }
 
@@ -1692,7 +1652,7 @@ namespace OpenMS
     const LayerData& layer = getCurrentLayer();
 
     //determine proposed filename
-    String proposed_name = param_.getValue("default_path");
+    String proposed_name = param_.getValue("default_path").toString();
     if (!visible && !layer.filename.empty())
     {
       proposed_name = layer.filename;

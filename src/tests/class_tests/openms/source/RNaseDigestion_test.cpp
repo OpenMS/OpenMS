@@ -70,6 +70,11 @@ START_SECTION((void setEnzyme(const String& enzyme_name)))
   TEST_EQUAL(rd.getEnzymeName(), "RNase_T1");
   rd.setEnzyme("cusativin");
   TEST_EQUAL(rd.getEnzymeName(), "cusativin");
+  rd.setEnzyme("mazF");
+  TEST_EQUAL(rd.getEnzymeName(), "mazF");
+  rd.setEnzyme("colicin_E5");
+  TEST_EQUAL(rd.getEnzymeName(), "colicin_E5");
+  TEST_EXCEPTION(Exception::ElementNotFound, rd.setEnzyme("NoSuchEnzyme"));
 }
 END_SECTION
 
@@ -123,6 +128,33 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[0].toString(), "CCCp");
   TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
   TEST_STRING_EQUAL(out[2].toString(), "G");
+  out.clear();
+
+  rd.setEnzyme("cusativin");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("CCCAUCCG"), out);
+  TEST_EQUAL(out.size(), 3);
+  TEST_STRING_EQUAL(out[0].toString(), "CCCp");
+  TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
+  TEST_STRING_EQUAL(out[2].toString(), "G");
+  out.clear();
+
+  rd.setEnzyme("mazF");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("A[m6A]CA[m5C]AGGACGACAAAG"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "A[m6A]CA[m5C]AGGACGp");
+  TEST_STRING_EQUAL(out[1].toString(), "ACAAAG");
+  out.clear();
+
+
+  rd.setEnzyme("colicin_E5");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("GGAUGUAAA"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "GGAUGp");  
+  TEST_STRING_EQUAL(out[1].toString(), "UAAA");  
+  out.clear();
 
   rd.setEnzyme("no cleavage");
   rd.setMissedCleavages(3);

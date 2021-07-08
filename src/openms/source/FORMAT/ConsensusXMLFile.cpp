@@ -56,20 +56,17 @@ namespace OpenMS
 
   ConsensusXMLFile::~ConsensusXMLFile() = default;
 
-  PeakFileOptions&
-  ConsensusXMLFile::getOptions()
+  PeakFileOptions& ConsensusXMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions&
-  ConsensusXMLFile::getOptions() const
+  const PeakFileOptions& ConsensusXMLFile::getOptions() const
   {
     return options_;
   }
 
-  void
-  ConsensusXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ConsensusXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
     open_tags_.pop_back();
@@ -136,21 +133,15 @@ namespace OpenMS
     }
   }
 
-  void
-  ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+  void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
   }
 
-  void
-  ConsensusXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ConsensusXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-    String tag = sm_.convert(qname);
-    String parent_tag;
-    if (!open_tags_.empty())
-    {
-      parent_tag = open_tags_.back();
-    }
-    open_tags_.push_back(tag);
+    const String& parent_tag = (open_tags_.empty() ? "" : open_tags_.back());
+    open_tags_.push_back(sm_.convert(qname));
+    const String& tag = open_tags_.back();
 
     String tmp_str;
     if (tag == "map")
@@ -183,14 +174,12 @@ namespace OpenMS
       act_cons_element_ = ConsensusFeature();
       last_meta_ = &act_cons_element_;
       // quality
-      double quality = 0.0;
-      if (optionalAttributeAsDouble_(quality, attributes, "quality"))
+      if (double quality; optionalAttributeAsDouble_(quality, attributes, "quality"))
       {
         act_cons_element_.setQuality(quality);
       }
       // charge
-      Int charge = 0;
-      if (optionalAttributeAsInt_(charge, attributes, "charge"))
+      if (Int charge; optionalAttributeAsInt_(charge, attributes, "charge"))
       {
         act_cons_element_.setCharge(charge);
       }
@@ -254,7 +243,7 @@ namespace OpenMS
             act_index_tuple.setCharge(charge);
           }
 
-          act_cons_element_.insert(act_index_tuple);
+          act_cons_element_.insert(std::move(act_index_tuple));
         }
       }
       act_cons_element_.getPosition() = pos_;
@@ -437,9 +426,7 @@ namespace OpenMS
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
 
       // coverage
-      double coverage = -std::numeric_limits<double>::max();
-      optionalAttributeAsDouble_(coverage, attributes, "coverage");
-      if (coverage != -std::numeric_limits<double>::max())
+      if (double coverage; optionalAttributeAsDouble_(coverage, attributes, "coverage"))
       {
         prot_hit_.setCoverage(coverage);
       }
@@ -466,35 +453,28 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      double tmp = 0.0;
-      optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
-      if (tmp != 0.0)
+      if (double thresh; optionalAttributeAsDouble_(thresh, attributes, "significance_threshold"))
       {
-        pep_id_.setSignificanceThreshold(tmp);
+        pep_id_.setSignificanceThreshold(thresh);
       }
 
       //score orientation
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      double tmp2 = -numeric_limits<double>::max();
-      optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<double>::max())
+      if (double mz; optionalAttributeAsDouble_(mz, attributes, "MZ"))
       {
-        pep_id_.setMZ(tmp2);
+        pep_id_.setMZ(mz);
       }
       //RT
-      tmp2 = -numeric_limits<double>::max();
-      optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<double>::max())
+      if (double rt; optionalAttributeAsDouble_(rt, attributes, "RT"))
       {
-        pep_id_.setRT(tmp2);
+        pep_id_.setRT(rt);
       }
-      String tmp3;
-      optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
-      if (!tmp3.empty())
+
+      if (String ref; optionalAttributeAsString_(ref, attributes, "spectrum_reference"))
       {
-        pep_id_.setMetaValue("spectrum_reference", tmp3);
+        pep_id_.setMetaValue("spectrum_reference", ref);
       }
 
       last_meta_ = &pep_id_;
@@ -518,7 +498,7 @@ namespace OpenMS
         accession_string.split(' ', accessions);
         if (accession_string != "" && accessions.empty())
         {
-          accessions.push_back(accession_string);
+          accessions.push_back(std::move(accession_string));
         }
 
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
@@ -528,7 +508,7 @@ namespace OpenMS
           {
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
-            peptide_evidences_.push_back(pe);
+            peptide_evidences_.push_back(std::move(pe));
           }
           else
           {
@@ -538,11 +518,10 @@ namespace OpenMS
       }
 
       //aa_before
-      String tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_before");
-      if (!tmp.empty())
+      String tmp; 
+      std::vector<String> splitted;
+      if (optionalAttributeAsString_(tmp, attributes, "aa_before"))
       {
-        std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
@@ -555,11 +534,8 @@ namespace OpenMS
       }
 
       //aa_after
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty())
+      if (optionalAttributeAsString_(tmp, attributes, "aa_after"))
       {
-        std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
@@ -572,12 +548,8 @@ namespace OpenMS
       }
 
       //start
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "start");
-
-      if (!tmp.empty())
+      if (optionalAttributeAsString_(tmp, attributes, "start"))
       {
-        std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
@@ -590,11 +562,8 @@ namespace OpenMS
       }
 
       //end
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "end");
-      if (!tmp.empty())
+      if (optionalAttributeAsString_(tmp, attributes, "end"))
       {
-        std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
@@ -613,7 +582,7 @@ namespace OpenMS
       setProgress(++progress_);
       DataProcessing tmp;
       tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, "completion_time")));
-      consensus_map_->getDataProcessing().push_back(tmp);
+      consensus_map_->getDataProcessing().push_back(std::move(tmp));
       last_meta_ = &(consensus_map_->getDataProcessing().back());
     }
     else if (tag == "software" && parent_tag == "dataProcessing")
@@ -634,8 +603,7 @@ namespace OpenMS
     }
   }
 
-  void
-  ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
+  void ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
@@ -670,7 +638,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.what() << std::endl;
       throw;
     }
 
@@ -903,8 +871,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void
-  ConsensusXMLFile::load(const String& filename, ConsensusMap& map)
+  void ConsensusXMLFile::load(const String& filename, ConsensusMap& map)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -944,8 +911,7 @@ namespace OpenMS
     map.updateRanges();
   }
 
-  void
-  ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
+  void ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
                                                 UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');

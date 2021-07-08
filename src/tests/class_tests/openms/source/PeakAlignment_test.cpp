@@ -139,6 +139,7 @@ START_SECTION((static PeakSpectrumCompareFunctor* create()))
 	PeakAlignment pa;
 	TEST_EQUAL(psf->getParameters(), pa.getParameters())
 	TEST_EQUAL(psf->getName(), pa.getName())
+	delete psf;
 }
 END_SECTION
 
@@ -148,6 +149,7 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

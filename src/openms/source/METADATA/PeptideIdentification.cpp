@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 using namespace std;
 
@@ -269,6 +271,67 @@ namespace OpenMS
     }
     return filtered;
   }
+
+  std::multimap<String, std::pair<Size, Size>>
+  PeptideIdentification::buildUIDsFromAllPepIDs(const ConsensusMap &cmap)
+  {
+    multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
+
+    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
+    //Iterates of the vector of PeptideIdentification to build the UID
+    //and the pep_index
+    auto lamda = [](const vector<PeptideIdentification> &cpep_ids,
+                    const map<String, StringList> &identifier_to_msrunpath,
+                    multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
+                    const Size &cf_index) {
+        Size pep_index = 0;
+        for (const PeptideIdentification &cpep_id : cpep_ids)
+        {
+          std::pair<Size, Size> index = {cf_index, pep_index};
+          auto uid = buildUIDFromPepID(cpep_id, identifier_to_msrunpath);
+          customID_to_cpepID.insert(make_pair(uid, index));
+          ++pep_index;
+        }
+    };
+    //Build the multimap of all UIDs from the ConsensusMap
+    //The multimap maps the UID of the PeptideIdentification to all occurrences in the ConsensusMap
+    //An occurrence is described as a pair of an index of the ConsensusFeature and the PeptideIdentification
+    for (Size i = 0; i < cmap.size(); ++i)
+    {
+      lamda(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, i);
+    }
+    //all unassigned PeptideIdentifications get -1 for the ConsensusFeature index
+    lamda(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, -1);
+
+    return customID_to_cpepID;
+  }
+
+  String PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,
+                                                  const std::map<String, StringList> &fidentifier_to_msrunpath)
+  {
+    if (!pep_id.metaValueExists("spectrum_reference"))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Spectrum reference missing at PeptideIdentification.");
+    }
+    String UID;
+    const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
+    if (ms_run_path.size() == 1)
+    {
+      UID = ms_run_path[0] + '|' + pep_id.getMetaValue("spectrum_reference").toString();
+    }
+    else if (pep_id.metaValueExists("map_index"))
+    {
+      UID = pep_id.getMetaValue("map_index").toString() + '|' +
+            pep_id.getMetaValue("spectrum_reference").toString();
+    }
+    else
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple files in a run, but no map_index in PeptideIdentification found.");
+    }
+    return UID;
+  }
+
   
 } // namespace OpenMS
-

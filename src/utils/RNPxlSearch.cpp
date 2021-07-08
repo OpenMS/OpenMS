@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
@@ -47,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>

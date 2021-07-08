@@ -2945,9 +2945,8 @@ Not sure how to handle these:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = sp.db;
-      db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
+      String db_basename = File::basename(sp.db);
+      db_ = MzTabString(FileHandler::stripExtension(db_basename));
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
     }
 
@@ -3494,9 +3493,9 @@ state0:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = sp.db;
-      db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
+      String db_basename = File::basename(sp.db);
+      db_ = MzTabString(FileHandler::stripExtension(db_basename));
+
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
 
       ////////////////////////////////////////////////////////////////

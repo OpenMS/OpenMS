@@ -1,3 +1,5 @@
+
+
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
@@ -19,15 +21,24 @@ Adapters/Third-party support:
 - Added basic Triqler export
 - ParamEditor with more convenient StringList editing  (#5135)
 - TOPPAS: add a `recent files` submenu
+- removed InspectAdapter
+
+What's new:
+- Add some support for integrating spectral information when conducting DDA metabolomics experiments
 
 Further fixes:
 - support for GLPK 5.x (#5127)
+- IPF: add a check for terminal residue modification when generating theoretical peptidoforms
 
 File formats:
 - Exporter for MSP files
 
 Dependencies:
 - Promoted SeqAn v1 to C17. Moved from contrib to main source tree as it is not officially maintained anymore.
+
+Library:
+- removed SuperHirn library
+- Hard-coded elements for better performance/startup times. Removed Elements.xml 
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
@@ -86,6 +97,7 @@ Various:
 - Some further clarifications, standardization/consolidation of outputs formats/consistency
 - Continued fixes/improvement of documentation
 - Removed deprecated version of PeakPickerHiRes (LowMemPeakPickerHiResRandomAccess and LowMemPeakPickerHiRes). Their functionality can be accessed through options of PeakPickerHiRes
+- moved the config storage location for unix installations to comply with X Display Group (freedesktop.org) guidelines.
 
 
 ------------------------------------------------------------------------------------------

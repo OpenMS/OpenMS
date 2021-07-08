@@ -48,11 +48,11 @@ namespace OpenMS
   {
     defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
-    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideNTerm", {"true","false"});
 
-    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideCTerm", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -60,7 +60,7 @@ namespace OpenMS
 
   void MRMDecoy::updateMembers_()
     {
-    keep_const_pattern_ = param_.getValue("non_shuffle_pattern");
+    keep_const_pattern_ = param_.getValue("non_shuffle_pattern").toString();
     keepN_ = param_.getValue("keepPeptideNTerm").toBool();
     keepC_ = param_.getValue("keepPeptideCTerm").toBool();
   }

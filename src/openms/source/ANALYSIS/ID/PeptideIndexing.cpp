@@ -53,14 +53,15 @@ using namespace std;
     defaults_.setValidStrings("decoy_string_position", { "prefix", "suffix" });
 
     defaults_.setValue("missing_decoy_action", names_of_missing_decoy[(Size)MissingDecoy::IS_ERROR], "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
-    defaults_.setValidStrings("missing_decoy_action", StringList(names_of_missing_decoy.begin(), names_of_missing_decoy.end()));
+    defaults_.setValidStrings("missing_decoy_action", std::vector<std::string>(names_of_missing_decoy.begin(), names_of_missing_decoy.end()));
 
     defaults_.setValue("enzyme:name", AUTO_MODE, "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input");
 
     StringList enzymes{};
     ProteaseDB::getInstance()->getAllNames(enzymes);
     enzymes.emplace(enzymes.begin(), AUTO_MODE); // make it the first item
-    defaults_.setValidStrings("enzyme:name", enzymes);
+
+    defaults_.setValidStrings("enzyme:name", ListUtils::create<std::string>(enzymes));
 
     defaults_.setValue("enzyme:specificity", AUTO_MODE, "Specificity of the enzyme. Default: deduce from input."
       "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL] + "': both internal cleavage sites must match."
@@ -82,7 +83,7 @@ using namespace std;
     defaults_.setValidStrings("keep_unreferenced_proteins", { "true", "false" });
 
     defaults_.setValue("unmatched_action", names_of_unmatched[(Size)Unmatched::IS_ERROR], "If peptide sequences cannot be matched to any protein: 1) raise an error; 2) warn (unmatched PepHits will miss target/decoy annotation with downstream problems); 3) remove the hit.");
-    defaults_.setValidStrings("unmatched_action", StringList(names_of_unmatched.begin(), names_of_unmatched.end()));
+    defaults_.setValidStrings("unmatched_action", std::vector<std::string>(names_of_unmatched.begin(), names_of_unmatched.end()));
 
     defaults_.setValue("aaa_max", 3, "Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are B, J, Z and X!");
     defaults_.setMinInt("aaa_max", 0);
@@ -105,11 +106,11 @@ using namespace std;
 
   void PeptideIndexing::updateMembers_()
   {
-    decoy_string_ = static_cast<String>(param_.getValue("decoy_string"));
+    decoy_string_ = param_.getValue("decoy_string").toString();
     prefix_ = (param_.getValue("decoy_string_position") == "prefix" ? true : false);
     missing_decoy_action_ = (MissingDecoy)Helpers::indexOf(names_of_missing_decoy, param_.getValue("missing_decoy_action"));
-    enzyme_name_ = static_cast<String>(param_.getValue("enzyme:name"));
-    enzyme_specificity_ = static_cast<String>(param_.getValue("enzyme:specificity"));
+    enzyme_name_ = param_.getValue("enzyme:name").toString();
+    enzyme_specificity_ = param_.getValue("enzyme:specificity").toString();
 
     write_protein_sequence_ = param_.getValue("write_protein_sequence").toBool();
     write_protein_description_ = param_.getValue("write_protein_description").toBool();

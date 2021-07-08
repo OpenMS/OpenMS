@@ -35,18 +35,12 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <regex>
+
 using namespace std;
 
 namespace OpenMS
 {
-  IDFilter::IDFilter()
-  {
-  }
-
-  IDFilter::~IDFilter()
-  {
-  }
-
 
   struct IDFilter::HasMinPeptideLength
   {
@@ -671,6 +665,23 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::removePeptidesWithMatchingRegEx(
+    vector<PeptideIdentification>& peptides,
+    const String& regex)
+  {
+    const std::regex re(regex);
+
+    // true if regex matches to parts or entire unmodified sequence
+    auto regex_matches = [&re](const PeptideHit& ph) -> bool
+      { 
+        return std::regex_search(ph.getSequence().toUnmodifiedString(), re);
+      };
+
+    for (auto& pep : peptides)
+    {
+      removeMatchingItems(pep.getHits(), regex_matches);
+    }
+  }
 
   void IDFilter::keepPeptidesWithMatchingModifications(
     vector<PeptideIdentification>& peptides,

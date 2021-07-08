@@ -134,7 +134,7 @@ namespace OpenMS
     /**
     @brief Extract columnname and index based in SIRIUS entries
     */
-    static std::map< String, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+    static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
 
     /**
      @brief Extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file

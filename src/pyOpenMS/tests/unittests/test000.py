@@ -224,6 +224,16 @@ def testAASequence():
     # has selenocysteine
     assert seq.getResidue(1) is not None
     assert seq.size() == 16
+
+    # test exception forwarding from C++ to python
+    # classes derived from std::runtime_exception can be caught in python
+    try:
+        seq.getResidue(1000) # does not exist
+    except RuntimeError:
+        print("Exception successfully triggered.")
+    else:
+        print("Error: Exception not triggered.")
+        assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
@@ -1471,32 +1481,6 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-     FeatureFinderAlgorithmSH.getDefaults
-     FeatureFinderAlgorithmSH.getName
-     FeatureFinderAlgorithmSH.getParameters
-     FeatureFinderAlgorithmSH.getProductName
-     FeatureFinderAlgorithmSH.setName
-     FeatureFinderAlgorithmSH.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -1797,17 +1781,6 @@ def testFeatureFinderAlgorithmPicked():
 
     assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-
-    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
 
 @report
 def testFeatureFinderAlgorithmIsotopeWavelet():
@@ -5412,3 +5385,5 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
+
+    

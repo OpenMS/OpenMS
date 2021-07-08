@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 
 bool intentionally_failed_tests_okay = true;
@@ -842,8 +844,12 @@ END_SECTION
 
 START_SECTION("ABORT_IF")
 	TEST_EQUAL(1, 1)
-	ABORT_IF(true)
-	TEST_EQUAL(1, 0)
+	while (true)
+  {
+    ABORT_IF(true) // will 'break;' internally, but we do not want to leave the test
+	}
+  FAILURE_IS_SUCCESS;			 	
+	
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR : type checking")

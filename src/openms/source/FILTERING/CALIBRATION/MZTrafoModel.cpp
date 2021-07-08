@@ -313,7 +313,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& /*e*/)
     {
-      //OPENMS_LOG_ERROR << "Exception during model fitting: " << e.getMessage() << std::endl;
+      //OPENMS_LOG_ERROR << "Exception during model fitting: " << e.what() << std::endl;
       return false;
     }
   }

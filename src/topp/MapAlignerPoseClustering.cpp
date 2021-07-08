@@ -144,6 +144,11 @@ protected:
     algorithm.setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
+    if (in_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerPoseClustering." << std::endl;
+    }
+    
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
 

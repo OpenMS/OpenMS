@@ -444,14 +444,15 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-
-      Map<char, int> aacids; // required for default construction of non-existing keys
-      size_t number_of_aacids = 0;
+      file.setLogType(log_type_);
 
       SysInfo::MemUsage mu;
       // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
+
+      Map<char, int> aacids;// required for default construction of non-existing keys
+      size_t number_of_aacids = 0;
 
       Size dup_header(0);
       Size dup_seq(0);

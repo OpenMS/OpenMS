@@ -37,12 +37,12 @@
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QScrollBar>
 #include <QCloseEvent>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
 #include <QtCore/QMimeData>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QScrollBar>
 
 using namespace std;
 
@@ -231,7 +231,7 @@ namespace OpenMS
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
     y_scrollbar_->hide();
-    QPixmap pixmap = QPixmap::grabWidget(this);
+    QPixmap pixmap = this->grab();
     x_scrollbar_->setVisible(x_visible);
     y_scrollbar_->setVisible(y_visible);
     pixmap.save(file_name);

@@ -403,7 +403,7 @@ protected:
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
       model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-      String model_type = irt_detection_param.getValue("alignmentMethod");
+      String model_type = irt_detection_param.getValue("alignmentMethod").toString();
       trafo_rtnorm.fitModel(model_type, model_params);
     }
     else if (!irt_tr_file.empty())

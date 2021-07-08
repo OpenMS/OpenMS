@@ -45,13 +45,13 @@ using namespace std;
 
 int SiriusMzTabWriter::extractScanIndex(const String& path)
 {
-  boost::regex regexp_ind("--(?<SCAN>\\d+)--");
+  boost::regex regexp_ind(R"(--(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp_ind, false);
 }
 
 int SiriusMzTabWriter::extractScanNumber(const String& path)
 {
-  boost::regex regexp("-(?<SCAN>\\d+)--");
+  boost::regex regexp(R"(-(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp, false);
 }
 
@@ -59,7 +59,7 @@ String SiriusMzTabWriter::extractFeatureId(const String& path)
 {
   boost::smatch match;
   String feature_id;
-  boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+  boost::regex regexp_feature(R"(_(?<SCAN>\d+)-)");
   bool found = boost::regex_search(path, match, regexp_feature);
   if (found && match["SCAN"].matched) 
   {
@@ -72,10 +72,10 @@ String SiriusMzTabWriter::extractFeatureId(const String& path)
   return feature_id;
 }
 
-std::map< String, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(CsvFile& csvfile)
+std::map< std::string, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(CsvFile& csvfile)
 {
   StringList header_row;
-  std::map< String, Size > columnname_to_columnindex;
+  std::map< std::string, Size > columnname_to_columnindex;
   csvfile.getRow(0, header_row);
 
   for (size_t i = 0; i < header_row.size(); i++)
@@ -163,7 +163,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         // extract feature_id from string
         String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
-        std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
+        std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
 
         // formula	adduct	precursorFormula	rank	rankingScore	IsotopeScore	TreeScore	siriusScore	explainedPeaks	explainedIntensity
         // j = 1 because of .csv file format (header)
@@ -205,7 +205,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("Sirius-4.6.0");
+        md.description = MzTabString("Sirius-4.8.2");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;

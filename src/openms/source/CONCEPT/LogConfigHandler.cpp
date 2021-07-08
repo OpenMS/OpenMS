@@ -86,7 +86,7 @@ namespace OpenMS
   {
     Param p;
     String suffix = " FILE";
-    StringList commands;
+    std::vector<std::string> commands;
     for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
     {
       // split by " " to get all keywords
@@ -112,7 +112,7 @@ namespace OpenMS
 
   void LogConfigHandler::configure(const Param & param)
   {
-    StringList configurations = param.getValue(LogConfigHandler::PARAM_NAME);
+    StringList configurations = ListUtils::toStringList<std::string>(param.getValue(LogConfigHandler::PARAM_NAME));
 
     for (StringList::const_iterator iter = configurations.begin(); iter != configurations.end(); ++iter)
     {

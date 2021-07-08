@@ -85,7 +85,7 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = it->value.toQString();
+      QString filename = String(it->value.toString()).toQString();
       if (File::exists(filename))
       {
         rfiles.append(filename);
@@ -102,7 +102,7 @@ namespace OpenMS
     int i{ 0 };
     for (const auto& f : recent_files_)
     {
-      p.setValue(String(i), f);
+      p.setValue(String(i), f.toStdString());
       ++i;
     }
     return p;

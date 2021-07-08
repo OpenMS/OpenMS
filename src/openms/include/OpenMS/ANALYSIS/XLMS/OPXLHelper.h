@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <numeric>
 
 namespace OpenMS

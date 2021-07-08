@@ -67,8 +67,8 @@ namespace OpenMS
   {
     params.clear();
 
-    params.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", ListUtils::create<String>("advanced"));
-    params.setValidStrings("flag_or_filter", ListUtils::create<String>("flag,filter"));
+    params.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", {"advanced"});
+    params.setValidStrings("flag_or_filter", {"flag","filter"});
   }
 
   void MRMFeatureFilter::updateMembers_()

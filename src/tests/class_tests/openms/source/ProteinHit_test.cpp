@@ -67,7 +67,6 @@ START_SECTION(ProteinHit())
 END_SECTION
 
 START_SECTION(~ProteinHit())
-	ptr = new ProteinHit();	
   delete ptr;
 END_SECTION
 

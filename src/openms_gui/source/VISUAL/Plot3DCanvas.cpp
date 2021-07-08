@@ -207,14 +207,14 @@ namespace OpenMS
     MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
     QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
 
-    bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
+    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
     width->setValue(UInt(layer.param.getValue("dot:line_width")));
 
     if (dlg.exec())
     {
-      param_.setValue("background_color", bg_color->getColor().name());
+      param_.setValue("background_color", bg_color->getColor().name().toStdString());
       layer.param.setValue("dot:shade_mode", shade->currentIndex());
       layer.param.setValue("dot:gradient", gradient->gradient().toString());
       layer.param.setValue("dot:line_width", width->value());
@@ -308,7 +308,7 @@ namespace OpenMS
     const LayerData & layer = getCurrentLayer();
 
     //determine proposed filename
-    String proposed_name = param_.getValue("default_path");
+    String proposed_name = param_.getValue("default_path").toString();
     if (visible == false && layer.filename != "")
     {
       proposed_name = layer.filename;

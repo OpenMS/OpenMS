@@ -50,12 +50,10 @@
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -188,9 +186,7 @@ private:
       FileHandler().loadExperiment(filename, expmap);
       lookup.readSpectra(expmap.getSpectra());
 
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
       for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
       {
         try
@@ -201,9 +197,7 @@ private:
         }
         catch (Exception::ElementNotFound&)
         {
-#ifdef _OPENMP
 #pragma omp critical (IDFileConverter_ERROR)
-#endif
           {
             OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
@@ -220,7 +214,7 @@ protected:
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
-    p.setValidStrings("enzyme", all_enzymes);
+    p.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
     p.setValue("missed_cleavages", 0, "Number of allowed missed cleavages while digesting the fasta proteins");
     p.setValue("min_charge", 1, "Minimum charge");
     p.setValue("max_charge", 1, "Maximum charge");
@@ -282,6 +276,14 @@ protected:
     const String in = getStringOption_("in");
     const String mz_file = getStringOption_("mz_file");
 
+    const String out = getStringOption_("out");
+    FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
     ProgressLogger logger;
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
@@ -314,7 +316,7 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -360,7 +362,7 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
@@ -382,7 +384,7 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
+          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
@@ -590,8 +592,6 @@ protected:
       else if (in_type == FileTypes::FASTA)
       {
         // handle out type
-        const String out = getStringOption_("out");
-        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
         if (out_type != FileTypes::MZML)
         {
           writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
@@ -604,7 +604,7 @@ protected:
 
         // extract parameters and remove non tsg params
         Param p = getParam_().copy("fasta_to_mzml:", true);
-        String enzyme = p.getValue("enzyme");
+        String enzyme = p.getValue("enzyme").toString();
         Int mc = p.getValue("missed_cleavages");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
@@ -686,18 +686,6 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    const String out = getStringOption_("out");
-    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      out_type = fh.getTypeByFileName(out);
-    }
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      writeLog_("Error: Could not determine output file type!");
-      return PARSE_ERROR;
-    }
-
     logger.startProgress(0, 1, "Storing...");
 
     if (out_type == FileTypes::PEPXML)

@@ -95,7 +95,6 @@ protected:
 
     /// reads the header information and stores it as metainfo in the spectrum
     void parseHeader_(const String & header, PeakSpectrum & spec);
-
   };
 
 } // namespace OpenMS

@@ -68,6 +68,7 @@ START_SECTION((static BaseGroupFinder* create()))
   BaseGroupFinder* base_nullPointer = nullptr;
 	base_ptr = LabeledPairFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
+  delete base_ptr;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

@@ -136,7 +136,7 @@ protected:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
       MSDataWritingConsumer(std::move(filename)),
-      ms_levels_(pp.getParameters().getValue("ms_levels").toIntList())
+      ms_levels_(pp.getParameters().getValue("ms_levels").toIntVector())
     {
       pp_ = pp;
     }

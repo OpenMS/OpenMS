@@ -129,26 +129,26 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load(add_paramfile, additional_parameters);
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
-      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+      border_length = ((String)additional_parameters.getValue("border_length").toString()).toInt();
+      if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
-      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+      k_mer_length = ((String)additional_parameters.getValue("k_mer_length").toString()).toInt();
 
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+      if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }
 
-      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+      sigma = ((String)additional_parameters.getValue("sigma").toString()).toFloat();
     }
 
     if (File::readable(dt_model_file_))
@@ -230,7 +230,7 @@ namespace OpenMS
   void DetectabilitySimulation::setDefaultParams_()
   {
     defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
-    defaults_.setValidStrings("dt_simulation_on", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("dt_simulation_on", {"true","false"});
     defaults_.setValue("min_detect", 0.5, "Minimum peptide detectability accepted. Peptides with a lower score will be removed");
     defaults_.setValue("dt_model_file", "examples/simulation/DTPredict.model", "SVM model for peptide detectability prediction");
     defaultsToParam_();
@@ -239,7 +239,7 @@ namespace OpenMS
   void DetectabilitySimulation::updateMembers_()
   {
     min_detect_ = param_.getValue("min_detect");
-    dt_model_file_ = param_.getValue("dt_model_file");
+    dt_model_file_ = param_.getValue("dt_model_file").toString();
     if (!File::readable(dt_model_file_)) // look in OPENMS_DATA_PATH
     {
       dt_model_file_ = File::find(dt_model_file_);

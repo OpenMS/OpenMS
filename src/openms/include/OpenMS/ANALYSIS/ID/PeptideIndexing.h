@@ -212,6 +212,12 @@ public:
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
+      if ((enzyme_name_ == "Chymotrypsin" || enzyme_name_ == "Chymotrypsin/P" || enzyme_name_ == "TrypChymo")
+        && IL_equivalent_)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+         "The used enzyme " + enzyme_name_ + "differentiates between I and L, therefore the IL_equivalent option cannot be used.");
+      }
       // no decoy string provided? try to deduce from data
       if (decoy_string_.empty())
       {
@@ -249,23 +255,23 @@ public:
         enzyme.setEnzyme("Trypsin");
       } 
 
-      bool xtandem_fix_parameters = true;
-      bool msgfplus_fix_parameters = true;
+      bool xtandem_fix_parameters = false;
+      bool msgfplus_fix_parameters = false;
 
-      // determine if search engine is solely xtandem or MSGFPlus
+      // determine if at least one search engine was xtandem or MSGFPlus to enable special rules
       for (const auto& prot_id : prot_ids)
       {
         String search_engine = prot_id.getOriginalSearchEngineName();
         StringUtils::toUpper(search_engine);
         OPENMS_LOG_INFO << "Peptide identification engine: " << search_engine << std::endl;
-        if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
-        if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+")) { msgfplus_fix_parameters = false; }
+        if (search_engine == "XTANDEM" || prot_id.getSearchParameters().metaValueExists("SE:XTandem")) { xtandem_fix_parameters = true; }
+        if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
       }
 
-      // solely MSGFPlus -> Trypsin/P as enzyme
+      // including MSGFPlus -> Trypsin/P as enzyme
       if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
       {
-        OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
+        OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to cope with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
       }
 
@@ -749,7 +755,7 @@ public:
 
       if ((stats_count_m_d + stats_count_m_td) == 0)
       {
-        String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
+        String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + decoy_string_ + ") and 'decoy_string_position' (=" + std::string(param_.getValue("decoy_string_position")) + ") settings correct?");
         if (missing_decoy_action_ == MissingDecoy::IS_ERROR)
         {
           OPENMS_LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
