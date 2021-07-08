@@ -55,15 +55,13 @@ namespace OpenMS
       }
 
       UInt max_int = *max_element(result.intensities.begin(), result.intensities.end());
-      for (const auto& i : result.intensities)
+
+      for (const auto& i: result.intensities)
       {
-        if (i == 0)
-        {
-          result.relative_intensities.push_back(0);
-        } else
+        if (max_int != 0)
         {
           result.relative_intensities.push_back((double)i / max_int * 100);
-        }
+        } else result.relative_intensities.push_back(0.0); 
       }
 
       result.area = result.intensities[0];

@@ -57,12 +57,20 @@ namespace OpenMS
     /// Destructor
     virtual ~IdentificationSummary() = default;
 
+    // small struct for unique peptide / protein identifications (considering sequence only)
+    // count: number of unique identifiecations, fdr_threshold: significance threshold if score type is FDR, else -1
+    struct OPENMS_DLLAPI UniqueID
+    {
+      UInt count = 0;
+      float fdr_threshold = -1.0;
+    };
+    
     // stores identification summary values calculated by compute function
     struct OPENMS_DLLAPI Result
     {
       UInt peptide_spectrum_matches = 0;
-      std::tuple<UInt, float> unique_peptides = {0, 0.0};
-      std::tuple<UInt, float> unique_proteins = {0, 0.0};
+      UniqueID unique_peptides;
+      UniqueID unique_proteins;
       float missed_cleavages_mean = 0;
       double protein_hit_scores_mean = 0;
       double peptide_length_mean = 0;
@@ -84,8 +92,8 @@ namespace OpenMS
             identified peptide lengths mean (peptide_length_mean)
 
     **/
-    Result compute(const std::vector<ProteinIdentification>& prot_ids,
-                   const std::vector<PeptideIdentification>& pep_ids);
+    Result compute(std::vector<ProteinIdentification>& prot_ids,
+                   std::vector<PeptideIdentification>& pep_ids);
 
     const String& getName() const override;
 

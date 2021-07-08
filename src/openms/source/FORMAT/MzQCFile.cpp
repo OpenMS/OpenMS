@@ -145,7 +145,7 @@ namespace OpenMS
     if (tic.isRunnable(status))
     {
       // complete TIC (all ms levels) with area
-      auto result = tic.compute(exp,0,0);
+      auto result = tic.compute(exp, 0, 0);
       if (!result.intensities.empty())
       {
         json chrom;
@@ -171,7 +171,7 @@ namespace OpenMS
         addMetric("QC:4000173", result.fall);
       }
       // MS2
-      result = tic.compute(exp,0,2);
+      result = tic.compute(exp, 0, 2);
       if (!result.intensities.empty())
       {
         json chrom;
@@ -207,13 +207,13 @@ namespace OpenMS
       // Total number of PSM
       addMetric("QC:4000186", result.peptide_spectrum_matches);
       // Number of identified peptides at given FDR threshold
-      addMetric("QC:4000187", result.unique_peptides);
+      addMetric("QC:4000187", make_tuple(result.unique_peptides.count, result.unique_peptides.fdr_threshold));
       // Identified peptide lengths - mean
       addMetric("QC:4000214", result.peptide_length_mean);
       // Missed cleavages - mean
       addMetric("QC:4000209", result.missed_cleavages_mean);
       // Number of identified proteins at given FDR threshold
-      addMetric("QC:4000185", result.unique_proteins);
+      addMetric("QC:4000185", make_tuple(result.unique_proteins.count, result.unique_proteins.fdr_threshold));
       // Identification score mean (of protein hits)
       addMetric("QC:4000204", result.protein_hit_scores_mean);
     }
