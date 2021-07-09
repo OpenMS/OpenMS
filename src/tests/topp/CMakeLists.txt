@@ -3114,6 +3114,6 @@ add_test("UTILS_QCCalculator_1_out" ${DIFF} -in1 QCCalculator_1.qcML -in2 ${DATA
 set_tests_properties("UTILS_QCCalculator_1_out" PROPERTIES DEPENDS "UTILS_QCCalculator_1")
 
 # test for mzQC file export
-add_test("UTILS_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out QCCalculator_2.mzQC)
+add_test("UTILS_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out QCCalculator_2.mzQC -feature ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML -id ${DATA_DIR_TOPP}/OpenPepXL_output.idXML)
 add_test("UTILS_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" -in1 QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)
 set_tests_properties("UTILS_QCCalculator_2_out" PROPERTIES DEPENDS "UTILS_QCCalculator_2")

@@ -1,6 +1,6 @@
 {
   "mzQC": {
-    "creationDate": "2021-04-14T12:11:57",
+    "creationDate": "2021-07-09T15:03:32",
     "version": "1.0.0",
     "contactName": "name",
     "contactAddress": "address",
@@ -11,7 +11,7 @@
           "label": "label",
           "inputFiles": [
             {
-              "location": "/home/axel/Development/OpenMS/src/tests/topp/QCCalculator_input.mzML",
+              "location": "/home/axel/dev/OpenMS/src/tests/topp/QCCalculator_input.mzML",
               "name": "QCCalculator_input.mzML",
               "fileFormat": {
                 "accession": "MS:10000584",
@@ -79,9 +79,32 @@
             "name": "Total ion current chromatogram",
             "value": {
               "Relative intensity": [
-                0,
-                120,
-                120
+                0.0,
+                100.0,
+                100.0,
+                91.66666412353516
+              ],
+              "Retention time": [
+                -1.0,
+                42.04999923706055,
+                353.42999267578125,
+                359.42999267578125
+              ]
+            }
+          },
+          {
+            "accession": "QC:4000077",
+            "name": "Area under TIC",
+            "value": 350
+          },
+          {
+            "accession": "QC:4000069",
+            "name": "MS1 Total ion current chromatogram",
+            "value": {
+              "Relative intensity": [
+                0.0,
+                100.0,
+                100.0
               ],
               "Retention time": [
                 -1.0,
@@ -89,11 +112,6 @@
                 353.42999267578125
               ]
             }
-          },
-          {
-            "accession": "QC:4000077",
-            "name": "Area under TIC",
-            "value": 240
           },
           {
             "accession": "QC:4000172",
@@ -104,6 +122,64 @@
             "accession": "QC:4000173",
             "name": "MS1 signal fall (10x) count",
             "value": 0
+          },
+          {
+            "accession": "QC:4000070",
+            "name": "MS2 Total ion current chromatogram",
+            "value": {
+              "Relative intensity": [
+                100.0
+              ],
+              "Retention time": [
+                359.42999267578125
+              ]
+            }
+          },
+          {
+            "accession": "QC:4000257",
+            "name": "Detected Compounds",
+            "value": 6
+          },
+          {
+            "accession": "QC:4000262",
+            "name": "Retention time mean shift",
+            "value": 0.9166780114173889
+          },
+          {
+            "accession": "QC:4000186",
+            "name": "Total number of PSM",
+            "value": 12
+          },
+          {
+            "accession": "QC:4000187",
+            "name": "Number of identified peptides",
+            "value": [
+              4,
+              -1.0
+            ]
+          },
+          {
+            "accession": "QC:4000214",
+            "name": "Identified peptide lengths - mean",
+            "value": 14.5
+          },
+          {
+            "accession": "QC:4000209",
+            "name": "Missed cleavages - mean",
+            "value": 1.0
+          },
+          {
+            "accession": "QC:4000185",
+            "name": "Number of identified proteins",
+            "value": [
+              5,
+              -1.0
+            ]
+          },
+          {
+            "accession": "QC:4000204",
+            "name": "Identification score - mean",
+            "value": 0.0
           }
         ]
       }
