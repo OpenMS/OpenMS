@@ -103,9 +103,9 @@ namespace OpenMS
     {
       result.unique_peptides.fdr_threshold = pep_ids.front().getSignificanceThreshold();
     }
-    if (pep_ids.front().getScoreType() == "FDR")
+    if (prot_ids.front().getScoreType() == "FDR")
     {
-      result.unique_peptides.fdr_threshold = pep_ids.front().getSignificanceThreshold();
+      result.unique_proteins.fdr_threshold = prot_ids.front().getSignificanceThreshold();
     }
     return result;
   }
