@@ -48,6 +48,7 @@ namespace OpenMS
     IdentificationSummary::Result result;
     set<String> peptides;
     set<String> proteins;
+
     // PSMs and collect unique peptides in set
     for (const auto& pep_id : pep_ids)
     {
@@ -55,10 +56,8 @@ namespace OpenMS
       {
         result.peptide_spectrum_matches += 1;
         const auto& temp_hits = pep_id.getHits();
-        for (const auto& temp_hit : temp_hits)
-        {
-          peptides.insert(temp_hit.getSequence().toUnmodifiedString());
-        }
+        if (temp_hits.empty()) continue;
+        peptides.insert(temp_hits[0].getSequence().toUnmodifiedString());
       }
     }
     // get sum of all peptide length for mean calculation
@@ -95,7 +94,7 @@ namespace OpenMS
         protein_hit_scores_sum += temp_hit.getScore();
       }
     }
-    result.protein_hit_scores_mean = protein_hit_scores_sum/protein_hit_count;
+    result.protein_hit_scores_mean = protein_hit_scores_sum / protein_hit_count;
     // unique peptides and proteins with their significance threshhold (always the same in idXML file)
     // get significance threshhold if score type is FDR, else -1
     result.unique_peptides.count = peptides.size();

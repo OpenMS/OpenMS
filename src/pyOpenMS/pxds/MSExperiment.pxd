@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
         libcpp_vector[MSSpectrum].iterator end() nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
-        MSChromatogram getTIC() nogil except + # wrap-doc:Return the total ion chromatogram
+        MSChromatogram calculateTIC() nogil except + # wrap-doc:Return the total ion chromatogram
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clear all spectra data and meta data (if called with True)
 
         void updateRanges() nogil except + # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.

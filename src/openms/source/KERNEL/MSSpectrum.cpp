@@ -157,7 +157,7 @@ namespace OpenMS
     return begin() + std::distance(cbegin(), largest);
   }
 
-  MSSpectrum::PeakType::IntensityType MSSpectrum::getTIC() const
+  MSSpectrum::PeakType::IntensityType MSSpectrum::calculateTIC() const
   {
     return std::accumulate(cbegin(),
                            cend(),

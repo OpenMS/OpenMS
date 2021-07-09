@@ -39,13 +39,12 @@ using namespace std;
 
 namespace OpenMS
 { 
-
   FeatureSummary::Result FeatureSummary::compute(const FeatureMap& feature_map)
   {
     FeatureSummary::Result result;
     float sum_rt_deviations = 0;
     UInt rt_count = 0;
-    result.detected_compounds = feature_map.size();
+    result.feature_count = feature_map.size();
     for (const auto& f : feature_map)
     {
       if (f.metaValueExists("rt_deviation"))
@@ -54,14 +53,23 @@ namespace OpenMS
         rt_count += 1;
       }
     }
+
     // calculate mean rt shift (sec)
-    result.rt_shift_mean = sum_rt_deviations/rt_count;
+    if (rt_count != 0)
+    {
+      result.rt_shift_mean = sum_rt_deviations / rt_count;
+    }
+    else
+    {
+      result.rt_shift_mean = 0;
+    }
+    
     return result;
   }
 
   bool FeatureSummary::Result::operator==(const Result& rhs) const
   {
-    return detected_compounds == rhs.detected_compounds
+    return feature_count == rhs.feature_count
           && rt_shift_mean == rhs.rt_shift_mean;
   }
 

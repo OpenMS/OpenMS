@@ -589,7 +589,7 @@ public:
     Iterator getBasePeak();
 
     /// compute the total ion count (sum of all peak intensities)
-    PeakType::IntensityType getTIC() const;
+    PeakType::IntensityType calculateTIC() const;
 
 protected:
     /// Retention time
