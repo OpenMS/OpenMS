@@ -687,7 +687,7 @@ namespace OpenMS
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::getTIC(float rt_bin_size, UInt ms_level) const
+  const MSChromatogram MSExperiment::calculateTIC(float rt_bin_size, UInt ms_level) const
   {
     // The TIC is (re)calculated from the MS spectra with set ms_level (default 1).
     // Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
@@ -699,7 +699,7 @@ namespace OpenMS
         // fill chromatogram
         ChromatogramPeakType peak;
         peak.setRT(spec.getRT());
-        peak.setIntensity(spec.getTIC());
+        peak.setIntensity(spec.calculateTIC());
         TIC.push_back(peak);
       }
     }

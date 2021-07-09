@@ -190,7 +190,7 @@ namespace OpenMS
       feature_map.updateRanges();
       auto result = feature_summary.compute(feature_map);
       // Detected compounds
-      addMetric("QC:4000257", result.detected_compounds);
+      addMetric("QC:4000257", result.feature_count);
       // Retention time mean shift (sec)
       if (result.rt_shift_mean != 0)
       {

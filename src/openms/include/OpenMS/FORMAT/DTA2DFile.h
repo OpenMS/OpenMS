@@ -318,7 +318,7 @@ public:
       // write header (Always MZ=0 for chromatograms in DTA2D.)
       os << "#SEC\tMZ\tINT\n";
 
-      typename MapType::ChromatogramType TIC = map.getTIC();
+      typename MapType::ChromatogramType TIC = map.calculateTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
       {
         // write rt, (mz=0) and intensity.

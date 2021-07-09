@@ -45,7 +45,7 @@ namespace OpenMS
   TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
   {
     TIC::Result result;
-    MSChromatogram tic = exp.getTIC(bin_size, ms_level);
+    MSChromatogram tic = exp.calculateTIC(bin_size, ms_level);
     if (!tic.empty())
     {
       for (const auto& p : tic)

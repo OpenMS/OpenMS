@@ -112,7 +112,7 @@ namespace OpenMS
       ms2_included_[index].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[index].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
-      peptide_ID.setMetaValue("total_ion_count", spectrum.getTIC());
+      peptide_ID.setMetaValue("total_ion_count", spectrum.calculateTIC());
       peptide_ID.setMetaValue("base_peak_intensity", getBPI_(spectrum));
       annotatePepIDfromSpectrum_(spectrum, peptide_ID); // ion_injection_time and activation_method
     }
@@ -133,7 +133,7 @@ namespace OpenMS
       unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
       unidentified_MS2.setMetaValue("identified", 0);
       unidentified_MS2.setMZ(spec.getPrecursors()[0].getMZ());
-      unidentified_MS2.setMetaValue("total_ion_count", spec.getTIC());
+      unidentified_MS2.setMetaValue("total_ion_count", spec.calculateTIC());
       unidentified_MS2.setMetaValue("base_peak_intensity", getBPI_(spec));
       unidentified_MS2.setMetaValue("spectrum_reference", spec.getNativeID());
       annotatePepIDfromSpectrum_(spec, unidentified_MS2); // ion_injection_time and activation_method
