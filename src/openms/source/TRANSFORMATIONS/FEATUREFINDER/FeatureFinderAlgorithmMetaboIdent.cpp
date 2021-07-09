@@ -157,7 +157,7 @@ namespace OpenMS
 
     // debug
     debug_level_ = param_.getValue("debug");
-    candidates_out_ = (vector<string>)param_.getValue("candidates_out");
+    candidates_out_ = (string)param_.getValue("candidates_out");
   }
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features)
