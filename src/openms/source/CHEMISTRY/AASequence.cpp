@@ -234,8 +234,10 @@ namespace OpenMS
     const AASequence& seq = *this;
 
     String bs;
-    if (seq.empty()) return bs;
-
+    if (seq.empty())
+    {
+      return bs;
+    }
     if (seq.hasNTerminalModification())
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
@@ -245,8 +247,10 @@ namespace OpenMS
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
       {
         double nominal_mass = mod.getDiffMonoMass();
-        if (!mass_delta) nominal_mass += Residue::getInternalToNTerm().getMonoWeight();
-
+       if (!mass_delta)
+        {
+          nominal_mass += Residue::getInternalToNTerm().getMonoWeight();
+        }
         String sign = (mass_delta && nominal_mass > 0) ? "+" : ""; // the '-' will be printed automatically by conversion to string
         if (integer_mass)
         {
@@ -271,9 +275,14 @@ namespace OpenMS
         if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
         {
           double nominal_mass;
-          if (mass_delta) nominal_mass = mod.getDiffMonoMass();
-          else nominal_mass = r.getMonoWeight(Residue::Internal);
-
+          if (mass_delta)
+          {
+            nominal_mass = mod.getDiffMonoMass();
+          }
+          else 
+          {
+            nominal_mass = r.getMonoWeight(Residue::Internal);
+          }
           String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
           if (aa == "X")
           {
