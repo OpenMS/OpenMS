@@ -5,14 +5,18 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
     
     cdef cppclass CsiAdapterHit "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterHit":
         CsiAdapterHit() nogil except + 
-        CsiAdapterHit(CsiAdapterHit) nogil except + #wrap-ignore
+        CsiAdapterHit(CsiAdapterHit) nogil except +
+
         String inchikey2D
         String inchi
         unsigned int rank
+        unsigned int formula_rank
+        String adduct
         String molecular_formula
         double score
         String name
         String smiles
+        String xlogp
+        String dbflags
         libcpp_vector[ String ] pubchemids
         libcpp_vector[ String ] links
-

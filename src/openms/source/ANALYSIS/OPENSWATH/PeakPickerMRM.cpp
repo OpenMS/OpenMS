@@ -49,7 +49,7 @@ namespace OpenMS
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
-    defaults_.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("use_gauss", {"false","true"});
 
     defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
@@ -58,13 +58,13 @@ namespace OpenMS
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
     defaults_.setValue("write_sn_log_messages", "false", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
-    defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("write_sn_log_messages", {"true","false"});
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
-    defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
     defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
-    defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
+    defaults_.setValidStrings("method", {"legacy","corrected","crawdad"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -95,17 +95,17 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        OPENMS_LOG_DEBUG << std::endl; 
-        OPENMS_LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      OPENMS_LOG_DEBUG << " ====  Chromatogram " << chromatogram.getNativeID() << "empty. Skip picking.";
+      return;
     }
-    OPENMS_LOG_DEBUG << "(start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
+    else
+    {
+        OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+        " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
         "using method \'" << method_ << "\'" << std::endl;
-
+    }
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
@@ -127,7 +127,7 @@ namespace OpenMS
 
     // Find initial seeds (peak picking)
     pp_.pick(smoothed_chrom, picked_chrom);
-    OPENMS_LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
+    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {
@@ -220,8 +220,8 @@ namespace OpenMS
       right_width_.push_back(right_idx);
       integrated_intensities_.push_back(0);
 
-      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " and "  << picked_chrom[i].getIntensity()
-                << " with borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
+      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " with intensity "  << picked_chrom[i].getIntensity()
+                << " and borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
         " (" << chromatogram[right_width_[i]].getRT() - chromatogram[left_width_[i]].getRT() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }
@@ -412,7 +412,7 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
-    method_ = (String)param_.getValue("method");
+    method_ = (String)param_.getValue("method").toString();
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {

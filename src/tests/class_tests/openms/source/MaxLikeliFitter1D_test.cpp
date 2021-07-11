@@ -79,7 +79,7 @@ class TestModel : public MaxLikeliFitter1D
      MaxLikeliFitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/) override
+  QualityType fit1d(const RawDataArrayType& /*range*/, std::unique_ptr<InterpolationModel>&  /*model*/) override
   {
 //    double center = 0.0;
 //    center = model->getCenter();

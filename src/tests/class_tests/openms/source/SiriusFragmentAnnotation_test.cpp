@@ -76,17 +76,19 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
     MSSpectrum annotated_msspectrum;
 
     SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum);
-    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
+
+    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
-    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 123.000363);
+    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 51.023137);
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "mz");
     TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "exact_mass");
-    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 122.999604);
-    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
-    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C12H11Cl2N3O2");
-    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "M+H+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 51.022927);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C4H2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getMetaValue("decoy"), 0);
 }
 END_SECTION
 
@@ -96,20 +98,46 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
     String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum annotated_msspectrum;
 
-    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum, true);    
-    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
+    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum, true);
+
+    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
-    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 122.999604)
+    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 51.022927)
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "exact_mass");
     TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "mz");
-    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 123.000363);
-    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
-    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C12H11Cl2N3O2");
-    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "M+H+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 51.023137);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C4H2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getMetaValue("decoy"), 0);
 }
 END_SECTION
+
+// test decoy extraction
+START_SECTION(static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill))
+{
+    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
+    MSSpectrum decoy_msspectrum;
+
+    SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(test_path, decoy_msspectrum);
+
+    TEST_STRING_SIMILAR(decoy_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
+    TEST_EQUAL(decoy_msspectrum.getMSLevel(), 2);
+
+    TEST_EQUAL(decoy_msspectrum.empty(), false);
+    TEST_REAL_SIMILAR(decoy_msspectrum[0].getMZ(), 46.994998);
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("peak_mz"), "mz");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getStringDataArrays()[0][0], "CH2S");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(decoy_msspectrum.getMetaValue("decoy"), 1);
+}
+END_SECTION
+
+// TODO: extractAndResolveSiriusAnnotations
+// vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

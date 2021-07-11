@@ -208,7 +208,7 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
 elseif(WIN32)
   ## Assemble common required libraries for win and lnx
   ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
-  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 	  add_custom_command(
 		TARGET prepare_knime_payload_libs POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_TOOLS_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
@@ -222,7 +222,7 @@ elseif(WIN32)
 	)
   endforeach()
 else()
-    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo)
         add_custom_command(
             TARGET prepare_knime_payload_libs POST_BUILD
             COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake

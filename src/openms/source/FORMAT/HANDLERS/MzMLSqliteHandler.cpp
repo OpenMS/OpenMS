@@ -35,20 +35,18 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
-
-#include <OpenMS/FORMAT/SqliteConnector.h>
-
-#include <sqlite3.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <QtCore/QFileInfo>
 
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
+
+#include <sqlite3.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -106,8 +104,11 @@ namespace OpenMS
       // perform first step
       sqlite3_step(stmt);
 
-      std::vector<int> cont_data; cont_data.resize(containers.size());
+      std::vector<int> cont_data;
+      cont_data.resize(containers.size());
       std::map<Size,Size> sql_container_map;
+      std::vector<double> data;
+      String stemp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         Size id_orig = sqlite3_column_int( stmt, 0 );
@@ -131,7 +132,7 @@ namespace OpenMS
         if (native_id != containers[curr_id].getNativeID())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              String("Native id for spectrum / chromatogram doesnt match: ") + native_id + " != " +  containers[curr_id].getNativeID() );
+              String("Native id for spectrum / chromatogram does not match: ") + native_id + " != " +  containers[curr_id].getNativeID() );
         }
 
         int compression = sqlite3_column_int( stmt, 2 );
@@ -142,14 +143,14 @@ namespace OpenMS
 
         // data_type is one of 0 = mz, 1 = int, 2 = rt
         // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
-        std::vector<double> data;
+        data.clear();
+        stemp.clear();
         if (compression == 1)
         {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
 
-          void* byte_buffer = reinterpret_cast<void *>(&uncompressed[0]);
-          Size buffer_size = uncompressed.size();
+          void* byte_buffer = reinterpret_cast<void *>(&stemp[0]);
+          Size buffer_size = stemp.size();
           const double* float_buffer = reinterpret_cast<const double *>(byte_buffer);
           if (buffer_size % sizeof(double) != 0)
           {
@@ -161,19 +162,17 @@ namespace OpenMS
         }
         else if (compression == 5)
         {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("linear");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+          MSNumpressCoder().decodeNPRaw(stemp, data, config);
         }
         else if (compression == 6)
         {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("slof");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+          MSNumpressCoder().decodeNPRaw(stemp, data, config);
         }
         else
         {
@@ -248,49 +247,48 @@ namespace OpenMS
     // the cost for initialization and copy should be minimal
     //  - a single C string is created
     //  - two ints
-    MzMLSqliteHandler::MzMLSqliteHandler(String filename) :
+    MzMLSqliteHandler::MzMLSqliteHandler(const String& filename, const UInt64 run_id) :
       filename_(filename),
       spec_id_(0),
       chrom_id_(0),
-      run_id_(0),
+      run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
       write_full_meta_(true)
     {
     }
 
-    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only) const
+    void MzMLSqliteHandler::readExperiment(MSExperiment& exp, bool meta_only) const
     {
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
+      sqlite3* db = conn.getDB();
 
       Size nr_results = 0;
       if (write_full_meta_)
       {
-        std::string select_sql;
-        select_sql = "SELECT " \
-                      "RUN.ID as run_id," \
-                      "RUN.NATIVE_ID as native_id," \
-                      "RUN.FILENAME as filename," \
-                      "RUN_EXTRA.DATA as data " \
-                      "FROM RUN " \
-                      "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
-                      ";";
+        std::string select_sql = "SELECT " \
+          "RUN.ID as run_id," \
+          "RUN.NATIVE_ID as native_id," \
+          "RUN.FILENAME as filename," \
+          "RUN_EXTRA.DATA as data " \
+          "FROM RUN " \
+          "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
+          ";";
 
-        sqlite3_stmt * stmt;
+        sqlite3_stmt* stmt;
         conn.prepareStatement(&stmt, select_sql);
-        sqlite3_step( stmt );
+        sqlite3_step(stmt);
 
         // read data (throw exception if we find multiple runs)
-        while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+        while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
         {
           if (nr_results > 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "More than one run found, cannot read both into memory");
+              "More than one run found, cannot read both into memory");
           }
 
-          const void * raw_text = sqlite3_column_blob(stmt, 3);
+          const void* raw_text = sqlite3_column_blob(stmt, 3);
           size_t blob_bytes = sqlite3_column_bytes(stmt, 3);
 
           // create mzML file and parse full structure
@@ -305,11 +303,11 @@ namespace OpenMS
           }
           else
           {
-            const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-            const unsigned char * filename = sqlite3_column_text(stmt, 2);
-            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
+            const unsigned char* native_id = sqlite3_column_text(stmt, 1);
+            const unsigned char* filename = sqlite3_column_text(stmt, 2);
+            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file " << filename << std::endl;
           }
-          sqlite3_step( stmt );
+          sqlite3_step(stmt);
         }
 
         // free memory
@@ -334,13 +332,41 @@ namespace OpenMS
         exp.setSpectra(spectra);
       }
 
-      if (meta_only) 
+      exp.setSqlRunID(getRunID());
+
+      if (meta_only)
       {
         return;
       }
 
       populateChromatogramsWithData_(db, exp.getChromatograms());
       populateSpectraWithData_(db, exp.getSpectra());
+    }
+
+    UInt64 MzMLSqliteHandler::getRunID() const
+    {
+      SqliteConnector conn(filename_);
+      Size nr_results = 0;
+      
+      std::string select_sql = "SELECT RUN.ID FROM RUN;";
+
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_sql);
+      Sql::SqlState state = Sql::SqlState::SQL_ROW;
+      UInt64 id;
+      while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+      {
+        ++nr_results;
+        id = Sql::extractInt64(stmt, 0);
+      }
+      // free memory
+      sqlite3_finalize(stmt);
+
+      if (nr_results != 1)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
+      }
+      return id;
     }
 
     void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only) const
@@ -560,8 +586,7 @@ namespace OpenMS
                                            const std::vector<int>& indices) const
     {
       sqlite3_stmt* stmt;
-      std::string select_sql;
-      select_sql = "SELECT " \
+      std::string select_sql = "SELECT " \
                     "CHROMATOGRAM.ID as chrom_id," \
                     "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
                     "PRECURSOR.CHARGE as precursor_charge," \
@@ -599,9 +624,10 @@ namespace OpenMS
       String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
-        MSChromatogram chrom;
-        OpenMS::Precursor precursor;
-        OpenMS::Product product;
+        chromatograms.resize(chromatograms.size()+1);
+        MSChromatogram& chrom = chromatograms.back();
+        OpenMS::Precursor& precursor = chrom.getPrecursor();
+        OpenMS::Product& product = chrom.getProduct();
 
         if (Sql::extractValue(&tmp, stmt, 1)) chrom.setNativeID(tmp);
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
@@ -621,10 +647,6 @@ namespace OpenMS
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL) precursor.setActivationEnergy(sqlite3_column_double(stmt, 13));
 
-        chrom.setPrecursor(precursor);
-        chrom.setProduct(product);
-        chromatograms.push_back(chrom);
-
         sqlite3_step( stmt );
       }
 
@@ -637,8 +659,7 @@ namespace OpenMS
                                             const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
-      std::string select_sql;
-      select_sql = "SELECT " \
+      std::string select_sql = "SELECT " \
                     "SPECTRUM.ID as spec_id," \
                     "SPECTRUM.NATIVE_ID as spec_native_id," \
                     "SPECTRUM.MSLEVEL as spec_mslevel," \
@@ -679,7 +700,8 @@ namespace OpenMS
       OpenMS::String tmp;
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
       {
-        MSSpectrum spec;
+        spectra.resize(spectra.size() + 1);
+        MSSpectrum& spec = spectra.back();
         OpenMS::Precursor precursor;
         OpenMS::Product product;
         if (Sql::extractValue(&tmp, stmt, 1)) spec.setNativeID(tmp);
@@ -708,9 +730,8 @@ namespace OpenMS
         }
         if (sqlite3_column_type(stmt, 16) != SQLITE_NULL) precursor.setActivationEnergy(sqlite3_column_double(stmt, 16));
 
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) spec.getPrecursors().push_back(precursor);
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) spec.getProducts().push_back(product);
-        spectra.push_back(spec);
+        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) spec.getPrecursors().push_back(std::move(precursor));
+        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) spec.getProducts().push_back(std::move(product));
 
         sqlite3_step( stmt );
       }
@@ -719,28 +740,27 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
+    void MzMLSqliteHandler::writeExperiment(const MSExperiment& exp)
     {
       // write run level information
-      writeRunLevelInformation(exp, write_full_meta_, run_id_);
+      writeRunLevelInformation(exp, write_full_meta_);
 
       // write data
       writeChromatograms(exp.getChromatograms());
       writeSpectra(exp.getSpectra());
     }
 
-    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
+    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta)
     {
       SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
-
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
-          run_id << ",'" << native_id << "','" << native_id << "'); ";
+            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_run_sql);
+      conn.executeStatement(insert_run_sql.str());
       conn.executeStatement("END TRANSACTION");
 
       if (write_full_meta)
@@ -764,7 +784,7 @@ namespace OpenMS
           meta.addChromatogram(c);
         }
         String prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
-        prepare_statement += String("(") + run_id + ", ?)";
+        prepare_statement += String("(") + run_id_ + ", ?)";
         std::vector<String> data;
 
         std::string output;
@@ -1106,9 +1126,9 @@ namespace OpenMS
       }
 
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_spectra_sql);
-      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql);
-      if (nr_products > 0) conn.executeStatement(insert_product_sql);
+      conn.executeStatement(insert_spectra_sql.str());
+      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql.str());
+      if (nr_products > 0) conn.executeStatement(insert_product_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 
@@ -1299,9 +1319,9 @@ namespace OpenMS
       }
 
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_chrom_sql);
-      conn.executeStatement(insert_precursor_sql);
-      conn.executeStatement(insert_product_sql);
+      conn.executeStatement(insert_chrom_sql.str());
+      conn.executeStatement(insert_precursor_sql.str());
+      conn.executeStatement(insert_product_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 

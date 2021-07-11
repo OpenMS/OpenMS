@@ -35,18 +35,12 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <regex>
+
 using namespace std;
 
 namespace OpenMS
 {
-  IDFilter::IDFilter()
-  {
-  }
-
-  IDFilter::~IDFilter()
-  {
-  }
-
 
   struct IDFilter::HasMinPeptideLength
   {
@@ -98,8 +92,7 @@ namespace OpenMS
     {
       Int z = hit.getCharge();
       if (z == 0) z = 1;
-      double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
-                           double(z));
+      double peptide_mz = hit.getSequence().getMZ(z);
       return fabs(precursor_mz_ - peptide_mz) <= tolerance_;
     }
   };
@@ -485,8 +478,10 @@ namespace OpenMS
       const vector<ProteinIdentification::ProteinGroup>& groups,
       vector<ProteinHit>& hits)
   {
-    if (hits.empty()) return; // nothing to update
-
+    if (hits.empty())
+    {
+      return; // nothing to update
+    }
     // we'll do lots of look-ups, so use a suitable data structure:
     unordered_set<String> valid_accessions;
     for (const auto& grp : groups)
@@ -503,15 +498,14 @@ namespace OpenMS
   void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides,
                                      bool strict)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
-      vector<PeptideHit>& hits = pep_it->getHits();
+      vector<PeptideHit>& hits = pep.getHits();
       if (hits.size() > 1)
       {
-        pep_it->sort();
+        pep.sort();
         double top_score = hits[0].getScore();
-        bool higher_better = pep_it->isHigherScoreBetter();
+        bool higher_better = pep.isHigherScoreBetter();
         struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
         if (strict) // only one best score allowed
         {
@@ -672,6 +666,23 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::removePeptidesWithMatchingRegEx(
+    vector<PeptideIdentification>& peptides,
+    const String& regex)
+  {
+    const std::regex re(regex);
+
+    // true if regex matches to parts or entire unmodified sequence
+    auto regex_matches = [&re](const PeptideHit& ph) -> bool
+      { 
+        return std::regex_search(ph.getSequence().toUnmodifiedString(), re);
+      };
+
+    for (auto& pep : peptides)
+    {
+      removeMatchingItems(pep.getHits(), regex_matches);
+    }
+  }
 
   void IDFilter::keepPeptidesWithMatchingModifications(
     vector<PeptideIdentification>& peptides,
@@ -782,6 +793,47 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n)
+  {
+    String score_type;
+    for (PeptideIdentification& p : peptides) 
+    { 
+      p.sort();
+      if (score_type.empty()) 
+      {
+        score_type = p.getScoreType();
+      }
+      else
+      {
+        if (p.getScoreType() != score_type)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
+        }
+      }                
+    }
+
+    // there might be less spectra identified than n -> adapt
+    n = std::min(n, peptides.size());
+
+    auto has_better_peptidehit = 
+      [] (const PeptideIdentification& l, const PeptideIdentification& r) 
+      {
+        if (r.getHits().empty()) return true; // right has no hit? -> left is better
+        if (l.getHits().empty()) return false; // left has no hit but right has a hit? -> right is better
+
+        const bool higher_better = l.isHigherScoreBetter();
+        const double l_score = l.getHits()[0].getScore();
+        const double r_score = r.getHits()[0].getScore();
+      
+        // both have hits? better score of best PSM is better
+        if (higher_better) return l_score > r_score;
+ 
+        return l_score < r_score;
+      };
+
+    std::partial_sort(peptides.begin(), peptides.begin() + n, peptides.end(), has_better_peptidehit);
+    peptides.resize(n);
+  }
 
   void IDFilter::keepBestMatchPerQuery(
     IdentificationData& id_data,

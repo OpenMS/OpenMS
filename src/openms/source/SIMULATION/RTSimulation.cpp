@@ -87,11 +87,11 @@ namespace OpenMS
   void RTSimulation::setDefaultParams_()
   {
     defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", ListUtils::create<String>("none,HPLC,CE"));
+    defaults_.setValidStrings("rt_column", {"none","HPLC","CE"});
 
     // scaling
     defaults_.setValue("auto_scale", "true", "Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
-    defaults_.setValidStrings("auto_scale", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("auto_scale", {"true","false"});
 
     // column settings
     defaults_.setValue("total_gradient_time", 2500.0, "The duration [s] of the gradient.");
@@ -162,7 +162,7 @@ namespace OpenMS
 
   void RTSimulation::updateMembers_()
   {
-    rt_model_file_ = param_.getValue("HPLC:model_file");
+    rt_model_file_ = param_.getValue("HPLC:model_file").toString();
     if (!File::readable(rt_model_file_)) // look in OPENMS_DATA_PATH
     {
       rt_model_file_ = File::find(rt_model_file_);
@@ -513,26 +513,26 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load(add_paramfile, additional_parameters);
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No border length defined in additional parameters file.");
       }
-      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+      border_length = ((String)additional_parameters.getValue("border_length").toString()).toInt();
+      if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No k-mer length defined in additional parameters file.");
       }
-      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+      k_mer_length = ((String)additional_parameters.getValue("k_mer_length").toString()).toInt();
 
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+      if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No sigma defined in additional parameters file.");
       }
 
-      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+      sigma = ((String)additional_parameters.getValue("sigma").toString()).toFloat();
     }
 
     svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);

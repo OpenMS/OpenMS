@@ -96,15 +96,7 @@
 #define OPENMS_PRECONDITION(condition, message) \
   if (!(condition)) \
   { \
-    Exception::Precondition e(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition); \
-    if (std::strcmp(message, "") != 0) \
-    { \
-      ::std::string tmp(e.getMessage()); \
-      tmp += " "; \
-      tmp += ::std::string(message); \
-      e.setMessage(tmp); \
-    } \
-    throw e; \
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
   } \
 
 /**
@@ -115,15 +107,7 @@
 #define OPENMS_POSTCONDITION(condition, message) \
   if (!(condition)) \
   { \
-    Exception::Postcondition e(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition); \
-    if (std::strcmp(message, "") != 0) \
-    { \
-      std::string tmp(e.getMessage()); \
-      tmp += " "; \
-      tmp += std::string(message); \
-      e.setMessage(tmp); \
-    } \
-    throw e; \
+    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
   } \
 
 #else

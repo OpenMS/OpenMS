@@ -56,10 +56,10 @@ public:
     ~Annotation1DTextItem() override;
 
     // Docu in base class
-    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
+    void ensureWithinDataRange(Plot1DCanvas * const canvas) override;
 
     // Docu in base class
-    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
+    void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
 
     // Docu in base class
     void move(const PointType & delta) override;

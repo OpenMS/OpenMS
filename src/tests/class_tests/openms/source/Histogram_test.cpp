@@ -245,6 +245,28 @@ START_SECTION((BinSizeType centerOfBin(Size bin_index) const))
 	TEST_EXCEPTION(Exception::IndexOverflow, dist.centerOfBin(5))
 END_SECTION
 
+START_SECTION((BinSizeType leftBorderOfBin(Size bin_index) const))
+	Histogram<float, float> dist(0, 5, 1);
+
+	TEST_EQUAL(dist.leftBorderOfBin(0), 0);
+  TEST_EQUAL(dist.leftBorderOfBin(1), 1);
+  TEST_EQUAL(dist.leftBorderOfBin(2), 2);
+  TEST_EQUAL(dist.leftBorderOfBin(3), 3);
+  TEST_EQUAL(dist.leftBorderOfBin(4), 4);
+  TEST_EXCEPTION(Exception::IndexOverflow, dist.leftBorderOfBin(5))
+END_SECTION
+
+START_SECTION((BinSizeType rightBorderOfBin(Size bin_index) const))
+	Histogram<float, float> dist(0, 5, 1);
+
+	TEST_EQUAL(dist.rightBorderOfBin(0), 1);
+	TEST_EQUAL(dist.rightBorderOfBin(1), 2);
+	TEST_EQUAL(dist.rightBorderOfBin(2), 3);
+	TEST_EQUAL(dist.rightBorderOfBin(3), 4);
+	TEST_EQUAL(dist.rightBorderOfBin(4), std::nextafter(5.0f, 6.0f));// its actually the next item after 5.0
+	TEST_EXCEPTION(Exception::IndexOverflow, dist.rightBorderOfBin(5))
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

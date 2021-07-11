@@ -104,8 +104,8 @@ START_SECTION([EXTRA]AdductInfo)
 END_SECTION
 
 Param ams_param;
-ams_param.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
-ams_param.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
+ams_param.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+ams_param.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
 ams_param.setValue("keep_unidentified_masses", "true");
 ams_param.setValue("mzTab:exportIsotopeIntensities", "true");
 AccurateMassSearchEngine ams;
@@ -375,8 +375,8 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   MzTab mzt;
   Param p;
   p.setValue("ionization_mode","auto");
-  p.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
-  p.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
+  p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+  p.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
   ams.setParameters(p);
   ams.init();
 

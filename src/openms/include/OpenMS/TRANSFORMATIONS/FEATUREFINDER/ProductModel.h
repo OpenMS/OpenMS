@@ -269,7 +269,7 @@ protected:
         if (this->param_.exists(name))
         {
           delete distributions_[dim];
-          distributions_[dim] = Factory<BaseModel<1> >::create(this->param_.getValue(name));
+          distributions_[dim] = Factory<BaseModel<1> >::create(this->param_.getValue(name).toString());
           Param copy = this->param_.copy(name + ":", true);
           distributions_[dim]->setParameters(copy);
           if (distributions_[dim]->getName().hasSubstring("IsotopeModel"))

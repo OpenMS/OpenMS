@@ -123,7 +123,7 @@ END_SECTION
 START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile::FASTAEntry>&, IdentificationData::MoleculeType, const String&)))
 {
   vector<FASTAFile::FASTAEntry> fasta;
-  FASTAFile::load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta);
+  FASTAFile().load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta);
   IdentificationData ids;
   IdentificationDataConverter::importSequences(ids, fasta);
   TEST_EQUAL(ids.getParentMolecules().size(), 5);

@@ -38,6 +38,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 
 // QT includes

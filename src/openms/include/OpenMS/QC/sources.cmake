@@ -7,12 +7,15 @@ set(sources_list_h
   FragmentMassError.h
   FWHM.h
   MissedCleavages.h
+  MQEvidenceExporter.h
   Ms2IdentificationRate.h
   Ms2SpectrumStats.h
   MzCalibration.h
   PeptideMass.h
+  PSMExplainedIonCurrent.h
   QCBase.h
   RTAlignment.h
+  SpectrumCount.h
   DBSuitability.h
   TIC.h
 )

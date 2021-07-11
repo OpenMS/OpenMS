@@ -601,7 +601,7 @@ protected:
       Param p;
 
       p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
-      p.setValidStrings("alignmentMethod", ListUtils::create<String>("linear,interpolated,lowess,b_spline"));
+      p.setValidStrings("alignmentMethod", {"linear","interpolated","lowess","b_spline"});
       p.setValue("lowess:span", 0.05, "Span parameter for lowess");
       p.setMinFloat("lowess:span", 0.0);
       p.setMaxFloat("lowess:span", 1.0);
@@ -609,17 +609,17 @@ protected:
       p.setMinInt("b_spline:num_nodes", 0);
 
       p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
-      p.setValidStrings("outlierMethod", ListUtils::create<String>("iter_residual,iter_jackknife,ransac,none"));
+      p.setValidStrings("outlierMethod", {"iter_residual","iter_jackknife","ransac","none"});
 
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
-      p.setValidStrings("useIterativeChauvenet", ListUtils::create<String>("true,false"));
+      p.setValidStrings("useIterativeChauvenet", {"true","false"});
 
       p.setValue("RANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
       p.setValue("RANSACMaxPercentRTThreshold", 3, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm (in percent of the total gradient). Default is set to 3% which is around +/- 4 minutes on a 120 gradient.");
       p.setValue("RANSACSamplingSize", 10, "Sampling size of data points per iteration for the RANSAC outlier detection algorithm.");
 
       p.setValue("estimateBestPeptides", "false", "Whether the algorithms should try to choose the best peptides based on their peak shape for normalization. Use this option you do not expect all your peptides to be detected in a sample and too many 'bad' peptides enter the outlier removal step (e.g. due to them being endogenous peptides or using a less curated list of peptides).");
-      p.setValidStrings("estimateBestPeptides", ListUtils::create<String>("true,false"));
+      p.setValidStrings("estimateBestPeptides", {"true","false"});
 
       p.setValue("InitialQualityCutoff", 0.5, "The initial overall quality cutoff for a peak to be scored (range ca. -2 to 2)");
       p.setValue("OverallQualityCutoff", 5.5, "The overall quality cutoff for a peak to go into the retention time estimation (range ca. 0 to 10)");
@@ -811,12 +811,10 @@ protected:
 
     if (tr_type == FileTypes::PQP)
     {
-      remove(out_osw.c_str());
       if (!out_osw.empty())
-      {
+      { // copy the PQP file and name it OSW file
         std::ifstream  src(tr_file.c_str(), std::ios::binary);
-        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
-
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary | std::ios::trunc);
         dst << src.rdbuf();
       }
     }
@@ -856,8 +854,8 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
-    String irt_trafo_out = debug_params.getValue("irt_trafo");
-    String irt_mzml_out = debug_params.getValue("irt_mzml");
+    String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
+    String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
     Param irt_detection_param = getParam_().copy("RTNormalization:", true);
     Param calibration_param = getParam_().copy("Calibration:", true);
     calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
@@ -926,17 +924,18 @@ protected:
 
     ///////////////////////////////////
     // Set up chromatogram output
-    // Either use chrom.mzML or sqlite DB
+    // Either use chrom.mzML or sqliteDB (sqMass)
     ///////////////////////////////////
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
+    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom, run_id);
 
     ///////////////////////////////////
-    // Set up peakgroup file output
+    // Set up peakgroup file output (.tsv or .osw file)
     ///////////////////////////////////
     FeatureMap out_featureFile;
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
     ///////////////////////////////////
     // Extract and score

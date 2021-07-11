@@ -45,12 +45,12 @@ using namespace OpenMS;
 DecoyGenerator::DecoyGenerator()
 {
   const UInt64 seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-  rng_ = boost::mt19937_64(seed);
+  shuffler_.seed(seed);
 }
 
 void DecoyGenerator::setSeed(UInt64 seed)
 {
-  rng_.seed(seed);
+  shuffler_.seed(seed);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
@@ -109,7 +109,7 @@ AASequence DecoyGenerator::shufflePeptides(
     String lowest_identity_string(peptide_string_shuffled);
     for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
     {
-      shuffle_(std::begin(peptide_string_shuffled), last);
+      shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), last);
 
       double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
       if (identity < lowest_identity)
@@ -129,7 +129,7 @@ AASequence DecoyGenerator::shufflePeptides(
   String lowest_identity_string(peptide_string_shuffled);
   for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
   {
-    shuffle_(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
+    shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
     double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
     if (identity < lowest_identity)
     {

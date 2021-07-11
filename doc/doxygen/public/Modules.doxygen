@@ -264,7 +264,7 @@
 */
 
 /**
-	@defgroup SpectrumWidgets Spectrum visualization widgets
+	@defgroup PlotWidgets Spectrum visualization widgets
 
 	@brief Spectrum visualization widgets
 
@@ -273,9 +273,9 @@
 	1D, 2D and 3D visualization. For each type of view, at least
 	two new classes must be defined:
 
-	- a "canvas" class derived from OpenMS::SpectrumCanvas,
+	- a "canvas" class derived from OpenMS::PlotCanvas,
 	  used for painting the data.
-	- a "widget" class derived from OpenMS::SpectrumWidget,
+	- a "widget" class derived from OpenMS::PlotWidget,
 	  which holds the instance of the canvas class, and some
 	  additional widgets, such as OpenMS::AxisWidget. This
 	  class is also responsible for holding the data and for

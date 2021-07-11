@@ -63,19 +63,19 @@ namespace OpenMS
 
     // iTRAQ
     defaults_.setValue("iTRAQ", "4plex", "4plex or 8plex iTRAQ?");
-    defaults_.setValidStrings("iTRAQ", ListUtils::create<String>("4plex,8plex"));
+    defaults_.setValidStrings("iTRAQ", {"4plex","8plex"});
 
     defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (uniformly distributed - left to right) in Da from the expected position (of e.g. 114.1, 115.1)");
     defaults_.setMinFloat("reporter_mass_shift", 0);
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
-    defaults_.setValue("channel_active_4plex", ListUtils::create<String>("114:myReference"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
-    defaults_.setValue("channel_active_8plex", ListUtils::create<String>("113:myReference"), "Eight-plex only: Each channel that was used in the experiment and its description (113-121) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\".");
+    defaults_.setValue("channel_active_4plex", std::vector<std::string>{"114:myReference"}, "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
+    defaults_.setValue("channel_active_8plex", std::vector<std::string>{"113:myReference"}, "Eight-plex only: Each channel that was used in the experiment and its description (113-121) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\".");
 
     StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_);
-    defaults_.setValue("isotope_correction_values_4plex", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope_correction_values_4plex", ListUtils::create<std::string>(isotopes), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", {"advanced"});
     isotopes = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_);
-    defaults_.setValue("isotope_correction_values_8plex", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '113:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope_correction_values_8plex", ListUtils::create<std::string>(isotopes), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '113:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", {"advanced"});
 
     defaults_.setValue("Y_contamination", 0.3, "Efficiency of labeling tyrosine ('Y') residues. 0=off, 1=full labeling");
     defaults_.setMinFloat("Y_contamination", 0.0);
@@ -95,12 +95,12 @@ namespace OpenMS
     if (param_.getValue("iTRAQ") == "4plex")
     {
       itraq_type_ = ItraqConstants::FOURPLEX;
-      channels_active = param_.getValue("channel_active_4plex");
+      channels_active = ListUtils::toStringList<std::string>(param_.getValue("channel_active_4plex"));
     }
     else if (param_.getValue("iTRAQ") == "8plex")
     {
       itraq_type_ = ItraqConstants::EIGHTPLEX;
-      channels_active = param_.getValue("channel_active_8plex");
+      channels_active = ListUtils::toStringList<std::string>(param_.getValue("channel_active_8plex"));
     }
 
     ItraqConstants::initChannelMap(itraq_type_, channel_map_);
@@ -111,11 +111,11 @@ namespace OpenMS
     StringList channels;
     if (itraq_type_ == ItraqConstants::FOURPLEX)
     {
-      channels = param_.getValue("isotope_correction_values_4plex");
+      channels = ListUtils::toStringList<std::string>(param_.getValue("isotope_correction_values_4plex"));
     }
     else
     {
-      channels = param_.getValue("isotope_correction_values_8plex");
+      channels = ListUtils::toStringList<std::string>(param_.getValue("isotope_correction_values_8plex"));
     }
     if (channels.size() > 0)
     {

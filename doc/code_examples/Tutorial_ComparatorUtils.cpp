@@ -77,22 +77,19 @@ bool lessByInt(IntRealString left, IntRealString right)
 }
 
 // Comparator class
-struct LessByInt :
-  std::binary_function<IntRealString, IntRealString, bool>
+struct LessByInt
 {
   bool operator()(IntRealString left, IntRealString right) const { return left.i_ < right.i_; }
 };
 
 // Comparator class
-struct LessByReal :
-  std::binary_function<IntRealString, IntRealString, bool>
+struct LessByReal
 {
   bool operator()(IntRealString left, IntRealString right) const { return left.r_ < right.r_; }
 };
 
 // Comparator class
-struct LessByString :
-  std::binary_function<IntRealString, IntRealString, bool>
+struct LessByString
 {
   bool operator()(IntRealString left, IntRealString right) const { return left.s_ < right.s_; }
 };

@@ -76,11 +76,10 @@ namespace OpenMS
          * @param exp_picked    experimental data in centroid mode
          * @param boundaries    peak boundaries for exp_picked
          * @param rt_typical    elution time of a characteristic peptide in the sample
-         * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum);
+        MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical);
         
         /**
          * @brief constructor
@@ -89,11 +88,10 @@ namespace OpenMS
          * @param mz_tolerance    margin in m/z with which the centres of the same peak in different spectra my shift (or 'jitter')
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
          * @param rt_typical    elution time of a characteristic peptide in the sample
-         * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum);
+        MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical);
         
         /**
          * @brief cluster filter results
@@ -130,7 +128,7 @@ namespace OpenMS
              * @param p2    second point in the (m/z,RT) plane
              * @return distance
              */
-            double operator()(Point p1, Point p2);
+            double operator()(const Point& p1, const Point& p2) const;
      
             private:
             double rt_scaling_;
@@ -157,7 +155,8 @@ namespace OpenMS
         /**
          * @brief minimum retention time
          */
-        double rt_minimum_;
+        //unused
+        //double rt_minimum_;
         
    };
   

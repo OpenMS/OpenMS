@@ -61,11 +61,11 @@ namespace OpenMS
     virtual ~FWHM() = default;
 
     /**
-    @brief Moves FWHM metavalues from the feature to all its PeptideIdentifications (since that's were mzTab takes it from if we want to preserve Raw file origin)
+      @brief Moves FWHM metavalues from the feature to all its PeptideIdentifications (since that's were mzTab takes it from if we want to preserve Raw file origin)
 
-    A warning is issues on the commandline if a feature does not have either 'FWHM' or 'model_FWHM' as metavalue.
+      A warning is issued on the commandline if a feature does not have either 'FWHM' or 'model_FWHM' as metavalue.
 
-    @param features FeatureMap with metavalue 'FWHM' or 'model_FWHM'
+      @param features FeatureMap with features which have metavalue 'FWHM' or 'model_FWHM'
     **/
     void compute(FeatureMap& features);
 

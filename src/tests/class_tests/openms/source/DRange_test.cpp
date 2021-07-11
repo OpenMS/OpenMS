@@ -436,6 +436,22 @@ p2[1]=4.0f;
 	TEST_REAL_SIMILAR(r.minPosition()[1],-5.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[1], 7.0f); 
 END_SECTION
+
+
+START_SECTION(DRange<D>& swapDimensions())
+	DRange<2> r(p1, p2);
+	/*
+	p1[0]=-1.0f;
+	p1[1]=-2.0f;
+	p2[0]=3.0f;
+	p2[1]=4.0f;
+	*/
+	r.swapDimensions();
+	TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+	TEST_REAL_SIMILAR(r.minPosition()[1], -1.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[1], 3.0f);
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

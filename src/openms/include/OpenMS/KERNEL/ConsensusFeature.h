@@ -80,8 +80,7 @@ public:
     //@}
 
     /// Compare by size(), the number of consensus elements
-    struct SizeLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct SizeLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
@@ -106,8 +105,7 @@ public:
     };
 
     /// Compare by the sets of consensus elements (lexicographically)
-    struct MapsLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct MapsLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {

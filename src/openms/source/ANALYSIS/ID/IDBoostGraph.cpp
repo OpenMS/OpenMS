@@ -1019,7 +1019,7 @@ namespace OpenMS
 
   void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData = true/*, bool resolveTies*/)
   {
-    GetPosteriorVisitor gpv{};
+    GetPosteriorVisitor gpv;
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
@@ -1583,7 +1583,7 @@ namespace OpenMS
           Graph::vertex_iterator ui, ui_end;
           boost::tie(ui,ui_end) = boost::vertices(fg);
 
-          GetPosteriorVisitor gpv{};
+          GetPosteriorVisitor gpv;
           std::unordered_map<vertex_t, double> prot_to_current_max;
           for (; ui != ui_end; ++ui)
           {

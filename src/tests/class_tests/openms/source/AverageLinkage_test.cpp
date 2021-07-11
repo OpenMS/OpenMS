@@ -157,6 +157,7 @@ START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = AverageLinkage::create();
   TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cf) , nullPointer)
+  delete cf;
 }
 END_SECTION
 

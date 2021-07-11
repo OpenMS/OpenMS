@@ -50,18 +50,18 @@ namespace OpenMS
   {
     defaults_.setValue("min_rt_distance", 10.0, "Minimal distance of MRM features in seconds.");
     defaults_.setMinFloat("min_rt_distance", 0.0);
-    defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", {"advanced"});
     defaults_.setMinInt("min_num_peaks_per_feature", 1);
     defaults_.setValue("min_signal_to_noise_ratio", 2.0, "Minimal S/N ratio a peak must have to be taken into account. Set to zero if the MRM-traces contains mostly signals, and no noise.");
     defaults_.setMinFloat("min_signal_to_noise_ratio", 0);
-    defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("write_debug_files", ListUtils::create<String>("true,false"));
+    defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", {"advanced"});
+    defaults_.setValidStrings("write_debug_files",  {"true","false"});
 
-    defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("resample_traces", ListUtils::create<String>("true,false"));
+    defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", {"advanced"});
+    defaults_.setValidStrings("resample_traces", {"true","false"});
 
-    defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("write_debuginfo", ListUtils::create<String>("true,false"));
+    defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", {"advanced"});
+    defaults_.setValidStrings("write_debuginfo", {"true","false"});
 
     this->defaultsToParam_();
   }
@@ -209,7 +209,7 @@ namespace OpenMS
           }
           // new section
           std::vector<DPosition<2> > section;
-          section.push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          section.emplace_back(this_rt, sit->getIntensity());
           sections.push_back(section);
         }
         else
@@ -300,7 +300,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = nullptr;
+          std::unique_ptr<InterpolationModel> model_rt;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -374,7 +374,6 @@ namespace OpenMS
               std::cerr << "An error occurred during the gnuplot execution" << std::endl;
             }
           }
-
           features_->push_back(f);
         }
       }
@@ -393,7 +392,7 @@ namespace OpenMS
     return "mrm";
   }
 
-  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const
+  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
   {
     double quality;
     Param param;

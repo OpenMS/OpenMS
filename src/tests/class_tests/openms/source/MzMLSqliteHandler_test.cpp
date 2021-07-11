@@ -48,7 +48,7 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
-void cmpDataIntensity(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataIntensity(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -62,26 +62,32 @@ void cmpDataIntensity(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1
   TOLERANCE_RELATIVE(rel_tol)
   for (Size i = 0; i < exp1.getNrSpectra(); i++)
   {
-    TEST_EQUAL(exp1.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp1.getSpectrum(i).size(); k++)
+    TEST_EQUAL(exp1.getSpectra()[i].size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp1.getSpectra()[i].size(); k++)
     {
       // slof is no good for values smaller than 5
       // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
-      TEST_REAL_SIMILAR(exp1.getSpectrum(i)[k].getIntensity(), exp2.getSpectra()[i][k].getIntensity())
+      auto a = exp1.getSpectra()[i][k].getIntensity();
+      auto b = exp2.getSpectra()[i][k].getIntensity();
+      // avoid the console clutter if nothing interesing happens
+      if (!TEST::isRealSimilar(a, b)) TEST_REAL_SIMILAR(a, b)
     }
   }
 
   for (Size i = 0; i < exp1.getNrChromatograms(); i++)
   {
-    TEST_EQUAL(exp1.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp1.getChromatogram(i).size(); k++)
+    TEST_EQUAL(exp1.getChromatograms()[i].size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp1.getChromatograms()[i].size(); k++)
     {
-      TEST_REAL_SIMILAR(exp1.getChromatogram(i)[k].getIntensity(), exp2.getChromatograms()[i][k].getIntensity())
+      auto a = exp1.getChromatograms()[i][k].getIntensity();
+      auto b = exp2.getChromatograms()[i][k].getIntensity();
+      // avoid the console clutter if nothing interesing happens
+      if (!TEST::isRealSimilar(a, b)) TEST_REAL_SIMILAR(a, b)
     }
   }
 }
 
-void cmpDataMZ(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataMZ(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -95,17 +101,20 @@ void cmpDataMZ(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, do
   TOLERANCE_RELATIVE(rel_tol)
   for (Size i = 0; i < exp1.getNrSpectra(); i++)
   {
-    TEST_EQUAL(exp1.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp1.getSpectrum(i).size(); k++)
+    TEST_EQUAL(exp1.getSpectra()[i].size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp1.getSpectra()[i].size(); k++)
     {
       // slof is no good for values smaller than 5
       // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
-      TEST_REAL_SIMILAR(exp1.getSpectrum(i)[k].getMZ(), exp2.getSpectra()[i][k].getMZ())
+      auto a = exp1.getSpectra()[i][k].getMZ();
+      auto b = exp2.getSpectra()[i][k].getMZ();
+      // avoid the console clutter if nothing interesing happens
+      if (!TEST::isRealSimilar(a, b)) TEST_REAL_SIMILAR(a, b)
     }
   }
 }
 
-void cmpDataRT(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataRT(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -119,10 +128,13 @@ void cmpDataRT(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, do
   TOLERANCE_RELATIVE(rel_tol)
   for (Size i = 0; i < exp1.getNrChromatograms(); i++)
   {
-    TEST_EQUAL(exp1.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp1.getChromatogram(i).size(); k++)
+    TEST_EQUAL(exp1.getChromatograms()[i].size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp1.getChromatograms()[i].size(); k++)
     {
-      TEST_REAL_SIMILAR(exp1.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
+      auto a = exp1.getChromatograms()[i][k].getRT();
+      auto b = exp2.getChromatograms()[i][k].getRT();
+      // avoid the console clutter if nothing interesing happens
+      if (!TEST::isRealSimilar(a, b)) TEST_REAL_SIMILAR(a, b)
     }
   }
 }
@@ -139,8 +151,8 @@ START_TEST(MzMLSqliteHandler, "$Id$")
 
 MzMLSqliteHandler* ptr = nullptr;
 MzMLSqliteHandler* nullPointer = nullptr;
-START_SECTION((MzMLSqliteHandler()))
-  ptr = new MzMLSqliteHandler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+START_SECTION((MzMLSqliteHandler(const String& filename, const UInt64 run_id)))
+  ptr = new MzMLSqliteHandler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -150,22 +162,27 @@ END_SECTION
 
 TOLERANCE_RELATIVE(1.0005)
 
+START_SECTION(UInt64 getRunID() const)
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
+  TEST_EQUAL(handler.getRunID(), 12345)
+END_SECTION
+
 START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
-  MSExperiment exp2;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
+  MSExperiment exp_orig;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   // read in meta data only
   {
     MSExperiment exp;
     handler.readExperiment(exp, true);
-    TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
-    TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
+    TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
+    TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
     TEST_EQUAL(exp.getNrSpectra(), 2)
     TEST_EQUAL(exp.getNrChromatograms(), 1)
-    TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], false) // no exact duplicate
+    TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
     for (Size i = 0; i < exp.getNrSpectra(); i++)
     {
@@ -176,49 +193,53 @@ START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) co
     {
       TEST_EQUAL(exp.getChromatogram(i).size(), 0)
     }
-    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+    TEST_EQUAL(exp.getSqlRunID(), 12345)
+  } 
+  // read in all data
+  {
+    MSExperiment exp;
+    handler.readExperiment(exp, false);
+
+    TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
+    TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
+    TEST_EQUAL(exp.getNrSpectra(), 2)
+    TEST_EQUAL(exp.getNrChromatograms(), 1)
+    TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
+
+    cout.precision(17);
+
+    cmpDataIntensity(exp, exp_orig, 1e-4, 1.001); 
+    cmpDataMZ(exp, exp_orig, 1e-5, 1.000001); // less than 1ppm error for m/z 
+    cmpDataRT(exp, exp_orig, 0.05, 1.000001); // max 0.05 seconds error in RT
+
+    // 1:1 mapping of experimental settings ...
+    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+    TEST_EQUAL(exp.getSqlRunID(), 12345)
   }
-
-  MSExperiment exp;
-  handler.readExperiment(exp, false);
-
-  TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
-  TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
-  TEST_EQUAL(exp.getNrSpectra(), 2)
-  TEST_EQUAL(exp.getNrChromatograms(), 1)
-  TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], false) // no exact duplicate
-
-  cout.precision(17);
-
-  cmpDataIntensity(exp, exp, 1e-4, 1.001); 
-  cmpDataMZ(exp, exp, 1e-5, 1.000001); // less than 1ppm error for m/z 
-  cmpDataRT(exp, exp, 0.05, 1.000001); // max 0.05 seconds error in RT
-
-  // 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
 START_SECTION( Size getNrSpectra() const )
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_EQUAL(handler.getNrSpectra(), 2)
 }
 END_SECTION
 
 START_SECTION( Size getNrChromatograms() const )
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_EQUAL(handler.getNrChromatograms(), 1)
 }
 END_SECTION
 
 START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   MSExperiment exp2;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp2);
 
   // read in meta data only
   {
@@ -286,10 +307,10 @@ END_SECTION
 
 START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   MSExperiment exp2;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp2);
 
   // read in meta data only
   {
@@ -316,7 +337,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
   {
 
     MSExperiment exp_orig;
-    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
@@ -330,13 +351,13 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     chroms.back().setNativeID("second");
 
     {
-      MzMLSqliteHandler handler(tmp_filename);
+      MzMLSqliteHandler handler(tmp_filename, 0);
       handler.setConfig(true, false, 0.0001);
       handler.createTables();
       handler.writeChromatograms(chroms);
     }
 
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 0);
     {
       std::vector<MSChromatogram> exp;
       std::vector<int> indices = {0};
@@ -372,7 +393,7 @@ END_SECTION
 
 START_SECTION(std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   {
     std::vector<int> indices = {};
@@ -437,8 +458,11 @@ END_SECTION
 
 START_SECTION(void writeExperiment(const MSExperiment & exp))
 {
-  MSExperiment exp_orig;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+  const MSExperiment exp_orig = [](){
+    MSExperiment tmp;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), tmp);
+    return tmp;
+  }();
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -448,7 +472,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeExperiment(exp_orig));
 
@@ -465,18 +489,16 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
     TEST_EQUAL(handler.getNrSpectra(), 2)
   }
 
-  MzMLSqliteHandler handler(tmp_filename);
-  MSExperiment exp2 = exp_orig;
-
+  MzMLSqliteHandler handler(tmp_filename, 12345);
   // read in meta data only
   {
     MSExperiment exp;
     handler.readExperiment(exp, true);
-    TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
-    TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
+    TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
+    TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
     TEST_EQUAL(exp.getNrSpectra(), 2)
     TEST_EQUAL(exp.getNrChromatograms(), 1)
-    TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], false) // no exact duplicate
+    TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
     for (Size i = 0; i < exp.getNrSpectra(); i++)
     {
@@ -487,31 +509,33 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
     {
       TEST_EQUAL(exp.getChromatogram(i).size(), 0)
     }
-    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
   }
 
   MSExperiment exp;
   handler.readExperiment(exp, false);
+  // tmp:
+  //MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp);
 
-  TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
-  TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
+  TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
+  TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
   TEST_EQUAL(exp.getNrSpectra(), 2)
   TEST_EQUAL(exp.getNrChromatograms(), 1)
-  TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], false) // no exact duplicate
+  TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
-  cmpDataIntensity(exp, exp, 1e-4, 1.001); 
-  cmpDataMZ(exp, exp, 1e-5, 1.000001); // less than 1ppm error for m/z 
-  cmpDataRT(exp, exp, 0.05, 1.000001); // max 0.05 seconds error in RT
+  cmpDataIntensity(exp, exp_orig, 1e-4, 1.001);
+  cmpDataMZ(exp, exp_orig, 1e-5, 1.000001); // less than 1ppm error for m/z 
+  cmpDataRT(exp, exp_orig, 0.05, 1.000001); // max 0.05 seconds error in RT
 
   // 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
 }
 END_SECTION
 
 START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
 {
   MSExperiment exp_orig;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -521,7 +545,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeSpectra(exp_orig.getSpectra()));
 
@@ -534,6 +558,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
     TEST_EQUAL(handler.getNrSpectra(), 4)
     handler.writeSpectra(exp_orig.getSpectra());
     TEST_EQUAL(handler.getNrSpectra(), 6)
+    handler.writeRunLevelInformation(exp_orig, false);
     MSExperiment tmp;
     handler.readExperiment(tmp, false);
     TEST_EQUAL(tmp.getNrSpectra(), 6)
@@ -559,7 +584,7 @@ END_SECTION
 START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms))
 {
   MSExperiment exp_orig;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -569,7 +594,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     handler.setConfig(true, false, 0.0001);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));
@@ -583,6 +608,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     TEST_EQUAL(handler.getNrChromatograms(), 2)
     handler.writeChromatograms(exp_orig.getChromatograms());
     TEST_EQUAL(handler.getNrChromatograms(), 3)
+    handler.writeRunLevelInformation(exp_orig, false);
 
     MSExperiment tmp;
     handler.readExperiment(tmp, false);
@@ -605,7 +631,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   // delete file if present
   file.remove();
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     handler.setConfig(true, true, 0.0001);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));
@@ -619,6 +645,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     TEST_EQUAL(handler.getNrChromatograms(), 2)
     handler.writeChromatograms(exp_orig.getChromatograms());
     TEST_EQUAL(handler.getNrChromatograms(), 3)
+    handler.writeRunLevelInformation(exp_orig, false);
 
     MSExperiment tmp;
     handler.readExperiment(tmp, false);

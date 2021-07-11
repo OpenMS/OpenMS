@@ -52,17 +52,6 @@ find_path(
     NAMES ${_XercesC_INCLUDE_TARGET}
 )
 
-# Find the xerces libraries
-if (NOT XercesC_LIBRARIES)
-    ## The NAMES_PER_DIR option will make sure that the PATHS are the "outer for loop" when searching for the libraries.
-	## We want that because we put the contrib as the first search path usually.
-    find_library(XercesC_LIBRARY_RELEASE NAMES xerces-c xerces-c_3 xerces-c_3_1 xerces-c-3.1 xerces-c_3_2 xerces-c-3.2 NAMES_PER_DIR ${_XercesC_PATHS} PATH_SUFFIXES lib)
-    find_library(XercesC_LIBRARY_DEBUG NAMES xerces-c_3D xerces-c_3_1D xerces-c-3.1D xerces-c_3_2D xerces-c-3.2D NAMES_PER_DIR ${_XercesC_PATHS} PATH_SUFFIXES lib)
-
-    include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
-    select_library_configurations(XercesC)
-endif ()
-
 # identify xerces version
 if (XercesC_INCLUDE_DIRS AND EXISTS "${XercesC_INCLUDE_DIRS}/${_XercesC_INCLUDE_TARGET}")
   file(STRINGS "${XercesC_INCLUDE_DIRS}/${_XercesC_INCLUDE_TARGET}" _XercesC_H REGEX "^#define XERCES_VERSION_.* [0-9]+")
@@ -75,6 +64,51 @@ if (XercesC_INCLUDE_DIRS AND EXISTS "${XercesC_INCLUDE_DIRS}/${_XercesC_INCLUDE_
 
   set(XercesC_VERSION_STRING "${XercesC_VERSION_MAJOR}.${XercesC_VERSION_MINOR}.${XercesC_VERSION_REVISION}")
 endif ()
+
+##TODO use the version to search the same version in subsequent find_library calls
+
+# Find the xerces libraries
+if (NOT XercesC_LIBRARIES)
+    ## The NAMES_PER_DIR option will make sure that the PATHS are the "outer for loop" when searching for the libraries.
+	## We want that because we put the contrib as the first search path usually.
+    find_library(XercesC_LIBRARY_RELEASE NAMES xerces-c xerces-c_3 xerces-c_3_1 xerces-c-3.1 xerces-c_3_2 xerces-c-3.2 NAMES_PER_DIR ${_XercesC_PATHS} PATH_SUFFIXES lib)
+    find_library(XercesC_LIBRARY_DEBUG NAMES xerces-c_3D xerces-c_3_1D xerces-c-3.1D xerces-c_3_2D xerces-c-3.2D NAMES_PER_DIR ${_XercesC_PATHS} PATH_SUFFIXES lib)
+
+    include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
+    select_library_configurations(XercesC)
+endif ()
+
+if(XercesC_FOUND)
+
+  # TODO somehow determine if SHARED or STATIC? I think Xerces offers an exported CMake file by now.
+  # For header-only libraries
+  if(NOT TARGET XercesC::XercesC)
+    add_library(XercesC::XercesC UNKNOWN IMPORTED)
+    if(XercesC_INCLUDE_DIRS)
+      set_target_properties(XercesC::XercesC PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${XercesC_INCLUDE_DIRS}")
+    endif()
+    if(EXISTS "${XercesC_LIBRARY}")
+      set_target_properties(XercesC::XercesC PROPERTIES
+        IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+        IMPORTED_LOCATION "${XercesC_LIBRARY}")
+    endif()
+    if(EXISTS "${XercesC_LIBRARY_RELEASE}")
+      set_property(TARGET XercesC::XercesC APPEND PROPERTY
+        IMPORTED_CONFIGURATIONS RELEASE)
+      set_target_properties(XercesC::XercesC PROPERTIES
+        IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "CXX"
+        IMPORTED_LOCATION_RELEASE "${XercesC_LIBRARY_RELEASE}")
+    endif()
+    if(EXISTS "${XercesC_LIBRARY_DEBUG}")
+      set_property(TARGET XercesC::XercesC APPEND PROPERTY
+        IMPORTED_CONFIGURATIONS DEBUG)
+      set_target_properties(XercesC::XercesC PROPERTIES
+        IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
+        IMPORTED_LOCATION_DEBUG "${XercesC_LIBRARY_DEBUG}")
+    endif()
+  endif()
+endif()
 
 # handle the QUIETLY and REQUIRED arguments and set XercesC_FOUND to TRUE if
 # all listed variables are TRUE

@@ -49,21 +49,6 @@ namespace OpenMS
       return (MassTrace::MT_QUANTMETHOD)std::distance(qb, qm);
     }
 
-    MassTrace::MassTrace() :
-            fwhm_mz_avg(0),
-            trace_peaks_(),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
-            label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
-    {
-    }
-
     MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
             fwhm_mz_avg(0),
             trace_peaks_(),
@@ -94,45 +79,6 @@ namespace OpenMS
             fwhm_end_idx_(0),
             quant_method_(MT_QUANT_AREA)
     {
-    }
-
-    MassTrace::~MassTrace()
-    {
-    }
-
-    MassTrace::MassTrace(const MassTrace& mt) :
-            fwhm_mz_avg(mt.fwhm_mz_avg),
-            trace_peaks_(mt.trace_peaks_),
-            centroid_mz_(mt.centroid_mz_),
-            centroid_sd_(mt.centroid_sd_),
-            centroid_rt_(mt.centroid_rt_),
-            label_(mt.label_),
-            smoothed_intensities_(mt.smoothed_intensities_),
-            fwhm_(mt.fwhm_),
-            fwhm_start_idx_(mt.fwhm_start_idx_),
-            fwhm_end_idx_(mt.fwhm_end_idx_),
-            quant_method_(mt.quant_method_)
-    {
-    }
-
-    MassTrace& MassTrace::operator=(const MassTrace& rhs)
-    {
-      if (this == &rhs)
-        return *this;
-
-      fwhm_mz_avg = rhs.fwhm_mz_avg;
-      trace_peaks_ = rhs.trace_peaks_;
-      centroid_mz_ = rhs.centroid_mz_;
-      centroid_rt_ = rhs.centroid_rt_;
-      centroid_sd_ = rhs.centroid_sd_;
-      label_ = rhs.label_;
-      smoothed_intensities_ = rhs.smoothed_intensities_;
-      fwhm_ = rhs.fwhm_;
-      fwhm_start_idx_ = rhs.fwhm_start_idx_;
-      fwhm_end_idx_ = rhs.fwhm_end_idx_;
-      quant_method_ = rhs.quant_method_;
-
-      return *this;
     }
 
     PeakType& MassTrace::operator[](const Size& mt_idx)
@@ -311,12 +257,12 @@ namespace OpenMS
 
     double MassTrace::linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const
     {
-      OPENMS_PRECONDITION(yA < y_eval && y_eval < yB, "y_eval is not between yA and yB")
+      OPENMS_PRECONDITION(yA <= y_eval && y_eval <= yB, "y_eval is not between yA and yB")
       // no solution -> return an estimate
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
       double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      OPENMS_POSTCONDITION(xA < xC && xC < xB, "xC is not between xA and xB");
+      OPENMS_POSTCONDITION(xA <= xC && xC <= xB, "xC is not between xA and xB");
 
       return xC;
     }

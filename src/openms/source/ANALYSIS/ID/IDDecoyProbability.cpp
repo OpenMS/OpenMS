@@ -47,12 +47,12 @@ namespace OpenMS
   IDDecoyProbability::IDDecoyProbability() :
     DefaultParamHandler("IDDecoyProbability")
   {
-    defaults_.setValue("number_of_bins", 40, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", ListUtils::create<String>("advanced"));
-    defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("number_of_bins", 40, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", {"advanced"});
+    defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", {"advanced"});
 
 #ifdef IDDECOYPROBABILITY_DEBUG
-    defaults_.setValue("rev_filename", "", "bla", ListUtils::create<String>("advanced"));
-    defaults_.setValue("fwd_filename", "", "bla", ListUtils::create<String>("advanced"));
+    defaults_.setValue("rev_filename", "", "bla", {"advanced"});
+    defaults_.setValue("fwd_filename", "", "bla", {"advanced"});
 #endif
 
     defaultsToParam_();

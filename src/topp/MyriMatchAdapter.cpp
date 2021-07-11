@@ -40,7 +40,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -100,11 +100,11 @@ using namespace OpenMS;
 using namespace std;
 
 class MyriMatchAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   MyriMatchAdapter() :
-    TOPPBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
+    SearchEngineBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
   {
   }
 
@@ -335,9 +335,9 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String inputfile_name = File::absolutePath(getStringOption_("in"));
+    String inputfile_name = File::absolutePath(getRawfileName());
     String outputfile_name = getStringOption_("out");
-    String db_name = File::absolutePath(String(getStringOption_("database")));
+    String db_name = File::absolutePath(getDBFilename());
 
     // building parameter String
     StringList parameters;

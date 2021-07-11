@@ -91,6 +91,7 @@ START_SECTION((const String& getName() const ))
   TEST_STRING_EQUAL(ptr->getName(), "")
   ptr->setName("my_fancy_name");
   TEST_STRING_EQUAL(ptr->getName(), "my_fancy_name")
+  delete ptr;
 }
 END_SECTION
 

@@ -165,7 +165,7 @@ namespace OpenMS
       const Param tm_params = aqm.getTransformationModelParams();
       for (Size i = 0, j = 11; i < tm_params_names.size(); ++i, ++j)
       {
-        row[j] = tm_params.exists(tm_params_names[i]) ? tm_params.getValue(tm_params_names[i]) : "";
+        row[j] = tm_params.exists(tm_params_names[i]) ? tm_params.getValue(tm_params_names[i]).toString() : "";
       }
       addRow(row);
     }

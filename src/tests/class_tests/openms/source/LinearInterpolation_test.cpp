@@ -78,6 +78,14 @@ START_SECTION([EXTRA] typedefs )
   TEST_NOT_EQUAL(key, nullKey)
   TEST_NOT_EQUAL(container, nullContainer)
   TEST_NOT_EQUAL(containerValue, nullContainerValue)
+  delete value;
+  delete key;
+  delete container;
+  delete containerValue;
+  delete nullValue;
+  delete nullKey;
+  delete nullContainer;
+  delete nullContainerValue;
 }
 END_SECTION
 

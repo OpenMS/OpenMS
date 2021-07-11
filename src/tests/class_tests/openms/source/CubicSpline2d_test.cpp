@@ -99,11 +99,13 @@ CubicSpline2d* nullPointer = nullptr;
 START_SECTION(CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y))
   CubicSpline2d* sp3 = new CubicSpline2d(mz, intensity);
   TEST_NOT_EQUAL(sp3, nullPointer)
+  delete sp3;
 END_SECTION
 
 START_SECTION(CubicSpline2d(const std::map<double, double>& m))
   CubicSpline2d* sp4 = new CubicSpline2d(mz_intensity);
   TEST_NOT_EQUAL(sp4, nullPointer)
+  delete sp4;
 END_SECTION
 
 START_SECTION(double eval(double x))

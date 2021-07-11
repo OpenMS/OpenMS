@@ -96,7 +96,7 @@ START_SECTION(static const std::string& enumToName(MODELTYPE mt))
 END_SECTION 
 
 START_SECTION(static void setRANSACParams(const Math::RANSACParam& p))
-  Math::RANSACParam p(10, 1000, 2.0, 25, false, nullptr);
+  Math::RANSACParam p(10, 1000, 2.0, 25, false);
   MZTrafoModel::setRANSACParams(p);
 END_SECTION
 
@@ -191,7 +191,7 @@ START_SECTION(bool train(std::vector<double> error_mz, std::vector<double> theo_
   std::vector<double> error_mz = ListUtils::create<double>("10,11,9,10,9,11");
   std::vector<double> theo_mz = ListUtils::create<double>("100,200,300,400,500,600");
   std::vector<double> weights;
-  Math::RANSACParam p(3, 1000, 4.0, 1, false, nullptr);
+  Math::RANSACParam p(3, 1000, 4.0, 1, false);
   MZTrafoModel::setRANSACParams(p);
   m.train(error_mz, theo_mz, weights, MZTrafoModel::LINEAR, true);
   std::cout << m.toString() << std::endl;

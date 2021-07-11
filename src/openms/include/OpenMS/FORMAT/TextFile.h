@@ -115,7 +115,7 @@ public:
     }
 
     /**
-      @brief Platform-agnostic getline() which can deal with all line endings (\r, \r\n, \n)
+      @brief Platform-agnostic getline() which can deal with all line endings (\\r, \\r\\n, \\n)
 
       Line endings will be removed from the resulting string.
     

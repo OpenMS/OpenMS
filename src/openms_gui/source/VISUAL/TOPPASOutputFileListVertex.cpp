@@ -188,7 +188,7 @@ namespace OpenMS
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
                 if (p.exists(out_type))
                 {
-                  ft = FileTypes::nameToType(p.getValue(out_type));
+                  ft = FileTypes::nameToType(p.getValue(out_type).toString());
                 }
               }
 
@@ -296,18 +296,23 @@ namespace OpenMS
 
   String TOPPASOutputFileListVertex::getOutputDir() const
   {
-    TOPPASEdge* e = *inEdgesBegin();
-    TOPPASVertex* tv = e->getSourceVertex();
-    String dir;
-    if (output_folder_name_.isEmpty()) {
+    String dir = String("TOPPAS_out") + String(QDir::separator());
+    if (output_folder_name_.isEmpty())
+    {
+      TOPPASEdge* e = *inEdgesBegin();
+      if (e == nullptr)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "To open the output folder, an input edge is required to knit a folder name.");
+      }
+      const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                             + tv->getName() + "-" 
-                                                             + e->getSourceOutParamName().remove(':');
+      dir += get3CharsNumber_(topo_nr_) + "-"
+             + tv->getName() + "-" 
+             + e->getSourceOutParamName().remove(':');
     }
     else
     {
-      dir = String("TOPPAS_out") + String(QDir::separator()) + output_folder_name_;
+      dir += output_folder_name_;
     }
     return dir;
   }

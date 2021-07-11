@@ -110,6 +110,7 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	SpectrumPrecursorComparator pre_comp;
 	TEST_EQUAL(cf->getName(), pre_comp.getName())
 	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
+	delete cf;
 END_SECTION
 
 START_SECTION(static const String getProductName())

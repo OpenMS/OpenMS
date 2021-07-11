@@ -42,43 +42,23 @@ namespace OpenMS
   const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation"};
   const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
 
-  Precursor::Precursor() :
-    CVTermList(),
-    Peak1D(),
-    activation_methods_(),
-    activation_energy_(0.0),
-    window_low_(0.0),
-    window_up_(0.0),
-    drift_time_(-1),
-    drift_window_low_(0.0),
-    drift_window_up_(0.0),
-    drift_time_unit_(Precursor::DriftTimeUnit::NONE),
-    charge_(0),
-    possible_charge_states_()
-  {
-  }
-
   Precursor::Precursor(Precursor&& rhs) noexcept :
-    CVTermList(std::move(rhs)),
-    Peak1D(std::move(rhs)),
-    activation_methods_(std::move(rhs.activation_methods_)),
-    activation_energy_(rhs.activation_energy_),
-    window_low_(rhs.window_low_),
-    window_up_(rhs.window_up_),
-    drift_time_(rhs.drift_time_),
-    drift_window_low_(rhs.drift_window_low_),
-    drift_window_up_(rhs.drift_window_up_),
-    drift_time_unit_(rhs.drift_time_unit_),
-    charge_(rhs.charge_),
-    possible_charge_states_(std::move(rhs.possible_charge_states_))
+      CVTermList(std::move(rhs)),
+      Peak1D(std::move(rhs)),
+      activation_methods_(std::move(rhs.activation_methods_)),
+      activation_energy_(rhs.activation_energy_),
+      window_low_(rhs.window_low_),
+      window_up_(rhs.window_up_),
+      drift_time_(rhs.drift_time_),
+      drift_window_low_(rhs.drift_window_low_),
+      drift_window_up_(rhs.drift_window_up_),
+      drift_time_unit_(rhs.drift_time_unit_),
+      charge_(rhs.charge_),
+      possible_charge_states_(std::move(rhs.possible_charge_states_))
   {
   }
 
-  Precursor::~Precursor()
-  {
-  }
-
-  bool Precursor::operator==(const Precursor & rhs) const
+  bool Precursor::operator==(const Precursor& rhs) const
   {
     return activation_methods_ == rhs.activation_methods_ &&
            activation_energy_ == rhs.activation_energy_ &&
@@ -94,19 +74,30 @@ namespace OpenMS
            CVTermList::operator==(rhs);
   }
 
-  bool Precursor::operator!=(const Precursor & rhs) const
+  bool Precursor::operator!=(const Precursor& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const set<Precursor::ActivationMethod> & Precursor::getActivationMethods() const
+  const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const
   {
     return activation_methods_;
   }
 
-  set<Precursor::ActivationMethod> & Precursor::getActivationMethods()
+  set<Precursor::ActivationMethod>& Precursor::getActivationMethods()
   {
     return activation_methods_;
+  }
+
+  StringList Precursor::getActivationMethodsAsString() const
+  {
+    StringList am;
+    am.reserve(activation_methods_.size());
+    for (const auto& m : activation_methods_)
+    {
+      am.push_back(NamesOfActivationMethod[m]);
+    }
+    return am;
   }
 
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
@@ -156,7 +147,7 @@ namespace OpenMS
     drift_time_ = drift_time;
   }
 
-  Precursor::DriftTimeUnit Precursor::getDriftTimeUnit() const
+  DriftTimeUnit Precursor::getDriftTimeUnit() const
   {
     return drift_time_unit_;
   }

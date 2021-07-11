@@ -483,7 +483,8 @@ START_SECTION(([LPWrapper::SolverParam] SolverParam()))
   TEST_EQUAL(sptr->output_freq,5000)
   TEST_EQUAL(sptr->output_delay,10000)
   TEST_EQUAL(sptr->enable_presolve,true)
-  TEST_EQUAL(sptr->enable_binarization,true) 
+  TEST_EQUAL(sptr->enable_binarization,true)
+  delete sptr;
 }
 END_SECTION
 

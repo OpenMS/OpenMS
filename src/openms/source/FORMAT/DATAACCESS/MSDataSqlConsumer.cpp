@@ -39,9 +39,9 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
+  MSDataSqlConsumer::MSDataSqlConsumer(const String& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
-        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
+        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename, run_id) ),
         flush_after_(flush_after),
         full_meta_(full_meta)
   {
@@ -57,10 +57,8 @@ namespace OpenMS
     flush();
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
-    bool write_full_meta = full_meta_;
-    int run_id = 0;
     peak_meta_.setLoadedFilePath(filename_);
-    handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
+    handler_->writeRunLevelInformation(peak_meta_, full_meta_);
 
     delete handler_;
   }

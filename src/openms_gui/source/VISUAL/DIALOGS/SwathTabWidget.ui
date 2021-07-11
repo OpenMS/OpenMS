@@ -26,7 +26,7 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>4</number>
   </property>
   <property name="elideMode">
    <enum>Qt::ElideNone</enum>
@@ -387,14 +387,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QTextEdit" name="input_py_pqps">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="placeholderText">
-          <string>select mzML input files in 'LC-MS files' tab first and pick an output directory in 'Run OpenSwath' tab</string>
-         </property>
-        </widget>
+        <widget class="TableView" name="tbl_py_osws" native="true"/>
        </item>
       </layout>
      </widget>
@@ -493,7 +486,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string> ... where to find the results...</string>
+          <string>... replaced with actual output path ...</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -523,6 +516,13 @@
          </property>
          <property name="text">
           <string>open result folder</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>open in TOPPView</string>
          </property>
         </widget>
        </item>
@@ -587,6 +587,12 @@
    <class>SwathLibraryStats</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/SwathLibraryStats.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/TableView.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

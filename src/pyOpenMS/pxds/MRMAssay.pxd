@@ -31,9 +31,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                   int min_transitions,
                                   int max_transitions) nogil except +
 
-        void detectingTransitionsCompound(TargetedExperiment & exp,
+        void filterMinMaxTransitionsCompound(TargetedExperiment & exp,
                                           int min_transitions,
                                           int max_transitions) nogil except +
+
+        void filterUnreferencedDecoysCompound(TargetedExperiment & exp) nogil except +
         
         void uisTransitions(TargetedExperiment & exp, 
                             libcpp_vector[ String ] fragment_types,

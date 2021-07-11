@@ -49,7 +49,7 @@ namespace OpenMS
 {
   class Annotation1DItem;
 
-  /// Container for annotations to content of Spectrum1DCanvas
+  /// Container for annotations to content of Plot1DCanvas
   class Annotations1DContainer :
     public std::list<Annotation1DItem *>
   {

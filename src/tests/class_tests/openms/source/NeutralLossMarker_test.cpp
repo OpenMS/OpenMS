@@ -107,6 +107,7 @@ START_SECTION((static PeakMarker* create()))
 	NeutralLossMarker marker;
 	TEST_EQUAL(pm->getParameters(), marker.getParameters())
 	TEST_EQUAL(pm->getName(), marker.getName())
+	delete pm;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

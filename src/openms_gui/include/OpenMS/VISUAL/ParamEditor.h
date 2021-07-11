@@ -117,18 +117,20 @@ signals:
       void modified(bool) const;
 
 protected:
+      /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
+      bool eventFilter(QObject* editor, QEvent* event) override;
+  
       /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
       bool exists_(QString name, QModelIndex index) const;
 
 private slots:
-      ///For closing ListEditor and updating ParamEditor
-      void commitAndCloseListEditor_();
-      ///For closing QcomboBox and updating ParamEditor
-      void commitAndCloseComboBox_();
-      ///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
-      void closeListEditor_();
-      /// ...
+      ///For closing any editor and updating ParamEditor
+      void commitAndCloseEditor_();
+      ///if cancel in any editor is clicked, the Dialog is closed and changes are rejected
+      void closeEditor_();
+      /// ... a bit special, because reset uncommited data
       void commitAndCloseLineEdit_();
+
 private:
       /// Not implemented
       ParamEditorDelegate();

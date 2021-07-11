@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenSwathAlgo-3rd-party-libs")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # MIToolbox lib .. note this library will not be compiled
 # but we only expose the sources

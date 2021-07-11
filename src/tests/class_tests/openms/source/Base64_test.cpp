@@ -38,10 +38,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/Base64.h>
-
-///////////////////////////
-
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 using namespace std;
 
@@ -531,6 +529,8 @@ START_SECTION(inline UInt64 endianize64(const UInt64& n))
   UInt64 r = UniqueIdGenerator::getUniqueId();
   TEST_EQUAL(r, endianize64(endianize64(r)))
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

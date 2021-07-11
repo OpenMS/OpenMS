@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Andreas Bertsch, Stephan Aiche $
+// $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -67,10 +67,22 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::PNG), "png");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
+
+  // try them all, just to make sure they are all there
+  for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
+  {
+    TEST_EQUAL(FileTypes::nameToType(FileTypes::typeToName(FileTypes::Type(i))), FileTypes::Type(i));
+  }
 }
 END_SECTION
 
-START_SECTION((static Type nameToType(const String &name)))
+START_SECTION((static Type nameToType(const String& name)))
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
+END_SECTION
+
+
+START_SECTION((static Type nameToType(const String& name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
@@ -103,7 +115,21 @@ START_SECTION((static Type nameToType(const String &name)))
   TEST_EQUAL(FileTypes::EDTA, FileTypes::nameToType("edta"));
   TEST_EQUAL(FileTypes::CSV, FileTypes::nameToType("csv"));
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
+
+  TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }
+END_SECTION
+
+START_SECTION([EXTRA] FileTypes::FileTypeList)
+  FileTypes::FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
+  TEST_EQUAL(list.contains(FileTypes::MZML), true);
+  TEST_EQUAL(list.contains(FileTypes::BZ2), true);
+  TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
+
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 END_SECTION
 
 END_TEST

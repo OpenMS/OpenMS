@@ -289,7 +289,7 @@ END_SECTION
 START_SECTION(QCBase::Status requires() const override)
 {
   QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-  TEST_EQUAL(stat, ms2ir.requires())
+  TEST_EQUAL(stat == ms2ir.requires(), true)
 }
 END_SECTION
 

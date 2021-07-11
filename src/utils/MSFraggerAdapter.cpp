@@ -100,6 +100,8 @@ class TOPPMSFraggerAdapter final :
 {
 public:
 
+  static const String license;
+
   static const String java_executable;
   static const String java_heapmemory;
   static const String executable;
@@ -189,7 +191,21 @@ public:
 
 
   TOPPMSFraggerAdapter() :
-    TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false,
+    TOPPBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
+                                  "Important note:\n"
+                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
+                                  "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
+                                  "for use on related service offerings supported by the University of Tubingen and the Center for\n"
+                                  "Integrative Bioinformatics.                                                                    \n"
+                                  "Per the license agreement the use of the pipeline and associated materials is for academic     \n"
+                                  "research, non-commercial or educational purposes. Any commercial use inquiries                 \n"
+                                  "must be directed to the University of Michigan Technology Transfer Office at                   \n"
+                                  "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       \n"
+                                  "University of Michigan.\n"
+                                  "\n"
+                                  "For details, please see the supplied license file or                                           \n"
+				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
+    , false,
              {
                  {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
                   "MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics",
@@ -214,6 +230,10 @@ protected:
     const StringList validUnits = ListUtils::create<String>("Da,ppm");
     const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
+
+    // License agreement
+    registerStringOption_(TOPPMSFraggerAdapter::license, "<license>", "", "Set to yes, if you have read and agreed to the MSFragger license terms.", true, false);
+    setValidStrings_(TOPPMSFraggerAdapter::license, {"yes","no"});
 
     // Java executable
     registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"skipexists"});
@@ -377,6 +397,11 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    if (getStringOption_(TOPPMSFraggerAdapter::license) != "yes" && !getFlag_("test"))
+    {
+      _fatalError("MSFragger may only be used upon acceptance of license terms.");
+    }
+
     File::TempDir working_directory(debug_level_ >= 2);
     try
     {
@@ -840,6 +865,7 @@ const String TOPPMSFraggerAdapter::add_F_phenylalanine = "statmod:add_F_phenylal
 const String TOPPMSFraggerAdapter::add_R_arginine = "statmod:add_R_arginine";
 const String TOPPMSFraggerAdapter::add_Y_tyrosine = "statmod:add_Y_tyrosine";
 const String TOPPMSFraggerAdapter::add_W_tryptophan = "statmod:add_W_tryptophan";
+const String TOPPMSFraggerAdapter::license = "license";
 
 const int TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE = 1;
 

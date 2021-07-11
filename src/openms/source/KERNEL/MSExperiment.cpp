@@ -371,6 +371,22 @@ namespace OpenMS
     return ms_levels_;
   }
 
+  const String sqMassRunID = "sqMassRunID";
+
+  UInt64 MSExperiment::getSqlRunID() const
+  {
+    if (metaValueExists(sqMassRunID))
+    {
+      return getMetaValue(sqMassRunID);
+    }
+    return 0;
+  }
+
+  void MSExperiment::setSqlRunID(UInt64 id)
+  {
+    setMetaValue(sqMassRunID, id);
+  }
+
   ///@}
 
   ///@name Sorting spectra and peaks
@@ -744,6 +760,18 @@ namespace OpenMS
         {
           return true;
         }
+      }
+    }
+    return false;
+  }
+
+  bool MSExperiment::hasPeptideIdentifications() const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (!spec.getPeptideIdentifications().empty())
+      {
+        return true;
       }
     }
     return false;

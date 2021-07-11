@@ -88,9 +88,7 @@ public:
       }
 
       /// Destructor
-      virtual ~LinearRegression()
-      {
-      }
+      virtual ~LinearRegression() = default;
 
       /**
           @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
@@ -166,6 +164,12 @@ public:
       /// Non-mutable access to relative standard deviation
       double getRSD() const;
 
+      /// given x compute y = slope * x + intercept
+      static inline double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
+
 protected:
 
       /// The intercept of the fitted line with the y-axis
@@ -213,17 +217,6 @@ private:
       LinearRegression& operator=(const LinearRegression& arg);
 
     }; //class
-
-
-    namespace
-    {
-      //given x compute y = slope * x + intercept
-      double computePointY(double x, double slope, double intercept)
-      {
-        return slope * x + intercept;
-      }
-
-    } //namespace
 
     //x, y, w must be of same size
     template <typename Iterator>

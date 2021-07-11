@@ -70,7 +70,6 @@ int isotopes_per_peptide_max = 6;
 double intensity_cutoff = 10.0;
 double rt_band = 3;
 double rt_typical = 90;
-double rt_minimum = 5;
 double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
@@ -103,15 +102,15 @@ std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 MultiplexClustering* nullPointer = nullptr;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
+START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical))
+    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
-    ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
+    ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
+MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical);
 
 START_SECTION(cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results))
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);

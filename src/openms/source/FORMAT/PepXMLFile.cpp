@@ -126,10 +126,50 @@ namespace OpenMS
     return errors_;
   }
 
+  const ResidueModification*
+  PepXMLFile::AminoAcidModification::lookupModInPreferredMods_(const vector<const ResidueModification*>& preferred_mods,
+                                                       const String& aminoacid,
+                                                       double massdiff,
+                                                       const String& description,
+                                                       const ResidueModification::TermSpecificity term_spec,
+                                                       double tolerance)
+  {
+    for (const auto& pref_mod : preferred_mods)
+    {
+      if (description == pref_mod->getFullId())
+      {
+        return pref_mod;
+      }
+    }
+    for (const auto& pref_mod : preferred_mods)
+    {
+      if ((aminoacid.empty() || aminoacid[0] == pref_mod->getOrigin()) &&
+      (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY || term_spec == pref_mod->getTermSpecificity()))
+      {
+        if (fabs(massdiff - pref_mod->getDiffMonoMass()) < tolerance)
+        {
+          return pref_mod;
+        }
+      }
+    }
+    return nullptr;
+  }
+
   PepXMLFile::AminoAcidModification::AminoAcidModification(
       const String& aminoacid, const String& massdiff, const String& mass,
-      String variable, const String& description, String terminus, const String& protein_terminus)
+      String variable, const String& description, String terminus, const String& protein_terminus,
+      const vector<const ResidueModification*>& preferred_fixed_mods,
+      const vector<const ResidueModification*>& preferred_var_mods,
+      double tolerance)
   {
+    if (aminoacid.empty() && terminus.empty())
+    {
+      throw Exception::MissingInformation(__FILE__,
+                                          __LINE__,
+                                          OPENMS_PRETTY_FUNCTION,
+                                          "Either terminus or amino acid origin or both needs to be set.");
+    }
+
     aminoacid_ = aminoacid;
     massdiff_ = massdiff.toDouble();
     mass_ = mass.toDouble();
@@ -201,30 +241,48 @@ namespace OpenMS
       }
     }
 
-    // check if the modification is uniquely defined:
-    if (!description.empty())
+    if (isVariable())
     {
-      try
-      {
-        registered_mod_ = ModificationsDB::getInstance()->getModification(description, aminoacid, term_spec_);
-      }
-      catch (Exception::BaseException&)
-      {
-        errors_.emplace_back("Modification '" + description_ + "' of residue '" + aminoacid_ + "' could not be matched. Trying by modification mass.");
-      }
+      registered_mod_ = lookupModInPreferredMods_(preferred_var_mods, aminoacid_, massdiff_,
+                                                  description_, term_spec_, tolerance);
     }
     else
     {
-      errors_.emplace_back("No modification description given. Trying to define by modification mass.");
+      registered_mod_ = lookupModInPreferredMods_(preferred_fixed_mods, aminoacid_, massdiff_,
+                                                  description_, term_spec_, tolerance);
+    }
+    //TODO push another warning if not found?
+
+    if (registered_mod_ == nullptr)
+    {
+      // check if the modification is uniquely defined through its description (if given):
+      if (!description.empty())
+      {
+        try
+        {
+          registered_mod_ = ModificationsDB::getInstance()->getModification(description, aminoacid, term_spec_);
+        }
+        catch (Exception::BaseException&)
+        {
+          errors_.emplace_back("Modification '" + description_ + "' of residue '" + aminoacid_ +
+                               "' could not be matched. Trying by modification mass.");
+        }
+      }
+      else
+      {
+        errors_.emplace_back("No modification description given. Trying to define by modification mass.");
+      }
     }
 
     if (registered_mod_ == nullptr)
     {
+      //TODO differentiate between integer and non-integer masses like in AASequence?
+      // Are there non-integer masses in the header of PepXML?
       std::vector<const ResidueModification*> mods;
       // if terminus was not specified
       if (term_spec_ == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try least specific search first
       {
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMassSorted(
             mods, massdiff_, mod_tol_, aminoacid_, ResidueModification::ANYWHERE);
       }
       if (mods.empty())
@@ -232,7 +290,7 @@ namespace OpenMS
         // for unknown terminus it looks for everything, otherwise just for the specific terminus
         // TODO we might also need to search for Protein-X-Term in case of X-Term
         //  since some tools seem to forget to annotate
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMassSorted(
             mods, massdiff_, mod_tol_, aminoacid_, term_spec_);
       }
       if (!mods.empty())
@@ -280,7 +338,9 @@ namespace OpenMS
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
-    search_score_summary_(false)
+    search_score_summary_(false),
+    preferred_fixed_modifications_({}),
+    preferred_variable_modifications_({})
   {
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
@@ -1621,7 +1681,8 @@ namespace OpenMS
       }
 
       AminoAcidModification aa_mod{
-        aminoacid, massdiff, mass, is_variable, description, terminus, protein_terminus_entry
+        aminoacid, massdiff, mass, is_variable, description, terminus, protein_terminus_entry,
+        preferred_fixed_modifications_, preferred_variable_modifications_, mod_tol_
       };
 
       const vector<String>& errs = aa_mod.getErrors();
@@ -1804,6 +1865,7 @@ namespace OpenMS
     bool found = false;
     for (const auto& m : header_mods)
     {
+      //TODO do we really want to allow another tolerance to the masses in the header?
       if (fabs(modification_mass - m.getMass()) < mod_tol_)
       {
         if (m.getAminoAcid().hasSubstring(current_sequence_[modification_position]))
@@ -1977,6 +2039,16 @@ namespace OpenMS
       current_proteins_.back()->setSearchParameters(params_);
       search_summary_ = false;
     }
+  }
+
+  void PepXMLFile::setPreferredFixedModifications(const std::vector<const ResidueModification*>& mods)
+  {
+    preferred_fixed_modifications_ = mods;
+  }
+
+  void PepXMLFile::setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods)
+  {
+    preferred_variable_modifications_ = mods;
   }
 
 } // namespace OpenMS

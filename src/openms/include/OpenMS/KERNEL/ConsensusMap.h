@@ -127,10 +127,13 @@ public:
       public MetaInfoInterface
     {
       /// Default constructor
-      ColumnHeader();
+      ColumnHeader() = default;
 
       /// Copy constructor
-      ColumnHeader(const ColumnHeader&);
+      ColumnHeader(const ColumnHeader&) = default;
+
+      /// Copy assignment
+      ColumnHeader& operator=(const ColumnHeader&) = default;
 
       /// File name of the mzML file
       String filename;
@@ -138,9 +141,9 @@ public:
       String label;
       /// @brief Number of elements (features, peaks, ...).
       /// This is e.g. used to check for correct element indices when writing a consensus map TODO fix that
-      Size size;
+      Size size = 0;
       /// Unique id of the file
-      UInt64 unique_id;
+      UInt64 unique_id = UniqueIdInterface::INVALID;
 
       unsigned getLabelAsUInt(const String& experiment_type) const
       {
@@ -163,6 +166,7 @@ public:
 
     ///@name Type definitions
     //@{
+    typedef ConsensusFeature FeatureType;
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
     typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
@@ -375,7 +379,7 @@ public:
 
      If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
      provided by the map index.
-     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are seperated. All PeptideIdentifications
+     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are separated. All PeptideIdentifications
      (assigned and unassigned) are added to the first FeatureMap.
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.

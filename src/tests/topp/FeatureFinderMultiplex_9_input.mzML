@@ -42,7 +42,7 @@
 			<cvParam cvRef="MS" accession="MS:1002135" name="TOPP PeakPickerHiRes" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="2.4.0-feature-OPXL-memory-usage-2019-01-15" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">

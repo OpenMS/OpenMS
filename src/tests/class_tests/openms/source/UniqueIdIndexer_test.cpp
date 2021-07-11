@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <vector>
 
@@ -117,7 +118,8 @@ START_SECTION((Size uniqueIdToIndex(UInt64 unique_id) const))
   }
 
   STATUS("shuffling ...");
-  std::random_shuffle(dvi.begin(), dvi.end());
+  Math::RandomShuffler r{0};
+  r.portable_random_shuffle(dvi.begin(), dvi.end());
 
   for ( Size i = 0; i < num_uii; ++i )
   {
@@ -138,7 +140,7 @@ START_SECTION((Size uniqueIdToIndex(UInt64 unique_id) const))
   dvi.push_back(Dummy());
 
   STATUS("shuffling ...");
-  std::random_shuffle(dvi.begin(), dvi.end());
+  r.portable_random_shuffle(dvi.begin(), dvi.end());
 
   TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,dvi.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==12, num_valid_unique_id==10, uniqueid_to_index_.size()==9");
 

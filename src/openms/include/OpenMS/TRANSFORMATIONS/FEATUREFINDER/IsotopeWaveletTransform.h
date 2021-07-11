@@ -1046,7 +1046,6 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
 
@@ -1620,7 +1619,6 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
       Box& c_box = iter->second;
@@ -1729,7 +1727,6 @@ protected:
     double av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0, mz_cutoff, sum_of_ref_intenses_g;
     bool restart = false;
 
-    typename std::pair<double, double> c_extend;
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
@@ -1738,7 +1735,7 @@ protected:
       restart = false;
 
       //Let's first determine the charge
-      //Therefor, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
+      //Therefore, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET

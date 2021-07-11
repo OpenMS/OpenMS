@@ -94,7 +94,6 @@ START_SECTION((MSExperiment(const MSExperiment&& source)))
 #ifndef OPENMS_COMPILER_MSVC
   TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
 #endif
-
   PeakMap tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");

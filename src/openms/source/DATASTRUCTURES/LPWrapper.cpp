@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
+#if COINOR_SOLVER == 1  // only include COINOR if we actually use it...
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
 #pragma warning( push ) // save warning state
 #pragma warning( disable : 4267 )
@@ -57,15 +58,12 @@
 #else
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
-
-
-
+#else   // no COINOR
 #include <glpk.h>
+#endif
 
 namespace OpenMS
 {
-
-
   LPWrapper::LPWrapper()
   {
 #if COINOR_SOLVER == 1
@@ -93,7 +91,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     }
 #if COINOR_SOLVER == 1
-    model_->addRow(row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
+    model_->addRow((int)row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
     return model_->numberRows() - 1;
 #else
     std::vector<Int> row_indices_ = row_indices;
@@ -106,7 +104,7 @@ namespace OpenMS
     {
       ++row_index;
     }
-    glp_set_mat_row(lp_problem_, index, row_indices_.size() - 1, row_indices_.data(), row_values_.data());
+    glp_set_mat_row(lp_problem_, index, (int)row_indices_.size() - 1, row_indices_.data(), row_values_.data());
     glp_set_row_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -133,7 +131,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     }
 #if COINOR_SOLVER == 1
-    model_->addColumn(column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
+    model_->addColumn((int)column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
     return model_->numberColumns() - 1;
 #else
     std::vector<Int> column_indices_ = column_indices;
@@ -146,7 +144,7 @@ namespace OpenMS
     {
       ++column_index;
     }
-    glp_set_mat_col(lp_problem_, index, column_indices_.size() - 1, column_indices_.data(), column_values_.data());
+    glp_set_mat_col(lp_problem_, index, (int)column_indices_.size() - 1, column_indices_.data(), column_values_.data());
     glp_set_col_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -469,13 +467,16 @@ namespace OpenMS
     return solver_;
   }
 
-  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
-  {
 #if COINOR_SOLVER == 1
+  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
+  {
     // delete old model and create a new model in its place (using same ptr)
     delete model_;
     model_ = new CoinModel(filename.c_str());
-#else      
+  }
+#else
+  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
+  {
     // delete old model and create a new model in its place (using same ptr)
     glp_erase_prob(lp_problem_);
 
@@ -493,9 +494,8 @@ namespace OpenMS
     }
     else
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid LP format, allowed are LP, MPS, GLPK");
-
-#endif
   }
+#endif
 
   void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
   {
@@ -526,13 +526,11 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param, const Size
 #if COINOR_SOLVER == 1
-                       verbose_level
+  Int LPWrapper::solve(SolverParam& /*solver_param*/, const Size verbose_level)
 #else
-                       /* verbose_level */
+  Int LPWrapper::solve(SolverParam& solver_param, const Size /*verbose_level*/)
 #endif
-                       )
   {
     OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
 #if COINOR_SOLVER == 1

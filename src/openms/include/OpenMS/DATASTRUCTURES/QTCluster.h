@@ -86,7 +86,7 @@ namespace OpenMS
 
      In our implementation, multiple rounds of clustering are not necessary.
      Instead, the clustering is updated in each iteration. This is the reason
-     for storing all potential cluster elements: When a certain cluster is
+     for temporarily storing all potential cluster elements: When a certain cluster is
      finalized, its elements have to be removed from the remaining clusters,
      and affected clusters change their composition. (Note that clusters can
      also be invalidated by this, if the cluster center is being removed.)
@@ -102,6 +102,15 @@ namespace OpenMS
      adding the last element.  After finalizeCluster, the client may not add
      any more elements through the add function (the client must call
      initializeCluster again before adding new elements).
+
+     If use_id_ is set, clusters are extended only with elements that have at least one
+     matching ID. Quality is then computed as the best quality of all possible IDs and
+     this ID is then used as the only (representative) ID of the cluster. The left-out
+     alternative IDs might be added back later based on the original features though.
+
+     @todo This implementation may benefit from two separate implementations (one considering IDs/annotations
+        one without). The current implementation most likely hinders speed/memory of both by trying to do both in one.
+        The ID-based implementation could additionally benefit from ID scores and make use of ConsensusID functions.
 
      @see QTClusterFinder
 
@@ -335,7 +344,7 @@ public:
       double optimizeAnnotations_();
 
       /// compute seq table, mapping: peptides -> best distance per input map
-      void makeSeqTable_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
+      void makeSeqTable_(std::map<AASequence, std::map<Size,double>>& seq_table) const;
       
       /// report elements that are compatible with the optimal annotation
       void recomputeNeighbors_();

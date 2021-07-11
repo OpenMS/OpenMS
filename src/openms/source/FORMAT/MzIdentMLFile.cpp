@@ -80,20 +80,12 @@ namespace OpenMS
 
   bool MzIdentMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
-    //load mapping
+    // load mapping
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/mzIdentML-mapping.xml"), mapping);
 
-    //load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
-    //validate
-    Internal::MzIdentMLValidator v(mapping, cv);
+    // validate
+    Internal::MzIdentMLValidator v(mapping, ControlledVocabulary::getPSIMSCV());
     bool result = v.validate(filename, errors, warnings);
 
     return result;

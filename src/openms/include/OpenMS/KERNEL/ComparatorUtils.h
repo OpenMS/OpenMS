@@ -79,8 +79,8 @@
   @until };
   @until };
   @until };
-  Note how the std::binary_function template provides the necessary type
-  information (sometimes this is called "reflection").
+  Typedefs from std::binary_function were removed with the removal of the std class in C++17. Types are
+  now automatically deduced by the compiler.
 
   Now we show various uses of the reverseComparator and lexicographicComparator
   function templates.
@@ -169,8 +169,7 @@ namespace OpenMS
     <code>Peak1D::IntensityLess</code> works for <code>Peak1D</code> .
   */
   template <class Cmp>
-  struct PointerComparator :
-    public std::binary_function<typename Cmp::first_argument_type *, typename Cmp::second_argument_type *, typename Cmp::result_type>
+  struct PointerComparator
   {
     PointerComparator(PointerComparator const & pCmp) :
       cmp_(pCmp.cmp_)
@@ -180,8 +179,7 @@ namespace OpenMS
     {}
 
     template <typename T1, typename T2>
-    typename Cmp::result_type
-    operator()(T1 left, T2 right) const
+    bool operator()(T1 left, T2 right) const
     {
       return cmp_(*left, *right);          // T must have operator* defined
     }
@@ -220,8 +218,7 @@ protected:
     For example, <code>ReverseComparator<less<T> ></code>  works like  <code>greater<T></code> .
   */
   template <class Cmp>
-  struct ReverseComparator :
-    std::binary_function<typename Cmp::second_argument_type, typename Cmp::first_argument_type, typename Cmp::result_type>
+  struct ReverseComparator
     // (Note that here we must reverse the order of template args!)
   {
     ReverseComparator(ReverseComparator const & cmp) :
@@ -231,8 +228,7 @@ protected:
       cmp_(cmp) {}
 
     template <typename T1, typename T2>
-    typename Cmp::result_type
-    operator()(T1 left, T2 right) const
+    bool operator()(T1 left, T2 right) const
     {
       return cmp_(right, left);          // the other way round
     }
@@ -272,8 +268,7 @@ protected:
     <code>less<></code> and its relatives.
   */
   template <typename Cmp1, typename Cmp2>
-  struct LexicographicComparator :
-    std::binary_function<typename Cmp1::first_argument_type, typename Cmp1::second_argument_type, bool>
+  struct LexicographicComparator
   {
     LexicographicComparator(Cmp1 const & cmp1 = Cmp1(), Cmp2 const & cmp2 = Cmp2()) :
       cmp1_(cmp1), cmp2_(cmp2) {}
@@ -322,8 +317,7 @@ protected:
     @brief Class for comparison of std::pair using first ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairComparatorFirstElement :
-    std::binary_function<PairType, PairType, bool>
+  struct PairComparatorFirstElement
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -336,8 +330,7 @@ protected:
     @brief Class for comparison of std::pair using second ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairComparatorSecondElement :
-    std::binary_function<PairType, PairType, bool>
+  struct PairComparatorSecondElement
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -350,8 +343,7 @@ protected:
     @brief Class for comparison of std::pair using first ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairComparatorFirstElementMore :
-    std::binary_function<PairType, PairType, bool>
+  struct PairComparatorFirstElementMore
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -364,8 +356,7 @@ protected:
     @brief Class for comparison of std::pair using second ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairComparatorSecondElementMore :
-    std::binary_function<PairType, PairType, bool>
+  struct PairComparatorSecondElementMore
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -378,8 +369,7 @@ protected:
     @brief Class for comparison of std::pair using first ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairMatcherFirstElement :
-    std::binary_function<PairType, PairType, bool>
+  struct PairMatcherFirstElement
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -392,8 +382,7 @@ protected:
     @brief Struct for comparison of std::pair using second ONLY e.g. for use with std::sort
   */
   template <typename PairType>
-  struct PairMatcherSecondElement :
-    std::binary_function<PairType, PairType, bool>
+  struct PairMatcherSecondElement
   {
     bool operator()(const PairType & left, const PairType & right) const
     {
@@ -410,8 +399,7 @@ protected:
     @return bool if the two parameters are in tolerance close to each other
   */
   template <typename CompareType>
-  struct EqualInTolerance :
-    public std::binary_function<CompareType, CompareType, bool>
+  struct EqualInTolerance
   {
     CompareType & tolerance;
 

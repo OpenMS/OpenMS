@@ -70,24 +70,30 @@ public:
       EXISTS          ///< Only for META_DATA filter type, tests if meta data exists
     };
 
-    ///Representation of a peak/feature filter combining FilterType, FilterOperation and a value
+    /// Representation of a peak/feature filter combining FilterType, FilterOperation and a value (either double or String)
     struct OPENMS_DLLAPI DataFilter
     {
-      ///Default constructor
-      DataFilter();
-
-      ///Field to filter
-      FilterType field;
-      ///Filter operation
-      FilterOperation op;
-      ///Value for comparison
-      double value;
-      ///String value for comparison (for meta data)
+      DataFilter(){};
+      /// ctor for common case of numerical filter
+      DataFilter(const FilterType type, const FilterOperation op, const double val, const String& meta_name = "")
+        : field(type), op(op), value(val), value_string(), meta_name(meta_name), value_is_numerical(true)
+      {};
+      /// ctor for common case of string filter
+      DataFilter(const FilterType type, const FilterOperation op, const String& val, const String& meta_name = "")
+        : field(type), op(op), value(0.0), value_string(val), meta_name(meta_name), value_is_numerical(false)
+      {};
+      /// Field to filter
+      FilterType field{ DataFilters::INTENSITY };
+      /// Filter operation
+      FilterOperation op{ DataFilters::GREATER_EQUAL} ;
+      /// Value for comparison
+      double value{ 0.0 };
+      /// String value for comparison (for meta data)
       String value_string;
-      ///Name of the considered meta information
+      /// Name of the considered meta information (key)
       String meta_name;
-      ///Bool value that indicates if the specified value is numerical
-      bool value_is_numerical;
+      /// use @p value or @p value_string ?
+      bool value_is_numerical{ false };
 
       /// Returns a string representation of the filter
       String toString() const;
@@ -109,7 +115,7 @@ public:
 
     };
 
-    ///Filter count
+    /// Filter count
     Size size() const;
 
     /**

@@ -62,6 +62,7 @@ TheoreticalSpectrumGenerator* nullPointer = nullptr;
 START_SECTION(TheoreticalSpectrumGenerator())
   ptr = new TheoreticalSpectrumGenerator();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
@@ -129,9 +130,15 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
+  TEST_EQUAL(spec.getMSLevel(), 2);
+  TEST_EQUAL(spec.getType(), MSSpectrum::SpectrumSettings::CENTROID);
+  TEST_REAL_SIMILAR(peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
+
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 1, 2);
   TEST_EQUAL(spec.size(), 22)
+
+  TEST_REAL_SIMILAR(peptide.getMZ(3, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   spec.clear(true);
   Param param(ptr->getParameters());
@@ -188,6 +195,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->setParameters(param);
   ptr->getSpectrum(spec, new_peptide, 1, 1);
   TEST_EQUAL(spec.size(), 52-1)
+
+  TEST_REAL_SIMILAR(new_peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   vector<double> generated;
   for (Size i = 0; i != spec.size(); ++i)
@@ -340,6 +349,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->getSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 30)
 
+  TEST_REAL_SIMILAR(peptide.getMZ(4, Residue::Full), spec.getPrecursors()[0].getMZ());
+
   ion_names.clear();
   // ions without losses
   ion_names.insert("b1+++");
@@ -429,6 +440,18 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->getSpectrum(spec, AASequence::fromString("A"), 1, 1);
   TEST_EQUAL(spec.size(), 0)
 
+  spec.clear(true);
+  ptr->getSpectrum(spec, peptide, 1, 1, 4);
+  ptr->getSpectrum(spec, new_peptide, 1, 3);
+  ABORT_IF(spec.getPrecursors().size() != 2);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[0].getCharge(), 4);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), new_peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[1].getCharge(), 4);
+
+  spec.clear(true);
+
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ptr->getSpectrum(spec, peptide, 1, 2, 1), "'precursor_charge' has to be higher than or equal to 'max_charge'.");
 
 //  // for quick benchmarking of implementation chances
 //  param = ptr->getParameters();
@@ -449,6 +472,59 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
 //    PeakSpectrum spec;
 //    ptr->getSpectrum(spec, peptide, 1, 3);
 //  }
+
+END_SECTION
+
+START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge))
+  MSSpectrum spec;
+  Precursor prec;
+
+  // Test CID/HCID
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::CID, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 219.0797);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 285.1346);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 405.1591);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 448.1979);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 518.2431);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 561.2819);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 681.3064);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 747.3613);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 828.3749);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 850.3704);
+
+  spec.clear(true);
+
+  // Test ECD/ETD
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ECD, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 99.044);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 202.0532);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 302.1611);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 388.1325);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 465.2244);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 501.2166);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 578.3085);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 664.2799);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 764.3878);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 811.3483);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 867.397);
+
+  spec.clear(true);
+
+  // Test precursor_charge > 2
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCID, AASequence::fromString("PEP"), 3);
+  ABORT_IF(spec.size() != 6);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 58.5389);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 114.0549);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 123.0602);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 227.1026);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 245.1131);
+
+  // Test not supported activation method
+  TEST_EXCEPTION(Exception::InvalidParameter, TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::SORI, AASequence::fromString("PEP"), 1));
 
 END_SECTION
 
@@ -833,6 +909,8 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
 }
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -469,7 +469,12 @@ private:
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << [](){ constexpr const char * x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+
+  /// Macro for general debugging information (without information on file)
+#define OPENMS_LOG_DEBUG_NOFILE \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_debug
 
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.

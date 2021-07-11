@@ -54,9 +54,10 @@ namespace OpenMS
 
     for (Param::ParamIterator it = ini.begin(); it != ini.end(); ++it)
     {
-      if (it.getName().toQString().count(':') == 1 && it.getName().hasSuffix(":version"))
+      String name = it.getName();
+      if (name.toQString().count(':') == 1 && name.hasSuffix(":version"))
       {
-        tool_names.push_back(it.getName().prefix(':'));
+        tool_names.push_back(name.prefix(':'));
       }
     }
     return tool_names;

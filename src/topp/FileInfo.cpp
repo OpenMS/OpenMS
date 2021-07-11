@@ -171,8 +171,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
-    registerInputFile_("in", "<file>", "", "input file ");
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", in_types);
@@ -444,14 +444,15 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-
-      Map<char, int> aacids; // required for default construction of non-existing keys
-      size_t number_of_aacids = 0;
+      file.setLogType(log_type_);
 
       SysInfo::MemUsage mu;
       // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
+
+      Map<char, int> aacids;// required for default construction of non-existing keys
+      size_t number_of_aacids = 0;
 
       Size dup_header(0);
       Size dup_seq(0);
@@ -630,10 +631,10 @@ protected:
       map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
-        const vector<int>& occurences = a.second;
+        const vector<int>& occurrences = a.second;
         UInt n(0); // dimensions with at least one peptide id assigned
         UInt f(0); // number of subfeatures with a least one peptide id assigned
-        for (int i : occurences) 
+        for (int i : occurrences) 
         { 
           if (i != 0) ++n; 
           f += i;

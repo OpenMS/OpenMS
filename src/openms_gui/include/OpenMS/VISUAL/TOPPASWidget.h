@@ -71,12 +71,6 @@ public:
     /// Destructor
     ~TOPPASWidget() override;
 
-    /// setter from EnhancedTabBarWidgetInterface
-    void setWindowId(Int id) override;
-
-    /// getter from EnhancedTabBarWidgetInterface
-    Int getWindowId() override;
-
     /// Returns the scene
     TOPPASScene * getScene();
     /// Zooms in or out, depending on @p zoom_in
@@ -88,8 +82,6 @@ signals:
     void sendStatusMessage(std::string message, OpenMS::UInt time);
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
     void sendCursorStatus(double x = 0.0, double y = 0.0);
-    /// Message about the destruction of this widget
-    void aboutToBeDestroyed(int w_id);
     /// Emitted when a drop event occurs
     void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
     /// Emitted when a drop event occurs
@@ -113,9 +105,6 @@ protected:
     void resizeEvent(QResizeEvent * event) override;
     void closeEvent(QCloseEvent * e) override;
     //@}
-
-    /// Widget id used as identifier
-    Int window_id_;
   };
 }
 

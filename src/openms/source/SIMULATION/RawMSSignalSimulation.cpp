@@ -136,18 +136,18 @@ namespace OpenMS
   void RawMSSignalSimulation::setDefaultParams_()
   {
     defaults_.setValue("enabled", "true", "Enable RAW signal simulation? (select 'false' if you only need feature-maps)");
-    defaults_.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("enabled", {"true","false"});
 
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 
     // peak and instrument parameter
     defaults_.setValue("resolution:value", 50000, "Instrument resolution at 400 Th");
     defaults_.setValue("resolution:type", "linear", "How does resolution change with increasing m/z?! QTOFs usually show 'constant' behavior, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass");
-    defaults_.setValidStrings("resolution:type", ListUtils::create<String>("constant,linear,sqrt"));
+    defaults_.setValidStrings("resolution:type", {"constant","linear","sqrt"});
 
     defaults_.setValue("peak_shape", "Gaussian", "Peak Shape used around each isotope peak (be aware that the area under the curve is constant for both types, but the maximal height will differ (~ 2:3 = Lorentz:Gaussian) due to the wider base of the Lorentzian");
-    defaults_.setValidStrings("peak_shape", ListUtils::create<String>("Gaussian,Lorentzian"));
+    defaults_.setValidStrings("peak_shape", {"Gaussian","Lorentzian"});
 
 
     // baseline
@@ -228,7 +228,7 @@ namespace OpenMS
   void RawMSSignalSimulation::updateMembers_()
   {
     res_base_ = (double) param_.getValue("resolution:value");
-    String model = param_.getValue("resolution:type");
+    std::string model = param_.getValue("resolution:type");
     if (model == "constant")
       res_model_ = RES_CONSTANT;
     else if (model == "linear")
@@ -252,7 +252,7 @@ namespace OpenMS
   void RawMSSignalSimulation::loadContaminants()
   {
     // contaminants:
-    String contaminants_file = param_.getValue("contaminants:file");
+    String contaminants_file = param_.getValue("contaminants:file").toString();
 
     if (contaminants_file.trim().size() != 0)
     {
@@ -260,8 +260,6 @@ namespace OpenMS
       {
         contaminants_file = File::find(contaminants_file);
       }
-      if (!File::readable(contaminants_file))
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, contaminants_file);
       // read & parse file:
       TextFile tf(contaminants_file, true);
       contaminants_.clear();
@@ -505,7 +503,7 @@ namespace OpenMS
       createContaminants_(c_map, experiment, experiment_ct);
     }
 
-    if ((String)param_.getValue("ionization_type") == "MALDI")
+    if (param_.getValue("ionization_type") == "MALDI")
     {
       addBaseLine_(experiment, minimal_mz_measurement_limit);
     }
@@ -937,7 +935,7 @@ namespace OpenMS
     if (!contaminants_loaded_)
       loadContaminants();
 
-    IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type") == "ESI" ? IM_ESI : IM_MALDI;
+    IONIZATIONMETHOD this_im = param_.getValue("ionization_type") == "ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
 
     Size out_of_range_RT(0), out_of_range_MZ(0);

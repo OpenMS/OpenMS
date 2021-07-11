@@ -259,6 +259,14 @@ public:
     void sortTransitionsByProductMZ();
     //@}
 
+    ///@name Sorting peaks
+    //@{
+    /**
+      @brief Lexicographically sorts the transitions by their name.
+    */
+    void sortTransitionsByName();
+    //@}
+
     /**
       @brief Checks whether the data structure (and the underlying TraML file) contains invalid references
 

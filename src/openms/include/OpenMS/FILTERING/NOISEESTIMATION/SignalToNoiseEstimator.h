@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -41,10 +41,11 @@
 
 #include <vector>
 #include <cmath>
-#include <map>
 
 namespace OpenMS
 {
+  class MSExperiment;
+
   /**
     @brief This class represents the abstract base class of a signal to noise estimator.
 
@@ -170,6 +171,10 @@ protected:
     /// stores the noise estimate for each peak
     std::vector<double> stn_estimates_;
   };
+
+  /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
+  /// If no scans with the required level are present, 0.0 is returned
+  OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
 

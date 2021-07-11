@@ -357,8 +357,7 @@ namespace OpenMS
     else out << "lower-score-better";
     // using ISODate ensures that TOPP tests will run through regardless of
     // locale setting
-    out << pid.getDateTime().toString(Qt::ISODate).toStdString()
-        << pid.getSearchEngineVersion();
+    out << pid.getDateTime().toString() << pid.getSearchEngineVersion();
     // search parameters
     ProteinIdentification::SearchParameters sp = pid.getSearchParameters();
     out << sp << nl;
@@ -389,7 +388,8 @@ namespace OpenMS
     if (what.empty()) out << "#rt";
     else out << "#" + what << "rt";
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
-        << "aa_after" << "score_type" << "search_identifier" << "accessions";
+        << "aa_after" << "score_type" << "search_identifier" << "accessions"
+        << "start" << "end";
     if (incl_pred_rt) out << "predicted_rt";
 
     if (incl_first_dim) out << "rt_first_dim" << "predicted_rt_first_dim";
@@ -448,20 +448,43 @@ namespace OpenMS
       {
         out << "-1";
       }
-
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
 
+      // For each accession/evidence, print the protein, the start and end position in one col each
       String accessions;
-      set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
-      for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
+      String start;
+      bool printStart = false;
+      String end;
+      bool printEnd = false;
+      vector<PeptideEvidence> evid = hit_it->getPeptideEvidences();
+      for (vector<PeptideEvidence>::const_iterator evid_it = evid.begin(); evid_it != evid.end(); ++evid_it)
       {
-        if (acc_it != protein_accessions.begin())
+        if (evid_it != evid.begin())
         {
           accessions += ";";
+          start += ";";
+          end += ";";
         }
-        accessions += *acc_it;
+        accessions += evid_it->getProteinAccession();
+
+        if (evid_it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          start += evid_it->getStart();
+          printStart = true;
+        }
+
+        if (evid_it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          end += evid_it->getEnd();
+          printEnd = true;
+        }
       }
       out << accessions;
+      // do not just print a bunch of semicolons
+      if (printStart) out << start;
+      else out << "";
+      if (printEnd) out << end;
+      else out << "";
 
       if (incl_pred_rt)
       {
@@ -514,8 +537,9 @@ protected:
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file.");
-      setValidFormats_("out", ListUtils::create<String>("tsv"));
-      registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
+      setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
+      registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension, ambiguous file extensions are interpreted as tsv", false);
+      setValidStrings_("out_type", ListUtils::create<String>("tsv,csv,txt"));
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
@@ -572,9 +596,24 @@ protected:
       int add_hit_metavalues = getIntOption_("id:add_hit_metavalues");
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
-      // separator etc.
-      String sep = getStringOption_("separator");
-      if (sep == "") sep = "\t";
+      // output file names and types
+      FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+      if (out_type == FileTypes::UNKNOWN)
+      {
+        out_type = FileHandler::getTypeByFileName(out);
+      }
+
+      String sep;
+      if (out_type == FileTypes::CSV)
+      {
+        sep = ",";
+      }
+      else 
+      {
+        sep = "\t";
+      }
+
       String replacement = getStringOption_("replacement");
       String quoting = getStringOption_("quoting");
       String::QuotingMethod quoting_method;

@@ -45,14 +45,14 @@ namespace OpenMS
 
   void SqMassFile::load(const String& filename, MapType& map)
   {
-    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.readExperiment(map);
   }
 
   void SqMassFile::store(const String& filename, MapType& map)
   {
-    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, map.getSqlRunID());
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.createTables();
     sql_mass.writeExperiment(map);
@@ -60,7 +60,7 @@ namespace OpenMS
 
   void SqMassFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */)
   {
-    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename_in);
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename_in, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
 
     // First pass through the file -> get the meta-data and hand it to the consumer

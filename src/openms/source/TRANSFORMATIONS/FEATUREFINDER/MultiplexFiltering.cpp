@@ -149,7 +149,7 @@ namespace OpenMS
     return -1;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {    
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
@@ -165,7 +165,7 @@ namespace OpenMS
       // m/z tolerance in ppm
       // Note that the absolute tolerance varies minimally within an m/z pattern.
       // Hence we calculate it only once here.
-      mz_tolerance = it_mz->getMZ() * mz_tolerance_ * 1e-6;
+      mz_tolerance = mz * mz_tolerance_ * 1e-6;
     }
     else
     {
@@ -195,7 +195,7 @@ namespace OpenMS
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
-          int i = it_rt->findNearest(it_mz->getMZ() + mz_shift, mz_tolerance);
+          int i = it_rt->findNearest(mz + mz_shift, mz_tolerance);
          
           if (i != -1)
           {

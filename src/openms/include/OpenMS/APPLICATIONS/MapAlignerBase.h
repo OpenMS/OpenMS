@@ -84,7 +84,7 @@ public:
     Param params;
     params.setValue("type", default_model, "Type of model");
     // TODO: avoid referring to each TransformationModel subclass explicitly
-    StringList model_types = ListUtils::create<String>("linear,b_spline,lowess,interpolated");
+    std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
     if (!ListUtils::contains(model_types, default_model))
     {
       model_types.insert(model_types.begin(), default_model);
@@ -120,8 +120,8 @@ protected:
   enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
     ref_params_;
 
-  void registerOptionsAndFlags_(const String& file_formats,
-                                enum ReferenceParameterKind ref_params)
+  void registerOptionsAndFlagsMapAligners_(const String& file_formats,
+                                           enum ReferenceParameterKind ref_params)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));

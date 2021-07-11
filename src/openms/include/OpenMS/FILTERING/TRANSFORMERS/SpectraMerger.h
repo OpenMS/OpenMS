@@ -314,10 +314,10 @@ public:
       }
       
       // spectrum type (profile, centroid or automatic)
-      String spectrum_type = param_.getValue("average_gaussian:spectrum_type");
+      std::string spectrum_type = param_.getValue("average_gaussian:spectrum_type");
       if (average_type == "tophat")
       {
-        spectrum_type = param_.getValue("average_tophat:spectrum_type");
+        spectrum_type = std::string(param_.getValue("average_tophat:spectrum_type"));
       }
 
       // parameters for Gaussian averaging
@@ -493,7 +493,7 @@ protected:
     void mergeSpectra_(MapType& exp, const MergeBlocks& spectra_to_merge, const UInt ms_level)
     {
       double mz_binning_width(param_.getValue("mz_binning_width"));
-      String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
+      std::string mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       // merge spectra
       MapType merged_spectra;
@@ -694,7 +694,7 @@ protected:
       MapType exp_tmp; // temporary experiment for averaged spectra
 
       double mz_binning_width(param_.getValue("mz_binning_width"));
-      String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
+      std::string mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       unsigned progress = 0;
       std::stringstream progress_message;
@@ -807,7 +807,7 @@ protected:
       MapType exp_tmp; // temporary experiment for averaged spectra
 
       double mz_binning_width(param_.getValue("mz_binning_width"));
-      String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
+      std::string mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       unsigned progress = 0;
       ProgressLogger logger;

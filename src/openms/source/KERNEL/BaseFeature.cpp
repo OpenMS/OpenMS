@@ -146,6 +146,25 @@ namespace OpenMS
     peptides_ = peptides;
   }
 
+  void BaseFeature::sortPeptideIdentifications()
+  {
+    std::sort(peptides_.rbegin(),peptides_.rend(),
+              [](PeptideIdentification& p1, PeptideIdentification& p2)
+              {p1.sort();p2.sort();
+              if (p1.empty())
+                return true;
+              if (p2.empty())
+                return false;
+              if (p1.isHigherScoreBetter())
+              {
+                return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+              }
+              else
+              {
+                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
+              }});
+  }
+
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
     if (peptides_.size() == 0) return FEATURE_ID_NONE;

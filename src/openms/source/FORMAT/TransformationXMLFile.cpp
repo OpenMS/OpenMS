@@ -96,27 +96,27 @@ namespace OpenMS
     Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
-      if (it->value.valueType() != DataValue::EMPTY_VALUE)
+      if (it->value.valueType() != ParamValue::EMPTY_VALUE)
       {
         switch (it->value.valueType())
         {
-        case DataValue::INT_VALUE:
+        case ParamValue::INT_VALUE:
           os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
-        case DataValue::DOUBLE_VALUE:
+        case ParamValue::DOUBLE_VALUE:
           os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
-        case DataValue::STRING_VALUE:
-        case DataValue::STRING_LIST:
-        case DataValue::INT_LIST:
-        case DataValue::DOUBLE_LIST:
+        case ParamValue::STRING_VALUE:
+        case ParamValue::STRING_LIST:
+        case ParamValue::INT_LIST:
+        case ParamValue::DOUBLE_LIST:
           os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
         default:         // no other value types are supported!
-          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "' with value '" + it->value.toString() + "'");
+          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "'");
           break;
         }
       }

@@ -51,8 +51,7 @@ namespace OpenMS
 
       @ingroup Datastructures
   */
-  class OPENMS_DLLAPI DateTime :
-    public QDateTime
+  class OPENMS_DLLAPI DateTime
   {
 public:
 
@@ -62,17 +61,27 @@ public:
         Fills the object with an undefined date: 00/00/0000
     */
     DateTime();
+
     /// Copy constructor
-    DateTime(const DateTime& date);
-    /// Copy constructor from Qt base class
-    DateTime(const QDateTime& date);
+    DateTime(const DateTime& date) = default;
+
     /// Move constructor
-    DateTime(DateTime&&) noexcept;
+    DateTime(DateTime&&) = default;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
+	  
     /// Move assignment operator
     DateTime& operator=(DateTime&&) & noexcept;
+
+    /// equal operator
+    bool operator==(const DateTime& rhs) const;
+
+    /// not-equal operator
+    bool operator!=(const DateTime& rhs) const;
+
+    /// less operator
+    bool operator<(const DateTime& rhs) const;
 
     /**
         @brief sets date from a string
@@ -147,6 +156,9 @@ public:
     */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
+    // add @param s seconds to date time
+    DateTime& addSecs(int s);
+
     /**
         @brief Returns the time as string
 
@@ -157,8 +169,24 @@ public:
     /// Returns the current date and time
     static DateTime now();
 
-    ///Sets the undefined date: 00/00/0000 00:00:00
+    /// Returns true if the date time is valid
+    bool isValid() const;
+
+    /// return true if the date and time is null 
+    bool isNull() const;
+
+    /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
+    
+    /* @brief Returns a string representation of the DateTime object.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.	   
+	*/
+	String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
+
+    /* @brief Creates a DateTime object from string representation.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+	*/
+    static DateTime fromString(const std::string& date, std::string format = "yyyy-MM-ddThh:mm:ss");
 
     /**
         @brief Returns a string representation of the date and time
@@ -182,7 +210,8 @@ public:
     */
     void set(const String& date);
 
-protected:
+private:
+    QDateTime dt_;
   };
 
 } // namespace OPENMS

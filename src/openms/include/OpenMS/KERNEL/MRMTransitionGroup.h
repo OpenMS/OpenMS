@@ -149,18 +149,30 @@ public:
       return transitions_;
     }
 
-    inline void addTransition(const TransitionType & transition, String key)
+    /** Add a transition
+     *
+     * Transitions are internally mapped using their nativeID,
+     * i.e. TransitionType::getNativeID.
+     *
+     * When querying for a transition, make sure to use this key.
+     */
+    inline void addTransition(const TransitionType& transition, const String& key)
     {
+      // store the index where to find the transition, using the key for lookup
+      auto result = transition_map_.emplace(key, int(transitions_.size()));
+      if (!result.second) // ouch: key was already used
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Transition with nativeID was already present!", key);
+      }
       transitions_.push_back(transition);
-      transition_map_[key] = boost::numeric_cast<int>(transitions_.size()) - 1;
     }
 
-    inline bool hasTransition(String key) const
+    inline bool hasTransition(const String& key) const
     {
       return transition_map_.find(key) != transition_map_.end();
     }
 
-    inline const TransitionType & getTransition(String key)
+    inline const TransitionType& getTransition(const String& key)
     {
       OPENMS_PRECONDITION(hasTransition(key), "Cannot retrieve transitions that does not exist")
       OPENMS_PRECONDITION(transitions_.size() > (size_t)transition_map_[key], "Mapping needs to be accurate")
@@ -171,22 +183,32 @@ public:
 
     /// @name (Fragment ion) chromatogram access
     //@{
-    inline std::vector<ChromatogramType> & getChromatograms()
+    inline std::vector<ChromatogramType>& getChromatograms()
     {
       return chromatograms_;
     }
 
-    inline const std::vector<ChromatogramType> & getChromatograms() const
+    inline const std::vector<ChromatogramType>& getChromatograms() const
     {
       return chromatograms_;
     }
 
-    inline void addChromatogram(const ChromatogramType & chromatogram, const String& key)
+    /** Add a chromatogram 
+     *
+     * Chromatograms are internally mapped using the provided key.
+     * The ChromatogramType::getNativeID is a good choice.
+     *
+     * When querying for a chromatogram, make sure to use this key.
+     */
+    inline void addChromatogram(const ChromatogramType& chromatogram, const String& key)
     {
+      // store the index where to find the chromatogram, using the key for lookup
+      auto result = chromatogram_map_.emplace(key, int(chromatograms_.size()));
+      if (!result.second) // ouch: key was already used
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Chromatogram with nativeID was already present!", key);
+      }
       chromatograms_.push_back(chromatogram);
-      chromatogram_map_[key] = boost::numeric_cast<int>(chromatograms_.size()) - 1;
-
-      // OPENMS_POSTCONDITION(chromatogramIdsMatch(), "Chromatogram ids do not match")
     }
 
     inline bool hasChromatogram(const String& key) const
@@ -194,14 +216,14 @@ public:
       return chromatogram_map_.find(key) != chromatogram_map_.end();
     }
 
-    inline ChromatogramType & getChromatogram(const String& key)
+    inline ChromatogramType& getChromatogram(const String& key)
     {
       OPENMS_PRECONDITION(hasChromatogram(key), "Cannot retrieve chromatogram that does not exist")
       OPENMS_PRECONDITION(chromatograms_.size() > (size_t)chromatogram_map_[key], "Mapping needs to be accurate")
-      return chromatograms_[chromatogram_map_[key]];
+      return chromatograms_[chromatogram_map_.at(key)];
     }
 
-    inline const ChromatogramType & getChromatogram(const String& key) const
+    inline const ChromatogramType& getChromatogram(const String& key) const
     {
       OPENMS_PRECONDITION(hasChromatogram(key), "Cannot retrieve chromatogram that does not exist")
       OPENMS_PRECONDITION(chromatograms_.size() > (size_t)chromatogram_map_.at(key), "Mapping needs to be accurate")
@@ -212,32 +234,34 @@ public:
 
     /// @name (Precursor ion) chromatogram access
     //@{
-    inline std::vector<ChromatogramType> & getPrecursorChromatograms()
+    inline std::vector<ChromatogramType>& getPrecursorChromatograms()
     {
       return precursor_chromatograms_;
     }
 
-    inline const std::vector<ChromatogramType> & getPrecursorChromatograms() const
+    inline const std::vector<ChromatogramType>& getPrecursorChromatograms() const
     {
       return precursor_chromatograms_;
     }
 
-    /** Add a precursor chromatogram (extracted from an MS1 map) to the feature
+    /** Add a precursor chromatogram (extracted from an MS1 map)
      *
-     * While any key can be used, it is expected that the monoisotopic trace is
-     * called "Precursor_i0" and subsequent traces "Precursor_i1" etc. This
-     * policy is not enforced but highly encouraged.
+     * Precursor chromatograms are internally mapped using the provided key,
+     * i.e. ChromatogramType::getNativeID.
+     *
+     * When querying for a chromatogram, make sure to use this key.
      *
      * @param chromatogram Chromatographic traces from the MS1 map to be added
-     * @param key Identifier for this trace, please use use consistent naming like "Precursor_i0", "Precursor_i1", "Precursor_i2" ...
-     *
      */
-    inline void addPrecursorChromatogram(const ChromatogramType & chromatogram, const String& key)
+    inline void addPrecursorChromatogram(const ChromatogramType& chromatogram, const String& key)
     {
+      // store the index where to find the chromatogram, using the key for lookup
+      auto result = precursor_chromatogram_map_.emplace(key, int(precursor_chromatograms_.size()));
+      if (!result.second) // ouch: key was already used
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Chromatogram with nativeID was already present!", key);
+      }
       precursor_chromatograms_.push_back(chromatogram);
-      precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatograms_.size()) - 1;
-
-      // OPENMS_POSTCONDITION(chromatogramIdsMatch(), "Chromatogram ids do not match")
     }
 
     inline bool hasPrecursorChromatogram(const String& key) const
@@ -249,7 +273,7 @@ public:
     {
       OPENMS_PRECONDITION(hasPrecursorChromatogram(key), "Cannot retrieve precursor chromatogram that does not exist")
       OPENMS_PRECONDITION(precursor_chromatograms_.size() > (size_t)precursor_chromatogram_map_.at(key), "Mapping needs to be accurate")
-      return precursor_chromatograms_[precursor_chromatogram_map_[key]];
+      return precursor_chromatograms_[precursor_chromatogram_map_.at(key)];
     }
 
     inline const ChromatogramType & getPrecursorChromatogram(const String& key) const
@@ -338,50 +362,46 @@ public:
       MRMTransitionGroup transition_group_subset;
       transition_group_subset.setTransitionGroupID(tr_gr_id_);
 
-      for (typename TransitionsType::const_iterator tr_it = transitions_.begin(); tr_it != transitions_.end(); ++tr_it)
+      for (const auto& tr : transitions_)
       {
-        if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
+        if (std::find(tr_ids.begin(), tr_ids.end(), tr.getNativeID()) != tr_ids.end())
         {
-          if (this->hasTransition(tr_it->getNativeID()))
+          if (this->hasTransition(tr.getNativeID()))
           {
-            transition_group_subset.addTransition(*tr_it, tr_it->getNativeID());
+            transition_group_subset.addTransition(tr, tr.getNativeID());
           }
-          if (this->hasChromatogram(tr_it->getNativeID()))
+          if (this->hasChromatogram(tr.getNativeID()))
           {
-            transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_.at(tr_it->getNativeID())], tr_it->getNativeID());
+            transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_.at(tr.getNativeID())], tr.getNativeID());
           }
         }
       }
 
-      for (typename std::vector<ChromatogramType>::const_iterator pr_it = precursor_chromatograms_.begin(); pr_it != precursor_chromatograms_.end(); ++pr_it)
+      for (const auto& pc : precursor_chromatograms_)
       {
         // add precursor chromatograms if present
-        transition_group_subset.addPrecursorChromatogram(*pr_it,pr_it->getNativeID());
+        transition_group_subset.addPrecursorChromatogram(pc, pc.getNativeID());
       }
 
-      for (std::vector< MRMFeature >::const_iterator tgf_it = mrm_features_.begin(); tgf_it != mrm_features_.end(); ++tgf_it)
+      for (const auto& tgf : mrm_features_)
       {
         MRMFeature mf;
-        mf.setIntensity(tgf_it->getIntensity());
-        mf.setRT(tgf_it->getRT());
-        std::vector<String> metavalues;
-        tgf_it->getKeys(metavalues);
-        for (std::vector<String>::iterator key_it = metavalues.begin(); key_it != metavalues.end(); ++key_it)
+        mf.setIntensity(tgf.getIntensity());
+        mf.setRT(tgf.getRT());
+        mf.MetaInfoInterface::operator=(tgf);
+
+        for (const auto& tr : transitions_)
         {
-          mf.setMetaValue(*key_it,tgf_it->getMetaValue(*key_it));
-        }
-        for (typename TransitionsType::const_iterator tr_it = transitions_.begin(); tr_it != transitions_.end(); ++tr_it)
-        {
-          if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
+          if (std::find(tr_ids.begin(), tr_ids.end(), tr.getNativeID()) != tr_ids.end())
           {
-            mf.addFeature(tgf_it->getFeature(tr_it->getNativeID()),tr_it->getNativeID());
+            mf.addFeature(tgf.getFeature(tr.getNativeID()),tr.getNativeID());
           }
         }
         std::vector<String> pf_ids;
-        tgf_it->getPrecursorFeatureIDs(pf_ids);
-        for (std::vector<String>::iterator pf_ids_it = pf_ids.begin(); pf_ids_it != pf_ids.end(); ++pf_ids_it)
+        tgf.getPrecursorFeatureIDs(pf_ids);
+        for (const auto& pf_id : pf_ids)
         {
-          mf.addPrecursorFeature(tgf_it->getPrecursorFeature(*pf_ids_it), *pf_ids_it);
+          mf.addPrecursorFeature(tgf.getPrecursorFeature(pf_id), pf_id);
         }
         transition_group_subset.addFeature(mf);
       }

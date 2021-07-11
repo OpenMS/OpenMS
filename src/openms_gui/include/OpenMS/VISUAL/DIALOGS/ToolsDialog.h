@@ -43,7 +43,6 @@
 class QLabel;
 class QComboBox;
 class QPushButton;
-class QRadioButton;
 class QString;
 
 #include <QtWidgets/QDialog>
@@ -76,11 +75,13 @@ public:
         @brief Constructor
 
         @param parent Qt parent widget
+        @param params Containing all TOPP tool/util params
         @param ini_file The file name of the temporary INI file created by this dialog
         @param default_dir The default directory for loading and storing INI files
-        @param layertype The type of data (determines the applicable tools)
+        @param layer_type The type of data (determines the applicable tools)
+        @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
+    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor
     ~ToolsDialog() override;
 
@@ -116,11 +117,19 @@ private:
     String default_dir_;
     /// name of ini-file
     QString filename_;
+    /// Mapping of file extension to layer type to determine the type of a tool
+    std::map<String, LayerData::DataType> tool_map_;
+    /// Param object containing all TOPP tool/util params
+    Param params_;
 
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
+    /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
+    std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
+    // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
+    void setInputOutputCombo_(const Param& p);
 
 protected slots:
 

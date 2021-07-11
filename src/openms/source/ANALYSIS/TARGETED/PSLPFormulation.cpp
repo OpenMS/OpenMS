@@ -88,7 +88,7 @@ namespace OpenMS
 
 
     defaults_.setValue("thresholds:use_peptide_rule", "false", "Use peptide rule instead of minimal protein id probability");
-    defaults_.setValidStrings("thresholds:use_peptide_rule", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("thresholds:use_peptide_rule", {"true","false"});
 
     defaults_.setValue("thresholds:min_peptide_ids", 2, "If use_peptide_rule is true, this parameter sets the minimal number of peptide ids for a protein id");
     defaults_.setMinInt("thresholds:min_peptide_ids", 1);
@@ -110,10 +110,10 @@ namespace OpenMS
     defaults_.setMinFloat("combined_ilp:k3", 0.);
     // defaults_.setMaxFloat("combined_ilp:k1",1.);
     defaults_.setValue("combined_ilp:scale_matching_probs", "true", "flag if detectability * rt_weight shall be scaled to cover all [0,1]");
-    defaults_.setValidStrings("combined_ilp:scale_matching_probs", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("combined_ilp:scale_matching_probs", {"true","false"});
 
     defaults_.setValue("feature_based:no_intensity_normalization", "false", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
-    defaults_.setValidStrings("feature_based:no_intensity_normalization", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("feature_based:no_intensity_normalization", {"true","false"});
 
     defaults_.setValue("feature_based:max_number_precursors_per_feature", 1, "The maximal number of precursors per feature.");
     defaults_.setMinInt("feature_based:max_number_precursors_per_feature", 1);

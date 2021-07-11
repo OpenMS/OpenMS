@@ -104,9 +104,7 @@ namespace OpenMS
       return;
     }
 
-    mz_ref_ = (peptide_ID.getHits()[0].getSequence()
-                                      .getMonoWeight(OpenMS::Residue::Full, peptide_ID.getHits()[0].getCharge()))
-              / peptide_ID.getHits()[0].getCharge();
+    mz_ref_ = peptide_ID.getHits()[0].getSequence().getMZ(peptide_ID.getHits()[0].getCharge());
 
     if (no_mzml_)
     {

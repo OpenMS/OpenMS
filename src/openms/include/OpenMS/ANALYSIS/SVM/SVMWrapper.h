@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <string>
 #include <vector>
@@ -290,15 +291,15 @@ public:
 
       This function creates 'number' equally sized random partitions and stores them in 'partitions'.
     */
-    static void createRandomPartitions(svm_problem* problem, Size number, std::vector<svm_problem*>& partitions);
+    void createRandomPartitions(svm_problem* problem, Size number, std::vector<svm_problem*>& partitions);
 
     /**
       @brief You can create 'number' equally sized random partitions
 
       This function creates 'number' equally sized random partitions and stores them in 'partitions'.
     */
-    static void createRandomPartitions(const SVMData& problem,
-                                       Size                                  number,
+    void createRandomPartitions(const SVMData& problem,
+                                       Size number,
                                        std::vector<SVMData>& problems);
     /**
       @brief You can merge partitions excluding the partition with index 'except'
@@ -510,9 +511,10 @@ private:
     std::vector<std::vector<double> > gauss_tables_; ///< lookup table for fast computation of the combined oligo kernel
     Size kernel_type_; ///< the actual kernel type
     Size  border_length_; ///< the actual kernel type
-    svm_problem* training_set_; ///< the training set
-    svm_problem* training_problem_; ///< the training set
+    svm_problem* training_set_ = nullptr; ///< the training set
+    svm_problem* training_problem_ = nullptr; ///< the training set
     SVMData training_data_; ///< the training set (different encoding)
+    Math::RandomShuffler shuffler_; ///< random shuffler to create training partitions
   };
 
 } // namespace OpenMS

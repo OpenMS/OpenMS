@@ -93,8 +93,7 @@ namespace OpenMS
     @ingroup RangeUtils
   */
   template <class MetaContainer>
-  class HasMetaValue :
-    std::unary_function<MetaContainer, bool>
+  class HasMetaValue
   {
 public:
     /**
@@ -129,8 +128,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InRTRange :
-    std::unary_function<SpectrumType, bool>
+  class InRTRange
   {
 public:
     /**
@@ -167,8 +165,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InMSLevelRange :
-    std::unary_function<SpectrumType, bool>
+  class InMSLevelRange
   {
 public:
     /**
@@ -203,8 +200,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanMode :
-    std::unary_function<SpectrumType, bool>
+  class HasScanMode
   {
 public:
     /**
@@ -238,8 +234,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanPolarity :
-    std::unary_function<SpectrumType, bool>
+  class HasScanPolarity
   {
 public:
     /**
@@ -274,8 +269,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsEmptySpectrum :
-    std::unary_function<SpectrumType, bool>
+  class IsEmptySpectrum
   {
 public:
     /**
@@ -305,8 +299,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsZoomSpectrum :
-    std::unary_function<SpectrumType, bool>
+  class IsZoomSpectrum
   {
 public:
     /**
@@ -339,8 +332,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasActivationMethod :
-    std::unary_function<SpectrumType, bool>
+  class HasActivationMethod
   {
 public:
     /**
@@ -391,8 +383,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InPrecursorMZRange :
-    std::unary_function<SpectrumType, bool>
+  class InPrecursorMZRange
   {
 public:
     /**
@@ -440,8 +431,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasPrecursorCharge :
-    std::unary_function<SpectrumType, bool>
+  class HasPrecursorCharge
   {
 public:
     /**
@@ -485,8 +475,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InMzRange :
-    std::unary_function<PeakType, bool>
+  class InMzRange
   {
 public:
     /**
@@ -523,8 +512,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InIntensityRange :
-    std::unary_function<PeakType, bool>
+  class InIntensityRange
   {
 public:
     /**
@@ -560,8 +548,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInCollisionEnergyRange :
-    std::unary_function<SpectrumType, bool>
+  class IsInCollisionEnergyRange
   {
 public:
     /**
@@ -613,8 +600,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindowSizeRange :
-    std::unary_function<SpectrumType, bool>
+  class IsInIsolationWindowSizeRange
   {
 
 public:
@@ -659,8 +645,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindow :
-    std::unary_function<SpectrumType, bool>
+  class IsInIsolationWindow
   {
 
 public:

@@ -38,10 +38,14 @@
 /////////////////////////////////////////////////////////////
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
+
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -121,12 +125,17 @@ START_SECTION((static String absolutePath(const String &file)))
 END_SECTION
 
 START_SECTION((static String path(const String &file)))
-  NOT_TESTABLE
+  TEST_EQUAL(File::path("/source/config/bla/bluff.h"), "/source/config/bla");
+  TEST_EQUAL(File::path("c:\\config\\bla\\tuff.h"), "c:\\config\\bla");
+  TEST_EQUAL(File::path("filename_only.h"), "."); // useful when you want to reassemble a full path using path() + '/' + basename(), but the input is only a filename
+  TEST_EQUAL(File::path("/path/only/"), "/path/only");
 END_SECTION
 
 START_SECTION((static String basename(const String &file)))
-  TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
-END_SECTION
+  TEST_EQUAL(File::basename("/source/config/bla/bluff.h"), "bluff.h");
+  TEST_EQUAL(File::basename("filename_only.h"), "filename_only.h");
+  TEST_EQUAL(File::basename("/path/only/"), "");
+  END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;
@@ -301,6 +310,7 @@ START_SECTION(File::TempDir(bool keep_dir = false))
   File::TempDir* nullPointer = nullptr;
   TEST_NOT_EQUAL(dir, nullPointer)
   TEST_EQUAL(File::exists((*dir).getPath()),1)
+  delete dir;
 }
 END_SECTION
 

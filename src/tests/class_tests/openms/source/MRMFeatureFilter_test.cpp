@@ -2046,7 +2046,8 @@ START_SECTION(void accumulateFilterValues(std::vector<MRMFeatureQC>& filter_valu
   // Test calculateFilterValuesMean
   std::vector<MRMFeatureQC> filter_values_test;
   mrmff.accumulateFilterValues(filter_values_test, samples, qc_criteria1, transitions);
-  for (int i = 0; i < filter_values.size(); ++i) {
+  for (size_t i = 0; i < filter_values.size(); ++i) 
+  {
     // transition group 1
     TEST_STRING_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).component_group_name, filter_values.at(i).component_group_qcs.at(0).component_group_name);
     TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_heavy_l, filter_values.at(i).component_group_qcs.at(0).n_heavy_l);

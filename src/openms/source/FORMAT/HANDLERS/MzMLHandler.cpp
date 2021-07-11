@@ -66,14 +66,9 @@ namespace OpenMS
     /// delegated c'tor for the common things
     MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
       : XMLHandler(filename, version),
-        logger_(logger)
+        logger_(logger),
+        cv_(ControlledVocabulary::getPSIMSCV())
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
       CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
 
       // check the version number of the mzML handler
@@ -168,7 +163,7 @@ namespace OpenMS
 
             catch (OpenMS::Exception::BaseException& e)
             {
-#pragma omp critical
+#pragma omp critical(MZMLErrorHandling)
               {
                 ++errCount;
                 error_message = e.what();
@@ -754,7 +749,14 @@ namespace OpenMS
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          spec_.setSourceFile(source_files_[source_file_ref]);
+          if (source_files_.has(source_file_ref))
+          {
+            spec_.setSourceFile(source_files_[source_file_ref]);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Error: unregistered source file reference " << source_file_ref << "." << std::endl;
+          }
         }
         //native id
         spec_.setNativeID(attributeAsString_(attributes, s_id));
@@ -1590,8 +1592,12 @@ namespace OpenMS
           }
 
         }
-        else if (accession == "MS:1000497") //zoom scan
+        else if (accession == "MS:1000497") // deprecated: zoom scan is now a scan attribute
         {
+          OPENMS_LOG_DEBUG << "MS:1000497 - zoom scan is now a scan attribute. Reading it for backwards compatibility reasons as spectrum attribute." 
+                           << " You can make this warning go away by converting this file using FileConverter to a newer version of the PSI ontology."
+                           << " Or by using a recent converter that supports the newest PSI ontology."
+                           << std::endl;
           spec_.getInstrumentSettings().setZoomScan(true);
         }
         else if (accession == "MS:1000285") //total ion current
@@ -1650,7 +1656,7 @@ namespace OpenMS
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
           spec_.setDriftTime(value.toDouble());
-          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+          spec_.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
@@ -1763,18 +1769,18 @@ namespace OpenMS
           //
           // Note that only milliseconds and VSSC are valid units
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+            unit = DriftTimeUnit::VSSC;          
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -2105,18 +2111,18 @@ namespace OpenMS
           //
           // Note: this is where pwiz stores the ion mobility for a spectrum
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = DriftTimeUnit::VSSC;
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -2183,7 +2189,7 @@ namespace OpenMS
         else if (accession == "MS:1000803") //analyzer scan offset
         {
           //No member => meta data
-          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIdentificationViewWidget()
+          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIDViewTab()
         }
         else if (accession == "MS:1000616") //preset scan configuration
         {
@@ -2226,6 +2232,10 @@ namespace OpenMS
         {
           //No member => meta data
           spec_.setMetaValue("scan law", String("quadratic"));
+        }
+        else if (accession == "MS:1000497") // zoom scan
+        {
+          spec_.getInstrumentSettings().setZoomScan(true);
         }
         else
         {
@@ -3762,7 +3772,7 @@ namespace OpenMS
         //data processing attribute
         if (dps[i]->getCompletionTime().isValid())
         {
-          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
+          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm") << "\" />\n";
         }
 
         writeUserParam_(os, *(dps[i].get()), 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
@@ -3819,7 +3829,7 @@ namespace OpenMS
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
+          precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
           precursor.getPossibleChargeStates().size() > 0 ||
           precursor.getMZ() > 0.0)
       {
@@ -3842,25 +3852,23 @@ namespace OpenMS
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
 
-        if (precursor.getDriftTime() >= 0.0)
+        if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
         {
-            if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-            else if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::VSSC)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-            }
-            else
-            {
+          switch (precursor.getDriftTimeUnit())
+          {
+            default:
               // assume milliseconds, but warn
               warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+              [[fallthrough]];
+            case DriftTimeUnit::MILLISECOND:
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
+                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+              break;
+            case DriftTimeUnit::VSSC:
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+              break;
+          }
         }
         //userParam: no extra object for it => no user parameters
         os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -3966,6 +3974,8 @@ namespace OpenMS
       const MapType& exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
+      UInt stored_spectra = 0;
+      UInt stored_chromatograms = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
       std::vector<std::vector< ConstDataProcessingPtr > > dps;
@@ -4008,6 +4018,7 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const SpectrumType& spec = exp[s_idx];
           writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
+          ++stored_spectra;
         }
         os << "\t\t</spectrumList>\n";
       }
@@ -4027,11 +4038,15 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
           writeChromatogram_(os, chromatogram, c_idx, validator);
+          ++stored_chromatograms;
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
+
+      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+
       logger_.endProgress();
     }
 
@@ -5030,10 +5045,6 @@ namespace OpenMS
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\" />\n";
       }
-      if (spec.getInstrumentSettings().getZoomScan())
-      {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
-      }
 
       //spectrum type
       if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
@@ -5140,19 +5151,19 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
-          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
                 << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
           }          
-          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
+          else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
           {
-            if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+            if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
             }
-            else if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+            else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
@@ -5167,6 +5178,12 @@ namespace OpenMS
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
+
         //scan windows
         if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
         {
@@ -5188,6 +5205,11 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
         //scan windows
         if (spec.getInstrumentSettings().getScanWindows().size() != 0)
         {

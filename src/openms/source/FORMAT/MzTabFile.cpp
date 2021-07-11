@@ -85,14 +85,14 @@ namespace OpenMS
   // $        # Match the end of the line
   boost::sregex_token_iterator end;
 
-  boost::regex rx_first_number("^.*?\\[(\\d+)\\].*$");
+  boost::regex rx_first_number(R"(^.*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it1(s.begin(), s.end(), rx_first_number, 1);
   if (it1 != end)
   {
     pair.first = String(*it1++).toInt();
   }
 
-  boost::regex  rx_second_number("^.*?\\[\\d+\\].*?\\[(\\d+)\\].*$");
+  boost::regex  rx_second_number(R"(^.*?\[\d+\].*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it2(s.begin(), s.end(), rx_second_number, 1);
   if (it2 != end)
   {
@@ -2902,6 +2902,7 @@ namespace OpenMS
         const std::vector<PeptideIdentification>& peptide_identifications,
         bool first_run_inference_only,
         bool export_empty_pep_ids,
+        bool export_all_psms,
         const String& title)
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
@@ -2925,6 +2926,7 @@ namespace OpenMS
       filename,
       first_run_inference_only,
       export_empty_pep_ids,
+      export_all_psms,
       title);      
 
     // generate full meta data section and write to file
@@ -2995,7 +2997,8 @@ namespace OpenMS
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
-      const bool export_empty_pep_ids) const
+      const bool export_empty_pep_ids,
+      const bool export_all_psms) const
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
     {
@@ -3014,6 +3017,7 @@ namespace OpenMS
       export_unassigned_ids,
       export_subfeatures,
       export_empty_pep_ids,
+      export_all_psms,
       "ConsensusMap export from OpenMS");      
 
     // generate full meta data section and write to file

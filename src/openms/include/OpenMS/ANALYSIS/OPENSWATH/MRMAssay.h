@@ -142,17 +142,7 @@ public:
 
     */
     void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
-    
-    /**
-      @brief Filters transitions by intensity, only keeping the top N transitions
 
-      @param exp the transition list which will be filtered
-      @param min_transitions the minimum number of transitions required per assay
-      @param max_transitions the maximum number of transitions required per assay
-
-    */
-    void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
-    
     /**
       @brief Annotate UIS / site-specific transitions
 
@@ -198,6 +188,31 @@ public:
                         size_t max_num_alternative_localizations = 20,
                         int shuffle_seed = -1,
                         bool disable_decoy_transitions = false);
+
+    /**
+    @brief Filters target and decoy transitions by intensity, only keeping the top N transitions
+
+    @param exp the transition list which will be filtered
+    @param min_transitions the minimum number of transitions required per assay (targets only)
+    @param max_transitions the maximum number of transitions allowed per assay
+
+    */
+    void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
+
+    /**
+    @brief Filters decoy transitions, which do not have respective target transition
+           based on the transitionID.
+
+           References between targets and decoys will be constructed based on the transitionsID
+           and the "_decoy_" string. For example:
+
+           target: 84_CompoundName_[M+H]+_88_22
+           decoy: 84_CompoundName_decoy_[M+H]+_88_22
+
+    @param exp the transition list which will be filtered
+
+    */
+    void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);
 
 protected:
 
@@ -408,4 +423,3 @@ protected:
 
   };
 }
-

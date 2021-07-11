@@ -50,7 +50,7 @@ namespace OpenMS
   using IndProtGrps = std::vector<IndProtGrp>;
 
   /**
-    @brief File adapter for MzTab files
+    @brief File adapter for MSstats files
     @ingroup FileIO
   */
   
@@ -83,7 +83,6 @@ namespace OpenMS
                       const String& retention_time_summarization_method);
 
     private:
-
       typedef OpenMS::Peak2D::IntensityType Intensity;
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 

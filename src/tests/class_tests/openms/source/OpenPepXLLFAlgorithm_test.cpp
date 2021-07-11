@@ -89,7 +89,7 @@ PeakMap spectra;
 
 OpenPepXLLFAlgorithm search_algorithm;
 Param algo_param = search_algorithm.getParameters();
-algo_param.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)"));
+algo_param.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
 search_algorithm.setParameters(algo_param);
 
 // run algorithm
@@ -97,9 +97,9 @@ OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spe
 
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 5)
+TEST_EQUAL(peptide_ids.size(), 7)
 TEST_EQUAL(spectra.size(), 127)
-TEST_EQUAL(all_top_csms.size(), 5)
+TEST_EQUAL(all_top_csms.size(), 7)
 
 for (Size i = 0; i < peptide_ids.size(); i += 1)
 {

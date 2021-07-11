@@ -122,6 +122,7 @@ START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = BiGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

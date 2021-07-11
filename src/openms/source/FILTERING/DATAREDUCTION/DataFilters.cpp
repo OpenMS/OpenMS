@@ -49,16 +49,6 @@ namespace OpenMS
   {
   }
 
-  DataFilters::DataFilter::DataFilter() :
-    field(DataFilters::INTENSITY),
-    op(DataFilters::GREATER_EQUAL),
-    value(0.0),
-    value_string(),
-    meta_name(),
-    value_is_numerical(false)
-  {
-  }
-
   bool DataFilters::DataFilter::operator==(const DataFilter & rhs) const
   {
     return field == rhs.field

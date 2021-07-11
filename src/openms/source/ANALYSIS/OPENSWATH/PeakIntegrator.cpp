@@ -110,19 +110,19 @@ namespace OpenMS
     params.clear();
 
     params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
-    params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
+    params.setValidStrings("integration_type", {"intensity_sum","simpson","trapezoid"});
 
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
-    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
+    params.setValidStrings("baseline_type", {"base_to_base","vertical_division","vertical_division_min","vertical_division_max"});
 
     params.setValue("fit_EMG", "false", "Fit the chromatogram/spectrum to the EMG peak model.");
-    params.setValidStrings("fit_EMG", ListUtils::create<String>("false,true"));
+    params.setValidStrings("fit_EMG", {"false","true"});
   }
 
   void PeakIntegrator::updateMembers_()
   {
-    integration_type_ = (String)param_.getValue("integration_type");
-    baseline_type_ = (String)param_.getValue("baseline_type");
+    integration_type_ = (String)param_.getValue("integration_type").toString();
+    baseline_type_ = (String)param_.getValue("baseline_type").toString();
     fit_EMG_ = param_.getValue("fit_EMG").toBool();
   }
 

@@ -46,20 +46,23 @@ namespace OpenMS
   {
 public:
 
-  // struct to store information about accessions
-  struct AccessionInfo
+  ///< class to store information about accessions
+  class AccessionInfo
   {
+  public:
     String sf_path; ///< sourcefile path for mztab-m
     String sf_type; ///< sourcefile type for mztab-m
+    String sf_filename; ///< sourcefile name for mztab-m
     String sf_accession; ///< sourcefile accessions for mztab-m
     String native_id_accession; ///< nativeID accession for mztab-m
     String native_id_type; ///< nativeID type for mztab-m
   };
 
-  // struct to store the compound information
-  // can be used to map compound and fragment annotated spectrum later on
-  struct CompoundInfo
+  ///< class to store the compound information
+  ///< needed for the mapping of compound and fragment annotated spectrum
+  class CompoundInfo
   {
+  public:
     String cmp; ///< query_id used compound in .ms file
     double pmass; ///< parent/precursor mass of the compound
     double pint_mono; ///< parent/precursor intensity of the compound
@@ -74,7 +77,9 @@ public:
     String source_file; ///< sourcefile for mztab-m
     String source_format; ///< format of the sourcefile for mztab-m
     std::vector<String> native_ids; ///< native ids of the associated spectra
-    std::vector<String> mids; ///< native ids and identifier for multiple possible identification via AMS
+    String native_ids_id; ///< concatenated list of the associated spectra
+    std::vector<String> m_ids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
+    String m_ids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
     std::vector<String> scan_indices; ///< index of the associated spectra
     std::vector<String> specrefs; ///< spectra reference for mztab-m
   };
@@ -116,7 +121,7 @@ public:
 
     @param os: stream
     @param spectra: spectra
-    @param ms2_spectra_index: vector of index ms2 spectra (in feautre)
+    @param ms2_spectra_index: vector of index ms2 spectra (in feature)
     @param ainfo: accession information
     @param adducts: vector of adducts
     @param v_description: vector of descriptions
@@ -157,7 +162,35 @@ public:
 
 
 
+    /**
+    @brief Find highest intensity peak near target mz to test if within a margin of error
+
+    @param test_mz: Mass-to-charge to test
+    @param spectrum: Spectrum to test
+    @param tolerance: Tolerance window (e.g. 10)
+    @param ppm: Unit of tolerance window either ppm or Da
+    */
+    static Int getHighestIntensityPeakInMZRange_(double test_mz,
+                                                 const MSSpectrum& spectrum,
+                                                 double tolerance,
+                                                 bool ppm);
+
+    /**
+    @brief Extract precursor isotope pattern if no feature information is available
+    based on C12C13 distance.
+
+    @param precursor_mz: Precursor mass-to-charge
+    @param precursor_spectrum: Precursor spectrum
+    @param iterations: Number of isotopes, which are tried to be extracted
+    @param charge: Charge of the precursor
+    */
+    static std::vector<Peak1D> extractPrecursorIsotopePattern_(const double& precursor_mz,
+                                                               const MSSpectrum& precursor_spectrum,
+                                                               int& iterations,
+                                                               const int& charge);
+
+
+
   };
 
 } // namespace OpenMS
-

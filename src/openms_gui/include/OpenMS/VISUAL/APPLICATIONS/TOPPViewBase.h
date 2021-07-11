@@ -44,12 +44,11 @@
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
-#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/TOPPViewMenu.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //STL
 #include <map>
@@ -72,20 +71,21 @@ class QTreeWidgetItem;
 class QDockWidget;
 class QToolButton;
 class QCloseEvent;
-class QTextEdit;
 class QCheckBox;
 class QSplashScreen;
 class QToolButton;
-class QWorkspace;
 
 namespace OpenMS
 {
-  class Spectrum1DWidget;
-  class Spectrum2DWidget;
-  class Spectrum3DWidget;
-  class ToolsDialog;
-  class MultiGradientSelector;
+  class DataSelectionTabs;
   class FileWatcher;
+  class LogWindow;
+  class LayerListView;
+  class MultiGradientSelector;
+  class Plot1DWidget;
+  class Plot2DWidget;
+  class Plot3DWidget;
+  class ToolsDialog;
 
   /**
     @brief Main window of TOPPView tool
@@ -109,7 +109,7 @@ namespace OpenMS
 
     The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
     holds the two different views on the data (spectra and identification view)
-    which are implemented using identificationview_behavior_ and
+    which are implemented using idview_behaviour_ and
     spectraview_behavior_.
 
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
@@ -152,10 +152,33 @@ public:
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    /// Used for deciding whether new tool/util params should be generated or reused from TOPPView's ini file
+    enum class TOOL_SCAN
+    {
+      /**
+         TVToolDiscovery does not generate params for each tool/util unless they are absolutely needed and could not be
+         extracted from TOPPView's ini file. This may be useful for testing.
+      */
+      SKIP_SCAN,
+      /// Only generate params for each tool/util if TOPPView's last ini file has an older version. (Default behaviour)
+      SCAN_IF_NEWER_VERSION,
+      /// Forces TVToolDiscovery to generate params and using them instead of the params in TOPPView's ini file
+      FORCE_SCAN
+    };
+
     ///Constructor
-    TOPPViewBase(QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
+
+    enum class LOAD_RESULT
+    {
+      OK,
+      FILE_NOT_FOUND,       ///< file did not exist
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
+      LOAD_ERROR            ///< an error occurred while loading the file
+    };
 
     /**
       @brief Opens and displays data from a file
@@ -169,7 +192,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -214,45 +237,45 @@ public:
     /// Stores the preferences (used when this window is closed)
     void savePreferences();
 
-    /// Returns the parameters for a SpectrumCanvas of dimension @p dim
+    /// Returns the parameters for a PlotCanvas of dimension @p dim
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerData* getCurrentLayer() const;
 
+    /// Returns the active Layer data (0 if no layer is active)
+    LayerData* getCurrentLayer();
+
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
-    /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
+    /// returns a pointer to the EnhancedWorkspace containing PlotWidgets
     EnhancedWorkspace* getWorkspace();
 
-    /// returns a pointer to the active SpectrumWidget (0 if none is active)
-    SpectrumWidget* getActiveSpectrumWidget() const;
+    /// returns a pointer to the active PlotWidget (0 if none is active)
+    PlotWidget* getActivePlotWidget() const;
 
-    /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-    Spectrum1DWidget* getActive1DWidget() const;
+    /// returns a pointer to the active Plot1DWidget (0 the active window is no Plot1DWidget or there is no active window)
+    Plot1DWidget* getActive1DWidget() const;
 
-    /// returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum2DWidget* getActive2DWidget() const;
+    /// returns a pointer to the active Plot2DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot2DWidget* getActive2DWidget() const;
 
-    /// returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum3DWidget* getActive3DWidget() const;
+    /// returns a pointer to the active Plot3DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot3DWidget* getActive3DWidget() const;
     //@}
 
-    /// returns a pointer to the active SpectrumCanvas (0 if none is active)
-    SpectrumCanvas* getActiveCanvas() const;
-
-    /// returns a pointer to the SpectraIdentificationViewWidget
-    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+    /// returns a pointer to the active PlotCanvas (0 if none is active)
+    PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
 
 public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
-    void openFileDialog(const String& initial_directory = "");
+    void openFilesByDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog();
     /// shows the preferences dialog
@@ -270,7 +293,10 @@ public slots:
     /// gets called if a layer got deactivated
     void layerDeactivated();
     /// closes the active window
-    void closeFile();
+    void closeTab();
+
+    /// returns the last invoked TOPP tool with the same parameters
+    void rerunTOPPTool();
 
     /// calls update*Bar and updateMenu_() to make sure the interface matches the current data
     void updateBarsAndMenus();
@@ -280,17 +306,10 @@ public slots:
     void updateLayerBar();
     /// adapts view bar to the active window
     void updateViewBar();
-    /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
-    void viewChanged(int);
-    /// adds empty ID structure to allow manual annotations
-    void viewTabwidgetDoubleClicked(int);
+    /// activates/deactivates menu entries
+    void updateMenu();
     /// adapts the filter bar to the active window
     void updateFilterBar();
-    /// enabled/disabled menu entries depending on the current state
-    void updateMenu();
-    /// brings the tab corresponding to the active window in front
-    void updateTabBar(QMdiSubWindow* w);
-
     /**
       @brief Shows a status message in the status bar.
 
@@ -304,15 +323,16 @@ public slots:
     void showCursorStatusInvert(double mz, double rt);
     /// Apply TOPP tool
     void showTOPPDialog();
+    /// Annotates current layer with ID data from AccurateMassSearch
+    void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
+    /// Annotates current chromatogram layer with ID data
+    void annotateWithOSW();
     /// Shows the theoretical spectrum generation dialog
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog
     void showSpectrumAlignmentDialog();
-    /// Shows the spectrum with index @p index of the active layer in 1D
-    void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
@@ -348,38 +368,23 @@ public slots:
     void toggleProjections();
     //@}
 
-    /// Loads a file given by the passed string
-    void loadFile(QString);
+    /// list of the recently opened files
+    /// called when RecentFileMenu items is clicked
+    void openFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool);
 
-protected slots:
-    /** @name Layer manager and filter manager slots
-    */
-    //@{
-    /// slot for layer manager selection change
-    void layerSelectionChange(int);
-    /// slot for layer manager context menu
-    void layerContextMenu(const QPoint& pos);
-    /// slot for log window context menu
-    void logContextMenu(const QPoint& pos);
-    /// slot for layer manager visibility change (check box)
-    void layerVisibilityChange(QListWidgetItem* item);
-    /// slot for editing the preferences of the current layer
-    void layerEdit(QListWidgetItem* /*item*/);
-    //@}
+    /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
+    void showSpectrumMetaData(int spectrum_index);
 
+protected slots:
     /// slot for the finished signal of the TOPP tools execution
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     /// aborts the execution of a TOPP tool
     void abortTOPPTool();
-    /// returns the last invoked TOPP tool with the same parameters
-    void rerunTOPPTool();
     /// shows the spectrum browser and updates it
     void showSpectrumBrowser();
-    /// shows the spectrum metadata
-    void showSpectrumMetaData(int spectrum_index);
 
     /** @name Tabbar slots
     */
@@ -387,9 +392,7 @@ protected slots:
     /// Closes the window corresponding to the data of the tab with identifier @p id
     void closeByTab(int id);
     /// Raises the window corresponding to the data of the tab with identifier @p id
-    void enhancedWorkspaceWindowChanged(int id);
-    /// Opens a file from the recent files menu
-    void openRecentFile();
+    void showWindow(int id);
     /// Slot for drag-and-drop of layer manager to tabbar
     void copyLayer(const QMimeData* data, QWidget* source, int id = -1);
     //@}
@@ -403,20 +406,10 @@ protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
 
-    /// add annotations from an AccurateMassSearch to an MS1 spectrum
-    /// @return true on success, otherwise false
-    bool annotateMS1FromMassFingerprinting_(const FeatureMap& identifications);
-     
-    /// unique list of files referenced by all layers
-    std::set<String> getFilenamesOfOpenFiles_();
-
     /**
         @brief Shows a dialog where the user can select files
     */
-    QStringList getFileList_(const String& path_overwrite = "");
-
-    /// Returns the enhanced tabbar widget with id @p id
-    EnhancedTabBarWidgetInterface* window_(int id) const;
+    QStringList chooseFilesDialog_(const String& path_overwrite = "");
 
     ///@name dock widgets
     //@{
@@ -425,14 +418,10 @@ protected:
     QDockWidget* filter_dock_widget_;
     //@}
 
-    ///@name Spectrum selection widgets
-    //@{
-    SpectraViewWidget* spectra_view_widget_;
-    SpectraIdentificationViewWidget* spectra_identification_view_widget_;
-    //@}
-
     /// Layer management widget
-    QListWidget* layers_view_;
+    LayerListView* layers_view_;
+
+    DataSelectionTabs* selection_view_;
 
     ///@name Filter widget
     //@{
@@ -448,10 +437,13 @@ protected:
     /// Stores whether the individual windows should zoom together (be linked) or not
     bool zoom_together_ = false;
 
-    QAction* linkZoom_action_;
-
     /// Log output window
-    QTextEdit* log_;
+    LogWindow* log_;
+
+    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    TOOL_SCAN scan_mode_;
+    /// Scans for tools/utils and generates a param for each.
+    TVToolDiscovery tool_scanner_;
 
     /** @name Toolbar
     */
@@ -482,11 +474,14 @@ protected:
     QAction* dm_ident_2d_;
     //@}
 
-
     /// Main workspace
     EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
-    ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
+    /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
+    /// manages recent list of filenames and the menu that goes with it
+    RecentFilesMenu recent_files_;  // needs to be declared before 'menu_', because its needed there
+    /// manages the menu items (active/inactive) and recent files etc
+    TOPPViewMenu menu_;
 
     /** @name Status bar
     */
@@ -501,14 +496,9 @@ protected:
 
     /// @name Recent files
     //@{
-    ///adds a Filename to the recent files
+    /// adds a Filename to the recent files
     void addRecentFile_(const String& filename);
-    ///update the recent files menu
-    void updateRecentMenu_();
-    /// list of the recently opened files
-    QStringList recent_files_;
-    /// list of the recently opened files actions (menu entries)
-    std::vector<QAction*> recent_actions_;
+
     //@}
 
 
@@ -516,7 +506,7 @@ protected:
     //@{
     /// Runs the TOPP tool according to the information in topp_
     void runTOPPTool_();
-    ///Information needed for execution of TOPP tools
+    /// Information needed for execution of TOPP tools
     struct
     {
       Param param;
@@ -529,7 +519,7 @@ protected:
       Size spectrum_id;
       QProcess* process = nullptr;
       QTime timer;
-      bool visible;
+      bool visible_area_only;
     } topp_;
     //@}
 
@@ -539,16 +529,6 @@ protected:
     //@{
     void closeEvent(QCloseEvent* event) override;
     //@}
-
-    ///Log message states
-    enum LogState
-    {
-      LS_NOTICE, ///< Notice
-      LS_WARNING, ///< Warning
-      LS_ERROR ///< Fatal error
-    };
-    /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String& heading, const String& body);
 
     ///Additional context menu for 2D layers
     QMenu* add_2d_context_;
@@ -560,20 +540,8 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-    /// Tabwidget that hold the different views on the loaded data
-    QTabWidget* views_tabwidget_;
-
-    /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior identificationview_behavior_;
-    /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior spectraview_behavior_;
-
-public:
-    /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    static float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
-
-    /// Returns true if the experiment map contains peptide identifications
-    static bool hasPeptideIdentifications(const ExperimentType& map);
+    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
+    void addToolParamsToIni_();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

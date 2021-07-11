@@ -58,12 +58,12 @@ namespace OpenMS
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
-    defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("width_filtering", {"off","fixed","auto"});
+    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
+    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
 
-    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("true,false"));
+    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
+    defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -617,7 +617,7 @@ namespace OpenMS
     min_fwhm_ = (double)param_.getValue("min_fwhm");
     max_fwhm_ = (double)param_.getValue("max_fwhm");
 
-    pw_filtering_ = param_.getValue("width_filtering");
+    pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
   }
 

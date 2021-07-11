@@ -880,7 +880,7 @@ START_SECTION((String& substitute(const String& from, const String& to)))
   s.substitute("","blblblblbl");
   TEST_EQUAL(s,"xyz!")
 
-  //mutiple occurences
+  //mutiple occurrences
   s = "abcdefgabcdefgabcdefgab";
   s.substitute("ab","x");
   TEST_EQUAL(s,"xcdefgxcdefgxcdefgx")

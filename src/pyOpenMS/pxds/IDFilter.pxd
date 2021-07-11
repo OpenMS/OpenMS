@@ -45,6 +45,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except +
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except +
 
+        void keepNBestSpectra(libcpp_vector[PeptideIdentification]& peptides, Size n) nogil except +
+
         void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) nogil except +
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) nogil except +
 
@@ -89,7 +91,11 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
 
         void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
+        
+        void keepBestPerPeptide(libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
 
+        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
+        
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
 
 cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
@@ -112,4 +118,3 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter"
 
         # bool operator()(PeptideEvidence & evidence) nogil except +
         void filterPeptideEvidences(libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
-
