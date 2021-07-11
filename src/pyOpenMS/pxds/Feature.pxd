@@ -30,15 +30,20 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         Feature() nogil except +
         Feature(Feature &) nogil except +
 
-        float getQuality(Size index) nogil except +
-        void setQuality(Size index, float q) nogil except +
-        float getOverallQuality() nogil except +
-        void setOverallQuality(float q) nogil except +
+        float getQuality(Size index) nogil except + # wrap-doc:Access to the quality in dimension c
+        void setQuality(Size index, float q) nogil except + # wrap-doc:Set the quality in dimension c
+        float getOverallQuality() nogil except + # wrap-doc:Model and quality methods
+        void setOverallQuality(float q) nogil except + # wrap-doc:Set the overall quality
 
-        libcpp_vector[Feature] getSubordinates() nogil except +
-        void setSubordinates(libcpp_vector[Feature]) nogil except +
+        libcpp_vector[Feature] getSubordinates() nogil except + # wrap-doc:Immutable access to subordinate features
+        void setSubordinates(libcpp_vector[Feature]) nogil except + # wrap-doc:Returns access to subordinate features
 
-        bool encloses(double rt, double mz) nogil except +
+        bool encloses(double rt, double mz) nogil except + 
+            # wrap-doc:
+            #   Returns if the mass trace convex hulls of the feature enclose the position specified by `rt` and `mz`
+            #   -----
+            #   :param rt: Sequence to digest
+            #   :param mz: Digestion products
         ConvexHull2D getConvexHull() nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
@@ -59,7 +64,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         AnnotationState getAnnotationState() nogil except +
 
         # returns a mutable reference to the PeptideIdentification vector
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except + # wrap-doc:Returns a reference to the PeptideIdentification vector
         # sets the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except + # wrap-doc:Sets the PeptideIdentification vector
 
