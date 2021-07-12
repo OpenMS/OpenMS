@@ -799,8 +799,8 @@ const String TOPPMSFraggerAdapter::opt_out = "opt_out";
 const String TOPPMSFraggerAdapter::database = "database";
 
 // tolerance
-const String TOPPMSFraggerAdapter::precursor_mass_tolerance_lower = "tolerance:precursor_mass_tolerance_upper";
-const String TOPPMSFraggerAdapter::precursor_mass_tolerance_upper = "tolerance:precursor_mass_tolerance_lower";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_lower = "tolerance:precursor_mass_tolerance_lower";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_upper = "tolerance:precursor_mass_tolerance_upper";
 const String TOPPMSFraggerAdapter::precursor_mass_unit = "tolerance:precursor_mass_unit";
 const String TOPPMSFraggerAdapter::precursor_true_tolerance = "tolerance:precursor_true_tolerance";
 const String TOPPMSFraggerAdapter::precursor_true_unit = "tolerance:precursor_true_unit";
