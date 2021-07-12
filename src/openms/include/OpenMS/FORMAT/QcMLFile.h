@@ -170,7 +170,7 @@ public:
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
       @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids peptide identifications from ID file (idXML)
+      @param pep_ids peptide identifications
       @param feature_map FeatureMap from feature file (featureXML)
       @param consensus_map ConsensusMap from consensus file (consensusXML)
       @param inputfile_raw mzML input file name
@@ -229,4 +229,3 @@ protected:
   };
 
 } // namespace OpenMS
-
