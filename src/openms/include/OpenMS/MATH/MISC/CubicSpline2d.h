@@ -88,6 +88,13 @@ public:
     double eval(double x) const;
 
     /**
+     * @brief evaluates first derivative of spline at position x
+     *
+     * @param x x-position
+     */
+    double derivative(double x) const;
+
+    /**
      * @brief evaluates derivative of spline at position x
      *
      * @param x x-position

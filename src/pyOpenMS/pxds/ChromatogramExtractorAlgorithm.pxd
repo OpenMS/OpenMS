@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) nogil except + # wrap-doc:Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMSCached ] input,
@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) nogil except + # wrap-doc:Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMSInMemory ] input,
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) nogil except + # wrap-doc:Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessQuadMZTransforming ] input,
@@ -54,7 +54,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) nogil except + # wrap-doc:Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
 
 
         # void extract_value_tophat # -> uses iterators
