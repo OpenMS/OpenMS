@@ -78,12 +78,16 @@ END_SECTION
 
 START_SECTION(static void registerChildren())
   PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
+  delete c1;
   c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
 	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
-  c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
+	delete c1;
+	c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
 	TEST_EQUAL(c1->getName(), "ZhangSimilarityScore")
+	delete c1;
 	c1 = Factory<PeakSpectrumCompareFunctor>::create("SteinScottImproveScore");
 	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
+	delete c1;
 END_SECTION
 
 START_SECTION(static const String getProductName())

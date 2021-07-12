@@ -28,13 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 namespace OpenMS
 {
@@ -172,24 +175,25 @@ namespace OpenMS
   {
     ContainerType::clear();
 
+    clearRanges();
+    float_data_arrays_.clear();
+    string_data_arrays_.clear();
+    integer_data_arrays_.clear();
+
     if (clear_meta_data)
     {
       ContainerType::shrink_to_fit();
+      float_data_arrays_.shrink_to_fit();
+      string_data_arrays_.shrink_to_fit();
+      integer_data_arrays_.shrink_to_fit();
 
-      clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;
-      drift_time_ = -1.0;
-      drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
+      drift_time_ = IMTypes::DRIFTTIME_NOT_SET;
+      drift_time_unit_ = DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
       name_.shrink_to_fit();
-      float_data_arrays_.clear();
-      float_data_arrays_.shrink_to_fit();
-      string_data_arrays_.clear();
-      string_data_arrays_.shrink_to_fit();
-      integer_data_arrays_.clear();
-      integer_data_arrays_.shrink_to_fit();
     }
   }
 
@@ -465,7 +469,7 @@ namespace OpenMS
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
-    drift_time_unit_(MSSpectrum::DriftTimeUnit::NONE),
+    drift_time_unit_(DriftTimeUnit::NONE),
     ms_level_(1),
     name_(),
     float_data_arrays_(),
@@ -509,14 +513,14 @@ namespace OpenMS
     retention_time_ = rt;
   }
 
-  MSSpectrum::DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
+  DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
   {
     return drift_time_unit_;
   }
 
   String MSSpectrum::getDriftTimeUnitAsString() const
   {
-    return Precursor::NamesOfDriftTimeUnit[drift_time_unit_];
+    return NamesOfDriftTimeUnit[(size_t)drift_time_unit_];
   }
 
   void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
@@ -679,21 +683,32 @@ namespace OpenMS
     return a.getRT() < b.getRT();
   }
 
-  constexpr uint IM_FLOAT_DATA_ARRAY_INDEX = 0;
+  bool getIonMobilityArray__(const MSSpectrum::FloatDataArrays& fdas, Size& index, DriftTimeUnit& unit)
+  {
+    for (index = 0; index < fdas.size(); ++index)
+    {
+      if (IMDataConverter::getIMUnit(fdas[index], unit))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   bool MSSpectrum::containsIMData() const
   {
-    const auto& s = *this;
-    return (!s.getFloatDataArrays().empty() &&
-            (s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName().hasPrefix("Ion Mobility") ||
-             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility array" ||
-             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "mean inverse reduced ion mobility array" ||
-             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility drift time")
-      );
+    Size index;
+    DriftTimeUnit unit;
+    return getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
   }
-  const MSSpectrum::FloatDataArray& MSSpectrum::getIMData() const
+
+  std::pair<Size, DriftTimeUnit> MSSpectrum::getIMData() const
   {
-    if (!this->containsIMData())
+    Size index;
+    DriftTimeUnit unit;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+    
+    if (!has_IM)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Cannot get ion mobility data. No float array with the correct name available."
@@ -701,7 +716,6 @@ namespace OpenMS
                                               String(this->getFloatDataArrays().size()));
     }
 
-    return this->getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX];
-
+    return {index, unit };
   }
 }

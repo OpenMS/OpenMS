@@ -661,5 +661,7 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 }
 END_SECTION
 
+delete e_ptr;
+
 END_TEST
 

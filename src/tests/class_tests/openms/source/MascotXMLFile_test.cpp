@@ -73,6 +73,7 @@ MascotXMLFile* nullPointer = nullptr;
 START_SECTION((MascotXMLFile()))
   ptr = new MascotXMLFile();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, PeakMap& experiment, const String& scan_regex = "")))

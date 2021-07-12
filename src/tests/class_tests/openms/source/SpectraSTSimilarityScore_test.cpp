@@ -231,6 +231,7 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
   SpectraSTSimilarityScore spectrast;
   TEST_EQUAL(psf->getParameters(), spectrast.getParameters())
   TEST_EQUAL(psf->getName(), spectrast.getName())
+  delete psf;
 END_SECTION
 
 START_SECTION(static const String getProductName())
