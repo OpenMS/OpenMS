@@ -39,8 +39,6 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
 #include <OpenMS/QC/FeatureSummary.h>
@@ -48,7 +46,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include <vector>
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -64,8 +61,9 @@ namespace OpenMS
                        const String& contact_address,
                        const String& description,
                        const String& label,
-                       const String& inputfile_feature,
-                       const String& inputfile_id) const
+                       const FeatureMap& feature_map,
+                       vector<ProteinIdentification>& prot_ids,
+                       vector<PeptideIdentification>& pep_ids) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -89,11 +87,11 @@ namespace OpenMS
     {
       status |= QCBase::Requires::RAWMZML;
     }
-    if (!inputfile_feature.empty())
+    if (!feature_map.empty())
     {
       status |= QCBase::Requires::PREFDRFEAT;
     }
-    if (!inputfile_id.empty())
+    if (!prot_ids.empty() && !pep_ids.empty())
     {
       status |= QCBase::Requires::ID;
     }
@@ -184,10 +182,6 @@ namespace OpenMS
     // Meabolomics: Detected compounds from featureXML file
     if (feature_summary.isRunnable(status))
     {
-      FeatureMap feature_map;
-      FeatureXMLFile f;
-      f.load(inputfile_feature, feature_map);
-      feature_map.updateRanges();
       auto result = feature_summary.compute(feature_map);
       // Detected compounds
       addMetric("QC:4000257", result.feature_count);
@@ -200,9 +194,6 @@ namespace OpenMS
     // peptides and proteins from idXML file
     if (identification_summary.isRunnable(status))
     {
-      vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
-      IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
       auto result = identification_summary.compute(prot_ids, pep_ids);
       // Total number of PSM
       addMetric("QC:4000186", result.peptide_spectrum_matches);
