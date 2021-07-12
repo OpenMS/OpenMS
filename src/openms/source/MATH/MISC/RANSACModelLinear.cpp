@@ -38,10 +38,8 @@
 #include <numeric>
 
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
     RansacModelLinear::ModelParameters RansacModelLinear::rm_fit_impl(const DVecIt& begin, const DVecIt& end)
     {
       std::vector<double> x, y;
@@ -105,8 +103,4 @@ namespace OpenMS
       return alsoinliers;
     }
 
-
-  } // Math
-
-
-} // OpenMS
+} // OpenMS // Math

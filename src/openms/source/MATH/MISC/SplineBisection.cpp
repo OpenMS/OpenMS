@@ -37,12 +37,8 @@
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-
-  namespace Math
-  {
-
     // explicit instantiation.
     template 
     void spline_bisection<BSpline2d>(const BSpline2d & peak_spline, 
@@ -61,7 +57,4 @@ namespace OpenMS
         double & max_peak_mz,
         double & max_peak_int,
         double const threshold);
-
-  }
-
-}
+} // OpenMS // Math

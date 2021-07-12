@@ -331,10 +331,9 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-
         std::vector<String> peptide_seqs;
-        for (; vec_iter != vec.end(); ++vec_iter)
+
+        for (vector<AASequence>::iterator vec_iter = vec.begin(); vec_iter != vec.end(); ++vec_iter)
         {
 
           // enter mod
@@ -654,8 +653,7 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (vector<AASequence>::iterator vec_iter = vec.begin(); vec_iter != vec.end(); ++vec_iter)
         {
           // enter mod
           if (fixed_mods_)

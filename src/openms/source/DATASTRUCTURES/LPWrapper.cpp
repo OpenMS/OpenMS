@@ -611,23 +611,23 @@ namespace OpenMS
     solver_param_glp.bt_tech = solver_param.backtrack_tech;
     solver_param_glp.pp_tech = solver_param.preprocessing_tech;
     if (solver_param.enable_feas_pump_heuristic)
-      solver_param_glp.fp_heur = GLP_ON;
+      { solver_param_glp.fp_heur = GLP_ON; }
     if (solver_param.enable_gmi_cuts)
-      solver_param_glp.gmi_cuts = GLP_ON;
+      { solver_param_glp.gmi_cuts = GLP_ON; }
     if (solver_param.enable_mir_cuts)
-      solver_param_glp.mir_cuts = GLP_ON;
+      { solver_param_glp.mir_cuts = GLP_ON; }
     if (solver_param.enable_cov_cuts)
-      solver_param_glp.cov_cuts = GLP_ON;
+      { solver_param_glp.cov_cuts = GLP_ON; }
     if (solver_param.enable_clq_cuts)
-      solver_param_glp.clq_cuts = GLP_ON;
+      { solver_param_glp.clq_cuts = GLP_ON; }
     solver_param_glp.mip_gap = solver_param.mip_gap;
     solver_param_glp.tm_lim = solver_param.time_limit;
     solver_param_glp.out_frq = solver_param.output_freq;
     solver_param_glp.out_dly = solver_param.output_delay;
     if (solver_param.enable_presolve)
-      solver_param_glp.presolve = GLP_ON;
+      { solver_param_glp.presolve = GLP_ON; }
     if (solver_param.enable_binarization)
-      solver_param_glp.binarize = GLP_ON; // only with presolve
+      { solver_param_glp.binarize = GLP_ON; } // only with presolve
 
     return glp_intopt(lp_problem_, &solver_param_glp);
 #endif

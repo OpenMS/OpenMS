@@ -222,8 +222,9 @@ namespace OpenMS
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
     if (name != rhs.name || entries.size() != rhs.entries.size() || nodes.size() != rhs.nodes.size())
+    {
       return false;
-
+    }
     //order of sections / entries should not matter
     for (size_t i = 0; i < entries.size(); ++i)
     {
