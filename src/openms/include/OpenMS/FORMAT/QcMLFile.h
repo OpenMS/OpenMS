@@ -169,7 +169,7 @@ public:
     ///Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
-      @param prot_ids protein identifications from ID file (idXML)
+      @param prot_ids protein identifications from ID file
       @param pep_ids peptide identifications
       @param feature_map FeatureMap from feature file (featureXML)
       @param consensus_map ConsensusMap from consensus file (consensusXML)
