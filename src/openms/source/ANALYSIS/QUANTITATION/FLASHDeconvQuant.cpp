@@ -82,41 +82,41 @@ namespace OpenMS
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
   }
 
-  void FLASHDeconvQuant::writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat)
+  void FLASHDeconvQuant::writeFeatureGroupsInFile(std::vector<FeatureGroup>& features)
   {
     ofstream out;
     OPENMS_LOG_INFO << "writing output..." << outfile_path << endl;
     out.open(outfile_path, ios::out);
 
     // header
-    out << "mono_mass\tquant_value\tcharge_score\tiso_cosine\tcharges\tfwhm_start\tfwhm_end\trt_start\trt_end\n";
+    out << "mono_mass\tmin_charge\tmax_charge\tquant_value\tsummed_inty\tmost_abundant_charge\t"
+           "quant_of_most_abundant_charge\tquant_of_apices_of_cs\tcharge_score\tiso_cosine\tweighted_iso_score\t"
+           "fwhm_start\tfwhm_end\trt_start\trt_end\tiso_length\tperIsotopeIntensity\n";
 
-    for (auto& m : feat)
+    for (auto& fg : features)
     {
-      double q = m.getIntensity();
-//      if (q==0.0)
-//      {
-//        for(auto& idx : m.second.feature_idx)
-//        {
-//          q += hypotheses[idx].computeQuant();
-//        }
-//      }
+      double quant_value = fg.getIntensity();
 
-      out << to_string(m.getMonoisotopicMass()) << "\t"
-          << to_string(q) << "\t"
-          << to_string(m.getChargeScore()) << "\t"
-          << to_string(m.getIsotopeCosine()) << "\t";
-
-      std::string charges = to_string(std::get<0>(m.getChargeRange())) + ","
-                    + to_string(std::get<1>(m.getChargeRange()));
+      // intys
+      double summedIntensities = 0;
+      std::vector<double> per_iso_intys = std::vector<double>(iso_model_.getMaxIsotopeIndex(), .0);
 
       // rt range
       double min_rt = std::numeric_limits<double>::max();
       double max_rt = 0;
-      for (auto& l : m)
+
+      // getting information while looping through mass traces in featuregroup
+      for (auto& lmt : fg)
       {
-        double tmp_min = l.getMassTrace()->getConvexhull().getBoundingBox().minX();
-        double tmp_max = l.getMassTrace()->getConvexhull().getBoundingBox().maxX();
+        auto lmt_ptr = lmt.getMassTrace();
+        double tmp_min = lmt_ptr->getConvexhull().getBoundingBox().minX();
+        double tmp_max = lmt_ptr->getConvexhull().getBoundingBox().maxX();
+
+        for (auto& peaks : *lmt_ptr)
+        {
+          summedIntensities += peaks.getIntensity();
+        }
+        per_iso_intys[lmt.getIsotopeIndex()] += lmt.getIntensity();
 
         if (tmp_min < min_rt)
           min_rt = tmp_min;
@@ -124,14 +124,35 @@ namespace OpenMS
           max_rt = tmp_max;
       }
 
-      // fwhm range
-//      m.getFwhmRange()
+      auto iso_start = std::distance(per_iso_intys.begin(), find_if( per_iso_intys.begin(), per_iso_intys.end(), [](double x) { return x != 0; }));
+      auto iso_end = std::distance(per_iso_intys.rbegin(), find_if( per_iso_intys.rbegin(), per_iso_intys.rend(), [](double x) { return x != 0; }));
+      iso_end = per_iso_intys.size() - iso_end;
 
-      out << charges << "\t"
-      << to_string(m.getFwhmRange().first) << "\t"
-      << to_string(m.getFwhmRange().second) << "\t"
-      << to_string(min_rt) << "\t"
-      << to_string(max_rt) << "\n";
+      stringstream iso_ss;
+      for(int i = iso_start; i < iso_end; ++i)
+      {
+        iso_ss << std::to_string(per_iso_intys[i]) << ";";
+      }
+      std::string iso_ss_str = iso_ss.str();
+      iso_ss_str.pop_back();
+
+      out << std::to_string(fg.getMonoisotopicMass()) << "\t"
+          << std::get<0>(fg.getChargeRange()) << "\t"
+          << std::get<1>(fg.getChargeRange()) << "\t"
+          << std::to_string(quant_value) << "\t"
+          << std::to_string(summedIntensities) << "\t"
+          << fg.getMostAbundantCharge() << "\t"
+          << std::to_string(fg.getIntensityOfMostAbundantCharge()) << "\t"
+          << std::to_string(fg.getSummedIntensityOfMostAbundantMTperCS()) << "\t"
+          << std::to_string(fg.getChargeScore()) << "\t"
+          << std::to_string(fg.getIsotopeCosine()) << "\t"
+          << std::to_string(fg.getFeatureGroupScore()) << "\t"
+          << std::to_string(fg.getFwhmRange().first) << "\t"
+          << std::to_string(fg.getFwhmRange().second) << "\t"
+          << std::to_string(min_rt) << "\t"
+          << std::to_string(max_rt) << "\t"
+          << (iso_end - iso_start) << "\t"
+          << iso_ss_str << "\n";
     }
 
     out.close();
@@ -146,6 +167,7 @@ namespace OpenMS
     logTransformMassTraces_(input_mtraces, log_mtraces);
     setFilters_();
     setAveragineModel_();
+
     if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_ < local_mz_range_ )
     {
       local_mz_range_ = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_;
@@ -159,29 +181,57 @@ namespace OpenMS
     // *********************************************************** //
     // Step 2 mass artifact removal & post processing...
     // *********************************************************** //
-    refineFeatureGroups_(features);
+//    refineFeatureGroups_(features);
 
     // filter out mass traces in each features and re-score them
-    std::vector<FeatureGroup> tmpFGroups;
-    tmpFGroups.swap(features);
-    features.reserve(tmpFGroups.size());
-    for (auto& f : tmpFGroups)
-    {
-      f.filterMassTracesWithLowIntensities();
-      if(!rescoreFeatureGroup_(f))
-      {
-        continue;
-      }
-      f.setCentroidRtOfApices();
-      features.push_back(f);
-    }
-    writeFeatureGroupsInFile(features);
+//    std::vector<FeatureGroup> tmpFGroups;
+//    tmpFGroups.swap(features);
+//    features.reserve(tmpFGroups.size());
+//    for (auto& f : tmpFGroups)
+//    {
+//      f.filterIsoMassTracesWithLowIntensities();
+//      if(!rescoreFeatureGroup_(f))
+//      {
+//        continue;
+//      }
+//      f.setCentroidRtOfApices();
+//      features.push_back(f);
+//    }
 
     // *********************************************************** //
     // Step 3 clustering features
     // *********************************************************** //
     std::vector<std::vector<Size>> shared_m_traces(input_mtraces.size(), std::vector<Size>());
-    clusterFeatureGroups_(features, shared_m_traces, input_mtraces);
+    for (Size fg_index = 0; fg_index<features.size(); ++fg_index)
+    {
+      for (auto& mt_i : features[fg_index].getTraceIndices())
+      {
+        shared_m_traces[mt_i].push_back(fg_index);
+      }
+    }
+
+    std::vector<bool> feature_with_shared(features.size(), false);
+    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
+    {
+      if (shared_m_traces[mt_idx].size() < 2) // this mass trace is not shared
+      {
+        continue;
+      }
+      for (auto& f_idx : shared_m_traces[mt_idx])
+      {
+        feature_with_shared[f_idx] = true;
+      }
+    }
+
+    auto count = std::count(feature_with_shared.begin(), feature_with_shared.end(), true);
+    OPENMS_LOG_INFO << "total #feature - #features_with_shared : " << features.size() << "\t" << count << endl;
+    OPENMS_LOG_INFO << "#feature with shared : " << count << endl;
+    OPENMS_LOG_INFO << "percentage : " << (count/features.size()) << endl;
+
+//    resolveSharedMassTraces_simple(features, shared_m_traces, input_mtraces);
+//    resolveSharedMassTraces(features, shared_m_traces, input_mtraces);
+    writeFeatureGroupsInFile(features);
+    //    clusterFeatureGroups_(features, shared_m_traces, input_mtraces);
   }
 
   void FLASHDeconvQuant::logTransformMassTraces_(std::vector<MassTrace> &input_mtraces, std::vector<LogMassTrace> &log_mtraces)
@@ -191,6 +241,7 @@ namespace OpenMS
     double min_mz = std::numeric_limits<double>::max();
     double max_mz = 0;
     Size index = 0;
+    double sum_intensity = .0;
 
     log_mtraces.reserve(input_mtraces.size());
     for (auto iter=input_mtraces.begin(); iter!=input_mtraces.end(); ++iter, ++index)
@@ -210,10 +261,12 @@ namespace OpenMS
       {
         min_mz = iter->getCentroidMZ();
       }
+      sum_intensity += tmp_lmt.getIntensity();
     }
     local_rt_range_ = shortest_mt_length;
     upper_bound_mz_ = max_mz;
     lower_bound_mz_ = min_mz;
+    total_intensity_ = sum_intensity;
 
     // sort input mass traces in RT
     std::sort(log_mtraces.begin(), log_mtraces.end(), CmpLogMassTraceByRT());
@@ -388,7 +441,7 @@ namespace OpenMS
     auto current_peak_index = std::vector<int>(charge_range_, 0);
     fgroup.reserve(mass_bins_.count());
     Size mass_bin_index = mass_bins_.find_first();
-    auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
+    auto peak_bin_numbers = std::vector<int>(log_mz_peak_size);
 
     for (int i = 0; i < log_mz_peak_size; i++)
     {
@@ -882,9 +935,9 @@ namespace OpenMS
     return abs_charge_ranges;
   }
 
-  bool FLASHDeconvQuant::checkChargeDistribution_(const std::vector<double> &per_charge_intensity) {
+  bool FLASHDeconvQuant::checkChargeDistribution_(const std::vector<double> &per_charge_intensity) const {
 
-    double max_per_charge_intensity = .0;
+    double max_per_charge_intensity = *std::max_element(per_charge_intensity.begin(), per_charge_intensity.end());
     double sum_charge_intensity = .0;
     int cntr = 0;
     int non_zero_start = -1, non_zero_end = 0;
@@ -892,23 +945,23 @@ namespace OpenMS
       if (per_charge_intensity[i] > 0) {
         sum_charge_intensity += per_charge_intensity[i];
         cntr++;
-        max_per_charge_intensity = std::max(max_per_charge_intensity, per_charge_intensity[i]);
+//        max_per_charge_intensity = std::max(max_per_charge_intensity, per_charge_intensity[i]);
         if (non_zero_start < 0) {
           non_zero_start = i;
         }
         non_zero_end = i;
       }
     }
-    if (cntr == 0) {
+    if (cntr < min_nr_mtraces_) { // less than 3 charges in this FeatureGroup
       return false;
     }
 
     int prev_charge = non_zero_start;
     int n_r = 0;
     float factor = 1;
-    double int_threshold = (sum_charge_intensity / cntr) * factor;
+//    double int_threshold = (sum_charge_intensity / cntr) * factor;
     for (int k = prev_charge + 1; k <= non_zero_end; k++) {
-      if (per_charge_intensity[k] < int_threshold) {
+      if (per_charge_intensity[k] <= 0) {
         continue;
       }
 
@@ -1197,19 +1250,12 @@ namespace OpenMS
     filtered_pg_vec.reserve(local_fgroup.size());
     sort(local_fgroup.begin(), local_fgroup.end());
 
-    for (Size i = 0; i < local_fgroup.size(); i++) {
-
-      if (std::abs(local_fgroup[i].getMonoisotopicMass()-18791) < 3 ||  std::abs(local_fgroup[i].getMonoisotopicMass()-18807) < 3)
-      {
-        auto& fg = local_fgroup[i];
-      }
-
-      if (i > 0) {
-        if (abs(local_fgroup[i - 1].getMonoisotopicMass() - local_fgroup[i].getMonoisotopicMass()) < 1e-3
-            &&
-            local_fgroup[i - 1].getIntensity() >= local_fgroup[i].getIntensity()) {
-          continue;
-        }
+    filtered_pg_vec.push_back(local_fgroup[0]); // when i = 0
+    for (Size i = 1; i < local_fgroup.size(); ++i) {
+      if (abs(local_fgroup[i - 1].getMonoisotopicMass() - local_fgroup[i].getMonoisotopicMass()) < 1e-3
+          &&
+          local_fgroup[i - 1].getIntensity() >= local_fgroup[i].getIntensity()) {
+        continue;
       }
 
       filtered_pg_vec.push_back(local_fgroup[i]);
@@ -1294,17 +1340,16 @@ namespace OpenMS
     /// setting variables for binning (from FLASHDeconv)
     int current_charge_range = charge_upper_bound_ - charge_lower_bound_ + 1;
     int tmp_peak_cntr = current_charge_range - min_nr_mtraces_;
+    tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
 
-    mass_bin_min_value_ = log(std::max(1.0, min_mass_ - iso_model_.getAverageMassDelta(min_mass_)));
-    tmp_peak_cntr = min_nr_mtraces_ - 1;
-
-    /// deconvolution starts here
-    mz_bin_min_value_ = local_traces[0]->getLogCentroidMz();
     double mz_bin_max_value = local_traces[local_traces.size()-1]->getLogCentroidMz();
     double mass_bin_max_value = std::min( mz_bin_max_value - filter_[tmp_peak_cntr],
                                           log(max_mass_ + iso_model_.getRightCountFromApex(max_mass_) + 1));
 
-    // TODO : mz_bin_min_value_ remove from method
+    tmp_peak_cntr = min_nr_mtraces_ - 1;
+    tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
+    mass_bin_min_value_ = log(std::max(1.0, min_mass_ - iso_model_.getAverageMassDelta(min_mass_)));
+    mz_bin_min_value_ = local_traces[0]->getLogCentroidMz();
     Size mass_bin_number = getBinNumber_(mass_bin_max_value, mz_bin_min_value_, mz_bin_width_) + 1;
 
     // build bin offsets
@@ -1343,14 +1388,14 @@ namespace OpenMS
 
     getCandidatePeakGroups_(local_traces, per_mass_abs_charge_ranges, local_fgroup);
 
-    // filtering part
-    if (local_fgroup.empty())
+    if (local_fgroup.size() > 0)
     {
-      return;
+      scoreAndFilterPeakGroups_(local_fgroup);
     }
-    scoreAndFilterPeakGroups_(local_fgroup);
-
-    removeOverlappingPeakGroups_(local_fgroup, mz_tolerance_, 1);
+    if (local_fgroup.size() > 1)
+    {
+      removeOverlappingPeakGroups_(local_fgroup, mz_tolerance_, 1);
+    }
 
     // TODO : revive rt binning?
 //      while (!prev_rt_vector_.empty() &&
@@ -1560,9 +1605,14 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuant::scoreFeatureGroup_(FeatureGroup &fg) const
+  bool FLASHDeconvQuant::scoreFeatureGroup_(FeatureGroup &fg, double given_iso_score) const
   {
     // return false when scoring is not done (filtered out)
+
+    if (given_iso_score == 0)
+    {
+      given_iso_score = min_isotope_cosine_;
+    }
 
     auto per_isotope_intensities = std::vector<double>(iso_model_.getMaxIsotopeIndex(), 0);
     auto per_charge_intensities = std::vector<double>(charge_range_, 0);
@@ -1576,7 +1626,7 @@ namespace OpenMS
                                                                     per_isotope_intensities,
                                                                     offset, iso_model_);
     fg.setIsotopeCosine(isotope_score);
-    if (fg.empty() || isotope_score < min_isotope_cosine_)
+    if (fg.empty() || isotope_score < given_iso_score) // min_isotope_cosine_
     {
       return false;
     }
@@ -1586,13 +1636,12 @@ namespace OpenMS
     fg.setChargeScore(cs);
 
 //    // NOTE : if not using cs dist, too many harmonics
-//    bool is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities);
+    bool is_charge_well_distributed = checkChargeDistribution_(per_charge_intensities);
 //    //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
-//
-//    if (!is_charge_well_distributed) {
-//        continue;
-//    }
-/// TODO_ends_here
+    if (!is_charge_well_distributed) {
+        return false;
+    }
+    /// TODO_ends_here
 
     /// update monoisotope mass of this FeatureGroup
     fg.updateMassesAndIntensity(offset, iso_model_.getMaxIsotopeIndex());
@@ -1603,11 +1652,11 @@ namespace OpenMS
     /// setting per_isotope_score
     auto iso_dist = iso_model_.get(fg.getMonoisotopicMass());
     int iso_size = (int) iso_dist.size();
-//    float total_noise = .0;
-//    float total_signal = .0;
 
     // initialize private vectors
     fg.initializePerChargeVectors();
+
+    double weighted_iso_score = fg.getIntensity() / total_intensity_;
 
     auto current_charge_range = fg.getChargeRange();
     for (int abs_charge = std::get<0>(current_charge_range);
@@ -1659,10 +1708,13 @@ namespace OpenMS
                                     iso_size,
                                     0);
 
+      weighted_iso_score +=  (per_charge_intensities[j] / total_intensity_) * cos_score;
+
       fg.setChargeIsotopeCosine(abs_charge, cos_score);
       fg.setChargeIntensity(abs_charge, per_charge_intensities[j]);
     }
 
+    fg.setFeatureGroupScore(weighted_iso_score);
     fg.setAvgPPMError(getAvgPPMError_(fg));
     return true;
   }
@@ -1691,9 +1743,13 @@ namespace OpenMS
     charge_upper_bound_ = max_abs_charge;
     charge_range_ = charge_upper_bound_ - charge_lower_bound_ + 1;
 
+    Size initial_size = in_features.size();
+    this->startProgress(0, initial_size, "refining feature groups");
     // insert FeatureGroup with highest score to out_features, merge if other FeatureGroup exist within mass_tol
     while(!in_features.empty())
     {
+      this->setProgress(initial_size-in_features.size());
+
       // get a feature with the highest IsotopeCosineScore
       auto candidate_fg = std::max_element(in_features.begin(), in_features.end(), CmpFeatureGroupByScore());
 
@@ -1833,6 +1889,7 @@ namespace OpenMS
       }
       in_features.swap(tmp_out_fgs);
     }
+    this->endProgress();
 
     in_features.swap(out_feature);
   }
@@ -1840,9 +1897,6 @@ namespace OpenMS
   void FLASHDeconvQuant::buildMassTraceGroups_(std::vector<LogMassTrace> &log_mtraces, std::vector<FeatureGroup>& features)
   {
     /// group mass traces to spectrum
-    Size last_starting_point = 0;
-    Size last_index = log_mtraces.size();
-
     std::vector<std::pair<double, LogMassTrace*>> mt_rt_starts;
     std::vector<std::pair<double, LogMassTrace*>> mt_rt_ends;
     mt_rt_starts.reserve(log_mtraces.size());
@@ -1850,11 +1904,22 @@ namespace OpenMS
     int counter = 0;
 
     // collect rt information from mtraces to generate spectrum
+    double min_fwhm_length = numeric_limits<double>::max();
     for (auto &lmt : log_mtraces)
     {
       mt_rt_starts.push_back(std::make_pair(lmt.getFwhmStart(), &lmt));
       mt_rt_ends.push_back(std::make_pair(lmt.getFwhmEnd(), &lmt));
+      if( lmt.getMassTrace()->getFWHM() < min_fwhm_length)
+      {
+        min_fwhm_length = lmt.getMassTrace()->getFWHM();
+      }
     }
+
+    if (min_fwhm_length > rt_window_)
+    {
+      rt_window_ = min_fwhm_length;
+    }
+    OPENMS_LOG_INFO << "spectrum rt window : " << std::to_string(rt_window_) << endl;
 
     // sorting mass traces in rt
     std::sort(mt_rt_starts.begin(), mt_rt_starts.end());
@@ -1863,18 +1928,24 @@ namespace OpenMS
     std::vector<std::pair<double, LogMassTrace*>>::const_iterator rt_s_iter = mt_rt_starts.begin();
     std::vector<std::pair<double, LogMassTrace*>>::const_iterator rt_e_iter = mt_rt_ends.begin();
     auto end_of_iter = mt_rt_starts.end();
-    double current_rt = mt_rt_starts[0].first;
+    double end_of_current_rt_window = mt_rt_starts[0].first;
+    double last_rt = mt_rt_ends[mt_rt_ends.size()-1].first;
     std::vector<LogMassTrace*> local_traces;
     local_traces.reserve(log_mtraces.size());
 
-    while(rt_s_iter != end_of_iter)
+    int possible_spec_size = int((mt_rt_starts[mt_rt_starts.size()-1].first - end_of_current_rt_window)/rt_window_);
+    this->startProgress(0, possible_spec_size, "assembling mass traces to features");
+
+    while(rt_s_iter != end_of_iter && end_of_current_rt_window < last_rt)
     {
+      this->setProgress(counter);
+
       // initial rt binning is 1 sec (for generating spectrum)
-      current_rt += 1;
+      end_of_current_rt_window += rt_window_;
 
       // add mass traces within rt range
       bool is_new_mt_added = false;
-      for(;rt_s_iter != end_of_iter && rt_s_iter->first <= current_rt; ++rt_s_iter)
+      for(;rt_s_iter != end_of_iter && rt_s_iter->first <= end_of_current_rt_window; ++rt_s_iter)
       {
         local_traces.push_back(rt_s_iter->second);
         is_new_mt_added = true;
@@ -1887,10 +1958,14 @@ namespace OpenMS
       }
 
       // remove mass traces out of rt range
-      for(;rt_e_iter != mt_rt_ends.end() && rt_e_iter->first < current_rt ; ++rt_e_iter)
+      for(;rt_e_iter != mt_rt_ends.end() && rt_e_iter->first < end_of_current_rt_window ; ++rt_e_iter)
       {
         local_traces.erase(std::remove_if(local_traces.begin(), local_traces.end(),
                                           [&rt_e_iter](auto const& p){return rt_e_iter->second==p; }));
+      }
+      if(local_traces.empty())
+      {
+        continue;
       }
 
       // sort local traces in mz
@@ -1910,14 +1985,10 @@ namespace OpenMS
         pg.setTraceIndices();
       }
 
-      /// TODO: check if local features are duplicate - if not, add it to features
-      // check if feature already exist ( 80% of overlap), then add to the output
-//      addFeatureGroup_(features, local_fgroup);
-
       features.insert(features.end(), local_fgroup.begin(), local_fgroup.end());
-//      std::sort(features.begin(), features.end());
     }
 
+    this->endProgress();
     OPENMS_LOG_INFO << "# generated spec from mass traces : " << counter << endl;
     OPENMS_LOG_INFO << "# generated feature groups from mass traces : " << features.size() << endl;
   }
@@ -1999,11 +2070,219 @@ namespace OpenMS
     out.close();
   }
 
+  void FLASHDeconvQuant::resolveSharedMassTraces_simple(std::vector<FeatureGroup> &fgroups,
+                                                        std::vector<std::vector<Size>> &shared_m_traces,
+                                                        std::vector<MassTrace> &input_mtraces) const
+  {
+    /// generate array with indices of shared mass traces
+    for (Size fg_index = 0; fg_index<fgroups.size(); ++fg_index)
+    {
+      for (auto& mt_i : fgroups[fg_index].getTraceIndices())
+      {
+        shared_m_traces[mt_i].push_back(fg_index);
+      }
+    }
+
+    /// test writing for shared mass traces
+    String s_out = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_sharedMTs.tsv";
+    printSharedMassTraces(shared_m_traces, s_out, fgroups, input_mtraces);
+
+    /// assign intensity of shared mass traces to the "feature"(in FeatureGroup) with weights (w: based on apex inty)
+    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
+    {
+      if (shared_m_traces[mt_idx].size() < 2) // this mass trace is not shared
+      {
+        continue;
+      }
+
+      // find two features to assign shared mass trace
+      std::vector<std::pair<double, std::pair<Size, Size>>> feat_quant_pair; // first: apex feature(w/ charge) intensity, second : (f_idx, lmt_idx)
+      for (auto& f_idx : shared_m_traces[mt_idx])
+      {
+        const auto& feature = fgroups[f_idx];
+
+        // find charge of shared mass traces
+        int feat_cs;
+        Size lmt_idx_in_feat;
+        for (Size lmt_idx = 0; lmt_idx < feature.size(); ++lmt_idx)
+        {
+          auto &lmt = feature[lmt_idx];
+          if (mt_idx != lmt.getTraceIndex()) continue;
+          feat_cs = lmt.getCharge();
+          lmt_idx_in_feat = lmt_idx;
+          break;
+        }
+
+        // find max quant of feature where shared mass trace belongs (shared cannot be the max)
+        double max_quant = .0;
+        for (Size lmt_idx = 0; lmt_idx < feature.size(); ++lmt_idx)
+        {
+          auto &lmt = feature[lmt_idx];
+          if (mt_idx == lmt.getTraceIndex()) continue; // if this lmt is the shared one
+          if (feat_cs != lmt.getCharge()) continue;
+
+          if (lmt.getIntensity() > max_quant)
+          {
+            max_quant = lmt.getIntensity();
+          }
+        }
+        feat_quant_pair.push_back(std::make_pair(max_quant, std::make_pair(f_idx, lmt_idx_in_feat)));
+      }
+//      std::sort(feat_quant_pair.rbegin(), feat_quant_pair.rend());
+
+      // use top 2 featuregroups to assign shared mass traces
+//      double weight_1 = feat_quant_pair[0].first/(feat_quant_pair[0].first + feat_quant_pair[1].first);
+//      double weight_2 = feat_quant_pair[1].first/(feat_quant_pair[0].first + feat_quant_pair[1].first);
+//
+//      auto &fg1_lmt = fgroups[feat_quant_pair[0].second.first][feat_quant_pair[0].second.second];
+//      auto &fg2_lmt = fgroups[feat_quant_pair[1].second.first][feat_quant_pair[1].second.second];
+//
+//      fg1_lmt.setIntensity( fg1_lmt.getIntensity() * weight_1 );
+//      fg2_lmt.setIntensity( fg2_lmt.getIntensity() * weight_2 );
+
+      double sum_of_quant = std::accumulate(feat_quant_pair.begin(), feat_quant_pair.end(), 0.0,
+                                            [](auto &a, auto &b){return a + b.first;});
+//      std::vector<double> weight_vec;
+      for (auto& q_pair : feat_quant_pair)
+      {
+//        weight_vec.push_back( q_pair.first/sum_of_quant );
+        double weight = q_pair.first/sum_of_quant;
+        auto &fg_lmt = fgroups[q_pair.second.first][q_pair.second.second];
+        fg_lmt.setIntensity(fg_lmt.getIntensity() * weight);
+      }
+//
+//      // remove shared mass traces from "the other" features
+//      for (Size i = 2; i < feat_quant_pair.size(); ++i)
+//      {
+//        Size f_idx = feat_quant_pair[i].second.first;
+//        auto& feature = fgroups[f_idx];
+//        for (auto lmt_iter = feature.begin(); lmt_iter != feature.end(); ++lmt_iter)
+//        {
+//          if (mt_idx != lmt_iter->getTraceIndex()) continue;
+//          feature.erase(lmt_iter);
+//          break;
+//        }
+//      }
+    }
+
+    /// re-calcualte quants
+    for (auto& f : fgroups)
+    {
+      f.updateIntensity();
+    }
+
+    /// test writing for all mass traces in FeatureGroup
+    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    ofstream out;
+    out.open(out_path, ios::out);
+    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
+    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces, out);
+    out.close();
+  }
+
+
   void FLASHDeconvQuant::resolveSharedMassTraces(std::vector<FeatureGroup> &fgroups,
                                                  std::vector<std::vector<Size>> &shared_m_traces,
                                                  std::vector<MassTrace> &input_mtraces) const
   {
+    /// generate array with indices of shared mass traces
+    for (Size fg_index = 0; fg_index<fgroups.size(); ++fg_index)
+    {
+      for (auto& mt_i : fgroups[fg_index].getTraceIndices())
+      {
+        shared_m_traces[mt_i].push_back(fg_index);
+      }
+    }
 
+    /// test writing for shared mass traces
+    String s_out = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_sharedMTs.tsv";
+    printSharedMassTraces(shared_m_traces, s_out, fgroups, input_mtraces);
+
+
+    /// assign shared mass traces to the "feature"(in FeatureGroup) with higher isotopeCosineScorePerCharge
+    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
+    {
+      if (shared_m_traces[mt_idx].size() < 2) // this mass trace is not shared
+      {
+        continue;
+      }
+
+      double max_score = 0;
+      Size feat_idx_with_max_score = 0;
+
+      // find the feature to assign shared mass trace
+      for (auto& f_idx : shared_m_traces[mt_idx])
+      {
+        const auto& feature = fgroups[f_idx];
+        if(feature.getIsotopeCosine() == 0) // if this featureGroup is rejected in other competition
+        {
+          continue;
+        }
+        for (Size lmt_idx = 0; lmt_idx < feature.size(); ++lmt_idx)
+        {
+          auto &lmt = feature[lmt_idx];
+          if (mt_idx != lmt.getTraceIndex()) continue;
+
+          double tmp_score = feature.getIsotopeCosineOfCharge(lmt.getCharge());
+          if (tmp_score > max_score)
+          {
+            max_score = tmp_score;
+            feat_idx_with_max_score = f_idx;
+          }
+          break;
+        }
+      }
+
+      // remove shared mass traces from "the other" features
+      for (auto& f_idx : shared_m_traces[mt_idx])
+      {
+        if (f_idx != feat_idx_with_max_score)
+        {
+          auto& feature = fgroups[f_idx];
+          for (auto lmt_iter = feature.begin(); lmt_iter != feature.end(); ++lmt_iter)
+          {
+            if (mt_idx != lmt_iter->getTraceIndex()) continue;
+            feature.erase(lmt_iter);
+            break;
+          }
+        }
+        if(!rescoreFeatureGroup_(fgroups[f_idx]))
+        {
+          fgroups[f_idx].setIsotopeCosine(0.0);
+        }
+      }
+    }
+
+    // rescore
+    std::vector<FeatureGroup> tmpFGroups;
+    tmpFGroups.swap(fgroups);
+    fgroups.reserve(tmpFGroups.size());
+    for (auto& f : tmpFGroups)
+    {
+      if(!rescoreFeatureGroup_(f))
+      {
+        continue;
+      }
+      fgroups.push_back(f);
+    }
+
+    /// test writing for all mass traces in FeatureGroup
+    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    ofstream out;
+    out.open(out_path, ios::out);
+    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
+    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces, out);
+    out.close();
+
+    // print per feature info
+    /// test writing
+//    for (Size i =0; i< fgroups.size(); ++i)
+//    {
+//      auto& f = fgroups[i];
+//      String mass = int(f.getMonoisotopicMass());
+//      String path_for_f = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_" + mass + "_" + i + "_mts.tsv";
+//      printQuantValuesPerFeature(f, path_for_f);
+//    }
 
   }
 
@@ -2028,7 +2307,7 @@ namespace OpenMS
     // header
 //    out << "feature_label\tcs\tscore\tquant\tbounding_box_pos\tbounding_box_width\tbounding_box_height\t"
 //           "iso_position\tmasstrace_centroid_rts\tmasstrace_centroid_mzs\tclustername\n";
-      out << "mono_mass\tclustername\tshared\tcentroid_mzs\trts\tmzs\tintys\n";
+    out << "mono_mass\tclustername\tshared\tcentroid_mzs\trts\tmzs\tintys\n";
 
 
     // generate array with indices of shared mass traces
@@ -2160,6 +2439,59 @@ namespace OpenMS
 //    }
 //
 //    OPENMS_LOG_INFO << "#final masses :" << deconv_masses.size() << endl;
+  }
+
+  void FLASHDeconvQuant::writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup> &feature_groups,
+                                                       const std::vector<std::vector<Size>> &shared_m_traces_indices,
+                                                       ofstream &out) const
+  {
+    OPENMS_LOG_INFO << "----- # FeatureGroup : " << feature_groups.size() << " -----" << endl;
+    for (const auto& feat : feature_groups)
+    {
+//      OPENMS_LOG_INFO << std::to_string(feat.getMonoisotopicMass()) << "\n";
+
+      //    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
+
+      double quant(0.0);
+      auto mt_idxs = feat.getTraceIndices();
+
+      for (const auto &mt : feat)
+      {
+
+        // check if current mt is shared with other features
+        bool isShared = false;
+        if (shared_m_traces_indices[mt.getTraceIndex()].size() > 1)
+        {
+          isShared = true;
+        }
+
+        stringstream rts;
+        stringstream mzs;
+        stringstream intys;
+
+        for (const auto &peak : *(mt.getMassTrace()))
+        {
+          mzs << peak.getMZ() << ",";
+          rts << peak.getRT() << ",";
+          intys << peak.getIntensity() << ",";
+        }
+        std::string peaks = rts.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + mzs.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + intys.str();
+        peaks.pop_back();
+
+        quant += mt.getMassTrace()->computePeakArea();
+
+        out << std::to_string(feat.getMonoisotopicMass()) << "\t"
+            << mt.getCharge() << "\t"
+            << mt.getIsotopeIndex() << "\t"
+            << std::to_string(mt.getIntensity()) << "\t"
+            << isShared << "\t" << std::to_string(mt.getCentroidMz()) << "\t"
+            << peaks + "\n";
+      }
+    }
   }
 
   void FLASHDeconvQuant::resolveConflictInCluster_(const std::vector<FeatureGroup>& in_features,

@@ -153,21 +153,41 @@ public:
     //-------------------------------------------------------------
     // Mass traces detection
     //-------------------------------------------------------------
+    Param p_mtd = MassTraceDetection().getDefaults();
+    p_mtd.setValue("noise_threshold_int" , 0.0);
+    p_mtd.setValue("chrom_peak_snr" , 0.0);
+    p_mtd.setValue("mass_error_ppm", 5.0);
+    p_mtd.setValue("reestimate_mt_sd", "false");
+//    p_mtd.setValue("trace_termination_criterion", "sample_rate");
+//    p_mtd.setValue("min_sample_rate", 0.2);
+
     vector<MassTrace> m_traces;
     MassTraceDetection mtdet;
+    mtdet.setParameters(p_mtd);
     mtdet.run(ms_peakmap, m_traces);
+    OPENMS_LOG_INFO << "# initial input mass traces : " << m_traces.size() << endl;
 
     //-------------------------------------------------------------
     // Elution peak detection
     //-------------------------------------------------------------
+//    Param p_epd = ElutionPeakDetection().getDefaults();
+//    p_epd.insert("", ElutionPeakDetection().getDefaults());
+//    p_epd.remove("chrom_peak_snr");
+//    p_epd.remove("chrom_fwhm");
+//    p_epd.remove("noise_threshold_int");
+
     std::vector<MassTrace> m_traces_final;
-    std::vector<MassTrace> splitted_mtraces;
-    ElutionPeakDetection epdet;
-    // fill mass traces with smoothed data as well .. bad design..
-    epdet.detectPeaks(m_traces, splitted_mtraces);
-//    epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
-    m_traces_final = splitted_mtraces;
-    OPENMS_LOG_INFO << "# input mass traces : " << m_traces_final.size() << endl;
+//    ElutionPeakDetection epdet;
+//    epdet.setParameters(p_epd);
+//    // fill mass traces with smoothed data as well .. bad design..
+//    epdet.detectPeaks(m_traces, m_traces_final);
+    for (auto &m : m_traces)
+    {
+      m.estimateFWHM(false);
+    }
+//    m_traces_final = splitted_mtraces;
+    m_traces_final = m_traces;
+    OPENMS_LOG_INFO << "# final input mass traces : " << m_traces_final.size() << endl;
 
     // for test output TODO: remove
     Size last_index = in.find_last_of(".");
