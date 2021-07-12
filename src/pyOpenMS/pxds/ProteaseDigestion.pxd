@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
 
     cdef cppclass ProteaseDigestion(EnzymaticDigestion):
         # wrap-inherits:
-        #    DigestionEnzyme
+        #    EnzymaticDigestion
         #
         # wrap-doc:
         #     Class for the enzymatic digestion of proteins
