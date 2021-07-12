@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -168,14 +170,24 @@ protected:
     FeatureMap feature_map;
     if (!inputfile_feature.empty())
     {
+      cout << "Reading featureXML file..." << endl;
       FeatureXMLFile().load(inputfile_feature, feature_map);
-      feature_map.updateRanges();      
+      feature_map.updateRanges();
+      feature_map.sortByRT();
+    }
+
+    ConsensusMap consensus_map;
+    if (!inputfile_consensus.empty())
+    {
+      cout << "Reading consensusXML file..." << endl;
+      ConsensusXMLFile().load(inputfile_consensus, consensus_map);
     }
 
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     if (!inputfile_id.empty())
     {
+      cout << "Reading idXML file..." << endl;
       IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
     }
     
@@ -183,8 +195,8 @@ protected:
     if (out_type == FileTypes::QCML) 
     {
       QcMLFile qcmlfile;
-      qcmlfile.collectQCData(inputfile_id, inputfile_feature,
-                    inputfile_consensus, inputfile_name, remove_duplicate_features, exp);
+      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
+                    consensus_map, inputfile_name, remove_duplicate_features, exp);
       qcmlfile.store(outputfile_name);
     } 
     else if (out_type == FileTypes::MZQC)
