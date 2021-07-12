@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from AASequence cimport *
-from DigestionEnzyme cimport *
+from EnzymaticDigestion cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
 
