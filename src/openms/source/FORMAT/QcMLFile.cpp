@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Mathias Walzer, Axel Walter $
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -37,8 +37,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -1081,9 +1079,13 @@ namespace OpenMS
     return (sign_int / sign_cnt) / (nois_int / nois_cnt);
   }
 
-  void QcMLFile::collectQCData(const String& inputfile_id, const String& inputfile_feature,
-                       const String& inputfile_consensus, const String& inputfile_raw, 
-                       const bool remove_duplicate_features, const MSExperiment& exp)
+  void QcMLFile::collectQCData(vector<ProteinIdentification>& prot_ids,
+                               vector<PeptideIdentification>& pep_ids,
+                               const FeatureMap& feature_map,
+                               const ConsensusMap& consensus_map,
+                               const String& inputfile_raw, 
+                               const bool remove_duplicate_features,
+                               const MSExperiment& exp)
   {
       // fetch vocabularies
       ControlledVocabulary cv;
@@ -1491,13 +1493,8 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS  id
       //------------------------------------------------------------
-      vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
-      if (inputfile_id != "")
+      if (!prot_ids.empty() && !pep_ids.empty())
       {
-        IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
-        cerr << "idXML read ended. Found " << pep_ids.size() << " peptide identifications." << endl;
-
         ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
         vector<String> var_mods = params.variable_modifications;
         //~ boost::regex re("(?<=[KR])(?=[^P])");
@@ -1822,19 +1819,9 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS quantitation
       //------------------------------------------------------------
-      FeatureMap map;
       String msqu_ref = base_name + "_msqu";
-      if (inputfile_feature != "")
+      if (!feature_map.empty())
       {
-        FeatureXMLFile f;
-        f.load(inputfile_feature, map);
-
-        cout << "Read featureXML file..." << endl;
-
-        //~ UInt fiter = 0;
-        map.sortByRT();
-        map.updateRanges();
-
         qp = QcMLFile::QualityParameter();
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000045"; ///< cv accession
@@ -1854,7 +1841,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000046"; ///< cv accession
         qp.id = base_name + "_feature_count"; ///< Identifier
-        qp.value = String(map.size());
+        qp.value = String(feature_map.size());
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1867,7 +1854,7 @@ namespace OpenMS
         addRunQualityParameter(base_name, qp);      
       }
 
-      if (inputfile_feature != "" && !remove_duplicate_features)
+      if (!feature_map.empty() && !remove_duplicate_features)
       {
         QcMLFile::Attachment at;
         at = QcMLFile::Attachment();
@@ -1893,19 +1880,18 @@ namespace OpenMS
         at.colTypes.push_back("IDs");
         UInt fiter = 0;
         UInt ided = 0;
-        map.sortByRT();
         //ofstream out(outputfile_name.c_str());
-        while (fiter < map.size())
+        while (fiter < feature_map.size())
         {
           std::vector<String> row;
-          row.push_back(map[fiter].getMZ());
-          row.push_back(map[fiter].getRT());
-          row.push_back(map[fiter].getIntensity());
-          row.push_back(map[fiter].getCharge());
-          row.push_back(map[fiter].getOverallQuality());
-          row.push_back(map[fiter].getWidth());
-          row.push_back(map[fiter].getPeptideIdentifications().size());
-          if (map[fiter].getPeptideIdentifications().size() > 0)
+          row.push_back(feature_map[fiter].getMZ());
+          row.push_back(feature_map[fiter].getRT());
+          row.push_back(feature_map[fiter].getIntensity());
+          row.push_back(feature_map[fiter].getCharge());
+          row.push_back(feature_map[fiter].getOverallQuality());
+          row.push_back(feature_map[fiter].getWidth());
+          row.push_back(feature_map[fiter].getPeptideIdentifications().size());
+          if (feature_map[fiter].getPeptideIdentifications().size() > 0)
           {
             ++ided;
           }
@@ -1930,7 +1916,7 @@ namespace OpenMS
         }
         addRunQualityParameter(base_name, qp);
       }
-      else if (inputfile_feature != "" && remove_duplicate_features)
+      else if (!feature_map.empty() && remove_duplicate_features)
       {
         QcMLFile::Attachment at;
         at = QcMLFile::Attachment();
@@ -1952,20 +1938,17 @@ namespace OpenMS
         at.colTypes.push_back("RT");
         at.colTypes.push_back("Intensity");
         at.colTypes.push_back("Charge");
-        FeatureMap map, map_out;
-        FeatureXMLFile f;
-        f.load(inputfile_feature, map);
+        FeatureMap map_out;
         UInt fiter = 0;
-        map.sortByRT();
-        while (fiter < map.size())
+        while (fiter < feature_map.size())
         {
           FeatureMap map_tmp;
-          for (UInt k = fiter; k <= map.size(); ++k)
+          for (UInt k = fiter; k <= feature_map.size(); ++k)
           {
-            if (abs(map[fiter].getRT() - map[k].getRT()) < 0.1)
+            if (abs(feature_map[fiter].getRT() - feature_map[k].getRT()) < 0.1)
             {
               //~ cout << fiter << endl;
-              map_tmp.push_back(map[k]);
+              map_tmp.push_back(feature_map[k]);
             }
             else
             {
@@ -1988,16 +1971,8 @@ namespace OpenMS
         }
         addRunAttachment(base_name, at);
       }
-      if (inputfile_consensus != "")
+      if (!consensus_map.empty())
       {
-        cout << "Reading consensusXML file..." << endl;
-        ConsensusXMLFile f;
-        ConsensusMap map;
-        f.load(inputfile_consensus, map);
-        //~ String CONSENSUS_NAME = "_consensus.tsv";
-        //~ String combined_out = outputfile_name + CONSENSUS_NAME;
-        //~ ofstream out(combined_out.c_str());
-
         at = QcMLFile::Attachment();
         qp.name = "consensuspoints"; ///< Name
         //~ qp.id = base_name + "_consensuses"; ///< Identifier
@@ -2012,7 +1987,7 @@ namespace OpenMS
         at.colTypes.push_back("Feature_MZ_(Th)");
         at.colTypes.push_back("Feature_Intensity");
         at.colTypes.push_back("Feature_Charge");
-        for (ConsensusMap::const_iterator cmit = map.begin(); cmit != map.end(); ++cmit)
+        for (ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit)
         {
           const ConsensusFeature& CF = *cmit;
           for (ConsensusFeature::const_iterator cfit = CF.begin(); cfit != CF.end(); ++cfit)
