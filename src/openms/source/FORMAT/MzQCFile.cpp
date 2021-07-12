@@ -35,19 +35,16 @@
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
 #include <OpenMS/QC/FeatureSummary.h>
 #include <OpenMS/QC/IdentificationSummary.h>
-
 #include <nlohmann/json.hpp>
-
 #include <map>
-#include <iostream>
 #include <fstream>
 
 using namespace std;

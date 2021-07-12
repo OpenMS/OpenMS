@@ -32,19 +32,17 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-
+#include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <QFileInfo>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <QFileInfo>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <fstream>
-#include <map>
+#include <set>
 
 using namespace std;
 
