@@ -37,17 +37,14 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
 #include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
 
 namespace OpenMS
 {
+  class ConsensusMap;
+  class FeatureMap;
+
   /**
       @brief File adapter for QcML files used to load and store QcML files
 

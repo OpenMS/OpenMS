@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Mathias Walzer, Axel Walter $
 // $Author: Mathias Walzer, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>

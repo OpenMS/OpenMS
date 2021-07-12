@@ -33,11 +33,14 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <vector>
+
 namespace OpenMS
 {
+  class FeatureMap;
+  
   /**
       @brief File adapter for mzQC files used to load and store mzQC files
 
