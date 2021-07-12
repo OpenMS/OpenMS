@@ -76,6 +76,7 @@ START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = EmgModel::create();
 	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 // assignment operator

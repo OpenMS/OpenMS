@@ -71,8 +71,10 @@ namespace OpenMS
     // avoid calling this function more than once
     static bool been_here = false;
     if (been_here)
+    {
       return console_width_;
-
+    }
+    
     been_here = true;
 
     // determine column width of current console
@@ -171,7 +173,10 @@ namespace OpenMS
           line = line.substr(1);
           ++advance_size;
         } // advance by # of \n's
-        if (line.hasSubstring("\n")) line = line.prefix('\n');
+        if (line.hasSubstring("\n"))
+        {
+          line = line.prefix('\n');
+        }
         advance_size += line.size(); // + actual chars
       }
 

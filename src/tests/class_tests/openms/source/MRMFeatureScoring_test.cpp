@@ -131,6 +131,7 @@ START_SECTION([EXTRA] test_scores())
   TEST_REAL_SIMILAR(spectral_angle, 1.483262)
   TEST_REAL_SIMILAR(rmsd, 0.6727226674)
 
+  delete imrmfeature;
 }
 END_SECTION
 
@@ -198,6 +199,8 @@ START_SECTION((virtual void test_dia_scores()))
   std::vector<OpenSWATH_Test::TransitionType> transitions = transition_group.getTransitions();
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature, isotope_corr, isotope_overlap);
+
+  delete imrmfeature;
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;

@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "Open
         # DefaultParamHandler(DefaultParamHandler & rhs) nogil except +
         # libcpp_vector[ String ] getSubsections() nogil except +
 
-        void setParameters(Param &param)  nogil except +
-        Param getParameters()  nogil except +
-        Param getDefaults()  nogil except +
-        String getName()  nogil except +
-        void setName(const String&)  nogil except +
+        void setParameters(Param &param)  nogil except + # wrap-doc:Sets the parameters
+        Param getParameters()  nogil except + # wrap-doc:Non-mutable access to the parameters
+        Param getDefaults()  nogil except + # wrap-doc:Non-mutable access to the default parameters
+        String getName()  nogil except + # wrap-doc:Non-mutable access to the name
+        void setName(const String&)  nogil except + # wrap-doc:Mutable access to the name

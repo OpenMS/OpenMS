@@ -58,7 +58,6 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         void setCometID(int value) nogil except + # wrap-doc:Sets the Comet enzyme ID
         int getCometID() nogil except + # wrap-doc:Returns the Comet enzyme ID
 
-        # sets the OMSSA ID
         void setOMSSAID(int value) nogil except + # wrap-doc:Sets the OMSSA enzyme ID
         int getOMSSAID() nogil except + # wrap-doc:Returns the OMSSA enzyme ID
 

@@ -236,8 +236,14 @@ namespace OpenMS
     StringList args;
     for (int i = 0; i < argc; ++i)
     {
-      if (String(argv[i]).has(' ')) args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
-      else args.push_back(argv[i]);
+      if (String(argv[i]).has(' '))
+      { 
+        args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
+      }
+      else 
+      {
+        args.push_back(argv[i]);
+      }
     }
     writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
 

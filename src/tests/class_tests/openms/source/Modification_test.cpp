@@ -184,6 +184,8 @@ START_SECTION((virtual SampleTreatment* clone() const ))
 	TEST_EQUAL(dp->getSpecificityType(),Modification::AA)
 	TEST_EQUAL(dp->getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(String(dp->getMetaValue("color")),"red")
+
+	delete st;
 END_SECTION
 
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))

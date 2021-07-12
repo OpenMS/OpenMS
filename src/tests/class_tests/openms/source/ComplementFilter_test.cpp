@@ -101,6 +101,7 @@ START_SECTION((static FilterFunctor* create()))
 	ComplementFilter cf;
 	TEST_EQUAL(ff->getParameters(), cf.getParameters())
 	TEST_EQUAL(ff->getName(), cf.getName())
+	delete ff;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

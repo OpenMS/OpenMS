@@ -90,14 +90,13 @@ namespace OpenMS
     number_of_runs_ = (number_of_runs != 0) ? number_of_runs : ids.size();
 
     // prepare data here, so that it doesn't have to happen in each algorithm:
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
-         pep_it != ids.end(); ++pep_it)
+    for (PeptideIdentification& pep : ids)
     {
-      pep_it->sort();
+      pep.sort();
       if ((considered_hits_ > 0) &&
-          (pep_it->getHits().size() > considered_hits_))
+          (pep.getHits().size() > considered_hits_))
       {
-        pep_it->getHits().resize(considered_hits_);
+        pep.getHits().resize(considered_hits_);
       }
     }
     // make sure there are no duplicated hits (by sequence):

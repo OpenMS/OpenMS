@@ -153,18 +153,17 @@ namespace OpenMS
 
     void IMSAlphabet::load(const std::string & fname)
     {
-      this->load(fname, new IMSAlphabetTextParser);
+      IMSAlphabetTextParser parser;
+      this->load(fname, parser);
     }
 
-    void IMSAlphabet::load(const std::string & fname, IMSAlphabetParser<> * parser)
+    void IMSAlphabet::load(const std::string & fname, IMSAlphabetParser<> & parser)
     {
-      parser->load(fname);
+      parser.load(fname);
       this->clear();
-      for (IMSAlphabetParser<>::ContainerType::const_iterator pos =
-             parser->getElements().begin(),
-           end = parser->getElements().end(); pos != end; ++pos)
+      for (const auto & pos : parser.getElements())
       {
-        this->push_back(pos->first, pos->second);
+        this->push_back(pos.first, pos.second);
       }
       this->sortByValues();
     }

@@ -65,8 +65,6 @@ START_SECTION(virtual ~SpectrumAlignment())
 	delete ptr;
 END_SECTION
 
-ptr = new SpectrumAlignment();
-
 START_SECTION(SpectrumAlignment(const SpectrumAlignment &source))
   SpectrumAlignment sas1;
   Param p(sas1.getParameters());
@@ -193,7 +191,6 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
 
 END_SECTION
 
-ptr = new SpectrumAlignment();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
