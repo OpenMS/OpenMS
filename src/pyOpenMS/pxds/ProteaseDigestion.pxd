@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
           #     :param output: Digestion products (peptides)
           #     :param min_length: Minimal length of reported products
           #     :param max_length: Maximal length of reported products (0 = no restriction)
-          #     :return: Number of discarded digestion products (which are not matching length restrictions)
+          #     :returns: Number of discarded digestion products (which are not matching length restrictions)
 
       Size peptideCount(AASequence & protein) nogil except + # wrap-doc:Returns the number of peptides a digestion of protein would yield under the current enzyme and missed cleavage settings
 
@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
           #     :param ignore_missed_cleavages: Do not compare MC's of potential peptide to the maximum allowed MC's
           #     :param allow_nterm_protein_cleavage: Regard peptide as n-terminal of protein if it starts only at pos=1 or 2 and protein starts with 'M'
           #     :param allow_random_asp_pro_cleavage: Allow cleavage at D|P sites to count as n/c-terminal
-          #     :return: True if peptide has correct n/c terminals (according to enzyme, specificity and above flags)
+          #     :returns: True if peptide has correct n/c terminals (according to enzyme, specificity and above flags)
 
       bool isValidProduct(String protein, Size pep_pos, Size pep_length,
                           bool ignore_missed_cleavages, bool methionine_cleavage) nogil except + # wrap-doc:Forwards to isValidProduct using protein.toUnmodifiedString()
