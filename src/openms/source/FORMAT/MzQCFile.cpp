@@ -289,13 +289,13 @@ namespace OpenMS
     {
         {
           {"name", "Proteomics Standards Initiative Quality Control Ontology"},
-          {"uri", "https://github.com/HUPO-PSI/mzQC/blob/master/cv/qc-cv.obo"},
+          {"uri", "https://raw.githubusercontent.com/HUPO-PSI/mzQC/master/cv/qc-cv.obo"},
           {"version", "0.1.2"},
         },
         {
           {"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"},
-          {"uri", "https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo"},
-          {"version", "4.1.49"}
+          {"uri", "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"},
+          {"version", "4.1.56"}
         }
     };
     os << out.dump(2);
