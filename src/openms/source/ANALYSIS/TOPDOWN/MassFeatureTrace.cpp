@@ -44,7 +44,7 @@ namespace OpenMS
     Param mtd_defaults = MassTraceDetection().getDefaults();
     //mtd_defaults.setValue("min_trace_length", 10.0);
     mtd_defaults.setValue("min_sample_rate",
-                          .2,
+                          .1,
                           "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
 
     mtd_defaults.setValue("mass_error_da",
