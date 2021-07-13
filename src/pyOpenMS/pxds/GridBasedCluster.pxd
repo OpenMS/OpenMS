@@ -17,16 +17,16 @@ cdef extern from "<OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>" namespace "
             DBoundingBox2 bounding_box, 
             libcpp_vector[ int ] point_indices,
             int property_A, 
-            libcpp_vector[ int ] properties_B) nogil except +
+            libcpp_vector[ int ] properties_B) nogil except + 
         GridBasedCluster(DPosition2 centre, 
            DBoundingBox2 bounding_box,
            libcpp_vector[ int ] point_indices) nogil except +
 
-        DPosition2 getCentre() nogil except +
-        DBoundingBox2 getBoundingBox() nogil except +
-        libcpp_vector[ int ] getPoints() nogil except +
-        int getPropertyA() nogil except +
-        libcpp_vector[ int ] getPropertiesB() nogil except +
+        DPosition2 getCentre() nogil except + Returns cluster centre
+        DBoundingBox2 getBoundingBox() nogil except + Returns bounding box
+        libcpp_vector[ int ] getPoints() nogil except + Returns indices of points in cluster
+        int getPropertyA() nogil except + Returns property A
+        libcpp_vector[ int ] getPropertiesB() nogil except + Returns properties B of all points
 
         # bool operator<(GridBasedCluster other) nogil except +
         # bool operator>(GridBasedCluster other) nogil except +
