@@ -319,6 +319,40 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
 }
 END_SECTION
 
+START_SECTION(BENCHMARKING)
+{
+  // ****** BENCHMARKING ****** //
+  // Generate spectra for benchmarking
+  // Generate spectrum deisotoped by original algorithm
+
+  String path = "C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/";
+  String str1 = "Starting new algorithm on spectrum ";
+  String str2 = " of ";
+  String lb = "\n";
+
+  MzMLFile file;
+  PeakMap exp;
+
+  std::cerr << "start loading spectra\n";
+  unsigned int count = 0;
+  file.load(path + "B1.mzML", exp);
+  Size num_spectra = exp.size();
+  std::cerr << "finished loading spectra\n";
+
+  for (auto it = exp.begin(); it != exp.end(); ++it)
+  {
+    if (count % 100 == 1)
+    {
+      std::cerr << str1 << (String) count << str2 << (String) num_spectra << lb;
+    }
+    Deisotoper::deisotopeWithAveragineModel(*it, 10.0, true, true, 1, 3, true);
+    count++;
+  }
+
+  file.store(path + "out_spectra_generation.mzML", exp);
+  TEST_NOT_EQUAL(exp.size(), 0);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
