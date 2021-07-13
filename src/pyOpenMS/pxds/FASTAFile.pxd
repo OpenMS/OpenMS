@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
             #   :raises:
             #       Exception:ParseError is thrown if the file does not suit to the standard.
         # NAMESPACE # std::streampos position() nogil except +
-        bool atEnd() nogil except + Boolean function to check if streams is at end of file
+        bool atEnd() nogil except + # wrap-doc:Boolean function to check if streams is at end of file
         # NAMESPACE # bool setPosition(const std::streampos & pos) nogil except +
         void writeStart(const String & filename) nogil except + 
             # wrap-doc:
