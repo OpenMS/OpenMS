@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
         void setSpecificity(Specificity spec) nogil except + # wrap-doc:Sets the specificity for the digestion (default is SPEC_FULL).
 
-        Specificity getSpecificityByName(const String& name) nogil except + # wrap-doc:Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid
+        Specificity getSpecificityByName(String name) nogil except + # wrap-doc:Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid
 
         Size digestUnmodified(StringView sequence,
                               libcpp_vector[ StringView ]& output,
@@ -47,7 +47,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
                 #     Param max_length Maximal length of reported products (0 = no restriction)
                 #     Return Number of discarded digestion products (which are not matching length restrictions)
 
-        bool isValidProduct(const String& sequence,
+        bool isValidProduct(String sequence,
                             int pos, int length,
                             bool ignore_missed_cleavages) nogil except +
                 # wrap-doc:
@@ -61,7 +61,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
                 #    Param ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
                 #    Return True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
 
-        # bool filterByMissedCleavages(const String& sequence,
+        # bool filterByMissedCleavages(String sequence,
         #                              std::function<bool(Int)> filter) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
