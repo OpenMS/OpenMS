@@ -443,13 +443,6 @@ namespace OpenMS
       inline const std::string   XFDR_FDR = "XFDR:FDR";
     }
 
-    namespace Versions
-    {
-      /** SIRIUS version
-      */
-      inline const std::string   SIRIUS_VERSION = "4.9.0";
-    }
-
     //@}
   }
 }
