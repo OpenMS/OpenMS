@@ -447,8 +447,8 @@ class OpenMSMapConverter(StdMapConverter):
 
         if not cy_tt_key.is_enum and tt_key.base_type in self.converters.names_to_wrap:
             raise Exception("can not handle wrapped classes as keys in map")
-        else:
-            key_conv = "py_to_r(py_builtin$list(%s$keys()))" % (input_cpp_var)
+
+        key_conv = "py_to_r(py_builtin$list(%s$keys()))" % (input_cpp_var)
 
         if not cy_tt_value.is_enum and tt_value.base_type in self.converters.names_to_wrap:
             cy_tt = tt_value.base_type
@@ -456,13 +456,12 @@ class OpenMSMapConverter(StdMapConverter):
             code = Code().add("""
                 |$output_py_var = collections::dict(lapply(${value_conv},function(v) ${cy_tt}$$new(v)), ${key_conv})
                 """, locals())
-            return code
         else:
             value_conv = "py_to_r(py_builtin$list(%s$values()))" % (input_cpp_var)
             code = Code().add("""
                 |$output_py_var = collections::dict(${value_conv}, ${key_conv})
                 """, locals())
-            return code
+        return code
 
 
 import time
@@ -507,7 +506,6 @@ class CVTermMapConverter(TypeConverterBaseR):
             cleanup_code = ""
         return code, map_name, cleanup_code, cr_ref
 
-
     def call_method(self, res_type, cy_call_str):
         return "py_ans = %s" % (cy_call_str)
 
@@ -518,7 +516,4 @@ class CVTermMapConverter(TypeConverterBaseR):
         code = Code().add("""
             |$output_py_var <- collections::dict(lapply(${value_conv},function(v) CVTerm$$new(v)), lapply(${key_conv},as.character))
             """, locals())
-
         return code
-
-
