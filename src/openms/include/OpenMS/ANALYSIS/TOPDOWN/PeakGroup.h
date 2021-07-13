@@ -105,10 +105,10 @@ namespace OpenMS
       void setScanNumber(const int scan_number);
 
       /// set per abs_charge total peak power
-      void setChargePower(const int abs_charge, const float pwr);
+      void setChargePower(const int abs_charge, const double pwr);
 
       /// set per abs_charge signal power
-      void setChargeSignalPower(const int abs_charge, const float pwr);
+      void setChargeSignalPower(const int abs_charge, const double pwr);
 
       /// set per abs_charge isotope cosine
       void setChargeIsotopeCosine(const int abs_charge, const float cos);

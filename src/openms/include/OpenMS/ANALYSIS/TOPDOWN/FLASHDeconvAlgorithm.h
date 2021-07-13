@@ -191,24 +191,26 @@ namespace OpenMS
 
     /// This stores the "universal pattern" in binned dimenstion
     std::vector<int> bin_offsets_;
-    /// This stores the patterns for harmonic reduction in binned dimenstion
-    Matrix<int> harmonic_bin_offset_matrix_;
+      /// This stores the patterns for harmonic reduction in binned dimenstion
+      Matrix<int> harmonic_bin_offset_matrix_;
 
-    /// minimum mass and mz values representing the first bin of massBin and mzBin, respectively: to save memory space
-    double mass_bin_min_value_;
-    double mz_bin_min_value_;
+      /// minimum mass and mz values representing the first bin of massBin and mzBin, respectively: to save memory space
+      double mass_bin_min_value_;
+      double mz_bin_min_value_;
 
-    /// current ms Level
-    int ms_level_;
+      /// current ms Level
+      int ms_level_;
+
+      const int low_charge_ = 10; // inclusive
 
 
-    std::set<double> triggeredMzs;
+      std::set<double> triggeredMzs;
 
 
-    void setTriggeredMzs_(const std::vector<Precursor> &triggeredPeaks);
+      void setTriggeredMzs_(const std::vector<Precursor> &triggeredPeaks);
 
-    ///static fucntion that converts bin to value
-    static double getBinValue_(const Size bin, const double min_value, const double bin_width);
+      ///static fucntion that converts bin to value
+      static double getBinValue_(const Size bin, const double min_value, const double bin_width);
 
     ///static function that converts value to bin
     static Size getBinNumber_(const double value, const double min_value, const double bin_width);

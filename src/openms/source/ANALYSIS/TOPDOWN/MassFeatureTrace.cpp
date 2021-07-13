@@ -133,26 +133,26 @@ namespace OpenMS
 
     for (auto& mt : m_traces)
     {
-      double max_qscore = .0;
-      int min_feature_abs_charge = INT_MAX; // min feature charge
-      int max_feature_abs_charge = INT_MIN; // max feature charge
+        double max_qscore = .0;
+        int min_feature_abs_charge = INT_MAX; // min feature charge
+        int max_feature_abs_charge = INT_MIN; // max feature charge
 
-      //int minFIso = INT_MAX; // min feature isotope index
-      //int maxFIso = INT_MIN; // max feature isotope index
+        //int minFIso = INT_MAX; // min feature isotope index
+        //int maxFIso = INT_MIN; // max feature isotope index
 
-      auto per_charge_intensity = std::vector<double>(charge_range + 1, 0);
-      auto per_charge_max_intensity = std::vector<double>(charge_range + 1, 0);
-      auto per_charge_mz = std::vector<double>(charge_range + 1, 0);
-      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), 0);
+        auto per_charge_intensity = std::vector<double>(charge_range + 1, .0);
+        auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
+        auto per_charge_mz = std::vector<double>(charge_range + 1, .0);
+        auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
 
-      int min_scan_num = (int) map.size() + 1000;
-      int max_scan_num = 0;
+        int min_scan_num = (int) map.size() + 1000;
+        int max_scan_num = 0;
 
-      int rep_scan = 0, rep_charge = 0;
-      double max_intensity = 0;
-      double max_mass = .0;
-      double max_iso = 0;
-      boost::dynamic_bitset<> charges(charge_range + 1);
+        int rep_scan = 0, rep_charge = 0;
+        double max_intensity = 0;
+        double max_mass = .0;
+        double max_iso = 0;
+        boost::dynamic_bitset<> charges(charge_range + 1);
 
       for (auto& p2 : mt)
       {
@@ -397,7 +397,7 @@ namespace OpenMS
                   for(int i=0;i<fst.size();i++) {
                       if (i==0) {
                           fst[i] << "0\t" << topid << "\t" << smt.getCentroidMZ() << "\t" << sum_intensity << "\t"
-                              << smt.begin()->getRT() << "\t" << smt.end()->getRT()
+                                 << smt.begin()->getRT() << "\t" << smt.rbegin()->getRT()
                               << "\t" << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
                               << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t1\t1\n";
                       }else{

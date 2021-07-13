@@ -123,7 +123,7 @@ namespace OpenMS {
     }
 
 
-    void PeakGroup::setChargePower(const int abs_charge, const float pwr) {
+    void PeakGroup::setChargePower(const int abs_charge, const double pwr) {
         if (max_abs_charge_ < abs_charge) {
             return;
         }
@@ -133,7 +133,7 @@ namespace OpenMS {
         per_charge_pwr_[abs_charge] = pwr;
     }
 
-    void PeakGroup::setChargeSignalPower(const int abs_charge, const float pwr) {
+    void PeakGroup::setChargeSignalPower(const int abs_charge, const double pwr) {
         if (max_abs_charge_ < abs_charge) {
             return;
         }
@@ -263,7 +263,7 @@ namespace OpenMS {
         per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
 
         for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c) {
-            auto charge_cos_squred = per_charge_cos_[c] * per_charge_cos_[c];
+            //auto charge_cos_squred = per_charge_cos_[c] * per_charge_cos_[c];
             auto nom = charge_cos_squred * per_charge_signal_pwr_[c];
             auto denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
                          + (1 - charge_cos_squred) * per_charge_signal_pwr_[c] + 1;

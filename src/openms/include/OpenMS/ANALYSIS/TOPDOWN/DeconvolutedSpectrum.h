@@ -163,15 +163,17 @@ namespace OpenMS
     int getPrecursorScanNumber() const;
 
   private:
-    /// the original spectrum (not deconvoluted)
-    MSSpectrum spec_;
-    /// precursor peakGroup (or mass)
-    PeakGroup precursor_peak_group_;
-    /// precursor peak (not deconvoluted one)
-    Precursor precursor_peak_;
-    /// activation method for file output
-    std::string activation_method_;
-    /// scan number and precursor scan number
-    int scan_number_, precursor_scan_number_;
+      /// the original spectrum (not deconvoluted)
+      MSSpectrum spec_;
+      /// precursor peakGroup (or mass)
+      PeakGroup precursor_peak_group_;
+      /// precursor peak (not deconvoluted one)
+      Precursor precursor_peak_;
+      /// activation method for file output
+      std::string activation_method_;
+      /// scan number and precursor scan number
+      int scan_number_, precursor_scan_number_;
+
+      int topFD_max_peak_count_ = 500;
   };
 }
