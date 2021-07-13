@@ -87,8 +87,9 @@ namespace OpenMS
   Compomer& Compomer::operator=(const Compomer& source)
   {
     if (&source == this)
-      return *this;
-
+      {
+        return *this;
+      }
     cmp_ = source.cmp_;
     net_charge_ = source.net_charge_;
     mass_ = source.mass_;
@@ -163,8 +164,9 @@ namespace OpenMS
       }
     }
     else
+    {
       conflict_found = true;
-    //
+    }
     // if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
     // << "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
     return conflict_found;
@@ -234,15 +236,15 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
 
     String r;
-    CompomerSide::const_iterator it = cmp_[side].begin();
-    for (; it != cmp_[side].end(); ++it)
+    
+    for (const auto &[formula, adduct] : cmp_[side])
     {
-      Int f = it->second.getAmount();
+      Int f = adduct.getAmount();
 
-      if (it->first.has('+'))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", it->first);
+      if (formula.has('+'))
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", formula);
 
-      EmpiricalFormula ef(it->first);
+      EmpiricalFormula ef(formula);
       ef = ef * f;
       r += ef.toString();
     }
@@ -256,10 +258,14 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
 
     if (cmp_[side].size() != 1)
-      return false;
+      { 
+        return false; 
+      }
 
     if (cmp_[side].count(a.getFormula()) == 0)
-      return false;
+      { 
+        return false; 
+      }
 
     return true;
   }
@@ -330,16 +336,24 @@ namespace OpenMS
     // how to sort Compomers:
     // first by net_charge
     if (c1.net_charge_ < c2.net_charge_)
-      return true;
+      { 
+        return true; 
+      }
     else if (c1.net_charge_ > c2.net_charge_)
-      return false;
+      { 
+        return false; 
+      }
     else
     {
       // then my mass
       if (c1.mass_ < c2.mass_)
-        return true;
+        { 
+          return true; 
+        }
       else if (c1.mass_ > c2.mass_)
-        return false;
+        { 
+          return false; 
+        }
       else
       {
         // then by log probability (most probable compomers first!)

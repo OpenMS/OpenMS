@@ -38,11 +38,8 @@
 #include <numeric>
 
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-
-  namespace Math
-  {
 
     // Quadratic regression for RANSAC
     RansacModelQuadratic::ModelParameters RansacModelQuadratic::rm_fit_impl(const DVecIt& begin, const DVecIt& end)
@@ -110,6 +107,4 @@ namespace OpenMS
       return alsoinliers;
     }
 
-  } // Math
-
-} // OpenMS
+} // OpenMS //Math

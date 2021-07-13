@@ -37,31 +37,27 @@
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-namespace OpenMS
+namespace OpenMS::Math
 {
 
-  namespace Math
-  {
 
-    // explicit instantiation.
-    template 
-    void spline_bisection<BSpline2d>(const BSpline2d & peak_spline, 
-        double const left_neighbor_mz,
-        double const right_neighbor_mz,
-        double & max_peak_mz,
-        double & max_peak_int,
-        double const threshold);
+  // explicit instantiation.
+  template 
+  void spline_bisection<BSpline2d>(const BSpline2d & peak_spline, 
+      double const left_neighbor_mz,
+      double const right_neighbor_mz,
+      double & max_peak_mz,
+      double & max_peak_int,
+      double const threshold);
 
 
-    // explicit instantiation.
-    template 
-    void spline_bisection<CubicSpline2d>(const CubicSpline2d & peak_spline, 
-        double const left_neighbor_mz,
-        double const right_neighbor_mz,
-        double & max_peak_mz,
-        double & max_peak_int,
-        double const threshold);
+  // explicit instantiation.
+  template 
+  void spline_bisection<CubicSpline2d>(const CubicSpline2d & peak_spline, 
+      double const left_neighbor_mz,
+      double const right_neighbor_mz,
+      double & max_peak_mz,
+      double & max_peak_int,
+      double const threshold);
 
-  }
-
-}
+} //OpenMS //Math

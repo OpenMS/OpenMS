@@ -33,13 +33,9 @@
 // --------------------------------------------------------------------------
 
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
 
-    // template class -- nothing here
-    
-  } // Math
+  // template class -- nothing here
 
-} // OpenMS
+} // OpenMS // Math
