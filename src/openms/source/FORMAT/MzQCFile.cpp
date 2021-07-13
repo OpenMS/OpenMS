@@ -35,33 +35,32 @@
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/SpectrumCount.h>
-
+#include <OpenMS/QC/FeatureSummary.h>
+#include <OpenMS/QC/IdentificationSummary.h>
 #include <nlohmann/json.hpp>
-
-#include <vector>
 #include <map>
-#include <iostream>
 #include <fstream>
 
 using namespace std;
 
 namespace OpenMS
 { 
-
   void MzQCFile::store(const String& input_file,
                        const String& output_file,
                        const MSExperiment& exp,
                        const String& contact_name,
                        const String& contact_address,
                        const String& description,
-                       const String& label) const
+                       const String& label,
+                       const FeatureMap& feature_map,
+                       vector<ProteinIdentification>& prot_ids,
+                       vector<PeptideIdentification>& pep_ids) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -81,12 +80,23 @@ namespace OpenMS
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
 
     QCBase::Status status;
-    if (input_file != "")
+    if (!input_file.empty())
     {
-    status |= QCBase::Requires::RAWMZML;
+      status |= QCBase::Requires::RAWMZML;
     }
+    if (!feature_map.empty())
+    {
+      status |= QCBase::Requires::PREFDRFEAT;
+    }
+    if (!prot_ids.empty() && !pep_ids.empty())
+    {
+      status |= QCBase::Requires::ID;
+    }
+
     TIC tic;
     SpectrumCount spectrum_count;
+    FeatureSummary feature_summary;
+    IdentificationSummary identification_summary;
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -126,24 +136,74 @@ namespace OpenMS
     addMetric("QC:4000053", UInt(exp.getMaxRT() - exp.getMinRT()));
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
-
+    // TICs
     if (tic.isRunnable(status))
     {
-      auto result = tic.compute(exp);
+      // complete TIC (all ms levels) with area
+      auto result = tic.compute(exp, 0, 0);
       if (!result.intensities.empty())
       {
         json chrom;
-        chrom["Relative intensity"] = result.intensities;
+        chrom["Relative intensity"] = result.relative_intensities;
         chrom["Retention time"] = result.retention_times;
         // Total ion current chromatogram
         addMetric("QC:4000067", chrom);
         // Area under TIC
         addMetric("QC:4000077", result.area);
+      }
+      // MS1
+      result = tic.compute(exp,0,1);
+      if (!result.intensities.empty())
+      {
+        json chrom;
+        chrom["Relative intensity"] = result.relative_intensities;
+        chrom["Retention time"] = result.retention_times;
+        // MS1 Total ion current chromatogram
+        addMetric("QC:4000069", chrom);
         // MS1 signal jump (10x) count
         addMetric("QC:4000172", result.jump);
         // MS1 signal fall (10x) count
         addMetric("QC:4000173", result.fall);
       }
+      // MS2
+      result = tic.compute(exp, 0, 2);
+      if (!result.intensities.empty())
+      {
+        json chrom;
+        chrom["Relative intensity"] = result.relative_intensities;
+        chrom["Retention time"] = result.retention_times;
+        // MS2 Total ion current chromatogram
+        addMetric("QC:4000070", chrom);
+      }
+    }
+    // Meabolomics: Detected compounds from featureXML file
+    if (feature_summary.isRunnable(status))
+    {
+      auto result = feature_summary.compute(feature_map);
+      // Detected compounds
+      addMetric("QC:4000257", result.feature_count);
+      // Retention time mean shift (sec)
+      if (result.rt_shift_mean != 0)
+      {
+        addMetric("QC:4000262", result.rt_shift_mean);
+      }   
+    }
+    // peptides and proteins from idXML file
+    if (identification_summary.isRunnable(status))
+    {
+      auto result = identification_summary.compute(prot_ids, pep_ids);
+      // Total number of PSM
+      addMetric("QC:4000186", result.peptide_spectrum_matches);
+      // Number of identified peptides at given FDR threshold
+      addMetric("QC:4000187", make_tuple(result.unique_peptides.count, result.unique_peptides.fdr_threshold));
+      // Identified peptide lengths - mean
+      addMetric("QC:4000214", result.peptide_length_mean);
+      // Missed cleavages - mean
+      addMetric("QC:4000209", result.missed_cleavages_mean);
+      // Number of identified proteins at given FDR threshold
+      addMetric("QC:4000185", make_tuple(result.unique_proteins.count, result.unique_proteins.fdr_threshold));
+      // Identification score mean (of protein hits)
+      addMetric("QC:4000204", result.protein_hit_scores_mean);
     }
 
     // ---------------------------------------------------------------
