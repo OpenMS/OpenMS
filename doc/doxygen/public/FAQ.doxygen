@@ -72,7 +72,7 @@
 
 			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
 				If a error message similar to
-				@code OpenMS::File::find(...) of File.cpp error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
+				@code OpenMS::File::find(...) of File.cpp error message: the file 'CHEMISTRY/unimod.xml' could not be found @endcode
 				is shown, you have probably moved your %OpenMS installation manually?!
 				Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
 

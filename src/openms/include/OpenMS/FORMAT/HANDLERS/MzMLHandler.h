@@ -507,7 +507,7 @@ protected:
       //@}
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
-      ControlledVocabulary cv_;
+      const ControlledVocabulary& cv_;
       CVMappings mapping_;
 
     };

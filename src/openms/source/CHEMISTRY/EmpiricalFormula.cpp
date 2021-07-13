@@ -601,7 +601,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found.");
       }
     }
 

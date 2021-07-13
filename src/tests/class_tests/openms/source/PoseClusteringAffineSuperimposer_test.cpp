@@ -74,6 +74,7 @@ START_SECTION((static BaseSuperimposer* create()))
   BaseSuperimposer* base_ptr = nullptr;
   base_ptr = PoseClusteringAffineSuperimposer::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
+  delete base_ptr;
 }
 END_SECTION
 

@@ -66,14 +66,9 @@ namespace OpenMS
     /// delegated c'tor for the common things
     MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
       : XMLHandler(filename, version),
-        logger_(logger)
+        logger_(logger),
+        cv_(ControlledVocabulary::getPSIMSCV())
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
       CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
 
       // check the version number of the mzML handler
@@ -1661,7 +1656,7 @@ namespace OpenMS
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
           spec_.setDriftTime(value.toDouble());
-          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+          spec_.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
@@ -1774,18 +1769,18 @@ namespace OpenMS
           //
           // Note that only milliseconds and VSSC are valid units
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+            unit = DriftTimeUnit::VSSC;          
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -2116,18 +2111,18 @@ namespace OpenMS
           //
           // Note: this is where pwiz stores the ion mobility for a spectrum
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = DriftTimeUnit::VSSC;
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -3834,7 +3829,7 @@ namespace OpenMS
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
+          precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
           precursor.getPossibleChargeStates().size() > 0 ||
           precursor.getMZ() > 0.0)
       {
@@ -3857,25 +3852,23 @@ namespace OpenMS
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
 
-        if (precursor.getDriftTime() >= 0.0)
+        if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
         {
-            if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-            else if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::VSSC)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-            }
-            else
-            {
+          switch (precursor.getDriftTimeUnit())
+          {
+            default:
               // assume milliseconds, but warn
               warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+              [[fallthrough]];
+            case DriftTimeUnit::MILLISECOND:
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
+                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+              break;
+            case DriftTimeUnit::VSSC:
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+              break;
+          }
         }
         //userParam: no extra object for it => no user parameters
         os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -5158,19 +5151,19 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
-          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
                 << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
           }          
-          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
+          else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
           {
-            if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+            if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
             }
-            else if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+            else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";

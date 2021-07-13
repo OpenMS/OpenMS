@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
-
+#include <functional>
 #include <vector>
 
 namespace OpenMS

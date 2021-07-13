@@ -5,7 +5,7 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
     
     cdef cppclass DRange1 "OpenMS::DRange<1> ":
-        DRange1() nogil except +
+        DRange1() nogil except + # TODO
         DRange1(DRange1) nogil except +
         DRange1(DPosition1 lower, DPosition1 upper) nogil except +
         bool operator==(DRange1 & rhs) nogil except +
@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
         bool isEmpty() nogil except +
 
     cdef cppclass DRange2 "OpenMS::DRange<2> ":
-        DRange2() nogil except +
+        DRange2() nogil except + # TODO
         DRange2(DRange2) nogil except +
         DRange2(DPosition2 lower, DPosition2 upper) nogil except +
         DRange2(double minx, double miny, double maxx, double maxy) nogil except +

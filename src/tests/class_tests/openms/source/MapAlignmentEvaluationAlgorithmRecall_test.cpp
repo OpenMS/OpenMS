@@ -68,6 +68,7 @@ START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
 	MapAlignmentEvaluationAlgorithm* ptr2 = nullptr;
 	ptr2 = MapAlignmentEvaluationAlgorithmRecall::create();
   TEST_NOT_EQUAL(ptr2, base_nullPointer)
+  delete ptr2;
 END_SECTION
 
 START_SECTION((static String getProductName()))

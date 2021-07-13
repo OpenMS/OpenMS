@@ -41,7 +41,6 @@ namespace OpenMS
 
   const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation"};
   const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
-  const std::string Precursor::NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV"};
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
@@ -148,7 +147,7 @@ namespace OpenMS
     drift_time_ = drift_time;
   }
 
-  Precursor::DriftTimeUnit Precursor::getDriftTimeUnit() const
+  DriftTimeUnit Precursor::getDriftTimeUnit() const
   {
     return drift_time_unit_;
   }

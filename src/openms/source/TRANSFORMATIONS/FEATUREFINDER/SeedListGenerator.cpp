@@ -65,22 +65,21 @@ namespace OpenMS
                                            bool use_peptide_mass)
   {
     seeds.clear();
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
       double mz;
-      if (!pep_it->getHits().empty() && use_peptide_mass)
+      if (!pep.getHits().empty() && use_peptide_mass)
       {
-        pep_it->sort();
-        const PeptideHit& hit = pep_it->getHits().front();
+        pep.sort();
+        const PeptideHit& hit = pep.getHits().front();
         Int charge = hit.getCharge();
         mz = hit.getSequence().getMZ(charge);
       }
       else
       {
-        mz = pep_it->getMZ();
+        mz = pep.getMZ();
       }
-      DPosition<2> point(pep_it->getRT(), mz);
+      DPosition<2> point(pep.getRT(), mz);
       seeds.push_back(point);
     }
   }

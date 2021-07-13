@@ -67,6 +67,7 @@ START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 }
 END_SECTION
 
