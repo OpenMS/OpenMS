@@ -111,7 +111,8 @@ public:
   static const String database;
 
   // tolerance
-  static const String precursor_mass_tolerance;
+  static const String precursor_mass_tolerance_lower;
+  static const String precursor_mass_tolerance_upper;
   static const String precursor_mass_unit;
   static const String precursor_true_tolerance;
   static const String precursor_true_unit;
@@ -159,6 +160,7 @@ public:
   static const String min_matched_fragments;
   static const String output_report_topn;
   static const String output_max_expect;
+  static const String localize_delta_mass;
 
   // statmod
   static const String add_cterm_peptide;
@@ -262,7 +264,8 @@ protected:
     registerTOPPSubsection_("tolerance", "Search Tolerances");
 
     // Precursor mass tolerance and unit
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance (window is +/- this value)", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower, "<precursor_mass_tolerance>", 20.0, "Lower precursor mass tolerance", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper, "<precursor_mass_tolerance>", 20.0, "Upper precursor mass tolerance", false, false);
     registerStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit, "<precursor_mass_unit>", "ppm", "Unit of precursor mass tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::precursor_mass_unit, validUnits);
 
@@ -364,6 +367,7 @@ protected:
     _registerNonNegativeInt(TOPPMSFraggerAdapter::min_matched_fragments, "<min_matched_fragments>", 4, "Minimum number of matched peaks for PSM to be reported. MSFragger recommends a minimum of 4 for narrow window searching and 6 for open searches", false, false);
     _registerNonNegativeInt(TOPPMSFraggerAdapter::output_report_topn, "<output_report_topn>", 1, "Reports top N PSMs per input spectrum", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::output_max_expect, "<output_max_expect>", 50.0, "Suppresses reporting of PSM if top hit has expectation greater than this threshold", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::localize_delta_mass, "<localize_delta_mass>", 0, "Include fragment ions mass-shifted by unknown modifications (recommended for open and mass offset searches) (0 for OFF, 1 for ON)", false, false);
 
     registerTOPPSubsection_("statmod", "Static Modification Parameters");
 
@@ -434,7 +438,8 @@ protected:
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
 
       // tolerance
-      const double arg_precursor_mass_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance));
+      const double arg_precursor_mass_tolerance_lower(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower));
+      const double arg_precursor_mass_tolerance_upper(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper));
       const String & arg_precursor_mass_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit);
       const double arg_precursor_true_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_true_tolerance));
       const String & arg_precursor_true_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_true_unit);
@@ -520,7 +525,8 @@ protected:
       const int arg_min_matched_fragments = this->getIntOption_(TOPPMSFraggerAdapter::min_matched_fragments);
       const int arg_output_report_topn = this->getIntOption_(TOPPMSFraggerAdapter::output_report_topn);
       const double arg_output_max_expect = this->getDoubleOption_(TOPPMSFraggerAdapter::output_max_expect);
-
+      const int arg_localize_delta_mass = this->getIntOption_(TOPPMSFraggerAdapter::localize_delta_mass);
+      
       // statmod
       const double arg_add_cterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_peptide);
       const double arg_add_nterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_peptide);
@@ -560,7 +566,8 @@ protected:
       // Write all the parameters into the file
       os << "database_name = " << String(database)
                                << "\nnum_threads = " << this->getIntOption_("threads")
-                               << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
+                               << "\n\nprecursor_mass_lower = " << (-arg_precursor_mass_tolerance_lower)
+                               << "\nprecursor_mass_upper = " << arg_precursor_mass_tolerance_upper
                                << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
                                << "\nprecursor_true_tolerance = " << arg_precursor_true_tolerance
                                << "\nprecursor_true_units = " << (arg_precursor_true_unit == "Da" ? 0 : 1)
@@ -603,6 +610,7 @@ protected:
           << "\nadd_topN_complementary = " << arg_add_topn_complementary
           << "\n\nminimum_peaks = " << arg_minimum_peaks
           << "\nuse_topN_peaks = " << arg_use_topn_peaks
+          << "\nlocalize_delta_mass = " << arg_localize_delta_mass
           << "\nmin_fragments_modelling = " << arg_min_fragments_modeling
           << "\nmin_matched_fragments = " << arg_min_matched_fragments
           << "\nminimum_ratio = " << arg_minimum_ratio
@@ -791,7 +799,8 @@ const String TOPPMSFraggerAdapter::opt_out = "opt_out";
 const String TOPPMSFraggerAdapter::database = "database";
 
 // tolerance
-const String TOPPMSFraggerAdapter::precursor_mass_tolerance = "tolerance:precursor_mass_tolerance";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_lower = "tolerance:precursor_mass_tolerance_lower";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_upper = "tolerance:precursor_mass_tolerance_upper";
 const String TOPPMSFraggerAdapter::precursor_mass_unit = "tolerance:precursor_mass_unit";
 const String TOPPMSFraggerAdapter::precursor_true_tolerance = "tolerance:precursor_true_tolerance";
 const String TOPPMSFraggerAdapter::precursor_true_unit = "tolerance:precursor_true_unit";
@@ -839,6 +848,7 @@ const String TOPPMSFraggerAdapter::min_fragments_modeling = "search:min_fragment
 const String TOPPMSFraggerAdapter::min_matched_fragments = "search:min_matched_fragments";
 const String TOPPMSFraggerAdapter::output_report_topn = "search:output_report_topn";
 const String TOPPMSFraggerAdapter::output_max_expect = "search:output_max_expect";
+const String TOPPMSFraggerAdapter::localize_delta_mass = "search:localize_delta_mass";
 
 // statmod
 const String TOPPMSFraggerAdapter::add_cterm_peptide = "statmod:add_cterm_peptide";
