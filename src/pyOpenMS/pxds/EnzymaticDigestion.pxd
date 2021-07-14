@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
     cdef cppclass EnzymaticDigestion "OpenMS::EnzymaticDigestion":
         # wrap-doc:
         #     Class for the enzymatic digestion of proteins
-        #
+        #     -----
         #     Digestion can be performed using simple regular expressions, e.g. [KR] | [^P] for trypsin.
         #     Also missed cleavages can be modeled, i.e. adjacent peptides are not cleaved
         #     due to enzyme malfunction/access restrictions. If n missed cleavages are allowed, all possible resulting
