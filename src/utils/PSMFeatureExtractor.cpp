@@ -261,6 +261,7 @@ protected:
     else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
     else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
     else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MSFragger") PercolatorFeatureSetHelper::addMSFRAGGERFeatures(all_peptide_ids, feature_set);
     else
     {
       OPENMS_LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
