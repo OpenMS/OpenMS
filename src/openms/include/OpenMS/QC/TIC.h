@@ -65,6 +65,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI Result
     {
       std::vector<UInt> intensities;  // TIC intensities
+      std::vector<float> relative_intensities;
       std::vector<float> retention_times; // TIC RTs in seconds
       UInt area = 0;  // Area under TIC
       UInt fall = 0;  // MS1 signal fall (10x) count
@@ -81,10 +82,11 @@ namespace OpenMS
 
     @param exp Peak map to compute the MS1 tick from
     @param bin_size RT bin size in seconds
+    @param ms_level MS level of spectra for calculation
     @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
 
     **/
-    Result compute(const MSExperiment& exp, float bin_size=0);
+    Result compute(const MSExperiment& exp, float bin_size = 0, UInt ms_level = 1);
 
     const String& getName() const override;
 

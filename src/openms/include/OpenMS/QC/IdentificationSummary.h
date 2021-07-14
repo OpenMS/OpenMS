@@ -34,48 +34,72 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <vector>
+/**
+ * @brief Detected Proteins/Peptides as a Proteomics QC metric
+ *
+ * Simple class to return a summary of detected proteins/peptides
+ * from a given idXML file.
+ *
+ */
 
 namespace OpenMS
 {
-  class FeatureMap;
-  
-  /**
-      @brief File adapter for mzQC files used to load and store mzQC files
-
-      This Class is supposed to internally collect the data for the mzQC File
-
-      @ingroup FileIO
-  */
-  class OPENMS_DLLAPI MzQCFile
+  class OPENMS_DLLAPI IdentificationSummary : public QCBase
   {
   public:
-    // Default constructor
-    MzQCFile() = default;
+    /// Constructor
+    IdentificationSummary() = default;
 
-    /**
-      @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids protein identifications from ID file (idXML)
-    */
-    void store(const String& input_file,
-               const String& output_file,
-               const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
-               const FeatureMap& feature_map,
-               std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids) const;
+    /// Destructor
+    virtual ~IdentificationSummary() = default;
+
+    // small struct for unique peptide / protein identifications (considering sequence only)
+    // count: number of unique identifiecations, fdr_threshold: significance threshold if score type is FDR, else -1
+    struct OPENMS_DLLAPI UniqueID
+    {
+      UInt count = 0;
+      float fdr_threshold = -1.0;
+    };
+    
+    // stores identification summary values calculated by compute function
+    struct OPENMS_DLLAPI Result
+    {
+      UInt peptide_spectrum_matches = 0;
+      UniqueID unique_peptides;
+      UniqueID unique_proteins;
+      float missed_cleavages_mean = 0;
+      double protein_hit_scores_mean = 0;
+      double peptide_length_mean = 0;
+
+      bool operator==(const Result& rhs) const;
+    };
+
+     /**
+    @brief computes a summary of an idXML file
+
+    @param prot_ids vector with ProteinIdentifications
+    @param pep_ids vector with PeptideIdentifications
+    @return result object with summary values:
+            total number of PSM (peptide_spectrum_matches),
+            number of identified peptides with given FDR threshold (unique_peptides),
+            number of identified proteins with given FDR threshold (unique_proteins),
+            missed cleavages mean (missed_cleavages_mean),
+            identification score mean of protein hits (protein_hit_scores_mean),
+            identified peptide lengths mean (peptide_length_mean)
+
+    **/
+    Result compute(std::vector<ProteinIdentification>& prot_ids,
+                   std::vector<PeptideIdentification>& pep_ids);
+
+    const String& getName() const override;
+
+    QCBase::Status requires() const override;
+
+  private:
+    const String name_ = "Summary of detected Proteins and Peptides from idXML file";
   };
 }
