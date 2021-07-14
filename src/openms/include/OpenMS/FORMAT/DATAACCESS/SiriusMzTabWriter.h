@@ -156,10 +156,14 @@ namespace OpenMS
                      const Size& top_n_hits,
                      MzTab& result);
 
-
   };
 
-
+  namespace SiriusVersion
+  {
+    /** SIRIUS version
+    */
+    inline const std::string CURRENT_VERSION = "4.9.0";
+  }
 
 }
 

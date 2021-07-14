@@ -34,48 +34,52 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <vector>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
+/**
+ * @brief Detected Compounds as a Metabolomics QC metric
+ *
+ * Simple class to return a summary of detected compounds
+ * from a featureXML file.
+ *
+ */
 
 namespace OpenMS
 {
-  class FeatureMap;
-  
-  /**
-      @brief File adapter for mzQC files used to load and store mzQC files
-
-      This Class is supposed to internally collect the data for the mzQC File
-
-      @ingroup FileIO
-  */
-  class OPENMS_DLLAPI MzQCFile
+  class OPENMS_DLLAPI FeatureSummary : public QCBase
   {
   public:
-    // Default constructor
-    MzQCFile() = default;
+    /// Constructor
+    FeatureSummary() = default;
 
-    /**
-      @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids protein identifications from ID file (idXML)
-    */
-    void store(const String& input_file,
-               const String& output_file,
-               const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
-               const FeatureMap& feature_map,
-               std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids) const;
+    /// Destructor
+    virtual ~FeatureSummary() = default;
+
+    // stores feature summary values calculated by compute function
+    struct OPENMS_DLLAPI Result
+    {
+      UInt feature_count = 0;
+      float rt_shift_mean = 0;
+
+      bool operator==(const Result& rhs) const;
+    };
+
+     /**
+    @brief computes a summary of a featureXML file
+
+    @param feature_map FeatureMap
+    @return result object with summary values: 
+            number of detected compounds (detected_compounds),
+            retention time shift mean (rt_shift_mean)
+    **/
+    Result compute(const FeatureMap& feature_map);
+
+    const String& getName() const override;
+
+    QCBase::Status requires() const override;
+
+  private:
+    const String name_ = "Summary of features from featureXML file";
   };
 }

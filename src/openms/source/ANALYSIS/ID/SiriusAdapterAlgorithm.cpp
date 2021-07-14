@@ -293,7 +293,7 @@ namespace OpenMS
 
       parameter(
                  FingeridName("db"),
-                 DefaultValue(""),
+                 DefaultValue("BIO"),
                  Description("Search formulas in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "

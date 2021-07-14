@@ -47,7 +47,7 @@ namespace OpenMS
   /**
      @ingroup Chemistry
 
-     @brief Abstract base class for digestion enzymes
+     @brief Base class for digestion enzymes
   */
   class OPENMS_DLLAPI DigestionEnzyme
   {

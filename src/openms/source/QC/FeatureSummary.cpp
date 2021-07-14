@@ -32,50 +32,57 @@
 // $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-#pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <vector>
+#include <OpenMS/QC/FeatureSummary.h>
+
+using namespace std;
 
 namespace OpenMS
-{
-  class FeatureMap;
-  
-  /**
-      @brief File adapter for mzQC files used to load and store mzQC files
-
-      This Class is supposed to internally collect the data for the mzQC File
-
-      @ingroup FileIO
-  */
-  class OPENMS_DLLAPI MzQCFile
+{ 
+  FeatureSummary::Result FeatureSummary::compute(const FeatureMap& feature_map)
   {
-  public:
-    // Default constructor
-    MzQCFile() = default;
+    FeatureSummary::Result result;
+    float sum_rt_deviations = 0;
+    UInt rt_count = 0;
+    result.feature_count = feature_map.size();
+    for (const auto& f : feature_map)
+    {
+      if (f.metaValueExists("rt_deviation"))
+      {
+        sum_rt_deviations += (float)f.getMetaValue("rt_deviation");
+        rt_count += 1;
+      }
+    }
 
-    /**
-      @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids protein identifications from ID file (idXML)
-    */
-    void store(const String& input_file,
-               const String& output_file,
-               const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
-               const FeatureMap& feature_map,
-               std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids) const;
-  };
+    // calculate mean rt shift (sec)
+    if (rt_count != 0)
+    {
+      result.rt_shift_mean = sum_rt_deviations / rt_count;
+    }
+    else
+    {
+      result.rt_shift_mean = 0;
+    }
+    
+    return result;
+  }
+
+  bool FeatureSummary::Result::operator==(const Result& rhs) const
+  {
+    return feature_count == rhs.feature_count
+          && rt_shift_mean == rhs.rt_shift_mean;
+  }
+
+  /// Returns the name of the metric
+  const String& FeatureSummary::getName() const
+  {
+    return name_;
+  }
+
+  /// Returns required file input i.e. MzML.
+  /// This is encoded as a bit in a Status object.
+  QCBase::Status FeatureSummary::requires() const
+  {
+    return QCBase::Status(QCBase::Requires::PREFDRFEAT);
+  }
 }

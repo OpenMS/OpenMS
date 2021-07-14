@@ -994,7 +994,7 @@ namespace OpenMS
         if (!writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent") &&
             options_.getForceMQCompatability())
         {
-          writeKeyValue(os, "totIonCurrent", spec.getTIC());
+          writeKeyValue(os, "totIonCurrent", spec.calculateTIC());
         }
 
         if (ms_level == 2 &&
