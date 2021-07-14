@@ -11,12 +11,27 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #
         # wrap-doc:
         #     Class for the enzymatic digestion of proteins
-        #
+        #     -----
         #     Digestion can be performed using simple regular expressions, e.g. [KR] | [^P] for trypsin.
         #     Also missed cleavages can be modeled, i.e. adjacent peptides are not cleaved
         #     due to enzyme malfunction/access restrictions. If n missed cleavages are allowed, all possible resulting
         #     peptides (cleaved and uncleaved) with up to n missed cleavages are returned.
         #     Thus no random selection of just n specific missed cleavage sites is performed.
+        #     -----
+        #     Usage:
+        #         from pyopenms import *
+        #         from urllib.request import urlretrieve
+        #
+        #         urlretrieve ("http://www.uniprot.org/uniprot/P02769.fasta", "bsa.fasta")
+        #
+        #         dig = ProteaseDigestion()
+        #         dig.setEnzyme('Lys-C')
+        #         bsa = "".join([l.strip() for l in open("bsa.fasta").readlines()[1:]])
+        #         bsa = AASequence.fromString(bsa)
+        #         result = []
+        #         dig.digest(bsa, result)
+        #         print(result[4].toString()) # GLVLIAFSQYLQQCPFDEHVK
+        #         print(len(result)) # 57 peptides
 
       ProteaseDigestion() nogil except +
       ProteaseDigestion(ProteaseDigestion) nogil except +
