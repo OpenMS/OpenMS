@@ -252,14 +252,13 @@ namespace OpenMS
     else
     {
       Size n_overlap_groups = 0, n_overlap_features = 0;
-      for (vector<FeatureGroup>::iterator group_it = overlap_groups.begin();
-           group_it != overlap_groups.end(); ++group_it)
+      for (FeatureGroup& group : overlap_groups)
       {
-        if (group_it->size() > 1)
+        if (group.size() > 1)
         {
           n_overlap_groups++;
-          n_overlap_features += group_it->size();
-          resolveOverlappingFeatures_(*group_it, feature_bounds);
+          n_overlap_features += group.size();
+          resolveOverlappingFeatures_(group, feature_bounds);
         }
       }
       features.erase(remove_if(features.begin(), features.end(),

@@ -222,8 +222,9 @@ namespace OpenMS
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
     if (name != rhs.name || entries.size() != rhs.entries.size() || nodes.size() != rhs.nodes.size())
+    {
       return false;
-
+    }
     //order of sections / entries should not matter
     for (size_t i = 0; i < entries.size(); ++i)
     {
@@ -279,7 +280,7 @@ namespace OpenMS
         NodeIterator it = findNode(prefix);
         if (it == nodes.end()) //subnode not found
         {
-            return nullptr;
+          return nullptr;
         }
         //recursively call findNode for the rest of the path
         std::string new_name = local_name.substr(it->name.size() + 1);
@@ -292,12 +293,16 @@ namespace OpenMS
         for (size_t i = 0; i < nodes.size(); ++i)
         {
             if (nodes[i].name.compare(0, local_name.size(), local_name) == 0)
-                return this;
+            {
+              return this;
+            }
         }
         for (size_t i = 0; i < entries.size(); ++i)
         {
             if (entries[i].name.compare(0, local_name.size(), local_name) == 0)
-                return this;
+            {
+            return this;
+            }
         }
         return nullptr;
     }
@@ -307,11 +312,15 @@ namespace OpenMS
   {
     ParamNode* parent = findParentOf(local_name);
     if (parent == nullptr)
+    {
       return nullptr;
+    }
 
     EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
+    {
       return nullptr;
+    }
 
     return &(*it);
   }
@@ -836,7 +845,7 @@ namespace OpenMS
       //prefix2.ensureLastChar(':');
       if (prefix2.back() != ':')
       {
-          prefix2.append(1, ':');
+        prefix2.append(1, ':');
       }
     }
 
@@ -855,11 +864,14 @@ namespace OpenMS
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
       if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
       if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      {
         arg1_is_option = true;
-
+      }
       //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << std::endl;
 
       //flag (option without text argument)
@@ -918,11 +930,14 @@ namespace OpenMS
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
       if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
       if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      {
         arg1_is_option = true;
-
+      }
 
       //with multiple argument
       if (options_with_multiple_argument.find(arg) != options_with_multiple_argument.end())
@@ -942,7 +957,9 @@ namespace OpenMS
             sl.push_back(arg1);
             ++j;
             if (j < argc)
+            {
               arg1 = argv[j];
+            }
           }
 
           root_.insert(ParamEntry("", sl, ""), options_with_multiple_argument.find(arg)->second);
@@ -1048,7 +1065,8 @@ namespace OpenMS
     std::string prefix2 = prefix;
     if (prefix2 != "")
     {
-      if (prefix2.back() != ':') {
+      if (prefix2.back() != ':') 
+      {
           prefix2 += ':';
       }
     }
@@ -1062,46 +1080,78 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
+        {
           OPENMS_LOG_WARN << " in '" << prefix2 << "'";
+        }
         OPENMS_LOG_WARN << "!" << std::endl;
       }
 
       //different types
       ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix2 + it.getName());
       if (default_value == nullptr)
+      {
         continue;
+      }
       if (default_value->value.valueType() != it->value.valueType())
       {
         std::string d_type;
         if (default_value->value.valueType() == ParamValue::STRING_VALUE)
+        {
           d_type = "string";
+        }
         if (default_value->value.valueType() == ParamValue::STRING_LIST)
+        {
           d_type = "string list";
+        }
         if (default_value->value.valueType() == ParamValue::EMPTY_VALUE)
+        {
           d_type = "empty";
+        }
         if (default_value->value.valueType() == ParamValue::INT_VALUE)
+        {
           d_type = "integer";
+        }
         if (default_value->value.valueType() == ParamValue::INT_LIST)
+        {
           d_type = "integer list";
+        }
         if (default_value->value.valueType() == ParamValue::DOUBLE_VALUE)
+        {
           d_type = "float";
+        }
         if (default_value->value.valueType() == ParamValue::DOUBLE_LIST)
+        {
           d_type = "float list";
+        }
         std::string p_type;
         if (it->value.valueType() == ParamValue::STRING_VALUE)
+        {
           p_type = "string";
+        }
         if (it->value.valueType() == ParamValue::STRING_LIST)
+        {
           p_type = "string list";
+        }
         if (it->value.valueType() == ParamValue::EMPTY_VALUE)
+        {
           p_type = "empty";
+        }
         if (it->value.valueType() == ParamValue::INT_VALUE)
+        {
           p_type = "integer";
+        } 
         if (it->value.valueType() == ParamValue::INT_LIST)
+        {
           p_type = "integer list";
+        }
         if (it->value.valueType() == ParamValue::DOUBLE_VALUE)
+        {
           p_type = "float";
+        }
         if (it->value.valueType() == ParamValue::DOUBLE_LIST)
+        {
           p_type = "float list";
+        }
 
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
       }
@@ -1451,8 +1501,9 @@ OPENMS_THREAD_CRITICAL(oms_log)
   Param::ParamIterator& Param::ParamIterator::operator++()
   {
     if (root_ == nullptr)
+    {
       return *this;
-
+    }
     trace_.clear();
     while (true)
     {
