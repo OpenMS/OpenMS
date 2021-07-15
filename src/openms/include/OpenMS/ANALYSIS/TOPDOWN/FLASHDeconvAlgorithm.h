@@ -156,26 +156,29 @@ namespace OpenMS
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
     DoubleList bin_width_;
-    /// cosine threshold between observed and theoretical isotope patterns for each MS level
-    DoubleList min_isotope_cosine_;
-    /// max mass count per spectrum for each MS level
-    IntList max_mass_count_;
-    /// number of min mass per spec
-    IntList min_mass_count_;
+      /// cosine threshold between observed and theoretical isotope patterns for each MS level
+      DoubleList min_isotope_cosine_;
+      /// max mass count per spectrum for each MS level
+      IntList max_mass_count_;
+      /// number of min mass per spec
+      IntList min_mass_count_;
 
-    /// precalculated averagine distributions for fast averagine generation
-    FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
-    /// The data structures for spectra overlapping.
-    std::vector<std::vector<Size>> prev_mass_bin_vector_;
-    std::vector<double> prev_rt_vector_;
-    std::vector<Size> target_mass_bins_;
+      /// precalculated averagine distributions for fast averagine generation
+      FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
+      /// The data structures for spectra overlapping.
+      std::unordered_map<int, std::vector<std::vector<Size>>> prev_mass_bins_; // nominal mass -> mass bins
+      std::unordered_map<int, std::vector<double>> prev_rts_; // nominal mass -> rts
 
-    /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-    const std::vector<int> harmonic_charges_{2, 3, 5};
-    /// Stores log mz peaks
-    std::vector<LogMzPeak> log_mz_peaks_;
-    /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
-    DeconvolutedSpectrum deconvoluted_spectrum_;
+
+
+      std::vector<Size> target_mass_bins_;
+
+      /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
+      const std::vector<int> harmonic_charges_{2, 3, 5};
+      /// Stores log mz peaks
+      std::vector<LogMzPeak> log_mz_peaks_;
+      /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
+      DeconvolutedSpectrum deconvoluted_spectrum_;
 
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;

@@ -628,7 +628,6 @@ namespace OpenMS {
         if (spec_.getMSLevel() == 1 || precursor_peak_group_.empty()) {
             return max_abs_charge;
         }
-
         return abs(precursor_peak_.getCharge());
     }
 

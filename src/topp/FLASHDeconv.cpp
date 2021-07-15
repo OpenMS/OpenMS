@@ -179,7 +179,7 @@ protected:
 
         Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
         // overwrite algorithm default so we export everything (important for copying back MSstats results)
-        fd_defaults.setValue("tol", DoubleList{10.0, 15.0}, "ppm tolerance");
+        fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance");
         fd_defaults.setValue("min_charge", 2);
         fd_defaults.setValue("max_charge", 100);
         fd_defaults.setValue("min_mz", -1.0);
@@ -195,7 +195,7 @@ protected:
         //fd_defaults.addTag("tol", "advanced"); // hide entry
         fd_defaults.setValue("min_peaks", IntList{2, 1});
         fd_defaults.addTag("min_peaks", "advanced");
-        fd_defaults.setValue("min_intensity", .0, "intensity threshold");
+        fd_defaults.setValue("min_intensity", 100.0, "intensity threshold");
         fd_defaults.addTag("min_intensity", "advanced");
         fd_defaults.setValue("min_isotope_cosine",
                              DoubleList{.8, .9},
