@@ -72,9 +72,9 @@ namespace OpenMS
     label_(label)
   {
     if (amount < 0)
-      {
-        std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
-      }
+    {
+      std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
+    }
     formula_ = checkFormula_(formula);
   }
 
@@ -124,9 +124,9 @@ namespace OpenMS
   void Adduct::setAmount(const Int& amount)
   {
     if (amount < 0)
-      {
-        std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
-      }
+    {
+      std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
+    }
     amount_ = amount;
   }
 

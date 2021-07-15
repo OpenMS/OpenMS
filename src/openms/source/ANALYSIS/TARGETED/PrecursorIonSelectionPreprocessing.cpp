@@ -347,7 +347,7 @@ namespace OpenMS
                 std::cout << "w/o Mod " << vec_iter << " "
                           << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
                   vec_iter.setModification(aa, mods[m]);

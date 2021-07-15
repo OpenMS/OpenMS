@@ -160,7 +160,10 @@ namespace OpenMS
 
   int CalibrationData::getGroup( Size i ) const
   {
-    if (!data_[i].metaValueExists("peakgroup")) { return -1; }
+    if (!data_[i].metaValueExists("peakgroup"))
+    { 
+      return -1;
+    }
     return data_[i].getMetaValue("peakgroup");
   }
 
