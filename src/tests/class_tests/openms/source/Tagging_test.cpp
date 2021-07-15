@@ -149,6 +149,7 @@ START_SECTION((virtual SampleTreatment* clone() const ))
 	TEST_REAL_SIMILAR(dp->getMassShift(),4711.2)
 	TEST_EQUAL(dp->getVariant(),Tagging::LIGHT)
 	TEST_REAL_SIMILAR(dp->getMass(),23.4)
+	delete st;
 END_SECTION
 
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))

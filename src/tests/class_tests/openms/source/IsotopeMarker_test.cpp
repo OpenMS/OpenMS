@@ -105,6 +105,7 @@ START_SECTION((static PeakMarker* create()))
 	IsotopeMarker im;
 	TEST_EQUAL(pm->getParameters(), im.getParameters())
 	TEST_EQUAL(pm->getName(), im.getName())
+	delete pm;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

@@ -28,41 +28,58 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eugen Netz $
-// $Authors: Eugen Netz $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
+/**
+ * @brief Detected Compounds as a Metabolomics QC metric
+ *
+ * Simple class to return a summary of detected compounds
+ * from a featureXML file.
+ *
+ */
 
 namespace OpenMS
 {
+  class OPENMS_DLLAPI FeatureSummary : public QCBase
+  {
+  public:
+    /// Constructor
+    FeatureSummary() = default;
 
-    /**
-      @brief This class splits PeakMaps by IM values
+    /// Destructor
+    virtual ~FeatureSummary() = default;
 
-      Contains a function to split a PeakMap by FAIMS compensation voltages.
-    */
-    class OPENMS_DLLAPI MSRunIMSplitter
+    // stores feature summary values calculated by compute function
+    struct OPENMS_DLLAPI Result
     {
-    public:
-      virtual ~MSRunIMSplitter() {}
+      UInt feature_count = 0;
+      float rt_shift_mean = 0;
 
-      /**
-        @brief Splits a PeakMap into one PeakMap per FAIMS CV value
-
-        This only works with a PeakMap that has a FAIMS compensation voltage
-        associated with each spectrum.
-        The spectra from the original PeakMap are moved to new PeakMaps,
-        so the original PeakMap is unusable afterwards.
-
-        @param exp The PeakMap
-        @return Several maps, split by CVs
-        @throws Exception::MissingInformation if @p exp is not FAIMS data
-      */
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
+      bool operator==(const Result& rhs) const;
     };
 
-} //end namespace OpenMS
+     /**
+    @brief computes a summary of a featureXML file
+
+    @param feature_map FeatureMap
+    @return result object with summary values: 
+            number of detected compounds (detected_compounds),
+            retention time shift mean (rt_shift_mean)
+    **/
+    Result compute(const FeatureMap& feature_map);
+
+    const String& getName() const override;
+
+    QCBase::Status requires() const override;
+
+  private:
+    const String name_ = "Summary of features from featureXML file";
+  };
+}

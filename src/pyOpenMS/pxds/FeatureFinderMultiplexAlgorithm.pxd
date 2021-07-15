@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAl
         #    DefaultParamHandler
         FeatureFinderMultiplexAlgorithm()      nogil except +
 
-        void run(MSExperiment& exp, bool progress) nogil except +
+        void run(MSExperiment& exp, bool progress) nogil except + # wrap-doc:Main method for feature detection
 
-        FeatureMap getFeatureMap() nogil except +
+        FeatureMap getFeatureMap() nogil except + # TODO
 
-        ConsensusMap getConsensusMap() nogil except +
+        ConsensusMap getConsensusMap() nogil except + # TODO

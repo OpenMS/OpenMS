@@ -143,7 +143,7 @@ START_SECTION((GaussFitResult fit(std::vector< DPosition< 2 > >& points) const))
   TEST_REAL_SIMILAR(gfr.A, 175011.893006749)
   TEST_REAL_SIMILAR(gfr.x0, 240.1007246725147)
   TEST_REAL_SIMILAR(gfr.sigma, 0.00046642320683761701)
-
+  delete ptr;
 }
 END_SECTION
 

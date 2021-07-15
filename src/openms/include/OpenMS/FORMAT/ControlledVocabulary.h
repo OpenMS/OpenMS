@@ -188,7 +188,24 @@ public:
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */
-    bool isChildOf(const String& child, const String& parent) const;
+    bool isChildOf(const String& child_id, const String& parent_id) const;
+
+
+    /**
+      @brief Returns a CV for parsing/storing PSI-MS related data, e.g. mzML, or handle accessions/ids in datastructures
+
+      The CV will be initialized on first access. Repeated access is therefor cheap.
+
+      It consists of the following CVs:<br>
+      <ul>
+        <li>PSI-MS (psi-ms.obo)</li>
+        <li>PATO (quality.obo)</li>
+        <li>UO (unit.obo)</li>
+        <li>BTO (CV/brenda.obo)</li>
+        <li>GO (goslim_goa.obo)</li>
+      </ul>
+    */
+    static const ControlledVocabulary& getPSIMSCV();
 
 protected:
     /**

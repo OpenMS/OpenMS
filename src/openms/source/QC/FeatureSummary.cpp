@@ -28,53 +28,61 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eugen Netz $
-// $Authors: Eugen Netz $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
-#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <map>
+
+#include <OpenMS/QC/FeatureSummary.h>
+
+using namespace std;
 
 namespace OpenMS
-{
-  std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap&& exp)
+{ 
+  FeatureSummary::Result FeatureSummary::compute(const FeatureMap& feature_map)
   {
-    std::vector<PeakMap> split_peakmap;
-
-    // TODO test with any random PeakMap without FAIMS data.
-    // What breaks, how should it break?
-    std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
-
-    if (CVs.empty())
+    FeatureSummary::Result result;
+    float sum_rt_deviations = 0;
+    UInt rt_count = 0;
+    result.feature_count = feature_map.size();
+    for (const auto& f : feature_map)
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not FAIMS data!");
+      if (f.metaValueExists("rt_deviation"))
+      {
+        sum_rt_deviations += (float)f.getMetaValue("rt_deviation");
+        rt_count += 1;
+      }
     }
 
-    // create map to easily turn a CV value into a PeakMap index
-    std::map<double, size_t> cv2index;
-    size_t counter(0);
-    for (double cv : CVs)
+    // calculate mean rt shift (sec)
+    if (rt_count != 0)
     {
-      cv2index[cv] = counter;
-      counter++;
+      result.rt_shift_mean = sum_rt_deviations / rt_count;
     }
-
-    // make as many PeakMaps as there are different CVs and fill their Meta Data
-    split_peakmap.resize(CVs.size());
-    for (auto it = split_peakmap.begin(); it != split_peakmap.end(); ++it)
+    else
     {
-      it->getExperimentalSettings() = exp.getExperimentalSettings();
+      result.rt_shift_mean = 0;
     }
-
-    // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
-    {
-      split_peakmap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
-    }
-
-    return split_peakmap;
+    
+    return result;
   }
 
-}  //end namespace OpenMS
+  bool FeatureSummary::Result::operator==(const Result& rhs) const
+  {
+    return feature_count == rhs.feature_count
+          && rt_shift_mean == rhs.rt_shift_mean;
+  }
+
+  /// Returns the name of the metric
+  const String& FeatureSummary::getName() const
+  {
+    return name_;
+  }
+
+  /// Returns required file input i.e. MzML.
+  /// This is encoded as a bit in a Status object.
+  QCBase::Status FeatureSummary::requires() const
+  {
+    return QCBase::Status(QCBase::Requires::PREFDRFEAT);
+  }
+}

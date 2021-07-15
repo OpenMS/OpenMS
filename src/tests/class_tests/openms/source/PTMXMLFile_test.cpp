@@ -86,6 +86,8 @@ START_SECTION((void store(String filename, std::map< String, std::pair< String, 
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
 END_SECTION
 
+delete ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

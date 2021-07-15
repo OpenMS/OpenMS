@@ -36,6 +36,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/test_config.h>
 
 ///////////////////////////

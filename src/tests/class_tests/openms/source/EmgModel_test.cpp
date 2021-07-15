@@ -76,6 +76,7 @@ START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = EmgModel::create();
 	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 // assignment operator
@@ -219,10 +220,6 @@ START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 	tmp.setValue("emg:symmetry", 0.17);
 	em2.setParameters(tmp);
 	ABORT_IF(boost::math::isinf(float(!em2.getIntensity(2.0))))
-
-	tmp.setValue("emg:symmetry", 0.2);
-	em2.setParameters(tmp);
-	ABORT_IF(!boost::math::isinf(em2.getIntensity(2.0)))
 
 END_SECTION
 

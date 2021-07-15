@@ -80,6 +80,8 @@ START_SECTION(void load(const String& filename, vector<ResidueModification*>& mo
 	TEST_EQUAL(modifications.size() > 1, true)
 END_SECTION
 
+delete ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

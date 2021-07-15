@@ -73,6 +73,7 @@ SplinePackage* nullPointer = nullptr;
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity))
   SplinePackage* sp2 = new SplinePackage(mz, intensity);
   TEST_NOT_EQUAL(sp2, nullPointer)
+  delete sp2;
 END_SECTION
 
 START_SECTION(getPosMin())
@@ -103,6 +104,7 @@ START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensit
   SplinePackage* sp4 = new SplinePackage(mz2, intensity2);
   TEST_NOT_EQUAL(sp4, nullPointer);
   TEST_REAL_SIMILAR((*sp4).eval(413.85), 50.1);
+  delete sp4;
 END_SECTION
 
 END_TEST
