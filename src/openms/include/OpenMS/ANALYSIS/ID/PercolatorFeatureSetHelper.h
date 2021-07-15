@@ -167,12 +167,11 @@ namespace OpenMS
 
         /**
          * @brief addMSFraggerFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator features in
-         * @param feature_set register of added features
+         * @param extra_features register of added features
          *
-         * Creates and adds MSFragger specific Percolator features and registers them in feature_set
+         * Registers the MSFragger specific Percolator features in extra_features.
          */
-        static void addMSFRAGGERFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addMSFRAGGERFeatures(StringList& extra_features);
         
 
     protected:

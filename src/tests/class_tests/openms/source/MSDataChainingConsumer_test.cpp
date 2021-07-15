@@ -94,7 +94,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
 
   TEST_EQUAL(first_spectrum == exp.getSpectrum(0), true) // nothing happened
 
-  for (auto consumer : consumer_list)
+  for (auto& consumer : consumer_list)
   {
     delete consumer;
   }
@@ -139,7 +139,7 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   TEST_EQUAL(first_spectrum.isSorted(), true)
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
-  for (auto consumer : consumer_list)
+  for (auto& consumer : consumer_list)
   {
     delete consumer;
   }
@@ -165,7 +165,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 
   TEST_EQUAL(first_chromatogram == exp.getChromatogram(0), true) // nothing happened
 
-  for (auto consumer : consumer_list)
+  for (auto& consumer : consumer_list)
   {
     delete consumer;
   }
@@ -202,7 +202,7 @@ START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
   TEST_EQUAL(first_chromatogram.isSorted(), true)
   TEST_EQUAL(exp.getChromatogram(0).isSorted(), false)
 
-  for (auto consumer : consumer_list)
+  for (auto& consumer : consumer_list)
   {
     delete consumer;
   }
@@ -255,7 +255,7 @@ START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
   TEST_EQUAL(first_spectrum.isSorted(), true)
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
-  for (auto consumer : consumer_list)
+  for (auto& consumer : consumer_list)
   {
     delete consumer;
   }

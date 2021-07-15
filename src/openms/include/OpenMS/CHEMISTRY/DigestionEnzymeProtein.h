@@ -121,17 +121,17 @@ namespace OpenMS
     /// returns the X! Tandem enzyme ID
     String getXTandemID() const;
 
-    /// returns the Comet enzyme ID
-    Int getCometID() const;
-
     /// sets the Comet enzyme ID
     void setCometID(Int value);
 
-    /// returns the Crux enzyme ID
-    String getCruxID() const;
+    /// returns the Comet enzyme ID
+    Int getCometID() const;
 
     /// sets the Crux enzyme ID
     void setCruxID(const String& value);
+
+    /// returns the Crux enzyme ID
+    String getCruxID() const;
 
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);

@@ -163,7 +163,7 @@ namespace OpenMS
       }
     }
 
-    void PercolatorFeatureSetHelper::addMSFRAGGERFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addMSFRAGGERFeatures(StringList& feature_set)
     {
       feature_set.push_back("MS:1001330"); // expect_score
       feature_set.push_back("hyperscore");
