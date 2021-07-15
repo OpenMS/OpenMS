@@ -88,10 +88,14 @@ namespace OpenMS
     String config_path;
     //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
     #ifdef __unix__
-    if(getenv("XDG_CONFIG_HOME"))
+    if (getenv("XDG_CONFIG_HOME"))
+    {
       config_path = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
+    }
     else
+    {
       config_path = File::getOpenMSHomePath() + "/.config/OpenMS";
+    }
     #else
     config_path =  File::getOpenMSHomePath() + "/.OpenMS";
     #endif

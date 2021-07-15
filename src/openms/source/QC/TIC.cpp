@@ -61,7 +61,11 @@ namespace OpenMS
         if (max_int != 0)
         {
           result.relative_intensities.push_back((double)i / max_int * 100);
-        } else result.relative_intensities.push_back(0.0); 
+        }
+        else
+        {
+          result.relative_intensities.push_back(0.0);
+        }
       }
 
       result.area = result.intensities[0];
