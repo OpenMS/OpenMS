@@ -133,8 +133,9 @@ namespace OpenMS
   MassExplainer& MassExplainer::operator=(const MassExplainer& rhs)
   {
     if (this == &rhs)
-      return *this;
-
+      {
+        return *this;
+      }
     explanations_ = rhs.explanations_;
     adduct_base_ = rhs.adduct_base_;
     q_min_ = rhs.q_min_;
@@ -161,9 +162,13 @@ namespace OpenMS
     for (AdductsType::const_iterator it = adduct_base_.begin(); it != adduct_base_.end(); ++it)
     {
       if (it->getCharge() == 0)
-        adduct_neutral.push_back(*it);
+        {
+          adduct_neutral.push_back(*it);
+        }
       else
-        adduct_charged.push_back(*it);
+        {
+          adduct_charged.push_back(*it);
+        }
     }
 
     // calculate some initial boundaries that can be used to shorten the enumeration process
@@ -229,7 +234,9 @@ namespace OpenMS
     for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       if (compomerValid_(explanations_[ci]))
-        valids_only.push_back(explanations_[ci]);
+        {
+          valids_only.push_back(explanations_[ci]);
+        }
     }
     explanations_.swap(valids_only);
 
@@ -345,18 +352,22 @@ namespace OpenMS
   {
     // probability ok?
     if (cmp.getLogP() < thresh_p_)
-      return false;
-
+      {
+        return false;
+      }
     // limit the net charge by the maximal span of co-features
     if (abs(cmp.getNetCharge()) >= max_span_)
-      return false;
-
+      {
+        return false;
+      }
     if (cmp.getNegativeCharges() > q_max_)
-      return false;
-
+      {
+        return false;
+      }
     if (cmp.getPositiveCharges() > q_max_)
-      return false;
-
+      {
+        return false;
+      }
     //TODO include mass?
     //if (abs(cmp.mass_) > mass_max_) return false;
 
