@@ -21,17 +21,33 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #     Usage:
         #         from pyopenms import *
         #         from urllib.request import urlretrieve
-        #
+        #         #
         #         urlretrieve ("http://www.uniprot.org/uniprot/P02769.fasta", "bsa.fasta")
-        #
+        #         #
         #         dig = ProteaseDigestion()
         #         dig.setEnzyme('Lys-C')
-        #         bsa = "".join([l.strip() for l in open("bsa.fasta").readlines()[1:]])
-        #         bsa = AASequence.fromString(bsa)
-        #         result = []
-        #         dig.digest(bsa, result)
-        #         print(result[4].toString()) # GLVLIAFSQYLQQCPFDEHVK
-        #         print(len(result)) # 57 peptides
+        #         bsa_string = "".join([l.strip() for l in open("bsa.fasta").readlines()[1:]])
+        #         bsa_oms_string = String(bsa_string) # convert python string to OpenMS::String for further processing
+        #         #
+        #         minlen = 6
+        #         maxlen = 30
+        #         #
+        #         # Using AASequence and digest
+        #         result_digest = []
+        #         result_digest_min_max = []
+        #         bsa_aaseq = AASequence.fromString(bsa_oms_string)
+        #         dig.digest(bsa_aaseq, result_digest)
+        #         dig.digest(bsa_aaseq, result_digest_min_max, minlen, maxlen)
+        #         print(result_digest[4].toString()) # GLVLIAFSQYLQQCPFDEHVK
+        #         print(len(result_digest)) # 57 peptides
+        #         print(result_digest_min_max[4].toString()) # LVNELTEFAK
+        #         print(len(result_digest_min_max)) # 42 peptides
+        #         #
+        #         # Using digestUnmodified without the need for AASequence from the EnzymaticDigestion base class
+        #         result_digest_unmodified = []
+        #         dig.digestUnmodified(StringView(bsa_oms_string), result_digest_unmodified, minlen, maxlen)
+        #         print(result_digest_unmodified[4].getString()) # LVNELTEFAK
+        #         print(len(result_digest_unmodified)) # 42 peptides
 
       ProteaseDigestion() nogil except +
       ProteaseDigestion(ProteaseDigestion) nogil except +
@@ -43,7 +59,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
       Size digest(AASequence & protein, libcpp_vector[AASequence] & output, Size min_length, Size max_length) nogil except +
           # wrap-doc:
           #     Performs the enzymatic digestion of a protein.
-          #
+          #     -----
           #     :param protein: Sequence to digest
           #     :param output: Digestion products (peptides)
           #     :param min_length: Minimal length of reported products
@@ -56,9 +72,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
                           bool ignore_missed_cleavages, bool methionine_cleavage) nogil except +
           # wrap-doc:
           #     Variant of EnzymaticDigestion::isValidProduct() with support for n-term protein cleavage and random D|P cleavage
-          #
+          #     -----
           #     Checks if peptide is a valid digestion product of the enzyme, taking into account specificity and the flags provided here
-          #
+          #     -----
           #     :param protein: Protein sequence
           #     :param pep_pos: Starting index of potential peptide
           #     :param pep_length: Length of potential peptide
