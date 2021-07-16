@@ -22,18 +22,25 @@ General:
 - Some documentation improvements to pyOpenMS https://pyopenms.readthedocs.io/en/latest/
 
 Adapters/Third-party support:
-- Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+- Added support for SIRIUS 4.9.0
 - Added basic Triqler export
-- ParamEditor with more convenient StringList editing  (#5135)
-- Removed InspectAdapter
-- Support for SIRIUS 4.9.0
 - Improved NOVOR support
 - Improved MSFragger support
+- Removed Inspect support
+- Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
 
 What's new:
 - Add some support for integrating spectral information when conducting DDA metabolomics experiments
 - SimpleSearchEngine and algorithm: Additional spectrum features for percolator added
 - FeatureFinderMetaboIdent: Targeted feature extraction is now also available from pyOpenMS
+
+New Tools:
+- OpenMSDatabasesInfo -- Prints the content of OpenMS' enzyme and modification databases to TSV (UTIL)
+- TriqlerConverter -- Converter to input for Triqler (UTIL)
+
+Removed Tools:
+- FeatureFinderSuperHirn -- Finds mass spectrometric features in mass spectra (TOPP)
+- InspectAdapter -- Annotates MS/MS spectra using Inspect (TOPP)
 
 Further fixes:
 - Support for GLPK 5.x (#5127)
@@ -59,7 +66,12 @@ GUI tools:
 - TOPPView: Dynamic detection of tools in TOPPView upon startup
 - TOPPView: Improved DIA data browsing
 - TOPPAS: add a `recent files` submenu
+- ParamEditor: with more convenient StringList editing
 - SwathWizard: Allow opening in TOPPView
+
+- STATUS CHANGED:
+  - ProteomicsLFQ was promoted to an official TOPP tool
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
