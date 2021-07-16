@@ -223,12 +223,12 @@ elseif(WIN32)
   endforeach()
 else()
     foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo)
-    	## copy the libs themselves, then their dependencies. At some point they
-        add_custom_command(
-            TARGET prepare_knime_payload_libs POST_BUILD
-	    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
-            COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
-	)
+		## copy the libs themselves, then their dependencies. At some point CMake just stopped doing it.
+		add_custom_command(
+			TARGET prepare_knime_payload_libs POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+			COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
+			)
     endforeach()
 endif()
 
