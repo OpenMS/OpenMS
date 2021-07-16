@@ -209,5 +209,5 @@ done \
     done | sort
 
 #cleanup
-#rm -rf ${TMP_DIR}
+rm -rf ${TMP_DIR}
 
