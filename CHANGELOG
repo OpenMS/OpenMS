@@ -19,6 +19,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 General:
 - OpenMS now expects a compiler that supports C17
 - Config storage path on linux changed to ~/.config/
+- Some documentation improvements to pyOpenMS https://pyopenms.readthedocs.io/en/latest/
 
 Adapters/Third-party support:
 - Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
