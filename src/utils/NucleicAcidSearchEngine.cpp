@@ -156,7 +156,7 @@ protected:
   bool resolve_ambiguous_mods_;
 
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));

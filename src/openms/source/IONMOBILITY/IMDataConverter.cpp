@@ -124,7 +124,7 @@ namespace OpenMS
     prototype.clear(false);
 
     // adds a new spectrum with drift time to `out`
-    auto addBinnedSpec = [&out, &im_frame, im_unit = im_unit, &prototype](double drift_time_avg) {
+    auto addBinnedSpec = [&out, im_unit = im_unit, &prototype](double drift_time_avg) {
       // keeps RT identical for all scans, since they are from the same IM-frame
       // keeps MSlevel
       out.addSpectrum(MSSpectrum(prototype));

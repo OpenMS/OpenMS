@@ -698,7 +698,7 @@ protected:
   {
     Size scan_size(candidates.size());
     typename ConstRefVector<MSSpectrum >::iterator iter;
-    typename MSSpectrum::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+    typename MSSpectrum::const_iterator iter_start, iter_end, seed_iter, iter2;
     double mz_cutoff, seed_mz, c_av_intens = 0, c_score = 0, c_sd_intens = 0, threshold = 0, help_mz, share, share_pos, bwd, fwd;
     UInt MZ_start, MZ_end;
 
