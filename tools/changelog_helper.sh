@@ -70,11 +70,11 @@ TMP_FILE_OLD=${TMP_DIR}/tool_list_old.txt
 TMP_FILE_NEW=${TMP_DIR}/tool_list_new.txt
 TMP_FILE_COMM=${TMP_DIR}/common_tools.txt
 
-# store relevant tool names in tmp files
+# store relevant tool names in tmp files (remove e.g., GUI tools)
 ls -la ${BIN_DIR_OLD}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$" \
     > ${TMP_FILE_OLD}
@@ -82,7 +82,7 @@ ls -la ${BIN_DIR_OLD}/ \
 ls -la ${BIN_DIR_NEW}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$"  \
     > ${TMP_FILE_NEW}
@@ -164,6 +164,7 @@ do
         # generate pseudo ini file
         ${BIN_DIR}/$t -write_ini - \
             | grep -v "name=\"version\"" \
+            | sed -E 's/0.0e00/0.0/' \
             | sed -E 's/description="[^"]*"|required="[^"]*"|advanced="[^"]*"//g' \
             | sed -E 's/restrictions="[^"]*pyrophospho[^"]*"/ restrictions="..."/' \
             | while read l
@@ -208,5 +209,5 @@ done \
     done | sort
 
 #cleanup
-rm -rf ${TMP_DIR}
+#rm -rf ${TMP_DIR}
 
