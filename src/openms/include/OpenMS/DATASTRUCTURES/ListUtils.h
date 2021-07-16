@@ -192,7 +192,7 @@ public:
     static bool contains(const std::vector<String>& container, String elem, const CASE cs)
     {
       if (cs == CASE::SENSITIVE) return contains(container, elem);
-      // case INsensitive ...
+      // case insensitive ...
       elem.toLower();
       return find_if(container.begin(), container.end(), [&elem](String ce) {
         return elem == ce.toLower();

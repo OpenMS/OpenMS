@@ -78,8 +78,8 @@ public:
     /// Supported types for DataValue
     enum UnitType : unsigned char
     { 
-      UNIT_ONTOLOGY, ///< unit.ontology UO:
-      MS_ONTOLOGY, ///< ms.ontology MS:
+      UNIT_ONTOLOGY, ///< unit.ontology UO
+      MS_ONTOLOGY, ///< ms.ontology MS
       OTHER ///< undefined ontology
     };
 
