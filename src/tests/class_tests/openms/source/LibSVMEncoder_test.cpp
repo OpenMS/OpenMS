@@ -135,8 +135,7 @@ START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pai
 	vector<vector< pair<Int, double> > > encoded_sequences;
 	vector<svm_node*> libsvm_sequences;
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
-	
+
 	sequences.push_back(String("ACCGGGTTTT"));			
 	sequences.push_back(String("ACCA"));			
 			
@@ -167,7 +166,6 @@ START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, d
 	String allowed_characters = "ACNGT";
 	vector< pair<Int, double> > encoded_sequence;
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
 	
 	sequences.push_back(String("ACCGGGTTTT"));			
 	sequences.push_back(String("ACCA"));			
@@ -193,7 +191,6 @@ START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > 
 	vector<vector< pair<Int, double> > > encoded_sequences;
 	vector<svm_node*> libsvm_sequences;
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
 	svm_problem* problem;
 	vector<double> labels;
 	
@@ -234,7 +231,6 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(c
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
 	svm_problem* problem;
 	vector<double> labels;
 	
@@ -276,7 +272,6 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVec
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
 	svm_problem* problem;
 	vector<double> labels;
 	
@@ -322,7 +317,6 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std:
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
 	svm_problem* problem;
 	vector<double> labels;
 	

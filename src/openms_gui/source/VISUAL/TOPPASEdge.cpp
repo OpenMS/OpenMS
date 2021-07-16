@@ -272,8 +272,6 @@ namespace OpenMS
 
   QPointF TOPPASEdge::endPos() const
   {
-    QPointF position;
-
     if (!to_)
     {
       // we do not have a target vertex yet
@@ -290,7 +288,6 @@ namespace OpenMS
   {
     if (!to_ || !from_) return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
 
-    QPointF position;
     const TOPPASVertex* to = (atTargetVertex ? to_ : from_);
     const TOPPASVertex* from = (!atTargetVertex ? to_ : from_);
 

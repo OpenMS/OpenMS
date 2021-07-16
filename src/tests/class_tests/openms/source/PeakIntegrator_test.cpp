@@ -438,7 +438,6 @@ START_SECTION(PeakArea integratePeak(
 {
   Param params = ptr->getParameters();
   PeakIntegrator::PeakArea pa;
-  MSChromatogram::ConstIterator it;
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
