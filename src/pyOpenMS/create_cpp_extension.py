@@ -223,5 +223,6 @@ with open("pyopenms/all_modules.py", "w") as fp:
 # create version information
 version = OPEN_MS_VERSION
 
+
 print("version=%r\n" % version, file=open("pyopenms/version.py", "w"))
 print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/qt_version_info.py", "w"))
