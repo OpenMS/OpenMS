@@ -70,9 +70,6 @@ GUI tools:
 - ParamEditor: with more convenient StringList editing
 - SwathWizard: Allow opening in TOPPView
 
-- STATUS CHANGED:
-  - ProteomicsLFQ was promoted to an official TOPP tool
-
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
