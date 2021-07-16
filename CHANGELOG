@@ -46,7 +46,7 @@ Removed Tools:
 
 Further fixes:
 - Support for GLPK 5.x (#5127)
-- IPF: add a check for terminal residue modification when generating theoretical peptidoforms
+- IPF (identification of peptidoforms): add a check for terminal residue modification when generating theoretical peptidoforms
 - Reduced build times on Windows
 - Reduced AddressSanitizer warnings
 
