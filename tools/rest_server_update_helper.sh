@@ -59,7 +59,7 @@ TMP_FILE_NEW=${TMP_DIR}/tool_list.txt
 ls -la ${BIN_DIR}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|Testing\|SwathWizard" \
     | grep -v -e "\.$" \
     | grep -v -e "^$"  \
     | while read i
