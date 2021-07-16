@@ -34,6 +34,7 @@ What's new:
 - SimpleSearchEngine and algorithm: Additional spectrum features for percolator added
 - FeatureFinderMetaboIdent: Targeted feature extraction is now also available from pyOpenMS
 - AssayGeneratorMetabo: Added SIRIUS 4.9.0 support, allowing internal decoy generation and added internal feature linking support
+- QCCalculator: export in mzQC file format is now available
 
 New Tools:
 - OpenMSDatabasesInfo -- Prints the content of OpenMS' enzyme and modification databases to TSV (UTIL)
