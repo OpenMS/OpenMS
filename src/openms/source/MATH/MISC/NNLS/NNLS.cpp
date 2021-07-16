@@ -44,11 +44,9 @@
 
 */
 
-namespace OpenMS
+namespace OpenMS::NNLS
 {
 
-  namespace NNLS
-  {
 
     /* start of original code (with modification as described above) */
 
@@ -820,6 +818,5 @@ L130:
       double x = (a >= 0 ? a : -a);
       return b >= 0 ? x : -x;
     }
-
-  } // namespace NNLS
-} // namespace OpenMS
+ 
+} // namespace OpenMS // namespace NNLS

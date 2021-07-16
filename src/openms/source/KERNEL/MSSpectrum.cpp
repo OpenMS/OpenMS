@@ -238,12 +238,18 @@ namespace OpenMS
       }
       else
       {
-        if (i == this->size() - 1) return -1; // we are at the last peak which is too far left
+        if (i == this->size() - 1)
+        {
+          return -1; // we are at the last peak which is too far left
+        }
         // Nearest peak is too far left so there can't be a closer peak in the left window.
         // There still might be a peak to the right of mz that falls in the right window
         ++i;  // now we are at a peak exactly on or to the right of mz
         const double next_mz = this->operator[](i).getMZ();
-        if (next_mz <= mz + tolerance_right) return i;
+        if (next_mz <= mz + tolerance_right) 
+        {
+          return i;
+        }
       }
     }
     else
@@ -254,10 +260,16 @@ namespace OpenMS
       }
       else
       {
-        if (i == 0) return -1; // we are at the first peak which is too far right
+        if (i == 0)
+        {
+          return -1; // we are at the first peak which is too far right
+        }
         --i;  // now we are at a peak exactly on or to the right of mz
         const double next_mz = this->operator[](i).getMZ();
-        if (next_mz >= mz - tolerance_left) return i;
+        if (next_mz >= mz - tolerance_left)
+        {
+          return i;
+        }
       }
     }
 
@@ -267,7 +279,10 @@ namespace OpenMS
 
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance) const
   {
-    if (ContainerType::empty()) return -1;
+    if (ContainerType::empty())
+    {
+      return -1;
+    }
     Size i = findNearest(mz);
     const double found_mz = this->operator[](i).getMZ();
     if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
@@ -288,10 +303,14 @@ namespace OpenMS
     // search for position for inserting
     ConstIterator it = MZBegin(mz);
     // border cases
-    if (it == ContainerType::begin()) return 0;
-
-    if (it == ContainerType::end()) return ContainerType::size() - 1;
-
+    if (it == ContainerType::begin())
+    {
+      return 0;
+    }
+    if (it == ContainerType::end())
+    {
+      return ContainerType::size() - 1;
+    }
     // the peak before or the current peak are closest
     ConstIterator it2 = it;
     --it2;
@@ -387,9 +406,14 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()))) return;
-    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess())) return;
-
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess())))
+    {
+      return;
+    }
+    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
+    {
+      return;
+    }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       if (reverse)

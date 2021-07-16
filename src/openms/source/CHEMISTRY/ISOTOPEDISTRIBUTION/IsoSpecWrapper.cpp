@@ -266,8 +266,7 @@ namespace OpenMS
         while (start < end)
         {
             // Partition part
-            size_t len = end - start;
-            size_t pivot = len/2 + start;
+            size_t pivot = start + (end-start)/2; // middle
             double pprob = distribution[pivot].getIntensity();
             std::swap(distribution[pivot], distribution[end-1]);
 

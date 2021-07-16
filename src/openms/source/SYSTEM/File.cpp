@@ -624,10 +624,14 @@ namespace OpenMS
     String filename;
     //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
     #ifdef __unix__
-      if(getenv("XDG_CONFIG_HOME"))
+      if (getenv("XDG_CONFIG_HOME"))
+      {
         filename = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+      }
       else
+      {
         filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
+      }
     #else
       filename = home_path + "/.OpenMS/OpenMS.ini";
     #endif

@@ -6,19 +6,32 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
     cdef cppclass EnzymaticDigestion "OpenMS::EnzymaticDigestion":
-        EnzymaticDigestion(EnzymaticDigestion) nogil except +
+        # wrap-doc:
+        #     Class for the enzymatic digestion of proteins
+        #     -----
+        #     Digestion can be performed using simple regular expressions, e.g. [KR] | [^P] for trypsin.
+        #     Also missed cleavages can be modeled, i.e. adjacent peptides are not cleaved
+        #     due to enzyme malfunction/access restrictions. If n missed cleavages are allowed, all possible resulting
+        #     peptides (cleaved and uncleaved) with up to n missed cleavages are returned.
+        #     Thus no random selection of just n specific missed cleavage sites is performed.
+
         EnzymaticDigestion() nogil except + # wrap-doc:Class for the enzymatic digestion of sequences
 
-        # const String NamesOfSpecificity[SIZE_OF_SPECIFICITY]
-        # const String UnspecificCleavage
+        EnzymaticDigestion(EnzymaticDigestion) nogil except +
 
         Size getMissedCleavages() nogil except + # wrap-doc:Returns the number of missed cleavages for the digestion
+
         void setMissedCleavages(Size missed_cleavages) nogil except + # wrap-doc:Sets the number of missed cleavages for the digestion (default is 0). This setting is ignored when log model is used
+
         String getEnzymeName() nogil except + # wrap-doc:Returns the enzyme for the digestion
+
         void setEnzyme(DigestionEnzyme* enzyme) nogil except + # wrap-doc:Sets the enzyme for the digestion
+
         Specificity getSpecificity() nogil except + # wrap-doc:Returns the specificity for the digestion
+
         void setSpecificity(Specificity spec) nogil except + # wrap-doc:Sets the specificity for the digestion (default is SPEC_FULL)
-        Specificity getSpecificityByName(const String& name) nogil except + # wrap-doc:Convert specificity string name to enum, returns SPEC_UNKNOWN if argument `name` is not valid
+
+        Specificity getSpecificityByName(String name) nogil except + # wrap-doc:Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid
 
         Size digestUnmodified(StringView sequence,
                               libcpp_vector[ StringView ]& output,
@@ -35,7 +48,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
             #   :param max_length: Maximal length of reported products (0 = no restriction)
             #   :returns: Number of discarded digestion products (which are not matching length restrictions)
 
-        bool isValidProduct(const String& sequence,
+        bool isValidProduct(String sequence,
                             int pos, int length,
                             bool ignore_missed_cleavages) nogil except + 
             # wrap-doc:
@@ -49,15 +62,14 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
             #   :param ignore_missed_cleavages: Do not compare MC's of potential peptide to the maximum allowed MC's
             #   :returns: True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
 
-        # bool filterByMissedCleavages(const String& sequence,
-        #                              std::function<bool(Int)> filter) nogil except +
-
-
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
     cdef enum Specificity "OpenMS::EnzymaticDigestion::Specificity":
-        #wrap-attach:
+        # wrap-attach:
         #    EnzymaticDigestion
-        CROSS
-        MONO
-        LOOP
-        NUMBER_OF_CROSS_LINK_TYPES
+        SPEC_NONE = 0, # wrap-doc:No requirements on start / end
+        SPEC_SEMI = 1, # wrap-doc:Semi specific, i.e., one of the two cleavage sites must fulfill requirements
+        SPEC_FULL = 2, # warp-doc:Fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+        SPEC_UNKNOWN = 3
+        SPEC_NOCTERM = 8, # wrap-doc:No requirements on CTerm (currently not supported in the class)
+        SPEC_NONTERM = 9, # wrap-doc:No requirements on NTerm (currently not supported in the class)
+        SIZE_OF_SPECIFICITY = 10
