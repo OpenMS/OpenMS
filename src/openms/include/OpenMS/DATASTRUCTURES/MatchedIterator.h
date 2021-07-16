@@ -50,7 +50,7 @@ namespace OpenMS
     This class can be used for example to iterate through the matching peaks in two spectra (e.g. experimental spectrum and reference spectrum) that are 
     within a given tolerance (in m/z, RT, or something user-defined).
 
-    The iterator always choses the closest matching peak in the target container, if more than one candidate is found in the
+    The iterator always chooses the closest matching peak in the target container, if more than one candidate is found in the
     match-window. If two peaks have equal distance, the smaller value is preferred.
     If no peak is found within the given tolerance (distance), the reference peak does not yield a result and the next reference peak is tested.
     This means the operator++ can be called at most(!) ref.size()-1 times before it == is.end().

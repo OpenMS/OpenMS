@@ -65,7 +65,7 @@ namespace OpenMS
         static unsigned precision(T /*n*/) 
         {
             /* The following would be the only way for a lossless double-string-double
-            * rountrip but:
+            * roundtrip but:
             * a) We only care about speed
             * b) Many tests have to be changed
             * c) In the end boost::karma is bugged and hard limits the fractional digits

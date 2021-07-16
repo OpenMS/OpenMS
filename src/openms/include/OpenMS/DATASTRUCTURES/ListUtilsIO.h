@@ -59,7 +59,7 @@ namespace OpenMS
     if (!v.empty())
     {
       for (auto it = v.begin(); it < v.end() - 1; ++it)
-      { // convert to String manually, since this is much faster than ostreams build-in conversion; 
+      { // convert to String manually, since this is much faster than ostream build-in conversion; 
         // If T is a String, the compiler will (hopefully) elide the copy
         os << String(*it) << ", ";
       }

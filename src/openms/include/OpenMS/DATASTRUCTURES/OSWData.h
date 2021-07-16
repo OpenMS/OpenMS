@@ -197,7 +197,7 @@ namespace OpenMS
     /**
       @brief A peptide with a charge state
 
-      An OSWProtein has one or more OSWPeptidePrecursor's.
+      An OSWProtein has one or more OSWPeptidePrecursors.
 
       The OSWPeptidePrecursor contains multiple candidate features (peak groups) of type OSWPeakGroup, only one of which is usually true.
 

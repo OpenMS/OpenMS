@@ -340,7 +340,7 @@ public:
       return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
     }
 
-    /// Sort by a user-definded property
+    /// Sort by a user-defined property
     /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
     /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
     /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)

@@ -561,7 +561,7 @@ public:
     /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a peptideID?
+    /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
 
   protected:
