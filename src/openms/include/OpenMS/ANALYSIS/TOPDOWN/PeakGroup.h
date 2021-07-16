@@ -73,51 +73,51 @@ namespace OpenMS
     ~PeakGroup();
 
     /// copy constructor
-    PeakGroup(const PeakGroup& ) = default;
+    PeakGroup(const PeakGroup &) = default;
 
     /// move constructor
-    PeakGroup(PeakGroup&& other) = default;
+    PeakGroup(PeakGroup &&other) = default;
 
     /// clear per charge vectors to save memory
     void clearChargeInfo();
 
     /// comparison operators
-    bool operator<(const PeakGroup& a) const;
+    bool operator<(const PeakGroup &a) const;
 
-    bool operator>(const PeakGroup& a) const;
+    bool operator>(const PeakGroup &a) const;
 
-    bool operator==(const PeakGroup& a) const;
+    bool operator==(const PeakGroup &a) const;
 
     /// assignment operator
     PeakGroup &operator=(const PeakGroup &t) = default;
 
-      /**
-             @brief add monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
-             @param offset isotope index offset
-             @param max_isotope_index max isotopic index
-        */
-      void updateMassesAndIntensity(const int offset = 0,
-                                    const int max_isotope_index = 0);
+    /**
+           @brief add monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
+           @param offset isotope index offset
+           @param max_isotope_index max isotopic index
+      */
+    void updateMassesAndIntensity(const int offset = 0,
+                                  const int max_isotope_index = 0);
 
-      void updateSNR();
+    void updateSNR();
 
-      /// set scan number
-      void setScanNumber(const int scan_number);
+    /// set scan number
+    void setScanNumber(const int scan_number);
 
-      /// set per abs_charge total peak power
-      void setChargePower(const int abs_charge, const double pwr);
+    /// set per abs_charge total peak power
+    void setChargePower(const int abs_charge, const double pwr);
 
-      /// set per abs_charge signal power
-      void setChargeSignalPower(const int abs_charge, const double pwr);
+    /// set per abs_charge signal power
+    void setChargeSignalPower(const int abs_charge, const double pwr);
 
-      /// set per abs_charge isotope cosine
-      void setChargeIsotopeCosine(const int abs_charge, const float cos);
+    /// set per abs_charge isotope cosine
+    void setChargeIsotopeCosine(const int abs_charge, const float cos);
 
-      /// set per abs_charge intensity
-      void setChargeIntensity(const int abs_charge, const float intensity);
+    /// set per abs_charge intensity
+    void setChargeIntensity(const int abs_charge, const float intensity);
 
-      /// set mz range that results in max Qscore
-      void setMaxQScoreMzRange(const double min, const double max);
+    /// set mz range that results in max Qscore
+    void setMaxQScoreMzRange(const double min, const double max);
 
     /// set min_abs_charge and max_abs_charge charge range
     void setAbsChargeRange(const int min_abs_charge, const int max_abs_charge);
@@ -131,84 +131,84 @@ namespace OpenMS
     /// set Q score
     void setQScore(const float qscore);
 
-      /// set charge score
-      void setChargeScore(const float charge_score);
+    /// set charge score
+    void setChargeScore(const float charge_score);
 
-      /// get average mass ppm error;
-      void setAvgPPMError(const float error);
+    /// get average mass ppm error;
+    void setAvgPPMError(const float error);
 
-      /// set color of the peak group; only for FLASHIda
-      void setColor(const char color);
+    /// set color of the peak group; only for FLASHIda
+    void setColor(const char color);
 
-      void setSNR(const float snr);
+    void setSNR(const float snr);
 
-      void setChargeSNR(const int abs_charge, const float c_snr);
+    void setChargeSNR(const int abs_charge, const float c_snr);
 
-      /// get scan number
-      int getScanNumber() const;
+    /// get scan number
+    int getScanNumber() const;
 
-      /// get monoisotoopic mass
-      double getMonoMass() const;
+    /// get monoisotoopic mass
+    double getMonoMass() const;
 
-      /// get intensity
-      double getIntensity() const;
+    /// get intensity
+    double getIntensity() const;
 
-      /// get per abs_charge SNR
-      float getChargeSNR(const int abs_charge) const;
+    /// get per abs_charge SNR
+    float getChargeSNR(const int abs_charge) const;
 
-      /// get per abs_charge isotope cosine
-      float getChargeIsotopeCosine(const int abs_charge) const;
+    /// get per abs_charge isotope cosine
+    float getChargeIsotopeCosine(const int abs_charge) const;
 
-      /// get per abs_charge intenstiy
-      float getChargeIntensity(const int abs_charge) const;
+    /// get per abs_charge intenstiy
+    float getChargeIntensity(const int abs_charge) const;
 
-      /// get mz range that results in max Qscore
-      std::tuple<double, double> getMaxQScoreMzRange() const;
+    /// get mz range that results in max Qscore
+    std::tuple<double, double> getMaxQScoreMzRange() const;
 
-      /// get mz range of the charge
-      std::tuple<double, double> getMzRange(int abs_charge) const;
+    /// get mz range of the charge
+    std::tuple<double, double> getMzRange(int abs_charge) const;
 
-      /// get charge range
-      std::tuple<int, int> getAbsChargeRange() const;
+    /// get charge range
+    std::tuple<int, int> getAbsChargeRange() const;
 
-      /// get isotopic cosine score
-      float getIsotopeCosine() const;
+    /// get isotopic cosine score
+    float getIsotopeCosine() const;
 
-      /// get representative chrage
-      int getRepAbsCharge() const;
+    /// get representative chrage
+    int getRepAbsCharge() const;
 
-      /// get Q score
-      float getQScore() const;
+    /// get Q score
+    float getQScore() const;
 
-      /// get total SNR
-      float getSNR() const;
+    /// get total SNR
+    float getSNR() const;
 
-      /// get charge score
-      float getChargeScore() const;
+    /// get charge score
+    float getChargeScore() const;
 
     /// get average mass ppm error;
     float getAvgPPMError() const;
 
-      /// get if it is positive mode
-      bool isPositive() const;
+    /// get if it is positive mode
+    bool isPositive() const;
 
-      /// get color of the peak group; only for FLASHIda
-      char getColor() const;
+    /// get color of the peak group; only for FLASHIda
+    char getColor() const;
 
   private:
-      /// per charge SNR, isotope cosine, and intensity vectors
-      std::vector<float> per_charge_signal_pwr_;
-      std::vector<float> per_charge_pwr_;
-      std::vector<float> per_charge_cos_;
-      std::vector<float> per_charge_int_;
-      std::vector<float> per_charge_snr_;
-      /// mz range resulting in maximum Q score
-      double max_qscore_mz_end_, max_qscore_mz_start_;
-      /// charge range
-      int min_abs_charge_ = 0, max_abs_charge_ = -1;
-      /// scan number
-      int scan_number_;
-      /// is positive or not
+    /// per charge SNR, isotope cosine, and intensity vectors
+    std::vector<float> per_charge_signal_pwr_;
+    std::vector<float> per_charge_pwr_;
+    std::vector<float> per_charge_cos_;
+    std::vector<float> per_charge_int_;
+    std::vector<float> per_charge_snr_;
+    /// mz range resulting in maximum Q score
+    double max_qscore_mz_end_, max_qscore_mz_start_;
+    /// charge range
+    int min_abs_charge_ = 0, max_abs_charge_ = -1;
+    /// scan number
+    int scan_number_;
+    /// is positive or not
     bool is_positive_;
 
     /// information on the deconvouted mass
@@ -220,8 +220,8 @@ namespace OpenMS
     float isotope_cosine_score_;
     float charge_score_;
     float qscore_;
-      float avg_ppm_error_;
-      float snr_;
+    float avg_ppm_error_;
+    float snr_;
 
     /// for FLASHIda
     char color_;

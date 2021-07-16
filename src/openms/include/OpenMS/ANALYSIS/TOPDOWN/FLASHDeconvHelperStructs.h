@@ -54,28 +54,28 @@ namespace OpenMS
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
-        /// isotope distributions for different (binned) masses
-        std::vector<IsotopeDistribution> isotopes_;
-        /// L2 norms_ for masses
-        std::vector<double> norms_;
-        /// mass differences between average mass and monoisotopic mass
-        std::vector<double> average_mono_mass_difference_;
-        /// Isotope start indices: isotopes of the indices less than them have very low intensities
-        std::vector<Size> left_count_from_apex_;
-        /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-        std::vector<Size> right_count_from_apex_;
-        /// most abundant isotope index
-        std::vector<Size> apex_index_;
+      /// isotope distributions for different (binned) masses
+      std::vector<IsotopeDistribution> isotopes_;
+      /// L2 norms_ for masses
+      std::vector<double> norms_;
+      /// mass differences between average mass and monoisotopic mass
+      std::vector<double> average_mono_mass_difference_;
+      /// Isotope start indices: isotopes of the indices less than them have very low intensities
+      std::vector<int> left_count_from_apex_;
+      /// Isotope end indices: isotopes of the indices larger than them have very low intensities
+      std::vector<int> right_count_from_apex_;
+      /// most abundant isotope index
+      std::vector<Size> apex_index_;
 
-        /// max isotope index
-        Size max_isotope_index_;
-        /// mass interval for calculation
-        double mass_interval_;
-        /// min mass for calculation
-        double min_mass_;
+      /// max isotope index
+      Size max_isotope_index_;
+      /// mass interval for calculation
+      double mass_interval_;
+      /// min mass for calculation
+      double min_mass_;
     public:
-        /// default constructor
-        PrecalculatedAveragine() = default;
+      /// default constructor
+      PrecalculatedAveragine() = default;
 
       /**
        @brief constructor with parameters such as mass ranges and bin size.
@@ -100,20 +100,20 @@ namespace OpenMS
       /// get max isotope index
       void setMaxIsotopeIndex(const int index);
 
-        /// get norm
-        //double getNorm(const double mass) const;
+      /// get norm
+      //double getNorm(const double mass) const;
 
-        /// get isotope start index
-        Size getLeftCountFromApex(const double mass) const;
+      /// get isotope start index
+      Size getLeftCountFromApex(const double mass) const;
 
-        /// get isotope end index
-        Size getRightCountFromApex(const double mass) const;
+      /// get isotope end index
+      Size getRightCountFromApex(const double mass) const;
 
-        Size getApexIndex(const double mass) const;
+      Size getApexIndex(const double mass) const;
 
 
-        /// get mass difference between avg and mono masses
-        double getAverageMassDelta(const double mass) const;
+      /// get mass difference between avg and mono masses
+      double getAverageMassDelta(const double mass) const;
 
     };
 
@@ -140,7 +140,7 @@ namespace OpenMS
       int last_residue_;
       //std::vector<int> mod_first_;
       //  std::vector<int> mod_last_;
-        std::vector<double> unexp_mod_;
+      std::vector<double> unexp_mod_;
       int matched_peaks_;
       int matched_frags_;
       double e_value_;
@@ -148,11 +148,11 @@ namespace OpenMS
       double proteofrom_q_value_;
       double intensity_;
 
-    bool operator<(const TopPicItem& a) const;
+      bool operator<(const TopPicItem &a) const;
 
-    bool operator>(const TopPicItem& a) const;
+      bool operator>(const TopPicItem &a) const;
 
-    bool operator==(const TopPicItem& other) const;
+      bool operator==(const TopPicItem &other) const;
 
     };
 
@@ -183,10 +183,10 @@ namespace OpenMS
                @brief constructor from Peak1D.
               @param positive determines the charge carrier mass
         */
-      explicit LogMzPeak(const Peak1D& peak, const bool positive);
+      explicit LogMzPeak(const Peak1D &peak, const bool positive);
 
       /// copy constructor
-      LogMzPeak(const LogMzPeak& ) = default;
+      LogMzPeak(const LogMzPeak &) = default;
 
       /// destructor
       ~LogMzPeak() = default;
@@ -194,11 +194,11 @@ namespace OpenMS
       /// get uncharged mass of this peak. It is NOT monoisotopic mass. Valid only when charge is set
       double getUnchargedMass();
 
-      bool operator<(const LogMzPeak& a) const;
+      bool operator<(const LogMzPeak &a) const;
 
-      bool operator>(const LogMzPeak& a) const;
+      bool operator>(const LogMzPeak &a) const;
 
-      bool operator==(const LogMzPeak& other) const;
+      bool operator==(const LogMzPeak &other) const;
 
     };
 

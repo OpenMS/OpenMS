@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,36 +65,33 @@ namespace OpenMS
     ~FLASHDeconvAlgorithm() override;
 
     /// copy constructor
-    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
+    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &&other) = default;
 
     /// assignment operator
-    FLASHDeconvAlgorithm& operator= (const FLASHDeconvAlgorithm& fd);
+    FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
 
     /**
       @brief main deconvolution function that generates the deconvoluted spectrum from the original spectrum.
       @param spec the original spectrum
-      @param triggeredPeaks peaks that are triggered in this spectrum.
-      @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum
+      @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum.
       @param scan_number scan number can be retrieved from the spectrum in most cases.
       But this parameter is put for real time deconvolution where scan number may be put separately.
-      @precursor_map_for_real_time_acquisition
+      @param precursor_map_for_FLASHIda deconvoluted precursor information from FLASHIda
       @return the deconvoluted spectrum (as DeconvolutedSpectrum class)
  */
     DeconvolutedSpectrum &getDeconvolutedSpectrum(const MSSpectrum &spec,
-                                                  const std::vector<Precursor> &triggeredPeaks,
                                                   const std::vector<DeconvolutedSpectrum> &survey_scans,
                                                   const int scan_number,
-                                                  const int max_survey_cntr,
-                                                  const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
+                                                  const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_FLASHIda);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();
 
 
-    void setTargetMasses(const std::set<double>& masses, int ms_level);
+    void setTargetMasses(const std::set<double> &masses, int ms_level);
 
     /** @brief precalculate averagine (for predifined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calcualted
@@ -107,19 +104,21 @@ namespace OpenMS
     /** Examine charge intensity distribution of each peak group
         @per_charge_intensity per charge intensity - aggregated through isotope indices
         @charge_range max charge range (current_max_charge_ - minCharge)
+        @return calculated charge fit score (0 - 1)
      */
-    static double getChargeFitScore(const std::vector<double>& per_charge_intensity, const int charge_range);
+    static double getChargeFitScore(const std::vector<double> &per_charge_intensity, const int charge_range);
 
     /** @brief Examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-        @param mass monoisotopic mono_mass
-        @param perIsotopeIntensities per isotope intensity - aggregated through charges
+        @param mono_mass monoisotopic mass
+        @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
+        @return calculated cosine similar score
      */
     static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
-                                                           const std::vector<double>& per_isotope_intensities,
-                                                           int& offset,
-                                                           const PrecalculatedAveragine& avg);
+                                                           const std::vector<double> &per_isotope_intensities,
+                                                           int &offset,
+                                                           const PrecalculatedAveragine &avg);
 
 
   protected:
@@ -146,45 +145,42 @@ namespace OpenMS
     int current_max_charge_;
     /// max mass is controlled by precursor mass for MSn n>1; otherwise just max_mass
     double current_max_mass_;
+    /// max mass is max_mass for MS1 and 50 for MS2
+    double current_min_mass_;
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
-    /// minimum qscore : 1/(1+exp(-qscore)) = prob that the mass is correct
-    double min_qscore_;
     /// minimum number of peaks supporting a mass
     IntList min_support_peak_count_;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
     DoubleList bin_width_;
-      /// cosine threshold between observed and theoretical isotope patterns for each MS level
-      DoubleList min_isotope_cosine_;
-      /// max mass count per spectrum for each MS level
-      IntList max_mass_count_;
-      /// number of min mass per spec
-      IntList min_mass_count_;
+    /// cosine threshold between observed and theoretical isotope patterns for each MS level
+    DoubleList min_isotope_cosine_;
+    /// max mass count per spectrum for each MS level
+    IntList max_mass_count_;
 
-      /// precalculated averagine distributions for fast averagine generation
-      FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
-      /// The data structures for spectra overlapping.
-      std::unordered_map<int, std::vector<std::vector<Size>>> prev_mass_bins_; // nominal mass -> mass bins
-      std::unordered_map<int, std::vector<double>> prev_rts_; // nominal mass -> rts
+    /// precalculated averagine distributions for fast averagine generation
+    FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
+    /// The data structures for spectra overlapping.
+    std::unordered_map<int, std::vector<std::vector<Size>>> prev_mass_bins_; // nominal mass -> mass bins
+    std::unordered_map<int, std::vector<double>> prev_rts_; // nominal mass -> rts
 
+    /// mass bins that are targeted for FLASHIda global targeting mode
+    std::vector<Size> target_mass_bins_;
 
-
-      std::vector<Size> target_mass_bins_;
-
-      /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-      const std::vector<int> harmonic_charges_{2, 3, 5};
-      /// Stores log mz peaks
-      std::vector<LogMzPeak> log_mz_peaks_;
-      /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
-      DeconvolutedSpectrum deconvoluted_spectrum_;
+    /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
+    const std::vector<int> harmonic_charges_{2, 3, 5};
+    /// Stores log mz peaks
+    std::vector<LogMzPeak> log_mz_peaks_;
+    /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
+    DeconvolutedSpectrum deconvoluted_spectrum_;
 
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
-    /// mz_bins_for_edge_effect_ stores the bins to consider edge effect of log mz peak binning
+    /// mz_bins_for_edge_effect_ stores the binned log mz peaks, considering edge effect
     boost::dynamic_bitset<> mz_bins_for_edge_effect_;
 
     /// This stores the "universal pattern"
@@ -192,38 +188,44 @@ namespace OpenMS
     /// This stores the patterns for harmonic reduction
     Matrix<double> harmonic_filter_matrix_;
 
-    /// This stores the "universal pattern" in binned dimenstion
+    /// This stores the "universal pattern" in binned dimension
     std::vector<int> bin_offsets_;
-      /// This stores the patterns for harmonic reduction in binned dimenstion
-      Matrix<int> harmonic_bin_offset_matrix_;
+    /// This stores the patterns for harmonic reduction in binned dimension
+    Matrix<int> harmonic_bin_offset_matrix_;
 
-      /// minimum mass and mz values representing the first bin of massBin and mzBin, respectively: to save memory space
-      double mass_bin_min_value_;
-      double mz_bin_min_value_;
+    /// minimum mass and mz values representing the first bin of massBin and mzBin, respectively: to save memory space
+    double mass_bin_min_value_;
+    double mz_bin_min_value_;
 
-      /// current ms Level
-      int ms_level_;
+    /// current ms Level
+    int ms_level_;
 
-      const int low_charge_ = 10; // inclusive
+    /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
+    const int low_charge_ = 8; // inclusive
 
+    /** @brief static function that converts bin to value
+        @param bin bin number
+        @param min_value minimum value (corresponding to bin number = 0)
+        @param bin_width bin width
+        @return value corresponding to bin
+     */
+    static double getBinValue_(const Size bin, const double min_value, const double bin_width);
 
-      std::set<double> triggeredMzs;
-
-
-      void setTriggeredMzs_(const std::vector<Precursor> &triggeredPeaks);
-
-      ///static fucntion that converts bin to value
-      static double getBinValue_(const Size bin, const double min_value, const double bin_width);
-
-    ///static function that converts value to bin
+    /** @brief static function that converts value to bin
+        @param value value
+        @param min_value minimum value (corresponding to bin number = 0)
+        @param bin_width bin width
+        @return bin corresponding to value
+     */
     static Size getBinNumber_(const double value, const double min_value, const double bin_width);
 
+    ///static function that retruns average PPM error of the input peak group
     static float getAvgPPMError_(PeakGroup pg);
 
     ///generate log mz peaks from the input spectrum
     void updateLogMzPeaks_(const MSSpectrum *spec);
 
-    /** @brief Generate mz bins and intensity per mz bin from log mz peaks
+    /** @brief generate mz bins and intensity per mz bin from log mz peaks
         @param bin_number number of mz bins
         @param mz_bin_intensities intensity per mz bin
      */
@@ -239,26 +241,26 @@ namespace OpenMS
         @param mz_intensities per mz bin intensity
         @return a matrix containing charge ranges for all found masses
      */
-    Matrix<int> updateMassBins_(const std::vector<float>& mz_intensities);
+    Matrix<int> updateMassBins_(const std::vector<float> &mz_intensities);
 
     /** @brief Subfunction of updateMassBins_.
         @param mass_intensities per mass bin intensity
         @return a matrix containing charge ranges for all found masses
      */
-    Matrix<int> filterMassBins_(const std::vector<float>& mass_intensities);
+    Matrix<int> filterMassBins_(const std::vector<float> &mass_intensities);
 
     /** @brief Subfunction of updateMassBins_. It select candidate masses and update mass_bins_ using the universal pattern, eliminate possible harmonic masses
         @param mass_intensitites mass bin intensities which are updated in te function
         @param mz_intensities mz bin intensities
      */
-    void updateCandidateMassBins_(std::vector<float>& mass_intensitites, const std::vector<float>& mz_intensities);
+    void updateCandidateMassBins_(std::vector<float> &mass_intensitites, const std::vector<float> &mz_intensities);
 
     /** @brief For selected masses in mass_bins_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
         @param per_mass_abs_charge_ranges charge range per mass
      */
     void getCandidatePeakGroups_(const Matrix<int> &per_mass_abs_charge_ranges);
 
-    /// Make the universal pattern..
+    /// Make the universal pattern.
     void setFilters_();
 
     /// function for peak group scoring and filtering
@@ -267,14 +269,6 @@ namespace OpenMS
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);
 
-    void removeOverlappingPeakGroupsWithNominalMass_();
-
-    /// filter out possible harmonics
-    void removeHarmonicPeakGroups_(const double tol);
-
-    /// test function to assign a peak to a single mass
-    void reassignPeaksinPeakGroups_();
-
     /**@brief Calculate per charge and per isotope intensites from peak groups
      * @param per_isotope_intensity per isotope intensities being calculated
      * @param per_charge_intensity per charge intensities being calculated
@@ -282,21 +276,16 @@ namespace OpenMS
      * @param pg peak group
      */
     std::vector<int> calculatePerChargeIsotopeIntensity_(
-        std::vector<double>& per_isotope_intensity,
-        std::vector<double>& per_charge_intensity,
+        std::vector<double> &per_isotope_intensity,
+        std::vector<double> &per_charge_intensity,
         const int max_isotope_count,
-        PeakGroup& pg);
+        PeakGroup &pg);
 
     ///Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
     void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);
 
-    ///Filter out masses with low QScores, only retaining current_max_mass_count masses
-    void filterPeakGroupsByQScore_(const int current_max_mass_count);
-
-    ///For MS1, check intensity ratio between charges.
+    ///Check intensity ratio between charges.
     bool checkChargeDistribution_(const std::vector<double> &per_charge_intensity);
-
-    double getChargeFitScore_(std::vector<double> &per_charge_intensity, int charge_range);
 
     /** calculate cosine between two vectors a and b with index offset off
      * @param a vector a
@@ -312,7 +301,6 @@ namespace OpenMS
      * @param a_end non zero end index of a
      * @param b vector b
      * @param b_size size of b
-     * @param b_norm precalculated L2 norm of b
      * @param offset element index offset between a and b
      */
     static double getCosine_(const std::vector<double> &a,
@@ -322,14 +310,22 @@ namespace OpenMS
                              const int &b_size,
                              const int offset);
 
-
-      static double getShapeDiff_(const std::vector<double> &a,
-                                  const int &a_start,
-                                  const int &a_end,
-                                  const IsotopeDistribution &b,
-                                  const int &b_size,
-                                  const int max_b_index,
-                                  const int offset);
+    /** calculate difference between two vectors a and b with additional parameters for fast calculation
+     * @param a vector a
+     * @param a_start non zero start index of a
+     * @param a_end non zero end index of a
+     * @param b vector b
+     * @param b_size size of b
+     * @param max_offset maximum absolute offset value
+     * @param offset element index offset between a and b
+     */
+    static double getShapeDiff_(const std::vector<double> &a,
+                                const int &a_start,
+                                const int &a_end,
+                                const IsotopeDistribution &b,
+                                const int &b_size,
+                                const int max_offset,
+                                const int offset);
 
   };
 }

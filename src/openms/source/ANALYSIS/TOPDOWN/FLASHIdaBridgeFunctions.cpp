@@ -52,11 +52,13 @@ namespace OpenMS
   }
 
   int
-  GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name) {
-      if (pObject != nullptr) {
-          return pObject->getPeakGroups(mzs, ints, length, rt_min * 60.0, msLevel, name);
-      }
-      return 0;
+  GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name)
+  {
+    if (pObject != nullptr)
+    {
+      return pObject->getPeakGroups(mzs, ints, length, rt_min * 60.0, msLevel, name);
+    }
+    return 0;
   }
 
   void GetIsolationWindows(FLASHIda *pObject,

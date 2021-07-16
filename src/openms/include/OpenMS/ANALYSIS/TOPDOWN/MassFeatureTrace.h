@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,48 +59,52 @@ namespace OpenMS
     /// constructor
     MassFeatureTrace();
 
-    /// default destructor
+    /// destructor
     ~MassFeatureTrace() override;
 
     /// copy constructor
-    MassFeatureTrace(const MassFeatureTrace& ) = default;
+    MassFeatureTrace(const MassFeatureTrace &) = default;
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace&& other) = default;
+    MassFeatureTrace(MassFeatureTrace &&other) = default;
 
     /// assignment operator
-    MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
+    MassFeatureTrace &operator=(const MassFeatureTrace &fd) = default;
 
-    /// Obtain information from deconvoluted_spectrum per (necessary information for mass tracing afterwards)
-    void storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum);
+    /// Obtain and store information from deconvoluted_spectrum (necessary information for mass tracing afterwards)
+    void storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum &deconvoluted_spectrum);
 
     /**
        @brief Find features and write features in output files. Probably seprate the writing part soon.
        @param file_name input spectrum file name
        @param promex_out whether promex format output should be generated
+       @param topfd_feature_out
+       @param precursor_peak_groups
        @param feature_cntr total number of features, updated in this function
        @param feature_index index to features, updated in this function
        @param fsf file stream for regular output
        @param fsp file stream for promex output
+       @param fst
        @param averagine precalculated averagine for cosine calculation
        */
-    void findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
+    void findFeatures(const String &file_name, const bool promex_out, const bool topfd_feature_out,
                       const std::unordered_map<int, PeakGroup> &precursor_peak_groups,
-                      int& feature_cntr,
-                      int& feature_index,
-                      std::fstream& fsf,
-                      std::fstream& fsp,
-                      std::vector<std::fstream>& fst,
-                      const PrecalculatedAveragine& averagine);
+                      int &feature_cntr,
+                      int &feature_index,
+                      std::fstream &fsf,
+                      std::fstream &fsp,
+                      std::vector<std::fstream> &fst,
+                      const PrecalculatedAveragine &averagine);
 
     /// write header line for regular file output
-    static void writeHeader(std::fstream& fs);
+    static void writeHeader(std::fstream &fs);
 
     /// write header lien for promex file output
-    static void writePromexHeader(std::fstream& fs);
+    static void writePromexHeader(std::fstream &fs);
 
     ///
-    static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
+    static void writeTopFDFeatureHeader(std::vector<std::fstream> &fs);
+
   protected:
     void updateMembers_() override;
 

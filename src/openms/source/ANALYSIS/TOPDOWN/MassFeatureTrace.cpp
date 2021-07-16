@@ -73,7 +73,7 @@ namespace OpenMS
 
   MassFeatureTrace::~MassFeatureTrace()
   {
-    for (auto& item : peak_group_map_)
+    for (auto &item : peak_group_map_)
     {
       std::unordered_map<double, PeakGroup>().swap(item.second);
     }
@@ -81,14 +81,14 @@ namespace OpenMS
   }
 
 
-  void MassFeatureTrace::findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
+  void MassFeatureTrace::findFeatures(const String &file_name, const bool promex_out, const bool topfd_feature_out,
                                       const std::unordered_map<int, PeakGroup> &precursor_peak_groups,
-                                      int& feature_cntr,
-                                      int& feature_index,
-                                      std::fstream& fsf,
-                                      std::fstream& fsp,
-                                      std::vector<std::fstream>& fst,
-                                      const PrecalculatedAveragine& averagine)
+                                      int &feature_cntr,
+                                      int &feature_index,
+                                      std::fstream &fsf,
+                                      std::fstream &fsp,
+                                      std::vector<std::fstream> &fst,
+                                      const PrecalculatedAveragine &averagine)
   {
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;
@@ -113,7 +113,6 @@ namespace OpenMS
       }
       map.addSpectrum(deconv_spec);
     }
-
     if (map.size() < 3)
     {
       return;
@@ -131,30 +130,30 @@ namespace OpenMS
 
     int charge_range = max_abs_charge - min_abs_charge + 1;
 
-    for (auto& mt : m_traces)
+    for (auto &mt : m_traces)
     {
-        double max_qscore = .0;
-        int min_feature_abs_charge = INT_MAX; // min feature charge
-        int max_feature_abs_charge = INT_MIN; // max feature charge
+      double max_qscore = .0;
+      int min_feature_abs_charge = INT_MAX; // min feature charge
+      int max_feature_abs_charge = INT_MIN; // max feature charge
 
-        //int minFIso = INT_MAX; // min feature isotope index
-        //int maxFIso = INT_MIN; // max feature isotope index
+      //int minFIso = INT_MAX; // min feature isotope index
+      //int maxFIso = INT_MIN; // max feature isotope index
 
-        auto per_charge_intensity = std::vector<double>(charge_range + 1, .0);
-        auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
-        auto per_charge_mz = std::vector<double>(charge_range + 1, .0);
-        auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
+      auto per_charge_intensity = std::vector<double>(charge_range + 1, .0);
+      auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
+      auto per_charge_mz = std::vector<double>(charge_range + 1, .0);
+      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
 
-        int min_scan_num = (int) map.size() + 1000;
-        int max_scan_num = 0;
+      int min_scan_num = (int) map.size() + 1000;
+      int max_scan_num = 0;
 
-        int rep_scan = 0, rep_charge = 0;
-        double max_intensity = 0;
-        double max_mass = .0;
-        double max_iso = 0;
-        boost::dynamic_bitset<> charges(charge_range + 1);
+      int rep_scan = 0, rep_charge = 0;
+      double max_intensity = 0;
+      double max_mass = .0;
+      double max_iso = 0;
+      boost::dynamic_bitset<> charges(charge_range + 1);
 
-      for (auto& p2 : mt)
+      for (auto &p2 : mt)
       {
         auto &pg_map = peak_group_map_[p2.getRT()];
         auto &pg = pg_map[p2.getMZ()];
@@ -182,7 +181,7 @@ namespace OpenMS
           max_mass = pg.getMonoMass();
         }
 
-        for (auto& p : pg)
+        for (auto &p : pg)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
               p.abs_charge >= charge_range + min_abs_charge + 1)
@@ -228,7 +227,7 @@ namespace OpenMS
 
       double sum_intensity = .0;
 
-      for (auto& p : mt)
+      for (auto &p : mt)
       {
         sum_intensity += p.getIntensity();
       }
@@ -337,124 +336,143 @@ namespace OpenMS
     }
 
 
+    if (topfd_feature_out)
+    {
+      std::set<int> selected_traces_indices;
 
-      if(topfd_feature_out){
-          std::set<int> selected_traces_indices;
-
-          for(auto& precursor: precursor_peak_groups){
-              int ms1_scan_number = precursor.second.getScanNumber();
-              int ms2_scan_number = precursor.first;
-              auto rt = scan_rt_map[ms2_scan_number];
-              bool selected = false;
-              MassTrace smt;
-              double max_intensity = .0;
-              int selected_index = -1;
-              for(int l=0; l< m_traces.size(); l++){
-                  auto mt = m_traces[l];
-                if(abs(precursor.second.getMonoMass() - mt.getCentroidMZ()) > 1.5){
-                    continue;
-                }
-                if(rt < mt.begin()->getRT() || rt > mt.rbegin()->getRT()){
-                    continue;
-                }
-
-                  double sum_intensity = .0;
-
-                  for (auto& p : mt)
-                  {
-                      sum_intensity += p.getIntensity();
-                  }
-
-                    if(max_intensity < sum_intensity) {
-                        max_intensity = sum_intensity;
-                        smt = mt;
-                        selected_index = l;
-                    }
-                    selected = true;
-              }
-
-              if(selected && selected_traces_indices.find(selected_index) == selected_traces_indices.end()){
-                  selected_traces_indices.insert(selected_index);
-                  double sum_intensity = .0;
-                  int min_feature_abs_charge = INT_MAX;
-                  int max_feature_abs_charge = INT_MIN;
-                  for (auto& p : smt) {
-                      sum_intensity += p.getIntensity();
-                      auto &pg_map = peak_group_map_[p.getRT()];
-                      auto &pg = pg_map[p.getMZ()];
-                      int scan_number = pg.getScanNumber();
-                      auto crange = pg.getAbsChargeRange();
-
-                      min_feature_abs_charge =
-                              min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(
-                                      crange);
-                      max_feature_abs_charge =
-                              max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(
-                                      crange);
-
-                  }
-
-                  for(int i=0;i<fst.size();i++) {
-                      if (i==0) {
-                          fst[i] << "0\t" << topid << "\t" << smt.getCentroidMZ() << "\t" << sum_intensity << "\t"
-                                 << smt.begin()->getRT() << "\t" << smt.rbegin()->getRT()
-                              << "\t" << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
-                              << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t1\t1\n";
-                      }else{
-//"Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity
-// \tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity";
-                        fst[i]<<ms2_scan_number<<"\t0\t"<<file_name<<"\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
-                        <<"\t"<<ms1_scan_number<<"\t"<<precursor.second.getMonoMass()<<"\t"
-                        <<precursor.second.getIntensity()<<"\t"<<topid<<"\t"<<sum_intensity<<"\t-1000\t"
-                        <<topid<<"\t"<<sum_intensity<<"\n";
-                      }
-                      topid++;
-                  }
-                  continue;
-              }
-              auto crange = precursor.second.getAbsChargeRange();
-              for(int i=0;i<fst.size();i++) {
-                  if (i==0) {
-                      fst[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t"
-                          << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1
-                          << "\t" << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
-                          << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t1\t1\n";
-                  }else{
-                      fst[i]<<ms2_scan_number<<"\t0\t"<<file_name<< "\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
-                            <<"\t"<<ms1_scan_number<<"\t"<<precursor.second.getMonoMass()<<"\t"
-                            <<precursor.second.getIntensity()<<"\t"<<topid<<"\t"<<precursor.second.getIntensity()<<"\t-1000\t"
-                            <<topid<<"\t"<<precursor.second.getIntensity()<<"\n";
-
-
-                  }
-                  topid++;
-              }
+      for (auto &precursor: precursor_peak_groups)
+      {
+        int ms1_scan_number = precursor.second.getScanNumber();
+        int ms2_scan_number = precursor.first;
+        auto rt = scan_rt_map[ms2_scan_number];
+        bool selected = false;
+        MassTrace smt;
+        double max_intensity = .0;
+        int selected_index = -1;
+        for (int l = 0; l < m_traces.size(); l++)
+        {
+          auto mt = m_traces[l];
+          if (abs(precursor.second.getMonoMass() - mt.getCentroidMZ()) > 1.5)
+          {
+            continue;
+          }
+          if (rt < mt.begin()->getRT() || rt > mt.rbegin()->getRT())
+          {
+            continue;
           }
 
+          double sum_intensity = .0;
 
+          for (auto &p : mt)
+          {
+            sum_intensity += p.getIntensity();
+          }
+
+          if (max_intensity < sum_intensity)
+          {
+            max_intensity = sum_intensity;
+            smt = mt;
+            selected_index = l;
+          }
+          selected = true;
+        }
+
+        if (selected && selected_traces_indices.find(selected_index) == selected_traces_indices.end())
+        {
+          selected_traces_indices.insert(selected_index);
+          double sum_intensity = .0;
+          int min_feature_abs_charge = INT_MAX;
+          int max_feature_abs_charge = INT_MIN;
+          for (auto &p : smt)
+          {
+            sum_intensity += p.getIntensity();
+            auto &pg_map = peak_group_map_[p.getRT()];
+            auto &pg = pg_map[p.getMZ()];
+            int scan_number = pg.getScanNumber();
+            auto crange = pg.getAbsChargeRange();
+
+            min_feature_abs_charge =
+                min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(
+                    crange);
+            max_feature_abs_charge =
+                max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(
+                    crange);
+
+          }
+
+          for (int i = 0; i < fst.size(); i++)
+          {
+            if (i == 0)
+            {
+              fst[i] << "0\t" << topid << "\t" << smt.getCentroidMZ() << "\t" << sum_intensity << "\t"
+                     << smt.begin()->getRT() << "\t" << smt.rbegin()->getRT()
+                     << "\t" << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+                     << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t1\t1\n";
+            }
+            else
+            {
+              //"Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity
+              // \tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity";
+              fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
+                     << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                     << precursor.second.getIntensity() << "\t" << topid << "\t" << sum_intensity << "\t-1000\t"
+                     << topid << "\t" << sum_intensity << "\n";
+            }
+            topid++;
+          }
+          continue;
+        }
+        auto crange = precursor.second.getAbsChargeRange();
+        for (int i = 0; i < fst.size(); i++)
+        {
+          if (i == 0)
+          {
+            fst[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t"
+                   << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1
+                   << "\t" << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
+                   << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t1\t1\n";
+          }
+          else
+          {
+            fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
+                   << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                   << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity()
+                   << "\t-1000\t"
+                   << topid << "\t" << precursor.second.getIntensity() << "\n";
+
+
+          }
+          topid++;
+        }
       }
+
+
+    }
 
   }
 
-  void MassFeatureTrace::storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum)
+  void MassFeatureTrace::storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum &deconvoluted_spectrum)
   {
-      double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-      scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
+    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
+    scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
     if (deconvoluted_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
-    }else {
+    }
+    else
+    {
 
-        peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
-        auto &sub_pg_map = peak_group_map_[rt];
-        for (auto &pg : deconvoluted_spectrum) {
-            sub_pg_map[pg.getMonoMass()] = pg;
-        }
-        //scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
+      peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
+      auto &sub_pg_map = peak_group_map_[rt];
+      for (auto &pg : deconvoluted_spectrum)
+      {
+        sub_pg_map[pg.getMonoMass()] = pg;
+      }
+      //scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
     }
   }
 
-  void MassFeatureTrace::writeHeader(std::fstream& fs)
+  void MassFeatureTrace::writeHeader(std::fstream &fs)
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
@@ -463,7 +481,7 @@ namespace OpenMS
   }
 
 
-  void MassFeatureTrace::writePromexHeader(std::fstream& fs)
+  void MassFeatureTrace::writePromexHeader(std::fstream &fs)
   {
     fs << "FeatureID\tMinScan\tMaxScan\tMinCharge\tMaxCharge\t"
           "MonoMass\tRepScan\tRepCharge\tRepMz\tAbundance\tApexScanNum\tApexIntensity\tMinElutionTime\tMaxElutionTime\t"
@@ -471,18 +489,24 @@ namespace OpenMS
           "\n";
   }
 
-    void MassFeatureTrace::writeTopFDFeatureHeader(std::vector<std::fstream>& fs)
+  void MassFeatureTrace::writeTopFDFeatureHeader(std::vector<std::fstream> &fs)
+  {
+    for (int i = 0; i < fs.size(); ++i)
     {
-        for (int i = 0; i < fs.size(); ++i) {
-            if (i==0){
-                fs[i] << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
-            }else{
-                fs[i] << "Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity\n";
-            }
-        }
-
-
+      if (i == 0)
+      {
+        fs[i]
+            << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
+      }
+      else
+      {
+        fs[i]
+            << "Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity\n";
+      }
     }
+
+
+  }
 
   void MassFeatureTrace::updateMembers_()
   {

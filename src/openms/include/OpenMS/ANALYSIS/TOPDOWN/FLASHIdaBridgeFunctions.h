@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,15 +38,20 @@
 #include "OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h"
 
 /**
-  * @brief FLASHIda C++ to C# bridge functions
-  *
+  * @brief FLASHIda C++ to C# (or vice versa) bridge functions
+  * The functions here are called in C# to invoke functions in FLASHIda class
   * @see FLASHIda
   */
 
 namespace OpenMS
 {
+  /// create FLASHIda class in C# FLASHIda side. Invoke FLASHIda constructor
   extern "C" OPENMS_DLLAPI FLASHIda *CreateFLASHIda(char *arg);
+
+  /// delete FLASHIda class in C# FLASHIda side. Invoke FLASHIda destructor
   extern "C" OPENMS_DLLAPI void DisposeFLASHIda(FLASHIda *object);
+
+  /// bridges getPeakGroups in FLASHIda class to C# FLASHIda side
   extern "C" OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda *object,
                                                 double *mzs,
                                                 double *ints,
@@ -54,6 +59,8 @@ namespace OpenMS
                                                 double rt_min,
                                                 int ms_level,
                                                 char *name);
+
+  /// bridges getIsolationWindows in FLASHIda class to C# FLASHIda side
   extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda *object,
                                                     double *wstart,
                                                     double *wend,
@@ -70,7 +77,6 @@ namespace OpenMS
                                                     double *precursor_intensities,
                                                     double *peakgroup_intensities);
 
-
-
+  /// keeps the precalculated averagine to calculate average masses from monoisotopic masses
   static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
 }

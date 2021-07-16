@@ -43,41 +43,45 @@ namespace OpenMS
 
   double QScore::getQScore(const PeakGroup *pg, const int abs_charge)
   {
-      if (pg == nullptr) { // all zero
-          return .0;
-      }
-      const double th = 2;
-      //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-      const std::vector<double> weights({0.4074, -1.5867, -22.1376, 0.4664, -0.4767, 0.541, 20.248});
-      const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+    if (pg == nullptr)
+    { // all zero
+      return .0;
+    }
+    const double th = 2;
+    //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
+    const std::vector<double> weights({0.4074, -1.5867, -22.1376, 0.4664, -0.4767, 0.541, 20.248});
+    const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-      //ChargeCos        0.4074
-      //ChargeSNR       -1.5867
-      //Cos            -22.1376
-      //SNR              0.4664
-      //ChargeScore     -0.4767
-      //AvgPPMerror       0.541
-      //Intercept        20.248
+    //ChargeCos        0.4074
+    //ChargeSNR       -1.5867
+    //Cos            -22.1376
+    //SNR              0.4664
+    //ChargeScore     -0.4767
+    //AvgPPMerror       0.541
+    //Intercept        20.248
 
-      double score = weights[weights.size() - 1];
-      auto fv = toFeatureVector_(pg, abs_charge);
+    double score = weights[weights.size() - 1];
+    auto fv = toFeatureVector_(pg, abs_charge);
 
-      for (int i = 0; i < weights.size() - 1; i++) {
-          score += fv[i] * weights[i];
-      }
-      double qscore = 1.0 / (1.0 + exp(score));
-      if (qscore < th) {
-          return qscore;
-      }
-
-      score = weights_h[weights_h.size() - 1];
-
-      for (int i = 0; i < weights_h.size() - 1; i++) {
-          score += fv[i] * weights_h[i];
-      }
-      qscore = 1.0 / (1.0 + exp(score));
-
+    for (int i = 0; i < weights.size() - 1; i++)
+    {
+      score += fv[i] * weights[i];
+    }
+    double qscore = 1.0 / (1.0 + exp(score));
+    if (qscore < th)
+    {
       return qscore;
+    }
+
+    score = weights_h[weights_h.size() - 1];
+
+    for (int i = 0; i < weights_h.size() - 1; i++)
+    {
+      score += fv[i] * weights_h[i];
+    }
+    qscore = 1.0 / (1.0 + exp(score));
+
+    return qscore;
   }
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
@@ -104,9 +108,9 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-            << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
-               "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
-               "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
+        << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
+           "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
+           "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -128,8 +132,8 @@ namespace OpenMS
                            const int charge,
                            const double precursor_intensity,
                            const std::vector<double> ptm_mass,
-                           //const std::vector<int> ptm_start,
-                           //const std::vector<int> ptm_end,
+      //const std::vector<int> ptm_start,
+      //const std::vector<int> ptm_end,
                            const bool is_identified,
                            const double e_value,
                            const double q_value,
@@ -142,25 +146,30 @@ namespace OpenMS
     {
       return;
     }
-    else {
-        auto fv = toFeatureVector_(&pg, charge);
-        //if (pg.getChargeIsotopeCosine(charge) <= 0)
-        //  return;
-        double monomass = pmass;
-        double mass = avgpmass;
-        f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
-          << monomass << "," << pg.getMonoMass() << "," << mass << "," << pmz << ","
-          << precursor_intensity << ","
-          << pg.getIntensity() << "," << fintensity << ","
-          << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
-          << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
-        for (int k = 0; k < 3; k++) {
-            if (k < ptm_mass.size()) {
-                f << ptm_mass[k] << ",";
-            } else {
-                f<<"nan,";
-            }
+    else
+    {
+      auto fv = toFeatureVector_(&pg, charge);
+      //if (pg.getChargeIsotopeCosine(charge) <= 0)
+      //  return;
+      double monomass = pmass;
+      double mass = avgpmass;
+      f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
+        << monomass << "," << pg.getMonoMass() << "," << mass << "," << pmz << ","
+        << precursor_intensity << ","
+        << pg.getIntensity() << "," << fintensity << ","
+        << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
+        << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
+      for (int k = 0; k < 3; k++)
+      {
+        if (k < ptm_mass.size())
+        {
+          f << ptm_mass[k] << ",";
         }
+        else
+        {
+          f << "nan,";
+        }
+      }
 
       for (auto &item : fv)
       {
