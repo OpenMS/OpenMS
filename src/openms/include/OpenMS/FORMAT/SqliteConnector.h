@@ -89,6 +89,11 @@ namespace OpenMS
       return db_;
     }
 
+    const sqlite3* getDB() const
+    {
+      return db_;
+    }
+
     /**
       @brief Checks whether the given table exists
 
@@ -127,7 +132,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void executeStatement(const String& statement)
+    void executeStatement(const String& statement) const
     {
       executeStatement(db_, statement);
     }
@@ -164,7 +169,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void prepareStatement(sqlite3_stmt** stmt, const String& prepare_statement)
+    void prepareStatement(sqlite3_stmt** stmt, const String& prepare_statement) const
     {
       prepareStatement(db_, stmt, prepare_statement);
     }

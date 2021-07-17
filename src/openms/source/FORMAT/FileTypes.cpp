@@ -113,6 +113,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::NOVOR, "novor", "Novor custom parameter file"),
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file"),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file"),
+    TypeNameBinding(FileTypes::SQLITE, "sqlite", "sqlite database file"),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file"),
     TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file"),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable"),

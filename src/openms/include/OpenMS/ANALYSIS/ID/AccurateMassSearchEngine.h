@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <iosfwd>
 #include <vector>
@@ -193,6 +194,9 @@ namespace OpenMS
     const std::vector<String>& getMatchingHMDBids() const;
     void setMatchingHMDBids(const std::vector<String>&);
 
+    const std::vector<String>& getMatchingNames() const;
+    void setMatchingNames(const std::vector<String>&);
+
     /// return trace intensities of the underlying feature;
     const std::vector<double>& getMasstraceIntensities() const;
     void setMasstraceIntensities(const std::vector<double>&);
@@ -220,6 +224,7 @@ private:
     String found_adduct_;
     String empirical_formula_;
     std::vector<String> matching_hmdb_ids_;
+    std::vector<String> matching_names_;
 
     std::vector<double> mass_trace_intensities_;
     double isotopes_sim_score_;
@@ -347,6 +352,7 @@ private:
     void parseMappingFile_(const StringList&);
     void parseStructMappingFile_(const StringList&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
+    std::vector<AdductInfo> parseAdducts_(const std::vector<std::string>& adduct_strs);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
@@ -407,8 +413,8 @@ private:
     String pos_adducts_fname_;
     String neg_adducts_fname_;
 
-    StringList db_mapping_file_;
-    StringList db_struct_file_;
+    std::vector<std::string> db_mapping_file_;
+    std::vector<std::string> db_struct_file_;
 
     std::vector<AdductInfo> pos_adducts_;
     std::vector<AdductInfo> neg_adducts_;
@@ -417,6 +423,11 @@ private:
     String database_version_;
 
     bool keep_unidentified_masses_;
+    std::unique_ptr<SqliteConnector> sqlite_connector_;
+
+    std::vector<AccurateMassSearchResult> searchMassInDB_(double neutral_query_mass,
+                                               double diff_mass,
+                                               const std::string& groupByCol = "Formula") const;
   };
 
 }
