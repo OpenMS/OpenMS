@@ -97,6 +97,8 @@ namespace OpenMS
   private:
    /// partially fill the bottom-most row  
    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
+   // extract the required part of the accession and open browser to navigate to uniport site with that accession
+   void extractNumFromAccession_(QString listItem);
 
     LayerData* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
@@ -104,6 +106,7 @@ namespace OpenMS
     TableView* table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
     QWidget* protein_window_ = nullptr;
+    QWidget* accession_window_ = nullptr;
     bool is_ms1_shown_ = false;
     bool is_first_time_loading = true;
     std::unordered_map<String, std::vector<PeptideIdentification>> protein_to_peptide_id_map;
@@ -117,5 +120,6 @@ namespace OpenMS
     void currentCellChanged_(int row, int column, int old_row, int old_column);
     // Create protein accession to peptide identification map using C++ STL unordered_map
     void createProteinToPeptideIDMap_();
+
   };
 }

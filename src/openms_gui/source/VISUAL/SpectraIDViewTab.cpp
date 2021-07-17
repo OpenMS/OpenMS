@@ -47,6 +47,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
 #include <QRegExp>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -188,6 +189,41 @@ namespace OpenMS
     }
   }
 
+  //extract required part of accession and open browser
+  void SpectraIDViewTab::extractNumFromAccession_(QString listItem)
+  {
+    //regex for matching accession
+    QRegExp reg_pre_accession("(tr|sp)");
+    reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
+    QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
+
+    QStringList acsn = listItem.split("|");
+
+    foreach (QString substr, acsn)
+    {
+      //eg, substr2 = tr, substr2 = p02769 etc
+      if (reg_pre_accession.exactMatch(substr.simplified()))
+      {
+        continue;
+      }
+      else
+      {
+        if (reg_uniprot_accession.exactMatch(substr.simplified()))
+        {
+          QString base_url = "https://www.uniprot.org/uniprot/";
+          QString url = base_url + substr.simplified();
+
+          GUIHelpers::openURL(url);
+        }
+        else
+        {
+          std::cout << "Accession not valid " << substr.simplified();
+        }
+        break;
+      }
+    }
+  }
+
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
@@ -249,65 +285,47 @@ namespace OpenMS
       // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
       QString accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
 
-      //Check if the accession column of the peptide row includes multiple accession
+      //if the accession column of the peptide row includes multiple accession, store them in this list (even if it has only one 
+      // accession, store it)
       QStringList single_accessions = accession.split(",");
 
-      //regex for matching accession
-      QRegExp reg_pre_accession("(tr|sp)");
-      reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
-      QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
-
-      //store peptide accessions, eg- {P02769, A9GWQ1}
-      QStringList pep_accession;
-
-      foreach (QString substr, single_accessions)
+      //check if accession list contains more than one accession, if so, show a new fragment window and list
+      // the accessions, otherwise open browser for the only available window
+      if (single_accessions.size() > 1)
       {
-        //eg, substr = tr|P02769|ALBU_BOVIN
-        QStringList acsn = substr.split("|");
+        
+          accession_window_ = new QWidget();
+          accession_window_->resize(400, 400);
+          
+          QLabel* txt = new QLabel();
+          QListWidget* accession_list = new QListWidget();
+          QVBoxLayout* layout = new QVBoxLayout();
+          
+          txt->setText("Click on any accession to get more details:");
+          layout->addWidget(txt);
 
-        foreach (QString substr2, acsn)
-        {
-          //eg, substr2 = tr, substr2 = p02769 etc
-          if (reg_pre_accession.exactMatch(substr2.simplified()))
+          for (auto acc : single_accessions) 
           {
-            continue;
+            accession_list->addItem(acc.simplified());
           }
-          else
-          {
-            pep_accession.append(substr2.simplified());
-            break;
-          }
-        }
-      }
 
-      //Open one browser window for each accession
-      /*foreach (QString acsn, pep_accession)
-       {
-           if (reg_uniprot_accession.exactMatch(acsn))
-           {
-             std::cout << "Accession valid " << acsn;
-               QString base_url = "https://www.uniprot.org/uniprot/";
-               QString url = base_url + acsn;
+          layout->addWidget(accession_list);
+          connect(accession_list, &QListWidget::itemClicked, [=]() {
+            //eg, listItem = tr|P02769|ALBU_BOVIN
+            QString listItem = accession_list->currentItem()->text();
+            extractNumFromAccession_(listItem);
+          });
 
-               GUIHelpers::openURL(url);
-           }
-           else
-           {
-               std::cout << "Accession not valid " << acsn;
-           }
-       }*/
-      //Open browser for first accession
-      if (reg_uniprot_accession.exactMatch(pep_accession.at(0)))
-      {
-        std::cout << "Accession valid " << pep_accession.at(0);
-        QString base_url = "https://www.uniprot.org/uniprot/";
-        QString url = base_url + pep_accession.at(0);
-
-        GUIHelpers::openURL(url);
+          accession_window_->setLayout(layout);
+          accession_window_->setWindowTitle("Select Accession");
+          accession_window_->show();
+          accession_window_->setFocus(Qt::ActiveWindowFocusReason);
+          QApplication::setActiveWindow(accession_window_);
+        
       }
       else
       {
-        std::cout << "Accession not valid " << pep_accession.at(0);
+        extractNumFromAccession_(single_accessions.at(0));
       }
     }
 
