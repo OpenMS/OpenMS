@@ -52,6 +52,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QString>
+#include <QStringList>
 
 #include <vector>
 #include <string>
@@ -150,15 +152,50 @@ namespace OpenMS
     layer_ = nullptr;
   }
  
+  // Create the protein accession to peptide identification map using C++ STL unordered_map
+  void SpectraIDViewTab::createProteinToPeptideIDMap_()
+  {
+    if (is_first_time_loading)
+    {
+      for (const auto& spec : *layer_->getPeakData())
+      {
+        if (!spec.getPeptideIdentifications().empty())
+        {
+          const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+          
+          for (int i = 0; i < peptide_ids.size(); ++i)
+          {
+            const vector<PeptideHit>& pep_hits = peptide_ids[i].getHits();
+            const PeptideHit& hit = pep_hits[i];
+            const String& pep_seq = hit.getSequence().toString();
+
+            //add id_accession as the key of the map and push the peptideID to the vector value-
+            for (int j = 0; j < pep_hits.size(); ++j)
+            {
+              const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
+
+              for (int k = 0; k < evidences.size(); ++k)
+              {
+                const String& id_accession = evidences[k].getProteinAccession();
+                protein_to_peptide_id_map[id_accession].push_back(peptide_ids[0]);
+              }
+            }
+          }
+        }
+      }
+      // set is_first_time_loading to false so that the map gets created only the first time!
+      is_first_time_loading = false;
+    }
+  }
 
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
-    if (row < 0 || column < 0) return;
+    if (row < 0 || column < 0)
+      return;
 
-    if (row >= table_widget_->rowCount()
-        ||  column >= table_widget_->columnCount())
+    if (row >= table_widget_->rowCount() || column >= table_widget_->columnCount())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
@@ -179,7 +216,7 @@ namespace OpenMS
     if (column == Clmn::PRECURSOR_MZ)
     {
       const auto prec_it = exp.getPrecursorSpectrum(exp.begin() + current_spectrum_index);
-      
+
       if (prec_it != exp.end() && !spec2.getPrecursors().empty())
       {
         double precursor_mz = spec2.getPrecursors()[0].getMZ();
@@ -187,15 +224,15 @@ namespace OpenMS
         double isolation_window_lower_mz = precursor_mz - spec2.getPrecursors()[0].getIsolationWindowLowerOffset();
         double isolation_window_upper_mz = precursor_mz + spec2.getPrecursors()[0].getIsolationWindowUpperOffset();
 
-        emit spectrumSelected(std::distance(exp.begin(), prec_it), -1, -1); // no identification or hit selected (-1)
+        emit spectrumSelected(std::distance(exp.begin(), prec_it), -1, -1);// no identification or hit selected (-1)
         // zoom into precursor area
-        emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
+        emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz + 50.0);
       }
     }
     else
-    { // if spectrum with no PepIDs is selected, there is nothing to show...
+    {// if spectrum with no PepIDs is selected, there is nothing to show...
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
-      if (item_pepid == nullptr   // null for MS1 spectra
+      if (item_pepid == nullptr// null for MS1 spectra
           || (!(item_pepid->data(Qt::DisplayRole).isValid())))
       {
         return;
@@ -209,17 +246,17 @@ namespace OpenMS
     if (column == Clmn::ACCESSIONS)
     {
 
-        // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
+      // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
       QString accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
-      
+
       //Check if the accession column of the peptide row includes multiple accession
       QStringList single_accessions = accession.split(",");
-      
+
       //regex for matching accession
       QRegExp reg_pre_accession("(tr|sp)");
       reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
       QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
-      
+
       //store peptide accessions, eg- {P02769, A9GWQ1}
       QStringList pep_accession;
 
@@ -244,7 +281,7 @@ namespace OpenMS
       }
 
       //Open one browser window for each accession
-       /*foreach (QString acsn, pep_accession)
+      /*foreach (QString acsn, pep_accession)
        {
            if (reg_uniprot_accession.exactMatch(acsn))
            {
@@ -272,7 +309,6 @@ namespace OpenMS
       {
         std::cout << "Accession not valid " << pep_accession.at(0);
       }
-     
     }
 
     if (column == Clmn::SEQUENCE)
@@ -285,142 +321,80 @@ namespace OpenMS
       QStringList single_accessions = current_accession.split(",");
 
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
-      if (item_pepid){
-        
-          int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
-          int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
-          
-          //peptide
+      if (item_pepid)
+      {
 
-          //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+        int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
-          //array to store object of start and end postion of peptides;
-          QJsonArray peptides_start_end_pos;
-           
-          //get the current peptideIdentification(the clicked one)
-          /*const vector<PeptideIdentification>& pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
-           std::cout << "pep_id size->" << pep_id.size() << spectrum_index << std::endl;*/
+        //array to store object of start and end postion of peptides;
+        QJsonArray peptides_start_end_pos;
 
-          // loop through each peptideIdentifications and add peptide start and peptide end position
-           for (const auto& spec : *layer_->getPeakData())
-           {
-            
-              if (!spec.getPeptideIdentifications().empty()) {
-                  const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+        //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
+        for (auto pep : protein_to_peptide_id_map[single_accessions.at(0)])
+        {
+          const vector<PeptideHit>& pep_hits = pep.getHits();
+          const PeptideHit& hit = pep_hits[0];
+          const String& pep_seq = hit.getSequence().toString();
 
-                  for (int i = 0; i < peptide_ids.size(); ++i)
-                  {
-
-                    const vector<PeptideHit>& pep_hits = peptide_ids[i].getHits();
-                    std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
-                    const PeptideHit& hit = pep_hits[i];
-                    const String& pep_seq = hit.getSequence().toString();
-
-                    std::cout <<"peptide sequence->" << pep_seq << std::endl;
-
-                    //start and end positions-
-
-                    for (int j = 0; j < pep_hits.size(); ++j)
-                    {
-                      const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
-
-                      for (int k = 0; k < evidences.size(); ++k)
-                      {
-                        const String& id_accession = evidences[k].getProteinAccession();
-
-                        if (id_accession == current_accession)
-                        {
-                          int pep_start = evidences[k].getStart();
-                          int pep_end = evidences[k].getEnd();
-
-                          QJsonObject data;
-                          data.insert(QStringLiteral("start"), pep_start);
-                          data.insert(QStringLiteral("end"), pep_end);
-                          data.insert(QStringLiteral("accession"), pep_seq.toQString());
-                          peptides_start_end_pos.push_back(data);
-
-                          std::cout << "start->" << pep_start << "::end->" << pep_end << "id_accession->" << id_accession << std::endl;
-                        }
-                        else
-                        {
-                          std::cout << id_accession << std::endl;
-                          continue;
-                        }
-                      }
-                    }
-                  }
-               }
-           }
-           std::cout << std::endl;
-           std::cout << "Array size->" << peptides_start_end_pos.size() << std::endl;
-
-          //protein
-          const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
-          const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
-          QString pro_sequence;
-          std::cout << "Protein data->";
-          for (int i = 0; i < protein_hits.size(); ++i)
+          //store start and end positions-
+          for (int j = 0; j < pep_hits.size(); ++j)
           {
+            const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
 
-            const String& protein_accession = protein_hits[i].getAccession();
-            const String& protein_sequence = protein_hits[i].getSequence();
-            std::cout << protein_accession << "<->" << protein_sequence << std::endl;
-            if (protein_accession == current_accession)
+            for (int k = 0; k < evidences.size(); ++k)
             {
-              pro_sequence = protein_sequence.toQString();
-              break;
+              const String& id_accession = evidences[k].getProteinAccession();
+
+              if (id_accession == single_accessions.at(0))
+              {
+                int pep_start = evidences[k].getStart();
+                int pep_end = evidences[k].getEnd();
+
+                QJsonObject data;
+                data.insert(QStringLiteral("start"), pep_start);
+                data.insert(QStringLiteral("end"), pep_end);
+                data.insert(QStringLiteral("accession"), pep_seq.toQString());
+                peptides_start_end_pos.push_back(data);
+              }
             }
           }
-          std::cout << std::endl;
-
-
-          // initialize window,
-          //std::cout << "pep_identification size->" << peptide_ids.size() << std::endl;
-          //std::cout << "pep_hit size->" << pep_hits.size() << std::endl;
-          //std::cout << "pep_seq->" << pep_seq << std::endl;
-
-
-          std::cout << "protein_identification size->" << prot_id.size() << std::endl;
-          std::cout << "pro_hit size->" << protein_hits.size() << std::endl;
-
-          SequenceVisualizer* widget = new SequenceVisualizer();
-          widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_start_end_pos); 
-          widget->show();
-      }
-
-   
-     
-     
-       /* if (protein_window_ != nullptr)
-        {
-          delete protein_window_;
         }
-       protein_window_ = new QWidget();
-        protein_window_->resize(400, 400);
-        std::cout << sequence << "->" << row << std::endl;
 
-        QLabel* seq = new QLabel();
-        QVBoxLayout* layout = new QVBoxLayout();
-        seq->setText(sequence);
-        layout->addWidget(seq);
-        protein_window_->setLayout(layout)
-        protein_window_->setWindowTitle("Protein Sequence");
-        protein_window_->show();
-        protein_window_->setFocus(Qt::ActiveWindowFocusReason);
-        QApplication::setActiveWindow(protein_window_);
-        protein_window_->layout()->deleteLater();*/
-     }
-    
+        //protein
+        const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+        const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
+        QString pro_sequence;
+       
+        for (int i = 0; i < protein_hits.size(); ++i)
+        {
+
+          const String& protein_accession = protein_hits[i].getAccession();
+          const String& protein_sequence = protein_hits[i].getSequence();
+          std::cout << protein_accession << "<->" << protein_sequence << std::endl;
+          if (protein_accession == single_accessions.at(0))
+          {
+            pro_sequence = protein_sequence.toQString();
+            break;
+          }
+        }
+       
+        SequenceVisualizer* widget = new SequenceVisualizer();
+        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_start_end_pos);
+        widget->show();
+      }
+    }
+
     //
     // show extra peak-fragment window
     //
-    if (column == Clmn::PEAK_ANNOTATIONS 
+    if (column == Clmn::PEAK_ANNOTATIONS
         // column might not be present. Check the header name to make sure
         && table_widget_->horizontalHeaderItem(Clmn::PEAK_ANNOTATIONS)->text() == Clmn::HEADER_NAMES[Clmn::PEAK_ANNOTATIONS])
-    {         
+    {
 
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
-      if (item_pepid)  // might be null for MS1 spectra
+      if (item_pepid)// might be null for MS1 spectra
       {
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
@@ -436,10 +410,13 @@ namespace OpenMS
           fragment_window_ = new QTableWidget();
           fragment_window_->resize(320, 500);
 
-          fragment_window_->verticalHeader()->setHidden(true); // hide vertical column
+          fragment_window_->verticalHeader()->setHidden(true);// hide vertical column
 
           QStringList header_labels;
-          header_labels << "m/z" << "name" << "intensity" << "charge";
+          header_labels << "m/z"
+                        << "name"
+                        << "intensity"
+                        << "charge";
           fragment_window_->setColumnCount(header_labels.size());
           fragment_window_->setHorizontalHeaderLabels(header_labels);
 
@@ -453,10 +430,10 @@ namespace OpenMS
         // reset table, if a new ID is chosen
         fragment_window_->setRowCount(0);
 
-        for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+        for (const PeptideHit::PeakAnnotation& pa : hit.getPeakAnnotations())
         {
           fragment_window_->insertRow(fragment_window_->rowCount());
-          QTableWidgetItem * item = fragment_window_->itemPrototype()->clone();
+          QTableWidgetItem* item = fragment_window_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, pa.mz);
           fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
           item = fragment_window_->itemPrototype()->clone();
@@ -476,17 +453,15 @@ namespace OpenMS
         fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
         QApplication::setActiveWindow(fragment_window_);
       }
-    } // PeakAnnotation cell clicked
+    }// PeakAnnotation cell clicked
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
   {
     // this is a very easy check.
-    // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
+    // We do not check for PeptideIdentifications attached to Spectra, because the user could just
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
-    bool no_data = (layer == nullptr
-                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+    bool no_data = (layer == nullptr || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty()) || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
     return !no_data;
   }
 
@@ -495,7 +470,7 @@ namespace OpenMS
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-    updateEntries_(); // we need this extra function since its an internal slot
+    updateEntries_();// we need this extra function since its an internal slot
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -506,17 +481,18 @@ namespace OpenMS
   namespace Detail
   {
     template<>
-    struct MetaKeyGetter<std::reference_wrapper<const PeptideHit>>
-    {
+    struct MetaKeyGetter<std::reference_wrapper<const PeptideHit>> {
       static void getKeys(const std::reference_wrapper<const PeptideHit>& object, std::vector<String>& keys)
       {
         object.get().getKeys(keys);
       };
     };
-  }
+  }// namespace Detail
 
   void SpectraIDViewTab::updateEntries_()
   {
+   //Create the protein_to_peptide_id_map the first time data changes in the table
+    createProteinToPeptideIDMap_();
     // no valid peak layer attached
     if (!hasData(layer_))
     {

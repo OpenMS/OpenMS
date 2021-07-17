@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QJsonArray>
+#include <QString>
 
 #include <QtWebEngineWidgets/QWebEngineView>
 

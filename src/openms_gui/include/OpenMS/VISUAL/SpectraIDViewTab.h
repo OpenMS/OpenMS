@@ -46,6 +46,9 @@
 #include <QCheckBox>
 #include <QWidget>
 
+#include <unordered_map>
+#include <vector>
+
 namespace OpenMS
 {
   /**
@@ -102,6 +105,8 @@ namespace OpenMS
     QTableWidget* fragment_window_ = nullptr;
     QWidget* protein_window_ = nullptr;
     bool is_ms1_shown_ = false;
+    bool is_first_time_loading = true;
+    std::unordered_map<String, std::vector<PeptideIdentification>> protein_to_peptide_id_map;
   
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
@@ -110,5 +115,7 @@ namespace OpenMS
     void updatedSingleCell_(QTableWidgetItem* item);
     /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
     void currentCellChanged_(int row, int column, int old_row, int old_column);
+    // Create protein accession to peptide identification map using C++ STL unordered_map
+    void createProteinToPeptideIDMap_();
   };
 }
