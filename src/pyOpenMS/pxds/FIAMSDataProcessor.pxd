@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   :param experiment: Input MSExperiment
                 #   :param n_seconds: Input number of seconds
                 #   :param load_cached_spectrum: Load the cached picked spectrum if exists
-                #   :param output: [out] Output of the accurate mass search results
+                #   :param output: Output of the accurate mass search results
                 #   :return: a boolean indicating if the picked spectrum was loaded from the cached file
         # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +

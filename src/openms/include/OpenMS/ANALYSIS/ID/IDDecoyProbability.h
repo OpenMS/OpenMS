@@ -71,7 +71,7 @@ public:
     /// assignment operator
     IDDecoyProbability & operator=(const IDDecoyProbability & rhs);
 
-    /**	@brief converts the forward and reverse identification into probabilities
+    /**	@brief Converts the forward and reverse identification into probabilities
 
               @param prob_ids Output of the algorithm which includes identifications with probability based scores
               @param fwd_ids Input parameter which represents the identifications of the forward search

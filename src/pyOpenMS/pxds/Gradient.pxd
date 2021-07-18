@@ -27,8 +27,8 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
 
         #   @brief sets the percentage of eluent @p eluent at timepoint @p timepoint
         #   @exception Exception::InvalidValue is thrown if the eluent, timepoint or percentage is invalid.
-        void setPercentage(String eluent, Int timepoint, UInt percentage) nogil except + # wrap-doc:Brief sets the percentage of eluent @p eluent at timepoint @p timepoint
-        UInt getPercentage(String eluent, Int timepoint) nogil except +
+        void setPercentage(String eluent, Int timepoint, UInt percentage) nogil except + # wrap-doc:Sets the percentage of 'eluent' at 'timepoint'
+        UInt getPercentage(String eluent, Int timepoint) nogil except + # wrap-doc:Returns a const reference to the percentages
 
         # TODO 
         # libcpp_vector[ libcpp_vector[unsigned int] ] getPercentages() nogil except +
