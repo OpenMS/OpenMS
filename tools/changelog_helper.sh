@@ -164,7 +164,6 @@ do
         # generate pseudo ini file
         ${BIN_DIR}/$t -write_ini - \
             | grep -v "name=\"version\"" \
-            | sed -E 's/0.0e00/0.0/' \
             | sed -E 's/description="[^"]*"|required="[^"]*"|advanced="[^"]*"//g' \
             | sed -E 's/restrictions="[^"]*pyrophospho[^"]*"/ restrictions="..."/' \
             | while read l
