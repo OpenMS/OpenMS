@@ -64,8 +64,8 @@ public:
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
   /// in which case no machine learning or FDR estimation will be performed.
   /// Optional seeds from e.g. untargeted FeatureFinders can be added with
-  /// @p seeds .
-  /// Results will be written to @p features .
+  /// @p seeds.
+  /// Results will be written to @p features.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
   void run(
