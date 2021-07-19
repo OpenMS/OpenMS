@@ -75,16 +75,16 @@ namespace OpenMS
     void storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum &deconvoluted_spectrum);
 
     /**
-       @brief Find features and write features in output files. Probably seprate the writing part soon.
+       @brief Find mass features and write features in output files.
        @param file_name input spectrum file name
        @param promex_out whether promex format output should be generated
-       @param topfd_feature_out
-       @param precursor_peak_groups
+       @param topfd_feature_out whether topfd feature output should be generated
+       @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
        @param feature_cntr total number of features, updated in this function
        @param feature_index index to features, updated in this function
-       @param fsf file stream for regular output
+       @param fsf file stream for feature tsv output
        @param fsp file stream for promex output
-       @param fst
+       @param fst file streams for topfd output tsv, feature files
        @param averagine precalculated averagine for cosine calculation
        */
     void findFeatures(const String &file_name, const bool promex_out, const bool topfd_feature_out,
@@ -99,21 +99,19 @@ namespace OpenMS
     /// write header line for regular file output
     static void writeHeader(std::fstream &fs);
 
-    /// write header lien for promex file output
+    /// write header line for promex file output
     static void writePromexHeader(std::fstream &fs);
 
-    ///
+    /// write header line for topFD feature files
     static void writeTopFDFeatureHeader(std::vector<std::fstream> &fs);
 
   protected:
     void updateMembers_() override;
 
   private:
-    /// MS1 tolerance
-    //double tol_;
     /// cosine thresholds for scoring and filtering
     double min_isotope_cosine_;
-    /// peak group information is stored in here for traicing
+    /// peak group information is stored in here for traciing
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
     std::unordered_map<int, double> scan_rt_map;
 

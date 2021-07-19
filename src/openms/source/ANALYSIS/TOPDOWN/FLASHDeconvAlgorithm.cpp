@@ -43,8 +43,8 @@ namespace OpenMS
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() :
       DefaultParamHandler("FLASHDeconvAlgorithm")
   {
-    prev_mass_bins_ = std::unordered_map<int, std::vector<std::vector<Size>>>();
-    prev_rts_ = std::unordered_map<int, std::vector<double>>();
+    prev_mass_bins_ = std::vector<std::vector<Size>>();
+    prev_rts_ = std::vector<double>();
     //prev_minbin_logmass_vector_ = std::vector<double>();
     defaults_.setValue("tol",
                        DoubleList{10.0, 10.0},
@@ -345,29 +345,15 @@ namespace OpenMS
   //take the mass bins from previous overlapping spectra and put them in the candidate mass bins.
   void FLASHDeconvAlgorithm::unionPrevMassBins_()
   {
-    if (mass_bins_.empty())
+    if (ms_level_ != 1 || mass_bins_.empty())
     {
       return;
     }
     long shift = (long) (round((mass_bin_min_value_) * bin_width_[ms_level_ - 1]));
 
-    int key = ms_level_ == 1 ? 0 : -1;
-
-    if (ms_level_ > 1 && !deconvoluted_spectrum_.getPrecursorPeakGroup().empty())
+    for (Size i = 0; i < prev_mass_bins_.size(); i++)
     {
-      key = getNominalMass(deconvoluted_spectrum_.getPrecursorPeakGroup().getMonoMass());
-    }
-
-    std::vector<std::vector<Size>> prev_mass_bin_vector;
-
-    if (key >= 0 && prev_mass_bins_.find(key) != prev_mass_bins_.end())
-    {
-      prev_mass_bin_vector = prev_mass_bins_[key];
-    }
-
-    for (Size i = 0; i < prev_mass_bin_vector.size(); i++)
-    {
-      auto &pmb = prev_mass_bin_vector[i];
+      auto &pmb = prev_mass_bins_[i];
       //getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width_[ms_level_ - 1]);
       if (pmb.empty())
       {
@@ -1100,31 +1086,14 @@ namespace OpenMS
     // } else {
     //removeOverlappingPeakGroupsWithNominalMass_();
     //}
-
-    int key = ms_level_ == 1 ? 0 : -1;
-
-    if (ms_level_ > 1 && !deconvoluted_spectrum_.getPrecursorPeakGroup().empty())
+    if (ms_level_ == 1)
     {
-      key = getNominalMass(deconvoluted_spectrum_.getPrecursorPeakGroup().getMonoMass());
-    }
 
-    if (key >= 0)
-    {
-      std::vector<double> prev_rt_vector;
-      std::vector<std::vector<Size>> prev_mass_bin_vector;
-      if (prev_mass_bins_.find(key) == prev_mass_bins_.end())
+      while (!prev_rts_.empty() &&
+             deconvoluted_spectrum_.getOriginalSpectrum().getRT() - prev_rts_[0] > rt_window_)//
       {
-        prev_rts_[key] = prev_rt_vector;
-        prev_mass_bins_[key] = prev_mass_bin_vector;
-      }
-      prev_rt_vector = prev_rts_[key];
-      prev_mass_bin_vector = prev_mass_bins_[key];
-
-      while (!prev_rt_vector.empty() &&
-             deconvoluted_spectrum_.getOriginalSpectrum().getRT() - prev_rt_vector[0] > rt_window_)//
-      {
-        prev_rt_vector.erase(prev_rt_vector.begin());
-        prev_mass_bin_vector.erase(prev_mass_bin_vector.begin());
+        prev_rts_.erase(prev_rts_.begin());
+        prev_mass_bins_.erase(prev_mass_bins_.begin());
         //prev_minbin_logmass_vector_.erase(prev_minbin_logmass_vector_.begin());
       }
       std::vector<Size> curr_mass_bin;
@@ -1140,14 +1109,12 @@ namespace OpenMS
         //  }
       }
 
-      prev_rt_vector.push_back(deconvoluted_spectrum_.getOriginalSpectrum().getRT());
-      prev_mass_bin_vector.push_back(curr_mass_bin); //
+      prev_rts_.push_back(deconvoluted_spectrum_.getOriginalSpectrum().getRT());
+      prev_mass_bins_.push_back(curr_mass_bin); //
       //prev_minbin_logmass_vector_.push_back(mass_bin_min_value_);
-      prev_rt_vector.shrink_to_fit();
-      prev_mass_bin_vector.shrink_to_fit();
+      prev_rts_.shrink_to_fit();
+      prev_mass_bins_.shrink_to_fit();
 
-      prev_rts_[key] = prev_rt_vector;
-      prev_mass_bins_[key] = prev_mass_bin_vector;
 
       // prev_minbin_logmass_vector_.shrink_to_fit();
     }
@@ -1259,7 +1226,8 @@ namespace OpenMS
   double FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                                         const std::vector<double> &per_isotope_intensities,
                                                                         int &offset,
-                                                                        const PrecalculatedAveragine &avg)
+                                                                        const PrecalculatedAveragine &avg,
+                                                                        bool use_shape_diff)
   {
     auto iso = avg.get(mono_mass);
     //double iso_norm = avg.getNorm(mono_mass);
@@ -1313,7 +1281,7 @@ namespace OpenMS
 
     min_diff = 1e10;
     int final_offset = offset;
-    if (false)
+    if (use_shape_diff)
     {
       for (int tmp_offset = offset - iso_range / 4; tmp_offset <= offset + iso_range / 4; tmp_offset++)
       {
@@ -1447,7 +1415,7 @@ namespace OpenMS
       int offset = 0;
       double cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group[0].getUnchargedMass(),
                                                             per_isotope_intensities,
-                                                            offset, avg_);
+                                                            offset, avg_, ms_level_ == 1);
       peak_group.setIsotopeCosine(cos);
 
       if (peak_group.empty() ||

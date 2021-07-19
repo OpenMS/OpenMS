@@ -113,12 +113,14 @@ namespace OpenMS
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
+        @param use_shape_diff use shape diff function for more accurate monoisotopic mass determination
         @return calculated cosine similar score
      */
     static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<double> &per_isotope_intensities,
                                                            int &offset,
-                                                           const PrecalculatedAveragine &avg);
+                                                           const PrecalculatedAveragine &avg,
+                                                           bool use_shape_diff = true);
 
 
   protected:
@@ -163,8 +165,8 @@ namespace OpenMS
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.
-    std::unordered_map<int, std::vector<std::vector<Size>>> prev_mass_bins_; // nominal mass -> mass bins
-    std::unordered_map<int, std::vector<double>> prev_rts_; // nominal mass -> rts
+    std::vector<std::vector<Size>> prev_mass_bins_;
+    std::vector<double> prev_rts_;
 
     /// mass bins that are targeted for FLASHIda global targeting mode
     std::vector<Size> target_mass_bins_;
