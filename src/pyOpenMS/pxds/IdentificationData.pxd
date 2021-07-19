@@ -10,4 +10,4 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
         # wrap-inherits:
         #  MetaInfoInterface
 
-        IdentificationData() nogil except +
+        IdentificationData() nogil except + # wrap-doc:Representation of spectrum identification results and associated data
