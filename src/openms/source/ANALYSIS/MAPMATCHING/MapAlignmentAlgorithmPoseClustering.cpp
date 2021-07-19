@@ -118,11 +118,11 @@ namespace OpenMS
     // calculate the local transformation
     si_trafo.invert(); // to undo the transformation applied above
     TransformationDescription::DataPoints data;
-    for (ConsensusMap::Iterator it = result.begin(); it != result.end(); ++it)
+    for (ConsensusFeature& cfeature : result)
     {
-      if (it->size() == 2) // two matching features
+      if (cfeature.size() == 2) // two matching features
       {
-        ConsensusFeature::iterator feat_it = it->begin();
+        ConsensusFeature::iterator feat_it = cfeature.begin();
         double y = feat_it->getRT();
         double x = si_trafo.apply((++feat_it)->getRT());
         // one feature should be from the reference map:

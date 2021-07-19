@@ -39,10 +39,9 @@
 using namespace std;
 
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     double GumbelMaxLikelihoodFitter::GumbelDistributionFitResult::log_eval_no_normalize(const double x) const
     {
       // -log b is a constant again
@@ -65,5 +64,4 @@ namespace OpenMS
       init_param_ = param;
     }
 
-  }   //namespace Math
-} // namespace OpenMS
+} // namespace OpenMS   //namespace Math

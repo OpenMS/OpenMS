@@ -39,10 +39,9 @@
 #include <cmath>
 #include <numeric>
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     ROCCurve::ROCCurve() :
       score_clas_pairs_(), pos_(0), neg_(0)
     {
@@ -264,5 +263,4 @@ namespace OpenMS
     }
 
 
-  }
-}
+} //OpenMS //Math
