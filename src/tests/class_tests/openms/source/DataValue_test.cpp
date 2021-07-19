@@ -458,6 +458,36 @@ START_SECTION((bool isEmpty() const))
 END_SECTION
 
 // conversion operators
+START_SECTION((operator ParamValue() const))
+{
+  int i = 12;
+  double d = 3.41;
+  String s = "test";
+  IntList i_l = {1, 2};
+  DoubleList d_l = {2.71, 3.41};
+  StringList s_l = {"test", "list"};
+  vector<std::string> std_s_l = {"test", "list"};
+
+  ParamValue p_i = DataValue(i);
+  TEST_EQUAL(p_i, ParamValue(i))
+
+  ParamValue p_d = DataValue(d);
+  TEST_EQUAL(p_d, ParamValue(d))
+
+  ParamValue p_s = DataValue(s);
+  TEST_EQUAL(p_s, ParamValue(s))
+
+  ParamValue p_i_l = DataValue(i_l);
+  TEST_EQUAL(p_i_l, ParamValue(i_l))
+
+  ParamValue p_d_l = DataValue(d_l);
+  TEST_EQUAL(p_d_l, ParamValue(d_l))
+
+  ParamValue p_s_l = DataValue(s_l);
+  TEST_EQUAL(p_s_l, ParamValue(std_s_l))
+}
+END_SECTION
+
 START_SECTION((operator std::string() const))
   DataValue d((std::string) "test string");
   std::string k = d;

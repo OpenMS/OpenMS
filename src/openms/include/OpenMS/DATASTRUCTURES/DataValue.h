@@ -139,6 +139,11 @@ public:
     //@{
 
     /**
+      @brief conversion operator to ParamValue based on DataType
+    */
+    operator ParamValue() const;
+
+    /**
       @brief conversion operator to string
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
