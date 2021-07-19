@@ -47,7 +47,7 @@ namespace OpenMS
 
   }
 
-  void ParamCTDFile::store(const std::string& filename, const Param& param, const  ToolInfo& tool_info) const
+  void ParamCTDFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
   {
     std::ofstream os;
     std::ostream* os_ptr;
