@@ -48,15 +48,6 @@ namespace OpenMS
 
   PeakGroup::~PeakGroup()
   {
-    //clearChargeInfo();
-  }
-
-  void PeakGroup::clearChargeInfo()
-  {
-    std::vector<float>().swap(per_charge_pwr_);
-    std::vector<float>().swap(per_charge_signal_pwr_);
-    std::vector<float>().swap(per_charge_cos_);
-    std::vector<float>().swap(per_charge_int_);
   }
 
   bool PeakGroup::operator<(const PeakGroup &a) const
@@ -236,12 +227,6 @@ namespace OpenMS
     qscore_ = q;
   }
 
-
-  void PeakGroup::setColor(const char color)
-  {
-    color_ = color;
-  }
-
   std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
   {
     return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
@@ -384,11 +369,6 @@ namespace OpenMS
   bool PeakGroup::isPositive() const
   {
     return is_positive_;
-  }
-
-  char PeakGroup::getColor() const
-  {
-    return color_;
   }
 
 }

@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 
 namespace OpenMS
 {
@@ -56,26 +57,9 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static double getQScore(const PeakGroup *pg, const int abs_charge);
 
-    /// function to generate attribute tsv file for weka interface (for now)
-    static void writeAttTsv(const int scan_number,
-                            const String &acc,
-                            const int proID,
-                            const double rt,
-                            const int pscan,
-                            const double pmass,
-                            const double pmz,
-                            const double fintensity,
-                            PeakGroup &pg,
-                            const int fr,
-                            const int lr,
-                            const int charge,
-                            const double precursor_intensity,
-                            const std::vector<double> ptm_mass,
-        //const std::vector<int> ptm_start,
-        //const std::vector<int> ptm_end,
-                            const bool is_identified,
-                            const double e_value,
-                            const double q_value,
+    /// function to generate attribute tsv file for weka interface
+    static void writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
+                            const FLASHDeconvHelperStructs::TopPicItem &top_id,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                             std::fstream &f,
                             bool write_detail = false);

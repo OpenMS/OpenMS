@@ -52,13 +52,13 @@ namespace OpenMS
     const std::vector<double> weights({0.4074, -1.5867, -22.1376, 0.4664, -0.4767, 0.541, 20.248});
     const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-    //ChargeCos        0.4074
-    //ChargeSNR       -1.5867
-    //Cos            -22.1376
-    //SNR              0.4664
-    //ChargeScore     -0.4767
-    //AvgPPMerror       0.541
-    //Intercept        20.248
+    //ChargeCos      -3.0238
+    //ChargeSNR      -4.7978
+    //Cos              2.734
+    //SNR            -0.5589
+    //ChargeScore    -1.1258
+    //AvgPPMerror     0.0875
+    //Intercept       4.976
 
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -118,29 +118,33 @@ namespace OpenMS
     f << "Class\n";
   }
 
-  void QScore::writeAttTsv(const int scan_number,
-                           const String &acc,
-                           const int proID,
-                           const double rt,
-                           const int pscan,
-                           const double pmass,
-                           const double pmz,
-                           const double fintensity,
-                           PeakGroup &pg,
-                           const int fr,
-                           const int lr,
-                           const int charge,
-                           const double precursor_intensity,
-                           const std::vector<double> ptm_mass,
-      //const std::vector<int> ptm_start,
-      //const std::vector<int> ptm_end,
-                           const bool is_identified,
-                           const double e_value,
-                           const double q_value,
+  void QScore::writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
+                           const FLASHDeconvHelperStructs::TopPicItem &top_id,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                            std::fstream &f,
                            bool write_detail)
   {
+    int scan_number = deconvoluted_spectrum.getScanNumber();
+    double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
+    auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
+    double pmass = //pg.getMonoMass();
+        top_id.proteform_id_ < 0 ? pg.getMonoMass()
+                                 : top_id.adj_precursor_mass_;
+    double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
+    int fr = top_id.first_residue_;
+    int lr = top_id.last_residue_;
+    String acc = top_id.protein_acc_;
+    int proID = top_id.proteform_id_;
+    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
+    double pscan = deconvoluted_spectrum.getPrecursorScanNumber();
+    double fintensity = top_id.intensity_;
+    int charge = deconvoluted_spectrum.getPrecursorCharge();
+
+    double e_value = top_id.e_value_;
+    double q_value = top_id.proteofrom_q_value_;
+    bool is_identified = top_id.proteform_id_ >= 0;
+    auto ptm_mass = top_id.unexp_mod_;
+
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
     if (pg.empty())
     {
@@ -176,7 +180,6 @@ namespace OpenMS
         f << item << ",";
       }
 
-      //(pg.getIsotopeCosine() <=0 ? pg.getQScore(): getQScore(&pg, charge))
       f << pg.getQScore() << "," << e_value << "," << q_value << ",";
       if (write_detail)
       {

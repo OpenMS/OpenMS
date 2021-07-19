@@ -39,7 +39,9 @@
 namespace OpenMS
 {
   /**
-@brief  A mass contains multiple peaks of different charges and isotope indices. PeakGroup is the set of such peaks representing a single monoisotopic mass
+@brief  Class describing a deconvoluted mass.
+   A mass contains multiple peaks of different charges and isotope indices.
+   PeakGroup is the set of such peaks representing a single monoisotopic mass
 @ingroup Topdown
 */
 
@@ -66,6 +68,7 @@ namespace OpenMS
            @brief Constructor specifying charge range
            @param min_abs_charge min Charge
            @param max_abs_charge max Charge
+           @param is_positive whether MS is positive mode
       */
     explicit PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive);
 
@@ -77,9 +80,6 @@ namespace OpenMS
 
     /// move constructor
     PeakGroup(PeakGroup &&other) = default;
-
-    /// clear per charge vectors to save memory
-    void clearChargeInfo();
 
     /// comparison operators
     bool operator<(const PeakGroup &a) const;
@@ -99,6 +99,7 @@ namespace OpenMS
     void updateMassesAndIntensity(const int offset = 0,
                                   const int max_isotope_index = 0);
 
+    /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
 
     /// set scan number
@@ -128,20 +129,19 @@ namespace OpenMS
     /// set representative max_qscore_charge
     void setRepAbsCharge(const int max_qscore_charge);
 
-    /// set Q score
+    /// set Q score - for FLASHIda log file parsing
     void setQScore(const float qscore);
 
-    /// set charge score
+    /// set charge score - for FLASHIda log file parsing
     void setChargeScore(const float charge_score);
 
-    /// get average mass ppm error;
+    /// set average mass ppm error
     void setAvgPPMError(const float error);
 
-    /// set color of the peak group; only for FLASHIda
-    void setColor(const char color);
-
+    /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
 
+    /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
     /// get scan number
@@ -192,9 +192,6 @@ namespace OpenMS
     /// get if it is positive mode
     bool isPositive() const;
 
-    /// get color of the peak group; only for FLASHIda
-    char getColor() const;
-
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
@@ -222,8 +219,5 @@ namespace OpenMS
     float qscore_;
     float avg_ppm_error_;
     float snr_;
-
-    /// for FLASHIda
-    char color_;
   };
 }

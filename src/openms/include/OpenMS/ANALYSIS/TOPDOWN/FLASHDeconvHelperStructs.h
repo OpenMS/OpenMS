@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    /// This struct contains the averagine patterns precalulated for speed up. Other variables are also calculated for fast cosine calculation
+    /// This struct contains the averagine patterns pre-calulated for speed up. Other variables are also calculated for fast cosine calculation
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
@@ -100,15 +100,13 @@ namespace OpenMS
       /// get max isotope index
       void setMaxIsotopeIndex(const int index);
 
-      /// get norm
-      //double getNorm(const double mass) const;
-
       /// get isotope start index
       Size getLeftCountFromApex(const double mass) const;
 
       /// get isotope end index
       Size getRightCountFromApex(const double mass) const;
 
+      /// get index of most abundant isotope
       Size getApexIndex(const double mass) const;
 
 
@@ -118,14 +116,18 @@ namespace OpenMS
     };
 
 
+    /// struct for TopPIC identification (both PrSMs and proteoforms)
     struct OPENMS_DLLAPI TopPicItem
     {
     public:
       TopPicItem() = default;
 
+      /// parse a single line of TopPIC output
       explicit TopPicItem(String in);
 
+      /// the line string
       String str_;
+      /// information from each column
       int prsm_id_;
       int spec_id_;
       int scan_;
@@ -138,8 +140,6 @@ namespace OpenMS
       String protein_acc_ = "";
       int first_residue_;
       int last_residue_;
-      //std::vector<int> mod_first_;
-      //  std::vector<int> mod_last_;
       std::vector<double> unexp_mod_;
       int matched_peaks_;
       int matched_frags_;
