@@ -850,9 +850,10 @@ namespace OpenMS
     {
       os.precision(3);
     }
-    if (std::abs(value) >= 10000.0 ||
-        std::abs(value) < 0.001 ||
-        (full_precision && std::abs(value) < 0.01))
+    if (value != 0 &&
+        (std::abs(value) >= 10000.0 ||
+         std::abs(value) < 0.001 ||
+         (full_precision && std::abs(value) < 0.01)))
     {
       os << std::scientific << value;
       s = os.str();
