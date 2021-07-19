@@ -388,7 +388,6 @@ namespace OpenMS
             sum_intensity += p.getIntensity();
             auto &pg_map = peak_group_map_[p.getRT()];
             auto &pg = pg_map[p.getMZ()];
-            int scan_number = pg.getScanNumber();
             auto crange = pg.getAbsChargeRange();
 
             min_feature_abs_charge =
@@ -397,7 +396,6 @@ namespace OpenMS
             max_feature_abs_charge =
                 max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(
                     crange);
-
           }
 
           for (int i = 0; i < fst.size(); i++)

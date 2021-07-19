@@ -141,7 +141,7 @@ namespace OpenMS
          @param ms_level MS level
          @param rt Retention time
     */
-    void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt);
+    void filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt);
 
     /**
          @brief generate MSSpectrum class using mzs and intensities. mzs and intensities and other information are
@@ -169,7 +169,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm fd_;
 
     /// total QScore threshold
-    const double tqscore_threshold = .9;
+    double tqscore_threshold = .9;
 
     /// q score threshold - determined from C# side
     double qscore_threshold_;
@@ -178,7 +178,7 @@ namespace OpenMS
     /// how many masses will be selected per ms level? - determined from C# side
     IntList mass_count_;
     /// minimum isolation window width divided by two
-    const double min_isolation_window_half_ = .6;
+    double min_isolation_window_half_ = .6;
 
     /// maps for global targeting
     std::map<int, std::vector<double>> target_nominal_masses_;

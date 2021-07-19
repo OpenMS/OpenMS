@@ -109,7 +109,7 @@ namespace OpenMS
       {
         String line;
         int scan;
-        double mass, charge, w1, w2, qscore, pint, mint, color;
+        double mass;
         while (std::getline(instream, line))
         {
           if (line.find("0 targets") != line.npos)
@@ -151,8 +151,7 @@ namespace OpenMS
       if (instream.good())
       {
         String line;
-        int scan;
-        double mass, rt;
+        double mass;
         while (std::getline(instream, line))
         {
           if (line.hasPrefix("rt"))
@@ -215,14 +214,14 @@ namespace OpenMS
     deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0, empty);
 
     // per spec deconvolution
-    FLASHIda::filterPeakGroupsUsingMassExclusion_(spec, ms_level, rt);
+    FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
 
     // spec.clear(true);
 
     return deconvoluted_spectrum_.size();
   }
 
-  void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt)
+  void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
     std::vector<PeakGroup> filtered_peakgroups;
 

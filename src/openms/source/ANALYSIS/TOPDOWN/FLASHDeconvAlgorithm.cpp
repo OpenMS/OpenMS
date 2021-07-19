@@ -129,8 +129,7 @@ namespace OpenMS
 
     if (ms_level_ > 1 && (!survey_scans.empty() || !precursor_map_for_FLASHIda.empty()))
     {
-      bool registered = deconvoluted_spectrum_.registerPrecursor(survey_scans,
-                                                                 precursor_map_for_FLASHIda);
+      deconvoluted_spectrum_.registerPrecursor(survey_scans, precursor_map_for_FLASHIda);
     }
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
     {
@@ -820,7 +819,7 @@ namespace OpenMS
       pg.reserve(charge_range * 128);
       Size right_index = avg_.getRightCountFromApex(mass);
       Size left_index = avg_.getLeftCountFromApex(mass);
-      Size scan_range = 1 + right_index + left_index;
+      //Size scan_range = 1 + right_index + left_index;
       for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
            j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
            j++)
@@ -1433,8 +1432,8 @@ namespace OpenMS
       }
       auto iso_dist = avg_.get(peak_group.getMonoMass());
       int iso_size = (int) iso_dist.size();
-      float total_noise = .0;
-      float total_signal = .0;
+      //float total_noise = .0;
+      //float total_signal = .0;
       //auto perChargeMaxIntensity = std::vector<double>(chargeRange);
 
       auto current_charge_range = peak_group.getAbsChargeRange();
@@ -1518,7 +1517,7 @@ namespace OpenMS
         {
           continue;
         }
-        int j = abs_charge - current_min_charge_;//current_min_charge_;
+        //        int j = abs_charge - current_min_charge_;//current_min_charge_;
 
         double q_score = QScore::getQScore(&peak_group, abs_charge);
 

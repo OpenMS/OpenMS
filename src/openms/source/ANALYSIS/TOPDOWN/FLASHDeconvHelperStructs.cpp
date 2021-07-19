@@ -315,7 +315,7 @@ namespace OpenMS
     {
       String seq = results[17];
       int loc = 0;
-      int off = seq.find(".", 0);
+      //int off = seq.find(".", 0);
       while (seq.find("[", loc) != String::npos)
       {
         // mod_first_.push_back(seq.find("(", loc) - off -1);
