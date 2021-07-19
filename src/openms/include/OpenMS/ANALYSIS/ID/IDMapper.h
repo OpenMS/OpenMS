@@ -173,8 +173,8 @@ public:
               - or only unidentified precursor.
       @param spectra The mass spectra
       @param ids The peptide identifications
-      @mz_tol Tolerance used to map to precursor m/z
-      @rt_tol Tolerance used to map to spectrum retention time
+      @param mz_tol Tolerance used to map to precursor m/z
+      @param rt_tol Tolerance used to map to spectrum retention time
 
       Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies). 
 
