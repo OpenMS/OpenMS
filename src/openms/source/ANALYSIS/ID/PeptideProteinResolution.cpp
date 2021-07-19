@@ -128,12 +128,10 @@ namespace OpenMS
     }
 
     // Go through PeptideIDs
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end();
-         ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
 
-      vector<PeptideHit>& hits = pep_it->getHits();
+      vector<PeptideHit>& hits = pep.getHits();
       if (!hits.empty())
       {
         PeptideHit& best_hit = hits[0];
@@ -236,13 +234,19 @@ namespace OpenMS
           evToKeep = grpIdxToEvIdx[*toResolve->begin()];
           if (toResolve->size() > 1)
           {
-           OPENMS_LOG_INFO << "Resolution: Peptide " << pep_it->getHits()[0].getSequence().toString() << " had groups:" << std::endl;
+           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:" << std::endl;
 
            OPENMS_LOG_INFO << "tgt: ";
-            for (const auto& g : bestNonDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestNonDecoyGrpTie)
+            {
+              OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            }
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "dec: ";
-            for (const auto& g : bestDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestDecoyGrpTie)
+            {
+              OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            }
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << std::endl;
           }

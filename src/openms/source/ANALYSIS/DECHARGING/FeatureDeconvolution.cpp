@@ -1262,13 +1262,13 @@ namespace OpenMS
     Size ladders_with_odd(0);
 
     // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
-    for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (const ConsensusFeature& cfeature : cons_map)
     {
-      if (it->size() == 1)
+      if (cfeature.size() == 1)
         continue;
 
       ++ladders_total;
-      IntList charges = it->getMetaValue("distinct_charges");
+      IntList charges = cfeature.getMetaValue("distinct_charges");
 
       for (Size i = 0; i < charges.size(); ++i)
       {

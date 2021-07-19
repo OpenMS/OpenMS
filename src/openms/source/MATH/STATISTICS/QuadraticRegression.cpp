@@ -34,10 +34,8 @@
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
 
     QuadraticRegression::QuadraticRegression() :
       a_(0), b_(0), c_(0), chi_squared_(0) {}
@@ -52,6 +50,5 @@ namespace OpenMS
     double QuadraticRegression::getChiSquared() const {return chi_squared_;}
 
 
-  }
-}
+} //OpenMS //Math
 
