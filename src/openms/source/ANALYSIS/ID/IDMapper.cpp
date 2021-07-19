@@ -542,9 +542,9 @@ namespace OpenMS
     // if not, use the centroid and the given tolerances
     if (!(use_centroid_rt && use_centroid_mz))
     {
-      for (FeatureMap::Iterator f_it = map.begin(); f_it != map.end(); ++f_it)
+      for (Feature& f_it : map)
       {
-        if (f_it->getConvexHulls().empty())
+        if (f_it.getConvexHulls().empty())
         {
           use_centroid_rt = true;
           use_centroid_mz = true;
@@ -568,23 +568,22 @@ namespace OpenMS
     double max_rt = -numeric_limits<double>::max();
     // cout << "Precomputing bounding boxes..." << endl;
     boxes.reserve(map.size());
-    for (FeatureMap::Iterator f_it = map.begin();
-         f_it != map.end(); ++f_it)
+    for (Feature& f_it : map)
     {
       DBoundingBox<2> box;
       if (!(use_centroid_rt && use_centroid_mz))
       {
-        box = f_it->getConvexHull().getBoundingBox();
+        box = f_it.getConvexHull().getBoundingBox();
       }
       if (use_centroid_rt)
       {
-        box.setMinX(f_it->getRT());
-        box.setMaxX(f_it->getRT());
+        box.setMinX(f_it.getRT());
+        box.setMaxX(f_it.getRT());
       }
       if (use_centroid_mz)
       {
-        box.setMinY(f_it->getMZ());
-        box.setMaxY(f_it->getMZ());
+        box.setMinY(f_it.getMZ());
+        box.setMaxY(f_it.getMZ());
       }
       increaseBoundingBox_(box);
       boxes.push_back(box);
@@ -627,21 +626,20 @@ namespace OpenMS
 
     // cout << "Finding matches..." << endl;
     // iterate over peptide IDs:
-    for (vector<PeptideIdentification>::const_iterator id_it =
-         ids.begin(); id_it != ids.end(); ++id_it)
+    for (const PeptideIdentification& id_it : ids)
     {
       // cout << "Peptide ID: " << id_it - ids.begin() << endl;
 
-      if (id_it->getHits().empty()) continue;
+      if (id_it.getHits().empty()) continue;
 
       DoubleList mz_values;
       double rt_value;
       IntList charges;
-      getIDDetails_(*id_it, rt_value, mz_values, charges, use_avg_mass);
+      getIDDetails_(id_it, rt_value, mz_values, charges, use_avg_mass);
 
       if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
       {
-        map.getUnassignedPeptideIdentifications().push_back(*id_it);
+        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
         continue;
       }
@@ -649,11 +647,9 @@ namespace OpenMS
       // iterate over candidate features:
       Size index = SignedSize(floor(rt_value)) - offset;
       Size matching_features = 0;
-      for (vector<SignedSize>::iterator hash_it =
-           hash_table[index].begin(); hash_it != hash_table[index].end();
-           ++hash_it)
+      for (SignedSize& hash_it : hash_table[index])
       {
-        Feature & feat = map[*hash_it];
+        Feature & feat = map[hash_it];
 
         // need to check the charge state?
         bool check_charge = !ignore_charge_;
@@ -674,13 +670,13 @@ namespace OpenMS
           }
 
           DPosition<2> id_pos(rt_value, *mz_it);
-          if (boxes[*hash_it].encloses(id_pos))                 // potential match
+          if (boxes[hash_it].encloses(id_pos))                 // potential match
           {
             if (use_centroid_mz)
             {
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
-              feat.getPeptideIdentifications().push_back(*id_it);
+              feat.getPeptideIdentifications().push_back(id_it);
               ++matching_features;
               break;                     // "mz_it" loop
             }
@@ -699,7 +695,7 @@ namespace OpenMS
               increaseBoundingBox_(box);
               if (box.encloses(id_pos)) // success!
               {
-                feat.getPeptideIdentifications().push_back(*id_it);
+                feat.getPeptideIdentifications().push_back(id_it);
                 ++matching_features;
                 found_match = true;
                 break; // "ch_it" loop
@@ -711,7 +707,7 @@ namespace OpenMS
       }
       if (matching_features == 0)
       {
-        map.getUnassignedPeptideIdentifications().push_back(*id_it);
+        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
       }
       else if (matching_features == 1)
@@ -791,11 +787,9 @@ namespace OpenMS
         precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
         //precursor_empty_id.setCharge(z_p);
 
-        for (vector<SignedSize>::iterator hash_it =
-           hash_table[index].begin(); hash_it != hash_table[index].end();
-           ++hash_it)
+        for (SignedSize& hash_it : hash_table[index])
         {
-          Feature & feat = map[*hash_it];
+          Feature & feat = map[hash_it];
 
           // (optinally) check charge state
           if (!ignore_charge_)
@@ -805,7 +799,7 @@ namespace OpenMS
 
           DPosition<2> id_pos(rt_value, mz_p);
 
-          if (boxes[*hash_it].encloses(id_pos)) // potential match
+          if (boxes[hash_it].encloses(id_pos)) // potential match
           {
             if (use_centroid_mz)
             {
@@ -922,17 +916,16 @@ namespace OpenMS
       mz_values.push_back(id.getMZ());
     }
 
-    for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();
-         hit_it != id.getHits().end(); ++hit_it)
+    for (const PeptideHit& hit_it : id.getHits())
     {
-      Int charge = hit_it->getCharge();
+      Int charge = hit_it.getCharge();
       charges.push_back(charge);
 
       if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
       {
         double mass = use_avg_mass ?
-                      hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
-                      hit_it->getSequence().getMonoWeight(Residue::Full, charge);
+                      hit_it.getSequence().getAverageWeight(Residue::Full, charge) :
+                      hit_it.getSequence().getMonoWeight(Residue::Full, charge);
 
         mz_values.push_back(mass / (double) charge);
       }
@@ -953,13 +946,11 @@ namespace OpenMS
   {
     bool use_avg_mass = false;
     String before;
-    for (vector<DataProcessing>::const_iterator proc_it = processing.begin();
-         proc_it != processing.end(); ++proc_it)
+    for (const DataProcessing& proc_it : processing)
     {
-      if (proc_it->getSoftware().getName() == "FeatureFinder")
+      if (proc_it.getSoftware().getName() == "FeatureFinder")
       {
-        String reported_mz = proc_it->
-                             getMetaValue("parameter: algorithm:feature:reported_mz");
+        String reported_mz = proc_it.getMetaValue("parameter: algorithm:feature:reported_mz");
         if (reported_mz.empty())
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))

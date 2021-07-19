@@ -43,10 +43,9 @@ using namespace std;
 // #define GUMBEL_DISTRIBUTION_FITTER_VERBOSE
 // #undef  GUMBEL_DISTRIBUTION_FITTER_VERBOSE
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     double GumbelDistributionFitter::GumbelDistributionFitResult::log_eval_no_normalize(const double x) const
     {
       // -log b is a constant again
@@ -145,5 +144,4 @@ namespace OpenMS
       return {x_init(0), x_init(1)};
     }
 
-  }   //namespace Math
-} // namespace OpenMS
+} // namespace OpenMS   //namespace Math

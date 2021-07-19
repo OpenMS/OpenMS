@@ -304,9 +304,15 @@ namespace OpenMS
       return;
     }
 
-    if (ignore_update) { return; }
+    if (ignore_update)
+    { 
+      return; 
+    }
 
-    if (!isVisible()) { return; }
+    if (!isVisible())
+    { 
+      return;
+    }
 
     int restore_spec_index = layer_->getCurrentSpectrumIndex();
 

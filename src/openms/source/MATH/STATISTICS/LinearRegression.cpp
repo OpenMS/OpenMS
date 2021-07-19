@@ -42,10 +42,9 @@
 
 using boost::math::detail::inverse_students_t;
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     double LinearRegression::getIntercept() const
     {
       return intercept_;
@@ -217,6 +216,5 @@ namespace OpenMS
       }
     }
 
-  }
-}
+} // OpenMS //Math
 
