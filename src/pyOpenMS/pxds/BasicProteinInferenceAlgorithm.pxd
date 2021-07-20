@@ -56,9 +56,26 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
                  libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Annotation of protein groups is currently only possible for a single protein ID run
+          #   -----
+          #   :param pep_ids: Vector of peptide identifications
+          #   :param prot_ids: Vector of protein identifications
+          #   :return: Writes its results into prot_ids
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
                                 ProteinIdentification & prot_id) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   Currently only takes first proteinID run and all peptides
+          #   -----
+          #   :param pep_ids: Vector of peptide identifications
+          #   :param prot_id: Peptide identification
+          #   :return: Writes its results into prot_ids
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespace "OpenMS::BasicProteinInferenceAlgorithm":
     cdef enum AggregationMethod "OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod":

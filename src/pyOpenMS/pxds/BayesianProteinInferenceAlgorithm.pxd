@@ -58,13 +58,60 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
 
         BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) nogil except +
 
-
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
                                          libcpp_vector[ PeptideIdentification ] & peptideIDs) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   Currently only takes first proteinID run and all peptides
+          #   -----
+          #   :param proteinIDs: Vector of protein identifications
+          #   :param peptideIDs: Vector of peptide identifications
+          #   :return: Writes its results into protein and (optionally also) peptide hits (as new score)
 
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
                                          libcpp_vector[ PeptideIdentification ] & peptideIDs, 
                                          ExperimentalDesign exp_des) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Writes its results into protein and (optionally also) peptide hits (as new score).
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   Currently only takes first proteinID run and all peptides
+          #   Experimental design can be used to create an extended graph with replicate information. (experimental)
+          #   -----
+          #   :param proteinIDs: Vector of protein identifications
+          #   :param peptideIDs: Vector of peptide identifications
+          #   :param exp_des: Experimental Design
+          #   :return: Writes its results into protein and (optionally also) peptide hits (as new score)
 
-        # not sure if that can be wrapped at all? 
-        # void inferPosteriorProbabilities(ConsensusMap & cmap, bool greedy_group_resolution, boost::optional[ ExperimentalDesign ] exp_des) nogil except +
+
+        void inferPosteriorProbabilities(ConsensusMap & cmap,
+                                         bool greedy_group_resolution) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Writes its results into protein and (optionally also) peptide hits (as new score)
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
+          #   -----
+          #   :param cmap: ConsensusMaps with protein IDs
+          #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
+          #   :return: Writes its protein ID results into the ConsensusMap
+
+        void inferPosteriorProbabilities(ConsensusMap & cmap,
+                                         bool greedy_group_resolution,
+                                         ExperimentalDesign exp_des) nogil except +
+          # wrap-doc:
+          #   Performs inference
+          #   -----
+          #   Writes its results into protein and (optionally also) peptide hits (as new score)
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
+          #   -----
+          #   :param cmap: ConsensusMaps with protein IDs.
+          #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
+          #   :param exp_des: Experimental Design
+          #   :return: Writes its protein ID results into the ConsensusMap
+
