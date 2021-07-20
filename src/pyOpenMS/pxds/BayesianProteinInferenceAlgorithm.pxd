@@ -14,22 +14,43 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         #  ProgressLogger
         #
         # wrap-doc:
-        #     Performs a Bayesian protein inference on Protein/Peptide identifications or ConsensusMap.
-        #     - Filters for best n PSMs per spectrum.
-        #     - Calculates and filters for best peptide per spectrum.
-        #     - Builds a k-partite graph from the structures.
-        #     - Finds and splits into connected components by DFS
-        #     - Extends the graph by adding layers from indist. protein groups, peptides with the same parents and optionally
-        #       some additional layers (peptide sequence, charge, replicate -> extended model = experimental)
-        #     - Builds a factor graph representation of a Bayesian network using the Evergreen library
-        #       See model param section. It is based on the Fido noisy-OR model with an option for
-        #       regularizing the number of proteins per peptide.
-        #     - Performs loopy belief propagation on the graph and queries protein, protein group and/or peptide posteriors
-        #       See loopy_belief_propagation param section.
-        #     - Learns best parameters via grid search if the parameters were not given in the param section.
-        #     - Writes posteriors to peptides and/or proteins and adds indistinguishable protein groups to the underlying
-        #       data structures.
-        #     - Can make use of OpenMP to parallelize over connected components.
+        #   Performs a Bayesian protein inference on Protein/Peptide identifications or ConsensusMap.
+        #   -----
+        #   - Filters for best n PSMs per spectrum.
+        #   - Calculates and filters for best peptide per spectrum.
+        #   - Builds a k-partite graph from the structures.
+        #   - Finds and splits into connected components by DFS
+        #   - Extends the graph by adding layers from indist. protein groups, peptides with the same parents and optionally
+        #     some additional layers (peptide sequence, charge, replicate -> extended model = experimental)
+        #   - Builds a factor graph representation of a Bayesian network using the Evergreen library
+        #     See model param section. It is based on the Fido noisy-OR model with an option for
+        #     regularizing the number of proteins per peptide.
+        #   - Performs loopy belief propagation on the graph and queries protein, protein group and/or peptide posteriors
+        #     See loopy_belief_propagation param section.
+        #   - Learns best parameters via grid search if the parameters were not given in the param section.
+        #   - Writes posteriors to peptides and/or proteins and adds indistinguishable protein groups to the underlying
+        #     data structures.
+        #   - Can make use of OpenMP to parallelize over connected components.
+        #   -----
+        #   Usage:
+        #     from pyopenms import *
+        #     from urllib.request import urlretrieve
+        #     urlretrieve("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/BayesianProteinInference_test.idXML", "BayesianProteinInference_test.idXML")
+        #     proteins = []
+        #     peptides = []
+        #     idf = IdXMLFile()
+        #     idf.load("BayesianProteinInference_test.idXML", proteins, peptides)
+        #     bpia = BayesianProteinInferenceAlgorithm()
+        #     p = bpia.getParameters()
+        #     p.setValue("update_PSM_probabilities", "false")
+        #     bpia.setParameters(p)
+        #     bpia.inferPosteriorProbabilities(proteins, peptides)
+        #     #
+        #     print(len(peptides)) # 9
+        #     print(peptides[0].getHits()[0].getScore()) # 0.6
+        #     print(proteins[0].getHits()[0].getScore()) # 0.624641
+        #     print(proteins[0].getHits()[1].getScore()) # 0.648346
+        #   -----
 
         BayesianProteinInferenceAlgorithm() nogil except +
 

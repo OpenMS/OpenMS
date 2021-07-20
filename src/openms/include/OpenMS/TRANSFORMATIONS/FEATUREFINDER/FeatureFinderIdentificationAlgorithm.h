@@ -82,6 +82,8 @@ public:
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
+  void setMSData(const PeakMap& ms_data) { ms_data_ = ms_data; }
+
   PeakMap& getChromatograms() { return chrom_data_; }
   const PeakMap& getChromatograms() const { return chrom_data_; }
 

@@ -14,20 +14,41 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         #  ProgressLogger
         #
         # wrap-doc:
-        #     Algorithm class that implements simple protein inference by aggregation of peptide scores.
-        #     It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
-        #     and if you want to use shared peptides ("use_shared_peptides").
-        #     First, the best PSM per spectrum is used, then only the best PSM per peptidoform is aggregated.
-        #     Peptidoforms can optionally be distinguished via the treat_X_separate parameters:
-        #     - Modifications (modified sequence string)
-        #     - Charge states
-        #     The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
-        #     Possible aggregation methods that can be set via the parameter "aggregation_method" are:
-        #     - "maximum" (default)
-        #     - "sum"
-        #     - "product" (ignoring zeroes)
-        #     Annotation of the number of peptides used for aggregation can be disabled (see parameters).
-        #     Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
+        #   Algorithm class that implements simple protein inference by aggregation of peptide scores.
+        #   -----
+        #   It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
+        #   and if you want to use shared peptides ("use_shared_peptides").
+        #   First, the best PSM per spectrum is used, then only the best PSM per peptidoform is aggregated.
+        #   Peptidoforms can optionally be distinguished via the treat_X_separate parameters:
+        #   - Modifications (modified sequence string)
+        #   - Charge states
+        #   The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
+        #   Possible aggregation methods that can be set via the parameter "aggregation_method" are:
+        #   - "maximum" (default)
+        #   - "sum"
+        #   - "product" (ignoring zeroes)
+        #   Annotation of the number of peptides used for aggregation can be disabled (see parameters).
+        #   Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
+        #   -----
+        #   Usage:
+        #     from pyopenms import *
+        #     from urllib.request import urlretrieve
+        #     urlretrieve("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/newMergerTest_out.idXML", "BasicProteinInference_test.idXML")
+        #     proteins = []
+        #     peptides = []
+        #     idf = IdXMLFile()
+        #     idf.load("BasicProteinInference_test.idXML", proteins, peptides);
+        #     bpia = BasicProteinInferenceAlgorithm()
+        #     p = bpia.getParameters();
+        #     p.setValue("min_peptides_per_protein", 0);
+        #     bpia.setParameters(p);
+        #     bpia.run(peptides, proteins);
+        #     #
+        #     print(proteins[0].getHits()[0].getScore()) # 0.6
+        #     print(proteins[0].getHits()[5].getScore()) # 0.9
+        #     print(proteins[0].getHits()[0].getMetaValue("nr_found_peptides")) # 1
+        #     print(proteins[0].getHits()[3].getMetaValue("nr_found_peptides")) # 2
+        #   -----
 
         BasicProteinInferenceAlgorithm() nogil except +
 
