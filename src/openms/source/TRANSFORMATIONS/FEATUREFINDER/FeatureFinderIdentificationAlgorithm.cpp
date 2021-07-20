@@ -178,6 +178,51 @@ namespace OpenMS
     defaultsToParam_();
   }
 
+  PeakMap& FeatureFinderIdentificationAlgorithm::getMSData()
+  {
+    return ms_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getMSData() const
+  {
+    return ms_data_;
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
+  {
+    ms_data_ = ms_data;
+  }
+
+  PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
+  {
+    return chrom_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms() const
+  {
+    return chrom_data_;
+  }
+
+  ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger()
+  {
+    return prog_log_;
+  }
+
+  const ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger() const
+  {
+    return prog_log_;
+  }
+
+  TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary()
+  {
+    return library_;
+  }
+
+  const TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary() const
+  {
+    return library_;
+  }
+
   void FeatureFinderIdentificationAlgorithm::run(
     vector<PeptideIdentification> peptides,
     const vector<ProteinIdentification>& proteins,
