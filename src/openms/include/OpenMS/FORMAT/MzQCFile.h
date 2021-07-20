@@ -44,7 +44,7 @@ namespace OpenMS
   /**
       @brief File adapter for mzQC files used to load and store mzQC files
 
-      This Class is supposed to internally collect the data for the mzQC File
+      This class collects the data for the mzQC File
 
       @ingroup FileIO
   */
