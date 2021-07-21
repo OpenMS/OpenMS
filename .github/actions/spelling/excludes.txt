@@ -47,4 +47,7 @@ ignore$
 \.raw$
 \.mzid$
 \.rc$
+\.odg$
+\.bmp$
 ^\.github/
+^\src/openms/thirdparty/
