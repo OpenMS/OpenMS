@@ -43,10 +43,8 @@ using namespace std;
 // #define GAUSS_FITTER_VERBOSE
 // #undef  GAUSS_FITTER_VERBOSE
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
     GaussFitter::GaussFitter()
     : init_param_(0.06, 3.0, 0.5)
     {
@@ -172,6 +170,5 @@ namespace OpenMS
       //TODO for likelihood maximization also the halflogtwopi constant could be removed
       return -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0);
     }
-
-  }   //namespace Math
-} // namespace OpenMS
+  
+} // namespace OpenMS  //namespace Math

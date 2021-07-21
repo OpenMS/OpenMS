@@ -276,10 +276,10 @@ namespace OpenMS
     }
 
     //TODO add psm regularizer nodes here optionally if using multiple psms
-    auto pepIt = spectrum.getHits().begin();
+    
     //TODO sort or assume sorted
     auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
-    for (; pepIt != pepItEnd; ++pepIt)
+    for (auto pepIt = spectrum.getHits().begin(); pepIt != pepItEnd; ++pepIt)
     {
       IDPointer pepPtr(&(*pepIt));
       vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);

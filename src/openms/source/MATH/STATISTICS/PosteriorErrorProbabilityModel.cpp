@@ -53,10 +53,9 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"),
       incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
@@ -701,8 +700,14 @@ namespace OpenMS
       if (target.size() == 0 || decoy.size() == 0)
       {
         StringList empty;
-        if (target.size() == 0) empty.push_back("target");
-        if (decoy.size() == 0) empty.push_back("decoy");
+        if (target.size() == 0)
+        {
+          empty.push_back("target");
+        }
+        if (decoy.size() == 0) 
+        {
+          empty.push_back("decoy");
+        }
         OPENMS_LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
@@ -1127,7 +1132,10 @@ namespace OpenMS
                     score = PEP_model.computeProbability(score);
 
                     // invalid score? invalid fit!
-                    if ((score < 0.0) || (score > 1.0)) unable_to_fit_data = true;
+                    if ((score < 0.0) || (score > 1.0)) 
+                    {
+                      unable_to_fit_data = true;
+                    }
                     //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
                   }
                   hit.setScore(score);
@@ -1147,5 +1155,4 @@ namespace OpenMS
         }
       }
     }
-  } // namespace Math
-} // namespace OpenMS
+} // namespace OpenMS // namespace Math
