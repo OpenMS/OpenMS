@@ -7,6 +7,7 @@ ignore$
 \.avi$
 \.ico$
 \.fas$
+\.fasta$
 \.consensusXML$
 \.mzTab$
 \.mzData$
@@ -35,4 +36,15 @@ ignore$
 \.osw$
 \.mascotXML$
 \.featureXML$
+\.phr$
+\.pin$
+\.psd$
+\.psi$
+\.txt$
+\.mzDat$
+\.out$
+\.icns$
+\.raw$
+\.mzid$
+\.rc$
 ^\.github/
