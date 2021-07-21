@@ -9,6 +9,10 @@ ignore$
 \.jpe?g$
 \.lock$
 \.map$
+\.mzML$
+\.idXML$
+\.tsv$
+\.csv$
 \.min\.
 \.mod$
 \.mp[34]$
