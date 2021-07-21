@@ -18,7 +18,17 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
         IntegerMassDecomposer() nogil except + # wrap-ignore
         IntegerMassDecomposer(IntegerMassDecomposer) nogil except + #wrap-ignore
         IntegerMassDecomposer(IMSWeights & alphabet) nogil except +
+            # wrap-doc:
+            #   Constructor with weights
+            #   -----
+            #   :param alphabet: Weights over which masses to be decomposed
+
         bool exist(ValueType mass) nogil except +
+            # wrap-doc:
+            #   Returns true if decomposition over the 'mass' exists, otherwise - false
+            #   -----
+            #   :param mass: Mass to be decomposed
+            #   :returns: true if decomposition over a given mass exists, otherwise - false.
 
         # Works in theory but may produce duplicate 
         # libcpp_vector[libcpp_vector[int]] getDecomposition(ValueType mass) nogil except +

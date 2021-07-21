@@ -154,13 +154,13 @@ public:
     }
 
     /**
-  get the search engine and its version from the output of the InsPecT executable without parameters
+        @brief get the search engine and its version from the output of the InsPecT executable without parameters
 
             returns true on success, false otherwise
     */
     bool getSearchEngineAndVersion(const String & cmd_output, ProteinIdentification & protein_identification);
 
-    /** read the header of an inspect output file and retrieve various information
+    /** @brief read the header of an inspect output file and retrieve various information
             @throw Exception::ParseError
     */
     void readOutHeader(const String & filename, const String & header_line, Int & spectrum_file_column, Int & scan_column, Int & peptide_column, Int & protein_column, Int & charge_column, Int & MQ_score_column, Int & p_value_column, Int & record_number_column, Int & DB_file_pos_column, Int & spec_file_pos_column, Size & number_of_columns);
