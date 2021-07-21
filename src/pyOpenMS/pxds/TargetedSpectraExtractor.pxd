@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         #  DefaultParamHandler
 
         TargetedSpectraExtractor() nogil except +
-        TargetedSpectraExtractor(TargetedSpectraExtractor) nogil except +
+        TargetedSpectraExtractor(TargetedSpectraExtractor) nogil except + # wrap-ignore
 
         void getDefaultParameters(Param&) nogil except +
 

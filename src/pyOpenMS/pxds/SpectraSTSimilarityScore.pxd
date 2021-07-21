@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
     cdef cppclass SpectraSTSimilarityScore:
         #  PeakSpectrumCompareFunctor inheritance
         SpectraSTSimilarityScore() nogil except +
-        SpectraSTSimilarityScore(SpectraSTSimilarityScore) nogil except +
+        SpectraSTSimilarityScore(SpectraSTSimilarityScore) nogil except + # wrap-ignore
         # TODO operator ()
         # double operator()(MSSpectrum & spec1, MSSpectrum & spec2) nogil except +
         # double operator()(BinnedSpectrum & bin1, BinnedSpectrum & bin2) nogil except +

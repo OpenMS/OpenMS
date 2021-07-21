@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #   This class supports direct iteration in Python.
 
         FeatureMap() nogil except +
-        FeatureMap(FeatureMap &) nogil except +
+        FeatureMap(FeatureMap) nogil except + # wrap-ignore
 
         bool operator==(FeatureMap) nogil except +
         bool operator!=(FeatureMap) nogil except +

@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         #    DefaultParamHandler
 
         SiriusAdapterAlgorithm() nogil except +
-        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm) nogil except +
+        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm) nogil except + # wrap-ignore
 
         bool isFeatureOnly() nogil except +
         UInt getFilterByNumMassTraces() nogil except +

@@ -6,5 +6,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>" name
         # wrap-ignore
         # no-pxd-import
         LevMarqFitter1D() nogil except +
-        LevMarqFitter1D(LevMarqFitter1D) nogil except +
+        LevMarqFitter1D(LevMarqFitter1D) nogil except + # wrap-ignore
 

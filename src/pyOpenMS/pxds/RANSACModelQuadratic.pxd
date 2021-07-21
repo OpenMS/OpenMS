@@ -4,5 +4,5 @@ cdef extern from "<OpenMS/MATH/MISC/RANSACModelQuadratic.h>" namespace "OpenMS::
 
     cdef cppclass RansacModelQuadratic:
        RansacModelQuadratic() nogil except +
-       RansacModelQuadratic(RansacModelQuadratic &) nogil except + # wrap-ignore
+       RansacModelQuadratic(RansacModelQuadratic) nogil except + # wrap-ignore
 

@@ -7,5 +7,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.
         # wrap-inherits:
         #  IsobaricQuantitationMethod
         TMTElevenPlexQuantitationMethod() nogil except +
-        TMTElevenPlexQuantitationMethod(TMTElevenPlexQuantitationMethod) nogil except +
+        TMTElevenPlexQuantitationMethod(TMTElevenPlexQuantitationMethod) nogil except + # wrap-ignore
 

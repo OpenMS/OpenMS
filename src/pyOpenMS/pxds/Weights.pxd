@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>" namespace 
     
     cdef cppclass IMSWeights "OpenMS::ims::Weights":
         IMSWeights() nogil except +
-        IMSWeights(IMSWeights) nogil except +
+        IMSWeights(IMSWeights) nogil except + # wrap-ignore
         # IMSWeights(alphabet_masses_type & masses, alphabet_mass_type precision) nogil except +
         size_type size() nogil except +
         weight_type getWeight(size_type i) nogil except +

@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         InstrumentSettings()     nogil except +
-        InstrumentSettings(InstrumentSettings)     nogil except +
+        InstrumentSettings(InstrumentSettings)     nogil except + # wrap-ignore
 
         Polarity getPolarity()     nogil except +
         void setPolarity(Polarity)  nogil except +

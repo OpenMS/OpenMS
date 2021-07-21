@@ -6,8 +6,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
     cdef cppclass StringView:
 
         StringView() nogil except +
-        StringView(const String& s) nogil except +
-        StringView(StringView) nogil except +
+        StringView(String) nogil except + # wrap-ignore
+        StringView(StringView) nogil except + # wrap-ignore
 
         bool operator<(StringView other) nogil except +
         StringView substr(Size start, Size end)  nogil except +

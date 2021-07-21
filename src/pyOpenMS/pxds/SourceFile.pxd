@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
     cdef cppclass SourceFile:
         SourceFile() nogil except +
-        SourceFile(SourceFile) nogil except +
+        SourceFile(SourceFile) nogil except + # wrap-ignore
         String getNameOfFile() nogil except +
         void setNameOfFile(String) nogil except +
 

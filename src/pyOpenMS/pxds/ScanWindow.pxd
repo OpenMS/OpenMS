@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/ScanWindow.h>" namespace "OpenMS":
         #  MetaInfoInterface
 
         ScanWindow() nogil except +
-        ScanWindow(ScanWindow) nogil except +
+        ScanWindow(ScanWindow) nogil except + # wrap-ignore
 
         double begin
         double end

@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         # wrap-inherits:
         #  DefaultParamHandler
         PrecursorIonSelectionPreprocessing() nogil except +
-        PrecursorIonSelectionPreprocessing(PrecursorIonSelectionPreprocessing) nogil except +
+        PrecursorIonSelectionPreprocessing(PrecursorIonSelectionPreprocessing) nogil except + # wrap-ignore
 
         # TODO STL map
         # libcpp_map[ String, libcpp_vector[ double ] ]  getProtMasses() nogil except +

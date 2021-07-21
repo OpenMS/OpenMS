@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         #    CVTermList
 
         Precursor() nogil except +
-        Precursor(Precursor) nogil except +
+        Precursor(Precursor) nogil except + # wrap-ignore
 
         # returns a mutable reference to the activation methods
         libcpp_set[ActivationMethod] getActivationMethods() nogil except +

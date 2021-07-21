@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         #  DefaultParamHandler
 
         PeakIntegrator() nogil except +
-        PeakIntegrator(PeakIntegrator) nogil except +
+        PeakIntegrator(PeakIntegrator) nogil except + # wrap-ignore
 
         void getDefaultParameters(Param) nogil except +
 

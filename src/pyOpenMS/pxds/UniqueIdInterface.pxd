@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
         # no-pxd-import
 
         UniqueIdInterface() nogil except +
-        UniqueIdInterface(UniqueIdInterface) nogil except +
+        UniqueIdInterface(UniqueIdInterface) nogil except + # wrap-ignore
 
         Size getUniqueId() nogil except +
         Size clearUniqueId() nogil except +

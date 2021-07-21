@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   -----
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment &)  nogil except +
+        MSExperiment(MSExperiment)  nogil except + # wrap-ignore
 
         ExperimentalSettings getExperimentalSettings() nogil except +
         

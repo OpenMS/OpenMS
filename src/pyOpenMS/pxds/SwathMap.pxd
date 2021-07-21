@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenS
     cdef cppclass SwathMap:
 
         SwathMap() nogil except +
-        SwathMap(SwathMap) nogil except +
+        SwathMap(SwathMap) nogil except + # wrap-ignore
 
         double lower
         double upper

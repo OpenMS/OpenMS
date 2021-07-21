@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
     
     cdef cppclass SvmTheoreticalSpectrumGenerator "OpenMS::SvmTheoreticalSpectrumGenerator":
         SvmTheoreticalSpectrumGenerator() nogil except +
-        SvmTheoreticalSpectrumGenerator(SvmTheoreticalSpectrumGenerator) nogil except +
+        SvmTheoreticalSpectrumGenerator(SvmTheoreticalSpectrumGenerator) nogil except + # wrap-ignore
         # void simulate(MSSpectrum &spectrum, AASequence &peptide, boost::random::mt19937_64& rng, Size precursor_charge) nogil except +
         void load() nogil except +
         libcpp_vector[ IonType ]  getIonTypes() nogil except +

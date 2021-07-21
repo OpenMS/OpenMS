@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 
     cdef cppclass FileHandler:  # wrap=True
         FileHandler() nogil except +
-        FileHandler(FileHandler) nogil except +
+        FileHandler(FileHandler) nogil except + # wrap-ignore
 
         bool loadExperiment(String, MSExperiment &) nogil except+
         void storeExperiment(String, MSExperiment) nogil except+

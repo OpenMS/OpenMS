@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
     cdef cppclass MSNumpressCoder:
 
         MSNumpressCoder() nogil except +
-        MSNumpressCoder(MSNumpressCoder) nogil except +
+        MSNumpressCoder(MSNumpressCoder) nogil except + # wrap-ignore
 
         void encodeNP(libcpp_vector[double] in_,
                       String & result,

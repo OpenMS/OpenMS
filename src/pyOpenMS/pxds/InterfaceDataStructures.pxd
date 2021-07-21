@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # wrap-instances:
         #   _Interfaces_Spectrum := Spectrum
         Spectrum() nogil except +
-        Spectrum(Spectrum) nogil except +
+        Spectrum(Spectrum) nogil except + # wrap-ignore
         BinaryDataArrayPtr getMZArray() nogil except + #wrap-ignore
         BinaryDataArrayPtr getIntensityArray() nogil except + #wrap-ignore
         void setMZArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore

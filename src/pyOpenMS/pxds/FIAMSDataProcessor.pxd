@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
         FIAMSDataProcessor() nogil except +
-        FIAMSDataProcessor(FIAMSDataProcessor) nogil except +
+        FIAMSDataProcessor(FIAMSDataProcessor) nogil except + # wrap-ignore
         bool run(MSExperiment & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) nogil except +
         # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +

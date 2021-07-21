@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>" namespace "Op
     cdef cppclass SwathWindowLoader:
 
         SwathWindowLoader() nogil except +
-        SwathWindowLoader(SwathWindowLoader) nogil except +
+        SwathWindowLoader(SwathWindowLoader) nogil except + # wrap-ignore
 
         void annotateSwathMapsFromFile(String filename,
                                        libcpp_vector[ SwathMap ]& swath_maps, bool do_sort, bool force) nogil except +

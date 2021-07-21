@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
     
     cdef cppclass SiriusMSFile:
         SiriusMSFile() nogil except +
-        SiriusMSFile(SiriusMSFile) nogil except +
+        SiriusMSFile(SiriusMSFile) nogil except + # wrap-ignore
 
     cdef cppclass SiriusMSFile_CompoundInfo "OpenMS::SiriusMSFile::CompoundInfo":
         SiriusMSFile_CompoundInfo() nogil except +

@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
     cdef cppclass ChargePair:
   
         ChargePair() nogil except +
-        ChargePair(ChargePair) nogil except + 
+        ChargePair(ChargePair) nogil except + # wrap-ignore
   
         ChargePair(Size index0,
                Size index1,

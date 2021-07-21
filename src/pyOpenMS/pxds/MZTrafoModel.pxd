@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
 
     cdef cppclass MZTrafoModel:
         MZTrafoModel()  nogil except +
-        MZTrafoModel(MZTrafoModel &) nogil except +
+        MZTrafoModel(MZTrafoModel) nogil except + # wrap-ignore
         MZTrafoModel(bool) nogil except +
         bool isTrained() nogil except +
         double getRT() nogil except +

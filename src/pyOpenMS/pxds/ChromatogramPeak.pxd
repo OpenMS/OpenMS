@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
     cdef cppclass ChromatogramPeak:
 
         ChromatogramPeak() nogil except +
-        ChromatogramPeak(ChromatogramPeak &) nogil except +
+        ChromatogramPeak(ChromatogramPeak) nogil except + # wrap-ignore
         ChromatogramPeak(PositionType retention_time, IntensityType intensity) nogil except +
         bool operator==(ChromatogramPeak) nogil except +
         bool operator!=(ChromatogramPeak) nogil except +

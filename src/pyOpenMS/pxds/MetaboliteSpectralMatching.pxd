@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         #    DefaultParamHandler
 
         MetaboliteSpectralMatching() nogil except +
-        MetaboliteSpectralMatching(MetaboliteSpectralMatching) nogil except + 
+        MetaboliteSpectralMatching(MetaboliteSpectralMatching) nogil except + # wrap-ignore
 
         void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab) nogil except +
         

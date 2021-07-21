@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/METADATA/Product.h>" namespace "OpenMS":
 
 
         Product()    nogil except +
-        Product(Product)    nogil except +
+        Product(Product)    nogil except + # wrap-ignore
 
         bool operator==(Product) nogil except +
         bool operator!=(Product) nogil except +

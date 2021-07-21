@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
     cdef cppclass TargetedExperiment:
 
         TargetedExperiment() nogil except +
-        TargetedExperiment(TargetedExperiment &) nogil except +
+        TargetedExperiment(TargetedExperiment) nogil except + # wrap-ignore
 
         bool operator==(TargetedExperiment) nogil except +
         bool operator!=(TargetedExperiment) nogil except +

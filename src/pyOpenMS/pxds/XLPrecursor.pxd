@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 
     cdef cppclass XLPrecursor "OpenMS::OPXLDataStructs::XLPrecursor":
 
-        XLPrecursor(XLPrecursor) nogil except +
+        XLPrecursor(XLPrecursor) nogil except + # wrap-ignore
         XLPrecursor() nogil except +
 
         float precursor_mass

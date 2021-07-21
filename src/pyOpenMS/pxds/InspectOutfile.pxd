@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
     
     cdef cppclass InspectOutfile "OpenMS::InspectOutfile":
         InspectOutfile() nogil except +
-        InspectOutfile(InspectOutfile) nogil except +
+        InspectOutfile(InspectOutfile) nogil except + # wrap-ignore
 
         bool operator==(InspectOutfile & inspect_outfile) nogil except +
 

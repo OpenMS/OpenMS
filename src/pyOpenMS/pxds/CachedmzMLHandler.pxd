@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
         #   ProgressLogger
 
         CachedMzMLHandler() nogil except +
-        CachedMzMLHandler(CachedMzMLHandler) nogil except +
+        CachedMzMLHandler(CachedMzMLHandler) nogil except + # wrap-ignore
 
         void writeMemdump(MSExperiment exp, String out) nogil except +
         void writeMetadata(MSExperiment exp, String out_meta) nogil except +

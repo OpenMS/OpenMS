@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
     cdef cppclass LightTransition:
         LightTransition() nogil except +
-        LightTransition(LightTransition) nogil except +
+        LightTransition(LightTransition) nogil except + # wrap-ignore
         libcpp_string transition_name
         libcpp_string peptide_ref
         double library_intensity

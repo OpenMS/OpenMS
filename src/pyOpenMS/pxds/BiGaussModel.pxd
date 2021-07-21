@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>" namespa
     
     cdef cppclass BiGaussModel "OpenMS::BiGaussModel":
         BiGaussModel() nogil except +
-        BiGaussModel(BiGaussModel) nogil except +
+        BiGaussModel(BiGaussModel) nogil except + # wrap-ignore
         void setOffset(double offset) nogil except +
         void setSamples() nogil except +
         double getCenter() nogil except +

@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>" name
     
     cdef cppclass MassDecomposition "OpenMS::MassDecomposition":
         MassDecomposition() nogil except +
-        MassDecomposition(MassDecomposition) nogil except +
+        MassDecomposition(MassDecomposition) nogil except + # wrap-ignore
         MassDecomposition(const String & deco) nogil except +
         # MassDecomposition  operator+=(MassDecomposition & d) nogil except +
         String toString() nogil except +

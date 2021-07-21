@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
     
     cdef cppclass SiriusMzTabWriter:
         SiriusMzTabWriter() nogil except + 
-        SiriusMzTabWriter(SiriusMzTabWriter) nogil except + 
+        SiriusMzTabWriter(SiriusMzTabWriter) nogil except + # wrap-ignore
 
     cdef cppclass SiriusMzTabWriter_SiriusSpectrumMSInfo "OpenMS::SiriusMzTabWriter::SiriusSpectrumMSInfo":
 

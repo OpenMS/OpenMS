@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         # wrap-inherits:
         #  DefaultParamHandler
         OptimizePeakDeconvolution() nogil except +
-        OptimizePeakDeconvolution(OptimizePeakDeconvolution) nogil except +
+        OptimizePeakDeconvolution(OptimizePeakDeconvolution) nogil except + # wrap-ignore
         PenaltyFactorsIntensity  getPenalties() nogil except +
         void setPenalties(PenaltyFactorsIntensity & penalties) nogil except +
         Int getCharge() nogil except +

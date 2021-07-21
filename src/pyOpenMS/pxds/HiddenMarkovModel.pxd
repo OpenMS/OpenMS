@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
     
     cdef cppclass HiddenMarkovModel "OpenMS::HiddenMarkovModel":
         HiddenMarkovModel() nogil except +
-        HiddenMarkovModel(HiddenMarkovModel) nogil except +
+        HiddenMarkovModel(HiddenMarkovModel) nogil except + # wrap-ignore
         void writeGraphMLFile(const String & filename) nogil except +
         # NAMESPACE # void write(std::ostream & out) nogil except +
         double getTransitionProbability(const String & s1, const String & s2) nogil except +

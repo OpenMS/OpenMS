@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution
 
     cdef cppclass IMSIsotopeDistribution "OpenMS::ims::IMSIsotopeDistribution":
         IMSIsotopeDistribution() nogil except +
-        IMSIsotopeDistribution(IMSIsotopeDistribution) nogil except +
+        IMSIsotopeDistribution(IMSIsotopeDistribution) nogil except + # wrap-ignore
         abundance_type ABUNDANCES_SUM_ERROR
         size_type SIZE
         IMSIsotopeDistribution(nominal_mass_type nominalMass) nogil except +

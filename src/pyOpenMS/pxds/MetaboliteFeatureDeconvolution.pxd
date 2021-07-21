@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>"
         # wrap-inherits:
         #  DefaultParamHandler
         MetaboliteFeatureDeconvolution() nogil except +
-        MetaboliteFeatureDeconvolution(MetaboliteFeatureDeconvolution) nogil except +
+        MetaboliteFeatureDeconvolution(MetaboliteFeatureDeconvolution) nogil except + # wrap-ignore
         void compute(FeatureMap & fm_in, FeatureMap & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>" namespace "OpenMS::MetaboliteFeatureDeconvolution":

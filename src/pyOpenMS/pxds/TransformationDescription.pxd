@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
     
     cdef cppclass TransformationStatistics "OpenMS::TransformationDescription::TransformationStatistics":
         TransformationStatistics() nogil except +
-        TransformationStatistics(TransformationStatistics) nogil except +
+        TransformationStatistics(TransformationStatistics) nogil except + # wrap-ignore
         # libcpp_vector[ size_t ] percents # const
         double xmin
         double xmax

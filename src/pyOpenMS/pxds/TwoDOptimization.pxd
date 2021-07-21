@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         # wrap-inherits:
         #  DefaultParamHandler
         TwoDOptimization() nogil except +
-        TwoDOptimization(TwoDOptimization) nogil except +
+        TwoDOptimization(TwoDOptimization) nogil except + # wrap-ignore
 
         double getMZTolerance() nogil except +
         void setMZTolerance(double tolerance_mz) nogil except +

@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         #   getFullId().c_str()
 
         ResidueModification() nogil except +
-        ResidueModification(ResidueModification) nogil except +
+        ResidueModification(ResidueModification) nogil except + # wrap-ignore
 
         bool operator==(ResidueModification & modification) nogil except +
         bool operator!=(ResidueModification & modification) nogil except +

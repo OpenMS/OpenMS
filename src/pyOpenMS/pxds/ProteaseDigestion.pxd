@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #         print(len(result_digest_unmodified)) # 42 peptides
 
       ProteaseDigestion() nogil except +
-      ProteaseDigestion(ProteaseDigestion) nogil except +
+      ProteaseDigestion(ProteaseDigestion) nogil except + # wrap-ignore
 
       void setEnzyme(String name) nogil except + # wrap-doc:Sets the enzyme for the digestion (by name)
 

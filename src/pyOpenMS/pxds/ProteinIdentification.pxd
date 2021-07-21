@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         ProteinIdentification() nogil except +
-        ProteinIdentification(ProteinIdentification) nogil except +
+        ProteinIdentification(ProteinIdentification) nogil except + # wrap-ignore
 
         bool operator==(ProteinIdentification) nogil except +
         bool operator!=(ProteinIdentification) nogil except +

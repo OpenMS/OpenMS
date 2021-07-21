@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
 # 
 #     cdef cppclass PeakCandidate:
 #         PeakCandidate() nogil except +
-#         PeakCandidate(PeakCandidate) nogil except +
+#         PeakCandidate(PeakCandidate) nogil except + # wrap-ignore
 #         int index
 #         double peak_apex_intensity
 # 

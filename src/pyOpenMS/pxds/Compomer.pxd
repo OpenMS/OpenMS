@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
     cdef cppclass Compomer:
   
         Compomer() nogil except +
-        Compomer(Compomer) nogil except + 
+        Compomer(Compomer) nogil except + # wrap-ignore
   
         void add(Adduct & a, UInt side) nogil except +
 

@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
         # MzMLSqliteHandler() nogil except +
 
         MzMLSqliteHandler(String filename, UInt64 run_id) nogil except +
-        MzMLSqliteHandler(MzMLSqliteHandler h) nogil except +
+        MzMLSqliteHandler(MzMLSqliteHandler) nogil except + # wrap-ignore
 
         void readExperiment(MSExperiment & exp, bool meta_only )  nogil except +
   

@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
     cdef cppclass InspectInfile "OpenMS::InspectInfile":
 
         InspectInfile() nogil except +
-        InspectInfile(InspectInfile) nogil except +
+        InspectInfile(InspectInfile) nogil except + # wrap-ignore
 
         bool operator==(InspectInfile & inspect_infile) nogil except +
         void store(const String & filename) nogil except +

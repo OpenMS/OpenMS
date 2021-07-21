@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 
     cdef cppclass AASeqWithMass "OpenMS::OPXLDataStructs::AASeqWithMass":
 
-        AASeqWithMass(AASeqWithMass) nogil except +
+        AASeqWithMass(AASeqWithMass) nogil except + # wrap-ignore
         AASeqWithMass() nogil except +
 
         double peptide_mass

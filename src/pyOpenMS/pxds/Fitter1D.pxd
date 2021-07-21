@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>" namespace "
         # wrap-inherits:
         #  DefaultParamHandler
         Fitter1D() nogil except +
-        Fitter1D(Fitter1D) nogil except +
+        Fitter1D(Fitter1D) nogil except + # wrap-ignore
         # QualityType fit1d(RawDataArrayType &, InterpolationModel *&) nogil except +
         void registerChildren() nogil except +
 

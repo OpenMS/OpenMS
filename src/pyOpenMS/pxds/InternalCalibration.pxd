@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         #    ProgressLogger
 
         InternalCalibration()      nogil except +
-        InternalCalibration(InternalCalibration) nogil except +
+        InternalCalibration(InternalCalibration) nogil except + # wrap-ignore
 
 
         Size fillCalibrants(MSExperiment,

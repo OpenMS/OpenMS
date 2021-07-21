@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
     
     cdef cppclass Attachment "OpenMS::QcMLFile::Attachment":
         Attachment() nogil except +
-        Attachment(Attachment) nogil except +
+        Attachment(Attachment) nogil except + # wrap-ignore
         String name
         String id
         String value

@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
         #    Feature
 
         MRMFeature() nogil except +
-        MRMFeature(MRMFeature &) nogil except +
+        MRMFeature(MRMFeature) nogil except + # wrap-ignore
 
         OpenSwath_Scores getScores() nogil except +
         void setScores(OpenSwath_Scores s) nogil except +

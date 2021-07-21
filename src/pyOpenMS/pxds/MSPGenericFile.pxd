@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         #  DefaultParamHandler
 
         MSPGenericFile() nogil except +
-        MSPGenericFile(MSPGenericFile) nogil except +
+        MSPGenericFile(MSPGenericFile) nogil except + # wrap-ignore
         MSPGenericFile(const String& filename, MSExperiment& library) nogil except +
 
         void load(const String& filename, MSExperiment& library) nogil except +

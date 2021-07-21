@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
     cdef cppclass AbsoluteQuantitationStandards:
 
         AbsoluteQuantitationStandards() nogil except +
-        AbsoluteQuantitationStandards(AbsoluteQuantitationStandards) nogil except +
+        AbsoluteQuantitationStandards(AbsoluteQuantitationStandards) nogil except + # wrap-ignore
 
         void getComponentFeatureConcentrations(
             libcpp_vector[AQS_runConcentration]& run_concentrations,

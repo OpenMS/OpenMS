@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         #    DefaultParamHandler
 
         ProteinResolver() nogil except +
-        ProteinResolver(ProteinResolver) nogil except +
+        ProteinResolver(ProteinResolver) nogil except + # wrap-ignore
 
         void resolveConsensus(ConsensusMap & consensus) nogil except +
         void resolveID(libcpp_vector[PeptideIdentification] & peptide_identifications) nogil except +

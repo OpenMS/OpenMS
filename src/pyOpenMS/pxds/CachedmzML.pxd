@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
     cdef cppclass CachedmzML:
 
         CachedmzML() nogil except +
-        CachedmzML(CachedmzML) nogil except +
+        CachedmzML(CachedmzML) nogil except + # wrap-ignore
         CachedmzML(String filename) nogil except +
 
         Size getNrSpectra() nogil except +

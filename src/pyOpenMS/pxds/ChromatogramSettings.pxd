@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         #   about a single chromatogram.
 
         ChromatogramSettings() nogil except +
-        ChromatogramSettings(ChromatogramSettings) nogil except +
+        ChromatogramSettings(ChromatogramSettings) nogil except + # wrap-ignore
 
         Product getProduct() nogil except + # wrap-doc:Access to the product ion
         void setProduct(Product p) nogil except + # wrap-doc:Set the product ion

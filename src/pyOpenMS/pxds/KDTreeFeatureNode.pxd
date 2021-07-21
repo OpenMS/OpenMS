@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>" namespace 
     
     cdef cppclass KDTreeFeatureNode "OpenMS::KDTreeFeatureNode":
         # KDTreeFeatureNode() nogil except +
-        KDTreeFeatureNode(KDTreeFeatureNode) nogil except +
+        KDTreeFeatureNode(KDTreeFeatureNode) nogil except + # wrap-ignore
         KDTreeFeatureNode(KDTreeFeatureMaps * data, Size idx) nogil except +
         double operator[](Size i) nogil except +
         Size getIndex() nogil except +

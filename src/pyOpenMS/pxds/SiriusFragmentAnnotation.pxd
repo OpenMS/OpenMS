@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>" namespa
 
     cdef cppclass SiriusFragmentAnnotation:
         SiriusFragmentAnnotation() nogil except +
-        SiriusFragmentAnnotation(SiriusFragmentAnnotation) nogil except +
+        SiriusFragmentAnnotation(SiriusFragmentAnnotation) nogil except + # wrap-ignore
                 
         void  extractSiriusFragmentAnnotationMapping(String& path_to_sirius_workspace,
                                                      MSSpectrum& msspectrum_to_fill,
