@@ -66,8 +66,10 @@ namespace OpenMS
     // H5F_ACC_RDONLY - Open file as read-only, if it already exists, and fail, otherwise
     // H5F_ACC_RDWR - Open file for read/write, if it already exists, and fail, otherwise
     unsigned int openFlag = H5F_ACC_RDWR;
-    if (createNewFile) openFlag = H5F_ACC_TRUNC;
-
+    if (createNewFile)
+    {
+      openFlag = H5F_ACC_TRUNC;
+    }
     FileCreatPropList fcparm = FileCreatPropList::DEFAULT;
     FileAccPropList faparm = FileAccPropList::DEFAULT;
     file_ = new H5::H5File(filename, openFlag, fcparm, faparm);
