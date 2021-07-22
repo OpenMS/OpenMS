@@ -568,9 +568,9 @@ namespace OpenMS
 
       std::stringstream ss;
       ss << "COMMAND: " << executable_qstring.toStdString();
-      for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
+      for (const QString& it : command_line)
       {
-        ss << " " << it->toStdString();
+        ss << " " << it.toStdString();
       }
       OPENMS_LOG_WARN << ss.str() << std::endl;
       OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;

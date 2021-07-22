@@ -199,23 +199,21 @@ namespace OpenMS
     PeakMap::SpectrumType::iterator peak_iter, help_iter;
 
 #ifdef DEBUG_CALIBRATION
-    spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
     // iterate through all spectra
-    for (; spec_iter != calib_peaks.end(); ++spec_iter)
+    for (PeakMap& spec_iter : calib_peaks)
     {
-      peak_iter = spec_iter->begin();
       // go through current scan
-      for (; peak_iter != spec_iter->end(); ++peak_iter)
+      for (PeakMap::SpectrumType& peak_iter : spec_iter)
       {
-        std::cout << peak_iter->getMZ() << std::endl;
+        std::cout << peak_iter.getMZ() << std::endl;
       }
     }
 #endif
 
-    spec_iter = calib_peaks.begin();
+    
     // iterate through all spectra
-    for (; spec_iter != calib_peaks.end(); ++spec_iter)
+    for (spec_iter = calib_peaks.begin(); spec_iter != calib_peaks.end(); ++spec_iter)
     {
       peak_iter = spec_iter->begin();
       help_iter = peak_iter;
@@ -258,14 +256,14 @@ namespace OpenMS
 
   void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
   {
-    PeakMap::iterator spec_iter = calib_spectra.begin();
+    
     PeakMap::SpectrumType::iterator peak_iter;
     unsigned int idx = 0;
 
     //two point conversion
     if (ml3s_.empty())
     {
-      for (; spec_iter != calib_spectra.end(); ++spec_iter)
+      for (PeakMap::iterator spec_iter = calib_spectra.begin(); spec_iter != calib_spectra.end(); ++spec_iter)
       {
         peak_iter = spec_iter->begin();
         double ml1, ml2;
@@ -292,7 +290,7 @@ namespace OpenMS
     else
     {
       // three point conversion
-      for (; spec_iter != calib_spectra.end(); ++spec_iter)
+      for (PeakMap::iterator spec_iter = calib_spectra.begin(); spec_iter != calib_spectra.end(); ++spec_iter)
       {
         peak_iter = spec_iter->begin();
         double ml1, ml2, ml3;
