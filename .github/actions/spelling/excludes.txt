@@ -1,11 +1,17 @@
 # See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-excludes
 (?:^|/)(?i)COPYRIGHT
 (?:^|/)(?i)LICEN[CS]E
+(?:^|/)(?i)AUTHORS
+(?:^|/)(?i)CHANGELOG
 (?:^|/)package(?:-lock|)\.json$
 (?:^|/)vendor/
+\DS_store$
 ignore$
+# exclude "hidden" files starting with . (e.g., .gitmodules)
+^\.
 # exclude all test files as these have strange patterns to test
 \_test.cpp$
+\.obo$
 \.psms$
 \.avi$
 \.ico$
