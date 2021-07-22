@@ -6,6 +6,7 @@
 ignore$
 # exclude all test files as these have strange patterns to test
 \_test.cpp$
+\.psms$
 \.avi$
 \.ico$
 \.fas$
