@@ -141,6 +141,16 @@ namespace OpenMS
 
   void ElementDB::storeElements_()
   {	
+    map<unsigned int, double> deuterium_abundance = {{1u, 1.0}};
+    map<unsigned int, double> deuterium_mass = {{1u, 2.01410178}};
+    buildElement_("Deuterium", "D", 1u, deuterium_abundance, deuterium_mass);
+    
+    
+    map<unsigned int, double> tritium_abundance = {{1u, 1.0}};
+    map<unsigned int, double> tritium_mass = {{1u, 3.01604927}};
+    buildElement_("Tritium", "T", 1u, tritium_abundance, tritium_mass);
+    
+    
     map<unsigned int, double> hydrogen_abundance = {{1u, 0.999885}, {2u, 0.000115}, {3u, 0.0}};
     map<unsigned int, double> hydrogen_mass = {{1u, 1.0078250319}, {2u, 2.01410178}, {3u, 3.01604927}};
     buildElement_("Hydrogen", "H", 1u, hydrogen_abundance, hydrogen_mass);
