@@ -87,7 +87,7 @@ namespace OpenMS
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
+    defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
@@ -137,12 +137,13 @@ namespace OpenMS
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM", 
-       std::vector<std::string>{
+      std::vector<std::string>{
         Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
         Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
         Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
         Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
-    );
+      );
+
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -284,7 +285,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
-//    double annotation_mean_error = 
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -358,7 +359,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           {
             ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
           }
-          
+
           // store PSM
           phs.push_back(ph);
         }
@@ -413,7 +414,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-    protein_ids[0].setSearchParameters(search_parameters);
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
