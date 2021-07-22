@@ -54,12 +54,8 @@ using namespace std;
 /**
   @page TOPP_FLASHDeconv TOPP_FLASHDeconv
 
-  @brief
-  @ref
-  @code
-  @endcode
-  @verbinclude
-  @htmlinclude
+  @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
+
 */
 
 
@@ -196,7 +192,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 1});
+    fd_defaults.setValue("min_peaks", IntList{4, 2});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
@@ -233,6 +229,7 @@ protected:
     combined.insert("FeatureTracing:", mf_defaults);
     registerFullParam_(combined);
   }
+
 
   static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String &in_log_file)
   {

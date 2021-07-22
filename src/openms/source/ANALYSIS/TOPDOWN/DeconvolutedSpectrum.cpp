@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
-#include "include/OpenMS/ANALYSIS/TOPDOWN/QScore.h"
 
 namespace OpenMS
 {
@@ -42,7 +41,6 @@ namespace OpenMS
   {
     spec_ = spectrum;
   }
-
 
   MSSpectrum DeconvolutedSpectrum::toSpectrum(const int mass_charge)
   {
@@ -74,7 +72,7 @@ namespace OpenMS
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
                                                      const String &file_name,
                                                      const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                                     const bool write_detail)//, fstream& fsm, fstream& fsp)
+                                                     const bool write_detail)
   {
     if (empty())
     {
@@ -205,15 +203,6 @@ namespace OpenMS
         }
       }
 
-      /*auto iso_dist = avg.get(pg.getMonoMass());
-      fs << "\t";
-      for(int i=0;i<iso_dist.size();i++){
-          fs << iso_dist[i].getIntensity();
-          if (i < iso_dist.size() - 1) {
-              fs << ";";
-          }
-      }*/
-
       fs << "\n";
     }
   }
@@ -265,13 +254,6 @@ namespace OpenMS
     }
   }
 
-  /*  void DeconvolutedSpectrum::writeAttCsvHeader(std::fstream& fs)
-    {
-      fs
-          << "ScanNumber,RetentionTime,PrecursorScanNumber,Charge,ChargeSNR,PeakIntensity,EnvIntensity,EnvIsotopeCosine,PeakMz,"
-             "MonoMass,MassSNR,IsotopeCosine,MassIntensity,QScore,Class\n";
-    }*/
-
   void DeconvolutedSpectrum::writeTopFD(std::fstream &fs,
                                         const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                         const double snr_threshold,
@@ -284,9 +266,7 @@ namespace OpenMS
     if (ms_level > 1)
     {
       if (precursor_peak_group_.empty()
-          || precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold
-        //|| QScore::getQScore(&precursor_peak_group_, precursor_peak_.getCharge())< .25
-          )
+          || precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold)
       {
         return;
       }
@@ -334,7 +314,7 @@ namespace OpenMS
     double isotope_score_threshold = 0;
     std::vector<double> isotope_scores;
 
-    if (size() > topFD_max_peak_count_)// max peak count for TopPic
+    if (size() > topFD_max_peak_count_)// max peak count for TopPic = 500
     {
       isotope_scores.reserve(size());
       for (auto &pg : *this)
@@ -357,7 +337,6 @@ namespace OpenMS
       {
         break;
       }
-      // for (auto &peaks : pg) {
       size++;
       fs << std::fixed << std::setprecision(2);
       fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t"
@@ -368,38 +347,41 @@ namespace OpenMS
       {
         break;
       }
-      // }
+
+      // peaks of different charges are separately recorded even if they represent the same mass..
       /*std::set<int> charges;
-      for (auto &peaks : pg) {
-          charges.insert(peaks.abs_charge);
+      for (auto &peaks : pg)
+      {
+        charges.insert(peaks.abs_charge);
       }
-      for (int charge : charges) {
-          if (pg.getChargeIntensity(charge) <= 0) {
-              continue;
-          }
-          size++;
-          fs << std::fixed << std::setprecision(2);
-          fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getChargeIntensity(charge) << "\t"
-             << (pg.isPositive() ? charge : -charge)
-             //  << "\t" << log10(pg.precursorSNR+1e-10) << "\t" << log10(pg.precursorTotalSNR+1e-10)
-             //  << "\t" << log10(pg.maxSNR + 1e-10) << "\t" << log10(pg.total_snr_ + 1e-10)
-             << "\n";
-          fs << std::setprecision(-1);
-          if (size >= 500) {
-              break;
-          }
+      for (int charge : charges)
+      {
+        if (pg.getChargeIntensity(charge) <= 0)
+        {
+          continue;
+        }
+        size++;
+        fs << std::fixed << std::setprecision(2);
+        fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getChargeIntensity(charge) << "\t"
+           << (pg.isPositive() ? charge : -charge)
+           << "\n";
+        fs << std::setprecision(-1);
+        if (size >= topFD_max_peak_count_)
+        {
+          break;
+        }
       }*/
     }
 
     fs << "END IONS\n\n";
   }
 
+
   bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
+                                               const bool is_positive,
                                                const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
-    bool is_positive = true; // TODO update..
     precursor_peak_.setIntensity(.0);
-    //
     double start_mz = 0;
     double end_mz = 0;
     //int target_precursor_scan = -1;
@@ -530,8 +512,6 @@ namespace OpenMS
                   precursor_peak_group_ = pg;
                 }
               }
-
-
               return true;
             }
           }
@@ -623,6 +603,8 @@ namespace OpenMS
         precursor_peak_
             .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge
                                                   : -tmp_precursor->abs_charge);
+
+        precursor_peak_.setIntensity(tmp_precursor->intensity);
         max_score = score;
         precursor_peak_group_ = pg;
         precursor_scan_number_ = precursor_spectrum.scan_number_;

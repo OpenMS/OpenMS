@@ -115,7 +115,6 @@ namespace OpenMS
 
     };
 
-
     /// struct for TopPIC identification (both PrSMs and proteoforms)
     struct OPENMS_DLLAPI TopPicItem
     {

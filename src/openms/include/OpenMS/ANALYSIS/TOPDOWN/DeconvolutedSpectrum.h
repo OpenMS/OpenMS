@@ -127,9 +127,11 @@ namespace OpenMS
     If multiple masses are detected, the one with the best QScore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
     If no such mass exists, only the precursor peak is registered.
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
+    @param is_positive if MS mode is positive
     @param precursor_map_for_real_time_acquisition this contains the deconvoluted mass information from FLASHIda runs.
     */
     bool registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
+                           const bool is_positive,
                            const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// original spectrum getter

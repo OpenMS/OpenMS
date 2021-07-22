@@ -306,7 +306,6 @@ namespace OpenMS
 
     for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c)
     {
-      //auto charge_cos_squred = per_charge_cos_[c] * per_charge_cos_[c];
       auto nom = charge_cos_squred * per_charge_signal_pwr_[c];
       auto denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
                    + (1 - charge_cos_squred) * per_charge_signal_pwr_[c] + 1;

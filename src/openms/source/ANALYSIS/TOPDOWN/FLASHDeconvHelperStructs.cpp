@@ -123,13 +123,6 @@ namespace OpenMS
         double ori_int = iso[k].getIntensity();
         iso[k].setIntensity(ori_int / sqrt(total_pwr));
       }
-      /*
-                  std::cout<<"iso"<<mass<<"=[";
-                  for (int j = 0; j <iso.size(); ++j) {
-                      std::cout<<iso[j].getIntensity()<<",";
-                  }
-                  std::cout<<"];"<<std::endl;
-      */
       left_count = left_count < 0 ? 0 : left_count;
       right_count = right_count < 0 ? 0 : right_count;
 
@@ -230,16 +223,6 @@ namespace OpenMS
   {
     return this->logMz == a.logMz;
   }
-
-  class LogMzPeakHashFunction
-  {
-  public:
-
-    size_t operator()(const FLASHDeconvHelperStructs::LogMzPeak &peak) const
-    {
-      return std::hash<double>()(peak.mz);
-    }
-  };
 
   FLASHDeconvHelperStructs::PrecalculatedAveragine
   FLASHDeconvHelperStructs::calculateAveragines(const double max_mass,

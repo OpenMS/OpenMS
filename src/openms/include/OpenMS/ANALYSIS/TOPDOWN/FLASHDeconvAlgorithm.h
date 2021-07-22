@@ -239,7 +239,7 @@ namespace OpenMS
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();
 
-    /** @brief Update mass_bins_. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses
+    /** @brief Update mass_bins_. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses. This function does not perform deisotoping
         @param mz_intensities per mz bin intensity
         @return a matrix containing charge ranges for all found masses
      */
