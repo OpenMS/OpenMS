@@ -360,9 +360,7 @@ namespace OpenMS
                   << std::endl;
 
       }
-
     }
-
 
     double xi;
     std::cout << "interpolation \n\n";
@@ -419,4 +417,3 @@ namespace OpenMS
   }
 
 } //namespace OpenMS
-
