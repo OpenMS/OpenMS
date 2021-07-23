@@ -1303,7 +1303,7 @@ protected:
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
         }
 
-        String what = peptides_only ? "" : "PEPTIDE";
+        String what = "PEPTIDE";
         if (!peptides_only)
         {
           writeRunHeader(output);
