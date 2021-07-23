@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution
         masses_container getMasses() nogil except + # wrap-doc:Gets a mass of isotope 'i'
         libcpp_vector[abundance_type] getAbundances() nogil except + # wrap-doc:Gets an abundance of isotope 'i'
         void normalize() nogil except + # wrap-doc:Normalizes distribution, i.e. scaling abundances to be summed up to 1 with an error
-        bool empty() nogil except + # wrap-doc:Returns true if the distribution has no peaks, false - otherwise.
+        bool empty() nogil except + # wrap-doc:Returns true if the distribution has no peaks, false - otherwise
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>" namespace "OpenMS::ims::IMSIsotopeDistribution":
     

@@ -7,19 +7,19 @@ from streampos cimport *
 cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>" namespace "OpenMS":
 
     cdef cppclass IndexedMzMLDecoder:
-        IndexedMzMLDecoder() nogil except +
-            # wrap-doc:
-                #   A class to analyze indexedmzML files and extract the offsets of individual tags
-                #   -----
-                #   Specifically, this class allows one to extract the offsets of the <indexList>
-                #   tag and of all <spectrum> and <chromatogram> tag using the indices found at
-                #   the end of the indexedmzML XML structure
-                #   -----
-                #   While findIndexListOffset tries extracts the offset of the indexList tag from
-                #   the last 1024 bytes of the file, this offset allows the function parseOffsets
-                #   to extract all elements contained in the <indexList> tag and thus get access
-                #   to all spectra and chromatogram offsets
+        # wrap-doc:
+            #   A class to analyze indexedmzML files and extract the offsets of individual tags
+            #   -----
+            #   Specifically, this class allows one to extract the offsets of the <indexList>
+            #   tag and of all <spectrum> and <chromatogram> tag using the indices found at
+            #   the end of the indexedmzML XML structure
+            #   -----
+            #   While findIndexListOffset tries extracts the offset of the indexList tag from
+            #   the last 1024 bytes of the file, this offset allows the function parseOffsets
+            #   to extract all elements contained in the <indexList> tag and thus get access
+            #   to all spectra and chromatogram offsets
 
+        IndexedMzMLDecoder() nogil except +
         IndexedMzMLDecoder(IndexedMzMLDecoder) nogil except +
         int parseOffsets(String in_, int indexoffset, 
                 libcpp_vector[ libcpp_pair[ libcpp_string, streampos] ]& spectra_offsets,

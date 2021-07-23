@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   :param clear_ids: Reset peptide and protein identifications of each scan before annotating
                 #   :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
                 #   :raises:
-                #     Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information.
+                #     Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information
 
         void annotate(MSExperiment & map_,
                       FeatureMap & fmap,
@@ -80,7 +80,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   :param use_centroid_mz: Whether to use the m/z value of feature centroids even if convex hulls are present
                 #   :param spectra: Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index
                 #   :raises:
-                #     Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information.
+                #     Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information
 
         void annotate(ConsensusMap & map_,
                       libcpp_vector[PeptideIdentification] & ids,
@@ -104,7 +104,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   :param annotate_ids_with_subelements: Boolean operator set to true if store map index of FeatureHandle in peptide identification
                 #   :param spectra: Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index
                 #   :raises:
-                #     Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information.
+                #     Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information
 
 
         IDMapper_SpectraIdentificationState mapPrecursorsToIdentifications(MSExperiment spectra,

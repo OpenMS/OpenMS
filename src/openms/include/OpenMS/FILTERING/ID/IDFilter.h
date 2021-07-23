@@ -690,8 +690,8 @@ public:
        @brief Extracts all unique peptide sequences from a list of peptide IDs
 
        @param peptides Input
+       @param sequences Output
        @param ignore_mods Extract sequences without modifications?
-       @return sequences 
     */
     static void extractPeptideSequences(
       const std::vector<PeptideIdentification>& peptides,

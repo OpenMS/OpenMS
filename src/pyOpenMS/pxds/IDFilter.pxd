@@ -18,8 +18,27 @@ from ChromatogramPeak cimport *
 cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
     cdef cppclass IDFilter:
+         # wrap-doc:
+                #   Finds the best-scoring hit in a vector of peptide or protein identifications
+                #   -----
+                #   This class provides functions for filtering collections of peptide or protein identifications according to various criteria.
+                #   It also contains helper functions and classes (functors that implement predicates) that are used in this context.
+                #   -----
+                #   The filter functions modify their inputs, rather than creating filtered copies.
+                #   -----
+                #   Most filters work on the hit level, i.e. they remove peptide or protein hits from peptide or protein identifications (IDs).
+                #   A few filters work on the ID level instead, i.e. they remove peptide or protein IDs from vectors thereof.
+                #   Independent of this, the inputs for all filter functions are vectors of IDs, because the data most often comes in this form.
+                #   This design also allows many helper objects to be set up only once per vector, rather than once per ID.
+                #   -----
+                #   The filter functions for vectors of peptide/protein IDs do not include clean-up steps (e.g. removal of IDs without hits, reassignment of hit ranks, ...).
+                #   They only carry out their specific filtering operations.
+                #   This is so filters can be chained without having to repeat clean-up operations.
+                #   The group of clean-up functions provides helpers that are useful to ensure data integrity after filters have been applied, but it is up to the individual developer to use them when necessary.
+                #   -----
+                #   The filter functions for MS/MS experiments do include clean-up steps, because they filter peptide and protein IDs in conjunction and potential contradictions between the two must be eliminated.
 
-        IDFilter()           nogil except + # wrap-doc:Collection of functions for filtering peptide and protein identifications
+        IDFilter()           nogil except + 
         IDFilter(IDFilter)   nogil except + # wrap-ignore
 
         Size countHits(libcpp_vector[PeptideIdentification] identifications) nogil except + # wrap-doc:Returns the total number of peptide hits in a vector of peptide identifications
@@ -67,13 +86,13 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   -----
                 #   :param groups: Input/output protein groups
                 #   :param hits: Available protein hits (all others are removed from the groups)
-                #   :return: Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
+                #   :return: Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed)
 
         void removeEmptyIdentifications(libcpp_vector[PeptideIdentification]& ids) nogil except + # wrap-doc:Removes peptide or protein identifications that have no hits in them
         void removeEmptyIdentifications(libcpp_vector[ProteinIdentification]& ids) nogil except + # wrap-doc:Removes peptide or protein identifications that have no hits in them
 
-        void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept. Score orientation (are higher scores better?) is taken into account
-        void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept. Score orientation (are higher scores better?) is taken into account
+        void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
+        void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
 
         void keepNBestSpectra(libcpp_vector[PeptideIdentification]& peptides, Size n) nogil except + # wrap-doc:Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other)
 
