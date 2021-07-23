@@ -421,7 +421,7 @@ namespace OpenMS
     auto mz_bin_index_reverse = std::vector<Size>();
     mz_bin_index_reverse.reserve(mz_bins_.count());
 
-    // invert mz bins so smaller charges are counted given a mass
+    // invert mz bins so charges are counted from small to large given a mass
     while (mz_bin_index != mz_bins_.npos)
     {
       mz_bin_index_reverse.push_back(mz_bin_index);
@@ -1338,7 +1338,7 @@ namespace OpenMS
       int offset = 0;
       double cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group[0].getUnchargedMass(),
                                                             per_isotope_intensities,
-                                                            offset, avg_, true);
+                                                            offset, avg_, false);
       peak_group.setIsotopeCosine(cos);
 
       if (peak_group.empty() ||
