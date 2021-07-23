@@ -141,6 +141,9 @@ START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
 
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5D2"), true)
+  TEST_EQUAL(EmpiricalFormula("C5D2") < EmpiricalFormula("C5T2"), true)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator=(const EmpiricalFormula& rhs))
@@ -391,6 +394,9 @@ START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   TEST_EQUAL(ef1 == ef1, true)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 == *e_ptr, false)
+
+  TEST_EQUAL(EmpiricalFormula("C5(2)H5") == EmpiricalFormula("C5D5"), true)
+  TEST_EQUAL(EmpiricalFormula("C5(3)H5") == EmpiricalFormula("C5T5"), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
