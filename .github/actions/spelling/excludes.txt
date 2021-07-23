@@ -5,7 +5,7 @@
 (?:^|/)(?i)CHANGELOG
 (?:^|/)package(?:-lock|)\.json$
 (?:^|/)vendor/
-\DS_store$
+\.DS_store$
 ignore$
 # exclude "hidden" files starting with . (e.g., .gitmodules)
 ^\.

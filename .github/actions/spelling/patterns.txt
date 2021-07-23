@@ -5,3 +5,7 @@
 
 # DNA or RNA
 ^[CAGTU]+$
+
+# Amino acid including modification (modification alphabet needs restriction)
+^[ACDEFGHIKLMNPQRSTVWY]+[a-z]?$
+
