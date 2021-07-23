@@ -191,8 +191,10 @@ namespace OpenMS
             ++count_assume_mono;
           }
           // negative mode - make sure charges are < 0
-          if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -(std::abs(precursor_charge)); }
-
+          if (p == IonSource::Polarity::NEGATIVE)
+          { 
+            precursor_charge = -(std::abs(precursor_charge));
+          }
           // set feature_charge for msfile if feature information is available
           // no charge annotated - assume mono-charged
           if (feature_id != 0 && feature_charge == 0)

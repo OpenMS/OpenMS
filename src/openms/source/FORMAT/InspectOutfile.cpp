@@ -1097,8 +1097,9 @@ namespace OpenMS
     QString response(cmd_output.toQString());
     QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     if (rx.indexIn(response) == -1)
+    {
       return false;
-
+    }
     protein_identification.setSearchEngineVersion(String(rx.cap(2)));
     return true;
   }
@@ -1128,25 +1129,45 @@ namespace OpenMS
     for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
     {
       if ((*s_i) == "#SpectrumFile")
+      {
         spectrum_file_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Scan#")
+      {
         scan_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Annotation")
+      {
         peptide_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Protein")
+      {
         protein_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Charge")
+      {
         charge_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "MQScore")
+      {
         MQ_score_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "p-value")
+      {
         p_value_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "RecordNumber")
+      {
         record_number_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "DBFilePos")
+      {
         DB_file_pos_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "SpecFilePos")
+      {
         spec_file_pos_column = s_i - substrings.begin();
+      }
     }
 
     if ((spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1))

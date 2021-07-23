@@ -501,10 +501,10 @@ namespace OpenMS
       hits.resize(number_of_prescoring_hits);
     }
 
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& pep : hits)
     {
       PeakSpectrum ETD_sim_spec, CID_sim_spec;
-      String mod_string = getModifiedStringFromAASequence_(it->getSequence());
+      String mod_string = getModifiedStringFromAASequence_(pep.getSequence());
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
 
@@ -518,7 +518,7 @@ namespace OpenMS
       cerr << "Final: " << it->getSequence() << " " << cid_score << " " << etd_score << " " << 2 * cid_score + etd_score << endl;
       */
 
-      it->setScore(cid_score + etd_score);
+      pep.setScore(cid_score + etd_score);
     }
 
     id.setHits(hits);
@@ -679,13 +679,13 @@ namespace OpenMS
 #endif
 
       //static Map<String, set<String> > permute_cache;
-      for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
+      for (const MassDecomposition& it : decomps)
       {
 #ifdef DAC_DEBUG
-        cerr << it->toString() << endl;
+        cerr << it.toString() << endl;
 #endif
 
-        String exp_string = it->toExpandedString();
+        String exp_string = it.toExpandedString();
         if (!permute_cache_.has(exp_string))
         {
           permute_("", exp_string, sequences);
@@ -742,25 +742,25 @@ namespace OpenMS
     // run divide step
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Selected " << pivots.size() << " pivot ions: ";
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const Size& it : pivots)
     {
-      cerr << *it << "(" << CID_spec[*it].getPosition()[0] << ") ";
+      cerr << it << "(" << CID_spec[it].getPosition()[0] << ") ";
     }
     cerr << endl;
 #endif
 
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const Size& it : pivots)
     {
       set<String> seq1, seq2, new_sequences;
 
       // the smaller the 'gap' the greater the chance of not finding anything
       // so we we compute the smaller gap first
-      double diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
-      double diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
+      double diff1(CID_spec[it].getPosition()[0] - CID_spec[left].getPosition()[0]);
+      double diff2(CID_spec[right].getPosition()[0] - CID_spec[it].getPosition()[0]);
 
       if (diff1 < diff2)
       {
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, it, peptide_weight, CID_spec, ETD_spec, ion_scores);
         if (seq1.empty())
         {
 #ifdef DAC_DEBUG
@@ -769,11 +769,11 @@ namespace OpenMS
           continue;
         }
 
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq2, it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
       }
       else
       {
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq2, it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
         if (seq2.empty())
         {
 #ifdef DAC_DEBUG
@@ -782,7 +782,7 @@ namespace OpenMS
           continue;
         }
 
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, it, peptide_weight, CID_spec, ETD_spec, ion_scores);
       }
 
 #ifdef DAC_DEBUG

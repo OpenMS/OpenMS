@@ -359,23 +359,30 @@ namespace OpenMS
     //            disable_parsing_ is an Int, since subordinates might be chained, thus at SO-level 2, the endelement() would switch on parsing again
     //                                      , even though the end of the parent SO was not reached
     if ((!options_.getLoadSubordinates()) && tag == "subordinate")
+    {
       ++disable_parsing_;
+    }
     else if ((!options_.getLoadConvexHull()) && tag == "convexhull")
+    {
       ++disable_parsing_;
-
+    }
     if (disable_parsing_)
+    {
       return;
-
+    }
     // do the actual parsing:
     String parent_tag;
     if (open_tags_.size() != 0)
+    {
       parent_tag = open_tags_.back();
+    }
     open_tags_.push_back(tag);
 
     //for downward compatibility, all tags in the old description must be ignored
     if (in_description_)
+    {
       return;
-
+    }
     if (tag == "description")
     {
       in_description_ = true;

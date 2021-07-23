@@ -75,9 +75,18 @@ namespace OpenMS
         fmap.getPrimaryMSRunPath(filename);
         if (!filename.empty()) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
-          if (filename[0].hasSuffix(".mzML")) filename[0].resize(filename[0].size() - 5);
-          else if (filename[0].hasSuffix(".txt")) filename[0].resize(filename[0].size() - 4);
-          if (filename[0] != run.sample_name) continue;
+          if (filename[0].hasSuffix(".mzML"))
+          {
+            filename[0].resize(filename[0].size() - 5);
+          }
+          else if (filename[0].hasSuffix(".txt"))
+          {
+            filename[0].resize(filename[0].size() - 4);
+          }
+          if (filename[0] != run.sample_name)
+          {
+            continue;
+          }
         }
         AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
