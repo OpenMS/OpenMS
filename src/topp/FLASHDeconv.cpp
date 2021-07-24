@@ -97,42 +97,52 @@ protected:
     registerOutputFile_("out",
                         "<file>",
                         "",
-                        "output file (tsv) - feature level deconvoluted masses (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
+                        "feature level deconvolution output tsv file (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {""},
-                            "output files (tsv) - spectrum level deconvoluted masses per ms level", false);
+                            "spectrum level deconvolution output tsv file per MS level", false);
     setValidFormats_("out_spec", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out_mzml", "<file>", "",
-                        "mzml format output file (mzML) - spectrum level deconvoluted masses per ms level", false);
+                        "mzml format spectrum level deconvolution output file per MS level\"", false);
     setValidFormats_("out_mzml", ListUtils::create<String>("mzML"));
 
-    registerOutputFile_("out_promex", "<file>", "",
-                        "promex format output file (ms1ft) - only MS1 deconvoluted masses are recorded", false);
+    registerOutputFile_("out_promex",
+                        "<file>",
+                        "",
+                        "ms1ft (promex compatible) format spectrum level deconvolution output file only for MS1 level",
+                        false);
     setValidFormats_("out_promex", ListUtils::create<String>("ms1ft"), false);
 
     registerOutputFileList_("out_topFD",
                             "<file for MS1, file for MS2, ...>",
                             {""},
-                            "topFD format output files (msalign) - spectrum level deconvoluted masses per ms level. The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC. "
+                            "msalign (topFD compatible) format spectrum level deconvolution output file per MS level."
+                            " The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC GUI. "
                             "For example, -out_topFD [name]_ms1.msalign [name]_ms2.msalign",
                             false);
 
-    registerOutputFileList_("out_topFD_feature", "<file  for MS1, file for MS2, ...>", {""},
-                            "topFD format output feature file (feature) format per MS level", false);
+    registerOutputFileList_("out_topFD_feature",
+                            "<file  for MS1, file for MS2, ...>",
+                            {""},
+                            "feature (topFD compatible) format spectrum level deconvolution output file per MS level. Feature file is necessary for TopPIC feature intensity output",
+                            false);
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
-    registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "minimum precursor SNR for identification. Now applies only for topFD outputs", false,
+    registerDoubleOption_("min_precursor_snr",
+                          "<SNR value>",
+                          1.0,
+                          "minimum precursor SNR (SNR within the isoliation window) for identification. Now applied only for topFD outputs.",
+                          false,
                           false);
 
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
                        0,
-                       "Charge status of deconvoluted masses in mzml output",
+                       "Charge status of deconvoluted masses in mzml output (specified by out_mzml)",
                        false);
 
     setMinInt_("mzml_mass_charge", -1);
@@ -152,7 +162,8 @@ protected:
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
-                       "to write peak info per deconvoluted mass in detail or not in [prefix]_MSn_spec.tsv files. If set to 1, all peak information (m/z, intensity, charge, and isotope index) per mass is reported.",
+                       "to write peak info per deconvoluted mass in detail or not in spectrum level tsv files. If set to 1, all peak information (m/z, intensity, charge, "
+                       "and isotope index) per mass is reported.",
                        false,
                        false);
 
@@ -166,7 +177,9 @@ protected:
     registerIntOption_("use_ensemble_spectrum",
                        "",
                        0,
-                       "if set to 1, all spectra will add up to a single ensemble spectrum (per MS level) for which the deconvolution is performed. out_spec should specify the output spectrum level deconvolution tsv files.",
+                       "if set to 1, all spectra will add up to a single ensemble spectrum (per MS level) "
+                       "for which the deconvolution is performed. out_spec should specify the output spectrum level deconvolution tsv files."
+                       "This mode is not fully developed yet.",
                        false,
                        false);
 
@@ -198,13 +211,19 @@ protected:
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.8, .9},
-                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+                         "cosine similarity thresholds "
+                         "between avg. and observed isotope patterns for MS1, 2, ... "
+                         "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.setValue("max_mass_count",
                          IntList{-1, -1},
-                         "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
+                         "maximum mass counts per spec for MS1, 2, ... "
+                         "(e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
 
-    fd_defaults.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
+    fd_defaults.setValue("rt_window",
+                         180.0,
+                         "RT window for MS1 deconvolution. Spectra within RT window are considered together for deconvolution."
+                         "When an MS1 spectrum is deconvoluted, the masses found in previous MS1 spectra within RT window are favorably considered.");
     fd_defaults.addTag("rt_window", "advanced");
 
     fd_defaults.remove("max_mass_count");
@@ -213,7 +232,8 @@ protected:
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_isotope_cosine",
                          -1.0,
-                         "Cosine threshold between avg. and observed isotope pattern for mass features. if not set, controlled by -Algorithm:min_isotope_cosine_ option");
+                         "cosine similarity threshold between avg. and observed isotope pattern "
+                         "for mass features. if not set, controlled by -Algorithm:min_isotope_cosine_ option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
     mf_defaults.remove("noise_threshold_int");
     mf_defaults.remove("reestimate_mt_sd");
