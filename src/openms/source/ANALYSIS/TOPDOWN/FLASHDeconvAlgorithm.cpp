@@ -67,12 +67,13 @@ namespace OpenMS
 
     defaults_.setValue("min_qscore",
                        .0,
-                       "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
+                       "minimum QScore threshold for precursors for MS2. QScore is the probability that a precursor is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
                        IntList{4, 2},
-                       "minimum number of consecutively matched peaks with universal pattern for MS1, 2, ...  "
-                       "(e.g., -min_peaks 4 2 to specify 4 and 2 for MS1 and MS2, respectively). This affects only for peaks of highly charged peaks (>8). "
+                       "minimum number of peaks of consecutive charge states per MS level."
+                       "(e.g., -min_peaks 4 2 to specify 4 and 2 for MS1 and MS2, respectively). "
+                       "This affects only for peaks of highly charged peaks (>8). "
                        "The peaks of low charges are detected based on m/z distance between isotopes.");
 
     defaults_.setValue("max_mass_count",
