@@ -560,8 +560,7 @@ namespace OpenMS
   void ElementDB::clear_()
   {
     // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
-    map<string, const Element*>::iterator it = names_.begin();
-    for (; it != names_.end(); ++it)
+    for (map<string, const Element*>::iterator it = names_.begin(); it != names_.end(); ++it)
     {
       delete it->second;
     }

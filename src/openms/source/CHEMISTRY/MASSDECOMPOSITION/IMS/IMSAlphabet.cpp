@@ -71,8 +71,7 @@ namespace OpenMS
 
     const IMSAlphabet::element_type & IMSAlphabet::getElement(const name_type & name) const
     {
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      for (const_iterator cit = elements_.begin(); cit != elements_.end(); ++cit)
       {
         if (cit->getName() == name)
         {
@@ -104,8 +103,7 @@ namespace OpenMS
     bool IMSAlphabet::erase(const name_type & name)
     {
       bool found = false;
-      iterator it = elements_.begin();
-      for (; it != elements_.end(); ++it)
+      for (iterator it = elements_.begin(); it != elements_.end(); ++it)
       {
         if (it->getName() == name)
         {
@@ -120,8 +118,8 @@ namespace OpenMS
     IMSAlphabet::masses_type IMSAlphabet::getMasses(size_type index) const
     {
       masses_type masses;
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      
+      for (const_iterator cit = elements_.begin(); cit != elements_.end(); ++cit)
       {
         masses.push_back(cit->getMass(index));
       }
@@ -131,8 +129,7 @@ namespace OpenMS
     IMSAlphabet::masses_type IMSAlphabet::getAverageMasses() const
     {
       masses_type masses;
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      for (const_iterator cit = elements_.begin(); cit != elements_.end(); ++cit)
       {
         masses.push_back(cit->getAverageMass());
       }
