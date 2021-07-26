@@ -534,7 +534,10 @@ namespace OpenMS
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
-      for (auto const & r : msfile_section_) { unique_paths.insert(r.path); }
+      for (auto const & r : msfile_section_) 
+      { 
+        unique_paths.insert(r.path);
+      }
       return unique_paths.size();
     }
 

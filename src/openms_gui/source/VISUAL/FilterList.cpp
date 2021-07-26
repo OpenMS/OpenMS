@@ -41,10 +41,9 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     FilterList::FilterList(QWidget *parent) :
       QWidget(parent),
       ui_(new Ui::FilterList)
@@ -123,7 +122,6 @@ namespace OpenMS
 
       context_menu.exec(ui_->filter->mapToGlobal(pos));
     }
-
-  } //namespace Internal
-} //namspace OpenMS
+    
+} //namspace OpenMS //namespace Internal
 

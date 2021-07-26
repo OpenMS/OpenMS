@@ -34,11 +34,8 @@
 
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
-    AveragePosition<1> default_averageposition_1;
-    AveragePosition<2> default_averageposition_2;
-  }
-}
+  AveragePosition<1> default_averageposition_1;
+  AveragePosition<2> default_averageposition_2;
+} // OpenMS // Math

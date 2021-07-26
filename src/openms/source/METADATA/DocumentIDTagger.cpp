@@ -150,10 +150,14 @@ namespace OpenMS
     {
       getline(in, line);
       if (line.length() == 0)
+      {
         continue;
+      }
       ++free;
       if (free == 1)
+      {
         id = line;                 // pull out first ID
+      }
       if (!idcount_only)
       {
         if (free != 1)       // delete first line
@@ -180,9 +184,13 @@ namespace OpenMS
       time(&rawtime);
       strftime(time_buffer, 80, "%x %X", localtime(&rawtime));
       if (free == 0)
+      {
         outfile << time_buffer << " :: " << toolname_ << " unsuccessfully requested ID (pool is empty!)\n";
+      }
       else
+      {
         outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
+      }
       outfile.close();
     }
 
@@ -214,10 +222,13 @@ namespace OpenMS
 
     String msg;
     if (free == 0)
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from depleted ID pool '") + getPoolFile() + String("'");
+    }
     else
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from unaccessible ID pool '") + getPoolFile() + String("'. There should be ") + String(free) + String(" identifiers available!");
-
+    }
     throw Exception::DepletedIDPool(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDTagger", msg);
   }
 
