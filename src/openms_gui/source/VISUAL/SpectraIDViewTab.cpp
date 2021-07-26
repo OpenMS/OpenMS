@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -301,7 +302,7 @@ namespace OpenMS
           QListWidget* accession_list = new QListWidget();
           QVBoxLayout* layout = new QVBoxLayout();
           
-          txt->setText("Click on any accession to get more details:");
+          txt->setText("Click on any accession to get more details externally in your default web browser...");
           layout->addWidget(txt);
 
           for (auto acc : single_accessions) 
@@ -346,15 +347,31 @@ namespace OpenMS
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         //array to store object of start and end postion of peptides;
-        QJsonArray peptides_start_end_pos;
-
+        QJsonArray peptides_data;
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
         for (auto pep : protein_to_peptide_id_map[single_accessions.at(0)])
         {
+          std::vector<int> mod_index;
           const vector<PeptideHit>& pep_hits = pep.getHits();
           const PeptideHit& hit = pep_hits[0];
           const String& pep_seq = hit.getSequence().toString();
+          std::cout << "pep seq => " << pep_seq << std::endl;
+          std::cout << AASequence().fromString(pep_seq).toUnmodifiedString() << std::endl;
+          std::cout << AASequence().fromString(pep_seq).toString() << std::endl;
+          std::cout << AASequence().fromString(pep_seq).toUniModString() << std::endl;
+          auto seq = AASequence().fromString(pep_seq);
 
+          for (int i = 0; i < seq.size(); ++i)
+          {
+            std::cout << seq[i].isModified() << std::endl;
+            if (seq[i].isModified()) 
+            {
+              std::cout << "pushed->" << i << std::endl;
+              mod_index.push_back(i);
+            }
+          }
+          std::cout << mod_index.size() << "<---->" << std::endl;
+          
           //store start and end positions-
           for (int j = 0; j < pep_hits.size(); ++j)
           {
@@ -363,17 +380,24 @@ namespace OpenMS
             for (int k = 0; k < evidences.size(); ++k)
             {
               const String& id_accession = evidences[k].getProteinAccession();
-
+              QJsonObject data;
+              int pep_start = evidences[k].getStart();
+              int pep_end = evidences[k].getEnd();
+              
               if (id_accession == single_accessions.at(0))
               {
-                int pep_start = evidences[k].getStart();
-                int pep_end = evidences[k].getEnd();
 
-                QJsonObject data;
                 data.insert(QStringLiteral("start"), pep_start);
                 data.insert(QStringLiteral("end"), pep_end);
-                data.insert(QStringLiteral("accession"), pep_seq.toQString());
-                peptides_start_end_pos.push_back(data);
+                data.insert(QStringLiteral("seq"), pep_seq.toQString());
+                if (mod_index.size() > 0)
+                {
+                  std::cout << "pep_start_pos_in_protein->" << pep_start << std::endl;
+                  int mod_pos = pep_start + mod_index.at(0) + 1;
+                  std::cout << "mod_pos->" << mod_pos << std::endl;
+                  data.insert(QStringLiteral("mod_pos"), mod_pos);
+                }
+                peptides_data.push_back(data);
               }
             }
           }
@@ -398,7 +422,7 @@ namespace OpenMS
         }
        
         SequenceVisualizer* widget = new SequenceVisualizer();
-        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_start_end_pos);
+        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_data);
         widget->show();
       }
     }

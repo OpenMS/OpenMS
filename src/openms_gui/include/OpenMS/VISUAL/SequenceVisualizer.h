@@ -25,7 +25,7 @@ namespace OpenMS
 
   public slots:
 
-    void setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray peptides_start_end_pos);
+    void setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray peptides_data);
 
   private:
     Ui::SequenceVisualizer* ui;

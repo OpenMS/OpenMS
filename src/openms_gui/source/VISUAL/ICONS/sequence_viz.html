@@ -47,22 +47,32 @@
         return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
         }
 
-        console.log(SequenceVisualizer.json_data_obj.protein_sequence_data)
-        console.log(SequenceVisualizer.json_data_obj.peptides_start_end_pos.length)
 
         let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data
-        let peptides_start_end_pos_arr = SequenceVisualizer.json_data_obj.peptides_start_end_pos;
+        let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
         let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length
 
+
         let peptide_obj = [];
+        let mod_peptide_obj = [];
 
-
-        for (const key of peptides_start_end_pos_arr) {
+        for (const key of peptides_data_arr) {
             let obj = {};
+            let mod_obj = {};
+
             obj["start"] = key.start;
             obj["end"] = key.end;
-            obj["accession"] = key.accession;
-            obj["color"] = pickColor(key.accession);
+            obj["accession"] = key.seq;
+            obj["color"] = pickColor(key.seq);
+
+            if(key.mod_pos){
+                mod_obj["start"] = key.mod_pos;
+                mod_obj["end"] = key.mod_pos;
+                mod_obj["color"] = pickColor(key.seq);
+                mod_obj["shape"] = "circle";
+                mod_peptide_obj.push(mod_obj);
+            }
+
             peptide_obj.push(obj);
         }
 
@@ -82,8 +92,6 @@
         displayend="50"
         use-ctrl-to-zoom="true"
         highlight-event="onmouseover"
-        highlightstart="23" 
-		highlightend="45"
         />
         `
         let protTrack = `
@@ -91,8 +99,14 @@
         length="${protlen}" 
         displaystart="1"
         displayend="${protlen}"
-        highlightstart="10"
-        highlightend="45"
+        use-ctrl-to-zoom="true"
+        />
+        `
+        let modProtTrack = `
+        <protvista-track id="mod_track"
+        length="${protlen}" 
+        displaystart="0"
+        displayend="${protlen}"
         use-ctrl-to-zoom="true"
         />
         `
@@ -100,7 +114,9 @@
         $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
         $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
         $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
-        document.querySelector("protvista-track").data = peptide_obj;
+        $($.parseHTML(modProtTrack)).appendTo($("#toppview_prot_visualizer"));
+        document.querySelector("#track").data = peptide_obj;
+        document.querySelector("#mod_track").data = mod_peptide_obj;
        
         });
         });

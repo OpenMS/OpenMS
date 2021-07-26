@@ -28,10 +28,10 @@ namespace OpenMS
   {
     delete ui;
   }
-  void SequenceVisualizer::setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray pep_start_end_pos)
+  void SequenceVisualizer::setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray pep_data)
   {
     m_json_data_obj["protein_sequence_data"] = pro_seq;
-    m_json_data_obj["peptides_start_end_pos"] = pep_start_end_pos;
+    m_json_data_obj["peptides_data"] = pep_data;
    
 
     qDebug() << "sequence clicked";
