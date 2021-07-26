@@ -12,19 +12,17 @@ cdef extern from "<OpenMS/METADATA/Identification.h>" namespace "OpenMS":
         # wrap-inherits:
         #   MetaInfoInterface
 
-        Identification()   nogil except +
+        Identification() nogil except + # wrap-doc:Represents a object which can store the information of an analysisXML instance
         Identification(Identification &) nogil except +
 
-
-        void setCreationDate(DateTime date) nogil except +
-        DateTime getCreationDate() nogil except +
+        void setCreationDate(DateTime date) nogil except + # wrap-doc:Sets the date and time the file was written
+        DateTime getCreationDate() nogil except + # wrap-doc:Returns the date and time the file was created
 
         # /// sets the spectrum identifications
-        void setSpectrumIdentifications(libcpp_vector[SpectrumIdentification] & ids) nogil except +
+        void setSpectrumIdentifications(libcpp_vector[SpectrumIdentification] & ids) nogil except + # wrap-doc:Sets the spectrum identifications
 
         # /// adds a spectrum identification
-        void addSpectrumIdentification(SpectrumIdentification & id) nogil except +
+        void addSpectrumIdentification(SpectrumIdentification & id) nogil except + # wrap-doc:Adds a spectrum identification
 
         # /// returns the spectrum identifications stored
-        libcpp_vector[SpectrumIdentification] getSpectrumIdentifications()  nogil except +
-
+        libcpp_vector[SpectrumIdentification] getSpectrumIdentifications()  nogil except + # wrap-doc:Returns the spectrum identifications stored

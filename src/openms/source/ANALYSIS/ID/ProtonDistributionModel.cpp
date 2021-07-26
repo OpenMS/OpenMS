@@ -487,17 +487,17 @@ namespace OpenMS
 
       // search for entries > 1
       bool has_greater_one(false);
-      for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
+      for (const double& it : p_bb)
       {
-        if (*it > 1.0)
+        if (it > 1.0)
         {
           has_greater_one = true;
         }
       }
 
-      for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
+      for (const double& it : p_sc)
       {
-        if (*it > 1.0)
+        if (it > 1.0)
         {
           has_greater_one = true;
         }

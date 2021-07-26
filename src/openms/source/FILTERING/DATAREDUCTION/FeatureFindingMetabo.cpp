@@ -688,8 +688,10 @@ namespace OpenMS
 
   Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const
   {
-    if (peakOffset < 1) throw std::invalid_argument("Expect a peak offset of at least 1");
-
+    if (peakOffset < 1)
+    {
+      throw std::invalid_argument("Expect a peak offset of at least 1");
+    }
     double minmz = std::numeric_limits<double>::infinity();
     double maxmz = -std::numeric_limits<double>::infinity();
 
