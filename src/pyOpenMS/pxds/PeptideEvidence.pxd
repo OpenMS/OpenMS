@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/METADATA/PeptideEvidence.h>" namespace "OpenMS":
     cdef cppclass PeptideEvidence :
 
         PeptideEvidence() nogil except +
-        PeptideEvidence(PeptideEvidence) nogil except + # wrap-ignore
+        PeptideEvidence(PeptideEvidence &) nogil except +
 
         # const members
         ## int UNKNOWN_POSITION

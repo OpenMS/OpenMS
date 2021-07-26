@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         #  DefaultParamHandler
 
         TargetedSpectraExtractor() nogil except +
-        TargetedSpectraExtractor(TargetedSpectraExtractor) nogil except + # wrap-ignore
+        TargetedSpectraExtractor(TargetedSpectraExtractor &) nogil except + # compiler
 
         void getDefaultParameters(Param&) nogil except +
 
@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
     cdef cppclass TSE_Match "OpenMS::TargetedSpectraExtractor::Match":
 
         TSE_Match() nogil except +
-        TSE_Match(TSE_Match) nogil except +
+        TSE_Match(TSE_Match &) nogil except +
         TSE_Match(MSSpectrum& spectrum, double score) nogil except +
 
         MSSpectrum spectrum
@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
     # cdef cppclass TSE_Comparator "OpenMS::TargetedSpectraExtractor::Comparator":
 
         # TSE_Comparator() nogil except +
-        # TSE_Comparator(TSE_Comparator) nogil except +
+        # TSE_Comparator(TSE_Comparator &) nogil except +
 
         # void generateScores(MSSpectrum& spec, libcpp_vector[libcpp_pair[Size,double]]& scores, double min_score) nogil except +
         # void init(libcpp_vector[MSSpectrum]& library, libcpp_map[String,DataValue]& options) nogil except +
@@ -68,7 +68,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         #  TSE_Comparator
 
         # TSE_BinnedSpectrumComparator() nogil except +
-        # TSE_BinnedSpectrumComparator(TSE_BinnedSpectrumComparator) nogil except +
+        # TSE_BinnedSpectrumComparator(TSE_BinnedSpectrumComparator &) nogil except +
 
         # void generateScores(MSSpectrum& spec, libcpp_vector[libcpp_pair[Size,double]]& scores, double min_score) nogil except +
         # void init(libcpp_vector[MSSpectrum]& library, libcpp_map[String,DataValue]& options) nogil except +

@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>" namespace "Open
     
     cdef cppclass PeakShape "OpenMS::PeakShape":
         PeakShape() nogil except +
-        PeakShape(PeakShape) nogil except + # wrap-ignore
+        PeakShape(PeakShape &) nogil except +
         double height
         double mz_position
         double left_width

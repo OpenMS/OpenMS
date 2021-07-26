@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
     
     cdef cppclass Base64 "OpenMS::Base64":
         Base64() nogil except +
-        Base64(Base64) nogil except + #wrap-ignore
+        Base64(Base64 &) nogil except + # compiler
 
         void encode(libcpp_vector[ double ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +#wrap-ignore
         void decode(const String & in_, ByteOrder from_byte_order, libcpp_vector[ double ] &out, bool zlib_compression) nogil except +#wrap-ignore

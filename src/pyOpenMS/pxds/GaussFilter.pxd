@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS"
         #    ProgressLogger
 
         GaussFilter() nogil except +
-        GaussFilter(GaussFilter) nogil except + # wrap-ignore
+        GaussFilter(GaussFilter &) nogil except + # compiler
 
         void filter(MSSpectrum & spectrum) nogil except +
         void filter(MSChromatogram & chromatogram) nogil except +

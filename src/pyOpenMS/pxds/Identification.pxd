@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/Identification.h>" namespace "OpenMS":
         #   MetaInfoInterface
 
         Identification()   nogil except +
-        Identification(Identification) nogil except + # wrap-ignore
+        Identification(Identification &) nogil except +
 
 
         void setCreationDate(DateTime date) nogil except +

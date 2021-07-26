@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>" namespace "Op
     cdef cppclass ConfidenceScoring:
 
         ConfidenceScoring() nogil except +
-        ConfidenceScoring(ConfidenceScoring) nogil except + # wrap-ignore
+        ConfidenceScoring(ConfidenceScoring &) nogil except + # compiler
 
         void initialize(TargetedExperiment & targeted, Size n_decoys, Size n_transitions, TransformationDescription trafo) nogil except +
         void initializeGlm(double intercept, double rt_coef, double int_coef) nogil except +

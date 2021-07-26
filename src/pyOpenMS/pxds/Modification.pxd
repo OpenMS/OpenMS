@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/Modification.h>" namespace "OpenMS":
         # wrap-inherits:
         #  SampleTreatment
         Modification() nogil except +
-        Modification(Modification) nogil except + # wrap-ignore
+        Modification(Modification &) nogil except +
 
         # bool operator==(SampleTreatment & rhs) nogil except +
 

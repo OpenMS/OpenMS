@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         #   getModificationName().c_str()
 
         ModificationDefinition() nogil except +
-        ModificationDefinition(ModificationDefinition) nogil except + # wrap-ignore
+        ModificationDefinition(ModificationDefinition &) nogil except +
         ModificationDefinition(const String &mod) nogil except +
         ModificationDefinition(const String &mod, bool fixed) nogil except +
         ModificationDefinition(const String &mod, bool fixed, UInt max_occur) nogil except +

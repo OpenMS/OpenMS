@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
         ProteinHit() nogil except +
         ProteinHit(double score, UInt rank, String accession, String sequence) nogil except +
-        ProteinHit(ProteinHit) nogil except + # wrap-ignore
+        ProteinHit(ProteinHit &) nogil except +
 
         # const members
         ## double COVERAGE_UNKNOWN
@@ -34,6 +34,3 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
         bool operator==(ProteinHit) nogil except +
         bool operator!=(ProteinHit) nogil except +
-
-
-

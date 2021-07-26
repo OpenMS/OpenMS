@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
         #    ProgressLogger
 
         PeakPickerIterative() nogil except +
-        PeakPickerIterative(PeakPickerIterative) nogil except + #wrap-ignore
+        PeakPickerIterative(PeakPickerIterative &) nogil except + # compiler
 
         void pick(MSSpectrum & input,
                   MSSpectrum & output

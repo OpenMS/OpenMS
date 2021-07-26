@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         #   Get access to the underlying features through getFeatureList()
 
         ConsensusFeature() nogil except +
-        ConsensusFeature(ConsensusFeature) nogil except + # wrap-ignore
+        ConsensusFeature(ConsensusFeature &) nogil except +
         ConsensusFeature(UInt64, Peak2D, UInt64) nogil except +
         ConsensusFeature(UInt64, BaseFeature) nogil except +
         ConsensusFeature(UInt64, ConsensusFeature) nogil except +

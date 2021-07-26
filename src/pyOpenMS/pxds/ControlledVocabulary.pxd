@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
     cdef cppclass ControlledVocabulary:
 
         ControlledVocabulary() nogil except +
-        ControlledVocabulary(ControlledVocabulary) nogil except + # wrap-ignore
+        ControlledVocabulary(ControlledVocabulary &) nogil except + # compiler
 
         # Returns the CV name (set in the load method)
         String name() nogil except +

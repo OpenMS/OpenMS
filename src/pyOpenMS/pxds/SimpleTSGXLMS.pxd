@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
         #  DefaultParamHandler
 
         SimpleTSGXLMS() nogil except +
-        SimpleTSGXLMS(SimpleTSGXLMS) nogil except + # wrap-ignore
+        SimpleTSGXLMS(SimpleTSGXLMS &) nogil except +
 
         void getLinearIonSpectrum(libcpp_vector[ SimplePeak ]& spectrum, AASequence peptide,
                 Size link_pos, int charge, Size link_pos_2) nogil except +
@@ -30,9 +30,9 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::S
 
     cdef cppclass SimplePeak "OpenMS::SimpleTSGXLMS::SimplePeak":
 
-        SimplePeak(SimplePeak) nogil except +
         SimplePeak() nogil except +
         SimplePeak(double mz, int charge) nogil except +
+        SimplePeak(SimplePeak &) nogil except +
 
         double mz
         int charge

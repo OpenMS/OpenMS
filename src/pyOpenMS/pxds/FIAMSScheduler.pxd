@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
         #     ADD PYTHON DOCUMENTATION HERE
         #
         FIAMSScheduler() nogil except +
-        FIAMSScheduler(FIAMSScheduler) nogil except + # wrap-ignore
+        FIAMSScheduler(FIAMSScheduler &) nogil except +
         FIAMSScheduler(String filename, String base_dir, bool load_cached_) nogil except +
         void run() nogil except +
         # libcpp_vector[ libcpp_map[ String, String ] ] getSamples() nogil except +

@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
         #  DefaultParamHandler
 
         TheoreticalSpectrumGeneratorXLMS() nogil except +
-        TheoreticalSpectrumGeneratorXLMS(TheoreticalSpectrumGeneratorXLMS) nogil except + # wrap-ignore
+        TheoreticalSpectrumGeneratorXLMS(TheoreticalSpectrumGeneratorXLMS &) nogil except +
 
         void getLinearIonSpectrum(MSSpectrum& spectrum, AASequence peptide,
                 Size link_pos, bool frag_alpha, int charge, Size link_pos_2) nogil except +

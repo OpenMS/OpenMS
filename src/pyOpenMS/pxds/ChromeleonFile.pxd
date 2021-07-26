@@ -6,6 +6,6 @@ cdef extern from "<OpenMS/FORMAT/ChromeleonFile.h>" namespace "OpenMS":
     cdef cppclass ChromeleonFile:
 
         ChromeleonFile() nogil except +
-        ChromeleonFile(ChromeleonFile) nogil except + # wrap-ignore
+        ChromeleonFile(ChromeleonFile &) nogil except + # compiler
 
         void load(const String& filename, MSExperiment& experiment) nogil except +

@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoDescription.h>" namespace "OpenMS":
         #   MetaInfoInterface
 
         MetaInfoDescription() nogil except +
-        MetaInfoDescription(MetaInfoDescription) nogil except + # wrap-ignore
+        MetaInfoDescription(MetaInfoDescription& ) nogil except +
 
         bool operator==(MetaInfoDescription) nogil except +
         bool operator!=(MetaInfoDescription) nogil except +

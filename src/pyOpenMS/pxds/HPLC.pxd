@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/HPLC.h>" namespace "OpenMS":
     cdef cppclass HPLC:
 
         HPLC() nogil except +
-        HPLC(HPLC) nogil except + # wrap-ignore
+        HPLC(HPLC &) nogil except +
 
         # returns a reference to the instument name
         String getInstrument() nogil except +

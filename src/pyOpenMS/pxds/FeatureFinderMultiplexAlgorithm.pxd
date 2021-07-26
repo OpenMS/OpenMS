@@ -14,7 +14,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAl
 
         # wrap-inherits:
         #    DefaultParamHandler
-        FeatureFinderMultiplexAlgorithm()      nogil except +
+        FeatureFinderMultiplexAlgorithm() nogil except +
+
+        FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) nogil except + # compiler
 
         void run(MSExperiment& exp, bool progress) nogil except + # wrap-doc:Main method for feature detection
 

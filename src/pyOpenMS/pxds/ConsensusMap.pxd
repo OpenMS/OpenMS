@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         UInt64 unique_id
 
         ColumnHeader() nogil except +
-        ColumnHeader(ColumnHeader) nogil except + # wrap-ignore
+        ColumnHeader(ColumnHeader &) nogil except +
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work

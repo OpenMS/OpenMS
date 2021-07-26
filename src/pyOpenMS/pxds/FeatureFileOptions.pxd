@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenM
     cdef cppclass FeatureFileOptions:
 
         FeatureFileOptions() nogil except + # wrap-doc:Options for loading files containing features.
-        FeatureFileOptions(FeatureFileOptions) nogil except + # wrap-ignore
+        FeatureFileOptions(FeatureFileOptions &) nogil except + # compiler
 
         void setMetadataOnly(bool) nogil except + # wrap-doc:Sets whether or not to load only meta data
         bool getMetadataOnly()     nogil except + # wrap-doc:Returns whether or not to load only meta data

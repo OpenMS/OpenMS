@@ -10,13 +10,13 @@ cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "Open
 
     cdef cppclass ModifiedPeptideGenerator:
 
-        ModifiedPeptideGenerator() nogil except +
-        ModifiedPeptideGenerator(ModifiedPeptideGenerator) nogil except + # wrap-ignore
+        ModifiedPeptideGenerator() nogil except + # compiler
+        ModifiedPeptideGenerator(ModifiedPeptideGenerator &) nogil except + # compiler
 
     cdef cppclass ModifiedPeptideGenerator_MapToResidueType "OpenMS::ModifiedPeptideGenerator::MapToResidueType":
 
-        ModifiedPeptideGenerator_MapToResidueType() nogil except +
-        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType) nogil except + #wrap-ignore
+        ModifiedPeptideGenerator_MapToResidueType() nogil except + # compiler
+        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType &) nogil except + # compiler
 
 
     ## wrap static methods

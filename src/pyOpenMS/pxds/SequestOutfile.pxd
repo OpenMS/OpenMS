@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
     
     cdef cppclass SequestOutfile "OpenMS::SequestOutfile":
         SequestOutfile() nogil except +
-        SequestOutfile(SequestOutfile) nogil except + # wrap-ignore
+        SequestOutfile(SequestOutfile &) nogil except +
 
         bool operator==(SequestOutfile &sequest_outfile) nogil except +
         void load(const String &result_filename,

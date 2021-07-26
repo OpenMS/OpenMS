@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
 
     cdef cppclass Tagger:
 
-        Tagger(Tagger) nogil except + # wrap-ignore
+        Tagger(Tagger &) nogil except + # compiler
 
         Tagger(size_t min_tag_length,
                double ppm,

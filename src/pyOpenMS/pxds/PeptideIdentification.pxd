@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         PeptideIdentification() nogil except +
-        PeptideIdentification(PeptideIdentification) nogil except + # wrap-ignore
+        PeptideIdentification(PeptideIdentification &) nogil except +
         bool operator==(PeptideIdentification) nogil except +
         bool operator!=(PeptideIdentification) nogil except +
 

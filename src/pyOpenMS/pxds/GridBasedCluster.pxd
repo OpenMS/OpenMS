@@ -12,15 +12,18 @@ cdef extern from "<OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>" namespace "
     
     cdef cppclass GridBasedCluster "OpenMS::GridBasedCluster":
 
-        GridBasedCluster(GridBasedCluster) nogil except + #wrap-ignore
+
         GridBasedCluster(DPosition2 centre,
             DBoundingBox2 bounding_box, 
             libcpp_vector[ int ] point_indices,
             int property_A, 
             libcpp_vector[ int ] properties_B) nogil except +
+
         GridBasedCluster(DPosition2 centre, 
            DBoundingBox2 bounding_box,
            libcpp_vector[ int ] point_indices) nogil except +
+
+        GridBasedCluster(GridBasedCluster &) nogil except + # compiler
 
         DPosition2 getCentre() nogil except +
         DBoundingBox2 getBoundingBox() nogil except +

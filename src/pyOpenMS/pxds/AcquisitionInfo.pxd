@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
         # wrap-inherits:
         #    MetaInfoInterface
         
-        AcquisitionInfo()    nogil except +
-        AcquisitionInfo(AcquisitionInfo)    nogil except + # wrap-ignore
+        AcquisitionInfo() nogil except +
+        AcquisitionInfo(AcquisitionInfo &) nogil except +
 
         bool operator==(AcquisitionInfo) nogil except +
         bool operator!=(AcquisitionInfo) nogil except +

@@ -15,9 +15,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         # wrap-inherits:
         #    ProgressLogger
 
-        InternalCalibration()      nogil except +
-        InternalCalibration(InternalCalibration) nogil except + # wrap-ignore
-
+        InternalCalibration() nogil except +
+        InternalCalibration(InternalCalibration &) nogil except + # compiler
 
         Size fillCalibrants(MSExperiment,
                             libcpp_vector[InternalCalibration_LockMass],
@@ -42,8 +41,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                        String file_residuals_plot,
                        String rscript_executable) nogil except +
 
-
-
 ## wrap static methods
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
@@ -57,9 +54,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     cdef cppclass InternalCalibration_LockMass "OpenMS::InternalCalibration::LockMass":
-        #InternalCalibration_LockMass() nogil except +
-        InternalCalibration_LockMass(InternalCalibration_LockMass) nogil except + # wrap-ignore
         InternalCalibration_LockMass(double mz_, int lvl_, int charge_) nogil except +
+        InternalCalibration_LockMass(InternalCalibration_LockMass &) nogil except + # compiler
         double mz # m/z of the lock mass (incl. adducts)
         unsigned int ms_level # MS level where it occurs
         int charge # charge of the ion (to find isotopes)

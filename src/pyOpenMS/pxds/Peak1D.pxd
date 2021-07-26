@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
 
     cdef cppclass Peak1D:
         Peak1D() nogil except +
-        Peak1D(Peak1D) nogil except + # wrap-ignore
+        Peak1D(Peak1D &) nogil except +
 
         # We will not catch C++ exceptions for get/set methods for performance
         # reasons (no memory allocation is involved).

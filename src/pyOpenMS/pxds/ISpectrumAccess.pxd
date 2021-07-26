@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>" namespace
       # ABSTRACT class
       # no-pxd-import
 
-      ISpectrumAccess() nogil except +
-      ISpectrumAccess(ISpectrumAccess) nogil except + # wrap-ignore
+      ISpectrumAccess() nogil except + # compiler
+      ISpectrumAccess(ISpectrumAccess &) nogil except + # compiler
 
       # virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 

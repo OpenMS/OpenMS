@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         MassAnalyzer() nogil except +
-        MassAnalyzer(MassAnalyzer) nogil except + # wrap-ignore
+        MassAnalyzer(MassAnalyzer &) nogil except +
 
         # returns the analyzer type
         AnalyzerType getType() nogil except +

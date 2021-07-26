@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
     cdef cppclass Gradient:
 
         Gradient() nogil except +
-        Gradient(Gradient) nogil except + # wrap-ignore
+        Gradient(Gradient &) nogil except +
 
         #   @brief Adds an eluent at the end of the eluent array
         #

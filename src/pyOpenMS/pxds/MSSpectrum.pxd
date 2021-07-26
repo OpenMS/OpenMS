@@ -67,7 +67,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #   -----
 
         MSSpectrum() nogil except +
-        MSSpectrum(MSSpectrum) nogil except + # wrap-ignore
+        MSSpectrum(MSSpectrum &) nogil except +
         double getRT() nogil except + #wrap-doc:Returns the absolute retention time (in seconds)
         void setRT(double) nogil except +  #wrap-doc:Set the absolute retention time (in seconds)
         double getDriftTime() nogil except + #wrap-doc:Returns the drift time (-1 if not set)

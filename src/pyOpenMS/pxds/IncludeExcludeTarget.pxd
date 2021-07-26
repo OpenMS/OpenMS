@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
     
     cdef cppclass IncludeExcludeTarget :
         IncludeExcludeTarget() nogil except +
-        IncludeExcludeTarget(IncludeExcludeTarget) nogil except + # wrap-ignore
+        IncludeExcludeTarget(IncludeExcludeTarget &) nogil except +
         void setName(const String & name) nogil except +
         String  getName() nogil except +
         void setPeptideRef(const String & peptide_ref) nogil except +

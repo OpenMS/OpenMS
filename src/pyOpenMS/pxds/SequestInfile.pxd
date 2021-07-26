@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
     
     cdef cppclass SequestInfile "OpenMS::SequestInfile":
         SequestInfile() nogil except +
-        SequestInfile(SequestInfile) nogil except + # wrap-ignore
+        SequestInfile(SequestInfile &) nogil except +
         bool operator==(SequestInfile &sequest_infile) nogil except +
         void store(const String &filename) nogil except +
         String getEnzymeInfoAsString() nogil except +

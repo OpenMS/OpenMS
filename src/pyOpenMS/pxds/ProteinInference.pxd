@@ -6,6 +6,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>" namespace "
     
     cdef cppclass ProteinInference "OpenMS::ProteinInference":
         ProteinInference() nogil except +
-        ProteinInference(ProteinInference) nogil except + # wrap-ignore
-        void infer(ConsensusMap & consensus_map, UInt reference_map) nogil except +
+        ProteinInference(ProteinInference &) nogil except +
 
+        void infer(ConsensusMap & consensus_map, UInt reference_map) nogil except +

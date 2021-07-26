@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         #  DefaultParamHandler
 
         PeakIntegrator() nogil except +
-        PeakIntegrator(PeakIntegrator) nogil except + # wrap-ignore
+        PeakIntegrator(PeakIntegrator &) nogil except + # compiler
 
         void getDefaultParameters(Param) nogil except +
 
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
     cdef cppclass PI_PeakArea "OpenMS::PeakIntegrator::PeakArea":
 
         PI_PeakArea() nogil except +
-        PI_PeakArea(PI_PeakArea) nogil except +
+        PI_PeakArea(PI_PeakArea &) nogil except + # compiler
 
         double area
         double height
@@ -40,7 +40,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
     cdef cppclass PI_PeakBackground "OpenMS::PeakIntegrator::PeakBackground":
 
         PI_PeakBackground() nogil except +
-        PI_PeakBackground(PI_PeakBackground) nogil except +
+        PI_PeakBackground(PI_PeakBackground &) nogil except + # compiler
 
         double area
         double height
@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
     cdef cppclass PI_PeakShapeMetrics "OpenMS::PeakIntegrator::PeakShapeMetrics":
 
         PI_PeakShapeMetrics() nogil except +
-        PI_PeakShapeMetrics(PI_PeakShapeMetrics) nogil except +
+        PI_PeakShapeMetrics(PI_PeakShapeMetrics &) nogil except + # compiler
 
         double width_at_5
         double width_at_10

@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
 
     cdef cppclass FileTypes:
 
-        FileTypes() nogil except +
-        FileTypes(FileTypes) nogil except + # wrap-ignore
+        FileTypes() nogil except + # compiler
+        FileTypes(FileTypes &) nogil except + # compiler
 
         String typeToName(FileType t) nogil except +
 

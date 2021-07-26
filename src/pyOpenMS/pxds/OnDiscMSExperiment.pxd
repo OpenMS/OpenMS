@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
     cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
 
         OnDiscMSExperiment() nogil except +
-        OnDiscMSExperiment(OnDiscMSExperiment) nogil except + # wrap-ignore
+        OnDiscMSExperiment(OnDiscMSExperiment &) nogil except +
 
         bool openFile(String filename) nogil except +
         bool openFile(String filename, bool skipLoadingMetaData) nogil except +

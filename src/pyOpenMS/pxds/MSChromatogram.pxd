@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #   -----
 
         MSChromatogram() nogil except +
-        MSChromatogram(MSChromatogram) nogil except + # wrap-ignore
+        MSChromatogram(MSChromatogram &) nogil except +
         double getMZ() nogil except + #wrap-doc:returns the mz of the product entry, makes sense especially for MRM scans
         # void   setMZ(double) nogil except +
 

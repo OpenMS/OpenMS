@@ -128,9 +128,10 @@ namespace OpenMS
     };
 
 
-    /// @brief Struct with some static methods to get infos on the build configuration
-    struct OpenMSBuildInfo
+    /// @brief Class with some static methods to get infos on the build configuration
+    class OpenMSBuildInfo
     {
+    public:
 
       /// @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
       static bool isOpenMPEnabled()

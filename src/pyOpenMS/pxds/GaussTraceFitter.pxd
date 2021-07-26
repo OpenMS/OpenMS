@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" nam
 
     cdef cppclass GaussTraceFitter:
         GaussTraceFitter() nogil except +
-        GaussTraceFitter(GaussTraceFitter) nogil except + # wrap-ignore
+        GaussTraceFitter(GaussTraceFitter &) nogil except +
         void fit(MassTraces& traces) nogil except +
         double getLowerRTBound() nogil except +
         double getUpperRTBound() nogil except +

@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #   features.
 
         Feature() nogil except +
-        Feature(Feature) nogil except + # wrap-ignore
+        Feature(Feature &) nogil except +
 
         float getQuality(Size index) nogil except + # wrap-doc:Access to the quality in dimension c
         void setQuality(Size index, float q) nogil except + # wrap-doc:Set the quality in dimension c

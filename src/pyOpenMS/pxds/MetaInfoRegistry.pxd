@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":
     
     cdef cppclass MetaInfoRegistry "OpenMS::MetaInfoRegistry":
         MetaInfoRegistry() nogil except +
-        MetaInfoRegistry(MetaInfoRegistry) nogil except + # wrap-ignore
+        MetaInfoRegistry(MetaInfoRegistry &) nogil except +
         UInt registerName(const String & name, const String & description, const String & unit) nogil except +
         void setDescription(UInt index, const String & description) nogil except +
         void setDescription(const String & name, const String & description) nogil except +

@@ -14,7 +14,6 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>" n
         #  DefaultParamHandler
         #  ProgressLogger
         SignalToNoiseEstimator() nogil except +
-        SignalToNoiseEstimator(SignalToNoiseEstimator) nogil except + # wrap-ignore
+        SignalToNoiseEstimator(SignalToNoiseEstimator &) nogil except +
         # void init(Container & c) nogil except +
         # double getSignalToNoise(Size index) nogil except +
-

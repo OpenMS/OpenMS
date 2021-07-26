@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>" namespace "Op
         # wrap-inherits:
         #  DefaultParamHandler
         FilterFunctor() nogil except +
-        FilterFunctor(FilterFunctor) nogil except + # wrap-ignore
+        FilterFunctor(FilterFunctor &) nogil except +
         # double apply(MSSpectrum & ) nogil except +
         void registerChildren() nogil except +
 

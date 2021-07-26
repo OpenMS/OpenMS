@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
     cdef cppclass MSPFile:
 
         MSPFile() nogil except +
+        MSPFile(MSPFile &) nogil except +
 
         void store(String filename, MSExperiment & exp) nogil except +
         void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSExperiment & exp) nogil except +

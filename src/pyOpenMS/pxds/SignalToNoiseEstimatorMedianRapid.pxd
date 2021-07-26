@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
     
     cdef cppclass SignalToNoiseEstimatorMedianRapid "OpenMS::SignalToNoiseEstimatorMedianRapid":
 
-        SignalToNoiseEstimatorMedianRapid(SignalToNoiseEstimatorMedianRapid) nogil except + #wrap-ignore
+        SignalToNoiseEstimatorMedianRapid(SignalToNoiseEstimatorMedianRapid &) nogil except + # compiler
         SignalToNoiseEstimatorMedianRapid(double window_length) nogil except +
         NoiseEstimator estimateNoise(shared_ptr[Spectrum]) nogil except +
         NoiseEstimator estimateNoise(shared_ptr[Chromatogram]) nogil except +
@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
     
     cdef cppclass NoiseEstimator "OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator":
 
-        NoiseEstimator() nogil except + #wrap-ignore
-        NoiseEstimator(NoiseEstimator) nogil except + #wrap-ignore
+        NoiseEstimator() nogil except +
+        NoiseEstimator(NoiseEstimator &) nogil except + # compiler
         NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) nogil except +
 
         int nr_windows
@@ -29,4 +29,3 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         double get_noise_value(double mz) nogil except +
         double get_noise_even(double mz) nogil except +
         double get_noise_odd(double mz) nogil except +
-

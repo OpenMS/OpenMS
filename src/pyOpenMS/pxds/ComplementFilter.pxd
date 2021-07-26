@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>" namespace 
         # wrap-inherits:
         #  FilterFunctor
         ComplementFilter() nogil except +
-        ComplementFilter(ComplementFilter) nogil except + # wrap-ignore
+        ComplementFilter(ComplementFilter &) nogil except +
         double apply(MSSpectrum & ) nogil except +
         # POINTER # FilterFunctor * create() nogil except +
         String getProductName() nogil except +

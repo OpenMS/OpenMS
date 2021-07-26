@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
         # wrap-doc:
         #     Base class for digestion enzymes
 
-        DigestionEnzyme(DigestionEnzyme) nogil except +
+        DigestionEnzyme(DigestionEnzyme &) nogil except +
 
         DigestionEnzyme(const String & name, const String & cleavage_regex, libcpp_set[ String ] & synonyms, String regex_description) nogil except +
 

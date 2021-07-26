@@ -7,5 +7,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.
         # wrap-inherits:
         #  IsobaricQuantitationMethod
         ItraqFourPlexQuantitationMethod() nogil except +
-        ItraqFourPlexQuantitationMethod(ItraqFourPlexQuantitationMethod) nogil except + # wrap-ignore
+        ItraqFourPlexQuantitationMethod(ItraqFourPlexQuantitationMethod &) nogil except +
 

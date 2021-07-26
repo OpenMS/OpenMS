@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDDecoyProbability.h>" namespace "OpenMS":
         # wrap-inherits:
         #    DefaultParamHandler
 
-        IDDecoyProbability()                    nogil except +
-        IDDecoyProbability(IDDecoyProbability)  nogil except + # wrap-ignore
+        IDDecoyProbability() nogil except +
+        IDDecoyProbability(IDDecoyProbability) nogil except +
 
         void apply(libcpp_vector[PeptideIdentification] & prob_ids, libcpp_vector[PeptideIdentification] & fwd_ids, libcpp_vector[PeptideIdentification] & rev_ids)  nogil except +
         void apply(libcpp_vector[PeptideIdentification] & ids)  nogil except +

@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         ProteinIdentification() nogil except +
-        ProteinIdentification(ProteinIdentification) nogil except + # wrap-ignore
+        ProteinIdentification(ProteinIdentification &) nogil except +
 
         bool operator==(ProteinIdentification) nogil except +
         bool operator!=(ProteinIdentification) nogil except +
@@ -105,7 +105,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
     cdef cppclass ProteinGroup:
 
       ProteinGroup()  nogil except +
-      ProteinGroup(ProteinGroup)  nogil except +
+      ProteinGroup(ProteinGroup &)  nogil except +
 
       # Probability of this group
       double probability
@@ -119,7 +119,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
         #    MetaInfoInterface
 
       SearchParameters()  nogil except +
-      SearchParameters(SearchParameters) nogil except +
+      SearchParameters(SearchParameters &) nogil except +
 
       String db            #< The used database
       String db_version            #< The database version

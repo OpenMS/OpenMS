@@ -49,8 +49,10 @@ namespace OpenMS
   class PeptideHit;
   class AASequence;
   
-  struct ProbablePhosphoSites
+  class ProbablePhosphoSites
   {
+  public:
+
     Size first;
     Size second;
     Size seq_1; ///< index of best permutation with site in phosphorylated state

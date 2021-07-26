@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         #    RichPeak2D
 
         BaseFeature()  nogil except +
-        BaseFeature(BaseFeature) nogil except + # wrap-ignore
+        BaseFeature(BaseFeature &) nogil except +
 
         float getQuality()  nogil except +
         void setQuality(float q) nogil except +

@@ -10,9 +10,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
 
     cdef cppclass PeakPickerMaxima:
 
-        PeakPickerMaxima() nogil except + # wrap-ignore
-        PeakPickerMaxima(PeakPickerMaxima) nogil except + # wrap-ignore
         PeakPickerMaxima(double signal_to_noise, double spacing_difference, double sn_window_length) nogil except +
+        PeakPickerMaxima(PeakPickerMaxima &) nogil except + # compiler 
 
         void findMaxima(libcpp_vector[double] mz_array, libcpp_vector[double]
                         int_array, libcpp_vector[PeakCandidate]& pc) nogil except +
@@ -25,7 +24,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
     cdef cppclass PeakCandidate "OpenMS::PeakPickerMaxima::PeakCandidate":
 
         PeakCandidate() nogil except +
-        PeakCandidate(PeakCandidate) nogil except + # wrap-ignore
+        PeakCandidate(PeakCandidate &) nogil except + # compiler
         int pos
         int left_boundary
         int right_boundary
