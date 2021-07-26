@@ -48,7 +48,6 @@ namespace OpenMS
   class OPENMS_DLLAPI IsobaricQuantifierStatistics
   {
   public:
-
     /**
      @brief Create stats object.
      */
@@ -76,4 +75,3 @@ namespace OpenMS
     IsobaricQuantifierStatistics& operator=(const IsobaricQuantifierStatistics& rhs);
   };
 } // namespace
-

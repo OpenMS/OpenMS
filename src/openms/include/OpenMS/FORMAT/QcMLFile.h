@@ -60,12 +60,10 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
-
     /// Representation of a quality parameter
     class OPENMS_DLLAPI QualityParameter
     {
     public:
-
       String name; ///< Name
       String id; ///< Identifier
       String value; ///< Value
@@ -92,7 +90,6 @@ public:
     class OPENMS_DLLAPI Attachment
     {
     public:
-
       String name; ///< Name
       String id; ///< Name
       String value; ///< Value
@@ -229,7 +226,6 @@ protected:
     std::set<String> names_;
     std::vector<QualityParameter> qps_;
     std::vector<Attachment> ats_;
-
   };
 
 } // namespace OpenMS

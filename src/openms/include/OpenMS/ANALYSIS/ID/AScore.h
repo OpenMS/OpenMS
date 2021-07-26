@@ -203,9 +203,6 @@ namespace OpenMS
     Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     double base_match_probability_; ///< Probability of a match at a peak depth of 1
-
   };
 
 } // namespace OpenMS
-
-

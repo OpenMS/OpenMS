@@ -72,7 +72,6 @@ namespace OpenMS
           class CsiAdapterHit
           {
           public:
-
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
             unsigned int rank = 0;
@@ -92,7 +91,6 @@ namespace OpenMS
           class CsiAdapterIdentification
           {
           public:
-
             double mz = 0.;
             double rt = 0.;
             OpenMS::StringList native_ids;
@@ -105,7 +103,6 @@ namespace OpenMS
           class CsiAdapterRun
           {
           public:
-
             std::vector <CsiAdapterIdentification> identifications;
           };
 
@@ -126,4 +123,3 @@ namespace OpenMS
 
       };
 }
-
