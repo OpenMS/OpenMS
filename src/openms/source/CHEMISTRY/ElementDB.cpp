@@ -331,8 +331,8 @@ namespace OpenMS
     buildElement_("Yttrium", "Y", 39u, yttrium_abundance, yttrium_mass);
 
 
-    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}};
-    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}};
+    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}, {96u, 0.0280}};
+    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}, {96u, 95.9082776}};
     buildElement_("Zirconium", "Zr", 40u, zirconium_abundance, zirconium_mass);
 
 
