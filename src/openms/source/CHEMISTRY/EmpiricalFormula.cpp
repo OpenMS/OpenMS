@@ -425,7 +425,7 @@ namespace OpenMS
 
   Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
   {
-    Int charge = 0;
+    Int charge{0};
     String formula(input_formula);
     formula.trim();
 
@@ -454,6 +454,7 @@ namespace OpenMS
           break;
         }
       }
+
       if (i != suffix.size())
       {
         // we found the charge part
@@ -468,6 +469,7 @@ namespace OpenMS
         {
           tmp_charge = charge_str.toInt();
         }
+
         if (suffix[i] == '-')
         {
           charge = -1 * tmp_charge;
@@ -583,7 +585,38 @@ namespace OpenMS
       }
 
       const ElementDB* db = ElementDB::getInstance();
-      if (db->hasElement(symbol))
+      // support D and T for Deuterium and Tritium
+      if (symbol == "D") // Deuterium is represented as (2)H in DB.
+      {
+        if (num != 0)
+        {
+          const Element* e = db->getElement("(2)H");
+          if (auto it = ef.find(e); it != ef.end())
+          {
+            it->second += num;
+          }
+          else
+          {
+            ef.insert({e, num});
+          }
+        }
+      }
+      else if (symbol == "T") // Tritium is represented as (3)H in DB
+      {
+        if (num != 0)
+        {
+          const Element* e = db->getElement("(3)H");
+          if (auto it = ef.find(e); it != ef.end())
+          {
+            it->second += num;
+          }
+          else
+          {
+            ef.insert({e, num});
+          }
+        }
+      } 
+      else if (db->hasElement(symbol))
       {
         if (num != 0)
         {
