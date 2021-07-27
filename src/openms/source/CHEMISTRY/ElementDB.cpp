@@ -163,7 +163,7 @@ namespace OpenMS
 
     map<unsigned int, double> bor_abundance = {{10u, 0.19899999999999998}, {11u, 0.8009999999999999}};
     map<unsigned int, double> bor_mass = {{10u, 10.012937000000001}, {11u, 11.009304999999999}};
-    buildElement_("Bor", "B", 5u, bor_abundance, bor_mass);
+    buildElement_("Boron", "B", 5u, bor_abundance, bor_mass);
 
 
     map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}};
