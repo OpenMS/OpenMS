@@ -501,7 +501,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #ifdef _OPENMP
     // we want to do locking at the spectrum level so we get good parallelisation 
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
+    { 
+      omp_init_lock(&(annotated_hits_lock[i]));
+    }
 #endif
 
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -558,10 +561,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (auto const & c : current_digest)
       { 
         const String current_peptide = c.getString();
-        if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
+        if (current_peptide.find_first_of("XBZ") != std::string::npos)
+        {
+          continue;
+        }
 
         // if a peptide motif is provided skip all peptides without match
-        if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
+        if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex))
+        {
+          continue;
+        }          
       
         bool already_processed = false;
         #pragma omp critical (processed_peptides_access)
@@ -614,7 +623,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           }
 
           // no matching precursor in data
-          if (low_it == up_it) { continue; }
+          if (low_it == up_it)
+          { 
+            continue;
+          }
 
           // create theoretical spectrum
           PeakSpectrum theo_spectrum;
@@ -633,8 +645,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             HyperScore::PSMDetail detail;
             const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
-            if (score == 0) { continue; } // no hit?
-
+            if (score == 0)
+            { 
+              continue; // no hit?
+            }
             // add peptide hit
             AnnotatedHit_ ah;
             ah.sequence = c;
@@ -727,7 +741,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
 #ifdef _OPENMP
     // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_destroy_lock(&(annotated_hits_lock[i])); }
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
+    {
+      omp_destroy_lock(&(annotated_hits_lock[i]));
+    }
 #endif
 
     return ExitCodes::EXECUTION_OK;
