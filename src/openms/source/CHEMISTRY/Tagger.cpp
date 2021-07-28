@@ -64,10 +64,15 @@ namespace OpenMS
     size_t j = i + 1;
     while (j < N)
     {
-      if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
-
+      if (tag.size() == max_tag_length_) 
+      { 
+        return; // maximum tag size reached? - continue with next parent
+      }
       const double gap = mzs[j] - mzs[i];
-      if ((gap * charge) > max_gap_) { return; } // already too far away - continue with next parent
+      if ((gap * charge) > max_gap_) 
+      { 
+        return; // already too far away - continue with next parent 
+      } 
 
       const char aa = getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag

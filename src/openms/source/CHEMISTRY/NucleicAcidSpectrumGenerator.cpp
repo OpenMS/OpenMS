@@ -210,8 +210,10 @@ namespace OpenMS
     static const double z_ion_offset = a_ion_offset;
 
     MSSpectrum spectrum;
-    if (oligo.empty()) return spectrum;
-
+    if (oligo.empty())
+    {
+      return spectrum;
+    }
     double three_prime_mass = 0.0, five_prime_mass = 0.0;
     if (oligo.getThreePrimeMod() != nullptr)
     {

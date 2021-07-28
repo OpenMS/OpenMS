@@ -224,7 +224,9 @@ namespace OpenMS
     for (; riter != distribution_.rend(); ++riter)
     {
       if (riter->getIntensity() >= cutoff)
+      {
         break;
+      }
     }
     // trim the container
     distribution_.resize(riter.base() - distribution_.begin());

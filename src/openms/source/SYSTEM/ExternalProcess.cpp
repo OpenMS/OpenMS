@@ -87,8 +87,10 @@ namespace OpenMS
       qp_->setWorkingDirectory(working_dir);
     }
 
-    if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
-
+    if (verbose)
+    {
+      callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
+    }
     // Map IO_MODE enum value to QIODevice value
     QIODevice::OpenModeFlag mode;
     switch (io_mode)
@@ -110,7 +112,10 @@ namespace OpenMS
     if (!(qp_->waitForStarted()))
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::FAILED_TO_START;
     }
     while (qp_->state() == QProcess::Running)
@@ -126,17 +131,26 @@ namespace OpenMS
     if (qp_->exitStatus() != QProcess::NormalExit)
     {
       error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::CRASH;
     }
     else if (qp_->exitCode() != 0)
     {
       error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::NONZERO_EXIT;
     }
     
-    if (verbose) callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    if (verbose)
+    {
+      callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    }
     return RETURNSTATE::SUCCESS;
   }
 

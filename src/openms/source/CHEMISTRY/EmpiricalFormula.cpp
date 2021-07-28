@@ -678,8 +678,11 @@ namespace OpenMS
       return formula_.size() < rhs.formula_.size();
     }
 
-    if (charge_ != rhs.charge_) return charge_ < rhs.charge_;
-
+    if (charge_ != rhs.charge_) 
+    {
+      return charge_ < rhs.charge_;
+    }
+    
     return formula_ < rhs.formula_;
   }
 
