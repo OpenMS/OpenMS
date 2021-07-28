@@ -56,6 +56,7 @@ START_SECTION((TransformationXMLFile()))
 {
   ptr = new TransformationXMLFile();
   TEST_NOT_EQUAL(ptr, nullPointer);
+  delete ptr;
 }
 END_SECTION
 

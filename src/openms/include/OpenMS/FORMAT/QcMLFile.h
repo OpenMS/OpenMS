@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Mathias Walzer, Axel Walter $
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -37,18 +37,14 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-
-
 #include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
 
 namespace OpenMS
 {
+  class ConsensusMap;
+  class FeatureMap;
+
   /**
       @brief File adapter for QcML files used to load and store QcML files
 
@@ -173,16 +169,21 @@ public:
     ///Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
-      @param inputfile_id identification file
-      @param inputfile_feature feature file
-      @param inputfile_consensus consensus file
+      @param prot_ids protein identifications from ID file
+      @param pep_ids peptide identifications
+      @param feature_map FeatureMap from feature file (featureXML)
+      @param consensus_map ConsensusMap from consensus file (consensusXML)
       @param inputfile_raw mzML input file name
       @param remove_duplicate_features removes duplicates in a set of merged features
       @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
     */
-    void collectQCData(const String& inputfile_id, const String& inputfile_feature,
-                       const String& inputfile_consensus, const String& inputfile_raw,
-                       const bool remove_duplicate_features, const MSExperiment& exp);
+    void collectQCData(std::vector<ProteinIdentification>& prot_ids,
+                       std::vector<PeptideIdentification>& pep_ids,
+                       const FeatureMap& feature_map,
+                       const ConsensusMap& consensus_map,
+                       const String& inputfile_raw,
+                       const bool remove_duplicate_features,
+                       const MSExperiment& exp);
     ///Store the QCFile
     /**
       @brief Store the qcML file
@@ -228,4 +229,3 @@ protected:
   };
 
 } // namespace OpenMS
-

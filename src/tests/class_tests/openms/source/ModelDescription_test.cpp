@@ -130,7 +130,9 @@ START_SECTION( ModelDescription(const BaseModel< D > *model) )
   ModelDescription<1> md(bm);
 	
 	BaseModel<1>* ptr = md.createModel();
-	TEST_EQUAL( *ptr == *bm, true)	
+	TEST_EQUAL( *ptr == *bm, true)
+	delete bm;
+	delete ptr;
 END_SECTION
 
 START_SECTION((const String& getName() const ))

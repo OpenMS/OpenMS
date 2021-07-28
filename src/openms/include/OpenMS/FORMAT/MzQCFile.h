@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <vector>
 
 namespace OpenMS
 {
+  class FeatureMap;
+  
   /**
       @brief File adapter for mzQC files used to load and store mzQC files
 
@@ -59,6 +63,9 @@ namespace OpenMS
       @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param description description and comments about the mzQC file contents
       @param label unique and informative label for the run
+      @param feature_map FeatureMap from feature file (featureXML)
+      @param prot_ids protein identifications from ID file (idXML)
+      @param pep_ids protein identifications from ID file (idXML)
     */
     void store(const String& input_file,
                const String& output_file,
@@ -66,6 +73,9 @@ namespace OpenMS
                const String& contact_name,
                const String& contact_address,
                const String& description,
-               const String& label) const;
+               const String& label,
+               const FeatureMap& feature_map,
+               std::vector<ProteinIdentification>& prot_ids,
+               std::vector<PeptideIdentification>& pep_ids) const;
   };
 }

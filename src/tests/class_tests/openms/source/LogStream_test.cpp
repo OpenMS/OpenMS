@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <fstream>
 #include <boost/regex.hpp>
 
 // OpenMP support

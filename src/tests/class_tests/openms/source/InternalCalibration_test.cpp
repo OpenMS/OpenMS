@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;

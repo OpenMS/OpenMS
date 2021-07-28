@@ -56,6 +56,7 @@ START_SECTION(static FactoryProduct* create(const String& name))
 	FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
 	TICFilter reducer;
 	TEST_EQUAL(*p==reducer,true);
+	delete p;
 END_SECTION
 
 START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )
@@ -63,6 +64,7 @@ START_SECTION( static void registerProduct(const String& name, const FunctionTyp
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
   FilterFunctor* nullPointer = nullptr;
   TEST_NOT_EQUAL(ext, nullPointer)
+  delete ext;
 END_SECTION
 
 START_SECTION(static bool isRegistered(const String& name))
@@ -86,6 +88,7 @@ START_SECTION([EXTRA] multithreaded example)
     FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
     TICFilter reducer;
     test += (*p == reducer);
+    delete p;
   }
   TEST_EQUAL(test, nr_iterations)
 }

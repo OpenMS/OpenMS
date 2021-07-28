@@ -537,14 +537,16 @@ public:
     //@}
 
     /**
-    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    @brief Computes the total ion chromatogram (TIC) for a given MS level (use ms_level = 0 for all levels). 
 
-    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    If a bin size in RT seconds greater than 0 is given resampling is used.
 
-    @param bin_size RT bin size in seconds
+    @param bin_size RT bin size in seconds (0 = no resampling)
+    @param ms_level MS level of spectra for calculation (0 = all levels)
     @return TIC Chromatogram
     **/
-    const MSChromatogram getTIC(float rt_bin_size = 0) const;
+    const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
 
     /**
       @brief Clears all data and meta data

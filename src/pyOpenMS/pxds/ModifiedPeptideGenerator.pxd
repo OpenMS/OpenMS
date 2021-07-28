@@ -6,7 +6,7 @@ from AASequence cimport *
 from ResidueModification cimport *
 from StringList cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS":
 
     cdef cppclass ModifiedPeptideGenerator:
 
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>" namespace "
 
 
     ## wrap static methods
-    cdef extern from "<OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
+    cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
         ModifiedPeptideGenerator_MapToResidueType getModifications(const StringList& modNames) nogil except +
 
         void applyFixedModifications(const ModifiedPeptideGenerator_MapToResidueType& fixed_mods, AASequence& peptide) nogil except +

@@ -3,8 +3,9 @@ set(directory include/OpenMS/IONMOBILITY)
 
 ### list all header files of the directory here
 set(sources_list_h
+IMTypes.h
+IMDataConverter.h
 FAIMSHelper.h
-MSRunIMSplitter.h
 )
 
 ### add path to the filenames

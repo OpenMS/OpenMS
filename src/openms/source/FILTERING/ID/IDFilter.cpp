@@ -478,8 +478,10 @@ namespace OpenMS
       const vector<ProteinIdentification::ProteinGroup>& groups,
       vector<ProteinHit>& hits)
   {
-    if (hits.empty()) return; // nothing to update
-
+    if (hits.empty())
+    {
+      return; // nothing to update
+    }
     // we'll do lots of look-ups, so use a suitable data structure:
     unordered_set<String> valid_accessions;
     for (const auto& grp : groups)
@@ -496,15 +498,14 @@ namespace OpenMS
   void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides,
                                      bool strict)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
-      vector<PeptideHit>& hits = pep_it->getHits();
+      vector<PeptideHit>& hits = pep.getHits();
       if (hits.size() > 1)
       {
-        pep_it->sort();
+        pep.sort();
         double top_score = hits[0].getScore();
-        bool higher_better = pep_it->isHigherScoreBetter();
+        bool higher_better = pep.isHigherScoreBetter();
         struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
         if (strict) // only one best score allowed
         {

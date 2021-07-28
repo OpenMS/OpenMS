@@ -72,6 +72,12 @@ namespace OpenMS
           peptide_ID.setMetaValue("rt_align", trafo.apply(peptide_ID.getRT()));
           peptide_ID.setMetaValue("rt_raw", peptide_ID.getRT());
       }
+      feature.setMetaValue("rt_align", trafo.apply(feature.getRT()));
+      feature.setMetaValue("rt_raw", feature.getRT());
+      feature.setMetaValue("rt_align_start", trafo.apply(feature.getConvexHull().getBoundingBox().minX()));
+      feature.setMetaValue("rt_align_end", trafo.apply(feature.getConvexHull().getBoundingBox().maxX()));
+      feature.setMetaValue("rt_raw_start", feature.getConvexHull().getBoundingBox().minX());
+      feature.setMetaValue("rt_raw_end", feature.getConvexHull().getBoundingBox().maxX());
     }
 
     // same for unassigned PepIDs

@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>

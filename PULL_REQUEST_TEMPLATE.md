@@ -12,3 +12,6 @@ Please include a summary of the change and which issue is fixed.
 # How can I get additional information on failed tests during CI:
 If your PR is failing you can check out 
 - http://cdash.openms.de/index.php?project=OpenMS and look for your PR. If you click in the column that lists the failed tests you will get detailed error messages.
+
+# Note:
+- Once you opened a PR try to minimize the number of *pushes* to it as every push will trigger CI (automated builds and test) and is rather heavy on our infrastructure (e.g., if several pushes per day are performed).

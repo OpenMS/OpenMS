@@ -61,7 +61,6 @@ for PYBIN in /opt/python/cp3*; do
   # strip the libraries
   strip --strip-all lib/libOpenMS.so 
   strip --strip-all lib/libOpenSwathAlgo.so 
-  strip --strip-all lib/libSuperHirn.so 
   cd pyOpenMS
   # remove the libraries as auditwheel will take care of linked libs
   rm -rf pyopenms/lib*

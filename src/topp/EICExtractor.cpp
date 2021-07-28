@@ -290,7 +290,7 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram tic = exp.getTIC();
+        MSChromatogram tic = exp.calculateTIC();
         MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)

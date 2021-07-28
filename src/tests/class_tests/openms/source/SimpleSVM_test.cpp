@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 ///////////////////////////
 
+#include <fstream>
 #include <sstream>
 
 

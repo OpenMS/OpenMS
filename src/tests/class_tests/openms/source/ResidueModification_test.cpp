@@ -534,5 +534,6 @@ START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
 	TEST_EXCEPTION(Exception::InvalidValue, ResidueModification::getMonoMassWithBracket(-16));
 END_SECTION
 
+delete ptr;
 
 END_TEST

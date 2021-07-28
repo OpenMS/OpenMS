@@ -56,6 +56,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -90,9 +91,6 @@
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
-
-
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 //Qt
 #include <QCloseEvent>
@@ -2168,96 +2166,6 @@ namespace OpenMS
     updateMenu();
   }
 
-  /**
-    @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
-   
-    The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
-
-    To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
-      
-    @param im_frame Concatenated spectrum representing a frame
-    @param number_of_bins In how many bins should ion mobility values be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
-    @return IM frame split into multiple bins (= 1 spectrum per bin)
-
-    @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
-  */
-  MSExperiment splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins = -1)
-  {          
-    MSExperiment out;
-    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
-    // can throw if IM float data array is missing
-    auto& im_data = im_frame.getIMData(); 
-    if (im_data.empty())
-    {
-      return out;
-    }
-
-    // check if data is sorted by IM... if not, sort
-    if (!std::is_sorted(im_data.begin(), im_data.end()))
-    {
-      im_frame.sort([&im_data](const Size i1, const Size i2) {
-        return im_data[i1] < im_data[i2];
-      });
-    }
-
-    
-    using IMV_t = MSSpectrum::FloatDataArray::value_type;
-    out.clear(true);
-    // adds a new spectrum with drift time to `out`
-    auto addBinnedSpec = [&out, &im_frame](double drift_time_avg) {
-      out.addSpectrum(MSSpectrum());
-      auto& spec = out.getSpectra().back();
-      // copy drift-time unit from parent scan
-      spec.setDriftTime(drift_time_avg);
-      spec.setDriftTimeUnit(im_frame.getDriftTimeUnit());
-      // keep RT identical for all scans, since they are from the same IM-frame
-      //spec.setRT(im_frame.getRT());
-      spec.setRT(drift_time_avg); // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
-      // keep MSlevel
-      spec.setMSLevel(im_frame.getMSLevel());
-      return &spec;
-    };
-
-    MSSpectrum* last_spec{};
-    if (number_of_bins == (UInt)-1)
-    { // Separate spec for each IM value:
-      OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
-      IMV_t im_last = std::numeric_limits<IMV_t>::max();
-      for (Size i = 0; i < im_data.size(); ++i)// is sorted now!
-      {
-        const IMV_t im = im_data[i];
-        if (im != im_last)
-        {
-          im_last = im;
-          last_spec = addBinnedSpec(im);
-        }
-        last_spec->push_back(im_frame[i]); // copy the peak
-      }
-
-    }
-    else
-    {
-      auto min_IM = im_data.front();
-      auto max_IM = im_data.back();
-      Histogram<double, double> hist(min_IM, max_IM, (max_IM - min_IM) / number_of_bins);
-      out.reserveSpaceSpectra(number_of_bins);
-      Size i_data = 0;
-      for (Size i_bin = 0; i_bin < number_of_bins; ++i_bin)
-      {
-        last_spec = addBinnedSpec(hist.centerOfBin(i_bin));
-        double right_end_of_bin = hist.rightBorderOfBin(i_bin);
-        while (i_data < im_data.size() && im_data[i_data] < right_end_of_bin)
-        {
-          last_spec->push_back(im_frame[i_data]);// copy the peak
-          ++i_data; // next peak
-        }
-      }
-      assert(i_data == im_data.size());
-    }
-
-    out.updateRanges();
-    return out;
-  }
 
   void TOPPViewBase::showCurrentPeaksAsIonMobility()
   {
@@ -2266,7 +2174,9 @@ namespace OpenMS
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
     
-    ExperimentSharedPtrType exp(new MSExperiment(splitByIonMobility(layer.getCurrentSpectrum())));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(layer.getCurrentSpectrum())));
+    // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
+    for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);

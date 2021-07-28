@@ -299,6 +299,11 @@ private:
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
+    if (input_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerIdentification." << std::endl;
+    }   
+
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
     FileTypes::Type in_type = FileHandler::getType(input_files[0]);

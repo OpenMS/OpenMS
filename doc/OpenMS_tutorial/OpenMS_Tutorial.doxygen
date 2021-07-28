@@ -485,7 +485,7 @@ Create all identification data needed to store an idXML file
 
 @subsection tutorial_chemistry Chemistry
 @subsection tutorial_element Element, ElementDB, EmpiricalFormula 
-An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton which is created from the file “/OpenMS/CHEMISTRY/Elements.xml”. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
+An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
 <br><br>
 <b>Example: Tutorial_Element.cpp</b>
 <br>

@@ -164,6 +164,14 @@ namespace OpenMS
          * checks and removes requested extra Percolator features that are actually unavailable (to compute)
          */
         static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
+
+        /**
+         * @brief addMSFraggerFeatures
+         * @param extra_features register of added features
+         *
+         * Registers the MSFragger specific Percolator features in extra_features.
+         */
+        static void addMSFRAGGERFeatures(StringList& extra_features);
         
 
     protected:

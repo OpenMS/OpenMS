@@ -945,6 +945,10 @@ namespace OpenMS
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
+      else if (engine == "MSFragger")
+      {
+        return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
+      }
 
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
@@ -958,10 +962,10 @@ namespace OpenMS
       const double fdr_for_targets_smaller)
     {
       std::set<Int> charges;
-      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,"
-                                                                  "SimTandem,MSGFPlus,MS-GF+,Comet,"
-                                                                  "tide-search,SimpleSearchEngine,"
-                                                                  "OpenMS/ConsensusID_best,OpenMS/ConsensusID_worst,OpenMS/ConsensusID_average");
+      const StringList search_engines = {"XTandem","OMSSA","MASCOT","SpectraST","MyriMatch",
+                                         "SimTandem","MSGFPlus","MS-GF+","Comet","MSFragger",
+                                         "tide-search","SimpleSearchEngine",
+                                         "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
 
       if (split_charge)
       {  // determine different charges in data

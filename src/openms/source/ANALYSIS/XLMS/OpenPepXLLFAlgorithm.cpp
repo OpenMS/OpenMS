@@ -38,7 +38,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>

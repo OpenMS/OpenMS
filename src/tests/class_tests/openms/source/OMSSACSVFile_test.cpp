@@ -81,6 +81,8 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
 	TEST_EQUAL(peptide_identifications.size(), 1)
 END_SECTION
 
+delete ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

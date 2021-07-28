@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow, Nora Wild $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -67,7 +67,7 @@ namespace OpenMS
             first whitespace is stored in description and the text
             from the next line until the next > (exclusive) is stored
             in sequence.
-          */
+        */
         struct FASTAEntry
         {
             String identifier;
@@ -92,6 +92,7 @@ namespace OpenMS
                     sequence(::std::move(rhs.sequence))
             {
             }
+
 
             FASTAEntry& operator=(const FASTAEntry& rhs) = default;
 
@@ -181,19 +182,19 @@ namespace OpenMS
         void store(const String& filename, const std::vector<FASTAEntry>& data) const;
 
     protected:
-
         /**
          @brief Reads a protein entry from the current file position and returns the ID and sequence
          @return Return true if the protein entry was read and saved successfully, false otherwise
          */
         bool readEntry_(std::string& id, std::string& description, std::string& seq);
-        std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
-        std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
-        Size entries_read_{0}; ///< some internal book-keeping during reading
-        std::streampos fileSize_{};///< total number of characters of filestream
-        std::string seq_;///< sequence of currently read protein
-        std::string id_;///< identifier of currently read protein
-        std::string description_;///< description of currently read protein
+
+        std::fstream infile_;       ///< filestream for reading; init using FastaFile::readStart()
+        std::ofstream outfile_;     ///< filestream for writing; init using FastaFile::writeStart()
+        Size entries_read_{0};      ///< some internal book-keeping during reading
+        std::streampos fileSize_{}; ///< total number of characters of filestream
+        std::string seq_;           ///< sequence of currently read protein
+        std::string id_;            ///< identifier of currently read protein
+        std::string description_;   ///< description of currently read protein
     };
 
 } // namespace OpenMS

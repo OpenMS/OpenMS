@@ -78,6 +78,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       double suffix_fraction = 0; ///< fraction of annotated y-ions
       double mean_error = 0.0; ///< mean absolute fragment mass error
       std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;
