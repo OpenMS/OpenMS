@@ -562,9 +562,9 @@ namespace OpenMS
   void ElementDB::clear_()
   {
     // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
-    for (auto &[string,Element] : names_)
+    for (auto it = names_.begin(); it != names_.end(); ++it)
     {
-      delete Element;
+      delete it->second;
     }
     names_.clear();
     symbols_.clear();
