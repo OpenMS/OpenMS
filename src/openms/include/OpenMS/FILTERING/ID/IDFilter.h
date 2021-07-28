@@ -297,7 +297,7 @@ public:
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
 
-       @note Currently implemented for FastaEntries and Peptide Evidences
+       @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template <class HitType, class Entry>
     struct GetMatchingItems

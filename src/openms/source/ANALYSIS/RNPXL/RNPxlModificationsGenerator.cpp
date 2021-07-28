@@ -173,7 +173,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   using NucleotideModifications = vector<NucleotideModification>;
 
   // map nucleotide to list of empirical MS1 precursor losses/gains
-  // nucleotide->all loss/gain formulas (each composed of subformulas)->subformulas
+  // nucleotide->all loss/gain formulas (each composed of subformulae)->subformulae
   map<String, NucleotideModifications> map_to_nucleotide_modifications;
 
   for (String m : modifications)
@@ -194,7 +194,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
     m = m.substr(2); // remove nucleotide and ':' from front of string
 
-    // decompose string into subformulas
+    // decompose string into subformulae
     m.substitute("-", "#-");
     m.substitute("+", "#+");
     vector<String> ems;

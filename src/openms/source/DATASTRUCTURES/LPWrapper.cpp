@@ -534,7 +534,7 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
 #if COINOR_SOLVER == 1
-//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But afaik we prefer CLP as solver anyway so no need to look for different solvers.
+//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But as far as I know we prefer CLP as solver anyway so no need to look for different solvers.
 //#ifdef COIN_HAS_CLP
     OsiClpSolverInterface solver;
 //#elif COIN_HAS_OSL
@@ -570,7 +570,7 @@ namespace OpenMS
     //model.addCutGenerator(&generator1,-1,"Probing");
     model.addCutGenerator(&generator2, -1, "Gomory");
     model.addCutGenerator(&generator3, -1, "Knapsack");
-    //model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
+    //model.addCutGenerator(&generator4,-1,"OddHole"); // segfaults
     model.addCutGenerator(&generator5, -10, "Clique");
     //model.addCutGenerator(&flowGen,-1,"FlowCover");
     model.addCutGenerator(&mixedGen, -1, "MixedIntegerRounding");
@@ -649,7 +649,7 @@ namespace OpenMS
   LPWrapper::SolverStatus LPWrapper::getStatus()
   {
 #if COINOR_SOLVER == 1
-    return LPWrapper::UNDEFINED; // solver lokale Variable, braucht man diese Abfrage
+    return LPWrapper::UNDEFINED;
 #else
     Int status = glp_mip_status(lp_problem_);
     switch (status)

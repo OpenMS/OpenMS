@@ -93,7 +93,6 @@ namespace OpenMS
     opis_param.remove("max_list_size");
     ilp_wrapper.setParameters(opis_param);
     ilp_wrapper.setLPSolver(solver_);
-    // std::cout << "nun die inclusion liste erstellen"<<std::endl;
     // std::cout << param_.getValue("ms2_spectra_per_rt_bin") <<std::endl;
     // std::cout << param_.getValue("ProteinBasedInclusion:max_list_size") <<std::endl;
     ilp_wrapper.createAndSolveILPForInclusionListCreation(pisp, param_.getValue("ms2_spectra_per_rt_bin"),

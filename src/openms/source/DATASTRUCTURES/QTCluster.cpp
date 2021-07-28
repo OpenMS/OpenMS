@@ -497,7 +497,7 @@ namespace OpenMS
           // As opposed to above IDed features (which could lead to new additional annotations),
           // no need to check further here: all following (also annotation-specific) distances are worse
           // than this unspecific one, since multimap is sorted & dists are already corrected
-          // with noID_penalty. If you dont want this to happen, set the penalty to one and unIDed ones
+          // with noID_penalty. If you don't want this to happen, set the penalty to one and unIDed ones
           // will always be added at the end):
           break;
         }

@@ -519,9 +519,8 @@ namespace OpenMS
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
     //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
-    //  TODO: German comment
-    //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
-    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
+    // cmodel_->setColumnIsInteger(counter,true); // partially switched off, if not enought peptides 
+    // were available to set the protein to 1 (no variables choosen for the protein)
     model_->setObjective(index, 1.);
     protein_variable_index_map.insert(make_pair(map_iter->first, counter));
     ++counter;

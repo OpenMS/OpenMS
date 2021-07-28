@@ -51,7 +51,6 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI FileTypes
   {
-    //NOTE: if you change/add something here, do not forget to change FileTypes::initializeMap_
 
     ///Actual file types enum.
     enum Type
