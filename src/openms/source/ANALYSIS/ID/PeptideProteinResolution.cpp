@@ -713,7 +713,7 @@ namespace OpenMS
     size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
     ambiguity_grp.probability = origin_groups[best_grp_index].probability;
     
-    // copy group indices so we can  reorder them for tie resolution
+    // copy group indices so we can reorder them for tie resolution
     vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
 
     // groups are currently only sorted by probability.
@@ -816,4 +816,3 @@ namespace OpenMS
   }
 
 }
-
