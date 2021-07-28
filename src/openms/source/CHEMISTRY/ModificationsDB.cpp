@@ -429,7 +429,10 @@ namespace OpenMS
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     char res = '?'; // empty
-    if (!residue.empty()) res = residue[0];
+    if (!residue.empty())
+    {
+      res = residue[0];
+    }
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
@@ -823,8 +826,14 @@ namespace OpenMS
       size_t i(0);
       while (i < a.size() && i < b.size())
       {
-        if (tolower(a[i]) == tolower(b[i])) ++i;
-        else return tolower(a[i]) < tolower(b[i]);
+        if (tolower(a[i]) == tolower(b[i]))
+        {
+          ++i;
+        }
+        else
+        {
+          return tolower(a[i]) < tolower(b[i]);
+        }
       }
       return a.size() < b.size();
     });

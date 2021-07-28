@@ -90,11 +90,17 @@ namespace OpenMS
     if (sense.toLower() == "c")
     {
       cleavage_regex_ += "(?<=[" + cut_before + "]";
-      if (!nocut_after.empty()) cleavage_regex_ += "(?!" + nocut_after + "])";
+      if (!nocut_after.empty())
+      {
+        cleavage_regex_ += "(?!" + nocut_after + "])";
+      }
     }
     else if (sense.toLower() == "n")
     {
-      if (!nocut_after.empty()) cleavage_regex_ += "(?<![" + nocut_after + "])";
+      if (!nocut_after.empty())
+      {
+        cleavage_regex_ += "(?<![" + nocut_after + "])";
+      }
       cleavage_regex_ += "(?=[" + cut_before + "]";
     }
     else
@@ -187,25 +193,25 @@ namespace OpenMS
   bool DigestionEnzyme::setValueFromFile(const String& key, const String& value)
   {
     if (key.hasSuffix(":Name"))
-  {
+    {
       setName(value);
       return true;
-  }
+    }
     if (key.hasSuffix(":RegEx"))
-  {
+    {
       setRegEx(value);
       return true;
-  }
+    }
     if (key.hasSuffix(":RegExDescription"))
-  {
+    {
       setRegExDescription(value);
       return true;
-  }
+    }
     if (key.hasSubstring(":Synonyms:"))
-  {
+    {
       addSynonym(value);
       return true;
-  }
+    }
     return false;
   }
 
