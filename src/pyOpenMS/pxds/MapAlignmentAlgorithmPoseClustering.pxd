@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
                    TransformationDescription &
                    ) nogil except +
 
-        void setReference (FeatureMap) nogil except +
+        void setReference (FeatureMap) nogil except + # wrap-doc:Sets the reference for the alignment
         void setReference (MSExperiment) nogil except +
 
 
