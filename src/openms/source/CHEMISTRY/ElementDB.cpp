@@ -163,7 +163,7 @@ namespace OpenMS
 
     map<unsigned int, double> bor_abundance = {{10u, 0.19899999999999998}, {11u, 0.8009999999999999}};
     map<unsigned int, double> bor_mass = {{10u, 10.012937000000001}, {11u, 11.009304999999999}};
-    buildElement_("Bor", "B", 5u, bor_abundance, bor_mass);
+    buildElement_("Boron", "B", 5u, bor_abundance, bor_mass);
 
 
     map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}};
@@ -184,16 +184,6 @@ namespace OpenMS
     map<unsigned int, double> fluorine_abundance = {{19u, 1.0}};
     map<unsigned int, double> fluorine_mass = {{19u, 18.99840322}};
     buildElement_("Fluorine", "F", 9u, fluorine_abundance, fluorine_mass);
-
-
-    map<unsigned int, double> argon_abundance = {{36u, 0.003336}, {38u, 0.000629}, {40u, 0.996035}};
-    map<unsigned int, double> argon_mass = {{36u, 35.967545106000003}, {38u, 37.9627324}, {40u, 39.9623831225}};
-    buildElement_("Argon", "Ar", 18u, argon_abundance, argon_mass);
-
-
-    map<unsigned int, double> titanium_abundance = {{46u, 0.0825}, {47u, 0.07440000000000001}, {48u, 0.7372}, {49u, 0.0541}, {50u, 0.0518}};
-    map<unsigned int, double> titanium_mass = {{46u, 45.952631599999997}, {47u, 46.951763100000001}, {48u, 47.947946299999998}, {49u, 48.947870000000002}, {50u, 49.944791199999997}};
-    buildElement_("Titanium", "Ti", 22u, titanium_abundance, titanium_mass);
 
 
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
@@ -231,6 +221,11 @@ namespace OpenMS
     buildElement_("Chlorine", "Cl", 17u, chlorine_abundance, chlorine_mass);
 
 
+    map<unsigned int, double> argon_abundance = {{36u, 0.003336}, {38u, 0.000629}, {40u, 0.996035}};
+    map<unsigned int, double> argon_mass = {{36u, 35.967545106000003}, {38u, 37.9627324}, {40u, 39.9623831225}};
+    buildElement_("Argon", "Ar", 18u, argon_abundance, argon_mass);
+
+
     map<unsigned int, double> potassium_abundance = {{39u, 0.932581}, {40u, 0.000117}, {41u, 0.067302}};
     map<unsigned int, double> potassium_mass = {{39u, 38.963706680000001}, {40u, 39.963998480000001}, {41u, 40.961825760000004}};
     buildElement_("Potassium", "K", 19u, potassium_abundance, potassium_mass);
@@ -246,6 +241,11 @@ namespace OpenMS
     buildElement_("Scandium", "Sc", 21u, scandium_abundance, scandium_mass);
 
 
+    map<unsigned int, double> titanium_abundance = {{46u, 0.0825}, {47u, 0.07440000000000001}, {48u, 0.7372}, {49u, 0.0541}, {50u, 0.0518}};
+    map<unsigned int, double> titanium_mass = {{46u, 45.952631599999997}, {47u, 46.951763100000001}, {48u, 47.947946299999998}, {49u, 48.947870000000002}, {50u, 49.944791199999997}};
+    buildElement_("Titanium", "Ti", 22u, titanium_abundance, titanium_mass);
+
+
     map<unsigned int, double> vanadium_abundance = {{50u, 0.0025}, {51u, 0.9975}};
     map<unsigned int, double> vanadium_mass = {{50u, 49.947158500000001}, {51u, 50.943959499999998}};
     buildElement_("Vanadium", "V", 23u, vanadium_abundance, vanadium_mass);
@@ -254,16 +254,6 @@ namespace OpenMS
     map<unsigned int, double> chromium_abundance = {{50u, 0.043449999999999996}, {52u, 0.83789}, {53u, 0.09501}, {54u, 0.02365}};
     map<unsigned int, double> chromium_mass = {{50u, 49.946044200000003}, {52u, 51.940507500000003}, {53u, 52.940649399999998}, {54u, 53.938880400000002}};
     buildElement_("Chromium", "Cr", 24u, chromium_abundance, chromium_mass);
-
-
-    map<unsigned int, double> tellurium_abundance = {{120u, 0.0009}, {122u, 0.0255}, {124u, 0.047400000000000005}, {125u, 0.0707}, {126u, 0.1884}, {128u, 0.31739999999999996}, {130u, 0.3408}};
-    map<unsigned int, double> tellurium_mass = {{120u, 119.904020000000003}, {122u, 121.9030439}, {124u, 123.902817900000002}, {125u, 124.904430700000006}, {126u, 125.903311700000003}, {128u, 127.904463100000001}, {130u, 129.906224400000014}};
-    buildElement_("Tellurium", "Te", 52u, tellurium_abundance, tellurium_mass);
-
-
-    map<unsigned int, double> barium_abundance = {{132u, 0.00101}, {134u, 0.024169999999999997}, {135u, 0.06591999999999999}, {136u, 0.07854}, {137u, 0.11231999999999999}, {138u, 0.71698}};
-    map<unsigned int, double> barium_mass = {{132u, 131.9050613}, {134u, 133.904508399999997}, {135u, 134.905688599999991}, {136u, 135.904575899999998}, {137u, 136.905827399999993}, {138u, 137.905247199999991}};
-    buildElement_("Barium", "Ba", 56u, barium_abundance, barium_mass);
 
 
     map<unsigned int, double> manganese_abundance = {{55u, 1.0}};
@@ -311,46 +301,6 @@ namespace OpenMS
     buildElement_("Arsenic", "As", 33u, arsenic_abundance, arsenic_mass);
 
 
-    map<unsigned int, double> rubidium_abundance = {{85u, 0.7217}};
-    map<unsigned int, double> rubidium_mass = {{85u, 84.911789737999996}};
-    buildElement_("Rubidium", "Rb", 37u, rubidium_abundance, rubidium_mass);
-
-
-    map<unsigned int, double> strontium_abundance = {{84u, 0.005600000000000001}, {86u, 0.0986}, {87u, 0.07}, {88u, 0.8258}};
-    map<unsigned int, double> strontium_mass = {{84u, 83.913425000000004}, {86u, 85.909260730900002}, {87u, 86.908877497000006}, {88u, 87.905612257100003}};
-    buildElement_("Strontium", "Sr", 38u, strontium_abundance, strontium_mass);
-
-
-    map<unsigned int, double> yttrium_abundance = {{89u, 1.0}};
-    map<unsigned int, double> yttrium_mass = {{89u, 88.905850000000001}};
-    buildElement_("Yttrium", "Y", 39u, yttrium_abundance, yttrium_mass);
-
-
-    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}};
-    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}};
-    buildElement_("Zirconium", "Zr", 40u, zirconium_abundance, zirconium_mass);
-
-
-    map<unsigned int, double> nibium_abundance = {{93u, 1.0}};
-    map<unsigned int, double> nibium_mass = {{93u, 92.906378099999998}};
-    buildElement_("Nibium", "Nb", 41u, nibium_abundance, nibium_mass);
-
-
-    map<unsigned int, double> ruthenium_abundance = {{96u, 0.0554}, {98u, 0.0187}, {99u, 0.1276}, {100u, 0.126}, {101u, 0.17059999999999997}, {102u, 0.3155}, {104u, 0.1862}};
-    map<unsigned int, double> ruthenium_mass = {{96u, 95.907597999999993}, {98u, 97.905287000000001}, {99u, 98.9059393}, {100u, 99.904219499999996}, {101u, 100.905582100000004}, {102u, 101.904349300000007}, {104u, 103.905433000000002}};
-    buildElement_("Ruthenium", "Ru", 44u, ruthenium_abundance, ruthenium_mass);
-
-
-    map<unsigned int, double> tin_abundance = {{112u, 0.0097}, {114u, 0.0066}, {115u, 0.0034000000000000002}, {116u, 0.1454}, {117u, 0.0768}, {118u, 0.2422}, {119u, 0.0859}, {120u, 0.3258}, {122u, 0.0463}, {124u, 0.0579}};
-    map<unsigned int, double> tin_mass = {{112u, 111.904818000000006}, {114u, 113.902777900000004}, {115u, 114.903341999999995}, {116u, 115.901741000000001}, {117u, 116.902951999999999}, {118u, 117.901602999999994}, {119u, 118.903307999999996}, {120u, 119.902194699999996}, {122u, 121.903439000000006}, {124u, 123.905273899999997}};
-    buildElement_("Tin", "Sn", 50u, tin_abundance, tin_mass);
-
-
-    map<unsigned int, double> antimony_abundance = {{121u, 0.5721}, {123u, 0.4279}};
-    map<unsigned int, double> antimony_mass = {{121u, 120.903815699999996}, {123u, 122.904213999999996}};
-    buildElement_("Antimony", "Sb", 51u, antimony_abundance, antimony_mass);
-
-
     map<unsigned int, double> selenium_abundance = {{74u, 0.00889}, {76u, 0.09366}, {77u, 0.07635}, {78u, 0.23772}, {80u, 0.49607}, {82u, 0.08731}};
     map<unsigned int, double> selenium_mass = {{74u, 73.922476399999994}, {76u, 75.919213600000006}, {77u, 76.919914000000006}, {78u, 77.917309099999997}, {80u, 79.916521299999999}, {82u, 81.916699399999999}};
     buildElement_("Selenium", "Se", 34u, selenium_abundance, selenium_mass);
@@ -366,6 +316,31 @@ namespace OpenMS
     buildElement_("Krypton", "Kr", 36u, krypton_abundance, krypton_mass);
 
 
+    map<unsigned int, double> rubidium_abundance = {{85u, 0.7217}};
+    map<unsigned int, double> rubidium_mass = {{85u, 84.911789737999996}};
+    buildElement_("Rubidium", "Rb", 37u, rubidium_abundance, rubidium_mass);
+
+
+    map<unsigned int, double> strontium_abundance = {{84u, 0.005600000000000001}, {86u, 0.0986}, {87u, 0.07}, {88u, 0.8258}};
+    map<unsigned int, double> strontium_mass = {{84u, 83.913425000000004}, {86u, 85.909260730900002}, {87u, 86.908877497000006}, {88u, 87.905612257100003}};
+    buildElement_("Strontium", "Sr", 38u, strontium_abundance, strontium_mass);
+
+
+    map<unsigned int, double> yttrium_abundance = {{89u, 1.0}};
+    map<unsigned int, double> yttrium_mass = {{89u, 88.905850000000001}};
+    buildElement_("Yttrium", "Y", 39u, yttrium_abundance, yttrium_mass);
+
+
+    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}, {96u, 0.0280}};
+    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}, {96u, 95.9082776}};
+    buildElement_("Zirconium", "Zr", 40u, zirconium_abundance, zirconium_mass);
+
+
+    map<unsigned int, double> nibium_abundance = {{93u, 1.0}};
+    map<unsigned int, double> nibium_mass = {{93u, 92.906378099999998}};
+    buildElement_("Nibium", "Nb", 41u, nibium_abundance, nibium_mass);
+
+
     map<unsigned int, double> molybdenum_abundance = {{92u, 0.1484}, {94u, 0.0925}, {95u, 0.1592}, {96u, 0.1668}, {97u, 0.0955}, {98u, 0.2413}, {100u, 0.09630000000000001}};
     map<unsigned int, double> molybdenum_mass = {{92u, 91.906809999999993}, {94u, 93.905088000000006}, {95u, 94.905840999999995}, {96u, 95.904679000000002}, {97u, 96.906020999999996}, {98u, 97.905407999999994}, {100u, 99.907477}};
     buildElement_("Molybdenum", "Mo", 42u, molybdenum_abundance, molybdenum_mass);
@@ -374,6 +349,11 @@ namespace OpenMS
     map<unsigned int, double> technitium_abundance = {{97u, 0.0}, {98u, 0.0}, {99u, 0.0}};
     map<unsigned int, double> technitium_mass = {{97u, 96.906363999999996}, {98u, 97.907214999999994}, {99u, 98.906254000000004}};
     buildElement_("Technitium", "Tc", 43u, technitium_abundance, technitium_mass);
+
+
+    map<unsigned int, double> ruthenium_abundance = {{96u, 0.0554}, {98u, 0.0187}, {99u, 0.1276}, {100u, 0.126}, {101u, 0.17059999999999997}, {102u, 0.3155}, {104u, 0.1862}};
+    map<unsigned int, double> ruthenium_mass = {{96u, 95.907597999999993}, {98u, 97.905287000000001}, {99u, 98.9059393}, {100u, 99.904219499999996}, {101u, 100.905582100000004}, {102u, 101.904349300000007}, {104u, 103.905433000000002}};
+    buildElement_("Ruthenium", "Ru", 44u, ruthenium_abundance, ruthenium_mass);
 
 
     map<unsigned int, double> rhodium_abundance = {{103u, 1.0}};
@@ -401,6 +381,21 @@ namespace OpenMS
     buildElement_("Indium", "In", 49u, indium_abundance, indium_mass);
 
 
+    map<unsigned int, double> tin_abundance = {{112u, 0.0097}, {114u, 0.0066}, {115u, 0.0034000000000000002}, {116u, 0.1454}, {117u, 0.0768}, {118u, 0.2422}, {119u, 0.0859}, {120u, 0.3258}, {122u, 0.0463}, {124u, 0.0579}};
+    map<unsigned int, double> tin_mass = {{112u, 111.904818000000006}, {114u, 113.902777900000004}, {115u, 114.903341999999995}, {116u, 115.901741000000001}, {117u, 116.902951999999999}, {118u, 117.901602999999994}, {119u, 118.903307999999996}, {120u, 119.902194699999996}, {122u, 121.903439000000006}, {124u, 123.905273899999997}};
+    buildElement_("Tin", "Sn", 50u, tin_abundance, tin_mass);
+
+
+    map<unsigned int, double> antimony_abundance = {{121u, 0.5721}, {123u, 0.4279}};
+    map<unsigned int, double> antimony_mass = {{121u, 120.903815699999996}, {123u, 122.904213999999996}};
+    buildElement_("Antimony", "Sb", 51u, antimony_abundance, antimony_mass);
+
+    
+    map<unsigned int, double> tellurium_abundance = {{120u, 0.0009}, {122u, 0.0255}, {124u, 0.047400000000000005}, {125u, 0.0707}, {126u, 0.1884}, {128u, 0.31739999999999996}, {130u, 0.3408}};
+    map<unsigned int, double> tellurium_mass = {{120u, 119.904020000000003}, {122u, 121.9030439}, {124u, 123.902817900000002}, {125u, 124.904430700000006}, {126u, 125.903311700000003}, {128u, 127.904463100000001}, {130u, 129.906224400000014}};
+    buildElement_("Tellurium", "Te", 52u, tellurium_abundance, tellurium_mass);
+
+
     map<unsigned int, double> iodine_abundance = {{127u, 1.0}};
     map<unsigned int, double> iodine_mass = {{127u, 126.904472999999996}};
     buildElement_("Iodine", "I", 53u, iodine_abundance, iodine_mass);
@@ -416,6 +411,16 @@ namespace OpenMS
     buildElement_("Caesium", "Cs", 55u, caesium_abundance, caesium_mass);
 
 
+    map<unsigned int, double> barium_abundance = {{132u, 0.00101}, {134u, 0.024169999999999997}, {135u, 0.06591999999999999}, {136u, 0.07854}, {137u, 0.11231999999999999}, {138u, 0.71698}};
+    map<unsigned int, double> barium_mass = {{132u, 131.9050613}, {134u, 133.904508399999997}, {135u, 134.905688599999991}, {136u, 135.904575899999998}, {137u, 136.905827399999993}, {138u, 137.905247199999991}};
+    buildElement_("Barium", "Ba", 56u, barium_abundance, barium_mass);
+
+
+    map<unsigned int, double> lanthanum_abundance = {{138u, 0.00089}, {139u, 0.99911}};
+    map<unsigned int, double> lanthanum_mass = {{138u, 137.907112000000012}, {139u, 138.906353300000006}};
+    buildElement_("Lanthanum", "La", 57u, lanthanum_abundance, lanthanum_mass);
+
+
     map<unsigned int, double> cerium_abundance = {{136u, 0.00185}, {138u, 0.00251}, {140u, 0.8845000000000001}, {142u, 0.11114}};
     map<unsigned int, double> cerium_mass = {{136u, 135.907172000000003}, {138u, 137.905991}, {140u, 139.905438699999991}, {142u, 141.909244000000001}};
     buildElement_("Cerium", "Ce", 58u, cerium_abundance, cerium_mass);
@@ -424,6 +429,16 @@ namespace OpenMS
     map<unsigned int, double> praseodymium_abundance = {{141u, 1.0}};
     map<unsigned int, double> praseodymium_mass = {{141u, 140.907646999999997}};
     buildElement_("Praseodymium", "Pr", 59u, praseodymium_abundance, praseodymium_mass);
+
+
+    map<unsigned int, double> neodymium_abundance = {{142u, 0.272}, {143u, 0.122}, {144u, 0.23800000000000002}, {145u, 0.083}, {146u, 0.172}, {148u, 0.057999999999999996}, {150u, 0.055999999999999994}};
+    map<unsigned int, double> neodymium_mass = {{142u, 141.907723299999987}, {143u, 142.909814299999994}, {144u, 143.910087299999987}, {145u, 144.912573600000002}, {146u, 145.913116900000006}, {148u, 147.916892999999988}, {150u, 149.920891000000012}};
+    buildElement_("Neodymium", "Nd", 60u, neodymium_abundance, neodymium_mass);
+
+
+    map<unsigned int, double> samarium_abundance = {{144u, 0.0308}, {147u, 0.15}, {148u, 0.1125}, {149u, 0.1382}, {150u, 0.0737}, {152u, 0.26739999999999997}, {154u, 0.2274}};
+    map<unsigned int, double> samarium_mass = {{144u, 143.911999000000009}, {147u, 146.9148979}, {148u, 147.914822700000002}, {149u, 148.917184700000007}, {150u, 149.917275499999988}, {152u, 151.919732399999987}, {154u, 153.92220929999999}};
+    buildElement_("Samarium", "Sm", 62u, samarium_abundance, samarium_mass);
 
 
     map<unsigned int, double> gadolinium_abundance = {{152u, 0.002}, {154u, 0.0218}, {155u, 0.14800000000000002}, {156u, 0.2047}, {157u, 0.1565}, {158u, 0.2484}, {160u, 0.2186}};
@@ -441,14 +456,19 @@ namespace OpenMS
     buildElement_("Tantalum", "Ta", 73u, tantalum_abundance, tantalum_mass);
 
 
-    map<unsigned int, double> platinum_abundance = {{192u, 0.00782}, {194u, 0.32966999999999996}, {195u, 0.33832}, {196u, 0.25242000000000003}, {198u, 0.07163}};
-    map<unsigned int, double> platinum_mass = {{192u, 191.961038000000002}, {194u, 193.962680299999988}, {195u, 194.964791100000014}, {196u, 195.964951500000012}, {198u, 197.967893000000004}};
-    buildElement_("Platinum", "Pt", 78u, platinum_abundance, platinum_mass);
-
-
     map<unsigned int, double> tungsten_abundance = {{180u, 0.0012}, {182u, 0.265}, {183u, 0.1431}, {184u, 0.3064}, {186u, 0.2843}};
     map<unsigned int, double> tungsten_mass = {{180u, 179.946704000000011}, {182u, 181.948204199999992}, {183u, 182.950222999999994}, {184u, 183.950930999999997}, {186u, 185.954364099999992}};
     buildElement_("Tungsten", "W", 74u, tungsten_abundance, tungsten_mass);
+
+
+    map<unsigned int, double> rhenium_abundance = {{185u, 0.374}, {187u, 0.626}};
+    map<unsigned int, double> rhenium_mass = {{185u, 184.952955000000003}, {187u, 186.95575310000001}};
+    buildElement_("Rhenium", "Re", 75u, rhenium_abundance, rhenium_mass);
+
+
+    map<unsigned int, double> platinum_abundance = {{192u, 0.00782}, {194u, 0.32966999999999996}, {195u, 0.33832}, {196u, 0.25242000000000003}, {198u, 0.07163}};
+    map<unsigned int, double> platinum_mass = {{192u, 191.961038000000002}, {194u, 193.962680299999988}, {195u, 194.964791100000014}, {196u, 195.964951500000012}, {198u, 197.967893000000004}};
+    buildElement_("Platinum", "Pt", 78u, platinum_abundance, platinum_mass);
 
 
     map<unsigned int, double> gold_abundance = {{197u, 1.0}};
@@ -476,29 +496,11 @@ namespace OpenMS
     buildElement_("Bismuth", "Bi", 83u, bismuth_abundance, bismuth_mass);
 
 
-    map<unsigned int, double> rhenium_abundance = {{185u, 0.374}, {187u, 0.626}};
-    map<unsigned int, double> rhenium_mass = {{185u, 184.952955000000003}, {187u, 186.95575310000001}};
-    buildElement_("Rhenium", "Re", 75u, rhenium_abundance, rhenium_mass);
-
-
-    map<unsigned int, double> neodymium_abundance = {{142u, 0.272}, {143u, 0.122}, {144u, 0.23800000000000002}, {145u, 0.083}, {146u, 0.172}, {148u, 0.057999999999999996}, {150u, 0.055999999999999994}};
-    map<unsigned int, double> neodymium_mass = {{142u, 141.907723299999987}, {143u, 142.909814299999994}, {144u, 143.910087299999987}, {145u, 144.912573600000002}, {146u, 145.913116900000006}, {148u, 147.916892999999988}, {150u, 149.920891000000012}};
-    buildElement_("Neodymium", "Nd", 60u, neodymium_abundance, neodymium_mass);
-
-
     map<unsigned int, double> thorium_abundance = {{230u, 0.0002}, {232u, 0.9998}};
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
 
-    map<unsigned int, double> lanthanum_abundance = {{138u, 0.00089}, {139u, 0.99911}};
-    map<unsigned int, double> lanthanum_mass = {{138u, 137.907112000000012}, {139u, 138.906353300000006}};
-    buildElement_("Lanthanum", "La", 57u, lanthanum_abundance, lanthanum_mass);
-
-
-    map<unsigned int, double> samarium_abundance = {{144u, 0.0308}, {147u, 0.15}, {148u, 0.1125}, {149u, 0.1382}, {150u, 0.0737}, {152u, 0.26739999999999997}, {154u, 0.2274}};
-    map<unsigned int, double> samarium_mass = {{144u, 143.911999000000009}, {147u, 146.9148979}, {148u, 147.914822700000002}, {149u, 148.917184700000007}, {150u, 149.917275499999988}, {152u, 151.919732399999987}, {154u, 153.92220929999999}};
-    buildElement_("Samarium", "Sm", 62u, samarium_abundance, samarium_mass);
   }
 
   void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -560,8 +562,7 @@ namespace OpenMS
   void ElementDB::clear_()
   {
     // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
-    map<string, const Element*>::iterator it = names_.begin();
-    for (; it != names_.end(); ++it)
+    for (auto it = names_.begin(); it != names_.end(); ++it)
     {
       delete it->second;
     }

@@ -160,7 +160,10 @@ namespace OpenMS
         for (Size offset = 0; offset <= missed_cleavages_; ++offset)
         {
           Size end_it = start_it + offset + 1;
-          if (end_it >= fragment_pos.size()) break;
+          if (end_it >= fragment_pos.size())
+          {
+            break;
+          }
           Size end_pos = fragment_pos[end_it];
 
           Size length = end_pos - start_pos;

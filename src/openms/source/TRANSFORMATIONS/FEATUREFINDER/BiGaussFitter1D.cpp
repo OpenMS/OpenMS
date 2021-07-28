@@ -61,8 +61,9 @@ namespace OpenMS
   BiGaussFitter1D& BiGaussFitter1D::operator=(const BiGaussFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);    
     updateMembers_();
 
@@ -77,9 +78,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -104,8 +109,9 @@ namespace OpenMS
     QualityType quality;
     quality = fitOffset_(model, set, stdev1, stdev2, interpolation_step_);
     if (std::isnan(quality))
+    {
       quality = -1.0;
-
+    }
     return quality;
   }
 

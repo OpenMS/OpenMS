@@ -73,11 +73,15 @@ namespace OpenMS
     // can't use std::tie here as we might prefer sorting by string instead of pointer address
 
     // compare 5' mod
-    if (five_prime_ != rhs.five_prime_) return (five_prime_ < rhs.five_prime_);
-
+    if (five_prime_ != rhs.five_prime_)
+    {
+      return (five_prime_ < rhs.five_prime_);
+    }
     // compare sequence length
-    if (seq_.size() != rhs.seq_.size()) return (seq_.size() < rhs.seq_.size());
-
+    if (seq_.size() != rhs.seq_.size())
+    {
+      return (seq_.size() < rhs.seq_.size());
+    }
     // compare pointers. If different, we compare the more expensive code (string)
     for (size_t i = 0; i != seq_.size(); ++i)
     {
@@ -396,7 +400,10 @@ namespace OpenMS
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
     String::ConstIterator mod_start(str_it);
     String::ConstIterator mod_end(++mod_start);
-    while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end; // advance to closing bracket
+    while ((mod_end != str.end()) && (*mod_end != ']'))
+    {
+      ++mod_end; // advance to closing bracket
+    }
     string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
