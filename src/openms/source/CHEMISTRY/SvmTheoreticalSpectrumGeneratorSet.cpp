@@ -91,8 +91,10 @@ namespace OpenMS
     TextFile file(filename);
     TextFile::ConstIterator it = file.begin();
 
-    if (it == file.end()) return; // no data to load
-
+    if (it == file.end())
+    {
+      return; // no data to load
+    }
     // skip header line
     ++it;
     // process content
@@ -118,8 +120,7 @@ namespace OpenMS
   void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size>& charges)
   {
     charges.clear();
-    std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it;
-    for (it = simulators_.begin(); it != simulators_.end(); ++it)
+    for (std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it = simulators_.begin(); it != simulators_.end(); ++it)
     {
       charges.insert(it->first);
     }
