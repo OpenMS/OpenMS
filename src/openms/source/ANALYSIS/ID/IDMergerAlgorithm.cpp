@@ -41,7 +41,7 @@ namespace OpenMS
 {
 
 
-  //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modpeptide
+  //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
   IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
@@ -186,7 +186,7 @@ namespace OpenMS
   {
     //TODO if we allow run IDs, we should do a remove_if,
     // then use the iterator to update and move
-    // the IDs, then erase them so we dont encounter them in
+    // the IDs, then erase them so we do not encounter them in
     // subsequent calls of this function
     for (auto &pid : pepIDs)
     {

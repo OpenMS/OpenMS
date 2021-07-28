@@ -161,7 +161,7 @@ namespace OpenMS
   {
     // TODO model this using one calculation for both ions
 
-    double q(0);     // Zustandsumme = state sum
+    double q(0);     // partition function = state sum
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
@@ -171,7 +171,7 @@ namespace OpenMS
 
     // we calculate the distribution of only the last proton, all other protons are already distributed
 
-    // so, first calculate the Zustandssumme Q of the N-term ion
+    // so, first calculate the partition function Q of the N-term ion
     for (Size i = 0; i != cleavage_site; ++i)
     {
       // backbone energy
@@ -213,7 +213,7 @@ namespace OpenMS
 
     //cerr << "Q-N-term=" <<    q << endl;
 
-    // add the parts of the C-term ion to the Zustandssumme
+    // add the parts of the C-term ion to the partition function
     for (Size i = cleavage_site; i != peptide.size(); ++i)
     {
       // backbone energy
@@ -520,7 +520,7 @@ namespace OpenMS
                                                                     Size cleavage_site,
                                                                     bool use_most_basic_site)
   {
-    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // Zustandsumme
+    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // partition function
     Size most_basic_site(0);
     bool most_basic_site_sc(false);
 
@@ -1197,7 +1197,7 @@ namespace OpenMS
   void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence & peptide, Residue::ResidueType res_type)
   {
     // single charged
-    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
+    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // partition function
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");

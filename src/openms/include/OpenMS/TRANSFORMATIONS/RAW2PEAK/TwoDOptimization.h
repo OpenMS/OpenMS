@@ -740,9 +740,7 @@ protected:
     d.picked_peaks = ms_exp;
     d.raw_data_first =  first;
 
-    //std::cout << "richtig hier" << std::endl;
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
-
 
     ParamValue pv = param_.getValue("penalties:position");
     if (pv.isEmpty() || pv.toString() == "")
@@ -1045,7 +1043,6 @@ protected:
       d.signal2D.push_back(right);
     }
 #ifdef DEBUG2D
-    //std::cout << "fertig"<< std::endl;
     std::cout << first_peak_mz << "\t" << last_peak_mz << std::endl;
 #endif
   }

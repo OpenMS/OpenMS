@@ -128,7 +128,7 @@ namespace OpenMS
     };
 
 
-    /// @brief Struct with some static methods to get infos on the build configuration
+    /// @brief Struct with some static methods to get informations on the build configuration
     struct OpenMSBuildInfo
     {
 
