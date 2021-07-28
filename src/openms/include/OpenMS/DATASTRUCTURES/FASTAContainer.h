@@ -127,7 +127,7 @@ public:
     return !data_fg_.empty();
   }
 
-  /** @brief Prefetch a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
+  /** @brief Prefetch a new cache in the background, with up to @p suggested_size entries (or fewer upon reaching end-of-file)
 
      Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
      @param suggested_size Number of FASTA entries to read from disk
@@ -338,7 +338,7 @@ private:
 };
 
 /**
-  @brief Helper class for calculcations on decoy proteins
+  @brief Helper class for calculations on decoy proteins
 */
 class DecoyHelper
 {
