@@ -116,7 +116,7 @@ namespace OpenMS
     while (qp_->state() == QProcess::Running)
     {
       QCoreApplication::processEvents();
-      if (qp_->waitForReadyRead(50)) // wait 50msecs. Small enough to have the GUI repaint when switching windows
+      if (qp_->waitForReadyRead(50)) // wait 50 ms. Small enough to have the GUI repaint when switching windows
       {
         processStdOut_();
         processStdErr_();

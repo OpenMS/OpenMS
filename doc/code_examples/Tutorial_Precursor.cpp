@@ -74,7 +74,7 @@ int main(int argc, const char** argv)
     double precursor_rt = precursor_spectrum->getRT();
   
     // output precursor information
-    std::cout << " precusor m/z: " << precursor_mz
+    std::cout << " precursor m/z: " << precursor_mz
               << " intensity: " << precursor_int
               << " retention time (sec.): " << precursor_rt 
               << std::endl;

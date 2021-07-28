@@ -500,7 +500,7 @@ namespace OpenMS
       for (Size i = 0; i < data_to_decode_.size(); ++i)
       {
         //remove whitespaces from binary data
-        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+        //this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
         data_to_decode_[i].removeWhitespaces();
 
         if (precisions_[i] == "64")         // precision 64 Bit

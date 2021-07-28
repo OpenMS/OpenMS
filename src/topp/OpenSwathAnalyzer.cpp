@@ -178,7 +178,7 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     String trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;

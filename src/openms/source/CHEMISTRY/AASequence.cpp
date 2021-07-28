@@ -587,7 +587,7 @@ namespace OpenMS
       // charge directed*/
 /*
   static const EmpiricalFormula R_44("NH2CHNH");
-  static const EmpiricalFormula R_59("CN3H5"); // guanidium
+  static const EmpiricalFormula R_59("CN3H5"); // guanidine
   static const EmpiricalFormula R_61("N2H4CH");
   // charge remote
   static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O

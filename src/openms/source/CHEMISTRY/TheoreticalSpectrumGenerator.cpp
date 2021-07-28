@@ -576,7 +576,7 @@ namespace OpenMS
     std::set<EmpiricalFormula> fx_losses;
     std::map<EmpiricalFormula, String> formula_str_cache;
 
-    // precompute formula_str_cache
+    // pre-compute formula_str_cache
     if (add_losses_)
     {
       for (auto& p : peptide)

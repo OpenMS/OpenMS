@@ -700,7 +700,7 @@ namespace OpenMS
       {
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
-        // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
+        // Since the .getVendor() is usually empty, we infer this via the Aquisition Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
         if (options_.getForceMQCompatability() || 
             (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
@@ -1042,7 +1042,7 @@ namespace OpenMS
         }
 
         // Note: Some parsers require the following line breaks (MaxQuants
-        // mzXML reader will fail otherwise! -- dont ask..) while others cannot
+        // mzXML reader will fail otherwise! -- don't ask..) while others cannot
         // deal with them (mostly TPP tools such as SpectraST).
         String s_peaks;
         if (options_.getForceMQCompatability())
@@ -1161,7 +1161,7 @@ namespace OpenMS
       }
 
       //remove whitespaces from binary data
-      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+      //this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
       spectrum_data.char_rest_.removeWhitespaces();
 
       if (spectrum_data.precision_ == "64")

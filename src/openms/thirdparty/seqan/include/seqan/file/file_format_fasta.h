@@ -87,7 +87,7 @@ goBegin(Iter<TFile, FileReader<Fasta, TFile2, TSpec> > & it, bool skip_meta)
 		_streamSkipLine(host(it), it.data_char);
 	}
 
-	//eliminate linebreaks
+	//eliminate line breaks
 	while ((it.data_char == '\n') || (it.data_char == '\r'))
 	{
 		if (_streamEOF(host(it)))
@@ -139,7 +139,7 @@ goNext(Iter<TFile, FileReader<Fasta, TFile2, TSpec> > & it)
 	}
 
 	if ((it.data_char == '\n') || (it.data_char == '\r'))
-	{//linebreak detected: find begin of next line
+	{//line break detected: find begin of next line
 		do
 		{
 			it.data_char = _streamGet(host(it));

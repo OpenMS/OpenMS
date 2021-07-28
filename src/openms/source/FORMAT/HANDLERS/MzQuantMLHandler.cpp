@@ -81,7 +81,7 @@ namespace OpenMS
         to_ignore.insert("StudyVariable"); // .
         to_ignore.insert("Assay_refs"); // .
 
-        to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices rows
+        to_ignore.insert("FeatureList"); // we only need to see the features and data matrices rows
         to_ignore.insert("AssayList"); // we only need to see the assays
         to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
         to_ignore.insert("SoftwareList"); // we only need to see the Softwares
@@ -172,7 +172,7 @@ namespace OpenMS
         ExperimentalSettings es;
         es.setLoadedFilePath(attributeAsString_(attributes, "location"));
         current_files_[current_id_].push_back(es);
-        //here would be the place to start looking for additional experimentalsettings readin
+        //here would be the place to start looking for additional experimental settings reading
       }
       else if (tag_ == "Assay")
       {
@@ -184,7 +184,7 @@ namespace OpenMS
         }
         current_id_ = attributeAsString_(attributes, "rawFilesGroup_ref");
         current_assay_.raw_files_ = current_files_[current_id_];
-        //TODO CVhandling
+        //TODO CV handling
       }
       else if (tag_ == "Modification")
       {
@@ -198,7 +198,7 @@ namespace OpenMS
           {
             current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
           }
-          //TODO CVhandling
+          //TODO CV handling
         }
         else
         {
@@ -497,7 +497,7 @@ namespace OpenMS
           }
           cm.push_back(cf_cf_obj_[it->second]);
         }
-        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
+        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after data matrix f_cf_ids_ get cleared so we know here.
         {
           msq_->addConsensusMap(cm);
         }
@@ -895,7 +895,7 @@ namespace OpenMS
       // ---Ratios tag---
 
       String glob_rfgr;
-      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its rawfilegroup
+      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its raw file group
       String assay_xml("\t<AssayList id=\"assaylist1\">\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
       std::map<String, String> files;
       for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)

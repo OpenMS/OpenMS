@@ -613,7 +613,7 @@ namespace OpenMS
       // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
       // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
       // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
-      // (the other approach is to precompute m/z values for all combinations of adducts, charges and DB entries -- too much)
+      // (the other approach is to pre-compute m/z values for all combinations of adducts, charges and DB entries -- too much)
       double diff_mz;
       // check if mass error window is given in ppm or Da
       if (mass_error_unit_ == "ppm")

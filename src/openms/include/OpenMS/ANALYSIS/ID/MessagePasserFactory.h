@@ -60,7 +60,7 @@ namespace OpenMS
     std::map<int, double> chgLLhoods = {{1, 0.7}, {2, 0.9}, {3, 0.7}, {4, 0.5}, {5, 0.5}};
 
     /// to fill the noisy-OR table for a peptide given parent proteins
-    /// TODO precompute for like a hundred parent proteins
+    /// TODO pre-compute for like a hundred parent proteins
     /// TODO introduce special case for alpha or beta = 1. The log formula does not work otherwise.
     inline double notConditionalGivenSum(unsigned long summ) {
       // use log for better precision

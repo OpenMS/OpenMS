@@ -249,7 +249,7 @@ namespace OpenMS
         {
             {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh"}},
             //TODO find out reasonable raw scores for SES that provide evalues as main score or see below
-            //TODO there is no test for spectraST idXML, so I dont know its score
+            //TODO there is no test for spectraST idXML, so I don't know its score
             //TODO check if we should combine RAW and RAW_EVAL:
             // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
             // then you need additional ifs/trys

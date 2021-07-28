@@ -220,7 +220,7 @@ namespace OpenMS
       best_score = max(best_score, matrix.getValue(i, matrix.cols() - 1));
     }
 
-    //calculate selfalignment-scores for both input spectra
+    //calculate self-alignment scores for both input spectra
     double score_spec1(0), score_spec2(0);
     for (Size i = 0; i < spec1.size(); ++i)
     {
@@ -423,7 +423,7 @@ namespace OpenMS
 
   double PeakAlignment::peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const
   {
-    //scoring formula : peakintensity score * peakposition score
+    //scoring formula : peak intensity score * peak position score
     double pi(sqrt(intens1 * intens2));
     double pp((1 / (sigma * sqrt(2 * Constants::PI))) * exp(-(fabs(pos1 - pos2)) / 2 * sigma * sigma));
 

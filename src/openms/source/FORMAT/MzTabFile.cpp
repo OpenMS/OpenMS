@@ -1548,7 +1548,7 @@ namespace OpenMS
     }
   }
 
-  // TODO: check mandatoryness
+  // TODO: check mandatoriness
   //hasMandatoryMetaDataKeys_(mandatory_meta_values, sections_present, mz_tab_metadata);
 
   mz_tab.setMetaData(mz_tab_metadata);
@@ -2185,7 +2185,7 @@ namespace OpenMS
 
   // Study variables
   // go over all study variables that should be present and fill with either values
-  // or uninitialized MzTabDoubles()
+  // or uninitialized MzTabDouble()
   for (const auto& kv : meta.study_variable)
   {
     const auto& k = kv.first;

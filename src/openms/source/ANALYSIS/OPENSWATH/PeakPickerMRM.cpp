@@ -264,23 +264,6 @@ namespace OpenMS
       picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(it->peak_area);
       picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[it->start_rt_idx].getRT());
       picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[it->stop_rt_idx].getRT());
-      /*
-      int peak_rt_idx, start_rt_idx, stop_rt_idx, max_rt_idx;
-      int mz_idx;
-      int len;
-      float fwhm;
-      bool fwhm_calculated_ok;
-      float bg_area;
-      float raw_area; // total area under the curve, including background
-      float peak_area;
-      float bgslope;
-      ///cutoff level for extending past the peak
-
-      ///maximum height, calculated above background
-      float peak_height;
-      float raw_height;
-
-      */
 
       OPENMS_LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
                 << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") "

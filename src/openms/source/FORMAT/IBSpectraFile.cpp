@@ -120,7 +120,7 @@ namespace OpenMS
                                         "Given ConsensusMap does not hold any isobaric quantification data.");
     }
 
-    // we take the mapcount as approximation
+    // we take the map count as approximation
     if (cm.getColumnHeaders().size() == 4)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);

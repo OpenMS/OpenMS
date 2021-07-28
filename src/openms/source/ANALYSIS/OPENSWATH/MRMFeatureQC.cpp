@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskeyt $
+// $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>

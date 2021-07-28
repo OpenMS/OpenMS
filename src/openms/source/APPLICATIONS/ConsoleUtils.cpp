@@ -204,7 +204,7 @@ namespace OpenMS
       result.push_back((String(indentation, ' ') + String("..."))); //.fillRight(' ',(UInt) line_len));
       result.push_back(last);
     }
-    // remove last " " from last line to prevent automatic linebreak
+    // remove last " " from last line to prevent automatic line break
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
     return ListUtils::concatenate(result, "\n");
   }

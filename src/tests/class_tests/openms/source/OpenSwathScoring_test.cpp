@@ -39,7 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 ///////////////////////////
 
-// we dont want any inclusion of OpenMS Kernel classes here ...
+// we don't want any inclusion of OpenMS Kernel classes here ...
 #ifdef OPENMS_KERNEL_MSSPECTRUM_H
 ThisShouldFailAtCompileTime = 0
 #endif

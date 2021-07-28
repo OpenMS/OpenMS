@@ -1319,7 +1319,7 @@ namespace OpenMS
     // clear textbox
     widget_1D->canvas()->setTextBox(QString());
 
-    // remove precusor labels, theoretical spectra and trigger repaint
+    // remove precursor labels, theoretical spectra and trigger repaint
     LayerData& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     removeTemporaryAnnotations_(cl.getCurrentSpectrumIndex());
     removeTheoreticalSpectrumLayer_();

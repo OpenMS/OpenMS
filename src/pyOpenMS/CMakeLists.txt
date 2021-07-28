@@ -557,7 +557,7 @@ ENDIF()
 ###########################################################################
 
 # Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we dont see which tests
+# => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests

@@ -3443,7 +3443,7 @@ state0:
 
     // create column names from meta values
     for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referencable via spectra_ref
+    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 

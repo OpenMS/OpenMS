@@ -127,7 +127,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
