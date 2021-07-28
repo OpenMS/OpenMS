@@ -215,7 +215,10 @@ namespace OpenMS
     if ((spec_n && spec_c) || // full spec
           ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
     {
-      if (ignore_missed_cleavages) return true;
+      if (ignore_missed_cleavages)
+      {
+        return true;
+      }
       return countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_;
     }
 
@@ -227,7 +230,10 @@ namespace OpenMS
     Size count(0);
     for (int pos : cleavage_positions)
     { // count MCs within fragment borders
-      if (((int)seq_start < pos) && (pos < (int)seq_end)) ++count;
+      if (((int)seq_start < pos) && (pos < (int)seq_end))
+      {
+        ++count;
+      }
     }
     return count;
   }
@@ -265,8 +271,10 @@ namespace OpenMS
     {
       output.emplace_back(fragment_positions[count - 1], l);
     }
-    else ++wrong_size;
-
+    else
+    {
+      ++wrong_size;
+    }
     // generate fragments with missed cleavages
     for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
     {
@@ -344,7 +352,10 @@ namespace OpenMS
       {
         output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
       }
-      else ++wrong_size;
+      else
+      {
+        ++wrong_size;
+      }
     }
     return wrong_size;
   }

@@ -94,7 +94,7 @@ namespace OpenMS
       double total_occurrence = double(mta.size())/double(in_files_size);
       if (!(total_occurrence >= total_occurrence_filter))
       {
-        mta.clear(); // return emtpy vector
+        mta.clear(); // return empty vector
       }
     }
   }
@@ -286,7 +286,7 @@ namespace OpenMS
                                                 1,
                                                 BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-        // calculation of contrast angle (cosine simiarity)
+        // calculation of contrast angle (cosine similarity)
         for (auto index_it = index.begin(); index_it != index.end(); ++index_it)
         {
           const MSSpectrum &spectrum = spectra[*index_it];

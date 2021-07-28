@@ -158,13 +158,19 @@ namespace OpenMS
     // existing file? Qt won't overwrite, so try to remove it:
     if (overwrite_existing && exists(to) && !remove(to))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      }
       return false;
     }
     // move the file to the actual destination:
     if (!QFile::rename(from.toQString(), to.toQString()))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      }
       return false;
     }
     return true;
@@ -364,8 +370,10 @@ namespace OpenMS
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-
+    if (filename_new.trim().empty())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
 

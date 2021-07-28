@@ -114,7 +114,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief constructor of iterator
         * 
-        * @param scaling    The step width can be scaled by this factor. Often it is adventageous to iterate
+        * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
         Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);

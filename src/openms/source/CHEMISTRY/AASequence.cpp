@@ -320,8 +320,10 @@ namespace OpenMS
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
       {
         double nominal_mass = mod.getDiffMonoMass();
-        if (!mass_delta) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
-
+        if (!mass_delta)
+        {
+          nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
+        }
         String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
@@ -423,7 +425,10 @@ namespace OpenMS
         // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
         // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
         // standard internal residue including named modifications
-        if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get EF of sequence with unknown AA 'X'.", toString());
+        if (e == rx)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get EF of sequence with unknown AA 'X'.", toString());
+        }
         ef += e->getFormula(Residue::Internal);
       }
  
@@ -431,35 +436,45 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
+        {
           return ef + Residue::getInternalToFull();
-
+        }
         case Residue::Internal:
+        {
           return ef;
-
+        }
         case Residue::NTerminal:
+        {
           return ef + Residue::getInternalToNTerm();
-
+        }
         case Residue::CTerminal:
+        {
           return ef + Residue::getInternalToCTerm();
-
+        }
         case Residue::AIon:
+        {
           return ef + Residue::getInternalToAIon();
-
+        }
         case Residue::BIon:
+        {
           return ef + Residue::getInternalToBIon();
-
+        }
         case Residue::CIon:
+        {
           return ef + Residue::getInternalToCIon();
-
+        }
         case Residue::XIon:
+        {
           return ef + Residue::getInternalToXIon();
-
+        }
         case Residue::YIon:
+        {
           return ef + Residue::getInternalToYIon();
-
+        }
         case Residue::ZIon:
+        {
           return ef + Residue::getInternalToZIon();
-
+        }
         default:
           OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
       }
@@ -495,7 +510,10 @@ namespace OpenMS
 
   double AASequence::getMZ(Int charge, Residue::ResidueType type) const
   {
-    if (charge == 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can't calculate mass-to-charge ratio for charge=0.", toString());
+    if (charge == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can't calculate mass-to-charge ratio for charge=0.", toString());
+    }
     return getMonoWeight(type, charge) / charge;
   }
 
@@ -527,7 +545,10 @@ namespace OpenMS
         // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
         // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
         // standard internal residue including named modifications
-        if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
+        if (e == rx)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
+        }
         // single, unknown residue should represent.
         mono_weight += e->getMonoWeight(Residue::Internal);
       }
@@ -536,35 +557,45 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
+        {
           return mono_weight + Residue::getInternalToFull().getMonoWeight();
-
+        }
         case Residue::Internal:
+        {
           return mono_weight;
-
+        }
         case Residue::NTerminal:
+        {
           return mono_weight + Residue::getInternalToNTerm().getMonoWeight();
-
+        }
         case Residue::CTerminal:
+        {
           return mono_weight + Residue::getInternalToCTerm().getMonoWeight();
-
+        }
         case Residue::AIon:
+        {
           return mono_weight + Residue::getInternalToAIon().getMonoWeight();
-
+        }
         case Residue::BIon:
+        {
           return mono_weight + Residue::getInternalToBIon().getMonoWeight();
-
+        }
         case Residue::CIon:
+        {
           return mono_weight + Residue::getInternalToCIon().getMonoWeight();
-
+        }
         case Residue::XIon:
+        {
           return mono_weight + Residue::getInternalToXIon().getMonoWeight();
-
+        }
         case Residue::YIon:
+        {
           return mono_weight + Residue::getInternalToYIon().getMonoWeight();
-
+        }
         case Residue::ZIon:
+        {
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
-
+        }
         default:
           OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
       }
@@ -730,9 +761,13 @@ namespace OpenMS
 
     AASequence seq;
     if (index == 0)
+    {
       seq.n_term_mod_ = n_term_mod_;
+    }
     if (index + num == this->size())
+    {
       seq.c_term_mod_ = c_term_mod_;
+    }
     seq.peptide_.reserve(num);
     seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + index, peptide_.begin() + index + num);
 
@@ -794,10 +829,13 @@ namespace OpenMS
       return false;
     }
     if (sequence.n_term_mod_ != n_term_mod_)
+    {
       return false;
-
+    }
     if (sequence.size() == peptide_.size() && sequence.c_term_mod_ != c_term_mod_)
+    {
       return false;
+    }
 
     for (Size i = 0; i != sequence.size(); ++i)
     {
@@ -820,10 +858,13 @@ namespace OpenMS
       return false;
     }
     if (sequence.c_term_mod_ != c_term_mod_)
+    {
       return false;
-
+    }
     if (sequence.size() == peptide_.size() && sequence.n_term_mod_ != n_term_mod_)
+    {
       return false;
+    }
 
     for (Size i = 0; i != sequence.size(); ++i)
     {
@@ -1285,9 +1326,10 @@ namespace OpenMS
     {
       peptide.erase(0,1);
     }
-
-    if (peptide.empty()) return;
-
+    if (peptide.empty())
+    {
+      return;
+    }
     if (peptide.back() == 'c') 
     {
       peptide.pop_back();

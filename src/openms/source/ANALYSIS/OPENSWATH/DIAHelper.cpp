@@ -263,7 +263,7 @@ namespace OpenMS
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compat.
+      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;

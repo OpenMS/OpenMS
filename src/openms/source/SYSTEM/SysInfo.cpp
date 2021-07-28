@@ -215,7 +215,10 @@ namespace OpenMS
   String SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
   {
     String s;
-    if (mem_after < mem_before) s += String("-");
+    if (mem_after < mem_before)
+    {
+      s += String("-");
+    }
     s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }

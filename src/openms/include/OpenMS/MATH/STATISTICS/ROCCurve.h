@@ -104,7 +104,7 @@ private:
       /// sorts data and caches if sorted
       inline void sort();
 
-      /// counts global pos and negs
+      /// counts global pos and neg
       inline void count();
 
       /// calculates area with trapezoidal rule

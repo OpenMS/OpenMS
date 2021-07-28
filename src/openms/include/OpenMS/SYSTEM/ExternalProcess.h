@@ -56,7 +56,7 @@ namespace OpenMS
     Running an external program blocks the caller, so do not use this in a main GUI thread
     (unless you have some other means to tell the user that no interaction is possible at the moment).
 
-    @Note If you want QMessageboxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
+    @Note If you want QMessageBoxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
 
   */
   class OPENMS_DLLAPI ExternalProcess

@@ -415,7 +415,7 @@ namespace OpenMS
     */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
-    /// Calculate sequence coverages of parent molecules
+    /// Calculate sequence coverage of parent molecules
     void calculateCoverages(bool check_molecule_length = false);
 
     /*!

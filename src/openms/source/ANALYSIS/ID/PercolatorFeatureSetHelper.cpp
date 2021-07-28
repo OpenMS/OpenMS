@@ -81,9 +81,9 @@ namespace OpenMS
               double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
               hit->setMetaValue("MSGF:lnEValue", ln_eval);
               
-              double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
-              double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
-              double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
+              double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
+              double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
+              double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
               hit->setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
               hit->setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
               hit->setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
@@ -234,7 +234,7 @@ namespace OpenMS
     1. mass        Calculated monoisotopic mass of the identified peptide. Present as generic feature.
     2. charge      Precursor ion charge. Present as generic feature.
     3. mScore      Mascot score. Added in this function.
-    4. dScore      Mascot score minus Mascot score of next best nonisobaric peptide hit. Added in this function.
+    4. dScore      Mascot score minus Mascot score of next best non isobaric peptide hit. Added in this function.
     5. deltaM      Calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
     6. absDeltaM   Absolute value of calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
     7. isoDeltaM   Calculated minus observed peptide mass, isotope error corrected (in Dalton and ppm)
@@ -749,7 +749,7 @@ namespace OpenMS
     }
 
     
-    // Function adapted from MsgfplusReader in Percolator converter
+    // Function adapted from MSGFPlusReader in Percolator converter
     double PercolatorFeatureSetHelper::rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons)
     {
       // Rescale the fragment features to penalize features calculated by few ions

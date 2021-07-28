@@ -135,15 +135,13 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
+  // operator< compares pointers so this only works for same elements
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
 
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
-
-  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5D2"), true)
-  TEST_EQUAL(EmpiricalFormula("C5D2") < EmpiricalFormula("C5T2"), true)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator=(const EmpiricalFormula& rhs))
@@ -356,6 +354,9 @@ START_SECTION(double getMonoWeight() const)
                     e->getMonoWeight() * 2 - Constants::PROTON_MASS_U)
   TEST_REAL_SIMILAR(EmpiricalFormula("OH").getMonoWeight(), EmpiricalFormula("HO").getMonoWeight());
   TEST_REAL_SIMILAR(EmpiricalFormula("").getMonoWeight(), 0.0)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2").getMonoWeight() < EmpiricalFormula("C5D2").getMonoWeight(), true)
+  TEST_EQUAL(EmpiricalFormula("C5D2").getMonoWeight() < EmpiricalFormula("C5T2").getMonoWeight(), true)
 END_SECTION
 
 START_SECTION(String toString() const)

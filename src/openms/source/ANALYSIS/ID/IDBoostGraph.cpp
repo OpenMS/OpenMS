@@ -1033,7 +1033,7 @@ namespace OpenMS
     {
       if (fg[*ui].which() == 2)
         // It should suffice to resolve at the pep cluster level
-        // if a pep does not belong to a cluster it didnt have multiple parents and
+        // if a pep does not belong to a cluster it did not have multiple parents and
         // therefore does not need to be resolved
       {
         accs_to_remove.clear();
@@ -1139,7 +1139,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1325,7 +1325,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1589,7 +1589,7 @@ namespace OpenMS
           {
             if (fg[*ui].which() == 2)
               // It should suffice to resolve at the pep cluster level
-              // if a pep does not belong to a cluster it didnt have multiple parents and
+              // if a pep does not belong to a cluster it did not have multiple parents and
               // therefore does not need to be resolved
             {
               vector<vertex_t> prots;
@@ -1676,7 +1676,9 @@ namespace OpenMS
   {
     /// Hashers for the strong typedefs
     //TODO switch everything to pointers so we compare memory addresses
-    // then we don't need those. They are just here to fulfill the "interface".
+
+    // then we do not need those. They are just here to fulfill the "interface".
+
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;

@@ -320,7 +320,7 @@ using namespace OpenMS;
 
       for (PeptideHit& ph : pep_hits)
       {
-        // Set the minScore and MaxScore attribute depending on the input data
+        // Set the minScore and maxScore attribute depending on the input data
         const double score = ph.getScore();
 
         // Set score boundaries

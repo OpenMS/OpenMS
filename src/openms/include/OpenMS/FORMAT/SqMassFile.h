@@ -90,7 +90,7 @@ public:
     /**
      @brief Store an MSExperiment in sqMass format
 
-     If you want a specific RUND::ID in the sqMass file,
+     If you want a specific RUN::ID in the sqMass file,
      make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
     */
     void store(const String& filename, MapType& map);
