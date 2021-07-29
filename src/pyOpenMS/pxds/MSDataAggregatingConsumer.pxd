@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataAggregatingConsumer.h>" namesp
 
         MSDataAggregatingConsumer(MSDataAggregatingConsumer) nogil except + #wrap-ignore
 
-        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeSpectrum(MSSpectrum & s) nogil except +# TODO(whole file)
         void consumeChromatogram(MSChromatogram & ) nogil except +
 
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
