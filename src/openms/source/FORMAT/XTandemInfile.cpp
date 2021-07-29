@@ -268,7 +268,7 @@ namespace OpenMS
       writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
-      //writeNote_(os, "spectrum, use noise suppression", noise_supression_);
+      //writeNote_(os, "spectrum, use noise suppression", noise_suppression_);
 
       //<note type="input" label="spectrum, minimum parent m+h">500.0</note>
       //writeNote_(os, "spectrum, minimum parent m+h", String(precursor_lower_mz_));
@@ -402,7 +402,7 @@ namespace OpenMS
       //<note type="input" label="refine, tic percent">20</note>
       //writeNote_(os, "refine, tic percent", String(refine_tic_percent_));
       //<note type="input" label="refine, spectrum synthesis">yes</note>
-      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_sythesis_);
+      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_synthesis_);
       //<note type="input" label="refine, maximum valid expectation value">0.1</note>
       //writeNote_(os, "refine, maximum valid expectation value", String(refine_max_valid_evalue_));
       //<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>

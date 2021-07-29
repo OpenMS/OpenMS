@@ -178,7 +178,7 @@ namespace OpenMS
     our_form += (phosphate_form - internal_to_full) * (seq_.size() - 1);
     EmpiricalFormula local_three_prime, local_five_prime;
 
-    // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing nullptrs
+    // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing null ptrs
     if (three_prime_ != nullptr)
     {
       local_three_prime = three_prime_->getFormula() - H_form;

@@ -64,7 +64,7 @@ namespace OpenMS
 
       // residues do NOT match if the modification is user-defined and has origin
       // X (which here means an actual input AA X and it does *not* mean "match
-      // all AA") while the current residue is not X. Make sure we dont match things like
+      // all AA") while the current residue is not X. Make sure we don't match things like
       // PEPN[400] and PEPX[400] since these have very different masses.
       bool non_matching_user_defined = (
            curr_mod->isUserDefined() &&

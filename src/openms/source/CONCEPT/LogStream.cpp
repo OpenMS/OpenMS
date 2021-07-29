@@ -233,7 +233,7 @@ namespace OpenMS
 
     int LogStreamBuf::syncLF_()
     {
-      // sync our streambuffer...
+      // sync our stream buffer...
       if (pptr() != pbase())
       {
         // check if we have attached streams, so we don't waste time to
@@ -442,7 +442,7 @@ namespace OpenMS
     {
       if (delete_buffer_)
       {
-        // delete the streambuffer
+        // delete the stream buffer
         delete rdbuf();
         // set it to 0
         std::ios(nullptr);

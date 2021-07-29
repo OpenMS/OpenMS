@@ -70,7 +70,7 @@ namespace OpenMS
   {
     if (scale_ == 0)
     {
-      //unapplicable scaling
+      //inapplicable scaling
       throw Exception::DivisionByZero(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     return 1 - (sqrtf((a.first - b.first) * (a.first - b.first) + (a.second - b.second) * (a.second - b.second)) / scale_);

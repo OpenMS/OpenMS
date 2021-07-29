@@ -233,7 +233,7 @@ QTCluster::BulkData qtc_data2(&gf, 2, 11.1, 7, 9, 3);
 
 START_SECTION((double getQuality()))
 {
-  // cluster is invalid, we shouldnt use it any more -> create a new one
+  // cluster is invalid, we shouldn't use it any more -> create a new one
   TEST_EQUAL(cluster.isInvalid(), true);
 
   cluster = QTCluster(&qtc_data2, true);

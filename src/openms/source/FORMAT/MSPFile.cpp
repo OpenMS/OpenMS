@@ -391,7 +391,7 @@ namespace OpenMS
           if (pit->isModified() && pit->getOneLetterCode() == "M" &&
               fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
-            peptide += "M(O)"; // TODO why are we writing specifically only Oxidations?
+            peptide += "M(O)"; // TODO why are we writing specifically only oxidations?
           }
           else
           {

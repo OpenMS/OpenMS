@@ -216,7 +216,7 @@ public:
         @param trim_lines Whether or not the lines are trimmed when reading them from file.
         @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-        @note this function uses unix-style linebreaks
+        @note this function uses unix-style line breaks
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
 

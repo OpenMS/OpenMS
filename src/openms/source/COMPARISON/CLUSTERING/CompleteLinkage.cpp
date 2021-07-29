@@ -76,7 +76,7 @@ namespace OpenMS
   void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // attention: clustering process is done by clustering the indices
-    // pointing to elements in inputvector and distances in inputmatrix
+    // pointing to elements in input vector and distances in input matrix
 
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)

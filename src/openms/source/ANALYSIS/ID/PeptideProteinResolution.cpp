@@ -98,6 +98,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
 
     // I do not think we need to assume sortedness here
+
     //if (!skip_sort) sort(groups.begin(), groups.end());
 
     std::unordered_set<std::string> decoy_accs;

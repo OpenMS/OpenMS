@@ -863,7 +863,7 @@ namespace OpenMS
             protein_name = line.substr(pos, protein_name_length_);
             protein_name.substitute('>', '}');
             // cppcheck produces a false positive warning here -> ignore
-            // cppcheck-suppress redundantCopy
+            // cppcheck-suppress redundant copy
             memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
             record_flags |= ac_flag; // set the ac flag

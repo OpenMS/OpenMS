@@ -55,7 +55,7 @@ MSDataAggregatingConsumer* agg_consumer_ptr = nullptr;
 MSDataAggregatingConsumer* agg_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataAggregatingConsumer()))
-  agg_consumer_ptr = new MSDataAggregatingConsumer(agg_consumer_nullPointer); // dont do that ...
+  agg_consumer_ptr = new MSDataAggregatingConsumer(agg_consumer_nullPointer); // don't do that ...
   TEST_NOT_EQUAL(agg_consumer_ptr, agg_consumer_nullPointer)
 END_SECTION
 

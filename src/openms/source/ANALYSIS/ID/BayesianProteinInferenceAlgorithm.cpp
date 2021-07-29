@@ -126,6 +126,7 @@ namespace OpenMS
             boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
             in.clear();
+
             //out.clear(); // we do not need out edges currently
 
             for (; nbIt != nbIt_end; ++nbIt)
@@ -387,6 +388,7 @@ namespace OpenMS
             boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
             in.clear();
+
             //out.clear(); // we do not need out edges currently
 
             for (; nbIt != nbIt_end; ++nbIt)

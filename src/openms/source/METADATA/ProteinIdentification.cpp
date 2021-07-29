@@ -492,7 +492,7 @@ namespace OpenMS
     String se = getSearchEngine();
     return
         se == "Fido" || // FidoAdapter overwrites when it merges several runs
-        se == "BayesianProteinInference" || // for backwards compat
+        se == "BayesianProteinInference" || // for backwards compatibility
         se == "Epifany" ||
         (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
         se == "ProteinInference";

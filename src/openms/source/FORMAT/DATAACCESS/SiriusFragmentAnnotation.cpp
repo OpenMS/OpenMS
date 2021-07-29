@@ -309,7 +309,7 @@ namespace OpenMS
           Peak1D fragment_mz_int;
           StringList splitted_line;
           line.split("\t",splitted_line);     
-          // option to use the exact mass as peakMZ (e.g. for library preparation).
+          // option to use the exact mass as peak MZ (e.g. for library preparation).
           if (use_exact_mass)
           {
             fragment_mz_int.setMZ(splitted_line[3].toDouble());

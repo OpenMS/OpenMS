@@ -103,7 +103,7 @@ START_SECTION((static void applyFixedModifications(const ModifiedPeptideGenerato
   fixed_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   seq0 = AASequence::fromString("KAAAAAAAA"); // exactly one target site
-  seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambigous case: is mod Carbamyl (K) or (N-Term)?
+  seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambiguous case: is mod Carbamyl (K) or (N-Term)?
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, seq0);
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, seq1);
   TEST_EQUAL(seq0.toString(), ".(Carbamyl)KAAAAAAAA");

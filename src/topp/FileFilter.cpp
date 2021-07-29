@@ -973,7 +973,7 @@ protected:
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           map_sm.getUnassignedPeptideIdentifications().clear();
@@ -1035,7 +1035,7 @@ protected:
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           consensus_map_filtered.getUnassignedPeptideIdentifications().clear();

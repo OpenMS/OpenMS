@@ -170,7 +170,7 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifications
+    // append unassigned PeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());

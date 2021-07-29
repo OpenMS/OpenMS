@@ -94,7 +94,7 @@ namespace OpenMS
     static IMFormat determineIMFormat(const MSExperiment& exp);
 
     /** 
-        @brief Checks for existance of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
+        @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
         
         If neither is found, IMFormat::NONE is returned.
         If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.

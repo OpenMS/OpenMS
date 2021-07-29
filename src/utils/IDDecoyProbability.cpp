@@ -66,7 +66,7 @@ using namespace std;
 
     So far an estimation of the false score distribution with a gamma distribution
     and the correct score distribution with a gaussian distribution is performed.
-    The probabilities are calculated using bayes law, similar to PeptideProphet.
+    The probabilities are calculated using Bayes law, similar to PeptideProphet.
     This implementation is much simpler than that of PeptideProphet.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.

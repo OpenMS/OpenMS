@@ -347,7 +347,7 @@ public:
         }
 
 
-        // precompute random numbers:
+        // pre-compute random numbers:
         prec_rndbin.resize(abundance);
         {
           boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
@@ -374,7 +374,7 @@ public:
           // currently we might also loose some molecules here (which is ok?)
           // sample charge state from binomial
 
-          charge = prec_rndbin[j]; // get precomputed rnd
+          charge = prec_rndbin[j]; // get pre-computed rnd
 
           if (charge == 0)
           {

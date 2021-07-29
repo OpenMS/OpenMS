@@ -168,7 +168,7 @@ namespace OpenMS
     for (auto& bindata : data)
     {
       // remove whitespaces from binary data
-      // this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+      // this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
       if (!skipXMLCheck)
       {
         bindata.base64.removeWhitespaces();

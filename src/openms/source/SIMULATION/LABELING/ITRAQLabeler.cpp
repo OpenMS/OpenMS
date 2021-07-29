@@ -256,7 +256,7 @@ namespace OpenMS
         EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
 
         // apply isotope matrix to active channels
-        // row * channel_frequencyOld = observed iTRAQ intensities
+        // row * channel_frequency_old = observed iTRAQ intensities
         Eigen::MatrixXd itraq_intensity_observed = (*channel_frequency) * (*row);
         // add result to sum
         itraq_intensity_sum += itraq_intensity_observed;

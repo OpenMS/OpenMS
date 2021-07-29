@@ -198,7 +198,7 @@ namespace OpenMS
       // pattern?
       // Currently this is computed for an averagine model of a peptide so its
       // not optimal for metabolites - but better than nothing, given that for
-      // most fragments we dont really know their composition
+      // most fragments we don't really know their composition
       diascoring
           .dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
     }

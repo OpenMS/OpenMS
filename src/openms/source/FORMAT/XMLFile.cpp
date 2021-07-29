@@ -215,7 +215,7 @@ private:
       parser->setContentHandler(handler);
       parser->setErrorHandler(handler);
 
-      // TODO: handle non-plaintext
+      // TODO: handle non-plain text
       // peak ahead into the file: is it bzip2 or gzip compressed?
       // String bz = buffer.substr(0, 2);
 

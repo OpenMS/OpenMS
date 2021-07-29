@@ -180,7 +180,7 @@ namespace OpenMS
     // new consensus map
     ConsensusMap new_cm;
 
-    // initialize submaps in consensus map
+    // initialize sub maps in consensus map
     for (Map<UInt64, Size>::Iterator it = features_per_labeled_map.begin(); it != features_per_labeled_map.end(); ++it)
     {
       new_cm.getColumnHeaders()[it->first].size = it->second;

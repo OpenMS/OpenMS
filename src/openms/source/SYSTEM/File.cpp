@@ -198,7 +198,7 @@ namespace OpenMS
       target_dir.mkpath(to_dir);
     }
   
-    // copy folder recurively
+    // copy folder recursively
     QFileInfoList file_list = source_dir.entryInfoList();
     for (const QFileInfo& entry : file_list)   
     {

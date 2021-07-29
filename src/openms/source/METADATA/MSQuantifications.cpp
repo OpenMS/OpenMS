@@ -80,7 +80,7 @@ namespace OpenMS
   {
     std::vector<DataProcessing> list = data_processings_;
 
-    //This is one way street for dataprocessing - it probably wont get mapped back after writeout and readin
+    //This is one way street for dataprocessing - it probably wont get mapped back after write out and reading
     for (std::vector<FeatureMap >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
     {
       list.insert(list.end(), fit->getDataProcessing().begin(), fit->getDataProcessing().end());

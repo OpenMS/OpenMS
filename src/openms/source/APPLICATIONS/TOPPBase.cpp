@@ -1846,7 +1846,7 @@ namespace OpenMS
     else
       message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
 
-    // check file existance
+    // check file existence
     if (!File::exists(filename))
     {
       OPENMS_LOG_ERROR << message;

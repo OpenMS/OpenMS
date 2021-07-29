@@ -366,7 +366,7 @@ protected:
     String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
     String rscript_executable;
     if (!file_models_plot.empty() || !file_residuals_plot.empty())
-    { // only check for existance of Rscript if output files are requested...
+    { // only check for existence of Rscript if output files are requested...
       rscript_executable = getStringOption_("rscript_executable");
     }
 

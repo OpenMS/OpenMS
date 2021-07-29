@@ -322,7 +322,7 @@ protected:
       }
     }
 
-    // run crux percolator (currently we dont have much choice in the matter)
+    // run crux percolator (currently we don't have much choice in the matter)
     if (run_percolator)
     {
       String tool = "percolator";
@@ -379,7 +379,7 @@ protected:
     // fill search parameters
     ProteinIdentification::SearchParameters sp;
     sp.db = getStringOption_("database");
-    //sp.charges = getIntList_("charge"); //dont know. Seems like tide doesn't support ranges and usually searches all?
+    //sp.charges = getIntList_("charge"); //don't know. Seems like tide doesn't support ranges and usually searches all?
     //TODO input options do not follow our standard so we cant just copy here
     sp.fixed_modifications = {}; //getStringList_("fixed_modifications");
     sp.variable_modifications = {}; //getStringList_("variable_modifications");

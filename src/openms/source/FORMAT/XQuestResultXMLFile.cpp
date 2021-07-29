@@ -69,7 +69,7 @@ namespace OpenMS
    // this helper function bases the ranked lists of labeled XLMS searches on each light spectrum instead of pairs
    // the second parameter here should be the maximal number of hits per spectrum,
    // but using the total number of hits we will just keep everything contained in the file
-   // (just reassigned to single spectra and reranked by score)
+   // (just reassigned to single spectra and re-ranked by score)
    pep_ids = OPXLHelper::combineTopRanksFromPairs(pep_ids, this->n_hits_);
    OPXLHelper::removeBetaPeptideHits(pep_ids);
    OPXLHelper::computeDeltaScores(pep_ids);

@@ -1676,7 +1676,9 @@ namespace OpenMS
   {
     /// Hashers for the strong typedefs
     //TODO switch everything to pointers so we compare memory addresses
+
     // then we do not need those. They are just here to fulfill the "interface".
+
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;

@@ -38,7 +38,7 @@
 using std::vector;
 
 // TODO: change postRawHook to SimTypes::FeatureMapSim?
-// TODO: implement correct consensus in postRaw
+// TODO: implement correct consensus in post raw
 
 
 namespace OpenMS

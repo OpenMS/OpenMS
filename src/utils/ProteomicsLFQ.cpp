@@ -1426,7 +1426,7 @@ protected:
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
@@ -1435,7 +1435,7 @@ protected:
     {
       // This is needed because we throw out decoy proteins during FDR
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
 

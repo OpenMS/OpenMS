@@ -329,7 +329,7 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
     pcat.run(map_model, map_scene, transformation);
 
     // quite easy: we get the wrong results!
-    // TODO: dont let this happen, so easy to prevent!
+    // TODO: don't let this happen, so easy to prevent!
     TEST_STRING_EQUAL(transformation.getModelType(), "linear")
     parameters = transformation.getModelParameters();
     TEST_EQUAL(parameters.size(), 2)

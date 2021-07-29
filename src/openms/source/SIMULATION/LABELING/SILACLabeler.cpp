@@ -256,7 +256,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
 
-      // index of unlabeled channelunlabeled_feature
+      // index of unlabeled channel unlabeled_feature
       Map<String, Feature> unlabeled_features_index;
       for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
            unlabeled_features_iter != light_channel_features.end();

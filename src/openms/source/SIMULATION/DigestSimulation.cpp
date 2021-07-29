@@ -165,7 +165,7 @@ namespace OpenMS
       // we assume that each digestion product will have the same abundance
       // note: missed cleavages reduce overall abundance as they combine two (or more) single peptides
 
-      // how many "atomic"(i.e. non-cleavable) peptides are created?
+      // how many "atomic"(i.e. non-cleave-able) peptides are created?
       Size complete_digest_count;
       if (use_log_model)
       {
@@ -228,7 +228,7 @@ namespace OpenMS
         if (dp_it->size() < min_peptide_length)
           continue;
 
-        // sum equal peptide's intensities
+        // sum equals peptide intensities
         // *dp_it -> peptide
         // If we see this Peptide the first time -> generate corresponding feature
         if (generated_features.count(*dp_it) == 0)

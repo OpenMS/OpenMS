@@ -59,7 +59,7 @@ namespace OpenMS
   // static
   ModifiedPeptideGenerator::MapToResidueType ModifiedPeptideGenerator::createResidueModificationToResidueMap_(const vector<const ResidueModification*>& mods)
   {
-    // create a lookup structure from ResidueModification (e.g., "Oxidiation (M)" to the modified Residue* in ResidueDB"
+    // create a lookup structure from ResidueModification (e.g., "Oxidation (M)" to the modified Residue* in ResidueDB"
     ModifiedPeptideGenerator::MapToResidueType m;
     for (auto const & r : mods)
     {

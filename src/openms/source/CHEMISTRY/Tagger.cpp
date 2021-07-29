@@ -87,7 +87,7 @@ namespace OpenMS
       getTag_(tag, mzs, j, tags, charge);
 
       // if aa is "L", then also add "I" as an alternative residue and extend the tag again
-      // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambigous matching to I and L later on
+      // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambiguous matching to I and L later on
       if (aa == 'L')
       {
         tag.pop_back();

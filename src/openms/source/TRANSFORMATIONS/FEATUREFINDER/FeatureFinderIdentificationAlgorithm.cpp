@@ -739,7 +739,7 @@ namespace OpenMS
           // only go through internals for seeds (->first). External seeds are not supported
           for (const auto& rt_pep : charge_rtmap.second.first)
           {
-            // since we dont know their IDs, seeds will all need a different grouplabel in SWATH
+            // since we don't know their IDs, seeds will all need a different group label in SWATH
             // to not be combined
             seedcount++;
 

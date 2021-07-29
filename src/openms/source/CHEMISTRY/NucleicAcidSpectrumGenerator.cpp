@@ -376,7 +376,7 @@ namespace OpenMS
     }
     else if (max_charge * min_charge < 0)
     {
-      // Signs don't match - we need to quit and thow error here to avoid messing up for loops below
+      // Signs don't match - we need to quit and throw error here to avoid messing up for loops below
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "min. and max. charge must both be either positive or negative");
     }
     if (abs(max_charge) < abs(min_charge))

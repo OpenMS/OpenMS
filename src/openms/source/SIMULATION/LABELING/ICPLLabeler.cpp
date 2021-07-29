@@ -153,7 +153,7 @@ namespace OpenMS
     // merge the generated feature maps and create consensus
     SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
 
-    if (features_to_simulate.size() == 2) // merge_modus for two FeatureMaps
+    if (features_to_simulate.size() == 2) // merge_mode for two FeatureMaps
     {
       // create index of light channel features for easy mapping of medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
@@ -221,7 +221,7 @@ namespace OpenMS
         final_feature_map.push_back(light_labeled_index_iter->second);
       }
     }
-    else if (features_to_simulate.size() == 3) // merge_modus for three Channels
+    else if (features_to_simulate.size() == 3) // merge_mode for three Channels
     {
       // create index of light channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
@@ -289,7 +289,7 @@ namespace OpenMS
         }
         else if (light_labeled_features_index.has(heavy_feature_unmodified_sequence))
         {
-          // 2.Fall -> c0 - c2
+          // 2nd case -> c0 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -313,7 +313,7 @@ namespace OpenMS
         }
         else if (medium_labeled_features_index.has(heavy_feature_unmodified_sequence))
         {
-          // 3.Fall -> c1 - c2
+          // 3rd case -> c1 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -337,7 +337,7 @@ namespace OpenMS
         }
         else
         {
-          // 4.Fall -> alleine
+          // 4th case -> alone
           final_feature_map.push_back(heavy_feature);
         }
       }

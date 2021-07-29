@@ -334,7 +334,7 @@ namespace OpenMS
         getACAndACType(substrings[reference_column], accession, accession_type);
         protein_hit.setAccession(accession);
 //              protein_hit.setRank(ac_position_map.size());
-        /// @todo score einfach zusammenrechnen? (Martin)
+        /// @todo simply sum up score? (Martin)
 
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
         {

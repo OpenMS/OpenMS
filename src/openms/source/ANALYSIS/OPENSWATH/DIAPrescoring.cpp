@@ -201,7 +201,9 @@ namespace OpenMS
     // compare against the spectrum with negative weight preIsotope peaks
     std::vector<double> intTheorNeg;
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
+
     // Otherwise we do not need the second spectrum at all.
+
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
     // Sqrt does not work if we actually have negative values
     //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());

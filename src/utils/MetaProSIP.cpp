@@ -141,7 +141,7 @@ struct SIPPeptide
 
   vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambiguously
 
   double mz_theo = -1.; ///< theoretical mz
 

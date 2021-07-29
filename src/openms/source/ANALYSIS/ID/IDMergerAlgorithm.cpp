@@ -186,7 +186,9 @@ namespace OpenMS
   {
     //TODO if we allow run IDs, we should do a remove_if,
     // then use the iterator to update and move
+
     // the IDs, then erase them so we do not encounter them in
+
     // subsequent calls of this function
     for (auto &pid : pepIDs)
     {
