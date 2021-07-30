@@ -239,7 +239,7 @@ namespace OpenMS
     }
   }
 
-  //travers protein and peptide nodes for building MSD groups
+  //traverse protein and peptide nodes for building MSD groups
   void ProteinResolver::traverseProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);

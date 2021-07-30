@@ -473,7 +473,7 @@ namespace OpenMS
     /* ---------------------------------------------------------------------------- */
 
     #ifdef INFERENCE_BENCH
-    /// nrnodes, nredges, nrmessages and times of last functor execution per connected component
+    /// nrNodes, nrEdges, nrMessages and times of last functor execution per connected component
     std::vector<std::tuple<vertex_t, vertex_t, unsigned long, double>> sizes_and_times_{1};
     #endif
 

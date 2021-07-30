@@ -165,7 +165,7 @@ namespace OpenMS
       // we assume that each digestion product will have the same abundance
       // note: missed cleavages reduce overall abundance as they combine two (or more) single peptides
 
-      // how many "atomic"(i.e. non-cleave-able) peptides are created?
+      // how many "atomic"(i.e. non-cleaveable) peptides are created?
       Size complete_digest_count;
       if (use_log_model)
       {

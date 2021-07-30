@@ -131,7 +131,7 @@ namespace OpenMS
         /**
         @brief Reads the next FASTA entry from file.
         If you want to read all entries in one go, use load().
-        @return true if entry was read; false if eof was reached
+        @return true if entry was read; false if EOF was reached
         @exception Exception::FileNotFound is thrown if the file does not exists.
         @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */

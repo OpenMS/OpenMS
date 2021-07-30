@@ -219,7 +219,7 @@ namespace OpenMS
   // potentially mandatory meta values (depending on mzTab type, mode and sections that are present)
   set<String> mandatory_meta_values;
 
-  // mzTab sections present in the file. Influences mandatoryness of meta-values.
+  // mzTab sections present in the file. Influences compulsoriness of meta-values.
   set<String> sections_present;
 
   Size count_protein_search_engine_score = 0;
@@ -1548,7 +1548,7 @@ namespace OpenMS
     }
   }
 
-  // TODO: check mandatoriness
+  // TODO: check compulsoriness
   //hasMandatoryMetaDataKeys_(mandatory_meta_values, sections_present, mz_tab_metadata);
 
   mz_tab.setMetaData(mz_tab_metadata);

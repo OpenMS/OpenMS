@@ -157,7 +157,7 @@ private:
     }
 
     /**
-     *  @brief Determines whether the Petide Evidences belong to the same protein, modulo decoy
+     *  @brief Determines whether the Peptide Evidences belong to the same protein, modulo decoy
      */
     static bool isSameProtein_(
             String prot1,

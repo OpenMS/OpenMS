@@ -86,7 +86,7 @@ namespace OpenMS
       @brief Adds ion match annotation to the @p spec input spectrum
 
       @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
-      @param ph A spectrums identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param ph A spectrum identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
       @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
       @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 
@@ -99,7 +99,7 @@ namespace OpenMS
     /**
       @brief Adds ion match statistics to @p pi PeptideIdentifcation
 
-      @param pi A spectrums identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param pi A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
       @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
       @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
       @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance

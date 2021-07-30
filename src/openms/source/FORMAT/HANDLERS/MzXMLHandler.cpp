@@ -700,7 +700,7 @@ namespace OpenMS
       {
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
-        // Since the .getVendor() is usually empty, we infer this via the Aquisition Software, which is unique to Thermo
+        // Since the .getVendor() is usually empty, we infer this via the Acquisition Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
         if (options_.getForceMQCompatability() || 
             (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))

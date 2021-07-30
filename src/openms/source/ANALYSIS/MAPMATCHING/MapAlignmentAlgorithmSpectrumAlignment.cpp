@@ -103,7 +103,7 @@ namespace OpenMS
     std::vector<MSSpectrum*> tempalign;
     msFilter_(aligned, tempalign);
 
-    //if it is possible, built 4 blocks. These can be aligned individually 
+    //if it is possible, built 4 blocks. These can be aligned individually
     std::vector<Size> alignpoint;
     //saving the first coordinates
     alignpoint.push_back(0);

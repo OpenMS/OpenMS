@@ -499,7 +499,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits_); }
 
 #ifdef _OPENMP
-    // we want to do locking at the spectrum level so we get good parallelization 
+    // we want to do locking at the spectrum level so we get good parallelization
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
     for (size_t i = 0; i != annotated_hits_lock.size(); i++)
     { 

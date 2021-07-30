@@ -370,7 +370,7 @@ namespace OpenMS
             protein_hit.setAccession(accession);
             // protein_hit.setRank(ac_position_map.size());
             // @todo simply add up score
-            // score einfach zusammenrechnen? (Martin)
+            // Simply sum up score? (Martin)
             // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)

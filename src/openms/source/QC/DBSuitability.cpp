@@ -129,7 +129,7 @@ namespace OpenMS
         continue;
       }
 
-      // find the second target hit, skip all decoy or novo hits in between
+      // find the second target hit, skip all decoy or novo hits in-between
       const PeptideHit* second_hit = nullptr;
       for (UInt i = 1; i < hits.size(); ++i)
       {

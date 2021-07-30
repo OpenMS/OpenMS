@@ -163,7 +163,7 @@ protected:
     /**
       Scoring method used by the optimizer. Metavalues to use are decided by
       the `score_weights` argument.
-      The returned value is used in the LP problems' variables and contraints.
+      The returned value is used in the LP problems' variables and constraints.
 
       @param[in] feature Input feature
       @param[in] score_weights Score weights

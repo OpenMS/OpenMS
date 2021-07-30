@@ -99,7 +99,7 @@ namespace OpenMS
         If neither is found, IMFormat::NONE is returned.
         If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
 
-        @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given pectrum
+        @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */
     static IMFormat determineIMFormat(const MSSpectrum& spec);
   };

@@ -49,7 +49,7 @@
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 /** \file
@@ -412,7 +412,7 @@ _S_node_nearest (const size_t __k, size_t __dim, SearchVal const& __val,
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the various functors and interfaces used for KDTree.
@@ -501,7 +501,7 @@ private:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the allocator interface as used by the KDTree class.
@@ -595,7 +595,7 @@ protected:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines interfaces for iterators as used by the KDTree class.
@@ -851,7 +851,7 @@ operator!=(_Iterator<_Val, _Val&, _Val*> const& __X,
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the interface of the _Region class.
@@ -980,7 +980,7 @@ struct _Region
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the interface for the KDTree class.
@@ -1277,7 +1277,7 @@ public:
   typedef std::reverse_iterator<iterator> reverse_iterator;
 
   // Note: the static_cast in end() is invalid (_M_header is not convertible to a _Link_type), but
-  // that is ok as it just means undefined behaviour if the user dereferences the end() iterator.
+  // that's ok as it just means undefined behaviour if the user dereferences the end() iterator.
 
   const_iterator begin() const { return const_iterator(_M_get_leftmost()); }
   const_iterator end() const { return const_iterator(static_cast<_Link_const_type>(&_M_header)); }
@@ -2229,5 +2229,5 @@ protected:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */

@@ -236,7 +236,7 @@ namespace OpenMS
      * @param best_id id of the current best cluster, will be removed from the element mapping
      * 
      * @note The feature from elements are not deleted from the element mapping. 
-     * After this function is called we dont't have any cluster with those features left and
+     * After this function is called we don't have any cluster with those features left and
      * therefore don't have to delete them.
      */
     void updateClustering_(ElementMapping& element_mapping,

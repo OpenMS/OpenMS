@@ -703,7 +703,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(param_pep_ids);
 
     // annotate map with ids
-    // TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
+    // TODO: really with deltas, or better with convex hulls? Chris: IDMapper uses CH's + Deltas if CH is present
     IDMapper mapper;
     Param p = mapper.getParameters();
     p.setValue("rt_tolerance", 30.);
