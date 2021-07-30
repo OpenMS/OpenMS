@@ -32,13 +32,10 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 
 namespace OpenMS
 {
-
-  // TODO: ADD Mztab-m relevant code
 
   MzTabMMetaData::MzTabMMetaData()
   {
@@ -85,6 +82,39 @@ namespace OpenMS
     m_small_molecule_evidence_data_ = m_smesd;
   }
 
+  std::vector<String> MzTabM::getMSmallMoleculeOptionalColumnNames() const
+  {
+
+    return getOptionalColumnNames_(m_small_molecule_data_);
+  }
+
+  std::vector<String> MzTabM::getMSmallMoleculeFeatureOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(m_small_molecule_feature_data_);
+  }
+
+  std::vector<String> MzTabM::getMSmallMoleculeEvidenceOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(m_small_molecule_evidence_data_);
+  }
+
+  void MzTabM::addMetaInfoToOptionalColumns(const std::set<String>& keys,
+                                            std::vector<MzTabOptionalColumnEntry>& opt,
+                                            const String& id,
+                                            const MetaInfoInterface& meta)
+  {
+    for (String const & key : keys)
+    {
+      MzTabOptionalColumnEntry opt_entry;
+      // column names must not contain spaces
+      opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
+      if (meta.metaValueExists(key))
+      {
+        opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
+      } // otherwise it is default ("null")
+      opt.push_back(opt_entry);
+    }
+  }
 
   // TODO: Check what is needed and rewrite to fit MztabM
   // TODO: How does that work with the identification data

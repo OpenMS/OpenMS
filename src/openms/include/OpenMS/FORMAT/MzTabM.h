@@ -38,7 +38,6 @@
 
 namespace OpenMS
 {
-
   /**
       @brief Data model of MzTabM files.
       Please see the official MzTabM specification at
@@ -46,28 +45,31 @@ namespace OpenMS
       @ingroup FileIO
   */
 
-  struct OPENMS_DLLAPI MzTabMAssayMetaData
+  class OPENMS_DLLAPI MzTabMAssayMetaData
   {
+  public:
     MzTabParameter custom; // mztab-m
     MzTabString external_uri; // mztab-m
-    MzTabString sample_ref;
+    std::vector<int> sample_ref;
     std::vector<int> ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
   };
 
-  struct OPENMS_DLLAPI MzTabMMSRunMetaData
+  class OPENMS_DLLAPI MzTabMMSRunMetaData
   {
+  public:
     MzTabString location;
     MzTabInteger instrument_ref; // mztab-m
     MzTabParameter format;
     MzTabParameter id_format;
     MzTabParameterList fragmentation_method;
-    MzTabParameter scan_polarity; // mztab-m - mandatory
+    MzTabParameterList scan_polarity; // mztab-m
     MzTabString hash; // mztab-m
     MzTabParameter hash_method; // mztab-m
   };
 
-    struct OPENMS_DLLAPI MzTabMStudyVariableMetaData
+  class OPENMS_DLLAPI MzTabMStudyVariableMetaData
   {
+  public:
     std::vector<int> assay_refs;
     MzTabParameter average_function; // mztab-m
     MzTabParameter variation_function; // mztab-m
@@ -75,15 +77,16 @@ namespace OpenMS
     MzTabParameterList factors; // mztab-m
   };
 
-  struct OPENMS_DLLAPI MzTabMDatabaseMetaData // mztab-m
+  class OPENMS_DLLAPI MzTabMDatabaseMetaData // mztab-m
   {
+  public:
     MzTabParameter database;
     MzTabString prefix;
     MzTabString version;
     MzTabString uri;
   };
 
-  /// all meta data of a mzTab file. Please refer to specification for documentation.
+  /// Metadata for MzTab-M
   // TODO: Check https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#62-metadata-section
   // TODO: Check if the Type used here and the Type in the specification are the same
   class OPENMS_DLLAPI MzTabMMetaData
@@ -95,6 +98,7 @@ namespace OpenMS
     MzTabString mz_tab_id; ///<  MzTab-M file id (e.g. repository-, local identifier)
     MzTabString title; ///< Title
     MzTabString description; ///< Description
+    // TODO: MSIO ?? [MSIO, MSIO:0000146, centrifugation,]
     std::map<Size, MzTabParameterList> sample_processing; ///< List of parameters describing the sample processing/preparation/handling
     std::map<Size, MzTabInstrumentMetaData> instrument; ///< List of parameters describing the instrument
     std::map<Size, MzTabSoftwareMetaData> software; ///< Software used to analyze the data
@@ -109,21 +113,27 @@ namespace OpenMS
     std::map<Size, MzTabMStudyVariableMetaData> study_variable; ///< Study Variable details
     std::map<Size, MzTabParameter> custom; ///< Custom parameters
     std::map<Size, MzTabCVMetaData> cv; ///< Controlled Vocabulary details
+    // TODO: MIRIAM ?? [MIRIAM, MIR:00100079, HMDB, ]
     std::map<Size, MzTabMDatabaseMetaData> database; ///< Database details
     std::map<Size, MzTabParameter> derivatization_agent; ///<
     MzTabParameter small_molecule_quantification_unit; ///< Description of the unit type used
     MzTabParameter small_molecule_feature_quantification_unit; ///< Description of the unit type used
     MzTabParameter small_molecule_identification_reliability; ///< Reliability of identification (4-level schema)
-    std::map<Size, MzTabParameter> id_confidence_measure; ///< Confidence measures / scores  // TODO: (ADD)
+    std::map<Size, MzTabParameter> id_confidence_measure; ///< Confidence measures / scores
     // https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6260-colunit-small_molecule_feature
-    std::vector<MzTabString> colunit_small_molecule; ///< Defines the unit used for a specific column // TODO: ?
-    std::vector<MzTabString> colunit_small_molecule_feature; ///< Defines the unit used for a specific column// TODO: ?
-    std::vector<MzTabString> colunit_small_molecule_evidence; ///< Defines the unit used for a specific column  // TODO: ?
+    // TODO: Not sure how that would be best encoded?
+    // for a specific optional column?
+    // Should be in optional column metadata?
+    // e.g. opt_global_mass_error=[UO, UO:0000169, parts per million, ]
+    std::vector<MzTabString> colunit_small_molecule; ///< Defines the unit used for a specific column
+    std::vector<MzTabString> colunit_small_molecule_feature; ///< Defines the unit used for a specific column
+    std::vector<MzTabString> colunit_small_molecule_evidence; ///< Defines the unit used for a specific column
   };
 
   /// SML Small molecule section (mztab-m)
-  struct OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
+  class OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
   {
+  public:
     MzTabInteger identifier; ///< The small molecule’s identifier.
     MzTabStringList smf_id_refs; ///< References to all the features on which quantification has been based.
     MzTabStringList database_identifier; ///< Names of the used databases.
@@ -149,13 +159,11 @@ namespace OpenMS
   };
 
   /// SMF Small molecule feature section (mztab-m)
-  struct OPENMS_DLLAPI MzTabMSmallMoleculeFeatureSectionRow
+  class OPENMS_DLLAPI MzTabMSmallMoleculeFeatureSectionRow
   {
+  public:
     MzTabInteger smf_identifier; ///< Within file unique identifier for the small molecule feature.
     MzTabStringList sme_id_refs; ///< Reference to the identification evidence.
-    // 1=Ambiguous identification;
-    // 2=Only different evidence streams for the same molecule with no ambiguity;
-    // 3=Both ambiguous identification and multiple evidence streams.
     MzTabInteger sme_id_ref_ambiguity_code; ///< Ambiguity in identifications.
     MzTabString adduct; ///< Adduct
     MzTabParameter isotopomer; ///< //TODO? - usually used monoisotopic trace for quantification - always de-isotoped?
@@ -169,8 +177,9 @@ namespace OpenMS
   };
 
   /// SME Small molecule evidence section (mztab-m)
-  struct OPENMS_DLLAPI MzTabMSmallMoleculeEvidenceSectionRow
+  class OPENMS_DLLAPI MzTabMSmallMoleculeEvidenceSectionRow
   {
+  public:
     MzTabInteger sme_identifier; ///< Within file unique identifier for the small molecule evidence result.
     MzTabString evidence_input_id; ///< Within file unique identifier for the input data used to support this identification e.g. fragment spectrum, RT and m/z pair.
     MzTabString database_identifier; ///< The putative identification for the small molecule sourced from an external database.
@@ -179,7 +188,7 @@ namespace OpenMS
     MzTabString inchi; ///< InChi of the potential compound identifications.
     MzTabString chemical_name; ///< Possible chemical/common names or general description
     MzTabString uri; ///< The source entry’s location.
-    MzTabParameter derivatized_form; ///< //TODO?
+    MzTabParameter derivatized_form; ///< //TODO: What has to be added here?
     MzTabString adduct; ///< Adduct
     MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
     MzTabInteger charge; ///< Precursor ion’s charge.
@@ -198,16 +207,16 @@ namespace OpenMS
 
   /**
   @brief Data model of MzTab-M files
-  Please see the offical MzTab-M specification at https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#use-cases-for-mztab
+  Please see the MzTab-M specification at https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#use-cases-for-mztab
   */
   class OPENMS_DLLAPI MzTabM
   {
   public:
     /// Default constructor
-    MzTabM();
+    MzTabM() = default;
 
     /// Destructor
-    virtual ~MzTabM();
+    ~MzTabM() = default;
 
     const MzTabMMetaData& getMetaData() const;
 
@@ -249,21 +258,24 @@ namespace OpenMS
     // TODO: check if Modification functions are needed for Metabolomics (I guess not)
     // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<String>& mods);
     // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
-    //static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
-
+    // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
 
     // TODO: see what has to be changed for metebolomics?
     // TODO: is all the info/metadata available at that point?
-    //static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map, const String& filename);
+    // static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map, const String& filename);
 
     // TODO: This should be done in the featuremap, or?
     // TODO: What is actually needed here?
     // TODO: How is mztab doing that?
     /**
-      * @brief Export metabolite identifications to mzTab
+      * @brief Export metabolite identifications to mzTabM
       *
       * @return mzTabM object
     */
+
+    // static MzTabM exportIdentificationDataToMzTabM(const IdentificationData& id_data);
+
+
 //    static MzTabM exportIdentificationsToMzTabM(
 //        const std::vector<ProteinIdentification>& prot_ids,
 //        const std::vector<PeptideIdentification>& peptide_ids,
@@ -302,7 +314,9 @@ namespace OpenMS
 
   protected:
     /// Helper function for "get...OptionalColumnNames" functions
+
     template <typename SectionRows>
+
     std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
     {
       // vector is used to preserve the column order
@@ -323,14 +337,15 @@ namespace OpenMS
       return names;
     }
 
-    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
-
     MzTabMMetaData m_meta_data_;
     MzTabMSmallMoleculeSectionRows m_small_molecule_data_;
     MzTabMSmallMoleculeFeatureSectionRows m_small_molecule_feature_data_;
     MzTabMSmallMoleculeEvidenceSectionRows m_small_molecule_evidence_data_;
     std::vector<Size> empty_rows_; ///< index of empty rows
     std::map<Size, String> comment_rows_; ///< comments
+    std::vector<String> sml_optional_column_names_;
+    std::vector<String> smf_optional_column_names_;
+    std::vector<String> sme_optional_column_names_;
   };
 
 } // namespace OpenMS
