@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1137,7 +1137,7 @@ namespace OpenMS
             child = child->getNextElementSibling();
             //      <DatabaseFilters> omitted for now, not reflectable by our member structures
             //      <DatabaseTranslation> omitted for now, not reflectable by our member structures
-            //      <Masstable> omitted for now, not reflectable by our member structures
+            //      <MassTable> omitted for now, not reflectable by our member structures
           }
           SpectrumIdentificationProtocol temp_struct = {searchtype, enzymename, param_cv, param_up, modparam, p_tol, f_tol, tcv, tup};
           sp_map_.insert(make_pair(id, temp_struct));
@@ -2235,8 +2235,8 @@ namespace OpenMS
 
           //      SearchParameters  search_parameters_
           //      DateTime  date_
-          //      String    protein_score_type_ <- from proteindetectionprotocol
-          //      DoubleReal    protein_significance_threshold_ <- from proteindetectionprotocol
+          //      String    protein_score_type_ <- from ProteinDetectionProtocol
+          //      DoubleReal    protein_significance_threshold_ <- from ProteinDetectionProtocol
 
           DOMElement* child = element_pr->getFirstElementChild();
           while (child)
@@ -2755,7 +2755,7 @@ namespace OpenMS
       analysisSoftwareElements->appendChild(current_as);
       DOMElement* current_sw = current_as->getOwnerDocument()->createElement(CONST_XMLCH("SoftwareName"));
 
-      //TODO extract as function bauen and insert cv
+      //TODO build extract as function and insert cv
       DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
       current_cv->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("search_engine_"));
       current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("PSI-MS"));

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ namespace OpenMS
     {}
 
     unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
-      //TODO do quick bruteforce calculation if the cc is really small?
+      //TODO do quick brute-force calculation if the cc is really small?
 
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
@@ -344,7 +344,7 @@ namespace OpenMS
     {}
 
     unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int /*idx*/) {
-      //TODO do quick bruteforce calculation if the cc is really small
+      //TODO do quick brute-force calculation if the cc is really small
       //TODO make use of idx
 
       double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");

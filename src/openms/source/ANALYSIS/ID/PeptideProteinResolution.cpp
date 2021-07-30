@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -713,7 +713,7 @@ namespace OpenMS
     size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
     ambiguity_grp.probability = origin_groups[best_grp_index].probability;
     
-    // copy group indices so we can easily reorder them for tie resolution
+    // copy group indices so we can reorder them for tie resolution
     vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
 
     // groups are currently only sorted by probability.

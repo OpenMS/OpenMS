@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -414,7 +414,7 @@ namespace OpenMS
       { // ** RT-window
 
         // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
+        // use sorted structure and use 2nd start--1st end / 1st start--2nd end
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
@@ -476,7 +476,7 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)                                
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)                                
                 }
                 else
                 {
@@ -743,7 +743,7 @@ namespace OpenMS
     // write groups to consensusXML (with type="charge_groups")
 
     // **find cliques from pairs
-    // find which featureIdx maps to which consensusFeatureIdx
+    // find which featureId maps to which consensusFeatureId
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
@@ -874,7 +874,7 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
+            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {

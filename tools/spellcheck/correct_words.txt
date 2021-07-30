@@ -717,6 +717,7 @@ NormalizedRetentionTime
 NucleicAcidSearchEngine
 OPENSWATHALGO
 OSWPeptidePrecursor's
+OSWPeptidePrecursors
 OnDiskExperiment
 OpenBoxes
 OpenPepXLLF
@@ -1100,6 +1101,7 @@ checkExtremePSMScores
 cmodel
 concatMULTISEids
 consensusElements
+consensusFeatureId
 consensusFeatureIdx
 consensusfeaturemethod
 correctedMZ
@@ -1114,6 +1116,7 @@ enzN
 evaluateTransformationModel
 extremum
 featureIdx
+featureIdxmaps
 featureMap's
 featureXMLs
 featuredetection
@@ -1444,6 +1447,7 @@ getenv
 getters
 glutamate
 goto
+guanidine
 gz
 gzFile
 gzerror
@@ -2147,6 +2151,7 @@ cleaveages
 codebook
 codebooks
 combinatorically
+compulsoriness
 consensusHeaders
 d'tor
 dann

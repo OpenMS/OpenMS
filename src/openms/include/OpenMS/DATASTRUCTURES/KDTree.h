@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -671,7 +671,7 @@ protected:
         __p = _M_node->_M_parent;
       }
       if (__p) // (__p) provide undetermined behavior on end()++ rather
-        // than a seg fault, similar to standard iterator.
+        // than a segfault, similar to standard iterator.
         _M_node = __p;
     }
   }
@@ -698,7 +698,7 @@ protected:
         __p = _M_node->_M_parent;
       }
       if (__p) // (__p) provide undetermined behavior on rend()++ rather
-        // than a seg fault, similar to standard iterator.
+        // than a segfault, similar to standard iterator.
         _M_node = __p;
     }
   }
@@ -1011,7 +1011,7 @@ struct _Region
  *    but in the case of KDTree, the next identical item might
  *    be a long way down a subtree, because of the various different sort criteria.
  *
- *    So erase()-ing a node from a KDTree could require serious and complicated
+ *    So to erase() a node from a KDTree could require serious and complicated
  *    tree rebalancing to maintain consistency... IF we required binary-tree-like relationships.
  *
  *    This has no effect on insert()s, a < test is good enough to keep consistency.
@@ -1392,7 +1392,7 @@ public:
   // compares via equality
   // if you are looking for a particular item in the tree,
   // and (for example) it has an ID that is checked via an == comparison
-  // eg
+  // e.g.
   // struct Item
   // {
   //    size_type unique_id;

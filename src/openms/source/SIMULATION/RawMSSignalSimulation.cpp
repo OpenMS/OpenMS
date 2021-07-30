@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -619,8 +619,8 @@ namespace OpenMS
     EGHModel* elutionmodel = new EGHModel();
     chooseElutionProfile_(elutionmodel, active_feature, 1.0, rt_sampling_rate, experiment);
     ProductModel<2> pm;
-    pm.setModel(0, elutionmodel); // new'ed models will be deleted by the pm! no need to delete them manually
-    pm.setModel(1, isomodel); // new'ed models will be deleted by the pm! no need to delete them manually
+    pm.setModel(0, elutionmodel); // new models will be deleted by the pm! no need to delete them manually
+    pm.setModel(1, isomodel); // new models will be deleted by the pm! no need to delete them manually
     pm.setScale(scale); // scale
 
     // start and end points of the sampling
@@ -1291,8 +1291,7 @@ namespace OpenMS
     SimTypes::SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
 
     // add some noise
-    // TODO: German comment
-    // TODO: variables model f??r den intensit??ts-einfluss
+    // TODO: variables model for the intensity impact
     // e.g. sqrt(intensity) || ln(intensity)
     boost::normal_distribution<SimTypes::SimIntensityType> ndist(0, intensity_scale_stddev_ * intensity);
     intensity += ndist(rnd_gen_->getTechnicalRng());

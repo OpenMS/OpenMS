@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -228,7 +228,7 @@ namespace OpenMS
         if (dp_it->size() < min_peptide_length)
           continue;
 
-        // sum equal peptides intensities
+        // sum equals peptide intensities
         // *dp_it -> peptide
         // If we see this Peptide the first time -> generate corresponding feature
         if (generated_features.count(*dp_it) == 0)

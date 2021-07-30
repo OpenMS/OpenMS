@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,13 +119,13 @@ namespace OpenMS
 
         score1v.push_back(score1);
         score2v.push_back(score2);
-      } //end of for-loop over transitions
+      } //end of for loop over transitions
 
       //std::string ispectrum = boost::lexical_cast<std::string>(i);
       std::string specRT = boost::lexical_cast<std::string>(specmeta.RT);
       ivw->store("score1_" + specRT, score1v);
       ivw->store("score2_" + specRT, score2v);
-    } //end of for-loop over spectra
+    } //end of for loop over spectra
   }
 
   void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
@@ -195,7 +195,7 @@ namespace OpenMS
     // different transitions affect each other (e.g. if one transition is missing, the other(s) get a much higher
     // normalized value and the whole distance is "penalized twice")
     // Maybe we could use two features, one for the average manhattan distance and one for matching of the total intensities to the
-    // library intensities. Also maybe normalizing by the max-value or the monoisotope (instead of the total sum) helps?
+    // library intensities. Also maybe normalising by the max-value or the monoisotope (instead of the total sum) helps?
     manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
 
     // compare against the spectrum with negative weight preIsotope peaks

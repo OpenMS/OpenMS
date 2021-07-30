@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -305,7 +305,7 @@ using namespace OpenMS;
     TheoreticalSpectrumGeneratorXLMS specGen_full;
     SimpleTSGXLMS specGen_mainscore;
 
-    // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
+    // settings for full-scoring, annotations, 2nd isotopic peaks, losses and precursors
     Param specGenParams_full = specGen_full.getParameters();
     specGenParams_full.setValue("add_b_ions", add_b_ions_, "Add peaks of y-ions to the spectrum");
     specGenParams_full.setValue("add_y_ions", add_y_ions_, "Add peaks of b-ions to the spectrum");

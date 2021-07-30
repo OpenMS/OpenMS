@@ -2,7 +2,7 @@
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -368,7 +368,7 @@ The base class of the two-dimensional data points is Peak2D. It provides the sam
 For information on d-dimensional data points see the appendix.
 
 @subsection tutorial_library_kernelclasses_spectra Spectra
-The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displaOne-dimensional data points:
+The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displayed as One-dimensional data points:
 <br><br>
 <b>Example: Tutorial_MSSpectrum.cpp</b>
 <br>
@@ -475,7 +475,7 @@ Depending on how the user configures the tool, this output is written to the com
 @subsection tutorial_identifications Identifications 
 Identifications of proteins, peptides, and the mapping between peptides and proteins (or groups of proteins) are stored in dedicated data structures. These data structures are typically stored to disc as idXML or mzIdentML file.
 The highest-level structure is ProteinIdentification. It stores all identified proteins of an identification run as ProteinHit objects + additional metadata (search parameters, etc.).
-Each ProteinHit contains the actual Proteinaccession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
+Each ProteinHit contains the actual protein accession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
 <br><br>
 <b>Example: Tutorial_IdentificationClasses.cpp</b>
 <br>

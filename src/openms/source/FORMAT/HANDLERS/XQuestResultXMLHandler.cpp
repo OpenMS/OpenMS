@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -266,7 +266,6 @@ namespace OpenMS
           search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]));
         }
 
-        //cout << "Parse shitpile 1" << endl;
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");

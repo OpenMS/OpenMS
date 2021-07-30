@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1139,7 +1139,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1325,7 +1325,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1676,7 +1676,9 @@ namespace OpenMS
   {
     /// Hashers for the strong typedefs
     //TODO switch everything to pointers so we compare memory addresses
+
     // then we don't need those. They are just here to fulfill the "interface".
+
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;

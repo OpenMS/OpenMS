@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -499,7 +499,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits_); }
 
 #ifdef _OPENMP
-    // we want to do locking at the spectrum level so we get good parallelization 
+    // we want to do locking at the spectrum level so we get good parallelization
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
     for (size_t i = 0; i != annotated_hits_lock.size(); i++)
     { 
@@ -664,7 +664,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #endif
               annotated_hits[scan_index].push_back(ah);
 
-              // prevent vector from growing indefinetly (memory) but don't shrink the vector every time
+              // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
               if (annotated_hits[scan_index].size() >= 2 * report_top_hits_)
               {
                 std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits_, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);

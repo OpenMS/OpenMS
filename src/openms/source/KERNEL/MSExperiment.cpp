@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -788,10 +788,10 @@ namespace OpenMS
   }
 
   /*
-  @brief Append a spectrum including floatdata arrays to current MSExperiment
+  @brief Append a spectrum including float data arrays to current MSExperiment
 
   @param rt RT of new spectrum
-  @param metadata_names Names of floatdata arrays attached to this spectrum
+  @param metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)
