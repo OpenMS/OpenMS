@@ -543,7 +543,7 @@ namespace OpenMS
       String MS2_select = (has_SCOREMS2_ ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
       String MS2_join = (has_SCOREMS2_ ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
 
-      // assemble the protein-PeptidePrecursor-Feature hierachy
+      // assemble the protein-PeptidePrecursor-Feature hierarchy
       // note: when changing the query, make sure to keep the indices in ColProteinSelect in sync!!!
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, "
                           "       PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,"

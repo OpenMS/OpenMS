@@ -165,7 +165,7 @@ public:
       
       /**computes the posteriors for the datapoints to belong to the incorrect distribution
        * @param incorrect_posterior resulting posteriors
-       * @return the loglikelihood of the model
+       * @return the log-likelihood of the model
        */
       double computeLLAndIncorrectPosteriorsFromLogDensities(
           const std::vector<double>& incorrect_log_density,

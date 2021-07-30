@@ -521,7 +521,7 @@ namespace OpenMS
 
     //  TODO: German comment
     //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
-    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
+    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen für das Protein auswählt
     model_->setObjective(index, 1.);
     protein_variable_index_map.insert(make_pair(map_iter->first, counter));
     ++counter;

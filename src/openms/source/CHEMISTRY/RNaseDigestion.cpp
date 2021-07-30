@@ -127,7 +127,7 @@ namespace OpenMS
       for (Size i = 1; i < rna.size(); ++i)
       {
         bool is_match = true;
-        // can't match if we dont have enough bases before or after
+        // can't match if we don't have enough bases before or after
         if (i < cuts_after_regexes_.size() || rna.size() - i < cuts_before_regexes_.size())
         {
           is_match = false;

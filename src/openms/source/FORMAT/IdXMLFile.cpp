@@ -562,7 +562,7 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
 
       // set identifier (with UID to make downstream merging of prot_ids possible)
-      // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+      // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
       prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId()));
     }
     //PROTEINS

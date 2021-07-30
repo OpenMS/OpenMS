@@ -106,7 +106,7 @@ namespace OpenMS
     Size countTableRows(const String& table_name);
 
     /**
-      @brief Checkes whether the given table contains a certain column
+      @brief Checks whether the given table contains a certain column
 
       @p tablename The name of the table (needs to exist)
       @p colname The name of the column to be checked

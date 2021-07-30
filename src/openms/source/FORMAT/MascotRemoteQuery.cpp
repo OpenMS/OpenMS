@@ -537,7 +537,7 @@ namespace OpenMS
     }
 
     // Successful login? fire off the search
-    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
+    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfully', but that might change...
     {
       OPENMS_LOG_INFO << "Login successful!" << std::endl;
       execQuery();

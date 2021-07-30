@@ -99,7 +99,7 @@ namespace OpenMS
      * Note: If the metavalues already exist, they will be overwritten.
      *
      * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
-     * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automaticly
+     * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automatically
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)

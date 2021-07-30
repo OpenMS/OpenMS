@@ -390,7 +390,7 @@ using namespace OpenMS;
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass_ + max_peptide_allowed_error;
 
-    // search for the first mass greater than the maximim, cut off everything larger
+    // search for the first mass greater than the maximum, cut off everything larger
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);

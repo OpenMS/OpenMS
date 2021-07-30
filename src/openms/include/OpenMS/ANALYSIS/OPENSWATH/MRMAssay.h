@@ -203,7 +203,7 @@ public:
     @brief Filters decoy transitions, which do not have respective target transition
            based on the transitionID.
 
-           References between targets and decoys will be constructed based on the transitionsID
+           References between targets and decoys will be constructed based on the transitionID
            and the "_decoy_" string. For example:
 
            target: 84_CompoundName_[M+H]+_88_22

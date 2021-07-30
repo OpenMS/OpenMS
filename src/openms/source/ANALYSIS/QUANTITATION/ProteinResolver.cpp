@@ -193,12 +193,12 @@ namespace OpenMS
     for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
       std::vector<float> intensities;
-      // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
+      // iteriere ueber peptide entry (peptide identification), intensitaet (summe der einzel-intensitaeten)
       for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
         intensities.push_back((*pep)->intensity);
       }
-      // median von der list ist itensity der msd group
+      // median von der list ist intensity der msd group
       group->intensity = Math::median(intensities.begin(), intensities.end());
     }
   }
@@ -239,7 +239,7 @@ namespace OpenMS
     }
   }
 
-  //travers Protein and peptide nodes for building MSD groups
+  //traverse Protein and peptide nodes for building MSD groups
   void ProteinResolver::traverseProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
@@ -599,7 +599,7 @@ namespace OpenMS
   //TODO check which proteins are indistinguishable from each other. This code seems to be unstable.
   /*
   Size mg = 0;
-  cout<<"\nindistinguishable\n";
+  cout<<"\indistinguishable\n";
   for(vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
   {
     cout<<mg<<" msd groups of " <<msd_groups.size() << " done\r";

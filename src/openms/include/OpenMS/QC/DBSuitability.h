@@ -171,7 +171,7 @@ namespace OpenMS
     *
     * Decoy differences of all N pepIDs are calculated. The (1-reranking_cutoff_percentile)*N highest
     * one is returned.
-    * It is asssumed that this difference accounts for 'reranking_cutoff_percentile' of the re-ranking cases.
+    * It is assumed that this difference accounts for 'reranking_cutoff_percentile' of the re-ranking cases.
     *
     * @param pep_ids                      vector containing the pepIDs
     * @param reranking_cutoff_percentile  percentile that determines which cut-off will be returned

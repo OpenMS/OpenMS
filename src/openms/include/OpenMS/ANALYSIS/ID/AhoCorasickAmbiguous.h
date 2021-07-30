@@ -84,7 +84,7 @@ namespace seqan
     'T', // 19 Thr Threonine
     'U', // 20 Selenocysteine
     'V', // 21 Val Valine
-    'B', // 01 Aspartic Acid, Asparagine  $    22(B) // the AmbAA's need to be consecutive (B,J,Z,X)
+    'B', // 01 Aspartic Acid, Asparagine  $    22(B) // the ambAA's need to be consecutive (B,J,Z,X)
     'J', // 09 Leucine, Isoleucine        $    23(J)
     'Z', // 24 Glutamic Acid, Glutamine   $
     'X', // 25 Unknown (25)

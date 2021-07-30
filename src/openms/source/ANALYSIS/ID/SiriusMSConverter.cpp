@@ -447,7 +447,7 @@ namespace OpenMS
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
-    // feature information was provided and unassigend ms2 should be used in addition
+    // feature information was provided and unassigned ms2 should be used in addition
     if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
     if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;

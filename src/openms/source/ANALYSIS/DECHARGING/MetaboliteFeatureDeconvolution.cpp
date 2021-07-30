@@ -442,7 +442,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);
@@ -530,10 +530,10 @@ namespace OpenMS
             else if (param_.getValue("unit") == "ppm")
             {
               // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
-              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetrc window around it.
-              // Instead of answering the more complex/asymetrical question: "which experimental mz can for given tolerance cause observed mz".
+              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetric window around it.
+              // Instead of answering the more complex/asymmetrical question: "which experimental mz can for given tolerance cause observed mz".
               // (In the complex case we might have to consider different queries for different tolerance windows.)
-              // The expected error of this simplicfication is negligible:
+              // The expected error of this simplification is negligible:
               // Assuming Y > X (X > Y is analog), given causative experimental mz Y and observed mz X with
               // X = Y*(1 - d)
               // for allowed tolerance d, the expected Error E between experimental mz and maximal mz in the tolerance window based on experimental mz is:

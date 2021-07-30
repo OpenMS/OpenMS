@@ -286,7 +286,7 @@ namespace OpenMS
                                                 1,
                                                 BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-        // calculation of contrast angle (cosine simiarity)
+        // calculation of contrast angle (cosine similarity)
         for (auto index_it = index.begin(); index_it != index.end(); ++index_it)
         {
           const MSSpectrum &spectrum = spectra[*index_it];

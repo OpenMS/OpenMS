@@ -73,11 +73,11 @@ namespace OpenMS
     // sequence
     const AASequence& seq = pep_id.getHits()[0].getSequence();
 
-    // charge: re-calulated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
+    // charge: re-calculated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
     Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
     
     //-----------------------------------------------------------------------
-    // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
+    // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICATION
     //-----------------------------------------------------------------------
 
     if (!pep_id.metaValueExists("spectrum_reference"))

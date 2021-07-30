@@ -328,7 +328,7 @@ namespace OpenMS
     {
       names.push_back(r->getName());
     }
-    // add all synonymes to lookup
+    // add all synonyms to lookup
     for (const String & s : r->getSynonyms())
     {
       names.push_back(s);
@@ -393,7 +393,7 @@ namespace OpenMS
       // that if it is present in residue_mod_names_ then we have seen it
       // before and can directly grab it. If its not present, we may have as
       // unmodified residue in residue_names_ but need to create a new entry as
-      // modified residue. If the residue itself is unknow, we will throw (see
+      // modified residue. If the residue itself is unknown, we will throw (see
       // below).
       const auto& rm_entry = residue_mod_names_.find(res_name);
       if (rm_entry == residue_mod_names_.end())

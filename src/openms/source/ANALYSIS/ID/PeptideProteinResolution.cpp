@@ -97,7 +97,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
 
-    // I dont think we need to assume sortedness here
+    // I don't think we need to assume sortedness here
     //if (!skip_sort) sort(groups.begin(), groups.end());
 
     std::unordered_set<std::string> decoy_accs;
@@ -713,7 +713,7 @@ namespace OpenMS
     size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
     ambiguity_grp.probability = origin_groups[best_grp_index].probability;
     
-    // copy group indices so we can reasily reorder them for tie resolution
+    // copy group indices so we can easily reorder them for tie resolution
     vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
 
     // groups are currently only sorted by probability.

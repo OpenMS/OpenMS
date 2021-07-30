@@ -1356,7 +1356,7 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 /* N.B.: MzIdentML does not impose the requirement to store
                    'redundant' data (e.g. RT) as the identified spectrum is
-                   unambiguously referencable by the spectrumID (OpenMS
+                   unambiguously referenceable by the spectrumID (OpenMS
                    internally spectrum_reference) and hence such data can be
                    looked up in the mz file. For convenience, and as OpenMS
                    relies on the smallest common denominator to reference a
@@ -2502,7 +2502,7 @@ namespace OpenMS
                       }
                       cvp = cvp->getNextElementSibling();
                       continue;
-/* TODO enetz: look up in XLDB and remvoe this ha
+/* TODO enetz: look up in XLDB and remove this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.what()).hasSubstring("'DSG'") || String(e.what()).hasSubstring("'DSS'") || String(e.what()).hasSubstring("'EDC'")) || String(e.what()).hasSubstring("'BS3'") || String(e.what()).hasSubstring("'BS2G'") )
                         {
@@ -2514,7 +2514,7 @@ namespace OpenMS
                 }
                 cvp = cvp->getNextElementSibling();
               }
-              if ( (!donor_acceptor_found) && (xlink_mod_found) ) // mono-link, here using pep_id also as the CV value, since mono-links dont have a cross-linking CV term
+              if ( (!donor_acceptor_found) && (xlink_mod_found) ) // mono-link, here using pep_id also as the CV value, since mono-links don't have a cross-linking CV term
               {
                 xl_id_donor_map_.insert(make_pair(pep_id, pep_id));
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
@@ -2531,7 +2531,7 @@ namespace OpenMS
                   const String & cvvalue = cv.getValue();
                   if (cv.hasValue() && ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())  // why do we need to check for empty?
                   {
-                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)
+                    // Case 1: unknown (to e.g., third-party tool) modification known to OpenMS (see value)
                     //  <Modification location="0" monoisotopicMassDelta="17.031558">
                     //  <cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification" value="Methyl:2H(2)13C"/>
                     const String & mname = cvvalue;

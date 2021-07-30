@@ -45,7 +45,7 @@ namespace OpenMS
 {
   /*
    * @brief This class applies fixed and variable modifications to (unmodified)
-   * nucleic acid sequences, combinatorially generating modified sequences.
+   * nucleic acid sequences, combinatorically generating modified sequences.
    *
    */
   class OPENMS_DLLAPI ModifiedNASequenceGenerator

@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
   CrossLinksDB::CrossLinksDB():
-      ModificationsDB("","","") // if you clear the mods you dont need to read them in the first place! Also avoids easy memory leaks.
+      ModificationsDB("","","") // if you clear the mods you don't need to read them in the first place! Also avoids easy memory leaks.
   {
     mods_.clear();
     modification_names_.clear();

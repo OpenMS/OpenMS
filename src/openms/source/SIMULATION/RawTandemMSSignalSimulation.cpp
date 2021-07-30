@@ -95,7 +95,7 @@ namespace OpenMS
     svm_par.remove("model_file_name");
     defaults_.insert("TandemSim:SVM:", svm_par);
 
-    // sync'ed Param (also appears in IonizationSimulation)
+    // synced Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 

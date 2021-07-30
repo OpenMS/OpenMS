@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-  // no constexpr lamdas in C++11, therefore we have to use functions
+  // no constexpr lambdas in C++11, therefore we have to use functions
   namespace Test
   {
 #if __GNUC__ < 5

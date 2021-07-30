@@ -267,14 +267,14 @@ void TriqlerFile::storeLFQ(const String& filename,
         }
         else
         {
-          continue; // we dont need the rest of the loop
+          continue; // we don't need the rest of the loop
         }
 
         // Variables of the peptide hit
         const Int precursor_charge = pep_hit.getCharge();
 
         String accession  = ListUtils::concatenate(accs, accdelim_);
-        if (accession.empty()) accession = na_string_; // shouldn't really matter since we skip unquantifyable peptides
+        if (accession.empty()) accession = na_string_; // shouldn't really matter since we skip unquantifiable peptides
 
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)

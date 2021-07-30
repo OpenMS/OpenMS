@@ -430,7 +430,7 @@ namespace OpenMS
           return false;
         }
         
-        // calculate correlation between peak insities in peptides 1 and 2
+        // calculate correlation between peak intensities in peptides 1 and 2
         double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         

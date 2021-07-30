@@ -113,7 +113,7 @@ namespace OpenMS
   or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
   unless the search engine was instructed to search peptides in the same way (but then the default 'auto' setting will do the correct thing).
 
-  X!Tandem treats any occurence of 'X' as stop codon (and thus as cleavage site). The resulting peptide will be non- or semi-tryptic.
+  X!Tandem treats any occurrence of 'X' as stop codon (and thus as cleavage site). The resulting peptide will be non- or semi-tryptic.
   Those hits will not be matched and need to be removed using @p '-unmatched_action' (do not use termini specificity to cheat around it! It adds more false hits!).
   
   The FASTA file should not contain duplicate protein accessions (since accessions are not validated) if a correct unique-matching annotation is important (target/decoy annotation is still correct).

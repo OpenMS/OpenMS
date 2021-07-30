@@ -269,7 +269,7 @@ namespace OpenMS
                 if (insideBand_(i, j, n, m, k_))
                 {
                   mh = firstcolummatchmatrix[i][j] - gap_;
-                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" firstcolumnnn "<<std::endl;
+                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" firstcolumn "<<std::endl;
                   i += 1;
                 }
                 else

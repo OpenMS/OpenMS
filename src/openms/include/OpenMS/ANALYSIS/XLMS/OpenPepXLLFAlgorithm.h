@@ -67,7 +67,7 @@ namespace OpenMS
     <h3>Input: MS2 spectra and fasta database of proteins expected to be cross-linked in the sample</h3>
     The spectra should be provided as one PeakMap. If you have multiple files, e.g. for multiple fractions, you should run this tool on each
     file separately.
-    The database should be provided as a vector of FASTAEntrys containing the target and decoy proteins.
+    The database should be provided as a vector of FASTAEntries containing the target and decoy proteins.
 
     <h3>Parameters</h3>
     The parameters for fixed and variable modifications refer to additional modifications beside the cross-linker.

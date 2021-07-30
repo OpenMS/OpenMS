@@ -525,7 +525,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   {
     feature.setQuality(quality);
 
-    // the features of the current best cluster are inserted into the new consesus feature
+    // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
       // Store the id of already used features (important: needs to be done

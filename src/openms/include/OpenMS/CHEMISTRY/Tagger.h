@@ -73,7 +73,7 @@ namespace OpenMS
 
             The parameter @p tags is filled with one string per sequence tag.
             It uses the standard residues from ResidueDB including
-            the fixed and variable modificatins given to the constructor.
+            the fixed and variable modifications given to the constructor.
 
             @param mzs a vector of mz values, containing the mz values from a centroided fragment spectrum.
             @param tags the vector of tags, that is filled with this function.
@@ -85,7 +85,7 @@ namespace OpenMS
 
             The parameter @p tags is filled with one string per sequence tag.
             It uses the standard residues from ResidueDB including
-            the fixed and variable modificatins given to the constructor.
+            the fixed and variable modifications given to the constructor.
 
             @param spec a centroided fragment spectrum.
             @param tags the vector of tags, that is filled with this function.
@@ -95,7 +95,7 @@ namespace OpenMS
       /**
             @brief Change the maximal charge considered by the tagger
 
-            Allows to change the maximal considered charge e.g. based on a spectrums
+            Allows to change the maximal considered charge e.g. based on a spectra
             precursor charge without calling the constructor multiple times.
 
             @param max_charge the new maximal charge.

@@ -938,7 +938,7 @@ namespace OpenMS
       interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
 
-    // dont add empty interpretations
+    // don't add empty interpretations
     if (interpretation_set) 
     {
       p.addInterpretation(interpretation);

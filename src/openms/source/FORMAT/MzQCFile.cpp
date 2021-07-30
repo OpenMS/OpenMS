@@ -176,7 +176,7 @@ namespace OpenMS
         addMetric("QC:4000070", chrom);
       }
     }
-    // Meabolomics: Detected compounds from featureXML file
+    // Metabolomics: Detected compounds from featureXML file
     if (feature_summary.isRunnable(status))
     {
       auto result = feature_summary.compute(feature_map);

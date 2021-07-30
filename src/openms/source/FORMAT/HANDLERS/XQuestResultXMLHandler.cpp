@@ -1002,7 +1002,7 @@ namespace OpenMS
         }
         for (PeptideHit ph : pep_hits)
         {
-          // TODO write the specrum_search entry for this ph
+          // TODO write the spectrum_search entry for this ph
 
           double precursor_mz = current_pep_id.getMZ();
           int precursor_charge = ph.getCharge();
@@ -1074,7 +1074,7 @@ namespace OpenMS
 
             // TODO values missing, most of them probably unimportant:
             // mean_ionintensity = mean ion intensity of each MS2 spectrum
-            // ionintensity_stdev = ion inetnsity spectrum_index_heavy
+            // ionintensity_stdev = ion intensity spectrum_index_heavy
             // addedMass = ???
             // iontag_ncandidates = number of candidates extracted per ion tag
             // apriori_pmatch_common, apriori_pmatch_xlink = a priori probs from match-odds probability

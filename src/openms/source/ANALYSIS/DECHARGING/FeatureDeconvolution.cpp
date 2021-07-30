@@ -373,7 +373,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);

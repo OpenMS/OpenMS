@@ -70,7 +70,7 @@ private:
       @brief returns the MaxQuant unique evidence number of a protein accession
 
         Obtains a unique, consecutive number for each distinct protein, which can
-        be used as a protein ID in the evidence.txt (in lieue of a proper
+        be used as a protein ID in the evidence.txt (in lack of a proper
         proteingroup ID which maps to proteinGroups.txt)
 
 

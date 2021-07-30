@@ -58,7 +58,7 @@ namespace OpenMS
     virtual ~IdentificationSummary() = default;
 
     // small struct for unique peptide / protein identifications (considering sequence only)
-    // count: number of unique identifiecations, fdr_threshold: significance threshold if score type is FDR, else -1
+    // count: number of unique identifications, fdr_threshold: significance threshold if score type is FDR, else -1
     struct OPENMS_DLLAPI UniqueID
     {
       UInt count = 0;

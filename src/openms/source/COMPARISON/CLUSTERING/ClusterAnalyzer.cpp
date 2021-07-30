@@ -55,7 +55,7 @@ namespace OpenMS
 
   ClusterAnalyzer & ClusterAnalyzer::operator=(const ClusterAnalyzer & source)
   {
-    //ALWAYS CHECK FOR SELF ASSIGNEMT!
+    //ALWAYS CHECK FOR SELF ASSIGNMENT!
     if (this == &source)
     {
       return *this;

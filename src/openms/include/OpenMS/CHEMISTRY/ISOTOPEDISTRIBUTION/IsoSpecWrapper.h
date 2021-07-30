@@ -260,8 +260,8 @@ protected:
    * involved).
    *
    * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
-   * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
-   * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
+   * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpecTotalProbGeneratorWrapper
+   * provides a way to directly parameterize based on the desired accuracy of the final spectrum - and should be used
    * instead in most cases. The trade-off is that it's (slightly, though much less than it used to be) slower than
    * Threshold algorithm.
    *
@@ -434,8 +434,8 @@ protected:
     * involved).
     *
     * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
-    * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
-    * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
+    * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpecTotalProbGeneratorWrapper
+    * provides a way to directly parameterize based on the desired accuracy of the final spectrum - and should be used
     * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
     * be dramatically improved with IsoSpec 2.0.
     *

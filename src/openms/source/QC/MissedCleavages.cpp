@@ -85,7 +85,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in ID data detected. No computation possible.");
     }
 
-    //create a digestor, which doesn't allow any missed clevages
+    //create a digestor, which doesn't allow any missed cleaveages
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
@@ -133,12 +133,12 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
     }
 
-    //create a digestor, which doesn't allow any missed clevages
+    //create a digestor, which doesn't allow any missed cleaveages
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
 
-    // small lambda functon to apply get_missed_cleavages_from_peptide_identification on pep_ids
+    // small lambda function to apply get_missed_cleavages_from_peptide_identification on pep_ids
     auto l = [&](PeptideIdentification& pep_id)
     {
       get_missed_cleavages_from_peptide_identification_(digestor, result, max_mc, pep_id);
