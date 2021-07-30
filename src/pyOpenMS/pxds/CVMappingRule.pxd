@@ -22,6 +22,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
         # returns the path of the element, where this rule is allowed
         String getElementPath() nogil except + # wrap-doc:Returns the path of the DOM element, where this rule is allowed
 
+
         # sets the requirement level of this rule
         void setRequirementLevel(RequirementLevel level) nogil except + # wrap-doc:Sets the requirement level of this rule
 

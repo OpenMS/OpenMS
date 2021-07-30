@@ -435,16 +435,14 @@ START_SECTION((void getMS2Identifications(vector<ProteinIdentification>& protein
   // we assume that there is at least ms2 spectrum that is a mixture of two peptides
   bool is_mixture = false;
 
-  for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-      pep_it != peptides.end();
-      ++pep_it)
+  for(PeptideIdentification& pep : peptides)
   {
-    is_mixture |= pep_it->getHits().size() > 1;
+    is_mixture |= pep.getHits().size() > 1;
 
     double score = 0.0;
-    for(Size i = 0; i < pep_it->getHits().size(); ++i)
+    for(Size i = 0; i < pep.getHits().size(); ++i)
     {
-      score += pep_it->getHits()[i].getScore();
+      score += pep.getHits()[i].getScore();
     }
     // for each PeptideIdentification the sum of scores should be == 1
     TEST_REAL_SIMILAR(score, 1.0)

@@ -190,6 +190,7 @@ START_SECTION((virtual SampleTreatment* clone() const ))
 	TEST_REAL_SIMILAR(dp->getTemperature(),4711.3)
 	TEST_REAL_SIMILAR(dp->getPh(),4711.4)
 	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
+	delete dp;
 END_SECTION
 
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))

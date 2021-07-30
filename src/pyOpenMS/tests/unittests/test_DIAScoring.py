@@ -11,18 +11,23 @@ class TestDIAScoring(unittest.TestCase):
     def test_spectrum(self):
 
           intensity = [
-            100, 100, 100, 100,
-            100, 100, 100]
+                        100,
+                        100,
+                        100,
+                        100,
+                        100,
+                        100
+                      ]
           mz = [
-                #// four of the naked b/y ions 
-                #// as well as one of the modified b and y ions ion each
-                350.17164, #// b
-                421.20875, #// b
-                421.20875 + 79.9657, #// b + P
-                547.26291, #// y
-                646.33133, #// y
-                809.39466 + 79.9657 #// y + P
-          ]
+                 #// four of the naked b/y ions
+                 #// as well as one of the modified b and y ions ion each
+                 350.17164, #// b
+                 421.20875, #// b
+                 421.20875 + 79.9657, #// b + P
+                 547.26291, #// y
+                 646.33133, #// y
+                 809.39466 + 79.9657 #// y + P
+               ]
 
           spectrum = pyopenms.OSSpectrum()
           spectrum.setMZArray(mz)

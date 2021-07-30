@@ -297,7 +297,7 @@ public:
         @see load(const std::string& fname)
         @see AlphabetParser
       */
-      virtual void load(const std::string & fname, IMSAlphabetParser<> * parser);
+      virtual void load(const std::string & fname, IMSAlphabetParser<> & parser);
 
 
       /**

@@ -16,4 +16,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappings.h>" namespace "OpenMS":
         libcpp_vector[ CVReference ] getCVReferences() nogil except + # wrap-doc:Returns the CV references
         void addCVReference(CVReference& cv_reference) nogil except + # wrap-doc:Adds a CV reference
         bool hasCVReference(const String& identifier) nogil except + # wrap-doc:Returns true if a CV reference is given
-

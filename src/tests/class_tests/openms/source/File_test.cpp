@@ -310,6 +310,7 @@ START_SECTION(File::TempDir(bool keep_dir = false))
   File::TempDir* nullPointer = nullptr;
   TEST_NOT_EQUAL(dir, nullPointer)
   TEST_EQUAL(File::exists((*dir).getPath()),1)
+  delete dir;
 }
 END_SECTION
 

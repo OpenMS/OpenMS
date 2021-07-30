@@ -103,6 +103,7 @@ START_SECTION((static FilterFunctor* create()))
 	GoodDiffFilter good;
 	TEST_EQUAL(ff->getParameters(), good.getParameters())
 	TEST_EQUAL(ff->getName(), good.getName())
+	delete ff;
 END_SECTION
 
 START_SECTION((static const String getProductName()))

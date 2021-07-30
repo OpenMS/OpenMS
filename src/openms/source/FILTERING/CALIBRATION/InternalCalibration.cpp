@@ -192,8 +192,14 @@ namespace OpenMS
     {
       const std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
       double mz_ref;
-      if (ids.empty()) continue;
-      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref)) continue;
+      if (ids.empty())
+      {
+        continue;
+      }
+      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref))
+      {
+        continue;
+      }
       cal_data_.insertCalibrationPoint(f.getRT(), f.getMZ(), f.getIntensity(), mz_ref, log(f.getIntensity()));
     }
 
@@ -376,8 +382,14 @@ namespace OpenMS
           std::vector<MZTrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
           std::vector<MZTrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), MZTrafoModel::isValidModel);
           Size dist_right(0), dist_left(0);
-          if (it_right != tms.end()) dist_right = std::distance(it_center_r, it_right);
-          if (it_left != tms.rend()) dist_left  = std::distance(it_center_l, it_left);
+          if (it_right != tms.end())
+          {
+            dist_right = std::distance(it_center_r, it_right);
+          }
+          if (it_left != tms.rend())
+          {
+            dist_left  = std::distance(it_center_l, it_left);
+          }
           Size model_index;
           if (((dist_left <= dist_right) || dist_right == 0) && dist_left != 0) // left is closer in #spectra, i.e. time; or is the only valid direction
           {
@@ -392,7 +404,13 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size j = 0; j < tms.size(); ++j) if (!MZTrafoModel::isValidModel(tms[j])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
+        for (Size j = 0; j < tms.size(); ++j)
+        {
+          if (!MZTrafoModel::isValidModel(tms[j]))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
+          }
+        }
       }
     }
     endProgress();

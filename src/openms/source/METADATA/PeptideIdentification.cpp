@@ -259,14 +259,14 @@ namespace OpenMS
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
   {
     std::vector<PeptideHit> filtered;
-    for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
+    for (const PeptideHit& h_it : hits)
     {
-      set<String> hit_accessions = h_it->extractProteinAccessionsSet();
+      set<String> hit_accessions = h_it.extractProteinAccessionsSet();
       set<String> intersect;
       set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
       if (!intersect.empty())
       {
-        filtered.push_back(*h_it);
+        filtered.push_back(h_it);
       }
     }
     return filtered;
