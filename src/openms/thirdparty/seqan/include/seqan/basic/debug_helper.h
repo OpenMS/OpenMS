@@ -59,7 +59,7 @@ namespace seqan {
 
 // TODO(holtgrew): Document, make public.
 
-// compare two files, do not translate linebreaks
+// compare two files, do not translate line breaks
 inline bool 
 _compareBinaryFiles(const char * file1, const char * file2)
 {
@@ -128,7 +128,7 @@ _compareTextFilesReadChar(FILE * fl, char & c, int & num_lb, bool & is_eof)
     }
 }
 
-// compare two files, translate linebreaks
+// compare two files, translate line breaks
 inline bool 
 _compareTextFiles(const char * file1, const char * file2)
 {

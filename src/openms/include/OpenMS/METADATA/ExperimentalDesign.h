@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ namespace OpenMS
 
     - Spectra_Filepath: a filename or path as string representation (e.g., SILAC_file.mzML)
 
-    For processing with MSstats, the optional sample columns are typically MSstats_Condition and MSstats_BioReplicate with an additonal MSstats_Mixture
+    For processing with MSstats, the optional sample columns are typically MSstats_Condition and MSstats_BioReplicate with an additional MSstats_Mixture
     column in the case of TMT labeling.
     They capture the experimental factors and conditions associated with a sample.
 
@@ -86,7 +86,7 @@ namespace OpenMS
                           
     - MSstats_Mixture: (for TMT labeling only): a numeric identifier to indicate the mixture of samples labeled with different TMT reagents, which can be analyzed in
                                              a single mass spectrometry experiment. E.g., same samples labeled with different TMT reagents have a different mixture identifier. 
-                                             Technical replicates need to have the same mixture identifer.
+                                             Technical replicates need to have the same mixture identifier.
 
     For details on the MSstats columns please refer to the MSstats manual for details
     (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).

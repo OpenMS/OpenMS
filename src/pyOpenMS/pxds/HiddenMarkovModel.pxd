@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         HMMState(HMMState &) nogil except +
         HMMState(const String & name, bool hidden) nogil except +
 
-        # They dont exist ...
+        # They don't exist ...
         # bool operator==(HMMState) nogil except +
         # bool operator!=(HMMState) nogil except +
 

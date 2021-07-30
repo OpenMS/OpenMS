@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -284,8 +284,7 @@ private:
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
-     * (see computeCosineSim_) if som#include <OpenMS/KERNEL/MSExperiment.h>
-e conditions are fulfilled. Mainly the
+     * (see computeCosineSim_) if some conditions are fulfilled. Mainly the
      * overlap between the two peaks at FHWM needs to exceed a certain
      * threshold. The threshold is set at 0.7 (i.e. 70 % overlap) as also
      * described in Kenar et al.
