@@ -190,7 +190,7 @@ namespace OpenMS
     map<unsigned int, double> neon_mass = {{20u,  19.99244018}, {21u, 20.9938467}, {22u, 21.9913851}};
     buildElement_("Neon", "Ne", 10u, neon_abundance, neon_mass);
 
-
+    
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
     map<unsigned int, double> sodium_mass = {{23u, 22.989769280899999}};
     buildElement_("Sodium", "Na", 11u, sodium_abundance, sodium_mass);
@@ -395,6 +395,7 @@ namespace OpenMS
     map<unsigned int, double> antimony_mass = {{121u, 120.903815699999996}, {123u, 122.904213999999996}};
     buildElement_("Antimony", "Sb", 51u, antimony_abundance, antimony_mass);
 
+    
     map<unsigned int, double> tellurium_abundance = {{120u, 0.0009}, {122u, 0.0255}, {124u, 0.047400000000000005}, {125u, 0.0707}, {126u, 0.1884}, {128u, 0.31739999999999996}, {130u, 0.3408}};
     map<unsigned int, double> tellurium_mass = {{120u, 119.904020000000003}, {122u, 121.9030439}, {124u, 123.902817900000002}, {125u, 124.904430700000006}, {126u, 125.903311700000003}, {128u, 127.904463100000001}, {130u, 129.906224400000014}};
     buildElement_("Tellurium", "Te", 52u, tellurium_abundance, tellurium_mass);
@@ -449,6 +450,7 @@ namespace OpenMS
     map<unsigned int, double> europium_mass = {{151u, 150.919857}, {153u, 152.921237}};
     buildElement_("Europium", "Eu", 63u, europium_abundance, europium_mass);
 
+    
     map<unsigned int, double> gadolinium_abundance = {{152u, 0.002}, {154u, 0.0218}, {155u, 0.14800000000000002}, {156u, 0.2047}, {157u, 0.1565}, {158u, 0.2484}, {160u, 0.2186}};
     map<unsigned int, double> gadolinium_mass = {{152u, 151.919791000000004}, {154u, 153.920865600000013}, {155u, 154.92262199999999}, {156u, 155.922122699999989}, {157u, 156.923960099999988}, {158u, 157.924103900000006}, {160u, 159.927054099999992}};
     buildElement_("Gadolinium", "Gd", 64u, gadolinium_abundance, gadolinium_mass);
@@ -543,7 +545,7 @@ namespace OpenMS
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
-
+    
     map<unsigned int, double> protactinium_abundance = {{231u, 1.0}};
     map<unsigned int, double> protactinium_mass = {{231u, 231.03588}};
     buildElement_("Protactinium", "Pa", 91u, protactinium_abundance, protactinium_mass);
@@ -552,6 +554,7 @@ namespace OpenMS
     map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
+
   }
 
   void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
