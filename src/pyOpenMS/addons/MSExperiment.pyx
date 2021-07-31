@@ -11,9 +11,6 @@
             inc(it__r)
         return result
 
-
-
-
     def getChromatogram(self,  id_ ):
         """Cython signature: MSChromatogram getChromatogram(size_t id_)"""
         assert isinstance(id_, (int, long)), 'arg id_ wrong type'

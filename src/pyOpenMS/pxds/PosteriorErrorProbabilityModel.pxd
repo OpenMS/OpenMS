@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         #    DefaultParamHandler
 
         PosteriorErrorProbabilityModel() nogil except +
+        # private
         PosteriorErrorProbabilityModel(PosteriorErrorProbabilityModel) nogil except +   # wrap-ignore
 
         bool fit(libcpp_vector[double] & search_engine_scores, String outlier_handling) nogil except +

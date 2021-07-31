@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   class IsobaricQuantitationMethod;
-  struct IsobaricQuantifierStatistics;
+  class IsobaricQuantifierStatistics;
   class ConsensusMap;
   class ConsensusFeature;
 

@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
     cdef cppclass ConvexHull2D:
 
         ConvexHull2D() nogil except +
-        ConvexHull2D(ConvexHull2D) nogil except + # wrap-ignore
+        ConvexHull2D(ConvexHull2D &) nogil except +
 
         bool operator==(ConvexHull2D) nogil except +
         void clear()       nogil except +

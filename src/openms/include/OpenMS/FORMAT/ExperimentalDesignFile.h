@@ -52,7 +52,6 @@ namespace OpenMS
   {
     public:
 
-
     /// Loads an experimental design from a tabular separated file
     static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files);
 

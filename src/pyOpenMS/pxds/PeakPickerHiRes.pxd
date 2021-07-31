@@ -13,9 +13,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
         #    DefaultParamHandler
         #    ProgressLogger
 
-        PeakPickerHiRes()                  nogil except +
-        PeakPickerHiRes(PeakPickerHiRes)   nogil except + #wrap-ignore
-
+        PeakPickerHiRes() nogil except +
+        PeakPickerHiRes(PeakPickerHiRes &) nogil except + # compiler
         void pick(MSSpectrum & input,
                   MSSpectrum & output
                  ) nogil except +
@@ -27,7 +26,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
     
     cdef cppclass PeakBoundary "OpenMS::PeakPickerHiRes::PeakBoundary":
-        PeakBoundary() nogil except +
-        PeakBoundary(PeakBoundary) nogil except + #wrap-ignore
+        PeakBoundary() nogil except + # compiler
+        PeakBoundary(PeakBoundary &) nogil except + # compiler
         double mz_min
         double mz_max

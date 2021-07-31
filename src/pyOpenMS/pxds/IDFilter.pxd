@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
     cdef cppclass IDFilter:
 
-        IDFilter()           nogil except +
-        IDFilter(IDFilter)   nogil except + # wrap-ignore
+        IDFilter() nogil except +
+        IDFilter(IDFilter &) nogil except + # compiler
 
         Size countHits(libcpp_vector[PeptideIdentification] identifications) nogil except +
         Size countHits(libcpp_vector[ProteinIdentification] identifications) nogil except +

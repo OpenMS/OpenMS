@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
         DigestionEnzymeRNA() nogil except +
 
-        DigestionEnzymeRNA(DigestionEnzymeRNA) nogil except +
+        DigestionEnzymeRNA(DigestionEnzymeRNA &) nogil except +
 
         # sets the "cuts after ..." regular expression
         void setCutsAfterRegEx(String value) nogil except + # wrap-doc:Sets the "cuts after ..." regular expression

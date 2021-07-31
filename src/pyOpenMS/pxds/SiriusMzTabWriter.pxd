@@ -11,17 +11,16 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
     
     cdef cppclass SiriusMzTabWriter:
         SiriusMzTabWriter() nogil except + 
-        SiriusMzTabWriter(SiriusMzTabWriter) nogil except + 
+        SiriusMzTabWriter(SiriusMzTabWriter &) nogil except + # compiler
 
     cdef cppclass SiriusMzTabWriter_SiriusSpectrumMSInfo "OpenMS::SiriusMzTabWriter::SiriusSpectrumMSInfo":
 
       SiriusMzTabWriter_SiriusSpectrumMSInfo() nogil except +
-      SiriusMzTabWriter_SiriusSpectrumMSInfo(SiriusMzTabWriter_SiriusSpectrumMSInfo) nogil except +
+      SiriusMzTabWriter_SiriusSpectrumMSInfo(SiriusMzTabWriter_SiriusSpectrumMSInfo &) nogil except + # compiler
 
       StringList ext_n_id
       double ext_mz
       double ext_rt
-
 
 # wrap static method:
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS::SiriusMzTabWriter":
@@ -37,4 +36,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
                   const String& original_input_mzml, 
                   Size top_n_hits, 
                   MzTab& result) nogil except + # wrap-attach:SiriusMzTabWriter
-

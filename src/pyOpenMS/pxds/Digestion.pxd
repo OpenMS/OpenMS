@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/METADATA/Digestion.h>" namespace "OpenMS":
     
     cdef cppclass Digestion "OpenMS::Digestion":
         Digestion() nogil except +
-        Digestion(Digestion) nogil except +
+        Digestion(Digestion &) nogil except +
         # bool operator==(SampleTreatment &rhs) nogil except +
         # SampleTreatment * clone() nogil except +
         String  getEnzyme() nogil except + # wrap-doc:Returns the enzyme name (default is "")

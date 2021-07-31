@@ -10,8 +10,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
         # wrap-inherits:
         #    DefaultParamHandler
 
-        FalseDiscoveryRate()                  nogil except +
-        FalseDiscoveryRate(FalseDiscoveryRate)   nogil except + #wrap-ignore
+        FalseDiscoveryRate() nogil except +
+        # private
+        FalseDiscoveryRate(FalseDiscoveryRate &) nogil except + #wrap-ignore
 
         void apply(libcpp_vector[PeptideIdentification] & forward_ids, libcpp_vector[PeptideIdentification] & reverse_ids) nogil except + 
         void apply(libcpp_vector[PeptideIdentification] & id) nogil except + 

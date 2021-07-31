@@ -5,8 +5,9 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
 
     cdef cppclass FileTypes:
 
+        # compiler
         FileTypes() nogil except + # wrap-doc:Centralizes the file types recognized by FileHandler
-        FileTypes(FileTypes) nogil except +
+        FileTypes(FileTypes &) nogil except + # compiler
 
         String typeToName(FileType t) nogil except + # wrap-doc:Returns the name/extension of the type
 
@@ -70,4 +71,3 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
           PSMS,               # < Percolator tab-delimited output (PSM level)
           PARAMXML,           # < internal format for writing and reading parameters (also used as part of CTD)
           SIZE_OF_TYPE        # < No file type. Simply stores the number of types
-

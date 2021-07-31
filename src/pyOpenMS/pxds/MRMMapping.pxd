@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MRMMapping.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
         MRMMapping() nogil except +
+        # protected
         MRMMapping(MRMMapping) nogil except + #wrap-ignore
 
         void mapExperiment(MSExperiment input_chromatograms, TargetedExperiment targeted_exp, MSExperiment& output) nogil except +

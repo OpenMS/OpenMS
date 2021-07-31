@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>" namespace
     cdef cppclass IsobaricQuantifier(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        IsobaricQuantifier(IsobaricQuantifier) nogil except +
+        IsobaricQuantifier(IsobaricQuantifier &) nogil except +
 
         IsobaricQuantifier(IsobaricQuantitationMethod *quant_method) nogil except +  # wrap-ignore
         IsobaricQuantifier(ItraqFourPlexQuantitationMethod *quant_method) nogil except +

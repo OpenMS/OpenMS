@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
         #  ProgressLogger
 
         MRMAssay() nogil except +
-        MRMAssay(MRMAssay) nogil except + #wrap-ignore
+        MRMAssay(MRMAssay &) nogil except + # compiler
 
         void reannotateTransitions(TargetedExperiment & exp, 
                                    double precursor_mz_threshold,

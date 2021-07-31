@@ -69,8 +69,9 @@ namespace OpenMS
            @ingroup DATAACCESS
           */
 
-          struct CsiAdapterHit
+          class CsiAdapterHit
           {
+          public:
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
             unsigned int rank = 0;
@@ -87,8 +88,9 @@ namespace OpenMS
 
           };
 
-          struct CsiAdapterIdentification
+          class CsiAdapterIdentification
           {
+          public:
             double mz = 0.;
             double rt = 0.;
             OpenMS::StringList native_ids;
@@ -98,8 +100,9 @@ namespace OpenMS
             std::vector<CsiAdapterHit> hits;
           };
 
-          struct CsiAdapterRun
+          class CsiAdapterRun
           {
+          public:
             std::vector <CsiAdapterIdentification> identifications;
           };
 
@@ -120,4 +123,3 @@ namespace OpenMS
 
       };
 }
-

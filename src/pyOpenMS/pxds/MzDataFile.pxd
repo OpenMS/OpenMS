@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         #   ProgressLogger
 
         MzDataFile() nogil except +
+        MzDataFile(MzDataFile &) nogil except +
 
         void load(const String&, MSExperiment &) nogil except+
         void store(const String&, MSExperiment &) nogil except+

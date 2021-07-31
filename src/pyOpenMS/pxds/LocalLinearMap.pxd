@@ -6,7 +6,8 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
     
     cdef cppclass LocalLinearMap "OpenMS::LocalLinearMap":
         LocalLinearMap() nogil except +
-        LocalLinearMap(LocalLinearMap) nogil except + #wrap-ignore
+        # private
+        LocalLinearMap(LocalLinearMap &) nogil except + # wrap-ignore
         LLMParam getLLMParam() nogil except +
         Matrix[ double ]  getCodebooks() nogil except +
         Matrix[ double ]  getMatrixA() nogil except +
