@@ -37,9 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <map>
-#include <set>
-#include <list>
+#include<bits/stdc++.h>
 
 //using namespace std;
 

@@ -36,28 +36,25 @@
 
 #include <xercesc/util/PlatformUtils.hpp>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+
+  // Initialize xerces
+  // see ticket #352 for more details
+  struct xerces_init
   {
-
-    // Initialize xerces
-    // see ticket #352 for more details
-    struct xerces_init
+    xerces_init() 
     {
-      xerces_init() 
-      {
-        xercesc::XMLPlatformUtils::Initialize();
-      }
+      xercesc::XMLPlatformUtils::Initialize();
+    }
 
-      ~xerces_init() 
-      {
-        xercesc::XMLPlatformUtils::Terminate();
-      }
+    ~xerces_init() 
+    {
+      xercesc::XMLPlatformUtils::Terminate();
+    }
 
-    };
-    const xerces_init xinit;
+  };
+  const xerces_init xinit;
 
-  }
-}
+} //OpenMS //Internal
 

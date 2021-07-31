@@ -53,11 +53,8 @@
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
 
-namespace OpenMS
+namespace OpenMS::Exception
 {
-
-  namespace Exception
-  {
 
     GlobalExceptionHandler::GlobalExceptionHandler() throw()
     {
@@ -143,6 +140,5 @@ namespace OpenMS
       GlobalExceptionHandler::line_() = line;
     }
 
-  } // namespace Exception
 
-} // namespace OpenMS
+} // namespace OpenMS // namespace Exception

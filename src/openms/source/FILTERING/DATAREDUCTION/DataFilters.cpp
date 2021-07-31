@@ -136,7 +136,9 @@ namespace OpenMS
     tmp.split(' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
+    }
     //field
     tmp = parts[0];
     tmp.toLower();

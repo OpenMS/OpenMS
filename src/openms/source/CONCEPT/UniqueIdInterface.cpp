@@ -37,8 +37,7 @@
 namespace OpenMS
 {
 
-  void
-  UniqueIdInterface::setUniqueId(const String & rhs)
+  void UniqueIdInterface::setUniqueId(const String & rhs)
   {
     clearUniqueId();
 
