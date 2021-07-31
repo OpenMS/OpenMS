@@ -110,7 +110,6 @@ namespace OpenMS
     bool is_ms1_shown_ = false;
     bool is_first_time_loading = true;
     std::unordered_map<String, std::vector<PeptideIdentification>> protein_to_peptide_id_map;
-  
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();

@@ -25,6 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/protvista-zoomable@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-track@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-navigation@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-tooltip@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-sequence@latest" defer></script>
     <script defer>
 
@@ -50,35 +51,49 @@
 
         let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data
         let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
+        let peptides_mod_data_arr = SequenceVisualizer.json_data_obj.peptides_mod_data;
         let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length
+        console.log(typeof peptides_mod_data_arr)
+        console.log("size->",peptides_mod_data_arr[0])
 
 
         let peptide_obj = [];
         let mod_peptide_obj = [];
 
-        for (const key of peptides_data_arr) {
+        for (const pep of peptides_data_arr) {
             let obj = {};
-            let mod_obj = {};
 
-            obj["start"] = key.start;
-            obj["end"] = key.end;
-            obj["accession"] = key.seq;
-            obj["color"] = pickColor(key.seq);
-
-            if(key.mod_pos){
-                mod_obj["start"] = key.mod_pos;
-                mod_obj["end"] = key.mod_pos;
-                mod_obj["color"] = pickColor(key.seq);
-                mod_obj["shape"] = "circle";
-                mod_peptide_obj.push(mod_obj);
-            }
+            obj["start"] = pep.start;
+            obj["end"] = pep.end;
+            obj["accession"] = pep.seq;
+            obj["color"] = pickColor(pep.seq);
 
             peptide_obj.push(obj);
         }
 
+        for (const pepList of peptides_mod_data_arr) {
+            for (let mod in pepList.mod_data) {
+                for(const index of pepList.mod_data[mod]){
+                    let mod_obj = {};
+
+                    mod_obj["start"] = pepList.pep_start + index + 1;
+                    mod_obj["end"] = pepList.pep_start + index + 1;
+                    mod_obj["accession"] = pepList.seq;
+                    mod_obj["color"] = pickColor(mod);
+                    mod_obj["shape"] = "circle";
+                    mod_obj["tooltipContent"] = mod;
+
+                    mod_peptide_obj.push(mod_obj);
+        
+                }
+            }
+        }
+
+
+
 
         let protNav = `
-        <protvista-navigation  
+        <protvista-navigation
         length="${protlen}"
         displaystart="1"
         displayend="100"
@@ -96,7 +111,7 @@
         `
         let protTrack = `
         <protvista-track id="track"
-        length="${protlen}" 
+        length="${protlen}"
         displaystart="1"
         displayend="${protlen}"
         use-ctrl-to-zoom="true"
@@ -104,26 +119,57 @@
         `
         let modProtTrack = `
         <protvista-track id="mod_track"
-        length="${protlen}" 
+        length="${protlen}"
         displaystart="0"
         displayend="${protlen}"
         use-ctrl-to-zoom="true"
+        tooltip-event="mouseover"
         />
         `
-         document.querySelector("#toppview_prot_visualizer").data = protein_seq;
+        let tooltipHTML = `
+        <protvista-tooltip 
+        id="toolTip"
+        ></protvista-tooltip>`
+        
+
+        document.querySelector("#toppview_prot_visualizer").data = protein_seq;
+
         $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
         $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
         $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
         $($.parseHTML(modProtTrack)).appendTo($("#toppview_prot_visualizer"));
+        $($.parseHTML(tooltipHTML)).appendTo($("#toppview_prot_visualizer"));
+
         document.querySelector("#track").data = peptide_obj;
         document.querySelector("#mod_track").data = mod_peptide_obj;
-       
+
+        const modTrackElement = document.querySelector('#mod_track');
+	    const toolTipElement = document.querySelector('#toolTip');
+
+	    modTrackElement.addEventListener('change', (event) => {
+	 	    console.log(event)
+		    if(event.detail.eventtype == "mouseover"){
+                let cur_mod_data = event.detail.feature
+			    let x = event.detail.coords[0];
+	  		    let y = event.detail.coords[1];
+	  		    toolTipElement.visible = true;
+	  		    toolTipElement.x = x;
+	  		    toolTipElement.y = y;	
+                toolTipElement.title = cur_mod_data.tooltipContent;
+                toolTipElement.innerHTML = cur_mod_data.accession;
+		    }
+		    if(event.detail.eventtype == "mouseout"){
+			    toolTipElement.visible = false;
+		    }
+	   
+	    });
+
         });
         });
     </script>
 </head>
   <body>
-      <protvista-manager attributes="length displaystart displayend highlight"
+      <protvista-manager attributes="length displaystart displayend highlight onclick"
                          id="toppview_prot_visualizer">
           
           

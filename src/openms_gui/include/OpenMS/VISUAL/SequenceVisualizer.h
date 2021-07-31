@@ -6,6 +6,9 @@
 #include <QWidget>
 #include <QJsonObject>
 
+#include <unordered_map>
+#include <vector>
+
 namespace Ui
 {
   class SequenceVisualizer;
@@ -25,7 +28,7 @@ namespace OpenMS
 
   public slots:
 
-    void setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray peptides_data);
+    void setProteinPeptideDataToJsonObj(QString pro_seq, QJsonArray peptides_data, QJsonArray pep_mod_data);
 
   private:
     Ui::SequenceVisualizer* ui;

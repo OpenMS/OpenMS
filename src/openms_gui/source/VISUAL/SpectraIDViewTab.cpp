@@ -348,6 +348,9 @@ namespace OpenMS
 
         //array to store object of start and end postion of peptides;
         QJsonArray peptides_data;
+        // Array to objects of mod data of peptides, peptides start position and sequence
+        QJsonArray peptides_mod_data;
+
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
         for (auto pep : protein_to_peptide_id_map[single_accessions.at(0)])
         {
@@ -355,22 +358,33 @@ namespace OpenMS
           const vector<PeptideHit>& pep_hits = pep.getHits();
           const PeptideHit& hit = pep_hits[0];
           const String& pep_seq = hit.getSequence().toString();
-          std::cout << "pep seq => " << pep_seq << std::endl;
-          std::cout << AASequence().fromString(pep_seq).toUnmodifiedString() << std::endl;
-          std::cout << AASequence().fromString(pep_seq).toString() << std::endl;
-          std::cout << AASequence().fromString(pep_seq).toUniModString() << std::endl;
-          auto seq = AASequence().fromString(pep_seq);
 
+          // contains the keys - mod_data, pep_start and seq 
+          QJsonObject peptides_mod_obj; 
+          // contains key-value of modName and vector of indices
+          QJsonObject mod_data; 
+          std::cout << "pep seq => " << pep_seq << std::endl;
+          auto seq = AASequence().fromString(pep_seq);
+          
           for (int i = 0; i < seq.size(); ++i)
           {
-            std::cout << seq[i].isModified() << std::endl;
             if (seq[i].isModified()) 
             {
-              std::cout << "pushed->" << i << std::endl;
-              mod_index.push_back(i);
+              const String& mod_name = seq[i].getModificationName();
+              
+              if (!mod_data.contains(mod_name.toQString())) {
+                mod_data[mod_name.toQString()] = QJsonArray {i};
+              }
+              else
+              {
+                QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
+                values.push_back(i);
+                mod_data[mod_name.toQString()] = values;
+              }
             }
           }
-          std::cout << mod_index.size() << "<---->" << std::endl;
+
+          peptides_mod_obj["mod_data"] = mod_data;
           
           //store start and end positions-
           for (int j = 0; j < pep_hits.size(); ++j)
@@ -386,23 +400,21 @@ namespace OpenMS
               
               if (id_accession == single_accessions.at(0))
               {
+                data["start"] = pep_start;
+                data["end"] = pep_end;
+                data["seq"] = pep_seq.toQString();
 
-                data.insert(QStringLiteral("start"), pep_start);
-                data.insert(QStringLiteral("end"), pep_end);
-                data.insert(QStringLiteral("seq"), pep_seq.toQString());
-                if (mod_index.size() > 0)
-                {
-                  std::cout << "pep_start_pos_in_protein->" << pep_start << std::endl;
-                  int mod_pos = pep_start + mod_index.at(0) + 1;
-                  std::cout << "mod_pos->" << mod_pos << std::endl;
-                  data.insert(QStringLiteral("mod_pos"), mod_pos);
-                }
+                peptides_mod_obj["pep_start"] = pep_start;
+                peptides_mod_obj["seq"] = pep_seq.toQString();
+
                 peptides_data.push_back(data);
               }
             }
           }
-        }
+          peptides_mod_data.push_back(peptides_mod_obj);
 
+        }
+        std::cout << "mod data size->" << peptides_mod_data.size() << std::endl;
         //protein
         const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
         const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
@@ -422,7 +434,7 @@ namespace OpenMS
         }
        
         SequenceVisualizer* widget = new SequenceVisualizer();
-        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_data);
+        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
     }
