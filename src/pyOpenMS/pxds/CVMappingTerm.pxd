@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingTerm.h>" namespace "OpenMS":
 
     cdef cppclass CVMappingTerm:
 
-        CVMappingTerm()               nogil except +
-        CVMappingTerm(CVMappingTerm)  nogil except +
+        CVMappingTerm() nogil except +
+        CVMappingTerm(CVMappingTerm &) nogil except +
 
         # sets the accession string of the term
         void setAccession(String accession) nogil except + # wrap-doc:Sets the accession string of the term

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -863,7 +863,7 @@ namespace OpenMS
             protein_name = line.substr(pos, protein_name_length_);
             protein_name.substitute('>', '}');
             // cppcheck produces a false positive warning here -> ignore
-            // cppcheck-suppress redundantCopy
+            // cppcheck-suppress redundant copy
             memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
             record_flags |= ac_flag; // set the ac flag

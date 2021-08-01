@@ -21,7 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         # wrap-ignore
         # no-pxd-import
 
-        TransformationModel()  nogil except +
+        TransformationModel() nogil except +
+        # private 
         TransformationModel(TransformationModel, Param) nogil except + # wrap-ignore
 
         Param getParameters() nogil except +
@@ -39,4 +40,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
 
         void unWeightData(libcpp_vector[TM_DataPoint] & data) nogil except +
         double checkDatumRange(const double & datum, const double & datum_min, const double & datum_max) nogil except +
-

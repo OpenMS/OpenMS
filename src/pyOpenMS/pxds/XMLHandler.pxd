@@ -7,8 +7,10 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Inte
     
     # inherits from xercesc DefaultHandler -> no wrapping of it xercesc classes
     cdef cppclass XMLHandler:
+        # private
         XMLHandler() nogil except + #wrap-ignore
-        XMLHandler(XMLHandler) nogil except + #wrap-ignore
+        #  copy constructor of 'XMLHandler' is implicitly deleted because base class 'xercesc::DefaultHandler' has an inaccessible copy constructor public xercesc::DefaultHandler
+        XMLHandler(XMLHandler &) nogil except + # wrap-ignore
 
         # NAMESPACE # void fatalError(xercesc::SAXParseException & exception) nogil except +
         # NAMESPACE # void error(xercesc::SAXParseException & exception) nogil except +

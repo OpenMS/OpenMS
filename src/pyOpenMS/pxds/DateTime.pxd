@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
     cdef cppclass DateTime:
 
         DateTime()   nogil except +
-        DateTime(DateTime) nogil except + # wrap-ignore
+        DateTime(DateTime &) nogil except +
 
         void setDate(String date) nogil except +
 

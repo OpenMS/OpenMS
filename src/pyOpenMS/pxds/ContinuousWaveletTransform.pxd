@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
     
     cdef cppclass ContinuousWaveletTransform "OpenMS::ContinuousWaveletTransform":
         ContinuousWaveletTransform() nogil except +
-        ContinuousWaveletTransform(ContinuousWaveletTransform) nogil except + #wrap-ignore
+        ContinuousWaveletTransform(ContinuousWaveletTransform &) nogil except + # compiler
         libcpp_vector[ Peak1D ]  getSignal() nogil except +
         void setSignal(libcpp_vector[ Peak1D ] & signal) nogil except +
         libcpp_vector[ double ]  getWavelet() nogil except +

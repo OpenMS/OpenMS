@@ -8,8 +8,9 @@ from FeatureFinderAlgorithmPickedHelperStructs cimport *
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" namespace "OpenMS":
 
     cdef cppclass GaussTraceFitter:
+
         GaussTraceFitter() nogil except + # wrap-doc:Fitter for RT profiles using a Gaussian background model
-        GaussTraceFitter(GaussTraceFitter) nogil except + # wrap-ignore
+        GaussTraceFitter(GaussTraceFitter &) nogil except +
         void fit(MassTraces& traces) nogil except + # wrap-doc:Override important methods
         double getLowerRTBound() nogil except + # TODO
         double getUpperRTBound() nogil except + # TODO
@@ -23,4 +24,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" nam
         double getArea() nogil except + # TODO
         String getGnuplotFormula(MassTrace & trace, char function_name, double baseline, double rt_shift) nogil except + # TODO
         double getValue(double rt) nogil except + # TODO
-

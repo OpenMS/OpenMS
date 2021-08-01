@@ -8,8 +8,8 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
     
     cdef cppclass ExperimentalDesign "OpenMS::ExperimentalDesign":
-        ExperimentalDesign() nogil except + # wrap-doc:Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class.
-        ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
+        ExperimentalDesign() nogil except + # compiler # wrap-doc:Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class.
+        ExperimentalDesign(ExperimentalDesign &) nogil except + # compiler
 
         libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] getMSFileSection() nogil except + # TODO
         void setMSFileSection(libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] msfile_section) nogil except + # TODO

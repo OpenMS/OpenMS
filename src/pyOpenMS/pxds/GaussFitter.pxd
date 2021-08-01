@@ -8,7 +8,8 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
     cdef cppclass GaussFitter:
 
         GaussFitter() nogil except + # wrap-doc:Implements a fitter for Gaussian functions
-        GaussFitter(GaussFitter) nogil except +   # wrap-ignore
+        # private
+        GaussFitter(GaussFitter) nogil except + # wrap-ignore
 
         # sets the initial parameters used by the fit method as inital guess for the gaussian
         void setInitialParameters(GaussFitResult & result) nogil except + # wrap-doc:Sets the initial parameters used by the fit method as initial guess for the Gaussian
@@ -24,7 +25,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
 
         GaussFitResult() nogil except +
         GaussFitResult(double, double, double) nogil except +
-        GaussFitResult(GaussFitResult) nogil except +   # wrap-ignore
+        GaussFitResult(GaussFitResult &) nogil except + # compiler
 
         double eval(double) nogil except +
 

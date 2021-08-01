@@ -14,7 +14,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
         #    DefaultParamHandler
 
         DIAScoring() nogil except +
-        # DIAScoring(DIAScoring) nogil except + #private
+        # private
+        DIAScoring(DIAScoring) nogil except + # wrap-ignore
 
         bool dia_ms1_massdiff_score(double precursor_mz, OSSpectrumPtr spectrum,
                                     double& ppm_score) nogil except + 

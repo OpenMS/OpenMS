@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
     cdef cppclass PeakFileOptions:
 
         PeakFileOptions() nogil except +
-        PeakFileOptions(PeakFileOptions) nogil except +
+        PeakFileOptions(PeakFileOptions &) nogil except +
 
         void setMetadataOnly(bool) nogil except +
         bool getMetadataOnly()     nogil except +

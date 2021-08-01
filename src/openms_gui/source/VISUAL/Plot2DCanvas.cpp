@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -2470,7 +2470,7 @@ namespace OpenMS
           {
             precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
-          QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // neuer Eintrag für jeden Precursor
+          QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           a = msn_precursor->addAction(QString("Show all"));

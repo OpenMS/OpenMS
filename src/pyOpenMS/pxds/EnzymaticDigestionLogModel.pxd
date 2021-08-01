@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "Op
     cdef cppclass EnzymaticDigestionLogModel:
 
       EnzymaticDigestionLogModel() nogil except + # wrap-doc:Class for the Log L model of enzymatic digestion of proteins
+      EnzymaticDigestionLogModel(EnzymaticDigestionLogModel &) nogil except + 
 
       # not wrapped due to name clash with Enzyme.h
       # Enzyme getEnzyme()  nogil except +

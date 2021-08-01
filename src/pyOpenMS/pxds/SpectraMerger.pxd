@@ -12,10 +12,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>" namespace "Op
         # wrap-inherits:
         #    DefaultParamHandler
 
-        SpectraMerger()            nogil except +
-        SpectraMerger(SpectraMerger) nogil except + #wrap-ignore
+        SpectraMerger() nogil except +
+        SpectraMerger(SpectraMerger &) nogil except +
 
         void mergeSpectraBlockWise(MSExperiment & exp) nogil except +
         void mergeSpectraPrecursors(MSExperiment & exp) nogil except +
         void average(MSExperiment & exp, String average_type) nogil except +
-

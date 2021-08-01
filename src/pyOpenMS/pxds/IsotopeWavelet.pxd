@@ -4,7 +4,11 @@ from IsotopeDistribution cimport *
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>" namespace "OpenMS":
     
     cdef cppclass IsotopeWavelet "OpenMS::IsotopeWavelet":
-        IsotopeWavelet(IsotopeWavelet) nogil except + #wrap-ignore
+
+        #protected
+        IsotopeWavelet() nogil except + #wrap-ignore
+        #protected
+        IsotopeWavelet(IsotopeWavelet &) nogil except + #wrap-ignore
 
         # IsotopeWavelet * init(double max_m, UInt max_charge) nogil except +
         # IsotopeWavelet * getInstance() nogil except +

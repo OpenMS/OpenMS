@@ -23,7 +23,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
         #    DefaultParamHandler
 
         IDRipper() nogil except +
-        IDRipper(IDRipper) nogil except +   # wrap-ignore
+        # private
+        IDRipper(IDRipper) nogil except + # wrap-ignore
 
         # see additional pyx file in ./addons
         void rip( 
