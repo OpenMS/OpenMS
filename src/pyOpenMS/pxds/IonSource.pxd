@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         IonSource() nogil except + # wrap-doc:Description of an ion source (part of a MS Instrument)
-        IonSource(IonSource) nogil except + # wrap-ignore
+        IonSource(IonSource &) nogil except +
 
         # returns the ionization mode
         Polarity getPolarity() nogil except + # wrap-doc:Returns the ionization mode

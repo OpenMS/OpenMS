@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
     cdef cppclass MzTab:
 
         MzTab() nogil except +
-        MzTab(MzTab) nogil except + # wrap-ignore
+        MzTab(MzTab &) nogil except + # compiler
 
         # autowrap cannot handle wrapped classes as keys in std::map<> (this
         # would be std::map<String, ...> and does not work)

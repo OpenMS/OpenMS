@@ -174,7 +174,7 @@ namespace SEQAN_NAMESPACE_MAIN
 
 			n24 = n2 + n4;
 
-			// precompute the begin positions (off) of septet names 
+			// pre-compute the begin positions (off) of septet names 
 			// in the sliced string for every sequence and every residue class
 
 			resize(off[1], length(limits) - 1);

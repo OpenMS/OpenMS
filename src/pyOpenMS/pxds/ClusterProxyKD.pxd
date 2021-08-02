@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>" na
     
     cdef cppclass ClusterProxyKD "OpenMS::ClusterProxyKD":
         ClusterProxyKD() nogil except +
-        ClusterProxyKD(ClusterProxyKD) nogil except +
+        ClusterProxyKD(ClusterProxyKD &) nogil except +
         ClusterProxyKD(Size size, double avg_distance, Size center_index) nogil except +
         bool operator<(ClusterProxyKD & rhs) nogil except +
         bool operator!=(ClusterProxyKD & rhs) nogil except +

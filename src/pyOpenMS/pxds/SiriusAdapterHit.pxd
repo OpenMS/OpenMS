@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
     
     cdef cppclass SiriusAdapterHit "OpenMS::SiriusMzTabWriter::SiriusAdapterHit":
         SiriusAdapterHit() nogil except +
-        SiriusAdapterHit(SiriusAdapterHit) nogil except + #wrap-ignore
+        SiriusAdapterHit(SiriusAdapterHit &) nogil except + # compiler
 
         String formula
         String adduct

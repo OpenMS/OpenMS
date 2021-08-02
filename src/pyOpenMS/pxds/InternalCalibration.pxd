@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         #    ProgressLogger
 
         InternalCalibration()      nogil except + # wrap-doc:A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses
-        InternalCalibration(InternalCalibration) nogil except +
+        InternalCalibration(InternalCalibration &) nogil except + # compiler
 
 
         Size fillCalibrants(MSExperiment,
@@ -130,6 +130,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   :param rscript_executable: Full path to the Rscript executable
                 #   :returns: true upon successful calibration
 
+
 ## wrap static methods
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
@@ -143,9 +144,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     cdef cppclass InternalCalibration_LockMass "OpenMS::InternalCalibration::LockMass":
-        #InternalCalibration_LockMass() nogil except +
-        InternalCalibration_LockMass(InternalCalibration_LockMass) nogil except + # wrap-ignore
         InternalCalibration_LockMass(double mz_, int lvl_, int charge_) nogil except +
+        InternalCalibration_LockMass(InternalCalibration_LockMass &) nogil except + # compiler
         double mz # m/z of the lock mass (incl. adducts)
         unsigned int ms_level # MS level where it occurs
         int charge # charge of the ion (to find isotopes)

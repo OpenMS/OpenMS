@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
     cdef cppclass IonDetector(MetaInfoInterface):
         # wrap-inherits:
         #    MetaInfoInterface
-
+        
         IonDetector() nogil except + # wrap-doc:Description of a ion detector (part of a MS Instrument)
-        IonDetector(IonDetector) nogil except + # wrap-ignore
+        IonDetector(IonDetector &) nogil except + 
 
         # returns the detector type
         Type_IonDetector getType() nogil except + # wrap-doc:Returns the detector type

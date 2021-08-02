@@ -13,6 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
     cdef cppclass IsotopeLabelingMDVs(DefaultParamHandler) :
         
         IsotopeLabelingMDVs() nogil except +
+        IsotopeLabelingMDVs(IsotopeLabelingMDVs &) nogil except + # compiler
 
         void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
           Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +

@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
             #   distribution, calculations are done using classes derived from
             #   IsotopePatternGenerator.
 
-        IsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
+        IsotopeDistribution(IsotopeDistribution &) nogil except +
 
         # overwrites the container which holds the distribution using @p distribution
         void set(libcpp_vector[ Peak1D ]& distribution) nogil except + # wrap-doc:Overwrites the container which holds the distribution using 'distribution'

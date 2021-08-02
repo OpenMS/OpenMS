@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         Instrument() nogil except + # wrap-doc:Description of a MS instrument
-        Instrument(Instrument) nogil except + # wrap-ignore
+        Instrument(Instrument &) nogil except + # wrap-ignore
 
         # returns the name of the instrument
         String getName() nogil except + # wrap-doc:Returns the name of the instrument

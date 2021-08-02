@@ -8,7 +8,8 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
 
     cdef cppclass XQuestScores "OpenMS::XQuestScores":
-        XQuestScores(XQuestScores) nogil except + #wrap-ignore
+        XQuestScores() nogil except +
+        XQuestScores(XQuestScores &) nogil except +
         float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta) nogil except +
         float preScore(Size matched_alpha, Size ions_alpha) nogil except +
 

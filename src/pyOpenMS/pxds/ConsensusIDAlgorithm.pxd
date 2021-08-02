@@ -11,7 +11,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>" namespace "OpenMS
         # wrap-ignore
         # ABSTRACT class
         # no-pxd-import
-        ConsensusIDAlgorithm() nogil except + #wrap-ignore
-        ConsensusIDAlgorithm(ConsensusIDAlgorithm) nogil except + #wrap-ignore
+
+        # protected
+        ConsensusIDAlgorithm() nogil except + # wrap-ignore
+        # private
+        ConsensusIDAlgorithm(ConsensusIDAlgorithm) nogil except + # wrap-ignore
         void apply(libcpp_vector[ PeptideIdentification ] & ids, Size number_of_runs) nogil except +
 

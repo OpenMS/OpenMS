@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         # wrap-inherits:
         #  DefaultParamHandler
         PrecursorIonSelection() nogil except +
-        PrecursorIonSelection(PrecursorIonSelection) nogil except +
+        PrecursorIonSelection(PrecursorIonSelection &) nogil except +
 
         double  getMaxScore() nogil except +
         void setMaxScore(double & max_score) nogil except +

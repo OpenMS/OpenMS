@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "
         # wrap-inherits:
         #  InterpolationModel
         EmgModel() nogil except + # wrap-doc:Exponentially modified gaussian distribution model for elution profiles
-        EmgModel(EmgModel) nogil except +
+        EmgModel(EmgModel &) nogil except +
         # BaseModel[ 1 ] * create() nogil except +
         String getProductName() nogil except + # wrap-doc:Name of the model 
 

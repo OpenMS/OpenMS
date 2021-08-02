@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
 
     cdef cppclass ParamValue:
          ParamValue() nogil except +
-         ParamValue(ParamValue) nogil except + # wrap-ignore
+         ParamValue(ParamValue &) nogil except +
          ParamValue(char *) nogil except +
          ParamValue(const libcpp_utf8_string&) nogil except +
          ParamValue(int) nogil except +
@@ -39,4 +39,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS::Param
         INT_LIST # integer list
         DOUBLE_LIST # double list
         EMPTY_VALUE # empty value
-

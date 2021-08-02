@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
     cdef cppclass MSNumpressCoder:
 
         MSNumpressCoder() nogil except +
-        MSNumpressCoder(MSNumpressCoder) nogil except +
+        MSNumpressCoder(MSNumpressCoder &) nogil except + # compiler
 
         void encodeNP(libcpp_vector[double] in_,
                       String & result,
@@ -40,8 +40,8 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpre
 
     cdef cppclass NumpressConfig:
 
-      NumpressConfig() nogil except +
-      NumpressConfig(NumpressConfig) nogil except +
+      NumpressConfig() nogil except + # compiler
+      NumpressConfig(NumpressConfig &) nogil except + # compiler
 
       double numpressFixedPoint # fixed point for numpress algorithms
       double numpressErrorTolerance # check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything

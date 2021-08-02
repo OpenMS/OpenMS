@@ -4,8 +4,10 @@ from Types cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/IsotopeCluster.h>" namespace "OpenMS":
     
     cdef cppclass IsotopeCluster "OpenMS::IsotopeCluster":
+
         IsotopeCluster() nogil except + # wrap-doc:Stores information about an isotopic cluster (i.e. potential peptide charge variants)
-        IsotopeCluster(IsotopeCluster) nogil except + #wrap-ignore
+        IsotopeCluster(IsotopeCluster &) nogil except + # compiler
+
         ChargedIndexSet peaks
         libcpp_vector[ size_t ] scans
 

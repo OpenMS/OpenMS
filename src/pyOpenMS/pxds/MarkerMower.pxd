@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "Open
         # wrap-inherits:
         #    DefaultParamHandler
 
-        MarkerMower()            nogil except +
-        MarkerMower(MarkerMower) nogil except + #wrap-ignore
+        MarkerMower() nogil except +
+        MarkerMower(MarkerMower &) nogil except +
 
         void filterSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +

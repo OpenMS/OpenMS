@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
     cdef cppclass InspectInfile "OpenMS::InspectInfile":
 
         InspectInfile() nogil except + # wrap-doc:Inspect input file adapter
-        InspectInfile(InspectInfile) nogil except +
+        InspectInfile(InspectInfile &) nogil except +
 
         bool operator==(InspectInfile & inspect_infile) nogil except +
         void store(const String & filename) nogil except + # wrap-doc:Stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution

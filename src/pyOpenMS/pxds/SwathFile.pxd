@@ -12,7 +12,8 @@ cdef extern from "<OpenMS/FORMAT/SwathFile.h>" namespace "OpenMS":
     cdef cppclass SwathFile(ProgressLogger) :
         # wrap-inherits:
         #  ProgressLogger
-        SwathFile(SwathFile) nogil except + #wrap-ignore
+        SwathFile() nogil except + # compiler
+        SwathFile(SwathFile &) nogil except + # compiler
 
         libcpp_vector[ SwathMap ] loadSplit(StringList file_list,
                                             String tmp,
@@ -28,4 +29,3 @@ cdef extern from "<OpenMS/FORMAT/SwathFile.h>" namespace "OpenMS":
                                             String tmp,
                                             shared_ptr[ ExperimentalSettings ] exp_meta, 
                                             String readoptions) nogil except +
-

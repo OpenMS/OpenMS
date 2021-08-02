@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -442,7 +442,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);
@@ -475,7 +475,7 @@ namespace OpenMS
       { // ** RT-window
 
         // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
+        // use sorted structure and use 2nd start--1st end / 1st start--2nd end
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
@@ -530,10 +530,10 @@ namespace OpenMS
             else if (param_.getValue("unit") == "ppm")
             {
               // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
-              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetrc window around it.
-              // Instead of answering the more complex/asymetrical question: "which experimental mz can for given tolerance cause observed mz".
+              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetric window around it.
+              // Instead of answering the more complex/asymmetrical question: "which experimental mz can for given tolerance cause observed mz".
               // (In the complex case we might have to consider different queries for different tolerance windows.)
-              // The expected error of this simplicfication is negligible:
+              // The expected error of this simplification is negligible:
               // Assuming Y > X (X > Y is analog), given causative experimental mz Y and observed mz X with
               // X = Y*(1 - d)
               // for allowed tolerance d, the expected Error E between experimental mz and maximal mz in the tolerance window based on experimental mz is:
@@ -567,7 +567,7 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)
                 }
                 else
                 {
@@ -831,7 +831,7 @@ namespace OpenMS
     // ** collect related features ** //
     // ------------------------------ //
 
-    //Can we toggle here to keep metaValues from previous iteration, and modify the consistency check further down to only accept the pair if it is in agreement to old one? Probably too late then already. But we might check the metaValue and reuse the consistency code further below for evaluation further above? Should be able to compare existing annotation to the stuff we put into putativefeature_relation pairs before ILP computation itself.
+    //Can we toggle here to keep metaValues from previous iteration, and modify the consistency check further down to only accept the pair if it is in agreement to old one? Probably too late then already. But we might check the metaValue and reuse the consistency code further below for evaluation further above? Should be able to compare existing annotation to the stuff we put into putative feature_relation pairs before ILP computation itself.
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
@@ -842,7 +842,7 @@ namespace OpenMS
     // write groups to consensusXML (with type="charge_groups")
 
     // **find cliques from pairs
-    // find which featureIdx maps to which consensusFeatureIdx
+    // find which featureIdxmaps to which consensusFeatureId
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
@@ -937,7 +937,7 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
+            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {
@@ -1052,7 +1052,7 @@ namespace OpenMS
       //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
       //first try without modifying charge, maybe already there.
       // that should help get the correct mass for charged features at least.
-      //adduct mass can already be negative, will be multiplied in consensusfeaturemethod with absolute charge
+      //adduct mass can already be negative, will be multiplied in consensusfeature method with absolute charge
       if (f_single.getCharge() != 0)
       {
         EmpiricalFormula default_ef(default_adduct.getFormula());
@@ -1076,7 +1076,7 @@ namespace OpenMS
 
         cf.removeMetaValue(*it);
       }
-      // Nedd to set userParam Group output feature map features for singletons here
+      // Need to set userParam Group output feature map features for singletons here
       fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
 
 
@@ -1292,7 +1292,7 @@ namespace OpenMS
     //we have to verify that positive Feature charges match negative adduct charges.
     //Further, we have two scenarios: 1. The features come from FFM, then all charges are absolute.
     // 2. We iteratively decharge negative mode, leading to decharger featureXML outputs with new negative charges.
-    //Thus, we restrict this check for testworthiness to positive mode, as for negative mode both charge signs are valid.
+    //Thus, we restrict this check for test worthiness to positive mode, as for negative mode both charge signs are valid.
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     if (!is_neg && (feature_charge * putative_charge < 0))
     {
