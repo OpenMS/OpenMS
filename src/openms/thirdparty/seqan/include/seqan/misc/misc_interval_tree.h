@@ -1628,7 +1628,7 @@ SEQAN_CHECKPOINT
 				}
 				break;
 
-				//break; //dont break! continue in both subtrees!!
+				//break; //don't break! continue in both subtrees!!
 			}
 		}
 	}

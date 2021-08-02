@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPr
         # wrap-inherits:
         #  MapAlignmentEvaluationAlgorithm
         MapAlignmentEvaluationAlgorithmPrecision() nogil except +
+        # private
         MapAlignmentEvaluationAlgorithmPrecision(MapAlignmentEvaluationAlgorithmPrecision) nogil except + #wrap-ignore
 
         # NAMESPACE # void evaluate(ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_gt, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge, double & out) nogil except +

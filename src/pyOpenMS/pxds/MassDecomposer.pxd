@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h>" nam
         # wrap-ignore
         # ABSTRACT class
         # no-pxd-import
-        MassDecomposer(MassDecomposer) nogil except + #wrap-ignore
+        MassDecomposer(MassDecomposer &) nogil except + # compiler
 
         bool exist(ValueType mass) nogil except +
             # wrap-doc:

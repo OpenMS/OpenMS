@@ -16,6 +16,7 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
         MascotInfile(MascotInfile) nogil except + #wrap-ignore
         void store(const String & filename, MSSpectrum & spec, double mz, double retention_time, String search_title) nogil except + # wrap-doc:Stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
         void store(const String & filename, MSExperiment & experiment, String search_title) nogil except + # wrap-doc:Stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
+
         void load(const String & filename, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a Mascot Generic File into a PeakMap

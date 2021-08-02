@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  XMLFile
         MascotXMLFile() nogil except +
-        MascotXMLFile(MascotXMLFile) nogil except + #wrap-ignore
+        MascotXMLFile(MascotXMLFile &) nogil except +
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,

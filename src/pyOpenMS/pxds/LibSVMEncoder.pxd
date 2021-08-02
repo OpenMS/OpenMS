@@ -7,8 +7,7 @@ cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS":
     
     cdef cppclass LibSVMEncoder "OpenMS::LibSVMEncoder":
         LibSVMEncoder() nogil except +
-        LibSVMEncoder(LibSVMEncoder) nogil except + #wrap-ignore
-
+        LibSVMEncoder(LibSVMEncoder &) nogil except + # compiler
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS::LibSVMEncoder":

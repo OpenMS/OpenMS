@@ -17,7 +17,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
         #  DefaultParamHandler
         #  ProgressLogger
         MasstraceCorrelator() nogil except +
-        MasstraceCorrelator(MasstraceCorrelator) nogil except + #wrap-ignore
+        MasstraceCorrelator(MasstraceCorrelator &) nogil except + # compiler
+
         void createPseudoSpectra(const ConsensusMap & map_,
                                  MSExperiment & pseudo_spectra,
                                  Size min_peak_nr,

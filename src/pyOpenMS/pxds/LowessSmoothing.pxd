@@ -12,8 +12,7 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>" namespace "Ope
         # wrap-inherits:
         #    DefaultParamHandler
 
-        LowessSmoothing()      nogil except +
-        LowessSmoothing(LowessSmoothing)      nogil except +
+        LowessSmoothing() nogil except +
 
         void smoothData(libcpp_vector[double] x,
                         libcpp_vector[double] y,

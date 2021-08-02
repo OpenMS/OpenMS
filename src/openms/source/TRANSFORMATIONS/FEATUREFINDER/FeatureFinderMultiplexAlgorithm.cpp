@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -334,7 +334,7 @@ namespace OpenMS
 
     PeakIntegrator pi;
     Param param = pi.getDefaults();
-    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to neagtive area-under-the-curve.)
+    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to negative area-under-the-curve.)
     pi.setParameters(param);
 
     // loop over peptides
@@ -447,7 +447,7 @@ namespace OpenMS
 
   std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites)
   {
-    // determine peptide intesities and RT shift between the peptides
+    // determine peptide intensities and RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
@@ -456,7 +456,7 @@ namespace OpenMS
 
     PeakIntegrator pi;
     Param param = pi.getDefaults();
-    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to neagtive area-under-the-curve.)
+    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to negative area-under-the-curve.)
     pi.setParameters(param);
 
     // loop over peptides

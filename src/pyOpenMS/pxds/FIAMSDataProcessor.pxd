@@ -16,8 +16,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
         #
         # wrap-inherits:
         #  DefaultParamHandler
+
         FIAMSDataProcessor() nogil except + # wrap-doc:Data processing for FIA-MS data
-        FIAMSDataProcessor(FIAMSDataProcessor) nogil except + # wrap-ignore
+        FIAMSDataProcessor(FIAMSDataProcessor &) nogil except +
+
         bool run(MSExperiment & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) nogil except +
             # wrap-doc:
                 #   Run the full analysis for the experiment for the given time interval
@@ -65,4 +67,3 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
         # NAMESPACE # void runAccurateMassSearch(FeatureMap & input_, OpenMS::MzTab & output) nogil except +
         # libcpp_vector[ float ] getMZs() nogil except +
         # libcpp_vector[ float ] getBinSizes() nogil except +
-

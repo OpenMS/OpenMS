@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
                    AASequence sequence
                    ) nogil except +
 
-        PeptideHit(PeptideHit) nogil except + # wrap-ignore
+        PeptideHit(PeptideHit &) nogil except +
 
         float getScore() nogil except +
         UInt getRank() nogil except +
@@ -47,8 +47,8 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
     cdef cppclass PeptideHit_AnalysisResult "OpenMS::PeptideHit::PepXMLAnalysisResult":
 
-        PeptideHit_AnalysisResult() nogil except +
-        PeptideHit_AnalysisResult(PeptideHit_AnalysisResult) nogil except + #wrap-ignore
+        PeptideHit_AnalysisResult() nogil except + # compiler
+        PeptideHit_AnalysisResult(PeptideHit_AnalysisResult &) nogil except + # compiler
 
         String score_type
         bool higher_is_better
@@ -58,8 +58,8 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
     cdef cppclass PeptideHit_PeakAnnotation "OpenMS::PeptideHit::PeakAnnotation":
 
-        PeptideHit_PeakAnnotation() nogil except +
-        PeptideHit_PeakAnnotation(PeptideHit_PeakAnnotation) nogil except + # wrap-ignore
+        PeptideHit_PeakAnnotation() nogil except + # compiler
+        PeptideHit_PeakAnnotation(PeptideHit_PeakAnnotation &) nogil except + # compiler
 
         String annotation
         int charge

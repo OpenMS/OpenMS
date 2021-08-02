@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
         #  ProgressLogger
         #  DefaultParamHandler
         MascotGenericFile() nogil except +
-        MascotGenericFile(MascotGenericFile) nogil except + #wrap-ignore
+        MascotGenericFile(MascotGenericFile &) nogil except +
         void store(const String & filename, MSExperiment & experiment) nogil except +
         # NAMESPACE # void store(std::ostream & os, const String & filename, MSExperiment & experiment) nogil except +
         void load(const String & filename, MSExperiment & exp) nogil except +

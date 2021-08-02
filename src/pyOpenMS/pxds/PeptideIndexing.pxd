@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
         PeptideIndexing() nogil except +
-        PeptideIndexing(PeptideIndexing) nogil except + #wrap-ignore
+        PeptideIndexing(PeptideIndexing &) nogil except + # compiler
 
         PeptideIndexing_ExitCodes run(libcpp_vector[ FASTAEntry ] & proteins,
                                       libcpp_vector[ ProteinIdentification ] & prot_ids,

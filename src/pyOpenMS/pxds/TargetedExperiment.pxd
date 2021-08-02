@@ -94,4 +94,3 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void addSourceFile(SourceFile source_file) nogil except +
 
         bool containsInvalidReferences() nogil except +
-

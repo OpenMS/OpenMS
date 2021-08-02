@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
             #  This class collects functions for applying retention time transformations to data structures
 
         MapAlignmentTransformer() nogil except + 
+        MapAlignmentTransformer(MapAlignmentTransformer &) nogil except +
 
         void transformRetentionTimes(MSExperiment&, TransformationDescription&, bool) nogil except + # wrap-doc:Applies the given transformation to a peak map
 

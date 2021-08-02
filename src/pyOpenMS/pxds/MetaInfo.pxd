@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
     cdef cppclass MetaInfo:
 
         MetaInfo() nogil except +
-        MetaInfo(MetaInfo) nogil except +
+        MetaInfo(MetaInfo &) nogil except +
 
         # returns the value corresponding to a string
         DataValue getValue(String name) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,11 +99,11 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation)
   {
-    //tempalign ->container for holding only MSSpectrums with MS-Level 1
+    //tempalign -> container for holding only MSSpectrums with MS-Level 1
     std::vector<MSSpectrum*> tempalign;
     msFilter_(aligned, tempalign);
 
-    //if it's possible, built 4 blocks. These can be individually be aligned.
+    //if it is possible, built 4 blocks. These can be aligned individually
     std::vector<Size> alignpoint;
     //saving the first coordinates
     alignpoint.push_back(0);
@@ -173,7 +173,7 @@ namespace OpenMS
     /*
         for (Size i = 0; i< xcoordinate.size(); ++i)
         {
-            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
         }
         std::cout << std::endl;
         */
@@ -181,7 +181,7 @@ namespace OpenMS
     /*std::cout << xcoordinate.size()<< std::endl;
             for (Size i = 0; i< xcoordinate.size(); ++i)
             {
-                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
             }*/
 
     // store the data points defining the transformation:
@@ -269,7 +269,7 @@ namespace OpenMS
                 if (insideBand_(i, j, n, m, k_))
                 {
                   mh = firstcolummatchmatrix[i][j] - gap_;
-                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" firstcolumnnn "<<std::endl;
+                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" first column "<<std::endl;
                   i += 1;
                 }
                 else
@@ -291,7 +291,7 @@ namespace OpenMS
                 float md = firstcolummatchmatrix[i - 1][j - 1] + s;
                 //std::cout << i << " " << j << " i j " << mv << " mv " << mh << " mh " << md << " md " << std::endl;
                 secondcolummatchmatrix[i][j] = std::max((float)md, std::max((float)(mv), (float)(mh)));
-                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j zweiter colum" << std::endl;
+                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j second column" << std::endl;
                 if (secondcolummatchmatrix[i][j] == mh)
                 {
                   traceback[i][j] = 1;
@@ -436,12 +436,12 @@ namespace OpenMS
   {
     if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
-      //std::cout << i << " i " << j << " j " << " innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " inside" << std::endl;
       return true;
     }
     else
     {
-      //std::cout << i << " i " << j << " j " << "NICHT innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " outside" << std::endl;
       return false;
     }
   }

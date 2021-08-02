@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         #    DefaultParamHandler
 
         SiriusAdapterAlgorithm() nogil except +
-        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm) nogil except +
+        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm &) nogil except + # compiler
 
         bool isFeatureOnly() nogil except +
         UInt getFilterByNumMassTraces() nogil except +
@@ -48,13 +48,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
 
     cdef cppclass SiriusTemporaryFileSystemObjects "OpenMS::SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects":
-        SiriusTemporaryFileSystemObjects(int debug_level)
-        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects)
+        SiriusTemporaryFileSystemObjects(int debug_level) nogil except +
+        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects &) nogil except + # compiler
         
         String getTmpDir() nogil except +
         String getTmpOutDir() nogil except +
         String getTmpMsFile() nogil except + 
-
 
 # wrap static method:
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":

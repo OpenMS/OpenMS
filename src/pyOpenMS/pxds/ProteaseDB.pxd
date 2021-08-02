@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #     cdef AutowrapPtrHolder[_ProteaseDB] inst
 
+        # protected
         ProteaseDB() nogil except + #wrap-ignore
-        ProteaseDB(ProteaseDB) nogil except + #wrap-ignore
 
         const DigestionEnzymeProtein* getEnzyme(const String& name) nogil except +
         const DigestionEnzymeProtein* getEnzymeByRegEx(const String& cleavage_regex) nogil except +

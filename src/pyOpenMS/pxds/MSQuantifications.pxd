@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
     cdef cppclass MSQuantifications(ExperimentalSettings):
         # wrap-inherits:
         #  ExperimentalSettings
-        MSQuantifications()  nogil
-        MSQuantifications(MSQuantifications) nogil
+        MSQuantifications() nogil except +
+        MSQuantifications(MSQuantifications &) nogil except +
 
         # Detailed constructor from a FeatureMap
         MSQuantifications(FeatureMap fm,
@@ -30,8 +30,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
                           libcpp_vector[DataProcessing]& dps) nogil except +
         # std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
         
-        bool operator==(MSQuantifications &) nogil
-        bool operator!=(MSQuantifications &) nogil
+        bool operator==(MSQuantifications &) nogil except +
+        bool operator!=(MSQuantifications &) nogil except +
 
         # TODO - not implemented in OpenMS, remove from API
         # void load(String filename, bool trim_lines, Int first_n) nogil except +
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
 
     cdef cppclass AnalysisSummary:
         AnalysisSummary()  nogil except +
-        AnalysisSummary(AnalysisSummary) nogil except +
+        AnalysisSummary(AnalysisSummary &) nogil except +
 
         MetaInfo user_params_
         CVTermList cv_params_
@@ -74,7 +74,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
 
     cdef cppclass Assay:
         Assay() nogil except +
-        Assay(Assay) nogil except +
+        Assay(Assay &) nogil except +
 
         String uid_ 
         libcpp_vector[libcpp_pair[String, double] ] mods_ # wrap-ignore

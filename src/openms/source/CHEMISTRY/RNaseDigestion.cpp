@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ namespace OpenMS
       for (Size i = 1; i < rna.size(); ++i)
       {
         bool is_match = true;
-        // can't match if we dont have enough bases before or after
+        // can't match if we don't have enough bases before or after
         if (i < cuts_after_regexes_.size() || rna.size() - i < cuts_before_regexes_.size())
         {
           is_match = false;
@@ -160,7 +160,10 @@ namespace OpenMS
         for (Size offset = 0; offset <= missed_cleavages_; ++offset)
         {
           Size end_it = start_it + offset + 1;
-          if (end_it >= fragment_pos.size()) break;
+          if (end_it >= fragment_pos.size())
+          {
+            break;
+          }
           Size end_pos = fragment_pos[end_it];
 
           Size length = end_pos - start_pos;

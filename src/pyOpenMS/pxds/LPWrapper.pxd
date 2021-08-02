@@ -76,6 +76,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
     cdef cppclass SolverParam "OpenMS::LPWrapper::SolverParam":
         SolverParam() nogil except + # wrap-doc:Struct that holds the parameters of the LP solver
         SolverParam(SolverParam) nogil except + #wrap-ignore
+
         Int message_level
         Int branching_tech
         Int backtrack_tech
