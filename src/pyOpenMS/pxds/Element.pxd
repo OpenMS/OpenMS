@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
     cdef cppclass Element:
 
         Element() nogil except +
-        Element(Element) nogil except + # wrap-ignore
+        Element(Element &) nogil except +
 
         # detailed constructor
         Element(String name,

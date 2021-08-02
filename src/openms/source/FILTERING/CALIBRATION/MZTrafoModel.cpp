@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -321,16 +321,22 @@ namespace OpenMS
   Size MZTrafoModel::findNearest( const std::vector<MZTrafoModel>& tms, double rt )
   {
     // no peak => no search
-    if (tms.empty()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
-
+    if (tms.empty())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
+    }
     // search for position for inserting
     std::vector<MZTrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, MZTrafoModel::RTLess());
 
     // border cases
-    if (it == tms.begin()) return 0;
-
-    if (it == tms.end()) return tms.size() - 1;
-
+    if (it == tms.begin())
+    {
+      return 0;
+    }
+    if (it == tms.end())
+    {
+      return tms.size() - 1;
+    }
     // the model before or the current model are closest
     std::vector<MZTrafoModel>::const_iterator it2 = it;
     --it2;
@@ -360,9 +366,14 @@ namespace OpenMS
   OpenMS::String MZTrafoModel::toString() const
   {
     String s;
-    if (coeff_.empty()) s = "nan, nan, nan";
-    else s = ListUtils::concatenate(coeff_, ", ");
-
+    if (coeff_.empty())
+    {
+      s = "nan, nan, nan";
+    }
+    else 
+    {
+      s = ListUtils::concatenate(coeff_, ", ");
+    }
     return s;
   }
 

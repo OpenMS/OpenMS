@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
     
     cdef cppclass IncludeExcludeTarget :
         IncludeExcludeTarget() nogil except + # wrap-doc:This class stores a SRM/MRM transition
-        IncludeExcludeTarget(IncludeExcludeTarget) nogil except + # TODO
+        IncludeExcludeTarget(IncludeExcludeTarget &) nogil except + # TODO
         void setName(const String & name) nogil except + # TODO
         String  getName() nogil except + # TODO
         void setPeptideRef(const String & peptide_ref) nogil except + # TODO

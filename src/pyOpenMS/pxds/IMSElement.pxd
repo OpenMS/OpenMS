@@ -12,7 +12,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>" namespa
     
     cdef cppclass IMSElement "OpenMS::ims::IMSElement":
         IMSElement() nogil except + # wrap-doc:Represents a chemical atom with name and isotope distribution
-        IMSElement(IMSElement) nogil except +
+        IMSElement(IMSElement &) nogil except +
+    
         # mass_type ELECTRON_MASS_IN_U read-only
         IMSElement(name_type & name, isotopes_type & isotopes) nogil except +
         IMSElement(name_type & name, mass_type mass) nogil except +

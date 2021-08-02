@@ -12,9 +12,10 @@ cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "
         #    DefaultParamHandler
         #    ProgressLogger
 
-        MorphologicalFilter()      nogil except +
-        # MorphologicalFilter(MorphologicalFilter)      nogil except + #private
+        MorphologicalFilter() nogil except +
+        # private
+        MorphologicalFilter(MorphologicalFilter) nogil except + # wrap-ignore
 
-        void filter(MSSpectrum & spectrum)      nogil except +
-        void filterExperiment(MSExperiment & exp)      nogil except +
+        void filter(MSSpectrum & spectrum) nogil except +
+        void filterExperiment(MSExperiment & exp) nogil except +
 

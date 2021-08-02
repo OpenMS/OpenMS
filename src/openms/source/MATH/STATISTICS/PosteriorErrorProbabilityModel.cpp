@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,10 +53,9 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"),
       incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
@@ -207,7 +206,7 @@ namespace OpenMS
           return false;
         }
 
-        // check termination criterium
+        // check termination criterion
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
@@ -383,7 +382,7 @@ namespace OpenMS
           return false;
         }
 
-        // check termination criterium
+        // check termination criterion
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
@@ -701,8 +700,14 @@ namespace OpenMS
       if (target.size() == 0 || decoy.size() == 0)
       {
         StringList empty;
-        if (target.size() == 0) empty.push_back("target");
-        if (decoy.size() == 0) empty.push_back("decoy");
+        if (target.size() == 0)
+        {
+          empty.push_back("target");
+        }
+        if (decoy.size() == 0) 
+        {
+          empty.push_back("decoy");
+        }
         OPENMS_LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
@@ -811,7 +816,7 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const String& outlier_handling) const
     {
-      if (x_scores.empty()) return; //shouldnt happen, but be safe.
+      if (x_scores.empty()) return; //shouldn't happen, but be safe.
       if (outlier_handling != "none")
       {
         Size nr_outliers = 0;
@@ -1127,7 +1132,10 @@ namespace OpenMS
                     score = PEP_model.computeProbability(score);
 
                     // invalid score? invalid fit!
-                    if ((score < 0.0) || (score > 1.0)) unable_to_fit_data = true;
+                    if ((score < 0.0) || (score > 1.0)) 
+                    {
+                      unable_to_fit_data = true;
+                    }
                     //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
                   }
                   hit.setScore(score);
@@ -1147,5 +1155,4 @@ namespace OpenMS
         }
       }
     }
-  } // namespace Math
-} // namespace OpenMS
+} // namespace OpenMS // namespace Math

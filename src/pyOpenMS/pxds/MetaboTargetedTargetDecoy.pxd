@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
   cdef cppclass MetaboTargetedTargetDecoy "OpenMS::MetaboTargetedTargetDecoy":
 
       MetaboTargetedTargetDecoy() nogil except +
-      MetaboTargetedTargetDecoy(MetaboTargetedTargetDecoy) nogil except + #wrap-ignore
+      MetaboTargetedTargetDecoy(MetaboTargetedTargetDecoy &) nogil except + # compiler
 
       libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping] constructTargetDecoyMassMapping(TargetedExperiment& t_exp) nogil except +
 
@@ -18,4 +18,4 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
   cdef cppclass MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping "OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping":
 
       MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping() nogil except +
-      MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping(MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping) nogil except +
+      MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping(MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping &) nogil except +

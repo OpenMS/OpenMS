@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
     cdef cppclass SVMWrapper "OpenMS::SVMWrapper":
         SVMWrapper() nogil except +
-        SVMWrapper(SVMWrapper) nogil except + #wrap-ignore
+        SVMWrapper(SVMWrapper &) nogil except + # compiler
 
         void setParameter(SVM_parameter_type type_, Int value) nogil except +
         void setParameter(SVM_parameter_type type_, double value) nogil except +
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
     cdef cppclass SVMData "OpenMS::SVMData":
         SVMData() nogil except +
-        SVMData(SVMData) nogil except + #wrap-ignore
+        SVMData(SVMData &) nogil except + # compiler
 
         # TODO nested STL
         # libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] sequences

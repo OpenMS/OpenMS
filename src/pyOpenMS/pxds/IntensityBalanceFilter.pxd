@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IntensityBalanceFilter.h>" name
         # wrap-inherits:
         #  FilterFunctor
         IntensityBalanceFilter() nogil except +
-        IntensityBalanceFilter(IntensityBalanceFilter) nogil except +
+        IntensityBalanceFilter(IntensityBalanceFilter &) nogil except +
 
         double apply(MSSpectrum & ) nogil except +
         # POINTER # FilterFunctor * create() nogil except +

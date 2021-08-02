@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
                 #   :param clear_ids: Reset peptide and protein identifications of each scan before annotating
                 #   :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z) 
             
-        IMSAlphabet(IMSAlphabet) nogil except +
+        IMSAlphabet(IMSAlphabet &) nogil except +
 
         element_type  getElement(name_type & name) nogil except + # wrap-doc:Gets the element with 'index' and returns element with the given index in alphabet
         name_type  getName(size_type index) nogil except + # wrap-doc:Gets the symbol of the element with an 'index' in alphabet

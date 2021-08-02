@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -720,13 +720,13 @@ protected:
     map<Size, UInt> num_consfeat_of_size_with_id;
 
     map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
-    for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
+    for (const ConsensusFeature& cfeature : cons)
     {
-      ++num_consfeat_of_size[cmit->size()];
-      const auto& pids = cmit->getPeptideIdentifications();
+      ++num_consfeat_of_size[cfeature.size()];
+      const auto& pids = cfeature.getPeptideIdentifications();
       if (!pids.empty())
       {
-        ++num_consfeat_of_size_with_id[cmit->size()];
+        ++num_consfeat_of_size_with_id[cfeature.size()];
 
         // count how often a peptide/charge pair has been observed in the different maps
         const vector<PeptideHit>& phits = pids[0].getHits();
@@ -741,7 +741,7 @@ protected:
           }
 
           // assign id to all dimensions in the consensus feature
-          for (auto const & f : cmit->getFeatures())
+          for (auto const & f : cfeature.getFeatures())
           {
             Size map_index = f.getMapIndex();
             seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
@@ -1426,7 +1426,7 @@ protected:
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
@@ -1435,7 +1435,7 @@ protected:
     {
       // This is needed because we throw out decoy proteins during FDR
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
 

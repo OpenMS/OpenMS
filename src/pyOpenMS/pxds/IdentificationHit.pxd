@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/IdentificationHit.h>" namespace "OpenMS":
         #   MetaInfoInterface
 
         IdentificationHit()   nogil except + # wrap-doc:Represents a object which can store the information of an analysisXML instance
-        IdentificationHit(IdentificationHit) nogil except + # wrap-ignore
+        IdentificationHit(IdentificationHit &) nogil except + # wrap-ignore
 
         # /// sets the identifier
         void setId(String id) nogil except + # wrap-doc:Sets the identifier

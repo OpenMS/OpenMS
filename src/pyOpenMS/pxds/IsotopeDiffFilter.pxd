@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>" namespace
         # wrap-inherits:
         #  FilterFunctor
         IsotopeDiffFilter() nogil except +
-        IsotopeDiffFilter(IsotopeDiffFilter) nogil except +
+        IsotopeDiffFilter(IsotopeDiffFilter &) nogil except +
         double apply(MSSpectrum & ) nogil except +
         # POINTER # FilterFunctor * create() nogil except +
         String getProductName() nogil except +

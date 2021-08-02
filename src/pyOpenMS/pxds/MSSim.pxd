@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
     cdef cppclass MSSim:
 
         MSSim()      nogil except +
-        MSSim(MSSim) nogil except + # wrap-ignore
+        MSSim(MSSim &) nogil except +
 
         # General purpose function to simulate a mass spectrometry run
         #

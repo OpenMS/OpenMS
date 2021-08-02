@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   The filter functions for MS/MS experiments do include clean-up steps, because they filter peptide and protein IDs in conjunction and potential contradictions between the two must be eliminated.
 
         IDFilter()           nogil except + 
-        IDFilter(IDFilter)   nogil except + # wrap-ignore
+        IDFilter(IDFilter &)   nogil except + #compiler
 
         Size countHits(libcpp_vector[PeptideIdentification] identifications) nogil except + # wrap-doc:Returns the total number of peptide hits in a vector of peptide identifications
         Size countHits(libcpp_vector[ProteinIdentification] identifications) nogil except + # wrap-doc:Returns the total number of protein hits in a vector of protein identifications

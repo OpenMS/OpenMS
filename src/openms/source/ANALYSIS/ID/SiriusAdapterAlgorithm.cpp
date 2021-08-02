@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -568,9 +568,9 @@ namespace OpenMS
 
       std::stringstream ss;
       ss << "COMMAND: " << executable_qstring.toStdString();
-      for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
+      for (const QString& it : command_line)
       {
-        ss << " " << it->toStdString();
+        ss << " " << it.toStdString();
       }
       OPENMS_LOG_WARN << ss.str() << std::endl;
       OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;

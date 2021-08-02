@@ -11,10 +11,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>" namespace "OpenMS
         # wrap-inherits:
         #    DefaultParamHandler
 
-        SqrtMower()          nogil except +
-        SqrtMower(SqrtMower) nogil except + #wrap-ignore
+        SqrtMower() nogil except +
+        SqrtMower(SqrtMower &) nogil except +
 
         void filterSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakMap(MSExperiment & exp) nogil except +
-

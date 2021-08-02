@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ public:
     return !data_fg_.empty();
   }
 
-  /** @brief Prefetch a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
+  /** @brief Prefetch a new cache in the background, with up to @p suggested_size entries (or fewer upon reaching end-of-file)
 
      Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
      @param suggested_size Number of FASTA entries to read from disk
@@ -338,7 +338,7 @@ private:
 };
 
 /**
-  @brief Helper class for calculcations on decoy proteins
+  @brief Helper class for calculations on decoy proteins
 */
 class DecoyHelper
 {

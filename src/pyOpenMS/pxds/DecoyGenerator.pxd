@@ -6,6 +6,10 @@ from AASequence cimport *
 cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS":
 
     cdef cppclass DecoyGenerator:
+        DecoyGenerator() nogil except +
+
+        DecoyGenerator(DecoyGenerator &) nogil except +
+
         void setSeed(UInt64) nogil except +
 
         AASequence reverseProtein(const AASequence& protein) nogil except + # wrap-doc:Reverses the protein sequence
