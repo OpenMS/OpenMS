@@ -33,10 +33,10 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
         # returns the value corresponding to an index
         DataValue getValue(UInt index) nogil except + # wrap-doc:Returns the value corresponding to an index
 
-        # returns the value corresponding to a string, with default
-        DataValue getValue(String name, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to a string, with default
-        # returns the value corresponding to an index, with default
-        DataValue getValue(UInt index, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to an index, with default
+        # returns the value corresponding to a string
+        DataValue getValue(String name, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to a string
+        # returns the value corresponding to an index
+        DataValue getValue(UInt index, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to an index
 
         # returns if this MetaInfo is set
         bool exists(String name) nogil except + # wrap-doc:Returns if this MetaInfo is set

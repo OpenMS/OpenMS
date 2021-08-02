@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
   cdef cppclass MetaboTargetedTargetDecoy "OpenMS::MetaboTargetedTargetDecoy":
 
       MetaboTargetedTargetDecoy() nogil except + # wrap-doc:Resolve overlapping fragments and missing decoys for experimental specific decoy generation in targeted/pseudo targeted metabolomics
-      MetaboTargetedTargetDecoy(MetaboTargetedTargetDecoy) nogil except + # wrap-ignore
+      MetaboTargetedTargetDecoy(MetaboTargetedTargetDecoy &) nogil except + # compiler
 
       libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping] constructTargetDecoyMassMapping(TargetedExperiment& t_exp) nogil except +
         # wrap-doc:

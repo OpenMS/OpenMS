@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         #
         void getKeys(libcpp_vector[String] & keys) nogil except + # wrap-doc:Fills the given vector with a list of all keys for which a value is set
         #void getKeys(libcpp_vector[unsigned int] & keys)
-        DataValue getMetaValue(String) nogil except + # wrap-doc:Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
+        DataValue getMetaValue(String) nogil except + # wrap-doc:Returns the value corresponding to a string, or DataValue::EMPTY if not found
         #DataValue getMetaValue(String, DataValue) nogil except +
         #DataValue getMetaValue(unsigned int) nogil except +
         #DataValue getMetaValue(unsigned int, DataValue) nogil except +
