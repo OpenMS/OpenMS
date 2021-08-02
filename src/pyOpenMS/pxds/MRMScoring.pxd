@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath
                 #   -----
                 #   The score is a distance where zero indicates perfect coelution. The
                 #   score is weighted by the transition intensities, non-perfect coelution
-                #   in low-intensity transitions should thus become less important.
+                #   in low-intensity transitions should thus become less important
 
         libcpp_vector[ double ] calcSeparateXcorrContrastCoelutionScore() nogil except + # wrap-doc:Calculate the separate cross-correlation contrast score
         double calcXcorrPrecursorContrastCoelutionScore() nogil except +
@@ -47,7 +47,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath
                 #   The score is a correlation measure where 1 indicates perfect correlation
                 #   and 0 means no correlation. The score is weighted by the transition
                 #   intensities, non-perfect coelution in low-intensity transitions should
-                #   thus become less important.
+                #   thus become less important
 
         libcpp_vector[ double ] calcSeparateXcorrContrastShapeScore() nogil except + # wrap-doc:Calculate the separate cross-correlation contrast shape score
         double calcXcorrPrecursorContrastShapeScore() nogil except + # wrap-doc:Calculate the precursor cross-correlation shape score against the transitions

@@ -43,8 +43,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   -----
                 #   :param d: The DataProcessing object to be added
 
-        Size getNrSpectraWritten()  nogil except + Return the number of spectra written
-        Size getNrChromatogramsWritten() nogil except + Return the number of chromatograms written
+        Size getNrSpectraWritten()  nogil except + # wrap-doc:Return the number of spectra written
+        Size getNrChromatogramsWritten() nogil except + # wrap-doc:Return the number of chromatograms written
 
         void setOptions(PeakFileOptions opt) nogil except +
         PeakFileOptions getOptions() nogil except +
