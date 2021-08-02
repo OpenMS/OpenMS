@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
 
     cdef cppclass IDConflictResolverAlgorithm(DefaultParamHandler):
         IDConflictResolverAlgorithm() nogil except + # wrap-doc:Resolves ambiguous annotations of features with peptide identifications
-        
-        IDConflictResolverAlgorithm(IDConflictResolverAlgorithm) nogil except + # wrap-ignore
+
+        IDConflictResolverAlgorithm(IDConflictResolverAlgorithm &) nogil except +
 
         void resolve(FeatureMap& features) nogil except +
             # wrap-doc:

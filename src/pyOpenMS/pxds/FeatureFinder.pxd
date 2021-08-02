@@ -14,7 +14,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
         #    ProgressLogger
         #
 
-        FeatureFinder()      nogil except +
+        FeatureFinder() nogil except +
+
+        FeatureFinder(FeatureFinder &) nogil except + # compiler
+
         void run(String algorithm_name,
                  MSExperiment & input_map,
                  FeatureMap & feats,

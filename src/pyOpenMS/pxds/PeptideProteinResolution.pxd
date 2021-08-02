@@ -5,8 +5,8 @@ from ProteinIdentification cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
     
     cdef cppclass PeptideProteinResolution "OpenMS::PeptideProteinResolution":
-        PeptideProteinResolution(PeptideProteinResolution) nogil except + #wrap-ignore
         PeptideProteinResolution(bool statistics) nogil except +
+        PeptideProteinResolution(PeptideProteinResolution &) nogil except + # compiler
 
         void buildGraph(ProteinIdentification & protein, 
                         libcpp_vector[ PeptideIdentification ] & peptides) nogil except +

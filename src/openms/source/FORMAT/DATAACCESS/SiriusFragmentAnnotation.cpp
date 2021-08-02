@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -309,7 +309,7 @@ namespace OpenMS
           Peak1D fragment_mz_int;
           StringList splitted_line;
           line.split("\t",splitted_line);     
-          // option to use the exact mass as peakMZ (e.g. for library preparation).
+          // option to use the exact mass as peak MZ (e.g. for library preparation).
           if (use_exact_mass)
           {
             fragment_mz_int.setMZ(splitted_line[3].toDouble());

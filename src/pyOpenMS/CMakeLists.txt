@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -557,7 +557,7 @@ ENDIF()
 ###########################################################################
 
 # Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we dont see which tests
+# => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests

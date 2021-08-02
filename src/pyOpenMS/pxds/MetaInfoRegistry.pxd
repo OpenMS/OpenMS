@@ -37,3 +37,4 @@ cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":
         String getUnit(UInt index) nogil except + # wrap-doc:Returns the unit of an index
         String getUnit(const String & name) nogil except + # wrap-doc:Returns the unit of a name
 
+

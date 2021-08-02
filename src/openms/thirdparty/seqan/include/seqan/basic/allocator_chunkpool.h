@@ -103,7 +103,7 @@ struct Allocator<ChunkPool<SIZE, MAX_COUNT, TParentAllocator> >
         SEQAN_CHECKPOINT;
         ::std::memset(data_recycled_blocks, 0, sizeof(data_recycled_blocks));
         data_current_end = data_current_free = 0;
-        //dont need to initialize data_current_begin
+        //don't need to initialize data_current_begin
     }
 
     Allocator(size_t reserve_item_count)
@@ -122,7 +122,7 @@ struct Allocator<ChunkPool<SIZE, MAX_COUNT, TParentAllocator> >
         SEQAN_CHECKPOINT;
         ::std::memset(data_recycled_blocks, 0, sizeof(data_recycled_blocks));
         data_current_end = data_current_free = 0;
-        //dont need to initialize data_current_begin
+        //don't need to initialize data_current_begin
 
         setValue(data_parent_allocator, parent_alloc);
     }
@@ -145,7 +145,7 @@ struct Allocator<ChunkPool<SIZE, MAX_COUNT, TParentAllocator> >
     {
         ::std::memset(data_recycled_blocks, 0, sizeof(data_recycled_blocks));
         data_current_end = data_current_free = 0;
-        //dont need to initialize data_current_begin
+        //don't need to initialize data_current_begin
     }
     inline Allocator &
     operator=(Allocator const &)

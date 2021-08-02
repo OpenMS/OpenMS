@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -256,7 +256,7 @@ namespace OpenMS
         EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
 
         // apply isotope matrix to active channels
-        // row * channel_frequencyOld = observed iTRAQ intensities
+        // row * channel_frequency_old = observed iTRAQ intensities
         Eigen::MatrixXd itraq_intensity_observed = (*channel_frequency) * (*row);
         // add result to sum
         itraq_intensity_sum += itraq_intensity_observed;

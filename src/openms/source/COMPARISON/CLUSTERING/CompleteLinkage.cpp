@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ namespace OpenMS
   void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // attention: clustering process is done by clustering the indices
-    // pointing to elements in inputvector and distances in inputmatrix
+    // pointing to elements in input vector and distances in input matrix
 
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)

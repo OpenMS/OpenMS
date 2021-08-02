@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 /** \file
@@ -412,7 +412,7 @@ _S_node_nearest (const size_t __k, size_t __dim, SearchVal const& __val,
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the various functors and interfaces used for KDTree.
@@ -501,7 +501,7 @@ private:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the allocator interface as used by the KDTree class.
@@ -595,7 +595,7 @@ protected:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines interfaces for iterators as used by the KDTree class.
@@ -671,7 +671,7 @@ protected:
         __p = _M_node->_M_parent;
       }
       if (__p) // (__p) provide undetermined behavior on end()++ rather
-        // than a seg fault, similar to standard iterator.
+        // than a segfault, similar to standard iterator.
         _M_node = __p;
     }
   }
@@ -698,7 +698,7 @@ protected:
         __p = _M_node->_M_parent;
       }
       if (__p) // (__p) provide undetermined behavior on rend()++ rather
-        // than a seg fault, similar to standard iterator.
+        // than a segfault, similar to standard iterator.
         _M_node = __p;
     }
   }
@@ -851,7 +851,7 @@ operator!=(_Iterator<_Val, _Val&, _Val*> const& __X,
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the interface of the _Region class.
@@ -980,7 +980,7 @@ struct _Region
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 /** \file
  * Defines the interface for the KDTree class.
@@ -1011,7 +1011,7 @@ struct _Region
  *    but in the case of KDTree, the next identical item might
  *    be a long way down a subtree, because of the various different sort criteria.
  *
- *    So erase()ing a node from a KDTree could require serious and complicated
+ *    So to erase() a node from a KDTree could require serious and complicated
  *    tree rebalancing to maintain consistency... IF we required binary-tree-like relationships.
  *
  *    This has no effect on insert()s, a < test is good enough to keep consistency.
@@ -1276,8 +1276,8 @@ public:
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
   typedef std::reverse_iterator<iterator> reverse_iterator;
 
-  // Note: the static_cast in end() is invalid (_M_header is not convertable to a _Link_type), but
-  // thats ok as it just means undefined behaviour if the user dereferences the end() iterator.
+  // Note: the static_cast in end() is invalid (_M_header is not convertible to a _Link_type), but
+  // that's ok as it just means undefined behaviour if the user dereferences the end() iterator.
 
   const_iterator begin() const { return const_iterator(_M_get_leftmost()); }
   const_iterator end() const { return const_iterator(static_cast<_Link_const_type>(&_M_header)); }
@@ -1379,7 +1379,7 @@ public:
 
   // compares via equivalence
   // so if you are looking for any item with the same location,
-  // according to the standard accessor comparisions,
+  // according to the standard accessor comparisons,
   // then this is the function for you.
   template <class SearchVal>
   const_iterator
@@ -1392,7 +1392,7 @@ public:
   // compares via equality
   // if you are looking for a particular item in the tree,
   // and (for example) it has an ID that is checked via an == comparison
-  // eg
+  // e.g.
   // struct Item
   // {
   //    size_type unique_id;
@@ -1683,7 +1683,7 @@ protected:
       _S_set_right(_S_parent(dead_dad), step_dad);
 
     // deal with the left and right edges of the tree...
-    // if the dead_dad was at the edge, then substitude...
+    // if the dead_dad was at the edge, then substitute...
     // but if there IS no new dead, then left_most is the dead_dad's parent
     if (dead_dad == _M_get_leftmost())
       _M_set_leftmost( (step_dad ? step_dad : _S_parent(dead_dad)) );
@@ -2229,5 +2229,5 @@ protected:
  *
  * THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES
- * OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */

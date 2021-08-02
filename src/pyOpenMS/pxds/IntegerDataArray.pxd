@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 
         IntegerDataArray() nogil except +
-        IntegerDataArray(IntegerDataArray) nogil except + #wrap-ignore
+        IntegerDataArray(IntegerDataArray &) nogil except +
 
         Size size() nogil except +
         void resize(size_t n) nogil except +

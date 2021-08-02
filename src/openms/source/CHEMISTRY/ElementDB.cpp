@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -186,6 +186,11 @@ namespace OpenMS
     buildElement_("Fluorine", "F", 9u, fluorine_abundance, fluorine_mass);
 
 
+    map<unsigned int, double> neon_abundance = {{20u, 0.9048},  {21u, 0.0027}, {22u, 0.0925}};
+    map<unsigned int, double> neon_mass = {{20u,  19.99244018}, {21u, 20.9938467}, {22u, 21.9913851}};
+    buildElement_("Neon", "Ne", 10u, neon_abundance, neon_mass);
+
+    
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
     map<unsigned int, double> sodium_mass = {{23u, 22.989769280899999}};
     buildElement_("Sodium", "Na", 11u, sodium_abundance, sodium_mass);
@@ -441,9 +446,49 @@ namespace OpenMS
     buildElement_("Samarium", "Sm", 62u, samarium_abundance, samarium_mass);
 
 
+    map<unsigned int, double> europium_abundance = {{151u, 0.4781}, {153u, 0.5219}};
+    map<unsigned int, double> europium_mass = {{151u, 150.919857}, {153u, 152.921237}};
+    buildElement_("Europium", "Eu", 63u, europium_abundance, europium_mass);
+
+    
     map<unsigned int, double> gadolinium_abundance = {{152u, 0.002}, {154u, 0.0218}, {155u, 0.14800000000000002}, {156u, 0.2047}, {157u, 0.1565}, {158u, 0.2484}, {160u, 0.2186}};
     map<unsigned int, double> gadolinium_mass = {{152u, 151.919791000000004}, {154u, 153.920865600000013}, {155u, 154.92262199999999}, {156u, 155.922122699999989}, {157u, 156.923960099999988}, {158u, 157.924103900000006}, {160u, 159.927054099999992}};
     buildElement_("Gadolinium", "Gd", 64u, gadolinium_abundance, gadolinium_mass);
+
+
+    map<unsigned int, double> terbium_abundance = {{159u, 1.0}};
+    map<unsigned int, double> terbium_mass = {{159u, 158.925354}};
+    buildElement_("Terbium", "Tb", 65u, terbium_abundance, terbium_mass);
+
+
+    map<unsigned int, double> dysprosium_abundance = {{156u, 0.00056}, {158u, 0.00095}, {160u, 0.02329}, {161u, 0.18889}, {162u, 0.25475}, {163u, 0.24896}, {164u, 0.28260}};
+    map<unsigned int, double> dysprosium_mass = {{156u, 155.924284}, {158u, 157.92441}, {160u,  159.925203}, {161u, 160.926939}, {162u, 161.926804}, {163u, 162.928737}, {164u,  163.929181}};
+    buildElement_("Dysprosium", "Dy", 66u, dysprosium_abundance, dysprosium_mass);
+
+
+    map<unsigned int, double> holmium_abundance = {{165u, 1.0}};
+    map<unsigned int, double> holmium_mass = {{165u,  164.930328}};
+    buildElement_("Holmium", "Ho", 67u, holmium_abundance, holmium_mass);
+
+
+    map<unsigned int, double> erbium_abundance = {{162u, 0.00056}, {164u, 0.01601}, {166u, 0.33503}, {167u, 0.22869}, {168u, 0.26978}, {170u, 0.14910}};
+    map<unsigned int, double> erbium_mass = {{162u, 161.928787}, {164u, 163.929207}, {166u, 165.930299}, {167u, 166.932054}, {168u, 167.932376}, {170u, 169.93547}};
+    buildElement_("Erbium", "Er", 68u, erbium_abundance, erbium_mass);
+
+
+    map<unsigned int, double> thulium_abundance = {{169u, 1.0}};
+    map<unsigned int, double> thulium_mass = {{169u,  168.934218}};
+    buildElement_("Thulium", "Tm", 69u, thulium_abundance, thulium_mass);
+
+
+    map<unsigned int, double> ytterbium_abundance = {{168u, 0.00126}, {170u, 0.03023}, {171u, 0.14216}, {172u, 0.21754}, {173u, 0.16098}, {174u, 0.31896}, {176u, 0.12887}};
+    map<unsigned int, double> ytterbium_mass = {{168u,  167.933889}, {170u, 169.93476725}, {171u, 170.93633152}, {172u, 171.93638666}, {173u, 172.93821622}, {174u, 173.93886755}, {176u, 175.9425747}};
+    buildElement_("Ytterbium", "Yb", 70u, ytterbium_abundance, ytterbium_mass);
+
+
+    map<unsigned int, double> lutetium_abundance = {{175u,  0.97401}, {176u, 0.02599}};
+    map<unsigned int, double> lutetium_mass = {{175u, 174.940777}, {176u, 175.942692}};
+    buildElement_("Lutetium", "Lu", 71u, lutetium_abundance, lutetium_mass);
 
 
     map<unsigned int, double> hafnium_abundance = {{176u, 0.0526}, {177u, 0.18600000000000003}, {178u, 0.2728}, {179u, 0.1362}, {180u, 0.3508}};
@@ -500,6 +545,15 @@ namespace OpenMS
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
+    
+    map<unsigned int, double> protactinium_abundance = {{231u, 1.0}};
+    map<unsigned int, double> protactinium_mass = {{231u, 231.03588}};
+    buildElement_("Protactinium", "Pa", 91u, protactinium_abundance, protactinium_mass);
+
+
+    map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
+    map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
+    buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
   }
 

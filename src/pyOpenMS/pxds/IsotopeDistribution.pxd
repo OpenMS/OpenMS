@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
     cdef cppclass IsotopeDistribution:        
 
         IsotopeDistribution() nogil except +
-        IsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
+        IsotopeDistribution(IsotopeDistribution &) nogil except +
 
         # overwrites the container which holds the distribution using @p distribution
         void set(libcpp_vector[ Peak1D ]& distribution) nogil except +

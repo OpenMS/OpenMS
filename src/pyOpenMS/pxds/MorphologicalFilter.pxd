@@ -12,8 +12,9 @@ cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "
         #    DefaultParamHandler
         #    ProgressLogger
 
-        MorphologicalFilter()      nogil except +
-        # MorphologicalFilter(MorphologicalFilter)      nogil except + #private
+        MorphologicalFilter() nogil except +
+        # private
+        MorphologicalFilter(MorphologicalFilter) nogil except + # wrap-ignore
 
         void filter(MSSpectrum & spectrum)      nogil except +
             # wrap-doc:
@@ -35,4 +36,3 @@ cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "
                 #   -----
                 #   The size of the structuring element is computed for each spectrum individually, if it is given in 'Thomson'.
                 #   See the filtering method for MSSpectrum for details
-

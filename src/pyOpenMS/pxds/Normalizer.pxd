@@ -11,10 +11,12 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>" namespace "OpenM
         # wrap-inherits:
         #    DefaultParamHandler
 
-        Normalizer()           nogil except +
-        Normalizer(Normalizer) nogil except + #wrap-ignore
+        Normalizer() nogil except +
+
+        Normalizer(Normalizer) nogil except +
 
         void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
 
+        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
+
+        void filterPeakMap(MSExperiment & exp) nogil except +

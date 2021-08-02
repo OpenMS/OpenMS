@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         #   getName().c_str()
 
         Residue() nogil except +
-        Residue(Residue) nogil except + # wrap-ignore
+        Residue(Residue &) nogil except +
 
         # detailed constructor
         Residue(String name,

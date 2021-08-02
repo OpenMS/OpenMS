@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
                 #   Loads and stores .csv or .tsv files describing an MRMFeatureQC
 
         MRMFeatureQCFile() nogil except +
-        MRMFeatureQCFile(MRMFeatureQCFile &) nogil except +
+        MRMFeatureQCFile(MRMFeatureQCFile &) nogil except + # compiler
 
         void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) nogil except +
             # wrap-doc:

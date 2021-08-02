@@ -1848,7 +1848,7 @@ skipUntilLineBeginsWithOneCharOfStr(RecordReader<TStream, TPass> & reader,
 //_parseUntilBeginLineOneOf(
 // all functions that require lexical_cast<>() which isnt there yet
 
-// TODO stuff from other files (shouldnt be that much and much is duplicate)
+// TODO stuff from other files (shouldn't be that much and much is duplicate)
 
 }  // namespace seqan
 

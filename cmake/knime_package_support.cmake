@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -223,10 +223,12 @@ elseif(WIN32)
   endforeach()
 else()
     foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo)
-        add_custom_command(
-            TARGET prepare_knime_payload_libs POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
-        )
+		## copy the libs themselves, then their dependencies. At some point CMake just stopped doing it.
+		add_custom_command(
+			TARGET prepare_knime_payload_libs POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+			COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
+			)
     endforeach()
 endif()
 

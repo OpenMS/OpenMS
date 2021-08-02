@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
     
     cdef cppclass OSWFile "OpenMS::OSWFile":
         OSWFile(const libcpp_utf8_string filename) nogil except +
-        OSWFile(OSWFile) nogil except + #wrap-ignore
+        OSWFile(OSWFile &) nogil except +
         
         # Cannot wrap libcpp_ostream
         # void readToPIN(const libcpp_string & in_osw,

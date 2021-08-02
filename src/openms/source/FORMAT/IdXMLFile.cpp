@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -562,7 +562,7 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
 
       // set identifier (with UID to make downstream merging of prot_ids possible)
-      // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+      // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
       prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId()));
     }
     //PROTEINS

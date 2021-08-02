@@ -30,6 +30,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         #    ProgressLogger
 
         MRMFeatureFinderScoring() nogil except +
+        # copy constructor of 'MRMFeatureFinderScoring' is implicitly deleted because field 'diascoring_' has an inaccessible copy constructor
+        MRMFeatureFinderScoring(MRMFeatureFinderScoring &) nogil except + # wrap-ignore
 
         void pickExperiment(MSExperiment & chromatograms,
                             FeatureMap & output,

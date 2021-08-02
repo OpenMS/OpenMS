@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FORMAT/MRMFeaturePickerFile.h>" namespace "OpenMS":
                 #   > orn.orn_1.Light,orn,3,13
 
         MRMFeaturePickerFile() nogil except +
-        MRMFeaturePickerFile(MRMFeaturePickerFile &) nogil except +
+        MRMFeaturePickerFile(MRMFeaturePickerFile &) nogil except + # compiler
 
         void load(const String& filename, libcpp_vector[MRMFP_ComponentParams]& cp_list, libcpp_vector[MRMFP_ComponentGroupParams]& cgp_list) nogil except +
             # wrap-doc:
