@@ -40,7 +40,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         libcpp_vector[ size_t ] getWantedRecords(const String & result_filename,
                                                  double p_value_threshold) nogil except +
             # wrap-doc:
-                #   Loads only results which exceeds a given P-value threshold
+                #   Loads only results which exceeds a given p-value threshold
                 #   -----
                 #   :param result_filename: The filename of the results file
                 #   :param p_value_threshold: Only identifications exceeding this threshold are read

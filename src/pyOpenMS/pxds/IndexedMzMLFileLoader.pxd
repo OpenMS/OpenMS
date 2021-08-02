@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Load a file 
                 #   -----
-                #   Tries to parse the file, success needs to be checked with the return value.
+                #   Tries to parse the file, success needs to be checked with the return value
                 #   -----
                 #   :param filename: Filename determines where the file is located
                 #   :param exp: Object which will contain the data after the call
@@ -34,6 +34,6 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #   :param filename: Filename determines where the file will be stored 
                 #   :param exp: MS data to be stored
 
-        PeakFileOptions getOptions() nogil except + Returns the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + Returns the options for loading/storing
+        PeakFileOptions getOptions() nogil except + # wrap-doc:Returns the options for loading/storing
+        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Returns the options for loading/storing
 

@@ -29,10 +29,10 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
             # wrap-doc:
                 #   Extract calibrants from Raw data (mzML)
                 #   -----
-                #   Lock masses are searched in each spectrum and added to the internal calibrant database.
+                #   Lock masses are searched in each spectrum and added to the internal calibrant database
                 #   -----
                 #   Filters can be used to exclude spurious peaks, i.e. require the calibrant peak to be monoisotopic or
-                #   to have a +1 isotope (should not be used for very low abundant calibrants).
+                #   to have a +1 isotope (should not be used for very low abundant calibrants)
                 #   If a calibrant is not found, it is added to a 'failed_lock_masses' database which is returned and not stored internally.
                 #   The intensity of the peaks describe the reason for failed detection: 0.0 - peak not found with the given ppm tolerance;
                 #   1.0 - peak is not monoisotopic (can only occur if 'lock_require_mono' is true)
@@ -43,7 +43,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   :param tol_ppm: Search window for lock masses in 'exp'
                 #   :param lock_require_mono: Require that a lock mass is the monoisotopic peak (i.e. not an isotope peak) -- lock mass is rejected otherwise
                 #   :param lock_require_iso: Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
-                #   :param failed_lock_masses: Set of calibration masses which were not found, i.e. their expected m/z and RT positions;
+                #   :param failed_lock_masses: Set of calibration masses which were not found, i.e. their expected m/z and RT positions
                 #   :param verbose: Print information on 'lock_require_XXX' matches during search
                 #   :returns: Number of calibration masses found
 
@@ -51,18 +51,18 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
             # wrap-doc:
                 #   Extract calibrants from identifications
                 #   -----
-                #   Extracts only the first hit from the first peptide identification of each feature.
-                #   Hits are sorted beforehand.
-                #   Ambiguities should be resolved before, e.g. using IDFilter.
+                #   Extracts only the first hit from the first peptide identification of each feature
+                #   Hits are sorted beforehand
+                #   Ambiguities should be resolved before, e.g. using IDFilter
                 #   RT and m/z are taken from the features, not from the identifications (for an exception see below)!
                 #   -----
                 #   Unassigned peptide identifications are also taken into account!
-                #   RT and m/z are naturally taken from the IDs, since to feature is assigned.
-                #   If you do not want these IDs, remove them from the feature map before calling this function.
+                #   RT and m/z are naturally taken from the IDs, since to feature is assigned
+                #   If you do not want these IDs, remove them from the feature map before calling this function
                 #   -----
-                #   A filtering step is done in the m/z dimension using 'tol_ppm'.
+                #   A filtering step is done in the m/z dimension using 'tol_ppm'
                 #   Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
-                #   larger outliers are removed before accepting an ID as calibrant.
+                #   larger outliers are removed before accepting an ID as calibrant
                 #   -----
                 #   :param fm: FeatureMap with peptide identifications
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
@@ -72,17 +72,17 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
             # wrap-doc:
                 #   Extract calibrants from identifications
                 #   -----
-                #   Extracts only the first hit from each peptide identification.
-                #   Hits are sorted beforehand.
-                #   Ambiguities should be resolved before, e.g. using IDFilter.
+                #   Extracts only the first hit from each peptide identification
+                #   Hits are sorted beforehand
+                #   Ambiguities should be resolved before, e.g. using IDFilter
                 #   -----
                 #   Unassigned peptide identifications are also taken into account!
-                #   RT and m/z are naturally taken from the IDs, since to feature is assigned.
-                #   If you do not want these IDs, remove them from the feature map before calling this function.
+                #   RT and m/z are naturally taken from the IDs, since to feature is assigned
+                #   If you do not want these IDs, remove them from the feature map before calling this function
                 #   -----
-                #   A filtering step is done in the m/z dimension using 'tol_ppm'.
+                #   A filtering step is done in the m/z dimension using 'tol_ppm'
                 #   Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
-                #   larger outliers are removed before accepting an ID as calibrant.
+                #   larger outliers are removed before accepting an ID as calibrant
                 #   -----
                 #   :param pep_ids: Peptide ids (e.g. from an idXML file)
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated

@@ -6,10 +6,8 @@ from EmpiricalFormula cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS":
 
-    cdef cppclass IsotopeDistribution:        
-
-        IsotopeDistribution() nogil except +
-            # wrap-doc:
+    cdef cppclass IsotopeDistribution:
+        # wrap-doc:
             #   Isotope distribution class
             #   -----
             #   A container that holds an isotope distribution. It consists of mass values
@@ -23,11 +21,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
             #    -----
             #   This class only describes the container that holds the isotopic
             #   distribution, calculations are done using classes derived from
-            #   IsotopePatternGenerator.
+            #   IsotopePatternGenerator.        
 
+        IsotopeDistribution() nogil except +
         IsotopeDistribution(IsotopeDistribution &) nogil except +
 
-        # overwrites the container which holds the distribution using @p distribution
         void set(libcpp_vector[ Peak1D ]& distribution) nogil except + # wrap-doc:Overwrites the container which holds the distribution using 'distribution'
 
         void insert(double mass, float intensity) nogil except +
@@ -35,31 +33,22 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         libcpp_vector[Peak1D].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Peak1D)
         libcpp_vector[Peak1D].iterator end()   nogil except +  # wrap-iter-end:__iter__(Peak1D)
 
-        # returns the container which holds the distribution
         libcpp_vector[ Peak1D ]& getContainer() nogil except + # wrap-doc:Returns the container which holds the distribution
 
-        # returns the maximal weight isotope which is stored in the distribution
         Size getMax() nogil except + # wrap-doc:Returns the maximal weight isotope which is stored in the distribution
 
-        # returns the minimal weight isotope which is stored in the distribution
         Size getMin() nogil except + # wrap-doc:Returns the minimal weight isotope which is stored in the distribution
 
-        # returns the most abundant isotope which is stored in the distribution
         Peak1D getMostAbundant() nogil except + # wrap-doc:Returns the most abundant isotope which is stored in the distribution
 
-        # returns the size of the distribution which is the number of isotopes in the distribution
         Size size() nogil except + # wrap-doc:Returns the size of the distribution which is the number of isotopes in the distribution
 
-        # clears the distribution and resets max isotope to 0
         void clear() nogil except + # wrap-doc:Clears the distribution and resets max isotope to 0
 
-        # renormalizes the sum of the probabilities of the isotopes to 1
         void renormalize() nogil except + # wrap-doc:Renormalizes the sum of the probabilities of the isotopes to 1
 
-        # Trims the right side of the isotope distribution to isotopes with a significant contribution.
         void trimRight(double cutoff) nogil except + # wrap-doc:Trims the right side of the isotope distribution to isotopes with a significant contribution
 
-        # Trims the left side of the isotope distribution to isotopes with a significant contribution.
         void trimLeft(double cutoff) nogil except + # wrap-doc:Trims the left side of the isotope distribution to isotopes with a significant contribution
         
         void merge(double, double) nogil except + # wrap-doc:Merges distributions of arbitrary data points with constant defined resolution
@@ -119,29 +108,21 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
 
-        # returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)
         bool getRoundMasses() nogil except + # wrap-doc:Returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)
 
-        # sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)
         void setRoundMasses(bool round_masses_) nogil except + # wrap-doc:Sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)
 
-        # returns the currently set maximum isotope
         Size getMaxIsotope() nogil except + # wrap-doc:Returns the currently set maximum isotope
         
-        #  sets the maximal isotope with @p max_isotope
         void setMaxIsotope(Size max_isotope) nogil except + # wrap-doc:Sets the maximal isotope with 'max_isotope'
 
-        # @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         IsotopeDistribution estimateFromPeptideWeight(double average_weight) nogil except + # wrap-doc:Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
 
-        # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
         IsotopeDistribution estimateFromPeptideWeightAndS(double average_weight, UInt S) nogil except + # wrap-doc:Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
 
-        # Estimate Nucleotide Isotopedistribution from weight
         IsotopeDistribution estimateFromRNAWeight(double average_weight) nogil except + # wrap-doc:Estimate Nucleotide Isotopedistribution from weight
 
-        # Estimate Nucleotide Isotopedistribution from weight
         IsotopeDistribution estimateFromDNAWeight(double average_weight) nogil except + # wrap-doc:Estimate Nucleotide Isotopedistribution from weight
 
         IsotopeDistribution estimateFromWeightAndComp(double average_weight,
@@ -155,15 +136,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                                                           double H, double N,
                                                           double O, double P) nogil except + # wrap-doc:Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
 
-        # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
-        # fragment's average weight, and a set of isolated precursor isotopes.
         IsotopeDistribution estimateForFragmentFromPeptideWeight(double average_weight_precursor,
                                                                  double average_weight_fragment,
                                                                  libcpp_set[ unsigned int ]& precursor_isotopes) nogil except + # wrap-doc:Estimate peptide fragment IsotopeDistribution from the precursor's average weight, fragment's average weight, and a set of isolated precursor isotopes
 
-        # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
-        # number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
-        # and a set of isolated precursor isotopes.
         IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor,
                                                                      UInt S_precursor,
                                                                      double average_weight_fragment,
@@ -174,17 +150,14 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                 #   number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
                 #   and a set of isolated precursor isotopes.
 
-        # Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
-        # fragment's average weight, and a set of isolated precursor isotopes.
+
         IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,
                                                              libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
             # wrap-doc:
                 #   Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
-                #   fragment's average weight, and a set of isolated precursor isotopes.
+                #   fragment's average weight, and a set of isolated precursor isotopes
 
-        # Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
-        # fragment's average weight, and a set of isolated precursor isotopes.
         IsotopeDistribution estimateForFragmentFromDNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,
                                                              libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
@@ -192,8 +165,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                 #   Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
                 #   fragment's average weight, and a set of isolated precursor isotopes.
 
-        # Estimate fragment IsotopeDistribution from the precursor's average weight,
-        # fragment's average weight, a set of isolated precursor isotopes, and average composition
         IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor,
                                                                  double average_weight_fragment,
                                                                  libcpp_set[ unsigned int ]& precursor_isotopes,
@@ -207,7 +178,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                 #   Estimate fragment IsotopeDistribution from the precursor's average weight,
                 #   fragment's average weight, a set of isolated precursor isotopes, and average composition
 
-        # Calculate isotopic distribution for a fragment molecule
         IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist,
                                                     IsotopeDistribution& comp_fragment_isotope_dist,
                                                     libcpp_set[ unsigned int ]& precursor_isotopes,
