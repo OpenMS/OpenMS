@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/FORMAT/KroenikFile.h>" namespace "OpenMS":
 
         KroenikFile() nogil except +
 
-        void store(String filename, MSSpectrum & spectrum)  nogil except +
+        void store(String filename, MSSpectrum & spectrum)  nogil except + # wrap-doc:Stores a MSExperiment into a Kroenik file
         void load(String filename, FeatureMap & feature_map) nogil except +
             # wrap-doc:
                 #   Loads a Kroenik file into a featureXML

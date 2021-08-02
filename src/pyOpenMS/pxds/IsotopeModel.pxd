@@ -28,9 +28,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
                 #   standard deviations) but can get significant otherwise. In that case use setParameters()
                 #   which enforces a recomputation of the model
 
-        double getOffset() nogil except + Get the offset of the model
-        EmpiricalFormula getFormula() nogil except + Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)
-        void setSamples(EmpiricalFormula &formula) nogil except + Set sample/supporting points of interpolation
+        double getOffset() nogil except + # wrap-doc:Get the offset of the model
+        EmpiricalFormula getFormula() nogil except + # wrap-doc:Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)
+        void setSamples(EmpiricalFormula &formula) nogil except + # wrap-doc:Set sample/supporting points of interpolation
         double getCenter() nogil except +
             # wrap-doc:
                 #   Get the center of the Isotope model
