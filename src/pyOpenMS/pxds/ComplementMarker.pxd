@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>" namespace 
         # wrap-inherits:
         #  PeakMarker
         ComplementMarker() nogil except +
-        ComplementMarker(ComplementMarker) nogil except +
+        ComplementMarker(ComplementMarker &) nogil except +
         void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +
         PeakMarker * create() nogil except + # wrap-ignore
         # String getProductName() nogil except +

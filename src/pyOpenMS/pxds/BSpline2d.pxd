@@ -24,4 +24,3 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 
     cdef enum BoundaryCondition:
         BC_ZERO_ENDPOINTS, BC_ZERO_FIRST, BC_ZERO_SECOND
-

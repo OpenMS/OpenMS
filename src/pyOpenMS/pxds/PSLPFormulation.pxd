@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
         #  DefaultParamHandler
 
         PSLPFormulation() nogil except +
-        PSLPFormulation(PSLPFormulation) nogil except + #wrap-ignore
+        PSLPFormulation(PSLPFormulation &) nogil except + # compiler
 
         void createAndSolveILPForKnownLCMSMapFeatureBased(
             FeatureMap & features,

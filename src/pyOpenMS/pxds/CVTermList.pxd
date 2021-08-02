@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         # can only declare one of the two methods here.
         # see eg Precursor.pxd 
 
-        CVTermList()            nogil except +
-        CVTermList(CVTermList)  nogil except +
+        CVTermList() nogil except +
+        CVTermList(CVTermList &) nogil except +
 
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +

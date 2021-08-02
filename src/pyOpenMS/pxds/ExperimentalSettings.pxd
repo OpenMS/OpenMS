@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
         #   about an LC-MS/MS injection.
 
         ExperimentalSettings() nogil except + # wrap-doc:Description of the experimental settings
-        ExperimentalSettings(ExperimentalSettings) nogil except + # wrap-ignore
+        ExperimentalSettings(ExperimentalSettings &) nogil except +
 
         # returns a mutable reference to the source data file
         libcpp_vector[SourceFile] getSourceFiles() nogil except + # wrap-doc:Returns a reference to the source data file

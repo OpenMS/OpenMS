@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/CVTermListInterface.h>" namespace "OpenMS":
         #  MetaInfoInterface
 
         CVTermListInterface() nogil except +
-        CVTermListInterface(CVTermListInterface) nogil except +
+        CVTermListInterface(CVTermListInterface &) nogil except +
 
         bool operator==(CVTermListInterface & rhs) nogil except +
         bool operator!=(CVTermListInterface & rhs) nogil except +

@@ -18,6 +18,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
 
         MapAlignmentTransformer() nogil except +
 
+        MapAlignmentTransformer(MapAlignmentTransformer &) nogil except +
+
         void transformRetentionTimes(MSExperiment&, TransformationDescription&, bool) nogil except +
 
         void transformRetentionTimes(FeatureMap&, TransformationDescription&, bool) nogil except +

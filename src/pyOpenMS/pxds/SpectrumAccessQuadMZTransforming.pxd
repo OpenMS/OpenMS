@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTran
         #  SpectrumAccessTransforming
 
         SpectrumAccessQuadMZTransforming() nogil except + # wrap-pass-constructor
-        SpectrumAccessQuadMZTransforming(SpectrumAccessQuadMZTransforming) nogil except + #wrap-ignore
+        SpectrumAccessQuadMZTransforming(SpectrumAccessQuadMZTransforming &) nogil except + # compiler
 
         # SpectrumAccessQuadMZTransforming(shared_ptr[ ISpectrumAccess] sptr, double a, double b, double c, bool ppm) nogil except +
         SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMS ], double a, double b, double c, bool ppm) nogil except +

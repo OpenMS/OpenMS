@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         #   -----
 
         MetaInfoInterface() nogil except +
-        MetaInfoInterface(MetaInfoInterface) nogil except +
+        MetaInfoInterface(MetaInfoInterface &) nogil except +
 
         bool operator==(MetaInfoInterface) nogil except +
         bool operator!=(MetaInfoInterface) nogil except +

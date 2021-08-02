@@ -20,11 +20,12 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
             #   This is the default model used by PeakIntensityPredictor.
 
         LocalLinearMap() nogil except +
-        LocalLinearMap(LocalLinearMap) nogil except + #wrap-ignore
+        LocalLinearMap(LocalLinearMap &) nogil except + # wrap-ignore
         LLMParam getLLMParam() nogil except + # wrap-doc:Return parameters of the LocalLinearMap model
         Matrix[ double ]  getCodebooks() nogil except + # wrap-doc:Return position of the codebook vectors (18-dim)
         Matrix[ double ]  getMatrixA() nogil except + # wrap-doc:Return linear mappings of the codebooks
         libcpp_vector[ double ]  getVectorWout() nogil except + # wrap-doc:Return linear bias
+
         # TODO STL attributes unsigned int 
         # Matrix[ UInt ]  getCord() nogil except +
         void normalizeVector(libcpp_vector[ double ] & aaIndexVariables) nogil except + # wrap-doc:Calculate and return normalized amino acid index variables from string representation of peptide

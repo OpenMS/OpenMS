@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,6 +176,51 @@ namespace OpenMS
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
 
     defaultsToParam_();
+  }
+
+  PeakMap& FeatureFinderIdentificationAlgorithm::getMSData()
+  {
+    return ms_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getMSData() const
+  {
+    return ms_data_;
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
+  {
+    ms_data_ = ms_data;
+  }
+
+  PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
+  {
+    return chrom_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms() const
+  {
+    return chrom_data_;
+  }
+
+  ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger()
+  {
+    return prog_log_;
+  }
+
+  const ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger() const
+  {
+    return prog_log_;
+  }
+
+  TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary()
+  {
+    return library_;
+  }
+
+  const TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary() const
+  {
+    return library_;
   }
 
   void FeatureFinderIdentificationAlgorithm::run(
@@ -694,7 +739,7 @@ namespace OpenMS
           // only go through internals for seeds (->first). External seeds are not supported
           for (const auto& rt_pep : charge_rtmap.second.first)
           {
-            // since we dont know their IDs, seeds will all need a different grouplabel in SWATH
+            // since we don't know their IDs, seeds will all need a different grouplabel in SWATH
             // to not be combined
             seedcount++;
 

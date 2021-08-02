@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
                 #   Peak widening is achieved by either a Gaussian or Lorentzian shape
 
         IsotopeModel() nogil except +
-        IsotopeModel(IsotopeModel) nogil except +
+        IsotopeModel(IsotopeModel &) nogil except +
         UInt getCharge() nogil except +
         void setOffset(double offset) nogil except +
             # wrap-doc:

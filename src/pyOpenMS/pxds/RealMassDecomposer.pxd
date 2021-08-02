@@ -9,9 +9,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>"
     
     cdef cppclass RealMassDecomposer "OpenMS::ims::RealMassDecomposer":
         RealMassDecomposer() nogil except + #wrap-ignore
-        RealMassDecomposer(RealMassDecomposer) nogil except + #wrap-ignore
+        RealMassDecomposer(RealMassDecomposer) nogil except + # compiler
         RealMassDecomposer(IMSWeights & weights) nogil except +
         # libcpp_vector[ libcpp_vector[unsigned int] ] getDecompositions(double mass, double error) nogil except +
         # libcpp_vector[int] getDecompositions(double mass, double error, constraints_type & constraints) nogil except +
         unsigned long long getNumberOfDecompositions(double mass, double error) nogil except +
-

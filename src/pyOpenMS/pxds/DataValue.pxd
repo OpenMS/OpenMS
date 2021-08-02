@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
     cdef cppclass DataValue:
          DataValue() nogil except +
-         DataValue(DataValue) nogil except + # wrap-ignore
+         DataValue(DataValue &) nogil except +
          DataValue(char *) nogil except +
          DataValue(const String&) nogil except +
          DataValue(int) nogil except +

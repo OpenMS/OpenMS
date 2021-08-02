@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/DocumentIdentifier.h>" namespace "OpenMS":
     cdef cppclass DocumentIdentifier:
 
         DocumentIdentifier() nogil except +
-        DocumentIdentifier(DocumentIdentifier) nogil except + # wrap-ignore
+        DocumentIdentifier(DocumentIdentifier &) nogil except +
 
         # set document identifier (e.g. an LSID)
         void setIdentifier(String id) nogil except + # wrap-doc:Set document identifier (e.g. an LSID)

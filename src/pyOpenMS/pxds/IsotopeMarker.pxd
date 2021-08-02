@@ -11,7 +11,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>" namespace "Op
         # wrap-inherits:
         #  PeakMarker
         IsotopeMarker() nogil except + # wrap-doc:IsotopeMarker marks peak pairs which could represent an ion and its isotope
-        IsotopeMarker(IsotopeMarker) nogil except +
+        IsotopeMarker(IsotopeMarker &) nogil except +
+
         void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +
         PeakMarker * create() nogil except + # wrap-ignore
         # TODO

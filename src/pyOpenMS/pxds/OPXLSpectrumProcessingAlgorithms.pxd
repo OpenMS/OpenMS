@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
 
     cdef cppclass OPXLSpectrumProcessingAlgorithms:
 
-        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms) nogil except +
-        OPXLSpectrumProcessingAlgorithms() nogil except +
+        OPXLSpectrumProcessingAlgorithms() nogil except + # compiler
+        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms &) nogil except + # compiler
 
         MSSpectrum mergeAnnotatedSpectra(MSSpectrum& first_spectrum,
                                          MSSpectrum& second_spectrum) nogil except +

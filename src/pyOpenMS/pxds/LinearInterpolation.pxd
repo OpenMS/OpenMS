@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
         # wrap-instances:
         #   LinearInterpolation := LinearInterpolation[double, double]
         LinearInterpolation() nogil except +
-        LinearInterpolation(LinearInterpolation) nogil except +
+        LinearInterpolation(LinearInterpolation &) nogil except +
         ValueType value(KeyType arg_pos) nogil except + # wrap-doc:Returns the interpolated value
         void addValue(KeyType arg_pos, ValueType arg_value) nogil except + # wrap-doc:Performs linear resampling. The `arg_value` is split up and added to the data points around `arg_pos`
         ValueType derivative(KeyType arg_pos) nogil except + # wrap-doc:Returns the interpolated derivative

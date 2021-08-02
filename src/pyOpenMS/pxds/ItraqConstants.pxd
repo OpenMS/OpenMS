@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
                 #   -----
                 #   Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel
 
-        ItraqConstants() nogil except + 
-        ItraqConstants(ItraqConstants) nogil except + #wrap-ignore
+        ItraqConstants() nogil except + # compiler
+        ItraqConstants(ItraqConstants &) nogil except + # compiler
 
         # Int CHANNEL_COUNT()
         # Int CHANNELS_FOURPLEX()

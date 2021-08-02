@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -334,7 +334,7 @@ namespace OpenMS
         getACAndACType(substrings[reference_column], accession, accession_type);
         protein_hit.setAccession(accession);
 //              protein_hit.setRank(ac_position_map.size());
-        /// @todo score einfach zusammenrechnen? (Martin)
+        /// @todo simply sum up score? (Martin)
 
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
         {
@@ -370,7 +370,7 @@ namespace OpenMS
             protein_hit.setAccession(accession);
             // protein_hit.setRank(ac_position_map.size());
             // @todo simply add up score
-            // score einfach zusammenrechnen? (Martin)
+            // Simply sum up score? (Martin)
             // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)

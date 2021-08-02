@@ -85,7 +85,7 @@ namespace SEQAN_NAMESPACE_MAIN
     template <>
     struct Difference< FILE* >
     {
-//IOREV shouldnt this be ulong, as the file can be ulong bytes big?
+//IOREV shouldn't this be ulong, as the file can be ulong bytes big?
 	    typedef long Type;
     };
 
@@ -166,7 +166,7 @@ namespace SEQAN_NAMESPACE_MAIN
     inline Size<FILE*>::Type 
 	seek(FILE* me, TPos const fileOfs) 
 	{
-//IOREV shouldnt it be SEEK_SET instead of SEEK_BEGIN?
+//IOREV shouldn't it be SEEK_SET instead of SEEK_BEGIN?
 		return seek(me, fileOfs, SEEK_BEGIN);
     }
 

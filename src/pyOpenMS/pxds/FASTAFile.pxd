@@ -13,7 +13,8 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
     cdef cppclass FASTAFile:
 
         FASTAFile() nogil except + # wrap-doc:This class serves for reading in and writing FASTA files
-        FASTAFile(FASTAFile) nogil except + #wrap-ignore
+        # copy constructor of 'FASTAFile' is implicitly deleted because field 'infile_' has a deleted copy constructor
+        FASTAFile(FASTAFile &) nogil except + # wrap-ignore
 
         void load(const String& filename, libcpp_vector[FASTAEntry] & data) nogil except + # wrap-doc:Loads a FASTA file given by 'filename' and stores the information in 'data'
         void store(const String& filename, libcpp_vector[FASTAEntry] & data) nogil except + # wrap-doc:Stores the data given by 'data' at the file 'filename'

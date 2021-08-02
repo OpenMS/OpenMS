@@ -33,6 +33,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #   -----        
 
         MzMLFile() nogil except +
+        MzMLFile(MzMLFile &) nogil except +
 
         void load(const String& filename, MSExperiment &) nogil except+ #wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
         void store(const String& filename, MSExperiment &) nogil except+ #wrap-doc:Stores a map in an MzML file.
@@ -53,4 +54,3 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         void setOptions(PeakFileOptions) nogil except + #wrap-doc:Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only.
 
         bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) nogil except +
-

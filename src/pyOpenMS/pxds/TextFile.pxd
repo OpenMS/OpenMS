@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/FORMAT/TextFile.h>" namespace "OpenMS":
     
     cdef cppclass TextFile "OpenMS::TextFile":
         TextFile() nogil except +
-        TextFile(TextFile) nogil except + #wrap-ignore
+        TextFile(TextFile &) nogil except + # compiler
         TextFile(const String &filename, bool trim_linesalse, Int first_n1) nogil except +
         void load(const String &filename, bool trim_linesalse, Int first_n1) nogil except +
         void store(const String &filename) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,7 +95,7 @@ namespace OpenMS
     svm_par.remove("model_file_name");
     defaults_.insert("TandemSim:SVM:", svm_par);
 
-    // sync'ed Param (also appears in IonizationSimulation)
+    // synced Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 

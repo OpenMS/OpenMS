@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
   cdef cppclass ModificationDefinitionsSet:
 
     ModificationDefinitionsSet() nogil except +
-    ModificationDefinitionsSet(ModificationDefinitionsSet rhs) nogil except +
+    ModificationDefinitionsSet(ModificationDefinitionsSet &) nogil except +
 
     # detailed constructor with StringLists
     # The StringLists should contain UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'

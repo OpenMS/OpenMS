@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/SYSTEM/JavaInfo.h>" namespace "OpenMS":
     cdef cppclass JavaInfo:
 
         JavaInfo() nogil except + # wrap-doc:Detect Java and retrieve information
-        JavaInfo(JavaInfo) nogil except + # wrap-ignore
+        JavaInfo(JavaInfo &) nogil except +
 
         bool canRun(String java_executable) nogil except +
             # wrap-doc:
@@ -18,4 +18,3 @@ cdef extern from "<OpenMS/SYSTEM/JavaInfo.h>" namespace "OpenMS":
                 #   :param java_executable: Path to Java executable. Can be absolute, relative or just a filename
                 #   :param verbose: On error, should an error message be printed to OPENMS_LOG_ERROR?
                 #   :returns: Returns false if Java executable can not be called; true if Java executable can be executed
-
