@@ -77,12 +77,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                 #   :param transition_group: The MRMTransitionGroup to be scored (input)
                 #   :param trafo: Optional transformation of the experimental retention time
                 #               to the normalized retention time space used in the
-                #               transition list.
+                #               transition list
                 #   :param swath_maps: Optional SWATH-MS (DIA) map corresponding from which
                 #                    the chromatograms were extracted. Use empty map if no
-                #                    data is available.
+                #                    data is available
                 #   :param output: The output features with corresponding scores (the found
-                #                features will be added to this FeatureMap).
+                #                features will be added to this FeatureMap)
                 #   :param ms1only: Whether to only do MS1 scoring and skip all MS2 scoring
 
         void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) nogil except +

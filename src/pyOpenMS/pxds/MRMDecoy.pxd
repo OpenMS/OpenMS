@@ -32,13 +32,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
                 #   Generate decoys from a TargetedExperiment
                 #   -----
                 #   Will generate decoy peptides for each target peptide provided in exp and
-                #   write them into the decoy experiment.
+                #   write them into the decoy experiment
                 #   -----
                 #   Valid methods: shuffle, reverse, pseudo-reverse
                 #   -----
                 #   If theoretical is true, the target transitions will be returned but their
                 #   masses will be adjusted to match the theoretical value of the fragment ion
-                #   that is the most likely explanation for the product.
+                #   that is the most likely explanation for the product
                 #   -----
                 #   `mz_threshold` is used for the matching of theoretical ion series to the observed one
                 #   -----
