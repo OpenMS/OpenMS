@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>" namespace "Op
     cdef cppclass TransitionPQPFile:
 
         TransitionPQPFile() nogil except +
-        TransitionPQPFile(TransitionPQPFile) nogil except + #wrap-ignore
+        TransitionPQPFile(TransitionPQPFile &) nogil except + # compiler
 
         void convertTargetedExperimentToPQP(char * filename, TargetedExperiment & targeted_exp) nogil except +
         void convertPQPToTargetedExperiment(char * filename, TargetedExperiment & targeted_exp, bool legacy_traml_id) nogil except +

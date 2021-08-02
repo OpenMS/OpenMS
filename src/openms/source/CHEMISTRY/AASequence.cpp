@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -618,7 +618,7 @@ namespace OpenMS
       // charge directed*/
 /*
   static const EmpiricalFormula R_44("NH2CHNH");
-  static const EmpiricalFormula R_59("CN3H5"); // guanidium
+  static const EmpiricalFormula R_59("CN3H5"); // guanidine
   static const EmpiricalFormula R_61("N2H4CH");
   // charge remote
   static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O

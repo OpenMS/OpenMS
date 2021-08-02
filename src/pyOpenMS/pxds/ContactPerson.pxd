@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/ContactPerson.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         ContactPerson() nogil except +
-        ContactPerson(ContactPerson) nogil except + # wrap-ignore
+        ContactPerson(ContactPerson &) nogil except +
 
         # returns the first name of the person
         String getFirstName() nogil except + # wrap-doc:Returns the first name of the person

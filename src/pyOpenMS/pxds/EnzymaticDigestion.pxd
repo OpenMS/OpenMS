@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
         EnzymaticDigestion() nogil except + # wrap-doc:Class for the enzymatic digestion of sequences
 
-        EnzymaticDigestion(EnzymaticDigestion) nogil except +
+        EnzymaticDigestion(EnzymaticDigestion &) nogil except + # compiler
 
         Size getMissedCleavages() nogil except + # wrap-doc:Returns the number of missed cleavages for the digestion
 

@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
     cdef cppclass PrecursorPurity "OpenMS::PrecursorPurity":
 
         PrecursorPurity() nogil except +
-        PrecursorPurity(PrecursorPurity) nogil except + # wrap-ignore
+        PrecursorPurity(PrecursorPurity &) nogil except +
 
         # libcpp_map[String, PurityScores] computePrecursorPurities(MSExperiment spectra,
         #                                                     double precursor_mass_tolerance,
@@ -24,8 +24,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
 
     cdef cppclass PurityScores "OpenMS::PrecursorPurity::PurityScores":
 
-        PurityScores(PurityScores) nogil except +
         PurityScores() nogil except +
+        PurityScores(PurityScores &) nogil except +
 
         double total_intensity
         double target_intensity

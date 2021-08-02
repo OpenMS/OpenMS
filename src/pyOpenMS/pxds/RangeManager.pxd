@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         # wrap-ignore
         # no-pxd-import
         RangeManager1() nogil except +
-        RangeManager1(RangeManager1) nogil except +
+        RangeManager1(RangeManager1  &) nogil except +
         DPosition1 getMin() nogil except +
         DPosition1 getMax() nogil except +
         double getMinInt() nogil except +
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         # wrap-ignore
         # no-pxd-import
         RangeManager2() nogil except +
-        RangeManager2(RangeManager2) nogil except +
+        RangeManager2(RangeManager2 &) nogil except +
         DPosition2 getMin() nogil except +
         DPosition2 getMax() nogil except +
         double getMinInt() nogil except +

@@ -6,10 +6,10 @@ from DataValue cimport *
 cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
 
     cdef cppclass CVTerm:
-         CVTerm()   nogil except +
-         CVTerm(CVTerm)   nogil except +
+         CVTerm() nogil except +
+         CVTerm(CVTerm &) nogil except +
 
-         bool operator==(CVTerm)   nogil except +
+         bool operator==(CVTerm) nogil except +
 
          void setAccession(String accession) nogil except + # wrap-doc:Sets the accession string of the term
          String getAccession() nogil except + # wrap-doc:Returns the accession string of the term

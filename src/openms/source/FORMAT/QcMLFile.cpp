@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -299,7 +299,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version uptodate
+    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version up-to-date
   {
   }
 
@@ -348,7 +348,7 @@ namespace OpenMS
 
   void QcMLFile::addRunAttachment(String run_id, Attachment at)
   {
-    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
+    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan write out in store),redundancy check
   }
 
   void QcMLFile::addSetAttachment(String run_id, Attachment at)
@@ -880,7 +880,6 @@ namespace OpenMS
         {
           name_ = qp_.value;
         }
-        //TODO add cvhandling for validation etc
       }
       else //setQuality
       {
@@ -1755,7 +1754,6 @@ namespace OpenMS
             row.push_back(String(mz));
             double dppm = (it->getMZ()-mz)/(mz*(double)1e-6);
             row.push_back(String(dppm));
-  //          row.push_back(String(calculateSNident(tmp)));
             deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
@@ -1977,7 +1975,7 @@ namespace OpenMS
         qp.name = "consensuspoints"; ///< Name
         //~ qp.id = base_name + "_consensuses"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
-        qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featuremapper results"
+        qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "feature mapper results"
 
         at.colTypes.push_back("Native_spectrum_ID");
         at.colTypes.push_back("DECON_RT_(sec)");
@@ -2127,7 +2125,6 @@ namespace OpenMS
                 qp.cvAcc = "QC:0000005";
                 for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
                 {
-                  ///<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
                   if (qit->cvAcc == "MS:1000577")
                     qp.value = qit->value;
                 }
@@ -2135,7 +2132,7 @@ namespace OpenMS
             }
             else
             {
-              //TODO warn - no mzML file registered for this runQC
+              //TODO warn - no mzML file registered for this run
             }
           }
         }

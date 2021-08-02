@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSACSVFile.h>" namespace "OpenMS":
     
     cdef cppclass OMSSACSVFile "OpenMS::OMSSACSVFile":
         OMSSACSVFile() nogil except +
-        OMSSACSVFile(OMSSACSVFile) nogil except + #wrap-ignore
+        OMSSACSVFile(OMSSACSVFile &) nogil except + # compiler
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,

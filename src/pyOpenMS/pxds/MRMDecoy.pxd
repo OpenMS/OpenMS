@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
         # wrap-inherits:
         #    ProgressLogger
 
-        MRMDecoy()                       nogil except +
-        MRMDecoy(MRMDecoy)               nogil except + # wrap-ignore
+        MRMDecoy() nogil except +
+        MRMDecoy(MRMDecoy &) nogil except + # compiler
 
         void generateDecoys(TargetedExperiment& exp,
                             TargetedExperiment& dec,

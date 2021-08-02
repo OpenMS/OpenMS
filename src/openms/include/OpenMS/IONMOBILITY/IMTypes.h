@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,12 +94,12 @@ namespace OpenMS
     static IMFormat determineIMFormat(const MSExperiment& exp);
 
     /** 
-        @brief Checks for existance of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
+        @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
         
         If neither is found, IMFormat::NONE is returned.
         If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
 
-        @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given pectrum
+        @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */
     static IMFormat determineIMFormat(const MSSpectrum& spec);
   };

@@ -8,13 +8,15 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
     cdef cppclass CalibrationData:
 
         CalibrationData()  nogil except +
-        CalibrationData(CalibrationData &) nogil except +
+
+        CalibrationData(CalibrationData &) nogil except + # compiler
         double getMZ(Size) nogil except + # wrap-doc:Retrieve the observed m/z of the i'th calibration point
         double getRT(Size) nogil except + # wrap-doc:Retrieve the observed RT of the i'th calibration point
         double getIntensity(Size) nogil except + # wrap-doc:Retrieve the intensity of the i'th calibration point
         Size size() nogil except + # wrap-doc:Number of calibration points
         bool empty() nogil except + # wrap-doc:Returns `True` if there are no peaks.
         void clear() nogil except + # wrap-doc:Remove all calibration points
+
         void setUsePPM(bool) nogil except +
         bool usePPM() nogil except + # wrap-doc:Current error unit (ppm or Th)
         void insertCalibrationPoint(double rt, double mz_obs, float intensity, double mz_ref, double weight, int group) nogil except +
@@ -30,4 +32,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS::
 
         # static members
         StringList getMetaValues() nogil except + # wrap-attach:CalibrationData
-

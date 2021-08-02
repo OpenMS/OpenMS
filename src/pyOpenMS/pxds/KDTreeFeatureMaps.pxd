@@ -17,7 +17,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>" namespace 
         # wrap-inherits:
         #  DefaultParamHandler
         KDTreeFeatureMaps() nogil except +
-        KDTreeFeatureMaps(KDTreeFeatureMaps) nogil except + #wrap-ignore
         KDTreeFeatureMaps(libcpp_vector[ FeatureMap ] & maps, Param & param) nogil except +
         KDTreeFeatureMaps(libcpp_vector[ ConsensusMap ] & maps, Param & param) nogil except +
         void addMaps(libcpp_vector[ FeatureMap ] & maps) nogil except +

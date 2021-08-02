@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
     cdef cppclass ChargePair:
   
         ChargePair() nogil except +
-        ChargePair(ChargePair) nogil except + 
+        ChargePair(ChargePair &) nogil except +
   
         ChargePair(Size index0,
                Size index1,
@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
                Int charge1,
                Compomer compomer,
                double mass_diff,
-                   bool active) nogil except +
+               bool active) nogil except +
 
         Int getCharge(UInt pairID) nogil except + # wrap-doc:Returns the charge (for element 0 or 1)
         void setCharge(UInt pairID, Int e) nogil except + # wrap-doc:Set the charge (for element 0 or 1)

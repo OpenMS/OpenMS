@@ -26,8 +26,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
     cdef cppclass OPXLHelper:
 
-        OPXLHelper(OPXLHelper) nogil except +
-        OPXLHelper() nogil except +
+        OPXLHelper() nogil except + # compiler
+        OPXLHelper(OPXLHelper &) nogil except + # compiler
 
         libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(libcpp_vector[ AASeqWithMass ]  peptides,
                                                                   double cross_link_mass_light,

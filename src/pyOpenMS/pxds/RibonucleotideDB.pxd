@@ -8,6 +8,10 @@ cdef extern from "<OpenMS/CHEMISTRY/RibonucleotideDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #   cdef AutowrapPtrHolder[_RibonucleotideDB] inst
 
+
+        # protected
+        RibonucleotideDB() nogil except + #wrap-ignore
+        # deleted
         RibonucleotideDB(RibonucleotideDB) nogil except + #wrap-ignore
 
         const Ribonucleotide * getRibonucleotide(const libcpp_string& code) nogil except +
@@ -18,4 +22,3 @@ cdef extern from "<OpenMS/CHEMISTRY/RibonucleotideDB.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/RibonucleotideDB.h>" namespace "OpenMS::RibonucleotideDB":
     
     RibonucleotideDB* getInstance() nogil except + # wrap-ignore
-

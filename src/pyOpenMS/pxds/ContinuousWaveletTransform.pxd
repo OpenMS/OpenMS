@@ -6,7 +6,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
     
     cdef cppclass ContinuousWaveletTransform "OpenMS::ContinuousWaveletTransform":
         ContinuousWaveletTransform() nogil except +
-        ContinuousWaveletTransform(ContinuousWaveletTransform) nogil except + #wrap-ignore
+
+        ContinuousWaveletTransform(ContinuousWaveletTransform &) nogil except + # compiler
         libcpp_vector[ Peak1D ]  getSignal() nogil except + # wrap-doc:Non-mutable access to the wavelet transform of the signal
         void setSignal(libcpp_vector[ Peak1D ] & signal) nogil except + # wrap-doc:Mutable access to the wavelet transform of the signal
         libcpp_vector[ double ]  getWavelet() nogil except + # wrap-doc:Non-mutable access to the wavelet
@@ -23,6 +24,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
         void setSignalLength(SignedSize signal_length) nogil except + # wrap-doc:Mutable access to signal length [end_left_padding,begin_right_padding]
         int getSize() nogil except + # wrap-doc:Non-mutable access to signal length including padded zeros [0,end]
         void init(double scale, double spacing) nogil except + # wrap-doc:Perform possibly necessary preprocessing steps, like tabulating the Wavelet
-        # double <](unsigned int i) nogil except +
-        # double <](unsigned int i) nogil except +
 
+        # double <](unsigned int i) nogil except +
+        # double <](unsigned int i) nogil except +

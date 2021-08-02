@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
     
     cdef cppclass CsiAdapterIdentification "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterIdentification":
         CsiAdapterIdentification() nogil except +
-        CsiAdapterIdentification(CsiAdapterIdentification) nogil except +
+        CsiAdapterIdentification(CsiAdapterIdentification& ) nogil except + # compiler
 
         double mz
         double rt

@@ -11,7 +11,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #   cdef AutowrapPtrHolder[_ModificationsDB] inst
 
-        ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
+        # private
+        ModificationsDB() nogil except + # wrap-ignore
+        # private
+        ModificationsDB(ModificationsDB) nogil except + # wrap-ignore
 
         Size getNumberOfModifications() nogil except +
 

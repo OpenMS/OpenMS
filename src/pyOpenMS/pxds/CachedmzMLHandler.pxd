@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
         #   ProgressLogger
 
         CachedMzMLHandler() nogil except + # wrap-doc:An class that uses on-disk caching to read and write spectra and chromatograms
+        CachedMzMLHandler(CachedMzMLHandler &) nogil except + # compiler
 
-        CachedMzMLHandler(CachedMzMLHandler) nogil except +
 
         void writeMemdump(MSExperiment exp, String out) nogil except + # wrap-doc:Write complete spectra as a dump to the disk
         void writeMetadata(MSExperiment exp, String out_meta) nogil except + # wrap-doc:Write only the meta data of an MSExperiment
@@ -30,4 +30,3 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
         # NAMESPACE # void readSingleSpectrum(MSSpectrum & spectrum, std::ifstream & ifs, Size & idx)
         # NAMESPACE # void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream & ifs, int ms_level, double rt)
         # NAMESPACE # void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream & ifs)
-

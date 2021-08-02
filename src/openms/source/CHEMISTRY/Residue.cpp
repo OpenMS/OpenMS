@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,7 +108,6 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    String ion("-ion");
     switch (res_type)
     {
     case Residue::Full:
@@ -124,25 +123,46 @@ namespace OpenMS
       return "C-terminal";
 
     case Residue::AIon:
-      return "a" + ion;
+      return "a-ion";
 
     case Residue::BIon:
-      return "b" + ion;
+      return "b-ion";
 
     case Residue::CIon:
-      return "c" + ion;
+      return "c-ion";
 
     case Residue::XIon:
-      return "x" + ion;
+      return "x-ion";
 
     case Residue::YIon:
-      return "y" + ion;
+      return "y-ion";
 
     case Residue::ZIon:
-      return "z" + ion;
+      return "z-ion";
+
+    case Residue::Precursor:
+      return "precursor-ion";
+
+    case Residue::BIonMinusH20:
+      return "b-H2O-ion";
+
+    case Residue::YIonMinusH20:
+      return "y-H2O-ion";
+
+    case Residue::BIonMinusNH3:
+      return "B-NH3-ion";
+
+    case Residue::YIonMinusNH3:
+      return "y-NH3-ion";
+
+    case Residue::NonIdentified:
+      return "Non-identified ion";
+
+    case Residue::Unannotated:
+      return "unannotated";
 
     default:
-      cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
+      cerr << "Error: Residue::getResidueTypeName - residue type has no name. The developer should add a residue name to Residue.cpp" << endl;
     }
     return "";
   }

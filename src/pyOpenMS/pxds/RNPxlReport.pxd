@@ -9,7 +9,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReport "OpenMS::RNPxlReport":
-        RNPxlReport(RNPxlReport) nogil except + #wrap-ignore
+        RNPxlReport() nogil except + # compiler
+        RNPxlReport(RNPxlReport &) nogil except + # compiler
         libcpp_vector[ RNPxlReportRow ] annotate(MSExperiment & spectra,
                                                  libcpp_vector[ PeptideIdentification ] & peptide_ids,
                                                  double marker_ions_tolerance) nogil except +
@@ -18,13 +19,15 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRowHeader "OpenMS::RNPxlReportRowHeader":
-        RNPxlReportRowHeader(RNPxlReportRowHeader) nogil except + #wrap-ignore
+        RNPxlReportRowHeader() nogil except + # compiler
+        RNPxlReportRowHeader(RNPxlReportRowHeader &) nogil except + # compiler
         String getString(const String & separator) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRow "OpenMS::RNPxlReportRow":
-        RNPxlReportRow(RNPxlReportRow) nogil except + #wrap-ignore
+        RNPxlReportRow() nogil except + # compiler
+        RNPxlReportRow(RNPxlReportRow &) nogil except + # compiler
 
         bool no_id
         double rt
@@ -50,4 +53,3 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
         int rank
 
         String getString(const String & separator) nogil except +
-

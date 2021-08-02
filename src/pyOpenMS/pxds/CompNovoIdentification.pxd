@@ -12,9 +12,8 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>" namespace "
         # wrap-inherits:
         #    DefaultParamHandler
 
-        CompNovoIdentification()      nogil except +
-        CompNovoIdentification(CompNovoIdentification)      nogil except + #private
+        CompNovoIdentification() nogil except +
+        CompNovoIdentification(CompNovoIdentification &) nogil except +
 
-        void getIdentifications(libcpp_vector[PeptideIdentification] & ids, MSExperiment)      nogil except + # wrap-doc:Performs an ProteinIdentification run on a PeakMap
-        void getIdentification(PeptideIdentification & id, MSSpectrum cid_spec, MSSpectrum etd_spec)      nogil except + # wrap-doc:Performs an ProteinIdentification run on a PeakSpectrum
-
+        void getIdentifications(libcpp_vector[PeptideIdentification] & ids, MSExperiment) nogil except + # wrap-doc:Performs an ProteinIdentification run on a PeakMap
+        void getIdentification(PeptideIdentification & id, MSSpectrum cid_spec, MSSpectrum etd_spec) nogil except + # wrap-doc:Performs an ProteinIdentification run on a PeakSpectrum

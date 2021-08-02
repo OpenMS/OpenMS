@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -263,7 +263,7 @@ namespace OpenMS
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compat.
+      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
