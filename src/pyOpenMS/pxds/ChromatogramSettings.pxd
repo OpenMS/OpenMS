@@ -34,33 +34,33 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         void setComment(String comment) nogil except + # wrap-doc:Sets the free-text comment
 
         # returns a mutable reference to the instrument settings of the current spectrum
-        InstrumentSettings getInstrumentSettings() nogil except + # wrap-doc:Returns a mutable reference to the instrument settings of the current spectrum
+        InstrumentSettings getInstrumentSettings() nogil except + # wrap-doc:Returns the instrument settings of the current spectrum
         # sets the instrument settings of the current spectrum
         void setInstrumentSettings(InstrumentSettings instrument_settings) nogil except + # wrap-doc:Sets the instrument settings of the current spectrum
 
         # returns a mutable reference to the acquisition info
-        AcquisitionInfo getAcquisitionInfo() nogil except + # wrap-doc:Returns a mutable reference to the acquisition info
+        AcquisitionInfo getAcquisitionInfo() nogil except + # wrap-doc:Returns the acquisition info
         # sets the acquisition info
         void setAcquisitionInfo(AcquisitionInfo acquisition_info) nogil except + # wrap-doc:Sets the acquisition info
 
         # returns a mutable reference to the source file
-        SourceFile getSourceFile() nogil except + # wrap-doc:Returns a mutable reference to the source file
+        SourceFile getSourceFile() nogil except + # wrap-doc:Returns the source file
         # sets the source file
         void setSourceFile(SourceFile source_file) nogil except + # wrap-doc:Sets the source file
 
         # returns a mutable reference to the precursors
-        Precursor getPrecursor() nogil except + # wrap-doc:Returns a mutable reference to the precursors
+        Precursor getPrecursor() nogil except + # wrap-doc:Returns the precursors
         # sets the precursors
         void setPrecursor(Precursor precursor) nogil except + # wrap-doc:Sets the precursors
 
         # returns a mutable reference to the description of the applied processing
-        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except + # wrap-doc:Returns a mutable reference to the description of the applied processing
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except + # wrap-doc:Returns the description of the applied processing
         # sets the description of the applied processing
         void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except + # wrap-doc:Sets the description of the applied processing
 
         # sets the chromatogram type
         void setChromatogramType(ChromatogramType type) nogil except + # wrap-doc:Sets the chromatogram type
-        ChromatogramType getChromatogramType() nogil except + # wrap-doc:Non-Mutable access to chromatogram type
+        ChromatogramType getChromatogramType() nogil except + # wrap-doc:Get the chromatogram type
 
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":
@@ -79,4 +79,3 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::C
         ABSORPTION_CHROMATOGRAM,
         EMISSION_CHROMATOGRAM,
         SIZE_OF_CHROMATOGRAM_TYPE
-

@@ -37,9 +37,9 @@ cdef extern from "<OpenMS/METADATA/ContactPerson.h>" namespace "OpenMS":
         void setEmail(String email) nogil except + # wrap-doc:Sets the email address
 
         # returns the email address
-        String getURL() nogil except + # wrap-doc:Returns the email address
+        String getURL() nogil except + # wrap-doc:Returns the URL associated with the contact person (e.g., the institute webpage "https://www.higglesworth.edu/")
         # sets the email address
-        void setURL(String email) nogil except + # wrap-doc:Sets the email address
+        void setURL(String email) nogil except + # wrap-doc:Sets the URL associated with the contact person (e.g., the institute webpage "https://www.higglesworth.edu/")
 
         # returns the address
         String getAddress() nogil except + # wrap-doc:Returns the address

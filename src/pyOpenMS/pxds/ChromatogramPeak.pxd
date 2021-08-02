@@ -21,19 +21,20 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         # We will not catch C++ exceptions for get/set methods for performance
         # reasons (no memory allocation is involved).
 
-        IntensityType getIntensity() nogil except + # wrap-doc:Non-mutable access to the data point intensity (height)
-        void setIntensity(IntensityType) nogil except + # wrap-doc:Mutable access to the data point intensity (height)
+        IntensityType getIntensity() nogil except + # wrap-doc:Return the data point intensity
+        void setIntensity(IntensityType) nogil except + # wrap-doc:Set the data point intensity
 
         DPosition1 getPosition() nogil except + # TODO
         void setPosition(DPosition1) nogil except + # TODO
 
-        CoordinateType getRT() nogil except + # wrap-doc:Non-mutable access to RT
-        void setRT(CoordinateType) nogil except + # wrap-doc:Mutable access to RT
+        CoordinateType getRT() nogil except + # wrap-doc:Return the data point retention time
+        void setRT(CoordinateType) nogil except + # wrap-doc:Set the data point retention time
 
         CoordinateType getPos() nogil except + # wrap-doc:Alias for getRT()
         void setPos(CoordinateType) nogil except + # wrap-doc:Alias for setRT()
 
-        # alias for getRT 
-        CoordinateType getMZ() nogil except + # wrap-doc:Alias for getRT()
-        void setMZ(CoordinateType) nogil except + # wrap-doc:Alias for setRT()
-
+        # alias for getRT!!! 
+        # Current not exposed since it does the same as getRT()a
+        # and is probably used somewhere internally for filtering.
+        # CoordinateType getMZ() nogil except + # wrap-doc:Alias for getRT()
+        # void setMZ(CoordinateType) nogil except + # wrap-doc:Alias for setRT()

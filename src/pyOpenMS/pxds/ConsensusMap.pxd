@@ -78,7 +78,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clears all data and meta data
         void clear() nogil except +
 
-        void updateRanges() nogil except + # wrap-doc:Docu in base class
+        void updateRanges() nogil except +
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications(
                 ) nogil except + # TODO
@@ -102,9 +102,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
 
         libcpp_vector[ConsensusFeature].iterator begin(
-                ) nogil except # wrap-iter-begin:__iter__(ConsensusFeature)
+                ) nogil except + # wrap-iter-begin:__iter__(ConsensusFeature)
         libcpp_vector[ConsensusFeature].iterator end(
-                )   nogil except +  # wrap-iter-end:__iter__(ConsensusFeature)
+                ) nogil except + # wrap-iter-end:__iter__(ConsensusFeature)
 
         # wrapped in ../addons/ConsensusMap.pyx:
         void applyMemberFunction(Size(* fun)()) nogil except + # wrap-ignore

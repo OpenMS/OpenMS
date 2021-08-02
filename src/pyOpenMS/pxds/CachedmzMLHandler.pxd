@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
         # wrap-inherits:
         #   ProgressLogger
 
-        CachedMzMLHandler() nogil except + # wrap-doc:An class that uses on-disk caching to read and write spectra and chromatograms
+        CachedMzMLHandler() nogil except + # wrap-doc:An internal class that handles single spectra and chromatograms
         CachedMzMLHandler(CachedMzMLHandler &) nogil except + # compiler
 
 
