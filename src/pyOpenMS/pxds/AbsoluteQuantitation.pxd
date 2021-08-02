@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
         #  DefaultParamHandler
 
         AbsoluteQuantitation() nogil except +
-        AbsoluteQuantitation(AbsoluteQuantitation)  nogil except + #wrap-ignore
+        AbsoluteQuantitation(AbsoluteQuantitation &)  nogil except + # compiler
 
         void setQuantMethods(libcpp_vector[ AbsoluteQuantitationMethod ]& quant_methods) nogil except +
         libcpp_vector[ AbsoluteQuantitationMethod ] getQuantMethods() nogil except +

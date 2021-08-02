@@ -11,7 +11,8 @@ from LightTargetedExperiment cimport *
 cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
     
     cdef cppclass MRMScoring "OpenSwath::MRMScoring":
-        MRMScoring(MRMScoring) nogil except + #wrap-ignore
+        MRMScoring() nogil except + # compiler
+        MRMScoring(MRMScoring &) nogil except + # compiler
 
         # TODO create class for XCorrMatrix
         # XCorrMatrixType  getXCorrMatrix() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,8 +78,8 @@ public:
     /// Supported types for DataValue
     enum UnitType : unsigned char
     { 
-      UNIT_ONTOLOGY, ///< unit.ontology UO:
-      MS_ONTOLOGY, ///< ms.ontology MS:
+      UNIT_ONTOLOGY, ///< unit.ontology UO
+      MS_ONTOLOGY, ///< ms.ontology MS
       OTHER ///< undefined ontology
     };
 

@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
         # wrap-instances:
         #   LinearInterpolation := LinearInterpolation[double, double]
         LinearInterpolation() nogil except +
-        LinearInterpolation(LinearInterpolation) nogil except +
+        LinearInterpolation(LinearInterpolation &) nogil except +
         ValueType value(KeyType arg_pos) nogil except +
         void addValue(KeyType arg_pos, ValueType arg_value) nogil except +
         ValueType derivative(KeyType arg_pos) nogil except +

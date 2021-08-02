@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
         # wrap-inherits:
         #  DefaultParamHandler
         OfflinePrecursorIonSelection() nogil except +
-        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection) nogil except + #wrap-ignore
+        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection &) nogil except + # compiler
 
         void makePrecursorSelectionForKnownLCMSMap(FeatureMap & features,
                                                    MSExperiment & experiment,

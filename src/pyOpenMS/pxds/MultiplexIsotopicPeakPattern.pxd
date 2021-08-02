@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPat
     
     cdef cppclass MultiplexIsotopicPeakPattern "OpenMS::MultiplexIsotopicPeakPattern":
 
-        MultiplexIsotopicPeakPattern(MultiplexIsotopicPeakPattern) nogil except + #wrap-ignore
         MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) nogil except +
+        MultiplexIsotopicPeakPattern(MultiplexIsotopicPeakPattern &) nogil except + # compiler
 
         int getCharge() nogil except + # wrap-doc:Returns charge
         int getPeaksPerPeptide() nogil except + # wrap-doc:Returns peaks per peptide

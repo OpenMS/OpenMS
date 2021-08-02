@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "Ope
     cdef cppclass MRMFeaturePicker:
 
         MRMFeaturePicker() nogil except +
-        MRMFeaturePicker(MRMFeaturePicker &) nogil except +
+        MRMFeaturePicker(MRMFeaturePicker &) nogil except + # compiler
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "OpenMS::MRMFeaturePicker":
 

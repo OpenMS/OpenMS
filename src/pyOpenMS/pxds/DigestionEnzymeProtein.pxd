@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         DigestionEnzymeProtein() nogil except +
 
-        DigestionEnzymeProtein(DigestionEnzymeProtein) nogil except +
+        DigestionEnzymeProtein(DigestionEnzymeProtein &) nogil except +
 
         # detailed constructor
         DigestionEnzymeProtein(String name,

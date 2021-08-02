@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
     Running an external program blocks the caller, so do not use this in a main GUI thread
     (unless you have some other means to tell the user that no interaction is possible at the moment).
 
-    @Note If you want QMessageboxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
+    @Note If you want QMessageBoxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
 
   */
   class OPENMS_DLLAPI ExternalProcess

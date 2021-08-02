@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramTools:
         ChromatogramTools() nogil except +
+        ChromatogramTools(ChromatogramTools &) nogil except +
 
         void convertChromatogramsToSpectra(
                 MSExperiment & epx

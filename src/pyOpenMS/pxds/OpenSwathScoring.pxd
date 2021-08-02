@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
     cdef cppclass OpenSwathScoring:
 
         OpenSwathScoring() nogil except +
-        OpenSwathScoring(OpenSwathScoring) nogil except + # wrap-ignore
+        OpenSwathScoring(OpenSwathScoring &) nogil except + # compiler
 
         void initialize(double rt_normalization_factor,
                         int add_up_spectra,

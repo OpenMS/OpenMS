@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
 
     cdef cppclass AbsoluteQuantitationMethod:
 
-        AbsoluteQuantitationMethod()  nogil except +
-        AbsoluteQuantitationMethod(AbsoluteQuantitationMethod)  nogil except + #wrap-ignore
+        AbsoluteQuantitationMethod() nogil except + # compiler
+        AbsoluteQuantitationMethod(AbsoluteQuantitationMethod &) nogil except + # compiler
 
         void setLLOD(double llod) nogil except +
         void setULOD(double ulod) nogil except +

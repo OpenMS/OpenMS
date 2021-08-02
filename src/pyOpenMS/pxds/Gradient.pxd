@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
     cdef cppclass Gradient:
 
         Gradient() nogil except + # wrap-doc:Representation of a HPLC gradient
-        Gradient(Gradient) nogil except + # wrap-ignore
+        Gradient(Gradient &) nogil except +
 
         #   @brief Adds an eluent at the end of the eluent array
         #
@@ -37,4 +37,3 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
         void clearPercentages() nogil except + # wrap-doc:Sets all percentage values to 0
         # checks if the percentages of all timepoints add up to 100%
         bool isValid() nogil except + # wrap-doc:Checks if the percentages of all timepoints add up to 100%
-

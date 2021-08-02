@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,7 +119,7 @@ namespace OpenMS
       }
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
-      // skip if top hit is out ouf FDR
+      // skip if top hit is out of FDR
       if (!passesFDR_(top_hit, FDR)) continue;
 
       // check if top hit is found in de novo protein
@@ -129,7 +129,7 @@ namespace OpenMS
         continue;
       }
 
-      // find the second target hit, skip all decoy or novo hits inbetween
+      // find the second target hit, skip all decoy or novo hits in-between
       const PeptideHit* second_hit = nullptr;
       for (UInt i = 1; i < hits.size(); ++i)
       {

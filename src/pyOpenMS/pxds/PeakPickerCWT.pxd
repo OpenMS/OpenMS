@@ -13,10 +13,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>" namespace "
         #    DefaultParamHandler
         #    ProgressLogger
 
-        PeakPickerCWT()                  nogil except +
-        PeakPickerCWT(PeakPickerCWT)   nogil except + #wrap-ignore
+        PeakPickerCWT() nogil except +
+        PeakPickerCWT(PeakPickerCWT &) nogil except + # compiler
 
         void pick(MSSpectrum & input, MSSpectrum & output) nogil except +
         void pickExperiment(MSExperiment & input, MSExperiment & output) nogil except +
         double estimatePeakWidth(MSExperiment & input) nogil except +
-

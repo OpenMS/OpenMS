@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,10 @@ namespace OpenMS
   class PeptideHit;
   class AASequence;
   
-  struct ProbablePhosphoSites
+  class ProbablePhosphoSites
   {
+  public:
+
     Size first;
     Size second;
     Size seq_1; ///< index of best permutation with site in phosphorylated state
@@ -201,9 +203,6 @@ namespace OpenMS
     Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     double base_match_probability_; ///< Probability of a match at a peak depth of 1
-
   };
 
 } // namespace OpenMS
-
-

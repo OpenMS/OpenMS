@@ -16,6 +16,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
 
         MapAlignmentAlgorithmPoseClustering() nogil except +
 
+        # private
+        MapAlignmentAlgorithmPoseClustering(MapAlignmentAlgorithmPoseClustering &) nogil except + # wrap-ignore
+
         void align(FeatureMap,
                    TransformationDescription &
                    ) nogil except +

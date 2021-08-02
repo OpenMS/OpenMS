@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
             #   and the data can be accessed through getData()
 
         MSDataStoringConsumer() nogil except +
-        MSDataStoringConsumer(MSDataStoringConsumer) nogil except + #wrap-ignore
+        MSDataStoringConsumer(MSDataStoringConsumer &) nogil except + # compiler
 
         void setExperimentalSettings(ExperimentalSettings & exp) nogil except +# TODO
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +

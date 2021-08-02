@@ -12,7 +12,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMe
     cdef cppclass ConsensusMapNormalizerAlgorithmMedian:
 
         ConsensusMapNormalizerAlgorithmMedian() nogil except +
-        ConsensusMapNormalizerAlgorithmMedian(ConsensusMapNormalizerAlgorithmMedian) nogil except + #wrap-ignore
+        # private
+        ConsensusMapNormalizerAlgorithmMedian(ConsensusMapNormalizerAlgorithmMedian) nogil except + # wrap-ignore
 
         Size computeMedians(ConsensusMap & input_map,
                             libcpp_vector[double] & medians,

@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
     cdef cppclass MSSim:
 
         MSSim()      nogil except +
-        MSSim(MSSim) nogil except + # wrap-ignore
+        MSSim(MSSim &) nogil except +
 
         void simulate(shared_ptr[SimRandomNumberGenerator] rnd_gen, SampleChannels peptides) nogil except +
             # wrap-doc:

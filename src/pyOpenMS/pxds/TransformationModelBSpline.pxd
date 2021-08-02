@@ -10,7 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
         # wrap-inherits:
         #  TransformationModel
 
-        TransformationModelBSpline(TransformationModelBSpline) nogil except + #wrap-ignore
+        # copy constructor of 'TransformationModelBSpline' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
+        TransformationModelBSpline(TransformationModelBSpline) nogil except + # wrap-ignore
 
         TransformationModelBSpline(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
         void getDefaultParameters(Param &) nogil except +

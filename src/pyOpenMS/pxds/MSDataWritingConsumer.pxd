@@ -9,7 +9,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
     cdef cppclass PlainMSDataWritingConsumer:
 
         PlainMSDataWritingConsumer(String filename) nogil except +
-        PlainMSDataWritingConsumer(PlainMSDataWritingConsumer) nogil except + #wrap-ignore
+        # copy constructor of 'PlainMSDataWritingConsumer' is implicitly deleted because base class 'OpenMS::MSDataWritingConsumer' has a deleted copy constructor (see XMLHandler)
+        PlainMSDataWritingConsumer(PlainMSDataWritingConsumer &) nogil except + # wrap-ignore
 
         void consumeSpectrum(MSSpectrum & s) nogil except +
         void consumeChromatogram(MSChromatogram & c) nogil except +
@@ -57,7 +58,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   required.
 
         NoopMSDataWritingConsumer(String filename) nogil except +
-        NoopMSDataWritingConsumer(NoopMSDataWritingConsumer) nogil except + #wrap-ignore
+        # copy constructor of 'NoopMSDataWritingConsumer' is implicitly deleted because base class 'OpenMS::MSDataWritingConsumer' has a deleted copy constructor (see XMLHandler)
+        NoopMSDataWritingConsumer(NoopMSDataWritingConsumer &) nogil except + # wrap-ignore
 
         void consumeSpectrum(MSSpectrum & s) nogil except +
         void consumeChromatogram(MSChromatogram & c) nogil except +
