@@ -159,7 +159,6 @@ START_TEST(MzTabM, "$Id$")
 
           // Metadata for MzTab-M
           MzTabMMetaData mztabm_meta;
-          mztabm_meta.mz_tab_version.set("2.0.0-M");
           mztabm_meta.mz_tab_id.set("local_identifier");
           mztabm_meta.title.set("SML_ROW_TEST");
           mztabm_meta.description.set("small_molecule_section_row_test");
@@ -311,7 +310,7 @@ START_TEST(MzTabM, "$Id$")
 
           MzTabMMetaData mtest;
           mtest = mztabm.getMetaData();
-          TEST_EQUAL(mtest.mz_tab_version.toCellString(),"2.0.0-M")
+          TEST_EQUAL(mtest.mz_tab_version.toCellString(),"2.0.0-M") // set by constructor
           TEST_EQUAL(mtest.sample_processing[0].toCellString(), "[MS, MS:1000544, Conversion to mzML, ]|[MS, MS:1000035, Peak picking, ]|[MS, MS:1000594, Low intensity data point removal, ]")
           TEST_EQUAL(mtest.instrument[0].analyzer[0].toCellString(), "[MS, MS:1000443, Mass Analyzer Type, Orbitrap]")
           // meta_software.setting[0] = MzTabString("Peak Picking MS1");

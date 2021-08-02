@@ -51,6 +51,7 @@ MzMLFile.cpp
 MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
+MzTabBase.cpp
 MzTabM.cpp
 MzTabFile.cpp
 MzTabMFile.cpp

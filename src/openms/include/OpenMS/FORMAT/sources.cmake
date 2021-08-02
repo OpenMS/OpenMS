@@ -62,6 +62,7 @@ MzDataFile.h
 MzMLFile.h
 MzQCFile.h
 MzTab.h
+MzTabBase.h
 MzTabM.h
 MzTabFile.h
 MztabMFile.h

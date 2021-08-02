@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/MzTabM.h>
+
 namespace OpenMS
 {
   class String;

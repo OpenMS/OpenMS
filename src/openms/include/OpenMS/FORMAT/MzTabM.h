@@ -34,7 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabBase.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <set>
 
 namespace OpenMS
 {
@@ -209,7 +212,7 @@ namespace OpenMS
   @brief Data model of MzTab-M files
   Please see the MzTab-M specification at https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#use-cases-for-mztab
   */
-  class OPENMS_DLLAPI MzTabM
+  class OPENMS_DLLAPI MzTabM : public MzTabBase
   {
   public:
     /// Default constructor
@@ -313,29 +316,6 @@ namespace OpenMS
 
 
   protected:
-    /// Helper function for "get...OptionalColumnNames" functions
-
-    template <typename SectionRows>
-
-    std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
-    {
-      // vector is used to preserve the column order
-      std::vector<String> names;
-      if (!rows.empty())
-      {
-        for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
-        {
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-          {
-            if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-            {
-              names.push_back(it_opt->first);
-            }
-          }
-        }
-      }
-      return names;
-    }
 
     MzTabMMetaData m_meta_data_;
     MzTabMSmallMoleculeSectionRows m_small_molecule_data_;
