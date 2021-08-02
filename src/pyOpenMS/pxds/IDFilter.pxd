@@ -103,25 +103,25 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Filters peptide or protein identifications according to the ranking of the hits
                 #   -----
-                #   The hits between 'min_rank' and 'max_rank' (both inclusive) in each ID are kept.
-                #   Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1.
-                #   The ranks are (re-)computed before filtering.
-                #   'max_rank' is ignored if it is smaller than 'min_rank'.
+                #   The hits between 'min_rank' and 'max_rank' (both inclusive) in each ID are kept
+                #   Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1
+                #   The ranks are (re-)computed before filtering
+                #   'max_rank' is ignored if it is smaller than 'min_rank'
                 #   -----
-                #   Note: that there may be several hits with the same rank in a peptide or protein ID (if the scores are the same).
-                #   This method is useful if a range of higher hits is needed for decoy fairness analysis.
+                #   Note: that there may be several hits with the same rank in a peptide or protein ID (if the scores are the same)
+                #   This method is useful if a range of higher hits is needed for decoy fairness analysis
 
         void filterHitsByRank(libcpp_vector[ProteinIdentification]& ids, Size min_rank, Size max_rank) nogil except +
             # wrap-doc:
                 #   Filters peptide or protein identifications according to the ranking of the hits
                 #   -----
-                #   The hits between 'min_rank' and 'max_rank' (both inclusive) in each ID are kept.
-                #   Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1.
-                #   The ranks are (re-)computed before filtering.
-                #   'max_rank' is ignored if it is smaller than 'min_rank'.
+                #   The hits between 'min_rank' and 'max_rank' (both inclusive) in each ID are kept
+                #   Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1
+                #   The ranks are (re-)computed before filtering
+                #   'max_rank' is ignored if it is smaller than 'min_rank'
                 #   -----
-                #   Note: that there may be several hits with the same rank in a peptide or protein ID (if the scores are the same).
-                #   This method is useful if a range of higher hits is needed for decoy fairness analysis.
+                #   Note: that there may be several hits with the same rank in a peptide or protein ID (if the scores are the same)
+                #   This method is useful if a range of higher hits is needed for decoy fairness analysis
 
         void removeDecoyHits(libcpp_vector[PeptideIdentification]& ids) nogil except + # wrap-doc:Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
         void removeDecoyHits(libcpp_vector[ProteinIdentification]& ids) nogil except + # wrap-doc:Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
