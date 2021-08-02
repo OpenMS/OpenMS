@@ -81,6 +81,8 @@ namespace OpenMS
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
+    void updateProteinEntries_(int spec_cell_row_idx);
+
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
@@ -97,6 +99,7 @@ namespace OpenMS
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;
+    TableView* protein_table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
     bool is_ms1_shown_ = false;
   
@@ -107,5 +110,12 @@ namespace OpenMS
     void updatedSingleCell_(QTableWidgetItem* item);
     /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
     void currentCellChanged_(int row, int column, int old_row, int old_column);
+    /// Cell selected or deselected: this is only used to check for deselection, rest happens in currentCellChanged_
+    void currentSpectraSelectionChanged_();
+
+    /// update ProteinHits, when data in the table changes (status of checkboxes)
+    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
+    void currentProteinCellChanged_(int row, int column, int old_row, int old_column);
   };
 }
