@@ -55,8 +55,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
                 #   -----
                 #   The verbose level (0,1,2) determines if the solver prints status messages and internals
                 #   -----
-                #   :param solver_param:
-                #   :param verbose_level:
+                #   :param solver_param: Parameters of the solver introduced by SolverParam
+                #   :param verbose_level: Sets verbose level
                 #   :returns: solver dependent 
 
         SolverStatus getStatus() nogil except +
