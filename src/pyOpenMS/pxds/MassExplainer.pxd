@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/MassExplainer.h>" namespace "OpenMS":
     
     cdef cppclass MassExplainer "OpenMS::MassExplainer":
         MassExplainer() nogil except + # wrap-doc:Computes empirical formulas for given mass differences using a set of allowed elements
-        MassExplainer(MassExplainer) nogil except + #wrap-ignore
+        MassExplainer(MassExplainer &) nogil except + # compiler
 
         MassExplainer(libcpp_vector[Adduct] adduct_base) nogil except +
         MassExplainer(Int q_min, Int q_max, Int max_span, double thresh_logp) nogil except +

@@ -46,14 +46,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Write LP formulation to a file
                 #   -----
-                #   :param filename: output filename, if the filename ends with '.gz' it will be compressed
+                #   :param filename: Output filename, if the filename ends with '.gz' it will be compressed
                 #   :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
 
         Int solve(SolverParam & solver_param, Size verbose_level) nogil except +
             # wrap-doc:
-                #   solve problems, parameters like enabled heuristics can be given via solver_param
+                #   Solve problems, parameters like enabled heuristics can be given via solver_param
                 #   -----
-                #   The verbose level (0,1,2) determines if the solver prints status messages and internals.
+                #   The verbose level (0,1,2) determines if the solver prints status messages and internals
                 #   -----
                 #   :param solver_param:
                 #   :param verbose_level:
@@ -74,7 +74,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     
     cdef cppclass SolverParam "OpenMS::LPWrapper::SolverParam":
-        SolverParam() nogil except + # wrap-doc:Struct that holds the parameters of the LP solver
+        SolverParam() nogil except + # wrap-doc:Hold the parameters of the LP solver
         SolverParam(SolverParam) nogil except + #wrap-ignore
 
         Int message_level

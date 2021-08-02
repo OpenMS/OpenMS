@@ -23,10 +23,10 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Loads data from a Mascot XML file
                 #   -----
-                #   :param filename: the file to be loaded
-                #   :param protein_identification: protein identifications belonging to the whole experiment
-                #   :param id_data: the identifications with m/z and RT
-                #   :param lookup: helper object for looking up spectrum meta data
+                #   :param filename: The file to be loaded
+                #   :param protein_identification: Protein identifications belonging to the whole experiment
+                #   :param id_data: The identifications with m/z and RT
+                #   :param lookup: Helper object for looking up spectrum meta data
                 #   :raises:
                 #     Exception: FileNotFound is thrown if the file does not exists
                 #   :raises:
