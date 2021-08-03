@@ -13,7 +13,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
         # wrap-inherits:
         #    DefaultParamHandler
-        FeatureFinderAlgorithmPicked()      nogil except +
+        FeatureFinderAlgorithmPicked() nogil except +
+        # private
+        FeatureFinderAlgorithmPicked(FeatureFinderAlgorithmPicked &) nogil except + # wrap-ignore
 
         void setData(MSExperiment & input, FeatureMap & output, FeatureFinder & ff) nogil except +
         void run() nogil except +

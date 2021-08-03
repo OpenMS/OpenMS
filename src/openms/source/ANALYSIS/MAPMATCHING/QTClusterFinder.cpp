@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -525,7 +525,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   {
     feature.setQuality(quality);
 
-    // the features of the current best cluster are inserted into the new consesus feature
+    // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
       // Store the id of already used features (important: needs to be done

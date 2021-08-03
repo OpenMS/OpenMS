@@ -35,7 +35,7 @@
 // Alphabet concepts stemming from biological applications.
 // ==========================================================================
 
-// TODO(holtgrew): Where is the documentation, shouldnt it be here?
+// TODO(holtgrew): Where is the documentation, shouldn't it be here?
 
 #ifndef SEQAN_CORE_INCLUDE_SEQAN_BASIC_ALPHABET_BIO_H_
 #define SEQAN_CORE_INCLUDE_SEQAN_BASIC_ALPHABET_BIO_H_

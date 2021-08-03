@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataAggregatingConsumer.h>" namesp
     
     cdef cppclass MSDataAggregatingConsumer :
 
-        MSDataAggregatingConsumer(MSDataAggregatingConsumer) nogil except + #wrap-ignore
+        MSDataAggregatingConsumer(MSDataAggregatingConsumer &) nogil except + # compiler
 
         void consumeSpectrum(MSSpectrum & s) nogil except +
         void consumeChromatogram(MSChromatogram & ) nogil except +

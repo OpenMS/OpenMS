@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>" namespace "OpenMS"
         # wrap-inherits:
         #    DefaultParamHandler
 
-        BernNorm()           nogil except +
-        BernNorm(BernNorm)   nogil except + #wrap-ignore
+        BernNorm() nogil except +
+        BernNorm(BernNorm &) nogil except +
 
         void filterSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +

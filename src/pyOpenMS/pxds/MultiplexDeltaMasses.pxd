@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
     
     cdef cppclass MultiplexDeltaMasses "OpenMS::MultiplexDeltaMasses":
         MultiplexDeltaMasses() nogil except +
-        MultiplexDeltaMasses(MultiplexDeltaMasses) nogil except + #wrap-ignore
+        MultiplexDeltaMasses(MultiplexDeltaMasses &) nogil except +
 
         MultiplexDeltaMasses(libcpp_vector[ MultiplexDeltaMasses_DeltaMass ] & dm) nogil except +
         libcpp_vector[ MultiplexDeltaMasses_DeltaMass ]  getDeltaMasses() nogil except +
@@ -19,11 +19,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
     
     cdef cppclass MultiplexDeltaMasses_DeltaMass "OpenMS::MultiplexDeltaMasses::DeltaMass":
 
-        MultiplexDeltaMasses_DeltaMass(MultiplexDeltaMasses_DeltaMass) nogil except + #wrap-ignore
         MultiplexDeltaMasses_DeltaMass(double dm, String l) nogil except +
+        MultiplexDeltaMasses_DeltaMass(MultiplexDeltaMasses_DeltaMass &) nogil except +
+
         # DeltaMass(double dm, LabelSet ls);
 
         double delta_mass
         # LabelSet label_set
-      
-      

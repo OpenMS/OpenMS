@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "Open
     
     cdef cppclass IndexedMzMLHandler "OpenMS::Internal::IndexedMzMLHandler":
         IndexedMzMLHandler() nogil except +
-        IndexedMzMLHandler(IndexedMzMLHandler) nogil except +
+        IndexedMzMLHandler(IndexedMzMLHandler &) nogil except +
         IndexedMzMLHandler(String filename) nogil except +
 
         void openFile(String filename) nogil except +

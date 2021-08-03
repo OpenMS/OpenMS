@@ -15,9 +15,10 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
 
         # wrap-instances:
         #   IntegerMassDecomposer := IntegerMassDecomposer[int, int]
-        IntegerMassDecomposer() nogil except + # wrap-ignore
-        IntegerMassDecomposer(IntegerMassDecomposer) nogil except + #wrap-ignore
         IntegerMassDecomposer(IMSWeights & alphabet) nogil except +
+
+        IntegerMassDecomposer(IntegerMassDecomposer &) nogil except +
+
         bool exist(ValueType mass) nogil except +
 
         # Works in theory but may produce duplicate 

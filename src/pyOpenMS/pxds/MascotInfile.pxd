@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
         MascotInfile() nogil except +
-        MascotInfile(MascotInfile) nogil except + #wrap-ignore
+        MascotInfile(MascotInfile &) nogil except +
         void store(const String & filename, MSSpectrum & spec, double mz, double retention_time, String search_title) nogil except +
         void store(const String & filename, MSExperiment & experiment, String search_title) nogil except +
         void load(const String & filename, MSExperiment & exp) nogil except +

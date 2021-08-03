@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,6 @@ START_SECTION((virtual ~GaussModel()))
 	delete ptr;
 END_SECTION
 
-
 START_SECTION((static const String getProductName()))
 	TEST_EQUAL(GaussModel::getProductName(),"GaussModel")
 	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
@@ -74,6 +73,7 @@ START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = GaussModel::create();
 	TEST_EQUAL(ptr->getName(), "GaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 // assignment operator

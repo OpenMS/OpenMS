@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ namespace OpenMS
     /// Default constructor
     LogWindow(QWidget* parent);
 
-    /// appends text without adding linebreaks and shows the log-window
+    /// appends text without adding line breaks and shows the log-window
     void appendText(const QString& text);
 
     /// appends a new block with @p heading and a @p body

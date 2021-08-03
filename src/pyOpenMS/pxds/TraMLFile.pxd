@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/FORMAT/TraMLFile.h>" namespace "OpenMS":
     cdef cppclass TraMLFile:
 
         TraMLFile() nogil except +
+        TraMLFile(TraMLFile &) nogil except + # compiler
 
         void load(String filename,
                   TargetedExperiment & id) nogil except +

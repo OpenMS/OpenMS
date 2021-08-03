@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
     cdef cppclass CalibrationData:
 
         CalibrationData()  nogil except +
-        CalibrationData(CalibrationData &) nogil except +
+        CalibrationData(CalibrationData &) nogil except + # compiler
         double getMZ(Size) nogil except +
         double getRT(Size) nogil except +
         double getIntensity(Size) nogil except +

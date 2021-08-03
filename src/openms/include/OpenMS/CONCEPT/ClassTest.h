@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1055,7 +1055,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 /** @brief Skip the remainder of the current subtest.
 
  If the condition is not fulfilled, the remainder of the current subtest is
- skipped over.  The status (whether it fails or passes) remains unchanged.
+ skipped over. The TEST status is set to FAIL.
 
  @hideinitializer
  */
@@ -1063,11 +1063,14 @@ namespace TEST = OpenMS::Internal::ClassTest;
   if (condition)                                                                          \
   {                                                                                       \
     {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << " -  line " <<  __LINE__ <<                                            \
-        ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                  \
-      TEST::failed_lines_list.push_back(TEST::test_line);                                 \
-    }                                                                                     \
+      TEST::test_line = __LINE__;                                                           \
+      TEST::this_test = false;                                                              \
+      TEST::test = TEST::test && TEST::this_test;                                           \
+      TEST::failed_lines_list.push_back(TEST::test_line);                                   \
+      TEST::initialNewline();                                                               \
+      stdcout << " -  line " << TEST::test_line <<                                          \
+        ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                    \
+    }                                                                                       \
     break;                                                                                \
   }
 

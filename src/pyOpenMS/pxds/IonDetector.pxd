@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         IonDetector() nogil except +
-        IonDetector(IonDetector) nogil except + # wrap-ignore
+        IonDetector(IonDetector &) nogil except +
 
         # returns the detector type
         Type_IonDetector getType() nogil except +

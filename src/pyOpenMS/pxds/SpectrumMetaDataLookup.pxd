@@ -13,7 +13,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         #  SpectrumLookup
 
         SpectrumMetaDataLookup() nogil except +
-        # SpectrumMetaDataLookup(SpectrumMetaDataLookup) nogil except + # private
+        # private
+        SpectrumMetaDataLookup(SpectrumMetaDataLookup) nogil except + # wrap-ignore
 
         void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) nogil except +
 
@@ -50,7 +51,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
     cdef cppclass SpectrumMetaData "OpenMS::SpectrumMetaDataLookup::SpectrumMetaData":
 
       SpectrumMetaData() nogil except +
-      SpectrumMetaData(SpectrumMetaData) nogil except + # wrap-ignore
+      SpectrumMetaData(SpectrumMetaData &) nogil except +
 
       double rt
       double precursor_rt
@@ -59,4 +60,3 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
       Size ms_level
       Int scan_number
       String native_id
-

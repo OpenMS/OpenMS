@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,12 +71,11 @@ namespace OpenMS
 
     const IMSAlphabet::element_type & IMSAlphabet::getElement(const name_type & name) const
     {
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      for (const IMSElement& cit : elements_)
       {
-        if (cit->getName() == name)
+        if (cit.getName() == name)
         {
-          return *cit;
+          return cit;
         }
       }
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + " was not found in IMSAlphabet!", String(name));
@@ -104,8 +103,7 @@ namespace OpenMS
     bool IMSAlphabet::erase(const name_type & name)
     {
       bool found = false;
-      iterator it = elements_.begin();
-      for (; it != elements_.end(); ++it)
+      for (iterator it = elements_.begin(); it != elements_.end(); ++it)
       {
         if (it->getName() == name)
         {
@@ -120,10 +118,10 @@ namespace OpenMS
     IMSAlphabet::masses_type IMSAlphabet::getMasses(size_type index) const
     {
       masses_type masses;
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      
+      for (const IMSElement& cit : elements_)
       {
-        masses.push_back(cit->getMass(index));
+        masses.push_back(cit.getMass(index));
       }
       return masses;
     }
@@ -131,10 +129,9 @@ namespace OpenMS
     IMSAlphabet::masses_type IMSAlphabet::getAverageMasses() const
     {
       masses_type masses;
-      const_iterator cit = elements_.begin();
-      for (; cit != elements_.end(); ++cit)
+      for (const IMSElement& cit : elements_)
       {
-        masses.push_back(cit->getAverageMass());
+        masses.push_back(cit.getAverageMass());
       }
       return masses;
     }
@@ -153,18 +150,17 @@ namespace OpenMS
 
     void IMSAlphabet::load(const std::string & fname)
     {
-      this->load(fname, new IMSAlphabetTextParser);
+      IMSAlphabetTextParser parser;
+      this->load(fname, parser);
     }
 
-    void IMSAlphabet::load(const std::string & fname, IMSAlphabetParser<> * parser)
+    void IMSAlphabet::load(const std::string & fname, IMSAlphabetParser<> & parser)
     {
-      parser->load(fname);
+      parser.load(fname);
       this->clear();
-      for (IMSAlphabetParser<>::ContainerType::const_iterator pos =
-             parser->getElements().begin(),
-           end = parser->getElements().end(); pos != end; ++pos)
+      for (const auto & pos : parser.getElements())
       {
-        this->push_back(pos->first, pos->second);
+        this->push_back(pos.first, pos.second);
       }
       this->sortByValues();
     }

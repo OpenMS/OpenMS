@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         #    ProgressLogger
 
         ChromatogramExtractorAlgorithm() nogil except +
-        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except +
+        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) nogil except + # compiler
 
         # abstract base class ISpectrumAccess given as first input arg
         void extractChromatograms(

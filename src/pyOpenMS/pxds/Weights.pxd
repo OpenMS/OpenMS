@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>" namespace 
     cdef cppclass IMSWeights "OpenMS::ims::Weights":
         IMSWeights() nogil except +
         IMSWeights(IMSWeights) nogil except +
+
         # IMSWeights(alphabet_masses_type & masses, alphabet_mass_type precision) nogil except +
         size_type size() nogil except +
         weight_type getWeight(size_type i) nogil except +
@@ -27,4 +28,3 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>" namespace 
         bool divideByGCD() nogil except +
         alphabet_mass_type getMinRoundingError() nogil except +
         alphabet_mass_type getMaxRoundingError() nogil except +
-

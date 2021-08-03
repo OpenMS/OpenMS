@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,13 +158,19 @@ namespace OpenMS
     // existing file? Qt won't overwrite, so try to remove it:
     if (overwrite_existing && exists(to) && !remove(to))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      }
       return false;
     }
     // move the file to the actual destination:
     if (!QFile::rename(from.toQString(), to.toQString()))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      }
       return false;
     }
     return true;
@@ -192,7 +198,7 @@ namespace OpenMS
       target_dir.mkpath(to_dir);
     }
   
-    // copy folder recurively
+    // copy folder recursively
     QFileInfoList file_list = source_dir.entryInfoList();
     for (const QFileInfo& entry : file_list)   
     {
@@ -364,8 +370,10 @@ namespace OpenMS
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-
+    if (filename_new.trim().empty())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
 
@@ -621,8 +629,20 @@ namespace OpenMS
   Param File::getSystemParameters()
   {
     String home_path = File::getOpenMSHomePath();
-
-    String filename = home_path + "/.OpenMS/OpenMS.ini";
+    String filename;
+    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+      if (getenv("XDG_CONFIG_HOME"))
+      {
+        filename = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+      }
+      else
+      {
+        filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
+      }
+    #else
+      filename = home_path + "/.OpenMS/OpenMS.ini";
+    #endif
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way

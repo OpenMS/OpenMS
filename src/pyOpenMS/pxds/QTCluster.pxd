@@ -10,7 +10,9 @@ from AASequence cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
     
     cdef cppclass QTCluster "OpenMS::QTCluster":
-        QTCluster(QTCluster) nogil except + #wrap-ignore
+        # deleted
+        QTCluster() nogil except + # wrap-ignore
+        QTCluster(QTCluster &) nogil except +
 
         # POINTER #  QTCluster(GridFeature * center_point, Size num_maps, double max_distance, bool use_IDs) nogil except +
         double getCenterRT() nogil except +
@@ -30,4 +32,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
         void finalizeCluster() nogil except +
         # NAMESPACE # # POINTER # OpenMSBoost::unordered_map[ Size, libcpp_vector[ GridFeature * ] ] getAllNeighbors() nogil except +
         # NeighborMap getNeighbors() nogil except +
-

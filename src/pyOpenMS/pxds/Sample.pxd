@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         Sample() nogil except +
-        Sample(Sample) nogil except + # wrap-ignore
+        Sample(Sample &) nogil except +
 
         #returns the sample name (default: "")
         String getName() nogil except +

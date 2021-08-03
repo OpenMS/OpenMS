@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -424,7 +424,7 @@ namespace OpenMS
       /*
       1st: iterate over proteinidentification vector
       */
-      //TODO read type of crosslink reagens from settings
+      //TODO read type of crosslink reagent from settings
       bool is_ppxl = false;
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
@@ -694,9 +694,9 @@ namespace OpenMS
       2nd: iterate over peptideidentification vector
       */
       //TODO ppxl - write here "MS:1002511" Cross-linked spectrum identification item linking the other spectrum
-      //          PeptideIdentification repräsentiert xl paar.
-      //          PeptideHit score_type ist dann final score von xQuest_cpp.
-      //          top5 ids -> 5 PeptideIdentification für ein (paar) spectra. SIR with 5 entries and ranks
+      //          PeptideIdentification represents xl pair.
+      //          PeptideHit score_type is then the final score of xQuest_cpp.
+      //          top5 ids -> 5 PeptideIdentification for one (pair) spectra. SIR with 5 entries and ranks
       std::map<String, String> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)

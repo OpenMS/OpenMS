@@ -13,5 +13,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
         SpectrumAccessOpenMSCached() # wrap-pass-constructor
 
         SpectrumAccessOpenMSCached(String filename) nogil except +
-        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached q) nogil except + # wrap-ignore
+        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached &) nogil except +
 
