@@ -116,6 +116,38 @@ namespace OpenMS
     }
   }
 
+   // only for IdentifiedCompounds (Metabolomics)
+   MzTabM MzTabM::exportIdentificationDataToMzTabM(const IdentificationData& id_data,
+                                                   const String& filename)
+   {
+     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to mzTab: " << std::endl;
+
+     MzTabM mztabm;
+     MzTabMMetaData m_meta_data;
+
+     // MetaData if available
+     m_meta_data.mz_tab_id.set("local_id"); // TODO: mandatory
+
+     auto ps = id_data.getProcessingSoftwares();
+
+
+     // evidence section
+
+
+
+     // feature section
+
+
+
+     // small mol section
+
+
+
+     // TODO: How is it possible to retain the context between the secionts?
+     return mztabm;
+   }
+
+
   // TODO: Check what is needed and rewrite to fit MztabM
   // TODO: How does that work with the identification data
 

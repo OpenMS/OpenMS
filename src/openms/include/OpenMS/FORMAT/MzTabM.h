@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <set>
 
@@ -258,62 +259,13 @@ namespace OpenMS
 
     static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
 
-    // TODO: check if Modification functions are needed for Metabolomics (I guess not)
-    // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<String>& mods);
-    // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
-    // static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
+  /**
+  * @brief Export metabolite identifications to MzTabM
+  *
+  * @return MzTabM object
+  */
 
-    // TODO: see what has to be changed for metebolomics?
-    // TODO: is all the info/metadata available at that point?
-    // static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map, const String& filename);
-
-    // TODO: This should be done in the featuremap, or?
-    // TODO: What is actually needed here?
-    // TODO: How is mztab doing that?
-    /**
-      * @brief Export metabolite identifications to mzTabM
-      *
-      * @return mzTabM object
-    */
-
-    // static MzTabM exportIdentificationDataToMzTabM(const IdentificationData& id_data);
-
-
-//    static MzTabM exportIdentificationsToMzTabM(
-//        const std::vector<ProteinIdentification>& prot_ids,
-//        const std::vector<PeptideIdentification>& peptide_ids,
-//        const String& filename,
-//        bool first_run_inference_only,
-//        std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-//        std::map<String, size_t>& idrun_2_run_index,
-//        bool export_empty_pep_ids = false);
-
-    /// Generate MzTab style list of PTMs from AASequence object.
-    /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
-    /// In contrast, all modifications are reported in the PSM section (see standard document for details).
-    // static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
-
-    /**
-     * @brief export linked peptide features aka consensus map
-     *
-     * @param consensus_map		data structure of the linked peptide features
-     * @param filename		input consensusXML file name
-     * @param export_unidentified_features		Should not identified peptide features be exported?
-     * @param export_unassigned_ids		Should unassigned identifications be exported?
-     * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
-     *
-     * @return mzTab object
-     */
-//    static MzTab exportConsensusMapToMzTab(
-//        const ConsensusMap& consensus_map,
-//        const String& filename,
-//        const bool first_run_inference_only,
-//        const bool export_unidentified_features,
-//        const bool export_unassigned_ids,
-//        const bool export_subfeatures,
-//        const bool export_empty_pep_ids = false,
-//        const String& title = "ConsensusMap export from OpenMS");
-
+  static MzTabM exportIdentificationDataToMzTabM(const IdentificationData& id_data, const String& filename);
 
   protected:
 

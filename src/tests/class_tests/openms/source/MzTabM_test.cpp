@@ -340,6 +340,16 @@ START_TEST(MzTabM, "$Id$")
         }
     END_SECTION
 
+    START_SECTION(MzTabM::exportIdentificationDataToMzTabM(const IdentificationData& id_data, const String& filename))
+        {
+          // TODO: Save OMS file from AccurateMassSearch
+          // TODO: Load OMS file
+          // TODO: Check what information can be derived from the OMS file
+          // TODO: How can the stuff be derived?
+
+        }
+    END_SECTION
+
     /////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
 END_TEST
