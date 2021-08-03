@@ -232,7 +232,7 @@ namespace OpenMS
 
         if (target_scores.empty() || decoy_scores.empty())
         {
-          // no remove the the relevant entries, or put 'pseudo-scores' in
+          // now remove the relevant entries, or put 'pseudo-scores' in
           for (auto it = ids.begin(); it != ids.end(); ++it)
           {
             // if runs should be treated separately, the identifiers must be the same
@@ -259,7 +259,7 @@ namespace OpenMS
               String target_decoy(hits[i].getMetaValue("target_decoy"));
               if (target_decoy == "target" || target_decoy == "target+decoy")
               {
-                // if it is a target hit, there are now decoys, fdr/q-value should be zero then
+                // if it is a target hit, there are no decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
                 String score_type = it->getScoreType() + "_score";
                 new_hits.back().setMetaValue(score_type, new_hits.back().getScore());
@@ -1184,6 +1184,28 @@ namespace OpenMS
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
+  }
+
+  void FalseDiscoveryRate::applyPickedProteinFDR(ProteinIdentification & id, const String& decoy_prefix)
+  {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology?
+    const string& score_type = q_value ? "q-value" : "FDR";
+
+    //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
+    bool higher_score_better(id.isHigherScoreBetter());
+
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    std::map<double,double> scores_to_FDR;
+    IDScoreGetterSetter::getPickedProteinScores_(scores_labels, id, decoy_prefix);
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR calculation!");
+    }
+    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false);
+    scores_to_FDR.clear();
   }
 
   //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment

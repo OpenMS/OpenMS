@@ -79,6 +79,18 @@ namespace OpenMS
     };
 
   public:
+    /**
+     * @brief  Fills the scores_labels vector from an ProteinIdentification @p id for picked protein FDR.
+     *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
+     *  removal of the @p decoy_prefix.
+     * @todo  support decoy suffices
+     * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
+     * @param  decoy_prefix The decoy prefix to remove before comparing accesions for pairs.
+     */
+    static void getPickedProteinScores_(
+        ScoreToTgtDecLabelPairs& scores_labels,
+        const ProteinIdentification& id,
+        const String& decoy_prefix);
 
     /**
      * \defgroup getScoresFunctions Get scores from ID structures for FDR
@@ -235,6 +247,8 @@ namespace OpenMS
       }
     }
     /** @} */
+
+
 
     /**
      * @brief Helper for getting scores in ConsensusMaps

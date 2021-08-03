@@ -214,6 +214,7 @@ private:
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
     double trapezoidal_area(double x1, double x2, double y1, double y2) const;
 
+    void applyPickedProteinFDR(ProteinIdentification& id, String const& decoy_prefix);
   };
 
 } // namespace OpenMS
