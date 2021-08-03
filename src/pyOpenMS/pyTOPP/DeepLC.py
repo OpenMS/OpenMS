@@ -6,6 +6,23 @@ from deeplc import DeepLC
 import pandas as pd
 
 
+# How to setup the environment
+#
+#1. [Install `miniconda`](https://docs.conda.io/en/latest/miniconda.html) 
+#2. Create a new conda environment. 
+#   It is mandatory that you specify a python version >= 3.6 and <= 3.8 as DeepLC requires at least python 3.6 and tensorflow only supports python 3.8 or earlier. (The name of the environment is of course up to you. You may choose a shorter name and substitute the env name in the following commands accordingly). 
+#  `$ conda create -n pyopenms_env python=3.7`
+#  Refer to the [official documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands) for more information.
+#3. Add the required channels in order to install `deeplc`
+#   `$ conda config --add channels bioconda conda-forge`
+#4. Install `pyopenms` and `deeplc` (other dependencies will be detected and installed automatically. This may take some time):
+#    `$ conda install -n pyopenms_env pyopenms deeplc`
+#    Also install [CTDopts](https://github.com/WorkflowConversion/CTDopts) which is needed for parsing command-line arguments:
+#    `$ conda install --channel WorkflowConversionOrg ctdopts`
+#5. **Activate** the newly created environment.
+#    `$ conda activate pyopenms_env`
+#6. Optionally setup your IDE to use the newly created conda environment and python interpreter in order to have proper code completion and linting. Please refer to the documentation of your IDE of choice.
+
 def main():
     # register command line arguments
     model = CTDModel(
