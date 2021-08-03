@@ -81,6 +81,19 @@ namespace Clmn
                                     << "Curated" << "precursor error (|ppm|)" << "precursor intensity" << "peak annotations";
 }
 
+// Use a namespace to encapsulate names, yet use c-style 'enum' for fast conversion to int.
+// So we can write: 'Clmn::MS_LEVEL', but get implicit conversion to int
+namespace ProteinClmn
+{
+  enum HeaderNames
+      { // indices into QTableWidget's columns (which start at index 0)
+    ACCESSION, DESCRIPTION, SCORE, COVERAGE, NR_PEPTIDES, /* last entry --> */ SIZE_OF_HEADERNAMES
+      };
+  // keep in SYNC with enum HeaderNames
+  const QStringList HEADER_NAMES = QStringList()
+      << "accession" << "description" << "score" << "coverage" << "#peptides";
+}
+
 namespace OpenMS
 {
 
@@ -115,15 +128,21 @@ namespace OpenMS
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
     defaults_.setValue("tolerance", 0.5, "Mass tolerance in Th used in the automatic alignment."); // unfortunately we don't support alignment with ppm error
 
-    QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
+    QVBoxLayout* all = new QVBoxLayout(this);
+    QSplitter* tables_splitter = new QSplitter(Qt::Horizontal);
     table_widget_ = new TableView(this);
     table_widget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
 
-    spectra_widget_layout->addWidget(table_widget_);
+    tables_splitter->addWidget(table_widget_);
 
+    protein_table_widget_ = new TableView(this);
+    protein_table_widget_->setWhatsThis("Protein selection bar<BR><BR>Here all proteins of the current experiment are shown. TODO what can you do with it");
+
+    tables_splitter->addWidget(protein_table_widget_);
+    all->addWidget(tables_splitter);
     ////////////////////////////////////
     // additional checkboxes and buttons
-    QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
+    QHBoxLayout* buttons_hbox_layout = new QHBoxLayout();
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
@@ -135,14 +154,19 @@ namespace OpenMS
 
     QPushButton* export_table = new QPushButton("Export table", this);
 
-    tmp_hbox_layout->addWidget(hide_no_identification_);
-    tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
-    tmp_hbox_layout->addWidget(save_IDs);
-    tmp_hbox_layout->addWidget(export_table);
-    spectra_widget_layout->addLayout(tmp_hbox_layout);
+    buttons_hbox_layout->addWidget(hide_no_identification_);
+    buttons_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
+    buttons_hbox_layout->addWidget(save_IDs);
+    buttons_hbox_layout->addWidget(export_table);
+    all->addLayout(buttons_hbox_layout);
+    //TODO add search boxes like in spectrum list view
+    //TODO add score filter box or Apply Tool to identifications
 
     connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIDViewTab::currentCellChanged_);
     connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIDViewTab::updatedSingleCell_);
+    connect(table_widget_->selectionModel(), &QItemSelectionModel::selectionChanged, this, &SpectraIDViewTab::currentSpectraSelectionChanged_);
+    connect(protein_table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIDViewTab::currentProteinCellChanged_);
+    connect(protein_table_widget_, &QTableWidget::itemChanged, this, &SpectraIDViewTab::updatedSingleProteinCell_);
     connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
     connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
     connect(export_table, &QPushButton::clicked, table_widget_, &TableView::exportEntries);
@@ -151,6 +175,7 @@ namespace OpenMS
   void SpectraIDViewTab::clear()
   {
     table_widget_->clear();
+    protein_table_widget_->clear();
     layer_ = nullptr;
   }
  
@@ -226,6 +251,84 @@ namespace OpenMS
   }
 
 
+  void SpectraIDViewTab::currentProteinCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
+  {
+    //TODO maybe highlight/filter all PepHits that may provide evidence for this protein (or at least that are top scorer)
+    if (row < 0 || column < 0)
+      return;
+
+    if (row >= protein_table_widget_->rowCount() || column >= protein_table_widget_->columnCount())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
+    }
+
+    std::cout << "row->" << row << "<-> column->" << column << std::endl;
+    
+    // Open browser with accession when clicked on the accession column on a row
+    if (column == ProteinClmn::ACCESSION)
+    {
+
+      // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
+      QString accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
+
+      //if the accession column of the peptide row includes multiple accession, store them in this list (even if it has only one
+      // accession, store it)
+      QStringList single_accessions = accession.split(",");
+
+      //check if accession list contains more than one accession, if so, show a new fragment window and list
+      // the accessions, otherwise open browser for the only available window
+      if (single_accessions.size() > 1)
+      {
+
+        accession_window_ = new QWidget();
+        accession_window_->resize(400, 400);
+
+        QLabel* txt = new QLabel();
+        QListWidget* accession_list = new QListWidget();
+        QVBoxLayout* layout = new QVBoxLayout();
+
+        txt->setText("Click on any accession to get more details externally in your default web browser...");
+        layout->addWidget(txt);
+
+        for (auto acc : single_accessions)
+        {
+          accession_list->addItem(acc.simplified());
+        }
+
+        layout->addWidget(accession_list);
+        connect(accession_list, &QListWidget::itemClicked, [=]() {
+          //eg, listItem = tr|P02769|ALBU_BOVIN
+          QString listItem = accession_list->currentItem()->text();
+          extractNumFromAccession_(listItem);
+        });
+
+        accession_window_->setLayout(layout);
+        accession_window_->setWindowTitle("Select Accession");
+        accession_window_->show();
+        accession_window_->setFocus(Qt::ActiveWindowFocusReason);
+        QApplication::setActiveWindow(accession_window_);
+      }
+      else
+      {
+        extractNumFromAccession_(single_accessions.at(0));
+      }
+    }
+
+  }
+
+  void SpectraIDViewTab::currentSpectraSelectionChanged_()
+  {
+    if (table_widget_->selectionModel()->selectedRows().empty())
+    {
+      // deselect whatever is currently shown
+      int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
+      emit spectrumDeselected(last_spectrum_index);
+      updateProteinEntries_(-1);
+    }
+    //TODO if you deselected the current spectrum, you currently cannot click on/navigate to the same spectrum
+    // because currentCellChanged_ will not trigger. We would need to do it here.
+  }
+
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
@@ -240,7 +343,6 @@ namespace OpenMS
     // deselect whatever is currently shown
     int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
     emit spectrumDeselected(last_spectrum_index);
-
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
@@ -277,57 +379,6 @@ namespace OpenMS
       int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
       int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
       emit spectrumSelected(current_spectrum_index, current_identification_index, current_peptide_hit_index);
-    }
-
-    // Open browser with accession when clicked on the accession column on a row
-    if (column == Clmn::ACCESSIONS)
-    {
-
-      // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
-      QString accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
-
-      //if the accession column of the peptide row includes multiple accession, store them in this list (even if it has only one 
-      // accession, store it)
-      QStringList single_accessions = accession.split(",");
-
-      //check if accession list contains more than one accession, if so, show a new fragment window and list
-      // the accessions, otherwise open browser for the only available window
-      if (single_accessions.size() > 1)
-      {
-        
-          accession_window_ = new QWidget();
-          accession_window_->resize(400, 400);
-          
-          QLabel* txt = new QLabel();
-          QListWidget* accession_list = new QListWidget();
-          QVBoxLayout* layout = new QVBoxLayout();
-          
-          txt->setText("Click on any accession to get more details externally in your default web browser...");
-          layout->addWidget(txt);
-
-          for (auto acc : single_accessions) 
-          {
-            accession_list->addItem(acc.simplified());
-          }
-
-          layout->addWidget(accession_list);
-          connect(accession_list, &QListWidget::itemClicked, [=]() {
-            //eg, listItem = tr|P02769|ALBU_BOVIN
-            QString listItem = accession_list->currentItem()->text();
-            extractNumFromAccession_(listItem);
-          });
-
-          accession_window_->setLayout(layout);
-          accession_window_->setWindowTitle("Select Accession");
-          accession_window_->show();
-          accession_window_->setFocus(Qt::ActiveWindowFocusReason);
-          QApplication::setActiveWindow(accession_window_);
-        
-      }
-      else
-      {
-        extractNumFromAccession_(single_accessions.at(0));
-      }
     }
 
     if (column == Clmn::SEQUENCE)
@@ -507,7 +558,10 @@ namespace OpenMS
         fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
         QApplication::setActiveWindow(fragment_window_);
       }
-    }// PeakAnnotation cell clicked
+
+    } // PeakAnnotation cell clicked
+    updateProteinEntries_(row);
+
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
@@ -524,7 +578,10 @@ namespace OpenMS
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-    updateEntries_();// we need this extra function since its an internal slot
+
+    updateEntries_(); // we need this extra function since it's an internal slot
+    updateProteinEntries_(-1); // we need this extra function since it's an internal slot
+
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -542,6 +599,99 @@ namespace OpenMS
       };
     };
   }// namespace Detail
+
+  void SpectraIDViewTab::updateProteinEntries_(int selected_spec_row_idx)
+  {
+    // no valid peak layer attached
+    if (!hasData(layer_))
+    {
+      clear();
+      return;
+    }
+
+    if (ignore_update)
+    {
+      return;
+    }
+
+    if (!isVisible())
+    {
+      return;
+    }
+
+    set<String> accs;
+    if(selected_spec_row_idx >= 0)
+      //TODO another option would be a "Filter proteins" checkbox that filters for proteins for this Hit
+      // only when checked, otherwise only highlights
+    {
+      int row = selected_spec_row_idx;
+      int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+      int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+      int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+      const auto& spec = layer_->getPeakData()->operator[](spectrum_index);
+      const vector<PeptideIdentification>& pep_id = spec.getPeptideIdentifications();
+
+      if(!spec.getPeptideIdentifications().empty())
+      {
+        const vector<PeptideHit>& hits = pep_id[num_id].getHits();
+        if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
+      }
+    }
+
+    // create header labels (setting header labels must occur after fill)
+    QStringList headers = ProteinClmn::HEADER_NAMES;
+
+    protein_table_widget_->clear();
+    protein_table_widget_->setRowCount(0);
+    protein_table_widget_->setColumnCount(headers.size());
+    protein_table_widget_->setSortingEnabled(false);
+    protein_table_widget_->setUpdatesEnabled(false);
+    protein_table_widget_->blockSignals(true);
+
+    // generate flat list
+    int selected_row(-1);
+    // index i is needed, so iterate the old way...
+    for (Size i = 0; i < layer_->getPeakData()->getProteinIdentifications()[0].getHits().size(); ++i)
+    {
+      const auto& protein = layer_->getPeakData()->getProteinIdentifications()[0].getHits()[i];
+      if (accs.empty() || accs.find(protein.getAccession()) != accs.end())
+      {
+        // set row background color
+        QColor bg_color = accs.empty() ? Qt::white : QColor::fromRgb(127, 255, 148);
+
+        // add new row at the end of the table
+        protein_table_widget_->insertRow(protein_table_widget_->rowCount());
+
+        protein_table_widget_->setAtBottomRow(protein.getAccession().toQString(), ProteinClmn::ACCESSION, bg_color);
+        protein_table_widget_->setAtBottomRow(protein.getDescription().toQString(), ProteinClmn::DESCRIPTION, bg_color);
+        protein_table_widget_->setAtBottomRow(protein.getScore(), ProteinClmn::SCORE, bg_color);
+        protein_table_widget_->setAtBottomRow(protein.getCoverage(), ProteinClmn::COVERAGE, bg_color);
+        protein_table_widget_->setAtBottomRow(0, ProteinClmn::NR_PEPTIDES, bg_color); //TODO actually calculate
+
+        /*if ((int)i == restore_spec_index) //TODO actually extract the accessions for the selected spectrum and compare
+        {
+          selected_row = protein_table_widget_->rowCount(); // get model index of selected spectrum
+        }*/
+      }
+    }
+
+    protein_table_widget_->setHeaders(headers);
+    protein_table_widget_->resizeColumnsToContents();
+    protein_table_widget_->setSortingEnabled(true);
+    protein_table_widget_->sortByColumn(ProteinClmn::SCORE, Qt::AscendingOrder); //TODO figure out higher_score_better
+
+    if (selected_row != -1)  // select and scroll down to item
+    {
+      protein_table_widget_->selectRow(selected_row);
+      QTableWidgetItem* selected_item = protein_table_widget_->item(selected_row, 0);
+      selected_item->setSelected(true);
+      protein_table_widget_->setCurrentItem(selected_item);
+      protein_table_widget_->scrollToItem(selected_item);
+    }
+
+    protein_table_widget_->blockSignals(false);
+    protein_table_widget_->setUpdatesEnabled(true);
+  }
 
   void SpectraIDViewTab::updateEntries_()
   {
@@ -579,7 +729,7 @@ namespace OpenMS
         UInt ms_level = spec.getMSLevel();
         const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
 
-        if (ms_level != 2 || peptide_ids.size() == 0) // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2 || peptide_ids.empty()) // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
@@ -637,7 +787,7 @@ namespace OpenMS
       if (hide_no_identification_->isChecked() && id_count == 0)  { continue; }
 
       // set row background color
-      QColor bg_color = (id_count == 0 ? Qt::white : Qt::green);
+      QColor bg_color = (id_count == 0 ? Qt::white : QColor::fromRgb(127,255,148));
 
       // get peptide identifications of current spectrum
       if (id_count == 0)
@@ -729,7 +879,7 @@ namespace OpenMS
               }
               for (const auto& ck : common_keys)
               {
-                DataValue dv = ph.getMetaValue(ck);
+                const DataValue& dv = ph.getMetaValue(ck);
                 if (dv.valueType() == DataValue::DOUBLE_VALUE)
                 {
                   table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
@@ -754,7 +904,7 @@ namespace OpenMS
 
     table_widget_->setHeaders(headers);
     String s = headers.join(';');
-    table_widget_->hideColumns(QStringList() << "dissociation" << "scan type" << "zoom" << "rank");
+    table_widget_->hideColumns(QStringList() << "accessions" << "dissociation" << "scan type" << "zoom" << "rank");
     if (has_peak_annotations) table_widget_->setHeaderExportName(Clmn::PEAK_ANNOTATIONS, "PeakAnnotations(mz|intensity|charge|annotation");
 
     table_widget_->resizeColumnsToContents();
@@ -799,7 +949,7 @@ namespace OpenMS
       int spectrum_index = table_widget_->item(r, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
 
       // skip this row, if this spectrum was already processed
-      if (std::find(added_spectra.begin(), added_spectra.end(), spectrum_index) != added_spectra.end())
+      if (added_spectra.find(spectrum_index) != added_spectra.end())
       {
         continue;
       }
@@ -830,6 +980,11 @@ namespace OpenMS
     }
   }
 
+  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* item)
+  {
+    
+  }
+
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
   // update the corresponding PeptideIdentification / PeptideHits by adding a metavalue: 'selected'
   void SpectraIDViewTab::updatedSingleCell_(QTableWidgetItem* item)
@@ -857,7 +1012,7 @@ namespace OpenMS
         hits[1].setMetaValue("selected", selected);
       }
     }
-    else // general case, update only the selected PepideHit
+    else // general case, update only the selected PeptideHit
     {
       hits[num_ph].setMetaValue("selected", selected);
     }
