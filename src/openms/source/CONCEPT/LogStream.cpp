@@ -82,7 +82,9 @@ namespace OpenMS
       {
         clearCache();
         if (incomplete_line_.size() > 0)
+        {
           distribute_(incomplete_line_);
+        }
         delete[] pbuf_;
         pbuf_ = nullptr;
       }
@@ -293,8 +295,9 @@ namespace OpenMS
 
                 // send outline (and extra_message) to attached streams
                 if (!extra_message.empty())
+                {
                   distribute_(extra_message);
-
+                }
                 distribute_(outstring);
               }
 
@@ -413,8 +416,9 @@ namespace OpenMS
     {
 
       if (registered_at_ == nullptr)
+      {
         return;
-
+      }
       registered_at_->remove(stream_);
       registered_at_ = nullptr;
     }
@@ -479,8 +483,9 @@ namespace OpenMS
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
     {
       if (!bound_())
+      {
         return;
-
+      }
       insert(s);
 
       StreamIterator it = findStream_(s);
@@ -504,16 +509,18 @@ namespace OpenMS
     bool LogStream::hasStream_(std::ostream & stream)
     {
       if (!bound_())
+      {
         return false;
-
+      }
       return findStream_(stream) != rdbuf()->stream_list_.end();
     }
 
     void LogStream::setPrefix(const std::ostream & s, const string & prefix)
     {
       if (!bound_())
+      {
         return;
-
+      }
       StreamIterator it = findStream_(s);
       if (it != rdbuf()->stream_list_.end())
       {
@@ -524,8 +531,9 @@ namespace OpenMS
     void LogStream::setPrefix(const string & prefix)
     {
       if (!bound_())
+      {
         return;
-
+      }
       for (StreamIterator it = rdbuf()->stream_list_.begin(); it != rdbuf()->stream_list_.end(); ++it)
       {
         (*it).prefix = prefix;
