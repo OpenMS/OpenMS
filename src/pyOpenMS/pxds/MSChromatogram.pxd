@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         ChromatogramPeak & operator[](int) nogil except +
 
-        void updateRanges() nogil except + # wrap-doc:Docu in base class (RangeManager)
+        void updateRanges() nogil except +
         void clear(int) nogil except +
             # wrap-doc:
                 #   Clears all data and meta data
@@ -87,4 +87,3 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except + # wrap-doc:Sets the float meta data arrays
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except + # wrap-doc:Sets the integer meta data arrays
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except + # wrap-doc:Sets the string meta data arrays
-

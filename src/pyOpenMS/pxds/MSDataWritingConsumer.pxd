@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   -----
                 #   These numbers will be written in the spectrumList and chromatogramList
                 #   tag in the mzML file. Therefore, these will contain wrong numbers if
-                #   the expected size is not set correctly.
+                #   the expected size is not set correctly
                 #   -----
                 #   :param expectedSpectra: Number of spectra expected
                 #   :param expectedChromatograms: Number of chromatograms expected
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   Optionally add a data processing method to each chromatogram and spectrum
                 #   -----
                 #   The provided DataProcessing object will be added to each chromatogram
-                #   and spectrum written to to the mzML file.
+                #   and spectrum written to to the mzML file
                 #   -----
                 #   :param d: The DataProcessing object to be added
 
@@ -70,4 +70,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
         void addDataProcessing(DataProcessing d) nogil except +
         Size getNrSpectraWritten()  nogil except +
         Size getNrChromatogramsWritten() nogil except +
-
