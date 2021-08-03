@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS":
                 #   -----
                 #   The class can be used to construct composition vectors for
                 #   sequences. Additionally the vectors can be encoded into
-                #   the libsvm format.
+                #   the libsvm format
 
         LibSVMEncoder() nogil except +
         LibSVMEncoder(LibSVMEncoder &) nogil except + # compiler

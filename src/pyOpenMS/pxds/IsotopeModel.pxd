@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
         # wrap-doc:
                 #   Isotope distribution approximated using linear interpolation
                 #   -----
-                #   This models a smoothed (widened) distribution, i.e. can be used to sample actual raw peaks (depending on the points you query).
+                #   This models a smoothed (widened) distribution, i.e. can be used to sample actual raw peaks (depending on the points you query)
                 #   If you only want the distribution (no widening), use either
                 #   EmpiricalFormula::getIsotopeDistribution() // for a certain sum formula
                 #   or
@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
             # wrap-doc:
                 #   Set the offset of the model
                 #   -----
-                #   The whole model will be shifted to the new offset without being computing all over.
+                #   The whole model will be shifted to the new offset without being computing all over
                 #   This leaves a discrepancy which is minor in small shifts (i.e. shifting by one or two
                 #   standard deviations) but can get significant otherwise. In that case use setParameters()
                 #   which enforces a recomputation of the model
