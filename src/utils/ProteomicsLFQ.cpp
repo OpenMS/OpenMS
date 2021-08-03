@@ -311,15 +311,6 @@ protected:
     registerFullParam_(combined);
   }
 
-  bool checkPepID_(const PeptideIdentification& id){
-    if (fabs(id.getMZ() - id.getHits()[0].getSequence().getMZ(id.getHits()[0].getCharge())) > 3)
-    {
-      std::cerr << "Something went terribly wrong for id " + id.getHits()[0].getSequence().toString() << std::endl;
-      return false;
-    }
-    return true;
-  }
-
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
@@ -1001,6 +992,33 @@ protected:
     return EXECUTION_OK;
   }
 
+  void removeUnvalidatedTransferIDs_(FeatureMap& fm)
+  {
+    set<IdentificationData::ObservationMatchRef> matchesWFeat;
+    for (const auto& feat : fm)
+    {
+      for (const auto& match : feat.getIDMatches())
+      {
+        matchesWFeat.insert(match);
+      }
+    }
+    Size c = 0;
+    IDFilter::filterObservationMatchesByFunctor(fm.getIdentificationData(), [&](IdentificationData::ObservationMatchRef obs_match)
+    {
+     if ((obs_match->getMetaValue("FFId_category","") == "transfer") &&
+      (matchesWFeat.find(obs_match) == matchesWFeat.end()) )
+     {
+       c++;
+       return true;
+     }
+     else
+     {
+       return false;
+     }
+    });
+    OPENMS_LOG_DEBUG << "Removed " << c << " unvalidated transferred IDs!" << std::endl;
+  }
+
   ExitCodes quantifyFraction_(
     const pair<unsigned int, std::vector<String> > & ms_files,
     const map<String, String>& mzfile2idfile,
@@ -1064,6 +1082,8 @@ protected:
       vector<ProteinIdentification> ext_protein_ids;
       vector<PeptideIdentification> ext_peptide_ids;
 
+      IdentificationData id_data, id_data_ext;
+
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
@@ -1076,18 +1096,31 @@ protected:
         MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
         MapAlignmentTransformer::transformRetentionTimes(ms_centroided, transformations[fraction_group - 1]);
 
-        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
+        //consensus_fraction.getIdentifier and getLoadedFilePath seems to be empty. Create temporary string.
+        //TODO use same name as potential debug output file?
+        auto tmpfileref = id_data.registerInputFile(IdentificationData::InputFile("fraction" + String(fraction) + ".consensusXML")); // "temporary" ConsensusXML for this fraction
+        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to (internal) id_data
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-           PeptideIdentification trans = it->second;
-           trans.setIdentifier(protein_ids[0].getIdentifier());
-           //TODO carry over proteins, carry over File info, or pass it otherwise to FFID!
-           // otherwise we might have an invalid idXML with missing proteins and overlapping spectrum_refs
-           peptide_ids.push_back(trans);
-           c++;
+          //TODO refactor into member of IDDataConverter "convertPeptideID" or something (with option for number of exported hits)? But we would need to allow passing metavals.
+          IdentificationData::Observation obs{it->second.getMetaValue("feature_id"), tmpfileref, it->second.getMZ(), it->second.getRT()};
+          auto obs_ref = id_data.registerObservation(obs);
+          IdentificationData::IdentifiedPeptide pep{it->second.getHits()[0].getSequence()};
+          for (const auto& ev : it->second.getHits()[0].getPeptideEvidences())
+          {
+            IdentificationData::ParentSequence prot {ev.getProteinAccession()}; //TODO add more information about the proteins if available (TD, coverage, processing ..)
+            auto prot_ref = id_data.registerParentSequence(prot);
+            IdentificationData::ParentMatch pm {static_cast<Size>(ev.getStart()), static_cast<Size>(ev.getEnd()), ev.getAABefore(), ev.getAAAfter()};
+            pep.parent_matches[prot_ref].insert(pm);
+          }
+          auto pep_ref = id_data.registerIdentifiedPeptide(pep);
+          IdentificationData::ObservationMatch obs_match{pep_ref, obs_ref, it->second.getHits()[0].getCharge()}; //TODO add processing steps?
+          obs_match.setMetaValue("FFId_category", "transfer");
+          id_data.registerObservationMatch(obs_match);
+          c++;
         }
-        std::cout << "TRANSFERRING " << c << "IDs" << std::endl;
+        OPENMS_LOG_INFO << "Transferring " << c << "IDs to this file." << std::endl;
       }
 
       //////////////////////////////////////////
@@ -1120,7 +1153,6 @@ protected:
           FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
         }
       }
-
       /////////////////////////////////////////////////
       // Run FeatureFinderIdentification
 
@@ -1143,29 +1175,13 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      bool ok = true;
-      for (const auto& id : peptide_ids)
-      {
-        ok &= checkPepID_(id);
-      }
-      if(!ok) std::cerr << "ALREADY WRONG BEFORE IMPORT" << std::endl;
-
       if (c > 0)
       {
         IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
       }
 
-      IdentificationData id_data, id_data_ext;
       IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
-/*      for (const auto& obs_match : id_data.getObservationMatches())
-      {
-        const auto& pep_ref = obs_match.identified_molecule_var.getIdentifiedPeptideRef();
-        if (fabs(obs_match.observation_ref->mz - pep_ref->sequence.getMZ(obs_match.charge)) > 3)
-        {
-          std::cerr << "STH WENT WRONG WITH " << pep_ref->sequence.toString() << std::endl;
-        }
-      }*/
 
       if (!seeds.empty())
       {
@@ -1174,15 +1190,18 @@ protected:
 
       ffi.run(fm, id_data, id_data_ext);
 
+      // remove transferred IDs and seeds
+      // TODO Note: this is currently not needed since the export to the old data structures does not export ObsMatches w/o score
+      // But this also makes sense, since there would be no good score (maybe the best of the consensusFeature?).
+      // I think the association to an ID for those transferred IDs that result in features should happen through
+      // linking to the consensusFeature anyway. Therefore I think *all* of them can be deleted (not only unvalidated ones).
+      //if (!transfered_ids.empty()) removeUnvalidatedTransferIDs_(fm);
+      //removeTransferIDsAndSeeds_(fm);
+
+      // TODO annotate in the consensusMap if a feature was a seed or transfer?
+
       // convert IDs in feature map to Peptide-/ProteinIdentification:
       IdentificationDataConverter::exportFeatureIDs(fm);
-
-      ok = true;
-      for (const auto& id : fm.getUnassignedPeptideIdentifications())
-      {
-        ok &= checkPepID_(id);
-      }
-      if(!ok) std::cerr << "WRONG" << std::endl;
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
@@ -1196,13 +1215,6 @@ protected:
 
       IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
-
-      ok = true;
-      for (const auto& id : fm.getUnassignedPeptideIdentifications())
-      {
-        ok &= checkPepID_(id);
-      }
-      if(!ok) std::cerr << "WRONG" << std::endl;
 
       feature_maps.push_back(std::move(fm));
 
@@ -1271,13 +1283,6 @@ protected:
 
     // sort list of peptide identifications in each consensus feature by map index
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
-
-    bool ok = true;
-    for (const auto& id : consensus_fraction.getUnassignedPeptideIdentifications())
-    {
-      ok &= checkPepID_(id);
-    }
-    if(!ok) std::cerr << "WRONG after fraction linking" << std::endl; 
 
     if (debug_level_ >= 666)
     {
@@ -1874,13 +1879,6 @@ protected:
         }
       }
     }
-
-    bool ok = true;
-    for (const auto& id : consensus.getUnassignedPeptideIdentifications())
-    {
-      ok &= checkPepID_(id);
-    }
-    if(!ok) std::cerr << "WRONG after linking" << std::endl;
 
     //-------------------------------------------------------------
     // ID related algorithms

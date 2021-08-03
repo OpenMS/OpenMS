@@ -60,7 +60,8 @@ namespace OpenMS
     */
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides);
+                          std::vector<PeptideIdentification>& peptides,
+                          bool export_ids_wo_scores = false);
 
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);
