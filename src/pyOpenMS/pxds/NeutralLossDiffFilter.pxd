@@ -7,6 +7,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>" names
     cdef cppclass NeutralLossDiffFilter(FilterFunctor) :
         # wrap-inherits:
         #  FilterFunctor
+        # wrap-doc:
+        #  NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss
+
         NeutralLossDiffFilter() nogil except +
         NeutralLossDiffFilter(NeutralLossDiffFilter) nogil except +
         double apply(MSSpectrum & ) nogil except +
