@@ -37,15 +37,15 @@
         var SequenceVisualizer = channel.objects.SequenceVisualizer;
 
         function hashCode(str) {
-        let hash = 0;
-        for (var i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return hash;
+            let hash = 0;
+            for (var i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return hash;
         }
 
         function pickColor(str) {
-        return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
+            return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
         }
 
 
@@ -53,9 +53,6 @@
         let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
         let peptides_mod_data_arr = SequenceVisualizer.json_data_obj.peptides_mod_data;
         let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length
-        console.log(typeof peptides_mod_data_arr)
-        console.log("size->",peptides_mod_data_arr[0])
-
 
         let peptide_obj = [];
         let mod_peptide_obj = [];
@@ -147,7 +144,6 @@
 	    const toolTipElement = document.querySelector('#toolTip');
 
 	    modTrackElement.addEventListener('change', (event) => {
-	 	    console.log(event)
 		    if(event.detail.eventtype == "mouseover"){
                 let cur_mod_data = event.detail.feature
 			    let x = event.detail.coords[0];

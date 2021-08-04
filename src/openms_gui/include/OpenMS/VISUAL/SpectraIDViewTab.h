@@ -130,7 +130,7 @@ namespace OpenMS
     /// update ProteinHits, when data in the table changes (status of checkboxes)
     void updatedSingleProteinCell_(QTableWidgetItem* item);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
-    void currentProteinCellChanged_(int row, int column, int old_row, int old_column);
+    void proteinCellClicked_(int row, int column);
 
   };
 }
