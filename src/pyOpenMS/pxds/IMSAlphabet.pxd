@@ -13,14 +13,13 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namespace "OpenMS::ims":
     
     cdef cppclass IMSAlphabet "OpenMS::ims::IMSAlphabet":
-        IMSAlphabet() nogil except +
-            # wrap-doc:
+        # wrap-doc:
                 #   Holds an indexed list of bio-chemical elements.
                 #   -----
                 #   Presents an indexed list of bio-chemical elements of type (or derived from
                 #   type) 'Element'. Due to indexed structure 'Alphabet' can be used similar
-                #   to @c std::vector, for example to add a new element to 'Alphabet' function
-                #   @c push_back(element_type) can be used. Elements or their properties (such
+                #   to std::vector, for example to add a new element to 'Alphabet' function
+                #   push_back(element_type) can be used. Elements or their properties (such
                 #   as element's mass) can be accessed by index in a constant time. On the other
                 #   hand accessing elements by their names takes linear time. Due to this and
                 #   also the fact that 'Alphabet' is 'heavy-weighted' (consisting of
@@ -28,13 +27,14 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
                 #   undefined resulting in possibly 'heavy' access operations) it is recommended
                 #   not use 'Alphabet' directly in operations where fast access to
                 #   'Element' 's properties is required. Instead consider to use
-                #   'light-weighted' equivalents, such as 'Weights'.
+                #   'light-weighted' equivalents, such as 'Weights'
                 #   -----
                 #   :param map: MSExperiment to receive the identifications
                 #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
                 #   :param clear_ids: Reset peptide and protein identifications of each scan before annotating
                 #   :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z) 
-            
+                
+        IMSAlphabet() nogil except +
         IMSAlphabet(IMSAlphabet &) nogil except +
 
         element_type  getElement(name_type & name) nogil except + # wrap-doc:Gets the element with 'index' and returns element with the given index in alphabet
