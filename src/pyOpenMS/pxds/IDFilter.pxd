@@ -91,8 +91,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void removeEmptyIdentifications(libcpp_vector[PeptideIdentification]& ids) nogil except + # wrap-doc:Removes peptide or protein identifications that have no hits in them
         void removeEmptyIdentifications(libcpp_vector[ProteinIdentification]& ids) nogil except + # wrap-doc:Removes peptide or protein identifications that have no hits in them
 
-        void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
-        void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
+        void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
+        void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except + # wrap-doc:Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification/ProteinIdentifiation. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
 
         void keepNBestSpectra(libcpp_vector[PeptideIdentification]& peptides, Size n) nogil except + # wrap-doc:Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other)
 
