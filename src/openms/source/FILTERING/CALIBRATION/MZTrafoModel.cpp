@@ -102,10 +102,18 @@ namespace OpenMS
     if (trafo.coeff_.empty()) return false;
 
     // go through coefficients and see if they are too extreme
-    if (limit_offset_ < fabs(trafo.coeff_[0])) return false;
-    if (limit_scale_ < fabs(trafo.coeff_[1])) return false;
-    if (limit_power_ < fabs(trafo.coeff_[2])) return false;
-
+    if (limit_offset_ < fabs(trafo.coeff_[0]))
+    {
+      return false;
+    }
+    if (limit_scale_ < fabs(trafo.coeff_[1]))
+    {
+      return false;
+    }
+    if (limit_power_ < fabs(trafo.coeff_[2]))
+    {
+      return false;
+    }
     return (true);
   }
 
@@ -197,8 +205,10 @@ namespace OpenMS
     {
       if (md == LINEAR)
       {
-        if (obs_mz.size() < 2) return false;
-
+        if (obs_mz.size() < 2)
+        {
+          return false;
+        }
         if (use_RANSAC && 
           (obs_mz.size() > ransac_params_->n)) // with fewer points, RANSAC will fail
         {
@@ -230,8 +240,10 @@ namespace OpenMS
       }
       else if (md == LINEAR_WEIGHTED)
       {
-        if (obs_mz.size() < 2) return false;
-
+        if (obs_mz.size() < 2)
+        {
+          return false;
+        }
         double confidence_interval_P(0.0);
         Math::LinearRegression lr;
         lr.computeRegressionWeighted(confidence_interval_P, theo_mz.begin(), theo_mz.end(), obs_mz.begin(), weights.begin(), false);
@@ -241,8 +253,10 @@ namespace OpenMS
       }
       else if (md == QUADRATIC)
       {
-        if (obs_mz.size() < 3) return false;
-
+        if (obs_mz.size() < 3)
+        {
+          return false;
+        }
         if (use_RANSAC && 
           (obs_mz.size() > ransac_params_->n)) // with fewer points, RANSAC will fail
         {
@@ -270,8 +284,10 @@ namespace OpenMS
       }
       else if (md == QUADRATIC_WEIGHTED)
       {
-        if (obs_mz.size() < 3) return false;
-
+        if (obs_mz.size() < 3)
+        {
+          return false;
+        }
         // Quadratic fit (weighted)
         Math::QuadraticRegression qr;
         qr.computeRegressionWeighted(theo_mz.begin(), theo_mz.end(), obs_mz.begin(), weights.begin());
@@ -292,12 +308,19 @@ namespace OpenMS
       std::vector<double> st_ppm_before, st_ppm_after;
       for (Size i = 0; i < obs_mz.size(); i++)
       {
-        if (use_ppm_) st_ppm_before.push_back(obs_mz[i]);
-        else st_ppm_before.push_back(Math::getPPM(theo_mz[i], obs_mz[i]));
-
+        if (use_ppm_)
+        {
+          st_ppm_before.push_back(obs_mz[i]);
+        }
+        else 
+        {
+          st_ppm_before.push_back(Math::getPPM(theo_mz[i], obs_mz[i]));
+        }
         double obs_mz_v = obs_mz[i];
-        if (use_ppm_) obs_mz_v = Math::ppmToMass(obs_mz_v, theo_mz[i]) + theo_mz[i]; //
-
+        if (use_ppm_)
+        {
+          obs_mz_v = Math::ppmToMass(obs_mz_v, theo_mz[i]) + theo_mz[i];
+        }
         st_ppm_after.push_back(Math::getPPM(theo_mz[i], predict(obs_mz_v))); // predict() is ppm-aware itself
 
         printf("%4.5f  %4.5f  %2.1f | %2.1f\n", theo_mz[i], obs_mz_v, st_ppm_before.back(), st_ppm_after.back());
@@ -379,8 +402,10 @@ namespace OpenMS
 
   void MZTrafoModel::getCoefficients( double& intercept, double& slope, double& power )
   {
-    if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Model is not trained yet.");
-
+    if (!isTrained())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Model is not trained yet.");
+    }
     intercept = coeff_[0];
     slope = coeff_[1];
     power = coeff_[2];

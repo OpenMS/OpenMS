@@ -35,10 +35,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <clocale>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
-    const char * OpenMS_locale = setlocale(LC_ALL, "C");
-  }
-}
+  const char * OpenMS_locale = setlocale(LC_ALL, "C");  
+} // OpenMS // Internal

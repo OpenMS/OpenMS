@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         #   MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition]
         #   LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, LightTransition]
 
-        MRMTransitionGroup() nogil except +
+        MRMTransitionGroup() nogil except +# TODO(whole file)
         MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) nogil except +
 
         Size size() nogil except+

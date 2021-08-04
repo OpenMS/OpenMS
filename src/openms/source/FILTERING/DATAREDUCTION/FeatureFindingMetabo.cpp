@@ -925,8 +925,10 @@ namespace OpenMS
       {
         // traces are sorted by m/z, so we can break when we leave the allowed window
         double diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-        if (diff_mz > local_mz_range_) break;
-
+        if (diff_mz > local_mz_range_)
+        {
+          break;
+        }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
         if (diff_rt <= local_rt_range_)
         {
