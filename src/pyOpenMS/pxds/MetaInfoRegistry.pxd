@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":
                 #   13 - charge
 
         MetaInfoRegistry() nogil except +
-        MetaInfoRegistry(MetaInfoRegistry) nogil except +
+        MetaInfoRegistry(MetaInfoRegistry &) nogil except +
         UInt registerName(const String & name, const String & description, const String & unit) nogil except + # wrap-doc:Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string
         void setDescription(UInt index, const String & description) nogil except + # wrap-doc:Sets the description (String), corresponding to an index
         void setDescription(const String & name, const String & description) nogil except + # wrap-doc:Sets the description (String), corresponding to a name
