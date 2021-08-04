@@ -20,6 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
             #   This is the default model used by PeakIntensityPredictor
 
         LocalLinearMap() nogil except +
+        # private
         LocalLinearMap(LocalLinearMap &) nogil except + # wrap-ignore
         LLMParam getLLMParam() nogil except + # wrap-doc:Return parameters of the LocalLinearMap model
         Matrix[ double ]  getCodebooks() nogil except + # wrap-doc:Return position of the codebook vectors (18-dim)

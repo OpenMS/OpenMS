@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>" namespace "
         #    DefaultParamHandler
         #    ProgressLogger
 
-        LinearResampler()                  nogil except +
+        LinearResampler() nogil except +
         LinearResampler(LinearResampler &) nogil except + # compiler
         void raster(MSSpectrum & input) nogil except + # wrap-doc:Applies the resampling algorithm to an MSSpectrum
         void rasterExperiment(MSExperiment & input) nogil except + # wrap-doc:Resamples the data in an MSExperiment
