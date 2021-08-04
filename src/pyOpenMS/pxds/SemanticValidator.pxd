@@ -10,6 +10,10 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
 
     cdef cppclass SemanticValidator:
 
+        # private
+        SemanticValidator() nogil except + # wrap-ignore
+        # private
+        SemanticValidator(SemanticValidator &) nogil except +  # wrap-ignore
         SemanticValidator(CVMappings mapping, ControlledVocabulary cv) nogil except +
 
         bool validate(String filename, StringList errors, StringList warnings) nogil except +
@@ -44,8 +48,8 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
 cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "OpenMS::Internal::SemanticValidator":
 
       cdef cppclass SemanticValidator_CVTerm "OpenMS::Internal::SemanticValidator::CVTerm":
-        SemanticValidator_CVTerm() nogil except +
-        SemanticValidator_CVTerm(SemanticValidator_CVTerm) nogil except +
+        SemanticValidator_CVTerm() nogil except + # compiler
+        SemanticValidator_CVTerm(SemanticValidator_CVTerm &) nogil except + # compiler
         String accession
         String name
         String value

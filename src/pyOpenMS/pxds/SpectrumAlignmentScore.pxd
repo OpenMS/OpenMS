@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>" namespac
         # wrap-inherits:
         #   DefaultParamHandler
         SpectrumAlignmentScore() nogil except +
-        SpectrumAlignmentScore(SpectrumAlignmentScore) nogil except +
+        SpectrumAlignmentScore(SpectrumAlignmentScore &) nogil except +
 
         double operator()(MSSpectrum &, MSSpectrum &) nogil except + #wrap-ignore
         double operator()(MSSpectrum &) nogil except + #wrap-ignore

@@ -14,8 +14,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SpectrumAnnotator.h>" namespace "OpenMS":
         #  DefaultParamHandler
 
         SpectrumAnnotator() nogil except +
-        SpectrumAnnotator(SpectrumAnnotator) nogil except +
+        SpectrumAnnotator(SpectrumAnnotator &) nogil except +
 
         void annotateMatches(MSSpectrum & spec, PeptideHit & ph, TheoreticalSpectrumGenerator & tg, SpectrumAlignment & sa) nogil except +
         void addIonMatchStatistics(PeptideIdentification & pi, MSSpectrum & spec, TheoreticalSpectrumGenerator & tg, SpectrumAlignment & sa) nogil except +
-

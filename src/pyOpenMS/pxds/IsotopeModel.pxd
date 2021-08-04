@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
     
     cdef cppclass IsotopeModel "OpenMS::IsotopeModel":
         IsotopeModel() nogil except +
-        IsotopeModel(IsotopeModel) nogil except +
+        IsotopeModel(IsotopeModel &) nogil except +
         UInt getCharge() nogil except +
         void setOffset(double offset) nogil except +
         double getOffset() nogil except +

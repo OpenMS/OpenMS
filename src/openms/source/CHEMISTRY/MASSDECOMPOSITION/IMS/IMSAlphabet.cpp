@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,11 +41,8 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
 
-namespace OpenMS
+namespace OpenMS::ims
 {
-
-  namespace ims
-  {
 
     const IMSAlphabet::name_type & IMSAlphabet::getName(size_type index) const
     {
@@ -174,5 +171,4 @@ namespace OpenMS
       return os;
     }
 
-  } // namespace ims
-} // namespace OpenMS
+} // namespace OpenMS // namespace ims

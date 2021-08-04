@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -237,16 +237,18 @@ namespace OpenMS
   String Compomer::getAdductsAsString(UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
-
+    }
     String r;
     for (const auto& [formula, adduct] : cmp_[side])
     {
       Int f = adduct.getAmount();
 
       if (formula.has('+'))
+      {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", formula);
-
+      }
       EmpiricalFormula ef(formula);
       ef = ef * f;
       r += ef.toString();
@@ -258,8 +260,9 @@ namespace OpenMS
   bool Compomer::isSingleAdduct(Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
-
+    }
     if (cmp_[side].size() != 1)
     {
       return false;
@@ -281,8 +284,9 @@ namespace OpenMS
   Compomer Compomer::removeAdduct(const Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
-
+    }
     Compomer tmp(*this);
     if (tmp.cmp_[side].count(a.getFormula()) > 0)
     {
@@ -307,8 +311,9 @@ namespace OpenMS
   StringList Compomer::getLabels(const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!", String(side));
-
+    }
     StringList tmp;
 
     for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)

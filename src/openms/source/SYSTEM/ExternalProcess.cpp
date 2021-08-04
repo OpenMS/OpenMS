@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ namespace OpenMS
     while (qp_->state() == QProcess::Running)
     {
       QCoreApplication::processEvents();
-      if (qp_->waitForReadyRead(50)) // wait 50msecs. Small enough to have the GUI repaint when switching windows
+      if (qp_->waitForReadyRead(50)) // wait 50ms. Small enough to have the GUI repaint when switching windows
       {
         processStdOut_();
         processStdErr_();

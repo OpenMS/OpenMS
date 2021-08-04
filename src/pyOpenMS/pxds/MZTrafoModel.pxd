@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #   Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models
 
         MZTrafoModel()  nogil except +
-        MZTrafoModel(MZTrafoModel &) nogil except +
+        MZTrafoModel(MZTrafoModel &) nogil except + # compiler
         MZTrafoModel(bool) nogil except +
         bool isTrained() nogil except + # wrap-doc:Returns true if the model have coefficients (i.e. was trained successfully)
         double getRT() nogil except + # wrap-doc:Get RT associated with the model (training region)

@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSACSVFile.h>" namespace "OpenMS":
                 #   load the data from such a file into the structures of OpenMS
 
         OMSSACSVFile() nogil except +
-        OMSSACSVFile(OMSSACSVFile) nogil except + #wrap-ignore
+        OMSSACSVFile(OMSSACSVFile &) nogil except + # compiler
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,

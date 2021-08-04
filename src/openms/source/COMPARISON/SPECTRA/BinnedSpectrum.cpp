@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,10 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(ps.isSorted(), "Spectrum needs to be sorted by m/z.");
 
-    if (ps.empty()) { return; }
+    if (ps.empty())
+    { 
+      return;
+    }
 
     bins_ = EmptySparseVector;
 
@@ -120,15 +123,20 @@ namespace OpenMS
     }
 
     // efficient look-up of number of non-zero entries, so we use this as-well
-    if (bins_.nonZeros() != rhs.bins_.nonZeros()) { return false; }
+    if (bins_.nonZeros() != rhs.bins_.nonZeros())
+    {
+      return false;
+    }
 
     // test non-sparse (non-zero) elements for equality
     SparseVectorIteratorType it(bins_);
     SparseVectorIteratorType rhs_it(rhs.bins_);  
     while (it)      
     {
-      if (it.index() != rhs_it.index()
-       || it.value() != rhs_it.value()) { return false; }
+      if (it.index() != rhs_it.index() || it.value() != rhs_it.value())
+      {
+        return false;
+      }
       ++it;
       ++rhs_it;
     }

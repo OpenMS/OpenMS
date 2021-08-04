@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
 
     cdef cppclass OpenSwathHelper:
 
+        OpenSwathHelper() nogil except + # compiler
+        OpenSwathHelper(OpenSwathHelper &) nogil except + # compiler
+
         bool checkSwathMapAndSelectTransitions(
                                 MSExperiment & exp, 
                                 TargetedExperiment & targeted_exp,

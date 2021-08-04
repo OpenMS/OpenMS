@@ -4,8 +4,9 @@ from String cimport String
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace "OpenMS::CsiFingerIdMzTabWriter":
     
     cdef cppclass CsiAdapterHit "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterHit":
+
         CsiAdapterHit() nogil except + 
-        CsiAdapterHit(CsiAdapterHit) nogil except +
+        CsiAdapterHit(CsiAdapterHit &) nogil except + # compiler
 
         String inchikey2D
         String inchi

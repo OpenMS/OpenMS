@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1290,7 +1290,7 @@ namespace OpenMS
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // dont skip the next chrom
+            skip_chromatogram_ = false; // don't skip the next chrom
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
@@ -3532,7 +3532,7 @@ namespace OpenMS
               // retrieving the identifier and looking up the term within the
               // correct ontology in our cv_ object.
               char s[8];
-              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit identifiers padded with zeros
               String unitstring = String(s);
               if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
               {

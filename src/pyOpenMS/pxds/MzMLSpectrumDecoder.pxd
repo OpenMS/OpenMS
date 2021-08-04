@@ -12,9 +12,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #   spectrum or chromatogram (from <chromatogram> to </chromatogram> or
                 #   <spectrum> to </spectrum> tag). It returns the data contained in the
                 #   binaryDataArray for Intensity / mass-to-charge or Intensity / time
-
-        MzMLSpectrumDecoder() nogil except +
-        MzMLSpectrumDecoder(MzMLSpectrumDecoder) nogil except +
+                
+        MzMLSpectrumDecoder() nogil except + # compiler
+        MzMLSpectrumDecoder(MzMLSpectrumDecoder &) nogil except + # compiler
         void domParseChromatogram(String in_, shared_ptr[Chromatogram] & cptr) nogil except +
             # wrap-doc:
                 #   Extract data from a string which contains a full mzML chromatogram

@@ -13,6 +13,7 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         #   ProgressLogger
 
         MzXMLFile() nogil except +
+        MzXMLFile(MzXMLFile &) nogil except + #compiler
 
         void load(String, MSExperiment &) nogil except + 
             # wrap-doc:

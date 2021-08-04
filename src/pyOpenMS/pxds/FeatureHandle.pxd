@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureHandle.h>" namespace "OpenMS":
         #  UniqueIdInterface
 
         FeatureHandle() nogil except + # wrap-doc:Representation of a Peak2D, RichPeak2D or Feature
-        FeatureHandle(FeatureHandle) nogil except +
+        FeatureHandle(FeatureHandle &) nogil except +
 
         FeatureHandle(UInt64 map_index, Peak2D & point, UInt64 element_index) nogil except +
         # FeatureHandle(UInt64 map_index, BaseFeature & feature) nogil except +

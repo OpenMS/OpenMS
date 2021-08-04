@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -256,7 +256,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
 
-      // index of unlabeled channelunlabeled_feature
+      // index of unlabeled channel unlabeled_feature
       Map<String, Feature> unlabeled_features_index;
       for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
            unlabeled_features_iter != light_channel_features.end();

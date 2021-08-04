@@ -9,33 +9,37 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
         # wrap-inherits:
         #    MetaInfoInterface
 
-        IonSource() nogil except +
-        IonSource(IonSource) nogil except + # wrap-ignore
+        IonSource() nogil except + # wrap-doc:Description of an ion source (part of a MS Instrument)
+        IonSource(IonSource &) nogil except +
 
         # returns the ionization mode
-        Polarity getPolarity() nogil except +
+        Polarity getPolarity() nogil except + # wrap-doc:Returns the ionization mode
         # sets the ionization mode
-        void setPolarity(Polarity polarity) nogil except +
+        void setPolarity(Polarity polarity) nogil except + # wrap-doc:Sets the ionization mode
 
         # returns the inlet type
-        InletType getInletType() nogil except +
+        InletType getInletType() nogil except + # wrap-doc:Returns the inlet type
         # sets the  inlet type
-        void setInletType(InletType inlet_type) nogil except +
+        void setInletType(InletType inlet_type) nogil except + # wrap-doc:Sets the  inlet type
 
         # returns the ionization method
-        IonizationMethod getIonizationMethod() nogil except +
+        IonizationMethod getIonizationMethod() nogil except + # wrap-doc:Returns the ionization method
         # sets the ionization method
-        void setIonizationMethod(IonizationMethod ionization_type) nogil except +
+        void setIonizationMethod(IonizationMethod ionization_type) nogil except + # wrap-doc:Sets the ionization method
 
-        #     @brief returns the position of this part in the whole Instrument.
-        #     Order can be ignored, as long the instrument has this default setup:
-        #     - one ion source
-        #     - one or many mass analyzers
-        #     - one ion detector
-        #     For more complex instruments, the order should be defined.
         Int getOrder() nogil except +
+            # wrap-doc:
+                #   Returns the position of this part in the whole Instrument
+                #   -----
+                #   Order can be ignored, as long the instrument has this default setup:
+                #     - one ion source
+                #     - one or many mass analyzers
+                #     - one ion detector
+                #   -----
+                #   For more complex instruments, the order should be defined.
+
         # sets the order
-        void setOrder(Int order) nogil except +
+        void setOrder(Int order) nogil except + # wrap-doc:Sets the order
 
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 

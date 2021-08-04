@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ public:
   /// @brief Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
   const TargetedExperiment& getLibrary() const { return library_; }
   
-  /// @brief Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
+  /// @brief Retrieve deviations between provided coordinates and extracted ones (e.g., to store as TrafoXML or for plotting)
   const TransformationDescription& getTransformations() const { return trafo_; }
 
   /// @brief Retrieve number of features with shared identifications

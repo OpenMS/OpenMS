@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/FORMAT/MzQuantMLFile.h>" namespace "OpenMS":
 
     cdef cppclass MzQuantMLFile:
         MzQuantMLFile() nogil except +
+        MzQuantMLFile(MzQuantMLFile &) nogil except +
 
         void load(String, MSQuantifications &) nogil except +
             # wrap-doc:

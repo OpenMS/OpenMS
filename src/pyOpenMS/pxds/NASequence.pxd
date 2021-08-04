@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
         #   instance primarily contains a sequence of ribonucleotides. 
 
         NASequence() nogil except +
-        NASequence(NASequence) nogil except + # wrap-ignore
+        NASequence(NASequence &) nogil except +
 
         bool operator==(const NASequence & rhs) nogil except +
         bool operator!=(const NASequence & rhs) nogil except +

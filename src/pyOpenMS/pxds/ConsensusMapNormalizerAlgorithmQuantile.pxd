@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQu
     cdef cppclass ConsensusMapNormalizerAlgorithmQuantile:
 
         ConsensusMapNormalizerAlgorithmQuantile() nogil except +
+        # private
         ConsensusMapNormalizerAlgorithmQuantile(ConsensusMapNormalizerAlgorithmQuantile) nogil except + #wrap-ignore
 
         void normalizeMaps(ConsensusMap & input_map) nogil except +

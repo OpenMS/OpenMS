@@ -17,7 +17,8 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
         #   the schema of OMSSAXML files
 
         OMSSAXMLFile() nogil except +
-        OMSSAXMLFile(OMSSAXMLFile) nogil except + # wrap-ignore
+        # private
+        OMSSAXMLFile(OMSSAXMLFile &) nogil except + # wrap-ignore
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,

@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
 
     cdef cppclass CVMappingRule:
 
-        CVMappingRule()               nogil except +
-        CVMappingRule(CVMappingRule)  nogil except +
+        CVMappingRule() nogil except +
+        CVMappingRule(CVMappingRule &) nogil except +
 
         # sets the identifier of the rule
         void setIdentifier(String identifier) nogil except + # wrap-doc:Sets the identifier of the rule
