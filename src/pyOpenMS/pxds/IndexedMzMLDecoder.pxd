@@ -29,15 +29,15 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>" namespace "Open
                 #   Tries to extract the indexList offset from an indexedmzML
                 #   -----
                 #   This function reads by default the last few (1024) bytes of the given
-                #   input file and tries to read the content of the <indexListOffset> tag.
+                #   input file and tries to read the content of the <indexListOffset> tag
                 #   The idea is that somewhere in the last parts of the file specified by the
-                #   input string, the string <indexListOffset>xxx</indexListOffset> occurs.
+                #   input string, the string <indexListOffset>xxx</indexListOffset> occurs
                 #   This function returns the xxx part converted to an integer
                 #   -----
                 #   Since this function cannot determine where it will start reading
                 #   the XML, no regular XML parser can be used for this. Therefore it uses
                 #   regex to do its job. It matches the <indexListOffset> part and any
-                #   numerical characters that follow. 
+                #   numerical characters that follow
                 #   -----
                 #   :param in: Filename of the input indexedmzML file
                 #   :param buffersize: How many bytes of the input file should be searched for the tag

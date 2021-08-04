@@ -15,8 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>" namespace "OpenMS::ims":
 
     cdef cppclass IMSIsotopeDistribution "OpenMS::ims::IMSIsotopeDistribution":
-        IMSIsotopeDistribution() nogil except +
-            # wrap-doc:
+        # wrap-doc:
                 #   Represents a distribution of isotopes restricted to the first K elements
                 #   -----
                 #   Represents a distribution of isotopes of chemical elements as a list
@@ -49,8 +48,9 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution
                 #   algorithm described in details in paper:
                 #   Boecker et al. "Decomposing metabolic isotope patterns" WABI 2006. doi: 10.1007/11851561_2
                 #   -----
-                #   Folding with itself is done using Russian Multiplication Scheme.
-
+                #   Folding with itself is done using Russian Multiplication Scheme
+                
+        IMSIsotopeDistribution() nogil except +
         IMSIsotopeDistribution(IMSIsotopeDistribution &) nogil except +
 
         abundance_type ABUNDANCES_SUM_ERROR

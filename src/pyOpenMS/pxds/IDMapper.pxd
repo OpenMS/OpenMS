@@ -29,8 +29,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   Mapping method for peak maps
                 #   -----
                 #   The identifications stored in a PeptideIdentification instance can be added to the
-                #   corresponding spectrum.
-                #   Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
+                #   corresponding spectrum
+                #   Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries
                 #   -----
                 #   :param map: MSExperiment to receive the identifications
                 #   :param peptide_ids: PeptideIdentification for the MSExperiment
@@ -48,10 +48,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   Mapping method for peak maps
                 #   -----
                 #   Add peptide identifications stored in a feature map to their
-                #   corresponding spectrum.
+                #   corresponding spectrum
                 #   This function converts the feature map to a vector of peptide identifications (all peptide IDs from each feature are taken)
-                #   and calls the respective annotate() function.
-                #   RT and m/z are taken from the peptides, or (if missing) from the feature itself.
+                #   and calls the respective annotate() function
+                #   RT and m/z are taken from the peptides, or (if missing) from the feature itself
                 #   -----
                 #   :param map: MSExperiment to receive the identifications
                 #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
@@ -115,13 +115,13 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   This helper function partitions all spectra into those that had: 
                 #   - no precursor (e.g. MS1 spectra),
                 #   - at least one identified precursor, 
-                #   - or only unidentified precursor.
+                #   - or only unidentified precursor
                 #   -----
                 #   :param spectra: The mass spectra
                 #   :param ids: The peptide identifications
                 #   :param mz_tol: Tolerance used to map to precursor m/z
                 #   :param rt_tol: Tolerance used to map to spectrum retention time
-                #   :returns: A struct of vectors holding spectra indices of the partitioning.
+                #   :returns: A struct of vectors holding spectra indices of the partitioning
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
 
