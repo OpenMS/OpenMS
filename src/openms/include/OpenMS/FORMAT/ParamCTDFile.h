@@ -64,7 +64,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ParamCTDFile
   {
   public:
-
     ///Constructor
     ParamCTDFile();
     ///Destructor
@@ -91,7 +90,6 @@ namespace OpenMS
     void writeCTDToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
 
   private:
-
     /**
       @brief Escapes certain characters in a string that are not allowed in XML
              Escaped characters are: & < > " '
@@ -115,5 +113,4 @@ namespace OpenMS
     const std::string schema_version_;
 
   };
-
 }

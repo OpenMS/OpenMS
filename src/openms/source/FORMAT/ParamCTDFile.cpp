@@ -44,7 +44,6 @@ namespace OpenMS
     schema_location_("/SCHEMAS/Param_1_7_0.xsd"),
     schema_version_("1.7.0")
   {
-
   }
 
   void ParamCTDFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
@@ -72,7 +71,6 @@ namespace OpenMS
 
   void ParamCTDFile::writeCTDToStream(std::ostream *os_ptr, const Param &param, const ToolInfo& tool_info) const
   {
-
     std::ostream& os = *os_ptr;
     os.precision(std::numeric_limits<double>::digits10);
 
@@ -351,7 +349,6 @@ namespace OpenMS
         {
           os << std::string(indentations, ' ') << "</ITEMLIST>\n";
         }
-
       }
     }
 
@@ -366,7 +363,6 @@ namespace OpenMS
 
     os << "</PARAMETERS>\n";
     os << "</tool>" << std::endl; //forces a flush
-
   }
 
   std::string ParamCTDFile::escapeXML(const std::string &to_escape)
@@ -391,5 +387,4 @@ namespace OpenMS
       }
     }
   }
-
 }
