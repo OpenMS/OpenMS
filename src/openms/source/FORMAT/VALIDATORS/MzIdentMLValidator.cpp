@@ -39,19 +39,15 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+  MzIdentMLValidator::MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    SemanticValidator(mapping, cv)
   {
-    MzIdentMLValidator::MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
-      SemanticValidator(mapping, cv)
-    {
-      setCheckUnits(true);
-    }
+    setCheckUnits(true);
+  }
 
-    MzIdentMLValidator::~MzIdentMLValidator()
-    {
-    }
-
-  }   // namespace Internal
-} // namespace OpenMS
+  MzIdentMLValidator::~MzIdentMLValidator()
+  {
+  }
+} // namespace OpenMS  // namespace Internal

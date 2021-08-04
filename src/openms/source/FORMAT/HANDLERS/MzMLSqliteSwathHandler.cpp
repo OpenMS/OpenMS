@@ -40,10 +40,9 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <sqlite3.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     namespace Sql = Internal::SqliteHelper;
 
@@ -137,6 +136,5 @@ namespace OpenMS
       return indices;
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS  // namespace Internal
 

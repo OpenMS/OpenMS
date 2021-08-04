@@ -456,7 +456,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA;
+      }
     }
 
     //DTA2D
@@ -475,7 +477,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA2D;
+      }
     }
 
     // MGF (Mascot Generic Format)

@@ -43,10 +43,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     SemanticValidator::SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       XMLHandler("", 0),
       XMLFile(),
@@ -586,5 +585,5 @@ namespace OpenMS
       }
       return false;
     }
-  } // namespace Internal
-} // namespace OpenMS
+    
+} // namespace OpenMS // namespace Internal
