@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
 
         void identifyCharge(MSSpectrum &candidates, MSSpectrum &ref, UInt scan_index, UInt c, double ampl_cutoff, bool check_PPMs) nogil except +
             # wrap-doc:
-                #   Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
+                #   Given an isotope wavelet transformed spectrum 'candidates', this function assigns to every significant
                 #   pattern its corresponding charge state and a score indicating the reliability of the prediction. The result of this
                 #   process is stored internally. Important: Before calling this function, apply updateRanges() to the original map
                 #   -----
@@ -130,4 +130,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         UInt RT_index
         UInt MZ_begin
         UInt MZ_end
-

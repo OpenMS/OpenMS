@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/KroenikFile.h>" namespace "OpenMS":
         # wrap-doc:
                 #   File adapter for Kroenik (HardKloer sibling) files
                 #   -----
-                #   The first line is the header and contains the column names:<br>
+                #   The first line is the header and contains the column names:
                 #   File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
                 #   -----
                 #   Every subsequent line is a feature

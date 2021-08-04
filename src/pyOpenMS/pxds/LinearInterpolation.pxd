@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
             #   The input is just a vector of values ("Data").  These are interpreted
             #   as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
             #   -----
-            #   The interpolated data can also be <i>scaled</i> and <i>shifted</i> in
-            #   the x-dimension by an <em>affine mapping</em>.  That is, we have "inside" and
+            #   The interpolated data can also be scaled and shifted in
+            #   the x-dimension by an affine mapping.  That is, we have "inside" and
             #   "outside" x-coordinates.  The affine mapping can be specified in two
             #   ways:
             #   - using setScale() and setOffset(),
@@ -50,4 +50,3 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
         KeyType supportMin() nogil except +
         KeyType supportMax() nogil except +
         LinearInterpolation(KeyType scale, KeyType offset) nogil except +
-
