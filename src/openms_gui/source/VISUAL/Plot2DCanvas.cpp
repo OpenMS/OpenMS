@@ -1179,10 +1179,11 @@ namespace OpenMS
         intensity_max = max(intensity_max, i->getIntensity());
         
         // binning for m/z
-        mzint[int(i->getMZ() * mult)] += i->getIntensity();
-        // ... to later obtain an average m/z value
-        mzcount[int(i->getMZ() * mult)]++;
-        mzsum[int(i->getMZ() * mult)] += i->getMZ();
+        auto intensity = i->getIntensity();
+        mzint[int(i->getMZ() * mult)] += intensity;
+        // ... to later obtain an intensity weighted average m/z value
+        mzcount[int(i->getMZ() * mult)] += intensity;
+        mzsum[int(i->getMZ() * mult)] += i->getMZ() * intensity;
 
         // binning in RT (one value per scan)
         rt[i.getRT()] += i->getIntensity();
