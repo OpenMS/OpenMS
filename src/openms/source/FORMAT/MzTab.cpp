@@ -726,7 +726,6 @@ namespace OpenMS
     meta_data.variable_mod = generateMzTabStringFromVariableModifications(var_mods);
     meta_data.fixed_mod = generateMzTabStringFromFixedModifications(fixed_mods);
 
-
     // mandatory meta values
     meta_data.mz_tab_type = MzTabString("Quantification");
     meta_data.mz_tab_mode = MzTabString("Summary");

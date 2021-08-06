@@ -116,37 +116,284 @@ namespace OpenMS
     }
   }
 
-   // only for IdentifiedCompounds (Metabolomics)
-   MzTabM MzTabM::exportIdentificationDataToMzTabM(const IdentificationData& id_data,
-                                                   const String& filename)
+  // FeatureMap with associated identification data
+  // TODO: Do I have to use the identification data in order to access based on the references?
+   MzTabM MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map,
+                                           const String& filename)
    {
      OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to mzTab: " << std::endl;
 
      MzTabM mztabm;
      MzTabMMetaData m_meta_data;
 
-     // MetaData if available
+     // extract identification data from FeatureMap
+     IdentificationData id_data = feature_map.getIdentificationData();
+
+     // use identification data to construct the meta data section
      m_meta_data.mz_tab_id.set("local_id"); // TODO: mandatory
 
-     auto ps = id_data.getProcessingSoftwares();
+     // title (not mandatory)
+     // description (not mandatory)
+     // TODO: ProcessingStep - seems to be a problem in AMS or in the pipeline - is not added to the featureXML.
+     // sample_processing (not mandatory)
+     // instrument-name (not mandatory)
+     // instrument-source (not mandatory)
+     // instrument-analyzer (not mandatory)
+     // instrument-detector (not mandatory)
+
+     MzTabSoftwareMetaData meta_software;
+     for (const auto & software : id_data.getProcessingSoftwares())
+     {
+       MzTabParameter p_software;
+       String cv_term = "null";
+
+       // TODO: How to add the CV Term?
+       // TODO: How to add the CV label e.g. MS?
+       // TODO: MTD software[1] [MS, MS:1002879, Progenesis QI, 3.0]
+
+       // TODO: load PSI MOD is there an entry
+       // TODO: MzTabExporter?
+       // TODO: CVMappingFile?
+       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L74
+       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L464
+       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L478
+       // getTermByName
+
+       for (const auto& cv : software.getCVTerms())
+       {
+         std::cout << cv.first << std::endl;
+         for (const auto& term : cv.second)
+         {
+           std::cout << term.getName() << std::endl;
+           std::cout << term.getAccession() << std::endl;
+         }
+         cv_term = cv_term; // TODO: How to add the CV Term?
+       }
+       p_software.fromCellString("[, " + cv_term + "," + software.getName() + "," + software.getVersion() + "]");
+       meta_software.software = p_software;
+       // meta_software.setting[0] (not mandatory)
+       m_meta_data.software[m_meta_data.software.size() + 1] = meta_software; // starts at 1
+     }
+
+     // publication (not mandatory)
+     // contact name (not mandatory)
+     // contact aff (not mandatory)
+     // contact mail (not mandatory)
+     // uri (not mandatory)
+     // ext. study uri (not mandatory)
+
+     // TODO: Set quantification method in IdentificationData?
+     // TODO: [MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+     // quantification_method (mandatory)
+     // FeatureMap - FeatureFinderMetabo? Processingsteps?
+
+     // sample[1-n] (not mandatory)
+     // sample[1-n]-species[1-n] (not mandatory)
+     // sample[1-n]-tissue[1-n] (not mandatory)
+     // sample[1-n]-cell_type[1-n] (not mandatory)
+     // sample[1-n]-disease[1-n] (not mandatory)
+     // sample[1-n]-description (not mandatory)
+     // sample[1-n]-custom[1-n] (not mandatory)
+
+     MzTabMMSRunMetaData ms_run;
+     auto input_files = id_data.getInputFiles();
+     for (const auto& input_file : input_files)
+     {
+       ms_run.location.set(input_file.name);
+       m_meta_data.ms_run[m_meta_data.ms_run.size() + 1] = ms_run;
+     }
+
+     // ms_run[1-n]-instrument_ref (not mandatory)
+     // ms_run[1-n]-format (not mandatory)
+     // ms_run[1-n]-id_format (not mandatory)
+     // ms_run[1-n]-fragmentation_method[1-n] (not mandatory)
+
+     // ms_run[1-n]-scan_polarity[1-n] (mandatory)
+     // TODO: Set based on meta value?
+     Feature feature = feature_map[0];
+     if (feature.metaValueExists("scan_polarity"))
+     {
+       std::cout << feature.getMetaValue("scan_polarity") << std::endl;
+     }
+     else // TODO: based on actual adducts in identification data
+     {
+       auto adducts = id_data.getAdducts();
+       for (const auto& adduct : adducts)
+       {
+         std::cout << adduct.getName() << std::endl; // TODO: infere from adducts last digit
+         std::cout << adduct.getCharge() << std::endl;
+         std::cout << adduct.getEmpiricalFormula().getNumberOfAtoms() << std::endl;
+       }
+     }
+
+     // ms_run[1-n]-hash (not mandatory)
+     // ms_run[1-n]-hash_method (not mandatory)
+
+     // assay[1-n] (mandatory)
+     // assay[1-n]-custom[1-n] (not mandatory)
+     // assay[1-n]-external_uri (not mandatory)
+     // assay[1-n]-sample_ref (not mandatory)
+
+     // assay[1-n]-ms_run_ref (mandatory)
+
+     // study_variable[1-n] (mandatory)
+     // study_variable[1-n]-assay_refs (mandatory)
+
+     // study_variable[1-n]-average_function (not mandatory)
+     // study_variable[1-n]-variation_function (not mandatory)
+
+     // study_variable[1-n]-description (mandatory)
+
+     // study_variable[1-n]-factors (not mandatory)
+     // custom[1-n] (not mandatory)
+
+     // TODO: Where from?
+     // TODO: save which mapping I have?
+     // cv[1-n]-label (mandatory)
+     // cv[1-n]-full_name (mandatory)
+     // cv[1-n]-version (mandatory)
+     // cv[1-n]-uri (mandatory)
+
+     // TODO: DBSearchParam
+     MzTabMDatabaseMetaData meta_db;
+     for (const auto& db : id_data.getDBSearchParams())
+     {
+       // MTD database[3] [MIRIAM, MIR:00000002, CHEBI, ]
+       // MTD database[4] [,, "customDB", ]
+       // TODO: How to acquire the prefix and the CV term?
+       // TODO: Can not always be acquired from the database?
+       String prefix = "";
+       String cv_term_db = "";
+       meta_db.database.fromCellString("[" + prefix+ "," + cv_term_db + "," + db.database + ",""]");
+       meta_db.prefix.set(prefix);
+       meta_db.version.set(db.database_version);
+     }
+
+     // derivatization_agent[1-n] (not mandatory)
+
+     // small_molecule-quantification_unit (mandatory)
+     // small_molecule_feature-quantification_unit (mandatory)
+     // small_molecule-identification_reliability (not mandatory)
+
+     // TODO: Where to get confidence measure
+     // id_confidence_measure[1-n] (mandatory)
 
 
-     // evidence section
+     // colunit-small_molecule (not mandatory)
+     // colunit-small_molecule_feature (not mandatory)
+     // colunit-small_molecule_evidence
+
+     // iterate over features and construct the feature, summary and evidence section
+
+     // TODO: Feature UniqueID evidence
+     // TODO: Feature Evidence?
+
+     MzTabMSmallMoleculeSectionRows smss;
+     MzTabMSmallMoleculeFeatureSectionRows smfs;
+     MzTabMSmallMoleculeEvidenceSectionRows smes;
+     for (auto& f : feature_map)
+     {
+       // TODO: How to add the relation/references between the sections
+       // feature section
+       MzTabMSmallMoleculeFeatureSectionRow smf;
+
+       // TODO: HOW to set the identfiers?
+       // TODO: e.g. use the memory address of the pointer?
+
+       //std::cout << f.getMZ() << std::endl;
+       //std::cout << f.getRT() << std::endl;
+
+       // TODO: What do to if more than one adduct? Should actually go in the evidence section
+       // TODO: Has that to be 0 then or a list of possible adducts in the feature?
+       // TODO: Add feature multiple times if it has multiple adducts?
+       auto match_refs = f.getIDMatches(); // set of Observationmatchref
+       for (const auto& match_ref : match_refs)
+       {
+         auto match = (*match_ref);
+         if (match.adduct_opt)
+         {
+           // TODO: reformat adduct - function already?
+           // std::cout << (*match.adduct_opt)->getName() << std::endl;
+           // TODO: add adduct to appropriate section
+         }
+         else
+         {
+           // TODO: set "null"
+         }
+       }
+
+       // MzTabInteger smf_identifier; ///< Within file unique identifier for the small molecule feature.
+       // MzTabStringList sme_id_refs; ///< Reference to the identification evidence.
+       // TODO: How to set the ambiguity code automatically?
+       // MzTabInteger sme_id_ref_ambiguity_code; ///< Ambiguity in identifications.
+       // MzTabString adduct; ///< Adduct
+
+       // MzTabParameter isotopomer; ///< //TODO? - usually used monoisotopic trace for quantification - always de-isotoped?
+       // MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
+       // MzTabInteger charge; ///< Precursor ion’s charge.
+       // MzTabDouble retention_time; ///< Time point in seconds.
+       // MzTabDouble rt_start; ///< The start time of the feature on the retention time axis.
+       // MzTabDouble rt_end; ///< The end time of the feature on the retention time axis
+       // std::map<Size, MzTabDouble> small_molecule_feature_abundance_assay; ///< Feature abundance in every assay
+       // std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”
+
+       // evidence section
+       MzTabMSmallMoleculeEvidenceSectionRow sme;
+
+       // MzTabInteger sme_identifier; ///< Within file unique identifier for the small molecule evidence result.
+       // MzTabString evidence_input_id; ///< Within file unique identifier for the input data used to support this identification e.g. fragment spectrum, RT and m/z pair.
+       // MzTabString database_identifier; ///< The putative identification for the small molecule sourced from an external database.
+       // MzTabString chemical_formula; ///< The putative molecular formula.
+       // MzTabString smiles; ///< Potential molecular structure as SMILES.
+       // MzTabString inchi; ///< InChi of the potential compound identifications.
+       // MzTabString chemical_name; ///< Possible chemical/common names or general description
+       // MzTabString uri; ///< The source entry’s location.
+       // MzTabParameter derivatized_form; ///< //TODO: What has to be added here?
+       // MzTabString adduct; ///< Adduct // TODO: Whyin feature and evidence section?
+       // MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
+       // MzTabInteger charge; ///< Precursor ion’s charge.
+       // MzTabDouble calc_mass_to_charge; ///< Precursor ion’s m/z.
+       // MzTabStringList spectra_ref; ///< Reference to a spectrum
+       // MzTabParameter identification_method; ///< Database search, search engine or process that was used to identify this small molecule
+       // MzTabParameter ms_level; ///< The highest MS level used to inform identification
+       // MzTabDouble id_confidence_measure; ///< Statistical value or score for the identification
+       // MzTabInteger rank; ///< Rank of the identification (1 = best)
+
+       //f.getIDMatches()
 
 
+       // small mol section (summary)
+       MzTabMSmallMoleculeSectionRows sms;
 
-     // feature section
+        //  MzTabInteger identifier; ///< The small molecule’s identifier.
+        //  MzTabStringList smf_id_refs; ///< References to all the features on which quantification has been based.
+        //  MzTabStringList database_identifier; ///< Names of the used databases.
+        //  MzTabStringList chemical_formula; ///< Potential chemical formula of the reported compound.
+        //  MzTabStringList smiles; ///< Molecular structure in SMILES format.
+        //  MzTabStringList inchi; ///< InChi of the potential compound identifications.
+        //  MzTabStringList chemical_name; ///< Possible chemical/common names or general description
+        //  MzTabStringList uri; ///< The source entry’s location. // TODO: URI List ?
+        //  MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
+        //  MzTabStringList adducts; ///< Adducts
+        //  // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
+        //  MzTabString reliability; ///< Reliability of the given small molecule identification
+        //  // TODO: e.g. use best search_engine score
+        //  MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
+        //  MzTabDouble best_id_confidence_value; ///< The best confidence measure
+        //  std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///<
+        //  std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
+        //  std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
+        //  std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
+
+     }
 
 
+     // TODO: What to do if you have multiple files?
+     // TODO: Write it directly in the AMS?
 
-     // small mol section
 
-
-
-     // TODO: How is it possible to retain the context between the secionts?
      return mztabm;
    }
-
 
   // TODO: Check what is needed and rewrite to fit MztabM
   // TODO: How does that work with the identification data

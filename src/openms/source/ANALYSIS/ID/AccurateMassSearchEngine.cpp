@@ -576,14 +576,13 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
-  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out) const
+  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTabM& mztabm_out) const
   {
     if (!is_initialized_)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    // TODO: initialize outside of the loop?
     IdentificationData& id = fmap.getIdentificationData();
     IdentificationData::InputFileRef file_ref;
     IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
@@ -592,10 +591,9 @@ namespace OpenMS
 
     if (!legacyID_)
     {
-
       StringList ms_run_paths;
       fmap.getPrimaryMSRunPath(ms_run_paths);
-      IdentificationData::InputFile file(ms_run_paths[0]); // TODO: Is that correct?
+      IdentificationData::InputFile file(ms_run_paths[0]);
       file_ref = id.registerInputFile(file);
 
       // register a score type 
@@ -604,6 +602,7 @@ namespace OpenMS
 
       // register software (connected to score)
       IdentificationData::ProcessingSoftware sw("AccurateMassSearch", "1.0"); // TODO: version
+      // TODO: set CV Terms
       sw.assigned_scores.push_back(score_ref);
       auto sw_ref = id.registerProcessingSoftware(sw);
 
@@ -618,6 +617,7 @@ namespace OpenMS
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
+      // "HMDB" -> prefix HMDB
       search_param.database = "AccurateMassSearchDB"; // TODO: How to set it automatically?
       search_param.database_version = "0"; // TODO: How to set it automatically?
       // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value"); // TODO: How to set it automatically?
@@ -645,7 +645,7 @@ namespace OpenMS
     // map for storing overall results
     QueryResultsTable overall_results;
     Size dummy_count(0);
-    for (Size i = 0; i < fmap.size(); ++i)
+    for (Size i = 0; i < fmap.size(); ++i) // TODO: Note: Iterate over features
     {
       std::vector<AccurateMassSearchResult> query_results;
 
@@ -680,8 +680,8 @@ namespace OpenMS
       //        {
       //            query_results[hit_idx].outputResults();
       //        }
-
       // String feat_label(fmap[i].getMetaValue(3));
+
       overall_results.push_back(query_results);
       if (legacyID_)
       {
@@ -711,7 +711,10 @@ namespace OpenMS
       OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
 
-    exportMzTab_(overall_results, 1, mztab_out);
+    //exportMzTab_(overall_results, 1, mztab_out);
+
+    // TODO: Use FeatureMap for MzTabM export
+    exportMzTabM_(fmap, 1, mztabm_out);
 
     return;
   }
@@ -733,7 +736,7 @@ namespace OpenMS
     for (const AccurateMassSearchResult& r : amr)
     {
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
-      { // mapping ok?
+      {
         if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
@@ -853,8 +856,10 @@ namespace OpenMS
     return;
   }
 
-//  void AccurateMassSearchEngine::exportMzTabM_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTabM& mztabm_out) const
-//  {
+void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
+{
+    // TODO: Test of MzTabM FeatureMap export function
+    MzTabM::exportFeatureMapToMzTabM(fmap, "/Users/alka/Desktop/AMS_OMS_test/outAMS_mztab_test.mztab");
 //    if (overall_results.empty())
 //    {
 //      return;
@@ -1181,7 +1186,7 @@ namespace OpenMS
 //    }
 //    OPENMS_LOG_INFO << std::endl;
 //
-//  }
+}
 
   void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const
   {
@@ -1513,7 +1518,7 @@ namespace OpenMS
 
   }
 
-/// protected methods
+  /// protected methods
 
   void AccurateMassSearchEngine::updateMembers_()
   {
@@ -1765,7 +1770,6 @@ namespace OpenMS
 
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
-
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {

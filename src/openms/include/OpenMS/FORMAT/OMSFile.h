@@ -90,7 +90,7 @@ namespace OpenMS
 
   protected:
 
-    using Key = qint64;
+    using Key = quint64; // TODO: that is probably a bad idea? But Key should/ does not have to be negativ?
 
     LogType log_type_;
 

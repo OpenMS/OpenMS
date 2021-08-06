@@ -158,6 +158,8 @@ protected:
     MzTab mztab_output;
     MzTabFile mztab_outfile;
 
+    MzTabM mztabm_output;
+
     AccurateMassSearchEngine ams;
     ams.setParameters(ams_param);
     ams.init();
@@ -172,7 +174,7 @@ protected:
       //-------------------------------------------------------------
       // do the work
       //-------------------------------------------------------------
-      ams.run(ms_feat_map, mztab_output);
+      ams.run(ms_feat_map, mztabm_output);
 
       //-------------------------------------------------------------
       // writing output
@@ -187,7 +189,9 @@ protected:
       else if (file_ann.hasSuffix("oms"))
       {      
         // TODO: support feature data in oms file
-        OMSFile().store(file_ann, ms_feat_map.getIdentificationData());
+        // TODO: based on the FeatureMap?
+        // TODO: Where is the id_data stored currently
+        OMSFile().store(file_ann, ms_feat_map); // TODO: identification data stored in the basefeature?
       }
     }
     else if (filetype == FileTypes::CONSENSUSXML)

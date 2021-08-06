@@ -159,7 +159,8 @@ namespace OpenMS {
     ams.setParameters(ams_param);
     ams.init();
 
-    ams.run(input, output);
+    //TODO: FIX original function (e.g. overload?)
+    //ams.run(input, output);
   }
 
   MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum& input) {

@@ -331,7 +331,8 @@ namespace OpenMS
       query.bindValue(":name", info_key.toQString());
       Key value_id = storeDataValue_(info.getMetaValue(info_key));
       query.bindValue(":data_value_id", value_id);
-      if (!query.exec())
+      bool success = query.exec();
+      if (!success) // TODO: Fails here! Not sure why.
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
@@ -433,7 +434,6 @@ namespace OpenMS
       }
     }
   }
-
 
   void OMSFile::OMSFileStore::storeInputFiles_(const IdentificationData& id_data)
   {
@@ -1316,7 +1316,7 @@ namespace OpenMS
     query_feat.bindValue(":overall_quality", feature.getOverallQuality());
     query_feat.bindValue(":rt_quality", feature.getQuality(0));
     query_feat.bindValue(":mz_quality", feature.getQuality(1));
-    query_feat.bindValue(":unique_id", qint64(feature.getUniqueId()));
+    query_feat.bindValue(":unique_id", quint64(feature.getUniqueId()));
     if (feature.hasPrimaryID())
     {
       query_feat.bindValue(":primary_molecule_id", getAddress_(feature.getPrimaryID()));
@@ -1385,7 +1385,6 @@ namespace OpenMS
                                    query_feat, query_meta, query_hull, query_match);
     }
   }
-
 
   void OMSFile::OMSFileStore::storeFeatures_(const FeatureMap& features)
   {
@@ -1492,7 +1491,7 @@ namespace OpenMS
                   ":identifier, "                         \
                   ":file_path, "                          \
                   ":file_type)");
-    query.bindValue(":unique_id", qint64(features.getUniqueId()));
+                  query.bindValue(":unique_id",  quint64(features.getUniqueId())); // qint64 (-4317911969993237730) seems to change Uint64 (14128832103716313886) > quint64 (14128832103716313886)
     query.bindValue(":identifier", features.getIdentifier().toQString());
     query.bindValue(":file_path", features.getLoadedFilePath().toQString());
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
@@ -1502,11 +1501,12 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
+    // TODO: reactivate FIX issue throws exception in storeMetaInfo_
     if (!features.isMetaEmpty())
     {
       createTableMetaInfo_("FEAT_MapMetaData", "unique_id");
       QSqlQuery query_meta = getQueryMetaInfo_("FEAT_MapMetaData");
-      storeMetaInfo_(features, qint64(features.getUniqueId()), query_meta);
+      storeMetaInfo_(features, quint64(features.getUniqueId()), query_meta); // TODO: FIX
     }
   }
 

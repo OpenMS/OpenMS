@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <set>
 
@@ -246,8 +247,6 @@ namespace OpenMS
 
     const std::map<Size, String>& getCommentRows() const;
 
-    // TODO: check if all levels (feature, evidence) can have optional columns
-
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getMSmallMoleculeOptionalColumnNames() const;
 
@@ -264,8 +263,7 @@ namespace OpenMS
   *
   * @return MzTabM object
   */
-
-  static MzTabM exportIdentificationDataToMzTabM(const IdentificationData& id_data, const String& filename);
+  static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map, const String& filename);
 
   protected:
 
