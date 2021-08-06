@@ -113,7 +113,7 @@ namespace OpenMS
 
   // called externally
   // and internally by signals
-  void DataSelectionTabs::update()
+  void DataSelectionTabs::callUpdateEntries()
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
     this->blockSignals(true);
@@ -149,13 +149,14 @@ namespace OpenMS
       setCurrentIndex(highest_data_index);
     }
     Size current_index = currentIndex();
-
+    std::cout << "updateEntries is called in DataSelectionTab.cpp" << std::endl;
     // update the currently visible tab (might be disabled if no data is shown)
     tab_ptrs_[current_index]->updateEntries(layer_ptr);
   }
 
   void DataSelectionTabs::currentTabChanged(int tab_index)
   {
+    std::cout << "currentTabChanged called in DataSelectionTab.cpp" << std::endl;
     // set new behavior
     switch (tab_index)
     {
@@ -182,7 +183,7 @@ namespace OpenMS
       std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    update();
+    callUpdateEntries();
   }
 
   void DataSelectionTabs::showSpectrumAsNew1D(int index)

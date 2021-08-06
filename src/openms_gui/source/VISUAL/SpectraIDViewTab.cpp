@@ -184,9 +184,10 @@ namespace OpenMS
   // Create the protein accession to peptide identification map using C++ STL unordered_map
   void SpectraIDViewTab::createProteinToPeptideIDMap_()
   {
+    protein_to_peptide_id_map.clear();
     if (is_first_time_loading)
     {
-      std::cout << "creating map..." << std::endl;
+      std::cout << "creating map...--->>>>>" << std::endl;
       for (const auto& spec : *layer_->getPeakData())
       {
         if (!spec.getPeptideIdentifications().empty())
@@ -207,7 +208,6 @@ namespace OpenMS
               for (int k = 0; k < evidences.size(); ++k)
               {
                 const String& id_accession = evidences[k].getProteinAccession();
-                std::cout << "id_accession-> " << id_accession << std::endl;
                 protein_to_peptide_id_map[id_accession].push_back(peptide_ids[0]);
               }
             }
@@ -583,10 +583,13 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
+    std::cout << "updateEntries() called in SpectralIdViewTab.cpp" << std::endl;
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-
+    is_first_time_loading = true;
+    //Create the protein_to_peptide_id_map the first time data changes in the table
+    createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
     updateProteinEntries_(-1); // we need this extra function since it's an internal slot
 
@@ -707,8 +710,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
-   //Create the protein_to_peptide_id_map the first time data changes in the table
-    createProteinToPeptideIDMap_();
+    std::cout << "<<<<<>>>>>> updateEntries_() called in SpectralIdViewTab.cpp <<<<>>>>>" << std::endl;
     // no valid peak layer attached
     if (!hasData(layer_))
     {
