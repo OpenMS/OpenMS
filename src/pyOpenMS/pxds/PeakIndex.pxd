@@ -5,13 +5,13 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
     
     cdef cppclass PeakIndex "OpenMS::PeakIndex":
-        PeakIndex() nogil except +
-            # wrap-doc:
+        # wrap-doc:
                 #   Index of a peak or feature
                 #   -----
                 #   This struct can be used to store both peak or feature indices
-
-        PeakIndex(PeakIndex) nogil except + #wrap-ignore
+                
+        PeakIndex() nogil except +
+        PeakIndex(PeakIndex &) nogil except + # compiler
         Size peak
         Size spectrum
         PeakIndex(Size peak) nogil except +

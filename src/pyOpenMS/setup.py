@@ -66,7 +66,7 @@ autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
 # patch for parallel compilation
 # https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
-# -- this is not what we want, we dont want to compile each object with
+# -- this is not what we want, we don't want to compile each object with
 #    multiple threads, we want to compile multiple extensions at the same time:
 from setuptools import setup, Extension
 import multiprocessing.pool

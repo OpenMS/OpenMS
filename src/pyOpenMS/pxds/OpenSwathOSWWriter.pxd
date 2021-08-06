@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
     
     cdef cppclass OpenSwathOSWWriter "OpenMS::OpenSwathOSWWriter":
 
-        OpenSwathOSWWriter(OpenSwathOSWWriter) nogil except + #wrap-ignore
         OpenSwathOSWWriter(String output_filename, UInt64 run_id, String input_filename, bool ms1_scores, bool sonar, bool uis_scores) nogil except +
+        OpenSwathOSWWriter(OpenSwathOSWWriter &) nogil except + # compiler
 
         bool isActive() nogil except +
         void writeHeader() nogil except + # wrap-doc:Initializes file by generating SQLite tables

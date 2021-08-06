@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -206,7 +206,7 @@ namespace OpenMS::Math
           return false;
         }
 
-        // check termination criterium
+        // check termination criterion
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
@@ -382,7 +382,7 @@ namespace OpenMS::Math
           return false;
         }
 
-        // check termination criterium
+        // check termination criterion
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
@@ -816,7 +816,7 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const String& outlier_handling) const
     {
-      if (x_scores.empty()) return; //shouldnt happen, but be safe.
+      if (x_scores.empty()) return; //shouldn't happen, but be safe.
       if (outlier_handling != "none")
       {
         Size nr_outliers = 0;

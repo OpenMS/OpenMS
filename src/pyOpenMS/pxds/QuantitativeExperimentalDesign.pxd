@@ -11,5 +11,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h
         # wrap-inherits:
         #  DefaultParamHandler
         QuantitativeExperimentalDesign() nogil except +
+        # private
         QuantitativeExperimentalDesign(QuantitativeExperimentalDesign) nogil except + #wrap-ignore
         void applyDesign2Resolver(ProteinResolver & resolver, TextFile & file_, StringList & fileNames) nogil except +

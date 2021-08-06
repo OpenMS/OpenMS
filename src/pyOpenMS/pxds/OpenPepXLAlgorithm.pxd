@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
         # wrap-inherits:
         #  DefaultParamHandler
         OpenPepXLAlgorithm() nogil except +
-        OpenPepXLAlgorithm(OpenPepXLAlgorithm) nogil except + #wrap-ignore
+        OpenPepXLAlgorithm(OpenPepXLAlgorithm &) nogil except + # compiler
 
         OpenPepXLAlgorithm_ExitCodes run(MSExperiment& unprocessed_spectra,
                                          ConsensusMap& cfeatures,

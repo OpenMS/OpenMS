@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         #    DefaultParamHandler
 
         PeptideAndProteinQuant() nogil except +
-        PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
+        PeptideAndProteinQuant(PeptideAndProteinQuant &) nogil except + # comiler
 
         void readQuantData(FeatureMap & map_in, ExperimentalDesign & ed) nogil except +
         void readQuantData(ConsensusMap & map_in, ExperimentalDesign & ed) nogil except +
@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
       # constructor
       PeptideAndProteinQuant_Statistics()  nogil except +
-      PeptideAndProteinQuant_Statistics(PeptideAndProteinQuant_Statistics) # wrap-ignore
+      PeptideAndProteinQuant_Statistics(PeptideAndProteinQuant_Statistics &) # compiler
 
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
 
@@ -73,7 +73,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
       # constructor
       PeptideAndProteinQuant_PeptideData()  nogil except +
-      PeptideAndProteinQuant_PeptideData(PeptideAndProteinQuant_PeptideData) # wrap-ignore
+      PeptideAndProteinQuant_PeptideData(PeptideAndProteinQuant_PeptideData &) # compiler
 
     # Quantitative and associated data for a protein
     cdef cppclass PeptideAndProteinQuant_ProteinData "OpenMS::PeptideAndProteinQuant::ProteinData":
@@ -88,5 +88,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
       # constructor
       PeptideAndProteinQuant_ProteinData()  nogil except +
-      PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData) # wrap-ignore
+      PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData &) # compiler
 

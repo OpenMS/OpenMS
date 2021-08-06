@@ -9,6 +9,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>" n
         # wrap-inherits:
         #  DefaultParamHandler
         ElutionModelFitter() nogil except + # wrap-doc:Helper class for fitting elution models to features
-        ElutionModelFitter(ElutionModelFitter) nogil except + #wrap-ignore
+        ElutionModelFitter(ElutionModelFitter &) nogil except + # compiler
         void fitElutionModels(FeatureMap & features) nogil except + # wrap-doc:Fit models of elution profiles to all features (and validate them)
 

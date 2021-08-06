@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,12 +99,12 @@ namespace OpenMS
       The formula is obtained from "The importance of accurately correcting for the natural abundance of stable isotopes",
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
-      @param[in]  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
-      @param[in]  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
+      @param  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
+      @param  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
-      @param[in]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
-      @param[out] corrected_feature Feature with corrected values for each component.
+      @return corrected_feature Feature with corrected values for each component.
     */
     void isotopicCorrection(
       const Feature& normalized_feature, Feature& corrected_feature,
@@ -117,12 +117,12 @@ namespace OpenMS
       The formula is obtained from "The importance of accurately correcting for the natural abundance of stable isotopes",
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
-      @param[in]  normalized_featuremap FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
-      @param[in]  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
+      @param  normalized_featuremap FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
+      @param  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
-      @param[in]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
-      @param[out] corrected_featuremap FeatureMap with corrected values for each component.
+      @return corrected_featuremap FeatureMap with corrected values for each component.
     */
     void isotopicCorrections(
       const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,

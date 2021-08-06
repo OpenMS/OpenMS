@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
             #   to PyProphet results and can thus be used interchangeably
 
         OSWFile(const libcpp_utf8_string filename) nogil except +
-        OSWFile(OSWFile) nogil except + #wrap-ignore
+        OSWFile(OSWFile &) nogil except +
         
         # Cannot wrap libcpp_ostream
         # void readToPIN(const libcpp_string & in_osw,

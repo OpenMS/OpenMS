@@ -9,20 +9,20 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         # wrap-inherits:
         #    CVTermList
 
-        ReactionMonitoringTransition()                  nogil except +
-        ReactionMonitoringTransition(ReactionMonitoringTransition)   nogil except + #wrap-ignore
-        String getName()                           nogil except +
-        String getNativeID()                       nogil except +
-        String getPeptideRef()                     nogil except +
-        void setName(String name)                  nogil except +
-        void setNativeID(String name)              nogil except +
-        void setPeptideRef(String peptide_ref)     nogil except +
+        ReactionMonitoringTransition() nogil except +
+        ReactionMonitoringTransition(ReactionMonitoringTransition &)   nogil except +
+        String getName() nogil except +
+        String getNativeID() nogil except +
+        String getPeptideRef() nogil except +
+        void setName(String name) nogil except +
+        void setNativeID(String name) nogil except +
+        void setPeptideRef(String peptide_ref) nogil except +
 
-        double getProductMZ()         nogil except +
-        void setProductMZ(double)     nogil except +
+        double getProductMZ() nogil except +
+        void setProductMZ(double) nogil except +
 
-        double getPrecursorMZ()       nogil except +
-        void setPrecursorMZ(double)   nogil except +
+        double getPrecursorMZ() nogil except +
+        void setPrecursorMZ(double) nogil except +
       
         DecoyTransitionType getDecoyTransitionType() nogil except +
 
@@ -72,4 +72,3 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef enum DecoyTransitionType:
 
         UNKNOWN, TARGET, DECOY
-

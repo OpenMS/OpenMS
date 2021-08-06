@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         #    DefaultParamHandler
 
         IDMapper() nogil except +
-        IDMapper(IDMapper) nogil except +
+        IDMapper(IDMapper &) nogil except +
 
         void annotate(MSExperiment & map_,
                       libcpp_vector[PeptideIdentification] & ids,

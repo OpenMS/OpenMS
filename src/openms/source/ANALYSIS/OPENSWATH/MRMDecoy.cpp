@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -167,7 +167,7 @@ namespace OpenMS
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
       // one could also use std::random_shuffle here but then the code becomes
-      // untestable since the implementation of std::random_shuffle differs
+      // not testable since the implementation of std::random_shuffle differs
       // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
       // see also https://code.google.com/p/chromium/issues/detail?id=358564
       // the actual code here for the shuffling is based on the implementation of

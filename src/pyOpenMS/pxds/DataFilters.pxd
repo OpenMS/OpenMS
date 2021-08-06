@@ -8,8 +8,8 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS":
 
     cdef cppclass DataFilters "OpenMS::DataFilters":
-        DataFilters() nogil except +
-        DataFilters(DataFilters) nogil except + #wrap-ignore
+        DataFilters() nogil except + # compiler
+        DataFilters(DataFilters &) nogil except + # compiler 
         Size size() nogil except +
         DataFilter operator[](size_t) nogil except + # wrap-upper-limit:size()
         void add(DataFilter & filter_) nogil except +
@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
 
     cdef cppclass DataFilter "OpenMS::DataFilters::DataFilter":
-        DataFilter() nogil except +
-        DataFilter(DataFilter) nogil except + #wrap-ignore
+        DataFilter() nogil except + # compiler
+        DataFilter(DataFilter &) nogil except + # compiler
         FilterType field
         FilterOperation op
         double value

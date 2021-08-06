@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,7 +165,7 @@ public:
       
       /**computes the posteriors for the datapoints to belong to the incorrect distribution
        * @param incorrect_posterior resulting posteriors
-       * @return the loglikelihood of the model
+       * @return the log-likelihood of the model
        */
       double computeLLAndIncorrectPosteriorsFromLogDensities(
           const std::vector<double>& incorrect_log_density,

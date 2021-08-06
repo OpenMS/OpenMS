@@ -9,7 +9,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>" namespace "OpenMS
         # wrap-inherits:
         #  DefaultParamHandler
         PeakPickerMRM() nogil except +
-        PeakPickerMRM(PeakPickerMRM) nogil except + #wrap-ignore
+        PeakPickerMRM(PeakPickerMRM &) nogil except +
 
         void pickChromatogram(MSChromatogram & chromatogram, MSChromatogram & picked_chrom) nogil except +
-

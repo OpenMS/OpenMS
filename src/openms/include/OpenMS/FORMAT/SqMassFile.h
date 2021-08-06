@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,7 @@ public:
     /**
      @brief Store an MSExperiment in sqMass format
 
-     If you want a specific RUND::ID in the sqMass file,
+     If you want a specific RUN::ID in the sqMass file,
      make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
     */
     void store(const String& filename, MapType& map);

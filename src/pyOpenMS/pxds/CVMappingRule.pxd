@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
 
     cdef cppclass CVMappingRule:
 
-        CVMappingRule()               nogil except +
-        CVMappingRule(CVMappingRule)  nogil except +
+        CVMappingRule() nogil except +
+        CVMappingRule(CVMappingRule &) nogil except +
 
         # sets the identifier of the rule
         void setIdentifier(String identifier) nogil except + # wrap-doc:Sets the identifier of the rule
@@ -17,10 +17,11 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
         String getIdentifier() nogil except + # wrap-doc:Returns the identifier of the rule
 
         # sets the path of the element, where this rule is allowed
-        void setElementPath(String element_path) nogil except + # wrap-doc:Sets the path of the element, where this rule is allowed
+        void setElementPath(String element_path) nogil except + # wrap-doc:Sets the path of the DOM element, where this rule is allowed
 
         # returns the path of the element, where this rule is allowed
-        String getElementPath() nogil except + # wrap-doc:Returns the path of the element, where this rule is allowed
+        String getElementPath() nogil except + # wrap-doc:Returns the path of the DOM element, where this rule is allowed
+
 
         # sets the requirement level of this rule
         void setRequirementLevel(RequirementLevel level) nogil except + # wrap-doc:Sets the requirement level of this rule

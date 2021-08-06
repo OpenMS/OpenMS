@@ -5,9 +5,8 @@ cdef extern from "<OpenMS/METADATA/Product.h>" namespace "OpenMS":
 
     cdef cppclass Product:
 
-
-        Product()    nogil except +
-        Product(Product)    nogil except +
+        Product() nogil except +
+        Product(Product &) nogil except +
 
         bool operator==(Product) nogil except +
         bool operator!=(Product) nogil except +

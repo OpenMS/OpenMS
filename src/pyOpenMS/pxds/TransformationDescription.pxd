@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
     
     cdef cppclass TransformationStatistics "OpenMS::TransformationDescription::TransformationStatistics":
         TransformationStatistics() nogil except +
-        TransformationStatistics(TransformationStatistics) nogil except +
+        TransformationStatistics(TransformationStatistics &) nogil except +
         # libcpp_vector[ size_t ] percents # const
         double xmin
         double xmax
@@ -22,7 +22,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
 
     cdef cppclass TransformationDescription:
         TransformationDescription() nogil except +
-        TransformationDescription(TransformationDescription) nogil except + # wrap-ignore
+        TransformationDescription(TransformationDescription &) nogil except +
+
         libcpp_vector[TM_DataPoint] getDataPoints() nogil except +
         void setDataPoints(libcpp_vector[TM_DataPoint]& data) nogil except +
         void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except +
@@ -44,4 +45,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS::TransformationDescription":
 
     void getModelTypes(StringList result) nogil except + # wrap-attach:TransformationDescription
-

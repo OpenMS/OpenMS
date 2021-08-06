@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
             #   For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the Eigen
 
         OptimizePick() nogil except +
-        OptimizePick(OptimizePick) nogil except + #wrap-ignore
+        OptimizePick(OptimizePick &) nogil except + # compiler
         OptimizePick(OptimizationFunctions_PenaltyFactors penalties_, int max_iteration_) nogil except +
         OptimizationFunctions_PenaltyFactors getPenalties() nogil except + # wrap-doc:Get the penalty factors
         void setPenalties(OptimizationFunctions_PenaltyFactors penalties) nogil except + # wrap-doc:Set the penalty factors
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
     
     cdef cppclass OptimizationFunctions_PenaltyFactors "OpenMS::OptimizationFunctions::PenaltyFactors":
         OptimizationFunctions_PenaltyFactors() nogil except +
-        OptimizationFunctions_PenaltyFactors(OptimizationFunctions_PenaltyFactors) nogil except +
+        OptimizationFunctions_PenaltyFactors(OptimizationFunctions_PenaltyFactors) nogil except + # wrap-ignore
         double pos
         double lWidth
         double rWidth

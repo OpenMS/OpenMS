@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
     cdef cppclass OpenSwathDataAccessHelper:
 
-        # OpenSwathDataAccessHelper() nogil except +
-        # OpenSwathDataAccessHelper(OpenSwathDataAccessHelper) nogil except + # wrap-ignore
+        OpenSwathDataAccessHelper() nogil except + # compiler
+        OpenSwathDataAccessHelper(OpenSwathDataAccessHelper &) nogil except + # compiler
 
         # Convert a SpectrumPtr to an OpenMS Spectrum
         void convertToOpenMSSpectrum(shared_ptr[OSSpectrum] sptr, MSSpectrum & spectrum) nogil except + # wrap-doc:Convert a SpectrumPtr to an OpenMS Spectrum

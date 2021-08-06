@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -233,7 +233,7 @@ QTCluster::BulkData qtc_data2(&gf, 2, 11.1, 7, 9, 3);
 
 START_SECTION((double getQuality()))
 {
-  // cluster is invalid, we shouldnt use it any more -> create a new one
+  // cluster is invalid, we shouldn't use it any more -> create a new one
   TEST_EQUAL(cluster.isInvalid(), true);
 
   cluster = QTCluster(&qtc_data2, true);

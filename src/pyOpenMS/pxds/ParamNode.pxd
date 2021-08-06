@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
     
     cdef cppclass ParamNode "OpenMS::Param::ParamNode":
         ParamNode() nogil except + # TODO
-        ParamNode(ParamNode) nogil except + #wrap-ignore
+        ParamNode(ParamNode &) nogil except +
 
         String name
         String description

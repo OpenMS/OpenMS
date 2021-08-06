@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>" namespace
     
     cdef cppclass EmgScoring "OpenMS::EmgScoring":
         EmgScoring() nogil except + # wrap-doc:Helps in scoring of an elution peak using an exponentially modified gaussian distribution model
-        EmgScoring(EmgScoring) nogil except + #wrap-ignore
+        EmgScoring(EmgScoring &) nogil except + # compiler
 
         void setFitterParam(Param param) nogil except + # TODO
         Param getDefaults() nogil except + # TODO
