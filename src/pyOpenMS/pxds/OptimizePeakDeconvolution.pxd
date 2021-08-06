@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         #  DefaultParamHandler
         OptimizePeakDeconvolution() nogil except +
         OptimizePeakDeconvolution(OptimizePeakDeconvolution) nogil except +
-        PenaltyFactorsIntensity  getPenalties() nogil except +
-        void setPenalties(PenaltyFactorsIntensity & penalties) nogil except +
-        Int getCharge() nogil except +
-        void setCharge(Int charge) nogil except +
-        bool optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePeakDeconvolution_Data & data) nogil except +
+        PenaltyFactorsIntensity  getPenalties() nogil except + # wrap-doc:Return the penalty parameter
+        void setPenalties(PenaltyFactorsIntensity & penalties) nogil except + # wrap-doc:Set the penalty parameter
+        Int getCharge() nogil except + # wrap-doc:Return the charge
+        void setCharge(Int charge) nogil except + # wrap-doc:Set the charge
+        bool optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePeakDeconvolution_Data & data) nogil except + # wrap-doc:Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
         Size getNumberOfPeaks_(Int charge, libcpp_vector[ PeakShape ] & temp_shapes, OptimizePeakDeconvolution_Data & data) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>" namespace "OpenMS::OptimizationFunctions":
@@ -24,6 +24,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
     cdef cppclass PenaltyFactorsIntensity(OptimizationFunctions_PenaltyFactors):
         # wrap-inherits:
         #  OptimizationFunctions_PenaltyFactors
+        # wrap-doc:
+        #   Class for the penalty factors used during the optimization
+        #   -----
+        #   A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised
+        #   During the optimization negative heights may occur, they are penalised as well
+
         PenaltyFactorsIntensity() nogil except +
         PenaltyFactorsIntensity(PenaltyFactorsIntensity) nogil except +
         double height
