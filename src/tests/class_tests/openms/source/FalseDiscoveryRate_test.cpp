@@ -235,6 +235,25 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 }
 END_SECTION
 
+START_SECTION((void applyPicked(std::vector<ProteinIdentification>& ids)))
+{
+  vector<ProteinIdentification> prot_ids;
+  vector<PeptideIdentification> pep_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_picked_in.idXML"), prot_ids, pep_ids);
+
+  ptr->applyPickedProteinFDR(prot_ids[0],"decoy_");
+
+  TOLERANCE_ABSOLUTE(0.001)
+  const auto& hits = prot_ids[0].getHits();
+  TEST_REAL_SIMILAR(hits[0].getScore(),0.25)
+  TEST_REAL_SIMILAR(hits[1].getScore(),0.25)
+  TEST_REAL_SIMILAR(hits[2].getScore(),0.25)
+  TEST_REAL_SIMILAR(hits[3].getScore(),0.4)
+  TEST_REAL_SIMILAR(hits[4].getScore(),0.4)
+  TEST_REAL_SIMILAR(hits[5].getScore(),0.5)
+}
+END_SECTION
+
 
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {

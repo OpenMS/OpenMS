@@ -344,7 +344,7 @@ namespace OpenMS
      * @brief  Sets FDRs/qVals from a scores_to_FDR map in the ID data structures
      * @param  scores_to_FDR Maps original score to calculated FDR or q-Value
      * @param  score_type FDR or q-Value
-     * @param  higher_better should usually be false @todo remove?
+     * @param  higher_better should usually be false @todo remove? use it as old score ordering?
      *
      * Just use the one you need.
      * @{
@@ -377,15 +377,30 @@ namespace OpenMS
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
                     bool higher_better, bool keep_decoy)
     {
+      bool old_higher_better = id.isHigherScoreBetter();
       String old_score_type = setScoreType_(id, score_type, higher_better);
 
       if (keep_decoy) //in-place set scores
       {
-        setScores_(scores_to_FDR, id, old_score_type);
+        if (old_higher_better)
+        {
+          setScores_(scores_to_FDR, id, old_score_type);
+        }
+        else
+        {
+          setScoresHigherWorse_(scores_to_FDR, id, old_score_type);
+        }
       }
       else
       {
-        setScoresAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        if (old_higher_better)
+        {
+          setScoresAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        }
+        else
+        {
+          setScoresHigherWorseAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        }
       }
     }
 
@@ -397,6 +412,17 @@ namespace OpenMS
       for (auto &hit : hits)
       {
         setScore_(scores_to_FDR, hit, old_score_type);
+      }
+    }
+
+    template<typename IDType>
+    static void setScoresHigherWorse_(const std::map<double, double> &scores_to_FDR, IDType &id,
+                           const String &old_score_type)
+    {
+      std::vector<typename IDType::HitType> &hits = id.getHits();
+      for (auto &hit : hits)
+      {
+        setScoreHigherWorse_(scores_to_FDR, hit, old_score_type);
       }
     }
 
@@ -414,6 +440,20 @@ namespace OpenMS
       hits.swap(new_hits);
     }
 
+    template<typename IDType, class ...Args>
+    static void setScoresHigherWorseAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
+                                          const String &old_score_type, Args ... args)
+    {
+      std::vector<typename IDType::HitType> &hits = id.getHits();
+      std::vector<typename IDType::HitType> new_hits;
+      new_hits.reserve(hits.size());
+      for (auto &hit : hits)
+      {
+        setScoreHigherWorseAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, args...);
+      }
+      hits.swap(new_hits);
+    }
+
     template<typename HitType>
     static void setScore_(const std::map<double, double> &scores_to_FDR, HitType &hit, const std::string &old_score_type)
     {
@@ -421,13 +461,23 @@ namespace OpenMS
       hit.setScore(scores_to_FDR.lower_bound(hit.getScore())->second);
     }
 
-    template<typename IDType>
+    template<typename HitType>
+    static void setScoreHigherWorse_(const std::map<double, double> &scores_to_FDR, HitType &hit, const std::string &old_score_type)
+    {
+      hit.setMetaValue(old_score_type, hit.getScore());
+      auto ub = scores_to_FDR.upper_bound(hit.getScore());
+      if (ub != scores_to_FDR.begin()) ub--;
+      hit.setScore(ub->second);
+    }
+
+    /*template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
                     bool higher_better)
     {
+      bool old_higher_better = id.isHigherScoreBetter();
       String old_score_type = setScoreType_(id, score_type, higher_better);
-      setScores_(scores_to_FDR, id, old_score_type);
-    }
+      setScores_(scores_to_FDR, id, old_score_type, old_higher_better);
+    }*/
 
     static void setScores_(const std::map<double, double> &scores_to_FDR,
                     PeptideIdentification &id,
@@ -439,7 +489,7 @@ namespace OpenMS
       String old_score_type = setScoreType_(id, score_type, higher_better);
       if (keep_decoy) //in-place set scores
       {
-        setScores_(scores_to_FDR, id, old_score_type, charge);
+        setScores_(scores_to_FDR, id, old_score_type, higher_better, charge);
       }
       else
       {
@@ -494,6 +544,19 @@ namespace OpenMS
       }
     }
 
+    template<typename IDType>
+    static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
+                           bool higher_better, int charge)
+    {
+      for (auto& hit : id.getHits())
+      {
+        if (hit.getCharge() == charge)
+        {
+          setScore_(scores_to_FDR, hit, score_type);
+        }
+      }
+    }
+
     //TODO could also get a keep_decoy flag when we define what a "decoy group" is -> keep all always for now
     static void setScores_(
         const std::map<double, double> &scores_to_FDR,
@@ -525,6 +588,24 @@ namespace OpenMS
         new_hits.push_back(std::move(hit));
       } // else do not move over
     }
+
+    template<typename HitType>
+    static void setScoreHigherWorseAndMoveIfTarget_(const std::map<double, double> &scores_to_FDR,
+                                         HitType &hit,
+                                         const std::string &old_score_type,
+                                         std::vector<HitType> &new_hits)
+    {
+      const String &target_decoy(hit.getMetaValue("target_decoy"));
+      if (target_decoy[0] == 't')
+      {
+        hit.setMetaValue(old_score_type, hit.getScore());
+        auto ub = scores_to_FDR.upper_bound(hit.getScore());
+        if (ub != scores_to_FDR.begin()) ub--;
+        hit.setScore(ub->second);
+        new_hits.push_back(std::move(hit));
+      } // else do not move over
+    }
+
 
     /**
     * @brief Used when keep_decoy_peptides is false and charge states are considered

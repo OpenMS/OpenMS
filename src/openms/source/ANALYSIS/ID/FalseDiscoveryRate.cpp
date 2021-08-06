@@ -1046,14 +1046,7 @@ namespace OpenMS
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
     {
-      if (!add_decoy_proteins)
-      {
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
-      }
-      else
-      {
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false);
-      }
+      IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
     }
     else
     {
@@ -1071,6 +1064,8 @@ namespace OpenMS
     const string& score_type = q_value ? "q-value" : "FDR";
 
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 
     //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
@@ -1098,7 +1093,7 @@ namespace OpenMS
         }
         calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
         if (!scores_labels.empty())
-          IDScoreGetterSetter::setScores_(scores_to_FDR, ids, score_type, false);
+          IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
         scores_to_FDR.clear();
       }
     }
@@ -1111,6 +1106,8 @@ namespace OpenMS
     //Note: this is actually unused because I think with that approach you will always get q-values.
     //bool q_value = !param_.getValue("no_qvalues").toBool();
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
 
     //TODO not yet supported (if ever)
     //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
@@ -1131,7 +1128,7 @@ namespace OpenMS
     IDScoreGetterSetter::getScores_(scores_labels, ids[0]);
     calculateEstimatedQVal_(scores_to_FDR, scores_labels, higher_score_better);
     if (!scores_labels.empty())
-      IDScoreGetterSetter::setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false);
+      IDScoreGetterSetter::setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false, add_decoy_proteins);
   }
 
 
@@ -1188,13 +1185,13 @@ namespace OpenMS
 
   void FalseDiscoveryRate::applyPickedProteinFDR(ProteinIdentification & id, const String& decoy_prefix)
   {
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
     const string& score_type = q_value ? "q-value" : "FDR";
 
     //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
     bool higher_score_better(id.isHigherScoreBetter());
-
 
     ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
@@ -1204,7 +1201,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR calculation!");
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-    IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false);
+    IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
     scores_to_FDR.clear();
   }
 
@@ -1446,14 +1443,35 @@ namespace OpenMS
     {
       double cummin = 1.0;
 
-      for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
+      if (higher_score_better)
       {
+        for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
+        {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
-        std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
         #endif
-        cummin = std::min(rit->second, cummin);
-        rit->second = cummin;
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
       }
+      else
+      {
+        //TODO this does not solve the ultimate problem of setting the scores, since setScores always uses lower_bound.
+        // Which for higher_score_better yields the correct "greater or equal = better or equal". But for
+        // lower_score_better this yields "greater or equal = worse or equal".
+        // Two options now: revert current changes and wrap map<K,V,correctcomparator> to something that one can pass to all
+        // the set methods and lower_bound gives always the right element.
+        // Pass OLD score (i.e. the score in score_to_fdr) higher_better sorting to the set methods
+        for (auto&& rit = scores_to_FDR.rbegin(); rit != scores_to_FDR.rend(); ++rit)
+        {
+        #ifdef FALSE_DISCOVERY_RATE_DEBUG
+          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+        #endif
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
     }
   }
 

@@ -138,6 +138,9 @@ public:
     /// simpler reimplementation of the apply function above for proteins.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
+    /// applies a picked protein FDR (TODO explain/ref)
+    void applyPickedProteinFDR(ProteinIdentification& id, String const& decoy_prefix);
+
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
     double rocN(const std::vector<PeptideIdentification>& ids, Size fp_cutoff) const;
@@ -213,8 +216,6 @@ private:
 
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
     double trapezoidal_area(double x1, double x2, double y1, double y2) const;
-
-    void applyPickedProteinFDR(ProteinIdentification& id, String const& decoy_prefix);
   };
 
 } // namespace OpenMS

@@ -72,7 +72,7 @@ namespace OpenMS
       const ProteinIdentification& id,
       const String& decoy_prefix)
   {
-    std::unordered_map<String, std::pair<double, double>>& picked_scores;
+    std::unordered_map<String, std::pair<double, double>> picked_scores;
     for (const auto& hit : id.getHits())
     {
       checkTDAnnotation_(hit);
@@ -80,7 +80,7 @@ namespace OpenMS
       bool target = getTDLabel_(hit);
       if (!target)
       {
-        tgt_accession.substr(decoy_prefix.size(),-1);
+        tgt_accession = tgt_accession.substr(decoy_prefix.size(),-1);
       }
       auto[it, inserted] = picked_scores.try_emplace(tgt_accession.getString(), hit.getScore(), target);
       if (!inserted)
