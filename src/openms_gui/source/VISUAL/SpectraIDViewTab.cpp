@@ -42,6 +42,8 @@
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/SYSTEM/NetworkGetRequest.h>
+#include <QtCore/QDateTime>
 
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -184,6 +186,7 @@ namespace OpenMS
   {
     if (is_first_time_loading)
     {
+      std::cout << "creating map..." << std::endl;
       for (const auto& spec : *layer_->getPeakData())
       {
         if (!spec.getPeptideIdentifications().empty())
@@ -204,6 +207,7 @@ namespace OpenMS
               for (int k = 0; k < evidences.size(); ++k)
               {
                 const String& id_accession = evidences[k].getProteinAccession();
+                std::cout << "id_accession-> " << id_accession << std::endl;
                 protein_to_peptide_id_map[id_accession].push_back(peptide_ids[0]);
               }
             }
@@ -216,7 +220,7 @@ namespace OpenMS
   }
 
   //extract required part of accession and open browser
-  void SpectraIDViewTab::extractNumFromAccession_(QString listItem)
+  QString SpectraIDViewTab::extractNumFromAccession_(QString listItem)
   {
     //regex for matching accession
     QRegExp reg_pre_accession("(tr|sp)");
@@ -236,17 +240,26 @@ namespace OpenMS
       {
         if (reg_uniprot_accession.exactMatch(substr.simplified()))
         {
-          QString base_url = "https://www.uniprot.org/uniprot/";
-          QString url = base_url + substr.simplified();
-
-          GUIHelpers::openURL(url);
+          return substr.simplified();
         }
         else
         {
-          std::cout << "Accession not valid " << substr.simplified();
+          //TODO show warning or something else. Users will usually not see the console
+          std::cout << "Accession not valid " << substr.simplified().toStdString();
+          return "";
         }
         break;
       }
+    }
+  }
+
+  void SpectraIDViewTab::openUniProtSiteWithAccession_(QString accession)
+  {
+    QString accession_num = extractNumFromAccession_(accession);
+    if (!accession_num.isEmpty()) {
+      QString base_url = "https://www.uniprot.org/uniprot/";
+      QString url = base_url + accession_num;
+      GUIHelpers::openURL(url);
     }
   }
 
@@ -261,8 +274,6 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
-
-    std::cout << "row->" << row << "<-> column->" << column << std::endl;
     
     // Open browser with accession when clicked on the accession column on a row
     if (column == ProteinClmn::ACCESSION)
@@ -290,7 +301,7 @@ namespace OpenMS
         txt->setText("Click on any accession to get more details externally in your default web browser...");
         layout->addWidget(txt);
 
-        for (auto acc : single_accessions)
+        for (const auto& acc : single_accessions)
         {
           accession_list->addItem(acc.simplified());
         }
@@ -299,7 +310,7 @@ namespace OpenMS
         connect(accession_list, &QListWidget::itemClicked, [=]() {
           //eg, listItem = tr|P02769|ALBU_BOVIN
           QString listItem = accession_list->currentItem()->text();
-          extractNumFromAccession_(listItem);
+          openUniProtSiteWithAccession_(listItem);
         });
 
         accession_window_->setLayout(layout);
@@ -310,7 +321,7 @@ namespace OpenMS
       }
       else
       {
-        extractNumFromAccession_(single_accessions.at(0));
+        openUniProtSiteWithAccession_(single_accessions.at(0));
       }
     }
 
@@ -319,15 +330,13 @@ namespace OpenMS
     {
       //current sequence clicked
       QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
-      //return whole accession as string, might have multiple accessions
+      //return whole accession as string, eg: tr|P02769|ALBU_BOVIN
       QString current_accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
-      //store each accession in QStringList(doesnot matter if it has or dont have multiple accessions
-      QStringList single_accessions = current_accession.split(",");
-
+     
+      QString accession_num = extractNumFromAccession_(current_accession);
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)
       {
-
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
@@ -337,7 +346,7 @@ namespace OpenMS
         QJsonArray peptides_mod_data;
 
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
-        for (auto pep : protein_to_peptide_id_map[single_accessions.at(0)])
+        for (auto pep : protein_to_peptide_id_map[current_accession])
         {
           const vector<PeptideHit>& pep_hits = pep.getHits();
           const PeptideHit& hit = pep_hits[0];
@@ -382,8 +391,8 @@ namespace OpenMS
               QJsonObject data;
               int pep_start = evidences[k].getStart();
               int pep_end = evidences[k].getEnd();
-
-              if (id_accession == single_accessions.at(0))
+              std::cout << pep_start << "<->" << pep_end  << "<->" << id_accession << "<->" << pep_seq<< std::endl;
+              if (id_accession.toQString()== current_accession)
               {
                 data["start"] = pep_start;
                 data["end"] = pep_end;
@@ -410,15 +419,15 @@ namespace OpenMS
           const String& protein_accession = protein_hits[i].getAccession();
           const String& protein_sequence = protein_hits[i].getSequence();
           
-          if (protein_accession == single_accessions.at(0))
+          if (protein_accession.toQString() == current_accession)
           {
             pro_sequence = protein_sequence.toQString();
             break;
           }
         }
-
+        //qt.network.ssl: QSslSocket::connectToHostEncrypted: TLS initialization failed
         SequenceVisualizer* widget = new SequenceVisualizer();
-        widget->setProteinPeptideDataToJsonObj(pro_sequence, peptides_data, peptides_mod_data);
+        widget->setProteinPeptideDataToJsonObj(accession_num, pro_sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
     }
@@ -601,8 +610,11 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateProteinEntries_(int selected_spec_row_idx)
   {
+    //TODO Currently when switching to 2D view of the same dataset and then switching back to the fragment spectrum,
+    // the spectrum table (almost; annotations gone) correctly restores the row, while the proteins do not get newly
+    // refreshed. Check why and fix. It is not too bad though.
     // no valid peak layer attached
-    if (!hasData(layer_))
+    if (!hasData(layer_) || layer_->getPeakData()->getProteinIdentifications().empty())
     {
       clear();
       return;
@@ -904,7 +916,13 @@ namespace OpenMS
 
     table_widget_->setHeaders(headers);
     String s = headers.join(';');
-    table_widget_->hideColumns(QStringList() << "accessions" << "dissociation" << "scan type" << "zoom" << "rank");
+    table_widget_->hideColumns(QStringList() << "accessions"
+                                             << "dissociation"
+                                             << "scan type"
+                                             << "zoom"
+                                             << "rank"
+                                             << "#ID"
+                                             << "#PH");
     if (has_peak_annotations) table_widget_->setHeaderExportName(Clmn::PEAK_ANNOTATIONS, "PeakAnnotations(mz|intensity|charge|annotation");
 
     table_widget_->resizeColumnsToContents();
@@ -927,7 +945,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
