@@ -472,7 +472,9 @@ namespace OpenMS
 
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
+      {
         file_version = "1.0";  //default version is 1.0
+      }
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -865,7 +867,9 @@ namespace OpenMS
       {
         String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
         if (spec != "unknown")
+        {
           param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+        }
       }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
@@ -946,7 +950,9 @@ namespace OpenMS
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
         if (acc_it != groups[g].accessions.begin())
+        {
           accessions += ",";
+        }
         const auto pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
@@ -996,13 +1002,13 @@ namespace OpenMS
     bool has_aa_after_information(false);
     String aa_string;
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAABefore() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_before_information = true;
       }
-      if (it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAAAfter() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_after_information = true;
       }
@@ -1035,13 +1041,13 @@ namespace OpenMS
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getStart() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_start_information = true;
       }
-      if (it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_end_information = true;
       }

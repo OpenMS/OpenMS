@@ -44,10 +44,8 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     // Specializations for character types, released by XMLString::release
     template<> void shared_xerces_ptr<char>::doRelease_(char* item)
@@ -316,6 +314,4 @@ namespace OpenMS
 
     }
 
-  }   // namespace Internal
-
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal
