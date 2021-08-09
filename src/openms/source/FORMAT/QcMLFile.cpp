@@ -266,7 +266,7 @@ namespace OpenMS
       s += indent + "\t" + "<tableColumnTypes>";
 
       std::vector<String> copy = colTypes;
-      for (String it : copy)
+      for (String& it : copy)
       {
         it.substitute(String(" "), String("_"));
       }
@@ -1047,7 +1047,7 @@ namespace OpenMS
       return 0;
     }
     vector<UInt> intensities;
-    for (auto pt : spec)
+    for (auto& pt : spec)
     {
       intensities.push_back(pt.getIntensity());
     }
@@ -1721,14 +1721,14 @@ namespace OpenMS
 
         std::vector<double> deltas;
         //~ prot_ids[0].getSearchParameters();
-        for (PeptideIdentification& it : pep_ids)
+        for (PeptideIdentification& pep_id : pep_ids)
         {
-          if (!it.getHits().empty())
+          if (!pep_id.getHits().empty())
           {
             std::vector<String> row;
-            row.push_back(it.getRT());
-            row.push_back(it.getMZ());
-            PeptideHit tmp = it.getHits().front();  //N.B.: depends on score & sort
+            row.push_back(pep_id.getRT());
+            row.push_back(pep_id.getMZ());
+            PeptideHit tmp = pep_id.getHits().front();  //N.B.: depends on score & sort
             vector<UInt> pep_mods;
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
@@ -1758,7 +1758,7 @@ namespace OpenMS
             row.push_back(tmp.getCharge());
             double mz = tmp.getSequence().getMZ(tmp.getCharge());
             row.push_back(String(mz));
-            double dppm = (it.getMZ()-mz)/(mz*(double)1e-6);
+            double dppm = (pep_id.getMZ()-mz)/(mz*(double)1e-6);
             row.push_back(String(dppm));
             deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
