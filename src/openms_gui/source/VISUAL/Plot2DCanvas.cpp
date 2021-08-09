@@ -1155,7 +1155,6 @@ namespace OpenMS
     //create projection data
     map<float, float> rt;
     map<int, float> mzint;
-    map<int, int> mzcount;
     map<int, float> mzsum;
 
     UInt peak_count = 0;
@@ -1182,7 +1181,6 @@ namespace OpenMS
         auto intensity = i->getIntensity();
         mzint[int(i->getMZ() * mult)] += intensity;
         // ... to later obtain an intensity weighted average m/z value
-        mzcount[int(i->getMZ() * mult)] += intensity;
         mzsum[int(i->getMZ() * mult)] += i->getMZ() * intensity;
 
         // binning in RT (one value per scan)
@@ -1204,14 +1202,13 @@ namespace OpenMS
 
     Size i = 2;
     map<int, float>::iterator intit = mzint.begin();
-    map<int, int>::iterator cit = mzcount.begin();
 
     for (map<int, float>::iterator it = mzsum.begin(); it != mzsum.end(); ++it)
     {
-      projection_mz_[0][i].setMZ(it->second / cit->second);
-      projection_mz_[0][i].setIntensity(intit->second);
+      auto intensity = intit->second;
+      projection_mz_[0][i].setMZ(it->second / intensity);
+      projection_mz_[0][i].setIntensity(intensity);
       ++intit;
-      ++cit;
       ++i;
     }
 
