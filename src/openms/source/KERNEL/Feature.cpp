@@ -166,10 +166,12 @@ namespace OpenMS
   bool Feature::encloses(double rt, double mz) const
   {
     ConvexHull2D::PointType tmp(rt, mz);
-    for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)
+    for (const ConvexHull2D&   it : convex_hulls_)
     {
-      if (it->encloses(tmp))
+      if (it.encloses(tmp))
+      {
         return true;
+      }
     }
     return false;
   }

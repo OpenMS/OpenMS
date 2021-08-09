@@ -405,8 +405,14 @@ namespace OpenMS
       const bool has_b = b.metaValueExists("map_index");
 
       // moves IDs without meta value to end
-      if (has_a && !has_b) { return true; }
-      if (!has_a && has_b) { return false; }
+      if (has_a && !has_b)
+      { 
+        return true;
+      }
+      if (!has_a && has_b)
+      { 
+        return false;
+      }
 
       // both have map index annotated
       if (has_a && has_b)
