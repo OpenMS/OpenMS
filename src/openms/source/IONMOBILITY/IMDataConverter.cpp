@@ -70,7 +70,7 @@ namespace OpenMS
 
     // make as many PeakMaps as there are different CVs and fill their Meta Data
     split_peakmap.resize(CVs.size());
-    for (auto spec : split_peakmap)
+    for (auto& spec : split_peakmap)
     {
       spec.getExperimentalSettings() = exp.getExperimentalSettings();
     }
