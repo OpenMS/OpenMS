@@ -274,7 +274,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
-    
+    std::cout << "ProteinCellClicked..." << std::endl;
     // Open browser with accession when clicked on the accession column on a row
     if (column == ProteinClmn::ACCESSION)
     {
@@ -391,7 +391,6 @@ namespace OpenMS
               QJsonObject data;
               int pep_start = evidences[k].getStart();
               int pep_end = evidences[k].getEnd();
-              std::cout << pep_start << "<->" << pep_end  << "<->" << id_accession << "<->" << pep_seq<< std::endl;
               if (id_accession.toQString()== current_accession)
               {
                 data["start"] = pep_start;
@@ -456,7 +455,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
-
+    std::cout << "CurrentCellChanged in peptide table SpectraIDViewTab" << std::endl;
     // deselect whatever is currently shown
     int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
     emit spectrumDeselected(last_spectrum_index);
@@ -464,7 +463,7 @@ namespace OpenMS
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
-
+    std::cout << "Passed..." << std::endl;
     //
     // Signal for a new spectrum to be shown
     //
@@ -591,8 +590,7 @@ namespace OpenMS
     //Create the protein_to_peptide_id_map the first time data changes in the table
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
-    updateProteinEntries_(-1); // we need this extra function since it's an internal slot
-
+    
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -634,6 +632,7 @@ namespace OpenMS
     }
 
     set<String> accs;
+    std::cout << "updateProteinEntries_ clicked " << selected_spec_row_idx << std::endl;
     if(selected_spec_row_idx >= 0)
       //TODO another option would be a "Filter proteins" checkbox that filters for proteins for this Hit
       // only when checked, otherwise only highlights
@@ -685,7 +684,7 @@ namespace OpenMS
 
         /*if ((int)i == restore_spec_index) //TODO actually extract the accessions for the selected spectrum and compare
         {
-          selected_row = protein_table_widget_->rowCount(); // get model index of selected spectrum
+          selected_row = protein_table_widget_->rowCount() - 1; // get model index of selected spectrum
         }*/
       }
     }
@@ -912,7 +911,9 @@ namespace OpenMS
 
       if ((int)i == restore_spec_index)
       {
-        selected_row = table_widget_->rowCount(); // get model index of selected spectrum
+        // get model index of selected spectrum, 
+        //as table_widget_->rowCount() returns rows starting from 1, selected row is 1 less than the returned row
+        selected_row = table_widget_->rowCount() - 1; 
       }
     }
 
@@ -942,6 +943,10 @@ namespace OpenMS
 
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
+    std::cout << "peptide table filled..." << std::endl;
+    //call this function after the table_widget data is filled, otherwise table_widget_->item(row, clm) returns nullptr;
+    updateProteinEntries_(-1);// we need this extra function since it's an internal slot
+
   }
  
   void SpectraIDViewTab::saveIDs_()

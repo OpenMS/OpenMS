@@ -30,167 +30,158 @@
     <script defer>
 
         document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM Loaded...");
-        new QWebChannel(qt.webChannelTransport,
-        async function(channel){
+            console.log("DOM Loaded...");
+            new QWebChannel(qt.webChannelTransport,
+            async function(channel){
 
-        var SequenceVisualizer = channel.objects.SequenceVisualizer;
+            let SequenceVisualizer = channel.objects.SequenceVisualizer;
 
-        function hashCode(str) {
-            let hash = 0;
-            for (var i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            function hashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return hash;
             }
-            return hash;
-        }
 
-        function pickColor(str) {
-            return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
-        }
+            function pickColor(str) {
+                return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
+            }
 
-        let acc_num = SequenceVisualizer.json_data_obj.accession_num;
-        let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data;
-        let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
-        let peptides_mod_data_arr = SequenceVisualizer.json_data_obj.peptides_mod_data;
-        let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length;
+            let acc_num = SequenceVisualizer.json_data_obj.accession_num;
+            let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data;
+            let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
+            let peptides_mod_data_arr = SequenceVisualizer.json_data_obj.peptides_mod_data;
+            let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length;
 
-        let peptide_obj = [];
-        let mod_peptide_obj = [];
+            let peptide_obj = [];
+            let mod_peptide_obj = [];
 
-        if(!protein_seq.length){ 
-            async function fetchSeqDataJSON() {
-              const response = await fetch('https://www.ebi.ac.uk/proteins/api/proteins/' + acc_num, {
-                    method:'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
+            if(!protein_seq.length){ 
+                async function fetchSeqDataJSON() {
+                  const response = await fetch('https://www.ebi.ac.uk/proteins/api/proteins/' + acc_num, {
+                        method:'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                  })
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  const data = await response.json();
+                  protein_seq = data.sequence.sequence;
+                  protlen = data.sequence.length;
+                }
+                await fetchSeqDataJSON()
+            }
+       
+
+            for (const pep of peptides_data_arr) {
+                let pep_obj = {};
+
+                pep_obj["start"] = pep.start;
+                pep_obj["end"] = pep.end;
+                pep_obj["accession"] = pep.seq;
+                pep_obj["color"] = pickColor(pep.seq);
+
+                peptide_obj.push(pep_obj);
+            }
+
+            for (const pepList of peptides_mod_data_arr) {
+                for (let mod in pepList.mod_data) {
+                    for(const index of pepList.mod_data[mod]){
+                        let mod_obj = {};
+
+                        mod_obj["start"] = pepList.pep_start + index + 1;
+                        mod_obj["end"] = pepList.pep_start + index + 1;
+                        mod_obj["accession"] = pepList.seq;
+                        mod_obj["color"] = pickColor(mod);
+                        mod_obj["shape"] = "circle";
+                        mod_obj["tooltipContent"] = mod;
+
+                        mod_peptide_obj.push(mod_obj);
                     }
-              })
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              const data = await response.json();
-              protein_seq = data.sequence.sequence;
-              protlen = data.sequence.length;
-            }
-            await fetchSeqDataJSON()
-        }
-        console.log('next statement', protein_seq)
-
-        for (const pep of peptides_data_arr) {
-            let obj = {};
-
-            obj["start"] = pep.start;
-            obj["end"] = pep.end;
-            obj["accession"] = pep.seq;
-            obj["color"] = pickColor(pep.seq);
-
-            peptide_obj.push(obj);
-        }
-
-        for (const pepList of peptides_mod_data_arr) {
-            for (let mod in pepList.mod_data) {
-                for(const index of pepList.mod_data[mod]){
-                    let mod_obj = {};
-
-                    mod_obj["start"] = pepList.pep_start + index + 1;
-                    mod_obj["end"] = pepList.pep_start + index + 1;
-                    mod_obj["accession"] = pepList.seq;
-                    mod_obj["color"] = pickColor(mod);
-                    mod_obj["shape"] = "circle";
-                    mod_obj["tooltipContent"] = mod;
-
-                    mod_peptide_obj.push(mod_obj);
-        
                 }
             }
-        }
-        console.log('1',peptide_obj)
-        console.log('2', mod_peptide_obj)
-        console.log('3', protlen)
-        console.log('4', protein_seq)
 
-
-        let protNav = `
-        <protvista-navigation
-        length="${protlen}"
-        displaystart="1"
-        displayend="${protlen}"
-        />
-        `
-        let protSeq = `
-        <protvista-sequence id="seq"
-        sequence="${protein_seq}"
-        length="${protlen}"
-        displaystart="1"
-        displayend="${protlen}"
-        use-ctrl-to-zoom="true"
-        highlight-event="onmouseover"
-        />
-        `
-        let protTrack = `
-        <protvista-track id="track"
-        length="${protlen}"
-        displaystart="1"
-        displayend="${protlen}"
-        use-ctrl-to-zoom="true"
-        />
-        `
-        let modProtTrack = `
-        <protvista-track id="mod_track"
-        length="${protlen}"
-        displaystart="0"
-        displayend="${protlen}"
-        use-ctrl-to-zoom="true"
-        tooltip-event="mouseover"
-        />
-        `
-        let tooltipHTML = `
-        <protvista-tooltip 
-        id="toolTip"
-        ></protvista-tooltip>`
+            let protNav = `
+            <protvista-navigation
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+            />
+            `
+            let protSeq = `
+            <protvista-sequence id="seq"
+                sequence="${protein_seq}"
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+                use-ctrl-to-zoom="true"
+                highlight-event="onmouseover"
+            />
+            `
+            let protTrack = `
+            <protvista-track id="track"
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+                use-ctrl-to-zoom="true"
+            />
+            `
+            let modProtTrack = `
+            <protvista-track id="mod_track"
+                length="${protlen}"
+                displaystart="0"
+                displayend="${protlen}"
+                use-ctrl-to-zoom="true"
+                tooltip-event="mouseover"
+            />
+            `
+            let tooltipHTML = `
+            <protvista-tooltip 
+                id="toolTip"
+            ></protvista-tooltip>`
         
        
-        document.querySelector("#toppview_prot_visualizer").data = protein_seq;
+            document.querySelector("#toppview_prot_visualizer").data = protein_seq;
 
-        $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
-        $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
-        $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
-        $($.parseHTML(modProtTrack)).appendTo($("#toppview_prot_visualizer"));
-        $($.parseHTML(tooltipHTML)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(modProtTrack)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(tooltipHTML)).appendTo($("#toppview_prot_visualizer"));
 
-        document.querySelector("#track").data = peptide_obj;
-        document.querySelector("#mod_track").data = mod_peptide_obj;
+            document.querySelector("#track").data = peptide_obj;
+            document.querySelector("#mod_track").data = mod_peptide_obj;
 
-        const modTrackElement = document.querySelector('#mod_track');
-	    const toolTipElement = document.querySelector('#toolTip');
+            const modTrackElement = document.querySelector('#mod_track');
+	        const toolTipElement = document.querySelector('#toolTip');
 
-	    modTrackElement.addEventListener('change', (event) => {
-		    if(event.detail.eventtype == "mouseover"){
-                let cur_mod_data = event.detail.feature
-			    let x = event.detail.coords[0];
-	  		    let y = event.detail.coords[1];
-	  		    toolTipElement.visible = true;
-	  		    toolTipElement.x = x;
-	  		    toolTipElement.y = y;	
-                toolTipElement.title = cur_mod_data.tooltipContent;
-                toolTipElement.innerHTML = cur_mod_data.accession;
-		    }
-		    if(event.detail.eventtype == "mouseout"){
-			    toolTipElement.visible = false;
-		    }
-	   
-	    });
+	        modTrackElement.addEventListener('change', (event) => {
+		        if(event.detail.eventtype == "mouseover"){
+                    let cur_mod_data = event.detail.feature
+			        let x = event.detail.coords[0];
+	  		        let y = event.detail.coords[1];
+	  		        toolTipElement.visible = true;
+	  		        toolTipElement.x = x;
+	  		        toolTipElement.y = y;	
+                    toolTipElement.title = cur_mod_data.tooltipContent;
+                    toolTipElement.innerHTML = cur_mod_data.accession;
+		        }
+		        if(event.detail.eventtype == "mouseout"){
+			        toolTipElement.visible = false;
+		        }
+	        });
 
-        });
+            });
         });
     </script>
 </head>
   <body>
-      <protvista-manager attributes="length displaystart displayend highlight onclick"
-                         id="toppview_prot_visualizer">
-          
-          
-          
+      <protvista-manager 
+        attributes="length displaystart displayend highlight onclick"
+        id="toppview_prot_visualizer">
       </protvista-manager>
   </body>
 </html>
