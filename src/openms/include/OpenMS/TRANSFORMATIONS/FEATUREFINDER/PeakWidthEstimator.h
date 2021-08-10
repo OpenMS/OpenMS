@@ -42,12 +42,12 @@
 namespace OpenMS
 {
   /**
-   * @brief Rough estimation of the peak width at m/z
-   *
-   * Based on the peaks of the dataset (peak position & width) and the peak
-   * boundaries as reported by the PeakPickerHiRes, the typical peak width is
-   * estimated for arbitrary m/z using a spline interpolation.
-   *
+    @brief Rough estimation of the peak width at m/z
+   
+    Based on the peaks of the dataset (peak position & width) and the peak
+    boundaries as reported by the PeakPickerHiRes, the typical peak width is
+    estimated for arbitrary m/z using a spline interpolation.
+   
    */
   class OPENMS_DLLAPI PeakWidthEstimator
   {
