@@ -152,6 +152,7 @@ namespace OpenMS
     std::cout << "updateEntries is called in DataSelectionTab.cpp" << std::endl;
     // update the currently visible tab (might be disabled if no data is shown)
     tab_ptrs_[current_index]->updateEntries(layer_ptr);
+    this->update(); // not sure if necessary. Should update itself if changes occurred.
   }
 
   void DataSelectionTabs::currentTabChanged(int tab_index)

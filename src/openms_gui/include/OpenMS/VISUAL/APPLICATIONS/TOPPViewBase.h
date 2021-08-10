@@ -476,6 +476,7 @@ protected:
 
     /// Main workspace
     EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
+    int activeSubwindowID_ = -1; // due to Qt bugs we need to save the current Window id in the children of the workspace;
     /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
     /// manages recent list of filenames and the menu that goes with it
