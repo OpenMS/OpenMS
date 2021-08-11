@@ -184,10 +184,11 @@ namespace OpenMS
   // Create the protein accession to peptide identification map using C++ STL unordered_map
   void SpectraIDViewTab::createProteinToPeptideIDMap_()
   {
+    //clear the map each time entries are updated with updateEntries()
     protein_to_peptide_id_map.clear();
+
     if (is_first_time_loading)
     {
-      std::cout << "creating map...--->>>>>" << std::endl;
       for (const auto& spec : *layer_->getPeakData())
       {
         if (!spec.getPeptideIdentifications().empty())
@@ -220,18 +221,21 @@ namespace OpenMS
   }
 
   //extract required part of accession and open browser
-  QString SpectraIDViewTab::extractNumFromAccession_(QString listItem)
+  QString SpectraIDViewTab::extractNumFromAccession_(QString full_accession)
   {
     //regex for matching accession
     QRegExp reg_pre_accession("(tr|sp)");
     reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
     QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
 
-    QStringList acsn = listItem.split("|");
+    // The full accession is in the form "tr|A9GID7|A9GID7_SORC5" or "P02769|ALBU_BOVIN", 
+    // so split it with | and get the individual parts
+    QStringList acsn = full_accession.split("|");
 
     foreach (QString substr, acsn)
     {
       //eg, substr2 = tr, substr2 = p02769 etc
+      // if substr = tr/sp then skip
       if (reg_pre_accession.exactMatch(substr.simplified()))
       {
         continue;
@@ -244,11 +248,9 @@ namespace OpenMS
         }
         else
         {
-          //TODO show warning or something else. Users will usually not see the console
-          std::cout << "Accession not valid " << substr.simplified().toStdString();
-          return "";
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid accession found!", 
+              String(full_accession));
         }
-        break;
       }
     }
   }
@@ -274,63 +276,26 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
-    std::cout << "ProteinCellClicked..." << std::endl;
+
     // Open browser with accession when clicked on the accession column on a row
     if (column == ProteinClmn::ACCESSION)
     {
 
-      // This stores the complete accession, eg, "tr|P02769|ALBU_BOVIN"
+      // This stores the complete accession, eg, "tr|A9GID7|A9GID7_SORC5"
       QString accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
 
-      //if the accession column of the peptide row includes multiple accession, store them in this list (even if it has only one
-      // accession, store it)
-      QStringList single_accessions = accession.split(",");
-
-      //check if accession list contains more than one accession, if so, show a new fragment window and list
-      // the accessions, otherwise open browser for the only available window
-      if (single_accessions.size() > 1)
-      {
-
-        accession_window_ = new QWidget();
-        accession_window_->resize(400, 400);
-
-        QLabel* txt = new QLabel();
-        QListWidget* accession_list = new QListWidget();
-        QVBoxLayout* layout = new QVBoxLayout();
-
-        txt->setText("Click on any accession to get more details externally in your default web browser...");
-        layout->addWidget(txt);
-
-        for (const auto& acc : single_accessions)
-        {
-          accession_list->addItem(acc.simplified());
-        }
-
-        layout->addWidget(accession_list);
-        connect(accession_list, &QListWidget::itemClicked, [=]() {
-          //eg, listItem = tr|P02769|ALBU_BOVIN
-          QString listItem = accession_list->currentItem()->text();
-          openUniProtSiteWithAccession_(listItem);
-        });
-
-        accession_window_->setLayout(layout);
-        accession_window_->setWindowTitle("Select Accession");
-        accession_window_->show();
-        accession_window_->setFocus(Qt::ActiveWindowFocusReason);
-        QApplication::setActiveWindow(accession_window_);
-      }
-      else
-      {
-        openUniProtSiteWithAccession_(single_accessions.at(0));
-      }
+      // As with the current logic, we have only one accession per row, we can directy use that accession 
+      // while opening the window instead of showing another widget that lists all accessions
+      openUniProtSiteWithAccession_(accession);
+      
     }
 
     //Open window
     if (column == ProteinClmn::SEQUENCE)
     {
-      //current sequence clicked
+      // store the current sequence clicked
       QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
-      //return whole accession as string, eg: tr|P02769|ALBU_BOVIN
+      // return whole accession as string, eg: tr|P02769|ALBU_BOVIN
       QString current_accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
      
       QString accession_num = extractNumFromAccession_(current_accession);
@@ -342,7 +307,7 @@ namespace OpenMS
 
         //array to store object of start and end postion of peptides;
         QJsonArray peptides_data;
-        // Array to objects of mod data of peptides, peptides start position and sequence
+        // Array to store objects of mod data of peptides, peptides start position and sequence
         QJsonArray peptides_mod_data;
 
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
@@ -352,7 +317,7 @@ namespace OpenMS
           const PeptideHit& hit = pep_hits[0];
           const String& pep_seq = hit.getSequence().toString();
 
-          // contains the keys - mod_data, pep_start and seq
+          // contains the keys - mod_data, pep_start and seq and corresponding values
           QJsonObject peptides_mod_obj;
           // contains key-value of modName and vector of indices
           QJsonObject mod_data;
@@ -424,7 +389,7 @@ namespace OpenMS
             break;
           }
         }
-        //qt.network.ssl: QSslSocket::connectToHostEncrypted: TLS initialization failed
+        
         SequenceVisualizer* widget = new SequenceVisualizer();
         widget->setProteinPeptideDataToJsonObj(accession_num, pro_sequence, peptides_data, peptides_mod_data);
         widget->show();
@@ -455,7 +420,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
-    std::cout << "CurrentCellChanged in peptide table SpectraIDViewTab" << std::endl;
+    
     // deselect whatever is currently shown
     int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
     emit spectrumDeselected(last_spectrum_index);
@@ -463,7 +428,6 @@ namespace OpenMS
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
-    std::cout << "Passed..." << std::endl;
     //
     // Signal for a new spectrum to be shown
     //
@@ -567,8 +531,9 @@ namespace OpenMS
       }
 
     } // PeakAnnotation cell clicked
-    updateProteinEntries_(row);
 
+    // Update the protein table with data of the id row that was clicked
+    updateProteinEntries_(row);
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
@@ -582,12 +547,14 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
-    std::cout << "updateEntries() called in SpectralIdViewTab.cpp" << std::endl;
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
+    // setting "is_first_time_loading = true;" here currently negates the logic of creating the map only the first time
+    // the data loads, but in future, after fixing the issue of calling updateEntries() multiple times, we can use it to only
+    // create the map when the table data loads completely new data from idXML file. Currently the map gets created each time 
+    // the updateEntries() is called.
     is_first_time_loading = true;
-    //Create the protein_to_peptide_id_map the first time data changes in the table
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
     
@@ -632,7 +599,6 @@ namespace OpenMS
     }
 
     set<String> accs;
-    std::cout << "updateProteinEntries_ clicked " << selected_spec_row_idx << std::endl;
     if(selected_spec_row_idx >= 0)
       //TODO another option would be a "Filter proteins" checkbox that filters for proteins for this Hit
       // only when checked, otherwise only highlights
@@ -709,7 +675,6 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
-    std::cout << "<<<<<>>>>>> updateEntries_() called in SpectralIdViewTab.cpp <<<<>>>>>" << std::endl;
     // no valid peak layer attached
     if (!hasData(layer_))
     {
@@ -912,7 +877,7 @@ namespace OpenMS
       if ((int)i == restore_spec_index)
       {
         // get model index of selected spectrum, 
-        //as table_widget_->rowCount() returns rows starting from 1, selected row is 1 less than the returned row
+        // as table_widget_->rowCount() returns rows starting from 1, selected row is 1 less than the returned row
         selected_row = table_widget_->rowCount() - 1; 
       }
     }
@@ -943,8 +908,8 @@ namespace OpenMS
 
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
-    std::cout << "peptide table filled..." << std::endl;
-    //call this function after the table_widget data is filled, otherwise table_widget_->item(row, clm) returns nullptr;
+    // call this updateProteinEntries_(-1) function after the table_widget data is filled, 
+    // otherwise table_widget_->item(row, clm) returns nullptr;
     updateProteinEntries_(-1);// we need this extra function since it's an internal slot
 
   }
