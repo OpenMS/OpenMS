@@ -403,7 +403,20 @@ namespace OpenMS
     {
       // deselect whatever is currently shown
       int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
-      emit spectrumDeselected(last_spectrum_index);
+      // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
+      // so just leave it for now.
+      //
+      // PARTLY SOLVED: The problem was, that if you defocus the TOPPView window, somehow
+      // selectionChange is called, with EMPTY selection. Maybe this is a feature and we have to store the
+      // selected spectrum indices as well. I want to support multi-selection in the future to see shared peptides
+      // Actually this might be solved by the removal of the unnecessary updates in activateSubWindow.
+      // I think updateEntries resets selections as well.. not sure how we could avoid that. We really have to avoid
+      // calling this crazy function when only small updates are needed.
+      //emit spectrumDeselected(last_spectrum_index);
+      // TODO also currently, the current active spectrum can be restored after deselection by clicking on
+      //  the Scans tab and then switching back to ID tab. (Scans will get the current scan in the 1D View, which
+      //  is still there. I guess I have to deselect in the 1D view, too, after all.
+
       updateProteinEntries_(-1);
     }
     //TODO if you deselected the current spectrum, you currently cannot click on/navigate to the same spectrum
@@ -412,6 +425,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
+    // TODO you actually only have to do repainting if the row changes..
     // sometimes Qt calls this function when table empty during refreshing
     if (row < 0 || column < 0)
       return;
@@ -428,6 +442,7 @@ namespace OpenMS
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
+
     //
     // Signal for a new spectrum to be shown
     //
@@ -534,6 +549,7 @@ namespace OpenMS
 
     // Update the protein table with data of the id row that was clicked
     updateProteinEntries_(row);
+
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
@@ -547,6 +563,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
+
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
@@ -557,7 +574,7 @@ namespace OpenMS
     is_first_time_loading = true;
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
-    
+
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -584,7 +601,7 @@ namespace OpenMS
     // no valid peak layer attached
     if (!hasData(layer_) || layer_->getPeakData()->getProteinIdentifications().empty())
     {
-      clear();
+      //clear(); this was done in updateEntries_() already.
       return;
     }
 
@@ -675,6 +692,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
+
     // no valid peak layer attached
     if (!hasData(layer_))
     {
@@ -740,6 +758,7 @@ namespace OpenMS
       headers << ck.toQString();
     }
 
+    table_widget_->blockSignals(true); // to be safe, that clear does not trigger anything.
     table_widget_->clear();
     table_widget_->setRowCount(0);
     table_widget_->setColumnCount(headers.size());

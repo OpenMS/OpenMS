@@ -296,7 +296,7 @@ namespace OpenMS
     changeVisibleArea_(tmp, repaint, true);
   }
 
-  void PlotCanvas::setVisibleArea(AreaType area)
+  void PlotCanvas::setVisibleArea(const AreaType& area)
   {
     //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
@@ -1029,7 +1029,7 @@ namespace OpenMS
 
   LayerData& LayerStack::getCurrentLayer()
   {
-    if (current_layer_ >= layers_.size())
+    if (current_layer_ >= layers_.size() || current_layer_ < 0)
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
     }
@@ -1068,7 +1068,7 @@ namespace OpenMS
     }
     layers_.erase(layers_.begin() + layer_index);
 
-    // update current layer if it became invalid
+    // update current layer if it became invalid TODO dont you have to adjust the index to stay on the same layer??
     if (current_layer_ >= getLayerCount())
     {
       current_layer_ = getLayerCount() - 1; // overflow is intentional

@@ -8,7 +8,6 @@
 #include <QMessageBox>
 #include <QJsonArray>
 #include <QString>
-#include <String>
 
 #include <QtWebEngineWidgets/QWebEngineView>
 
