@@ -547,7 +547,6 @@ namespace OpenMS
     Int count(0);
     for (const PeptideIdentification& pep : peptide_ids)
     {
-      ++count;
       if (pep.getHits().empty())
       {
         continue;
@@ -915,6 +914,7 @@ namespace OpenMS
         f << "\t</search_result>" << "\n";
         f << "\t</spectrum_query>" << "\n";
       }
+      ++count;
     }
     f << "</msms_run_summary>" << "\n";
     f << "</msms_pipeline_analysis>" << "\n";
