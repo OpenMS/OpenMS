@@ -320,7 +320,7 @@ namespace OpenMS
         switch (value_type)
         {
         case ParamValue::STRING_LIST:
-          for (auto item : static_cast<std::vector<std::string> >(param_it->value))
+          for (auto item : static_cast<const std::vector<std::string>& >(param_it->value))
           {
             if (item.find('\t') != std::string::npos)
             {
@@ -330,13 +330,13 @@ namespace OpenMS
           }
         break;
         case ParamValue::INT_LIST:
-          for (int item : static_cast<std::vector<int> >(param_it->value))
+          for (int item : static_cast<const std::vector<int>& >(param_it->value))
           {
             os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
           }
         break;
         case ParamValue::DOUBLE_LIST:
-          for (double item : static_cast<std::vector<double> >(param_it->value))
+          for (double item : static_cast<const std::vector<double>& >(param_it->value))
           {
             os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
           }
