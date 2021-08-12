@@ -315,20 +315,18 @@ namespace OpenMS
         {
           const vector<PeptideHit>& pep_hits = pep.getHits();
           const PeptideHit& hit = pep_hits[0];
-          const String& pep_seq = hit.getSequence().toString();
+          const AASequence& aaseq = hit.getSequence();
 
           // contains the keys - mod_data, pep_start and seq and corresponding values
           QJsonObject peptides_mod_obj;
           // contains key-value of modName and vector of indices
           QJsonObject mod_data;
-          
-          auto seq = AASequence().fromString(pep_seq);
 
-          for (int i = 0; i < seq.size(); ++i)
+          for (int i = 0; i < aaseq.size(); ++i)
           {
-            if (seq[i].isModified())
+            if (aaseq[i].isModified())
             {
-              const String& mod_name = seq[i].getModificationName();
+              const String& mod_name = aaseq[i].getModificationName();
 
               if (!mod_data.contains(mod_name.toQString()))
               {
@@ -345,25 +343,30 @@ namespace OpenMS
 
           peptides_mod_obj["mod_data"] = mod_data;
 
-          //store start and end positions-
-          for (int j = 0; j < pep_hits.size(); ++j)
+          const auto qstrseq = aaseq.toString().toQString();
+          //store start and end positions
+          //TODO maybe we could store the index of the hit that belongs to that specific protein in the map as well
+          // or we generally should only look at the first hit
+          for (const auto & pep_hit : pep_hits)
           {
-            const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
+            const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
 
-            for (int k = 0; k < evidences.size(); ++k)
+            for (const auto & evidence : evidences)
             {
-              const String& id_accession = evidences[k].getProteinAccession();
+              const String& id_accession = evidence.getProteinAccession();
               QJsonObject data;
-              int pep_start = evidences[k].getStart();
-              int pep_end = evidences[k].getEnd();
-              if (id_accession.toQString()== current_accession)
+              int pep_start = evidence.getStart();
+              int pep_end = evidence.getEnd();
+              if (id_accession.toQString() == current_accession)
               {
                 data["start"] = pep_start;
                 data["end"] = pep_end;
-                data["seq"] = pep_seq.toQString();
+                data["seq"] = qstrseq;
 
+                //TODO why does the modification need to store the peptide sequence?
+                // the modifications in theory only need one index and this is their location
                 peptides_mod_obj["pep_start"] = pep_start;
-                peptides_mod_obj["seq"] = pep_seq.toQString();
+                peptides_mod_obj["seq"] = qstrseq;
 
                 peptides_data.push_back(data);
               }
@@ -377,11 +380,11 @@ namespace OpenMS
         const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
         QString pro_sequence;
 
-        for (int i = 0; i < protein_hits.size(); ++i)
+        for (const auto & protein_hit : protein_hits)
         {
 
-          const String& protein_accession = protein_hits[i].getAccession();
-          const String& protein_sequence = protein_hits[i].getSequence();
+          const String& protein_accession = protein_hit.getAccession();
+          const String& protein_sequence = protein_hit.getSequence();
           
           if (protein_accession.toQString() == current_accession)
           {
@@ -390,7 +393,8 @@ namespace OpenMS
           }
         }
         
-        SequenceVisualizer* widget = new SequenceVisualizer();
+        auto* widget = new SequenceVisualizer(); // no parent since we want a new window
+        widget->resize(1500,500); // make a bit bigger
         widget->setProteinPeptideDataToJsonObj(accession_num, pro_sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
@@ -923,13 +927,15 @@ namespace OpenMS
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
+      currentCellChanged_(selected_row,0,0,0); //simulate cell change to trigger repaint and reannotation of spectrum 1D view
     }
 
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
+
     // call this updateProteinEntries_(-1) function after the table_widget data is filled, 
     // otherwise table_widget_->item(row, clm) returns nullptr;
-    updateProteinEntries_(-1);// we need this extra function since it's an internal slot
+    updateProteinEntries_(selected_row);
 
   }
  
