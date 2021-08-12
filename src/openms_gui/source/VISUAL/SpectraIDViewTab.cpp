@@ -378,24 +378,10 @@ namespace OpenMS
         //protein
         const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
         const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
-        QString pro_sequence;
-
-        for (const auto & protein_hit : protein_hits)
-        {
-
-          const String& protein_accession = protein_hit.getAccession();
-          const String& protein_sequence = protein_hit.getSequence();
-          
-          if (protein_accession.toQString() == current_accession)
-          {
-            pro_sequence = protein_sequence.toQString();
-            break;
-          }
-        }
         
         auto* widget = new SequenceVisualizer(); // no parent since we want a new window
         widget->resize(1500,500); // make a bit bigger
-        widget->setProteinPeptideDataToJsonObj(accession_num, pro_sequence, peptides_data, peptides_mod_data);
+        widget->setProteinPeptideDataToJsonObj(accession_num, sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
     }
