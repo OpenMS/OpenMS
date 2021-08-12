@@ -195,21 +195,18 @@ namespace OpenMS
         {
           const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
 
-          for (int i = 0; i < peptide_ids.size(); ++i)
+          for (const auto& pepid : peptide_ids)
           {
-            const vector<PeptideHit>& pep_hits = peptide_ids[i].getHits();
-            const PeptideHit& hit = pep_hits[i];
-            const String& pep_seq = hit.getSequence().toString();
-
+            const vector<PeptideHit>& pep_hits = pepid.getHits();
             //add id_accession as the key of the map and push the peptideID to the vector value-
-            for (int j = 0; j < pep_hits.size(); ++j)
+            for (const auto & pep_hit : pep_hits)
             {
-              const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
+              const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
 
-              for (int k = 0; k < evidences.size(); ++k)
+              for (const auto & evidence : evidences)
               {
-                const String& id_accession = evidences[k].getProteinAccession();
-                protein_to_peptide_id_map[id_accession].push_back(peptide_ids[0]);
+                const String& id_accession = evidence.getProteinAccession();
+                protein_to_peptide_id_map[id_accession].push_back(&pepid);
               }
             }
           }
@@ -1021,7 +1018,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color)
+  void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color)
   {
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 
