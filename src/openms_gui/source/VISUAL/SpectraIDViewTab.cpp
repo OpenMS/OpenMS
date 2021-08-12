@@ -221,7 +221,7 @@ namespace OpenMS
   }
 
   //extract required part of accession and open browser
-  QString SpectraIDViewTab::extractNumFromAccession_(QString full_accession)
+  QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
     //regex for matching accession
     QRegExp reg_pre_accession("(tr|sp)");
@@ -255,7 +255,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::openUniProtSiteWithAccession_(QString accession)
+  void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
   {
     QString accession_num = extractNumFromAccession_(accession);
     if (!accession_num.isEmpty()) {
@@ -291,6 +291,7 @@ namespace OpenMS
     }
 
     //Open window
+    #ifdef QT_WEBENGINEWIDGETS_LIB
     if (column == ProteinClmn::SEQUENCE)
     {
       // store the current sequence clicked
@@ -385,6 +386,7 @@ namespace OpenMS
         widget->show();
       }
     }
+    #endif
   }
 
   void SpectraIDViewTab::currentSpectraSelectionChanged_()

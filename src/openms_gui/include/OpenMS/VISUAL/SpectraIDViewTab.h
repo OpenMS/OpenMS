@@ -100,9 +100,9 @@ namespace OpenMS
    /// partially fill the bottom-most row  
    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
    // extract the required part of the accession 
-   QString extractNumFromAccession_(QString listItem);
+   QString extractNumFromAccession_(conts QString& listItem);
    //open browser to navigate to uniport site with accession
-   void openUniProtSiteWithAccession_(QString accession);
+   void openUniProtSiteWithAccession_(const QString& accession);
 
     LayerData* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
