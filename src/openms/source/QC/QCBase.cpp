@@ -86,8 +86,10 @@ namespace OpenMS
   // gives a warning with the name of the metric that can not be performed
   bool QCBase::isRunnable(const Status& s) const
   {
-    if (s.isSuperSetOf(this->requires())) return true;
-
+    if (s.isSuperSetOf(this->requires()))
+    {
+      return true;
+    }
     for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
       if (this->requires().isSuperSetOf(QCBase::Requires(i)) && !s.isSuperSetOf(QCBase::Requires(i)) )

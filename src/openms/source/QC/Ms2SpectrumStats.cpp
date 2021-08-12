@@ -123,11 +123,15 @@ namespace OpenMS
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
-      if (it->ms2_presence) continue;
-      
+      if (it->ms2_presence)
+      {
+        continue;
+      }
       const MSSpectrum& spec = exp.getSpectra()[distance(ms2_included_.begin(), it)];
-      if (spec.getMSLevel() != 2) continue;
-
+      if (spec.getMSLevel() != 2)
+      {
+        continue;
+      }
       PeptideIdentification unidentified_MS2;
       unidentified_MS2.setRT(spec.getRT());
       unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
@@ -147,7 +151,10 @@ namespace OpenMS
   {
     PeakSpectrum::PeakType::IntensityType bpi{ 0 };
     auto it = spec.getBasePeak();
-    if (it != spec.end()) bpi = it->getIntensity();
+    if (it != spec.end())
+    {
+      bpi = it->getIntensity();
+    }
     return bpi;
   }
 

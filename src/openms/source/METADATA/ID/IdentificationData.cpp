@@ -465,8 +465,10 @@ namespace OpenMS
       }
     }
     // finalize last query:
-    if (best_score.second) results.push_back(best_ref);
-
+    if (best_score.second)
+    {
+      results.push_back(best_ref);
+    }
     return results;
   }
 
@@ -494,7 +496,10 @@ namespace OpenMS
         {
           ParentData pd;
           pd.length = AASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this
@@ -520,7 +525,10 @@ namespace OpenMS
         {
           ParentData pd;
           pd.length = NASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this

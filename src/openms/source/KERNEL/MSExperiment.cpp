@@ -79,8 +79,10 @@ namespace OpenMS
   /// Assignment operator
   MSExperiment & MSExperiment::operator=(const MSExperiment & source)
   {
-    if (&source == this) return *this;
-
+    if (&source == this)
+    {
+      return *this;
+    }
     RangeManagerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
@@ -294,34 +296,52 @@ namespace OpenMS
     }
 
     // update intensity, m/z and RT according to chromatograms as well:
-    for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+    for (ChromatogramType& it : chromatograms_)
     {
 
       // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (it->getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        it->getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      if (it.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
+        it.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
         continue;
       }
 
       // update MZ
-      if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
-      if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
-
+      if (it.getMZ() < RangeManagerType::pos_range_.minY())
+      {
+        RangeManagerType::pos_range_.setMinY(it.getMZ());
+      }
+      if (it.getMZ() > RangeManagerType::pos_range_.maxY())
+      {
+        RangeManagerType::pos_range_.setMaxY(it.getMZ());
+      }
       // do not update RT and intensity if the chromatogram is empty
-      if (it->size() == 0) continue;
+      if (it.size() == 0)
+      {
+        continue;
+      }
+      total_size_ += it.size();
 
-      total_size_ += it->size();
-
-      it->updateRanges();
+      it.updateRanges();
 
       // RT
-      if (it->getMin()[0] < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getMin()[0]);
-      if (it->getMax()[0] > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getMax()[0]);
-
+      if (it.getMin()[0] < RangeManagerType::pos_range_.minX())
+      {
+        RangeManagerType::pos_range_.setMinX(it.getMin()[0]);
+      }
+      if (it.getMax()[0] > RangeManagerType::pos_range_.maxX())
+      {
+        RangeManagerType::pos_range_.setMaxX(it.getMax()[0]);
+      }
       // int
-      if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
-      if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
+      if (it.getMinInt() < RangeManagerType::int_range_.minX())
+      {
+        RangeManagerType::int_range_.setMinX(it.getMinInt());
+      }
+      if (it.getMaxInt() > RangeManagerType::int_range_.maxX())
+      {
+        RangeManagerType::int_range_.setMaxX(it.getMaxInt());
+      }
     }
   }
 
@@ -422,9 +442,9 @@ namespace OpenMS
 
     if (sort_rt)
     {
-      for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+      for (ChromatogramType& it : chromatograms_)
       {
-        it->sortByPosition();
+        it.sortByPosition();
       }
     }
   }
@@ -439,14 +459,20 @@ namespace OpenMS
     //check RT positions
     for (Size i = 1; i < spectra_.size(); ++i)
     {
-      if (spectra_[i - 1].getRT() > spectra_[i].getRT()) return false;
+      if (spectra_[i - 1].getRT() > spectra_[i].getRT())
+      {
+        return false;
+      }
     }
     //check spectra
     if (check_mz)
     {
       for (Size i = 0; i < spectra_.size(); ++i)
       {
-        if (!spectra_[i].isSorted()) return false;
+        if (!spectra_[i].isSorted())
+        {
+          return false;
+        }
       }
     }
     // TODO CHROM
@@ -505,11 +531,11 @@ namespace OpenMS
   void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
   {
     std::vector<SourceFile> sfs(this->getSourceFiles());
-    for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
+    for (const SourceFile& it : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = it->getPathToFile();
-      String filename = it->getNameOfFile();
+      String path = it.getPathToFile();
+      String filename = it.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -799,8 +825,7 @@ namespace OpenMS
     SpectrumType* spectrum = createSpec_(rt);
     // create metadata arrays
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
-    StringList::const_iterator itm = metadata_names.begin();
-    for (; itm != metadata_names.end(); ++itm)
+    for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
     {
       spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
       spectrum->getFloatDataArrays().back().setName(*itm);
@@ -817,15 +842,15 @@ namespace OpenMS
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (std::vector<MSSpectrum>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+    for (const MSSpectrum& it : exp.getSpectra())
     {
-      os << *it;
+      os << it;
     }
 
     //chromatograms
-    for (std::vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+    for (const MSChromatogram& it : exp.getChromatograms())
     {
-      os << *it;
+      os << it;
     }
 
     os << "-- MSEXPERIMENT END --" << std::endl;

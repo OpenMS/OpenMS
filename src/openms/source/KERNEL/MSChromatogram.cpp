@@ -44,9 +44,9 @@ std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
   os << static_cast<const ChromatogramSettings&>(chrom);
 
   //data list
-  for (MSChromatogram::ConstIterator it = chrom.begin(); it != chrom.end(); ++it)
+  for (const ChromatogramPeak& it : chrom)
   {
-    os << *it << std::endl;
+    os << it << std::endl;
   }
 
   os << "-- MSCHROMATOGRAM END --" << std::endl;
@@ -61,7 +61,10 @@ bool MSChromatogram::MZLess::operator()(const MSChromatogram &a, const MSChromat
 
 MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
 {
-  if (&source == this) { return *this;}
+  if (&source == this)
+  { 
+    return *this;
+  }
 
   ContainerType::operator=(source);
   RangeManager<1>::operator=(source);
@@ -263,7 +266,10 @@ bool MSChromatogram::isSorted() const
 {
   for (Size i = 1; i < this->size(); ++i)
   {
-    if (this->operator[](i - 1).getRT() > this->operator[](i).getRT()) return false;
+    if (this->operator[](i - 1).getRT() > this->operator[](i).getRT())
+    {
+      return false;
+    }
   }
   return true;
 }
@@ -271,15 +277,21 @@ bool MSChromatogram::isSorted() const
 Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
 {
   //no peak => no search
-  if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
-
+  if (ContainerType::size() == 0)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
+  }
   //search for position for inserting
   ConstIterator it = RTBegin(rt);
   //border cases
-  if (it == ContainerType::begin()) return 0;
-
-  if (it == ContainerType::end()) return ContainerType::size() - 1;
-
+  if (it == ContainerType::begin())
+  {
+    return 0;
+  }
+  if (it == ContainerType::end())
+  {
+    return ContainerType::size() - 1;
+  }
   //the peak before or the current peak are closest
   ConstIterator it2 = it;
   --it2;
@@ -427,9 +439,14 @@ OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iter
 {
   while (true)
   {
-    if (first1 == last1) return std::copy(first2,last2,result);
-    if (first2 == last2) return std::copy(first1,last1,result);
-
+    if (first1 == last1)
+    {
+      return std::copy(first2,last2,result);
+    }
+    if (first2 == last2)
+    {
+      return std::copy(first1,last1,result);
+    }
     auto smaller_RT = [](OpenMS::MSChromatogram::Iterator a, OpenMS::MSChromatogram::Iterator b)->bool
     {
       return round(a->getRT() * 1000.0) < round(b->getRT() * 1000.0);

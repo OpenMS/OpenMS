@@ -63,10 +63,22 @@ namespace OpenMS
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
   {
     // comparison of probabilities is intentionally "the wrong way around":
-    if (probability > rhs.probability) return true;
-    if (probability < rhs.probability) return false;
-    if (accessions.size() < rhs.accessions.size()) return true;
-    if (accessions.size() > rhs.accessions.size()) return false;
+    if (probability > rhs.probability)
+    {
+      return true;
+    }
+    if (probability < rhs.probability)
+    {
+      return false;
+    }
+    if (accessions.size() < rhs.accessions.size())
+    {
+      return true;
+    }
+    if (accessions.size() > rhs.accessions.size())
+    {
+      return false;
+    }
     return accessions < rhs.accessions;
   }
 
@@ -310,7 +322,9 @@ namespace OpenMS
     for (; pos != protein_hits_.end(); ++pos)
     {
       if (pos->getAccession() == accession)
+      {
         break;
+      }
     }
     return pos;
   }
@@ -598,8 +612,9 @@ namespace OpenMS
   void ProteinIdentification::assignRanks()
   {
     if (protein_hits_.empty())
+    {
       return;
-
+    }
     UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
@@ -700,8 +715,10 @@ namespace OpenMS
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
-        if (aas.isModified() == false) { continue; }
-
+        if (aas.isModified() == false)
+        { 
+          continue;
+        }
         if (aas.isModified())
         {
           if (aas.hasNTerminalModification())
