@@ -36,11 +36,9 @@
 
 #include <OpenMS/FORMAT/Base64.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
 
-  namespace Internal
-  {
 
     MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
       XMLHandler(filename, version),
@@ -113,8 +111,9 @@ namespace OpenMS
     {
       // skip current spectrum
       if (skip_spectrum_)
+      {
         return;
-
+      }
       String transcoded_chars = sm_.convert(chars);
 
       //current tag
@@ -233,12 +232,14 @@ namespace OpenMS
       //determine the parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
-
+      }
       //do nothing until a new spectrum is reached
       if (tag != "spectrum" && skip_spectrum_)
+      {
         return;
-
+      }
 
       // Do something depending on the tag
       if (tag == "sourceFile")
@@ -1087,8 +1088,9 @@ namespace OpenMS
       //determine the parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
-
+      }
       if (parent_tag == "spectrumInstrument")
       {
         if (accession == "PSI:1000036")       //Scan Mode
@@ -1506,6 +1508,5 @@ namespace OpenMS
          << str
          << "</data>\n\t\t\t</" << tag << ">\n";
     }
-  }
 
-} // namespace OpenMS
+} // namespace OpenMS //namespace Internal

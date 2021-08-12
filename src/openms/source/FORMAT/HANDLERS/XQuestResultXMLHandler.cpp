@@ -47,10 +47,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     // Initialize static const members
     std::map< Size, String > XQuestResultXMLHandler::enzymes
     {
@@ -900,7 +899,7 @@ namespace OpenMS
       }
       else
       {
-         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
       }
     }
 
@@ -1257,5 +1256,4 @@ namespace OpenMS
       os << "</spectrum_search>" << std::endl;
       os << "</xquest_results>" << std::endl;
     }
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

@@ -720,8 +720,9 @@ namespace OpenMS
     server_path_ = param_.getValue("server_path").toString();
     //MascotRemoteQuery_test
     if (server_path_ != "")
+    {
       server_path_ = "/" + server_path_;
-
+    }
     host_name_ = param_.getValue("hostname").toString();
     
     use_ssl_ = param_.getValue("use_ssl").toBool();
@@ -800,9 +801,14 @@ namespace OpenMS
   QUrl MascotRemoteQuery::buildUrl_(std::string path)
   {
     String protocol;
-    if (use_ssl_) protocol = "https";
-    else protocol = "http";
-
+    if (use_ssl_)
+    {
+      protocol = "https";
+    }
+    else
+    {
+      protocol = "http";
+    }
     return QUrl(String(protocol + "://" + host_name_ + path).c_str());
   }
 

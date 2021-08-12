@@ -12,75 +12,75 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         MassAnalyzer(MassAnalyzer &) nogil except +
 
         # returns the analyzer type
-        AnalyzerType getType() nogil except +
+        AnalyzerType getType() nogil except + # wrap-doc:Returns the analyzer type
         # sets the analyzer type
-        void setType(AnalyzerType type) nogil except +
+        void setType(AnalyzerType type) nogil except + # wrap-doc:Sets the analyzer type
 
         # returns the method used for determination of the resolution
-        ResolutionMethod getResolutionMethod() nogil except +
+        ResolutionMethod getResolutionMethod() nogil except + # wrap-doc:Returns the method used for determination of the resolution
         # sets the method used for determination of the resolution
-        void setResolutionMethod(ResolutionMethod resolution_method) nogil except +
+        void setResolutionMethod(ResolutionMethod resolution_method) nogil except + # wrap-doc:Sets the method used for determination of the resolution
 
         # returns the resolution type
-        ResolutionType getResolutionType() nogil except +
+        ResolutionType getResolutionType() nogil except + # wrap-doc:Returns the resolution type
         # sets the resolution type
-        void setResolutionType(ResolutionType resolution_type) nogil except +
+        void setResolutionType(ResolutionType resolution_type) nogil except + # wrap-doc:Sets the resolution type
 
         # returns the direction of scanning
-        ScanDirection getScanDirection() nogil except +
+        ScanDirection getScanDirection() nogil except + # wrap-doc:Returns the direction of scanning
         # sets the direction of scanning
-        void setScanDirection(ScanDirection scan_direction) nogil except +
+        void setScanDirection(ScanDirection scan_direction) nogil except + # wrap-doc:Sets the direction of scanning
 
         # returns the scan law
-        ScanLaw getScanLaw() nogil except +
+        ScanLaw getScanLaw() nogil except + # wrap-doc:Returns the scan law
         # sets the scan law
-        void setScanLaw(ScanLaw scan_law) nogil except +
+        void setScanLaw(ScanLaw scan_law) nogil except + # wrap-doc:Sets the scan law
 
         # returns the reflectron state (for TOF)
-        ReflectronState getReflectronState() nogil except +
+        ReflectronState getReflectronState() nogil except + # wrap-doc:Returns the reflectron state (for TOF)
         # sets the reflectron state (for TOF)
-        void setReflectronState(ReflectronState reflecton_state) nogil except +
+        void setReflectronState(ReflectronState reflecton_state) nogil except + # wrap-doc:Sets the reflectron state (for TOF)
 
-        # @brief returns the resolution
+        # returns the resolution
         # The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
-        double getResolution() nogil except +
+        double getResolution() nogil except + # wrap-doc:Returns the resolution. The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
         # sets the resolution
-        void setResolution(double resolution) nogil except +
+        void setResolution(double resolution) nogil except + # wrap-doc:Sets the resolution
 
         # returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
-        double getAccuracy() nogil except +
+        double getAccuracy() nogil except + # wrap-doc:Returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
         # sets the accuracy  i.e. how much the theoretical mass may differ from the measured mass  (in ppm)
-        void setAccuracy(double accuracy) nogil except +
+        void setAccuracy(double accuracy) nogil except + # wrap-doc:Sets the accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
 
         # returns the scan rate (in s)
-        double getScanRate() nogil except +
+        double getScanRate() nogil except + # wrap-doc:Returns the scan rate (in s)
         # sets the scan rate (in s)
-        void setScanRate(double scan_rate) nogil except +
+        void setScanRate(double scan_rate) nogil except + # wrap-doc:Sets the scan rate (in s)
 
         # returns the scan time for a single scan (in s)
-        double getScanTime() nogil except +
+        double getScanTime() nogil except + # wrap-doc:Returns the scan time for a single scan (in s)
         # sets the scan time for a single scan (in s)
-        void setScanTime(double scan_time) nogil except +
+        void setScanTime(double scan_time) nogil except + # wrap-doc:Sets the scan time for a single scan (in s)
 
         # returns the path length for a TOF mass analyzer (in meter)
-        double getTOFTotalPathLength() nogil except +
+        double getTOFTotalPathLength() nogil except + # wrap-doc:Returns the path length for a TOF mass analyzer (in meter)
         # sets the path length for a TOF mass analyzer (in meter)
-        void setTOFTotalPathLength(double TOF_total_path_length) nogil except +
+        void setTOFTotalPathLength(double TOF_total_path_length) nogil except + # wrap-doc:Sets the path length for a TOF mass analyzer (in meter)
 
         # returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-        double getIsolationWidth() nogil except +
+        double getIsolationWidth() nogil except + # wrap-doc:Returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
         # sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-        void setIsolationWidth(double isolation_width) nogil except +
+        void setIsolationWidth(double isolation_width) nogil except + # wrap-doc:Sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
 
         # returns the final MS exponent
-        Int getFinalMSExponent() nogil except +
+        Int getFinalMSExponent() nogil except + # wrap-doc:Returns the final MS exponent
         # sets the final MS exponent
-        void setFinalMSExponent(Int final_MS_exponent) nogil except +
+        void setFinalMSExponent(Int final_MS_exponent) nogil except + # wrap-doc:Sets the final MS exponent
 
         # returns the strength of the magnetic field (in T)
-        double getMagneticFieldStrength() nogil except +
+        double getMagneticFieldStrength() nogil except + # wrap-doc:Returns the strength of the magnetic field (in T)
         # sets the strength of the magnetic field (in T)
-        void setMagneticFieldStrength(double magnetic_field_strength) nogil except +
+        void setMagneticFieldStrength(double magnetic_field_strength) nogil except + # wrap-doc:Sets the strength of the magnetic field (in T)
 
         #
         #   @brief returns the position of this part in the whole Instrument.

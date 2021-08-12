@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         
     cdef cppclass SpectralMatch:
 
-        SpectralMatch() nogil except +
-        SpectralMatch(SpectralMatch &) nogil except + 
+        SpectralMatch() nogil except +# TODO(Whole file)
+        SpectralMatch(SpectralMatch &) nogil except +
 
         double getObservedPrecursorMass() nogil except +
         void setObservedPrecursorMass(double)nogil except +

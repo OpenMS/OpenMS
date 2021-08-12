@@ -73,7 +73,7 @@ public:
     /// @name Accessors
     //@{
     /**
-      @brief converts the chromatogram to a list of spectra with instrument settings SRM
+      @brief converts the chromatogram to a list of spectra with instrument settings
 
       This conversion may be necessary as most of the spectra formats do not support
       chromatograms, except of mzML. However, most formats support e.g. SRM chromatogram

@@ -209,8 +209,9 @@ namespace OpenMS
 
       //do nothing for empty lines
       if (line == "")
+      {
         continue;
-
+      }
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -292,7 +293,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -309,7 +312,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String unit_name = line.suffix('!').trim();
             if (!checkName_(unit_id, unit_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -572,8 +577,9 @@ namespace OpenMS
   bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
   {
     if (!exists(id))
+    {
       return true; //what?!
-
+    }
     String parent_name = name;
     String real_parent_name = getTerm(id).name;
 

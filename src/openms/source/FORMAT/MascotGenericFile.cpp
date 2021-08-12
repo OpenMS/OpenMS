@@ -420,7 +420,10 @@ namespace OpenMS
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
-          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          if (intensity == 0.0)
+          {
+            continue; // skip zero-intensity peaks
+          }
           os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
