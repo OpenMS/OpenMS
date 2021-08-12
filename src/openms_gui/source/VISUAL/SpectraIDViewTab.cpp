@@ -292,9 +292,12 @@ namespace OpenMS
     if (column == ProteinClmn::SEQUENCE)
     {
       // store the current sequence clicked
-      QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      //TODO this will always set the protein sequence to "show" since that is what we put in the column
+      // a) store a pointer to the ProteinHit in the protein_to_peptide_id_map (value = pair<const Prothit*, const PepId*>)
+      // b) store a hidden column with the full sequence in the protein_table_widget.
+      QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::SEQUENCE)->data(Qt::DisplayRole).toString();
       // return whole accession as string, eg: tr|P02769|ALBU_BOVIN
-      QString current_accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
+      QString current_accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
      
       QString accession_num = extractNumFromAccession_(current_accession);
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
@@ -364,10 +367,10 @@ namespace OpenMS
                 peptides_mod_obj["seq"] = qstrseq;
 
                 peptides_data.push_back(data);
+                peptides_mod_data.push_back(peptides_mod_obj);
               }
             }
           }
-          peptides_mod_data.push_back(peptides_mod_obj);
         }
 
         //protein
@@ -376,7 +379,7 @@ namespace OpenMS
         
         auto* widget = new SequenceVisualizer(); // no parent since we want a new window
         widget->resize(1500,500); // make a bit bigger
-        widget->setProteinPeptideDataToJsonObj(accession_num, sequence, peptides_data, peptides_mod_data);
+        widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
     }
