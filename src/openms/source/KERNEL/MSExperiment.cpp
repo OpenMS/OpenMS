@@ -255,22 +255,39 @@ namespace OpenMS
         total_size_ += it->size();
 
         //rt
-        if (it->getRT() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRT());
-        if (it->getRT() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRT());
-
+        if (it->getRT() < RangeManagerType::pos_range_.minX())
+        {
+          RangeManagerType::pos_range_.setMinX(it->getRT());
+        }
+        if (it->getRT() > RangeManagerType::pos_range_.maxX())
+        {
+          RangeManagerType::pos_range_.setMaxX(it->getRT());
+        }
         //do not update mz and int when the spectrum is empty
-        if (it->size() == 0) continue;
-
+        if (it->size() == 0)
+        {
+          continue;
+        }
         it->updateRanges();
 
         //mz
-        if (it->getMin()[0] < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
-        if (it->getMax()[0] > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
-
+        if (it->getMin()[0] < RangeManagerType::pos_range_.minY())
+        {
+          RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
+        }
+        if (it->getMax()[0] > RangeManagerType::pos_range_.maxY())
+        {
+          RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
+        }
         //int
-        if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
-        if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
-
+        if (it->getMinInt() < RangeManagerType::int_range_.minX())
+        {
+          RangeManagerType::int_range_.setMinX(it->getMinInt());
+        }
+        if (it->getMaxInt() > RangeManagerType::int_range_.maxX())
+        {
+          RangeManagerType::int_range_.setMaxX(it->getMaxInt());
+        }
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)
@@ -278,11 +295,23 @@ namespace OpenMS
         if (!it->getPrecursors().empty())
         {
           double pc_rt = it->getRT();
-          if (pc_rt < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(pc_rt);
-          if (pc_rt > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(pc_rt);
+          if (pc_rt < RangeManagerType::pos_range_.minX())
+          {
+            RangeManagerType::pos_range_.setMinX(pc_rt);
+          }
+          if (pc_rt > RangeManagerType::pos_range_.maxX())
+          {
+            RangeManagerType::pos_range_.setMaxX(pc_rt);
+          }
           double pc_mz = it->getPrecursors()[0].getMZ();
-          if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
-          if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
+          if (pc_mz < RangeManagerType::pos_range_.minY())
+          {
+            RangeManagerType::pos_range_.setMinY(pc_mz);
+          }
+          if (pc_mz > RangeManagerType::pos_range_.maxY())
+          {
+            RangeManagerType::pos_range_.setMaxY(pc_mz);
+          }
         }
 
       }
@@ -296,51 +325,51 @@ namespace OpenMS
     }
 
     // update intensity, m/z and RT according to chromatograms as well:
-    for (ChromatogramType& it : chromatograms_)
+    for (ChromatogramType& cp : chromatograms_)
     {
 
       // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (it.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        it.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
+        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
         continue;
       }
 
       // update MZ
-      if (it.getMZ() < RangeManagerType::pos_range_.minY())
+      if (cp.getMZ() < RangeManagerType::pos_range_.minY())
       {
-        RangeManagerType::pos_range_.setMinY(it.getMZ());
+        RangeManagerType::pos_range_.setMinY(cp.getMZ());
       }
-      if (it.getMZ() > RangeManagerType::pos_range_.maxY())
+      if (cp.getMZ() > RangeManagerType::pos_range_.maxY())
       {
-        RangeManagerType::pos_range_.setMaxY(it.getMZ());
+        RangeManagerType::pos_range_.setMaxY(cp.getMZ());
       }
       // do not update RT and intensity if the chromatogram is empty
-      if (it.size() == 0)
+      if (cp.size() == 0)
       {
         continue;
       }
-      total_size_ += it.size();
+      total_size_ += cp.size();
 
-      it.updateRanges();
+      cp.updateRanges();
 
       // RT
-      if (it.getMin()[0] < RangeManagerType::pos_range_.minX())
+      if (cp.getMin()[0] < RangeManagerType::pos_range_.minX())
       {
-        RangeManagerType::pos_range_.setMinX(it.getMin()[0]);
+        RangeManagerType::pos_range_.setMinX(cp.getMin()[0]);
       }
-      if (it.getMax()[0] > RangeManagerType::pos_range_.maxX())
+      if (cp.getMax()[0] > RangeManagerType::pos_range_.maxX())
       {
-        RangeManagerType::pos_range_.setMaxX(it.getMax()[0]);
+        RangeManagerType::pos_range_.setMaxX(cp.getMax()[0]);
       }
       // int
-      if (it.getMinInt() < RangeManagerType::int_range_.minX())
+      if (cp.getMinInt() < RangeManagerType::int_range_.minX())
       {
-        RangeManagerType::int_range_.setMinX(it.getMinInt());
+        RangeManagerType::int_range_.setMinX(cp.getMinInt());
       }
-      if (it.getMaxInt() > RangeManagerType::int_range_.maxX())
+      if (cp.getMaxInt() > RangeManagerType::int_range_.maxX())
       {
-        RangeManagerType::int_range_.setMaxX(it.getMaxInt());
+        RangeManagerType::int_range_.setMaxX(cp.getMaxInt());
       }
     }
   }
@@ -442,9 +471,9 @@ namespace OpenMS
 
     if (sort_rt)
     {
-      for (ChromatogramType& it : chromatograms_)
+      for (ChromatogramType& cp : chromatograms_)
       {
-        it.sortByPosition();
+        cp.sortByPosition();
       }
     }
   }
@@ -531,11 +560,11 @@ namespace OpenMS
   void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
   {
     std::vector<SourceFile> sfs(this->getSourceFiles());
-    for (const SourceFile& it : sfs)
+    for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = it.getPathToFile();
-      String filename = it.getNameOfFile();
+      String path = ss.getPathToFile();
+      String filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -842,15 +871,15 @@ namespace OpenMS
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (const MSSpectrum& it : exp.getSpectra())
+    for (const MSSpectrum& spec : exp.getSpectra())
     {
-      os << it;
+      os << spec;
     }
 
     //chromatograms
-    for (const MSChromatogram& it : exp.getChromatograms())
+    for (const MSChromatogram& chrom : exp.getChromatograms())
     {
-      os << it;
+      os << chrom;
     }
 
     os << "-- MSEXPERIMENT END --" << std::endl;

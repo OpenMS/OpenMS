@@ -655,10 +655,10 @@ namespace OpenMS::Math
       }
 
       TextFile data_points;
-      for (DPosition<2>& it : points)
+      for (DPosition<2>& dp : points)
       {
-        it.setY(it.getY() / (x_scores.size()  * dividing_score));
-        data_points << (String(it.getX()) + "\t" + it.getY());
+        dp.setY(dp.getY() / (x_scores.size()  * dividing_score));
+        data_points << (String(dp.getX()) + "\t" + dp.getY());
       }
       data_points.store((std::string)param_.getValue("out_plot") + "_scores.txt");
 
@@ -779,15 +779,15 @@ namespace OpenMS::Math
       }
 
       TextFile data_points;
-      for (DPosition<3>& it : points)
+      for (DPosition<3>& dpx : points)
       {
-        (it)[1] = ((it)[1] / ((decoy.size() + target.size())  * dividing_score));
-        (it)[2] = ((it)[2] / ((decoy.size() + target.size())  * dividing_score));
-        String temp_ = (it)[0];
+        (dpx)[1] = ((dpx)[1] / ((decoy.size() + target.size())  * dividing_score));
+        (dpx)[2] = ((dpx)[2] / ((decoy.size() + target.size())  * dividing_score));
+        String temp_ = (dpx)[0];
         temp_ += "\t";
-        temp_ += (it)[1];
+        temp_ += (dpx)[1];
         temp_ += "\t";
-        temp_ += (it)[2];
+        temp_ += (dpx)[2];
         data_points << temp_;
       }
       data_points.store((std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt");

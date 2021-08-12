@@ -44,9 +44,9 @@ std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
   os << static_cast<const ChromatogramSettings&>(chrom);
 
   //data list
-  for (const ChromatogramPeak& it : chrom)
+  for (const ChromatogramPeak& pe : chrom)
   {
-    os << it << std::endl;
+    os << pe << std::endl;
   }
 
   os << "-- MSCHROMATOGRAM END --" << std::endl;

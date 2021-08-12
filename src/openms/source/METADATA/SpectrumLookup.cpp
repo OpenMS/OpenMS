@@ -213,13 +213,13 @@ namespace OpenMS
 
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
-    for (const boost::regex& it : reference_formats)
+    for (const boost::regex& reg : reference_formats)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, it);
+      bool found = boost::regex_search(spectrum_ref, match, reg);
       if (found)
       {
-        return findByRegExpMatch_(spectrum_ref, it.str(), match);
+        return findByRegExpMatch_(spectrum_ref, reg.str(), match);
       }
     }
     String msg = "Spectrum reference doesn't match any known format";

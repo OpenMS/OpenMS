@@ -59,9 +59,9 @@ namespace OpenMS
 
   void CVTermList::setCVTerms(const vector<CVTerm>& cv_terms)
   {
-    for (const CVTerm& it : cv_terms)
+    for (const CVTerm& tr : cv_terms)
     {
-      addCVTerm(it);
+      addCVTerm(tr);
     }
     return;
   }
