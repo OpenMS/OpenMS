@@ -2022,7 +2022,8 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->currentTabChanged(1); //switch to ID view
+    selection_view_->setCurrentIndex(DataSelectionTabs::IDENT_IDX); //switch to ID view
+    selection_view_->currentTabChanged(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithOSW()

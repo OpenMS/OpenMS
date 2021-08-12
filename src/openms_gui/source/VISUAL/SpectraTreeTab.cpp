@@ -87,7 +87,7 @@ namespace OpenMS
     };
     // keep in SYNC with enum HeaderNames
     const QStringList HEADER_NAMES = QStringList()
-      << " type" << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";;
+      << " type" << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";
   }
 
   struct IndexExtrator
@@ -182,12 +182,20 @@ namespace OpenMS
     }
   }
 
+  void SpectraTreeTab::updateIndexFromCurrentLayer()
+  {
+    std::cout << "Spectra tab view activated to go to position " << layer_->getCurrentSpectrumIndex() << std::endl;
+    spectra_treewidget_->setTreePosition(layer_->getCurrentSpectrumIndex());
+  }
+
   void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
         the execution of a TOPP tool on the whole data */
-    if (current == nullptr || previous == nullptr)
+    // WUT????
+    std::cout << "itemselection in specra tabview changed:" << std::endl;
+    if (current == nullptr)
     {
       return;
     }
@@ -195,6 +203,7 @@ namespace OpenMS
     IndexExtrator ie(current);
     if (!ie.hasChromIndices())
     {
+      std::cout << "Spectrum selected from Spec View Table: "  << ie.spectrum_index << std::endl;
       emit spectrumSelected(ie.spectrum_index);
     }
     else
@@ -208,7 +217,7 @@ namespace OpenMS
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
     // show the first selected item
-    if (selected.size() > 0) itemSelectionChange_(selected.first(), selected.first());
+    if (!selected.empty()) itemSelectionChange_(selected.first(), selected.first());
   }
 
   void SpectraTreeTab::itemDoubleClicked_(QTreeWidgetItem* current)
@@ -296,11 +305,13 @@ namespace OpenMS
 
   void SpectraTreeTab::updateEntries(LayerData* layer)
   {
+    std::cout << "Updating spectrum table view entries" << std::endl;
     if (layer == nullptr)
     {
       clear();
       return;
     }
+    layer_ = layer;
 
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
@@ -309,7 +320,9 @@ namespace OpenMS
     LayerData& cl = *layer;
 
     spectra_treewidget_->blockSignals(true);
-    RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
+    RAIICleanup clean([&](){
+      std::cout << "signals in spectra table unblocked" << std::endl;
+      spectra_treewidget_->blockSignals(false); });
 
     QTreeWidgetItem* toplevel_item = nullptr;
     QTreeWidgetItem* selected_item = nullptr;
@@ -423,6 +436,7 @@ namespace OpenMS
       {
         // now, select and scroll down to item
         selected_item->setSelected(true);
+        spectra_treewidget_->setCurrentItem(selected_item);
         spectra_treewidget_->scrollToItem(selected_item);
       }
       if (cl.getPeakData()->size() > 1)

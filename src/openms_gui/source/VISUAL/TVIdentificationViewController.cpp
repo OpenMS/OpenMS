@@ -85,6 +85,7 @@ namespace OpenMS
 
     if (layer.type == LayerData::DT_PEAK)
     {
+      std::cout << "PeakType" << std::endl;
       // open new 1D widget with the current default parameters
       Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
@@ -97,6 +98,7 @@ namespace OpenMS
 
       w->canvas()->activateSpectrum(spectrum_index);
 
+      std::cout << "Spectrum activated" << std::endl;
       // set relative (%) view of visible area
       w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
@@ -1288,7 +1290,11 @@ namespace OpenMS
   void TVIdentificationViewController::activateBehavior() 
   {
     Plot1DWidget* w = tv_->getActive1DWidget();
-    if (w == nullptr) return;
+    if (w == nullptr)
+    {
+      std::cout << "No active 1D widget" << std::endl;
+      return;
+    }
 
     PlotCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
@@ -1311,6 +1317,7 @@ namespace OpenMS
         break;
       }
     }
+
   }
 
   // override
