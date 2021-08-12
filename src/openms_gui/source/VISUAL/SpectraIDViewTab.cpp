@@ -309,45 +309,18 @@ namespace OpenMS
         QJsonArray peptides_mod_data;
 
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
-        for (auto pep : protein_to_peptide_id_map[current_accession])
+        for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession])
         {
-          const vector<PeptideHit>& pep_hits = pep.getHits();
-          const PeptideHit& hit = pep_hits[0];
-          const AASequence& aaseq = hit.getSequence();
+          const vector<PeptideHit>& pep_hits = pep_id_ptr->getHits();
 
-          // contains the keys - mod_data, pep_start and seq and corresponding values
-          QJsonObject peptides_mod_obj;
-          // contains key-value of modName and vector of indices
-          QJsonObject mod_data;
-
-          for (int i = 0; i < aaseq.size(); ++i)
-          {
-            if (aaseq[i].isModified())
-            {
-              const String& mod_name = aaseq[i].getModificationName();
-
-              if (!mod_data.contains(mod_name.toQString()))
-              {
-                mod_data[mod_name.toQString()] = QJsonArray{i};
-              }
-              else
-              {
-                QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
-                values.push_back(i);
-                mod_data[mod_name.toQString()] = values;
-              }
-            }
-          }
-
-          peptides_mod_obj["mod_data"] = mod_data;
-
-          const auto qstrseq = aaseq.toString().toQString();
           //store start and end positions
           //TODO maybe we could store the index of the hit that belongs to that specific protein in the map as well
           // or we generally should only look at the first hit
           for (const auto & pep_hit : pep_hits)
           {
             const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
+            const AASequence& aaseq = pep_hit.getSequence();
+            const auto qstrseq = aaseq.toString().toQString();
 
             for (const auto & evidence : evidences)
             {
@@ -357,6 +330,30 @@ namespace OpenMS
               int pep_end = evidence.getEnd();
               if (id_accession.toQString() == current_accession)
               {
+                // contains the keys - mod_data, pep_start and seq and corresponding values
+                QJsonObject peptides_mod_obj;
+                // contains key-value of modName and vector of indices
+                QJsonObject mod_data;
+
+                for (int i = 0; i < aaseq.size(); ++i)
+                {
+                  if (aaseq[i].isModified())
+                  {
+                    const String& mod_name = aaseq[i].getModificationName();
+
+                    if (!mod_data.contains(mod_name.toQString()))
+                    {
+                      mod_data[mod_name.toQString()] = QJsonArray{i};
+                    }
+                    else
+                    {
+                      QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
+                      values.push_back(i);
+                      mod_data[mod_name.toQString()] = values;
+                    }
+                  }
+                }
+                peptides_mod_obj["mod_data"] = mod_data;
                 data["start"] = pep_start;
                 data["end"] = pep_end;
                 data["seq"] = qstrseq;
