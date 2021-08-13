@@ -100,7 +100,7 @@ namespace OpenMS
    /// partially fill the bottom-most row  
    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
    // extract the required part of the accession 
-   static static QString extractNumFromAccession_(const QString& listItem);
+   static QString extractNumFromAccession_(const QString& listItem);
    //open browser to navigate to uniport site with accession
    void openUniProtSiteWithAccession_(const QString& accession);
 

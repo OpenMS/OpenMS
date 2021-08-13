@@ -89,11 +89,18 @@ namespace ProteinClmn
 {
   enum HeaderNames
       { // indices into QTableWidget's columns (which start at index 0)
-    ACCESSION, SEQUENCE, DESCRIPTION, SCORE, COVERAGE, NR_PEPTIDES, /* last entry --> */ SIZE_OF_HEADERNAMES
+    ACCESSION,
+    FULL_PROTEIN_SEQUENCE,
+    SEQUENCE,
+    DESCRIPTION,
+    SCORE,
+    COVERAGE,
+    NR_PEPTIDES,
+    /* last entry --> */ SIZE_OF_HEADERNAMES
       };
   // keep in SYNC with enum HeaderNames
   const QStringList HEADER_NAMES = QStringList()
-      << "accession" << "sequence" << "description" << "score" << "coverage" << "#peptides";
+      << "accession" << "full sequence" << "sequence" << "description" << "score" << "coverage" << "#peptides";
 }
 
 namespace OpenMS
@@ -295,7 +302,7 @@ namespace OpenMS
       //TODO this will always set the protein sequence to "show" since that is what we put in the column
       // a) store a pointer to the ProteinHit in the protein_to_peptide_id_map (value = pair<const Prothit*, const PepId*>)
       // b) store a hidden column with the full sequence in the protein_table_widget.
-      QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::FULL_PROTEIN_SEQUENCE)->data(Qt::DisplayRole).toString();
       // return whole accession as string, eg: tr|P02769|ALBU_BOVIN
       QString current_accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
      
@@ -328,7 +335,7 @@ namespace OpenMS
             for (const auto & evidence : evidences)
             {
               const String& id_accession = evidence.getProteinAccession();
-              QJsonObject data;
+              QJsonObject pep_data_obj;
               int pep_start = evidence.getStart();
               int pep_end = evidence.getEnd();
               if (id_accession.toQString() == current_accession)
@@ -346,37 +353,40 @@ namespace OpenMS
 
                     if (!mod_data.contains(mod_name.toQString()))
                     {
-                      mod_data[mod_name.toQString()] = QJsonArray{i};
+                      mod_data[mod_name.toQString()] = QJsonArray{i + pep_start}; // add pep_start to get the correct location in the whole sequence
                     }
                     else
                     {
                       QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
-                      values.push_back(i);
+                      // add pep_start to get the correct location in the whole sequence
+                      values.push_back(i + pep_start); 
                       mod_data[mod_name.toQString()] = values;
                     }
                   }
                 }
                 peptides_mod_obj["mod_data"] = mod_data;
-                data["start"] = pep_start;
-                data["end"] = pep_end;
-                data["seq"] = qstrseq;
+                pep_data_obj["start"] = pep_start;
+                pep_data_obj["end"] = pep_end;
+                pep_data_obj["seq"] = qstrseq;
 
                 //TODO why does the modification need to store the peptide sequence?
                 // the modifications in theory only need one index and this is their location
-                peptides_mod_obj["pep_start"] = pep_start;
-                peptides_mod_obj["seq"] = qstrseq;
+                //peptides_mod_obj["pep_start"] = pep_start; -> this is not needed anymore as we're sending the location with pep_start in the array itself
+                // peptide sequence is needed to show the sequence as tooltip content when user hovers over the mod.
+                peptides_mod_obj["seq"] = qstrseq; 
 
-                peptides_data.push_back(data);
+                peptides_data.push_back(pep_data_obj);
                 peptides_mod_data.push_back(peptides_mod_obj);
               }
             }
           }
         }
 
-        //protein
-        const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+        //protein -> not needed, as we're storing the protein sequence as a new column in the protein_table_widget_ itself
+        /*const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
         const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
-        
+        */
+
         auto* widget = new SequenceVisualizer(); // no parent since we want a new window
         widget->resize(1500,500); // make a bit bigger
         widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data, peptides_mod_data);
@@ -648,6 +658,7 @@ namespace OpenMS
         protein_table_widget_->insertRow(protein_table_widget_->rowCount());
 
         protein_table_widget_->setAtBottomRow(protein.getAccession().toQString(), ProteinClmn::ACCESSION, bg_color, Qt::blue);
+        protein_table_widget_->setAtBottomRow(protein.getSequence().toQString(), ProteinClmn::FULL_PROTEIN_SEQUENCE, bg_color);
         protein_table_widget_->setAtBottomRow("show", ProteinClmn::SEQUENCE, bg_color, Qt::blue);
         protein_table_widget_->setAtBottomRow(protein.getDescription().toQString(), ProteinClmn::DESCRIPTION, bg_color);
         protein_table_widget_->setAtBottomRow(protein.getScore(), ProteinClmn::SCORE, bg_color);
@@ -662,6 +673,7 @@ namespace OpenMS
     }
 
     protein_table_widget_->setHeaders(headers);
+    protein_table_widget_->setColumnHidden(ProteinClmn::FULL_PROTEIN_SEQUENCE, true);
     protein_table_widget_->resizeColumnsToContents();
     protein_table_widget_->setSortingEnabled(true);
     protein_table_widget_->sortByColumn(ProteinClmn::SCORE, Qt::AscendingOrder); //TODO figure out higher_score_better

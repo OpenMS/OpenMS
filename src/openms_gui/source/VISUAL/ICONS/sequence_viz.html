@@ -58,6 +58,7 @@
             let mod_peptide_obj = [];
 
             if(!protein_seq.length){ 
+                console.log('protein seq doesnot exists in file...')
                 async function fetchSeqDataJSON() {
                   const response = await fetch('https://www.ebi.ac.uk/proteins/api/proteins/' + acc_num, {
                         method:'GET',
@@ -79,8 +80,8 @@
             for (const pep of peptides_data_arr) {
                 let pep_obj = {};
 
-                pep_obj["start"] = pep.start;
-                pep_obj["end"] = pep.end;
+                pep_obj["start"] = pep.start + 1;
+                pep_obj["end"] = pep.end + 1;
                 pep_obj["accession"] = pep.seq;
                 pep_obj["color"] = pickColor(pep.seq);
 
@@ -92,8 +93,8 @@
                     for(const index of pepList.mod_data[mod]){
                         let mod_obj = {};
 
-                        mod_obj["start"] = pepList.pep_start + index + 1;
-                        mod_obj["end"] = pepList.pep_start + index + 1;
+                        mod_obj["start"] = index + 1;
+                        mod_obj["end"] = index + 1;
                         mod_obj["accession"] = pepList.seq;
                         mod_obj["color"] = pickColor(mod);
                         mod_obj["shape"] = "circle";
