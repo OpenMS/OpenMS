@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <iostream>
+#include <filesystem>
 
 #include <QCoreApplication>
 
@@ -63,6 +64,11 @@ namespace OpenMS
       for (auto&[name, description] : utils)
       {
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
+      }
+      for (auto &plugin : plugins)
+      {
+        std::cout << "starting work on " << plugin << std::endl;
+        param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin);
       }
       return true;
     }();
@@ -100,14 +106,18 @@ namespace OpenMS
 
   Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name)
   {
+    FileHandler fh;
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
     QStringList args{"-write_ini", path.toQString()};
+    std::cout << "before finding exec " << tool_name << std::endl;
     // Start tool/util to write the ini file
-    String executable = File::findSiblingTOPPExecutable(tool_name);
+    String executable = File::exists(tool_name) ? tool_name : File::findSiblingTOPPExecutable(tool_name);
+
+    std::cout << "after finding exec " << executable << std::endl;
     ExternalProcess proc;
-    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), false, ExternalProcess::IO_MODE::NO_IO);
+    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
     // Return empty param if writing the ini file failed
     Param tool_param;
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
@@ -122,7 +132,6 @@ namespace OpenMS
 
   const StringList &TVToolDiscovery::getPlugins_()
   {
-    FileHandler fh;
     StringList plugins;
 
     std::vector<std::string> valid_extensions {".py"};
@@ -130,10 +139,10 @@ namespace OpenMS
 
     if (File::fileList(plugin_path, "*", plugins, true))
     {
-      const auto comparator = [plugin_path, fh, valid_extensions](std::string plugin) 
+      const auto comparator = [plugin_path, valid_extensions](std::string plugin) -> bool
       {
-        return !File::executable(plugin) /*|| 
-          std::find(valid_extensions.begin(), valid_extensions.end(), fh.stripExtension(plugin)) != valid_extensions.end()*/; 
+        return !File::executable(plugin) /*&& 
+          (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end())*/; 
       };
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
     }
