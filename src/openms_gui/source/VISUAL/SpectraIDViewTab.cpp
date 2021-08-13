@@ -195,21 +195,18 @@ namespace OpenMS
         {
           const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
 
-          for (int i = 0; i < peptide_ids.size(); ++i)
+          for (const auto& pepid : peptide_ids)
           {
-            const vector<PeptideHit>& pep_hits = peptide_ids[i].getHits();
-            const PeptideHit& hit = pep_hits[i];
-            const String& pep_seq = hit.getSequence().toString();
-
+            const vector<PeptideHit>& pep_hits = pepid.getHits();
             //add id_accession as the key of the map and push the peptideID to the vector value-
-            for (int j = 0; j < pep_hits.size(); ++j)
+            for (const auto & pep_hit : pep_hits)
             {
-              const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
+              const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
 
-              for (int k = 0; k < evidences.size(); ++k)
+              for (const auto & evidence : evidences)
               {
-                const String& id_accession = evidences[k].getProteinAccession();
-                protein_to_peptide_id_map[id_accession].push_back(peptide_ids[0]);
+                const String& id_accession = evidence.getProteinAccession();
+                protein_to_peptide_id_map[id_accession].push_back(&pepid);
               }
             }
           }
@@ -221,7 +218,7 @@ namespace OpenMS
   }
 
   //extract required part of accession and open browser
-  QString SpectraIDViewTab::extractNumFromAccession_(QString full_accession)
+  QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
     //regex for matching accession
     QRegExp reg_pre_accession("(tr|sp)");
@@ -255,7 +252,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::openUniProtSiteWithAccession_(QString accession)
+  void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
   {
     QString accession_num = extractNumFromAccession_(accession);
     if (!accession_num.isEmpty()) {
@@ -291,12 +288,16 @@ namespace OpenMS
     }
 
     //Open window
+    #ifdef QT_WEBENGINEWIDGETS_LIB
     if (column == ProteinClmn::SEQUENCE)
     {
       // store the current sequence clicked
-      QString sequence = table_widget_->item(row, Clmn::SEQUENCE)->data(Qt::DisplayRole).toString();
+      //TODO this will always set the protein sequence to "show" since that is what we put in the column
+      // a) store a pointer to the ProteinHit in the protein_to_peptide_id_map (value = pair<const Prothit*, const PepId*>)
+      // b) store a hidden column with the full sequence in the protein_table_widget.
+      QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::SEQUENCE)->data(Qt::DisplayRole).toString();
       // return whole accession as string, eg: tr|P02769|ALBU_BOVIN
-      QString current_accession = table_widget_->item(row, Clmn::ACCESSIONS)->data(Qt::DisplayRole).toString();
+      QString current_accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
      
       QString accession_num = extractNumFromAccession_(current_accession);
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
@@ -311,90 +312,78 @@ namespace OpenMS
         QJsonArray peptides_mod_data;
 
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
-        for (auto pep : protein_to_peptide_id_map[current_accession])
+        for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession])
         {
-          const vector<PeptideHit>& pep_hits = pep.getHits();
-          const PeptideHit& hit = pep_hits[0];
-          const String& pep_seq = hit.getSequence().toString();
+          const vector<PeptideHit>& pep_hits = pep_id_ptr->getHits();
 
-          // contains the keys - mod_data, pep_start and seq and corresponding values
-          QJsonObject peptides_mod_obj;
-          // contains key-value of modName and vector of indices
-          QJsonObject mod_data;
-          
-          auto seq = AASequence().fromString(pep_seq);
-
-          for (int i = 0; i < seq.size(); ++i)
+          //store start and end positions
+          //TODO maybe we could store the index of the hit that belongs to that specific protein in the map as well
+          // or we generally should only look at the first hit
+          for (const auto & pep_hit : pep_hits)
           {
-            if (seq[i].isModified())
+            const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
+            const AASequence& aaseq = pep_hit.getSequence();
+            const auto qstrseq = aaseq.toString().toQString();
+
+            for (const auto & evidence : evidences)
             {
-              const String& mod_name = seq[i].getModificationName();
-
-              if (!mod_data.contains(mod_name.toQString()))
-              {
-                mod_data[mod_name.toQString()] = QJsonArray{i};
-              }
-              else
-              {
-                QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
-                values.push_back(i);
-                mod_data[mod_name.toQString()] = values;
-              }
-            }
-          }
-
-          peptides_mod_obj["mod_data"] = mod_data;
-
-          //store start and end positions-
-          for (int j = 0; j < pep_hits.size(); ++j)
-          {
-            const vector<PeptideEvidence>& evidences = pep_hits[j].getPeptideEvidences();
-
-            for (int k = 0; k < evidences.size(); ++k)
-            {
-              const String& id_accession = evidences[k].getProteinAccession();
+              const String& id_accession = evidence.getProteinAccession();
               QJsonObject data;
-              int pep_start = evidences[k].getStart();
-              int pep_end = evidences[k].getEnd();
-              if (id_accession.toQString()== current_accession)
+              int pep_start = evidence.getStart();
+              int pep_end = evidence.getEnd();
+              if (id_accession.toQString() == current_accession)
               {
+                // contains the keys - mod_data, pep_start and seq and corresponding values
+                QJsonObject peptides_mod_obj;
+                // contains key-value of modName and vector of indices
+                QJsonObject mod_data;
+
+                for (int i = 0; i < aaseq.size(); ++i)
+                {
+                  if (aaseq[i].isModified())
+                  {
+                    const String& mod_name = aaseq[i].getModificationName();
+
+                    if (!mod_data.contains(mod_name.toQString()))
+                    {
+                      mod_data[mod_name.toQString()] = QJsonArray{i};
+                    }
+                    else
+                    {
+                      QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
+                      values.push_back(i);
+                      mod_data[mod_name.toQString()] = values;
+                    }
+                  }
+                }
+                peptides_mod_obj["mod_data"] = mod_data;
                 data["start"] = pep_start;
                 data["end"] = pep_end;
-                data["seq"] = pep_seq.toQString();
+                data["seq"] = qstrseq;
 
+                //TODO why does the modification need to store the peptide sequence?
+                // the modifications in theory only need one index and this is their location
                 peptides_mod_obj["pep_start"] = pep_start;
-                peptides_mod_obj["seq"] = pep_seq.toQString();
+                peptides_mod_obj["seq"] = qstrseq;
 
                 peptides_data.push_back(data);
+                peptides_mod_data.push_back(peptides_mod_obj);
               }
             }
           }
-          peptides_mod_data.push_back(peptides_mod_obj);
         }
 
         //protein
         const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
         const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
-        QString pro_sequence;
-
-        for (int i = 0; i < protein_hits.size(); ++i)
-        {
-
-          const String& protein_accession = protein_hits[i].getAccession();
-          const String& protein_sequence = protein_hits[i].getSequence();
-          
-          if (protein_accession.toQString() == current_accession)
-          {
-            pro_sequence = protein_sequence.toQString();
-            break;
-          }
-        }
         
-        SequenceVisualizer* widget = new SequenceVisualizer();
-        widget->setProteinPeptideDataToJsonObj(accession_num, pro_sequence, peptides_data, peptides_mod_data);
+        auto* widget = new SequenceVisualizer(); // no parent since we want a new window
+        widget->resize(1500,500); // make a bit bigger
+        widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data, peptides_mod_data);
         widget->show();
       }
     }
+    #endif
   }
 
   void SpectraIDViewTab::currentSpectraSelectionChanged_()
@@ -403,7 +392,20 @@ namespace OpenMS
     {
       // deselect whatever is currently shown
       int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
-      emit spectrumDeselected(last_spectrum_index);
+      // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
+      // so just leave it for now.
+      //
+      // PARTLY SOLVED: The problem was, that if you defocus the TOPPView window, somehow
+      // selectionChange is called, with EMPTY selection. Maybe this is a feature and we have to store the
+      // selected spectrum indices as well. I want to support multi-selection in the future to see shared peptides
+      // Actually this might be solved by the removal of the unnecessary updates in activateSubWindow.
+      // I think updateEntries resets selections as well.. not sure how we could avoid that. We really have to avoid
+      // calling this crazy function when only small updates are needed.
+      //emit spectrumDeselected(last_spectrum_index);
+      // TODO also currently, the current active spectrum can be restored after deselection by clicking on
+      //  the Scans tab and then switching back to ID tab. (Scans will get the current scan in the 1D View, which
+      //  is still there. I guess I have to deselect in the 1D view, too, after all.
+
       updateProteinEntries_(-1);
     }
     //TODO if you deselected the current spectrum, you currently cannot click on/navigate to the same spectrum
@@ -412,6 +414,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
+    // TODO you actually only have to do repainting if the row changes..
     // sometimes Qt calls this function when table empty during refreshing
     if (row < 0 || column < 0)
       return;
@@ -428,6 +431,7 @@ namespace OpenMS
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
+
     //
     // Signal for a new spectrum to be shown
     //
@@ -534,6 +538,7 @@ namespace OpenMS
 
     // Update the protein table with data of the id row that was clicked
     updateProteinEntries_(row);
+
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
@@ -547,6 +552,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
+
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
@@ -557,7 +563,7 @@ namespace OpenMS
     is_first_time_loading = true;
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
-    
+
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -584,7 +590,7 @@ namespace OpenMS
     // no valid peak layer attached
     if (!hasData(layer_) || layer_->getPeakData()->getProteinIdentifications().empty())
     {
-      clear();
+      //clear(); this was done in updateEntries_() already.
       return;
     }
 
@@ -675,6 +681,7 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
+
     // no valid peak layer attached
     if (!hasData(layer_))
     {
@@ -740,6 +747,7 @@ namespace OpenMS
       headers << ck.toQString();
     }
 
+    table_widget_->blockSignals(true); // to be safe, that clear does not trigger anything.
     table_widget_->clear();
     table_widget_->setRowCount(0);
     table_widget_->setColumnCount(headers.size());
@@ -904,13 +912,15 @@ namespace OpenMS
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
+      currentCellChanged_(selected_row,0,0,0); //simulate cell change to trigger repaint and reannotation of spectrum 1D view
     }
 
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
+
     // call this updateProteinEntries_(-1) function after the table_widget data is filled, 
     // otherwise table_widget_->item(row, clm) returns nullptr;
-    updateProteinEntries_(-1);// we need this extra function since it's an internal slot
+    updateProteinEntries_(selected_row);
 
   }
  
@@ -1008,7 +1018,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color)
+  void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color)
   {
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 

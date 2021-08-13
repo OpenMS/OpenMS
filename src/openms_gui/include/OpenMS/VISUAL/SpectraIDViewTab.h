@@ -98,11 +98,11 @@ namespace OpenMS
 
   private:
    /// partially fill the bottom-most row  
-   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
+   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
    // extract the required part of the accession 
-   QString extractNumFromAccession_(QString listItem);
+   static static QString extractNumFromAccession_(const QString& listItem);
    //open browser to navigate to uniport site with accession
-   void openUniProtSiteWithAccession_(QString accession);
+   void openUniProtSiteWithAccession_(const QString& accession);
 
     LayerData* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
@@ -110,11 +110,8 @@ namespace OpenMS
     TableView* table_widget_ = nullptr;
     TableView* protein_table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
-    QWidget* protein_window_ = nullptr;
-    QWidget* accession_window_ = nullptr;
-    bool is_ms1_shown_ = false;
     bool is_first_time_loading = true;
-    std::unordered_map<String, std::vector<PeptideIdentification>> protein_to_peptide_id_map;
+    std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
