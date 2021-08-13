@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,11 +40,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <iostream>
+#include <filesystem>
 
 #include <QCoreApplication>
-
-#include <iostream>
-#include <thread>
 
 namespace OpenMS
 {
@@ -59,15 +57,18 @@ namespace OpenMS
       const auto &utils = ToolHandler::getUtilList();
       const auto &plugins = getPlugins_();
       // Launch threads for loading tool/util params.
-      for (auto& tool : tools)
+      for (auto&[name, description] : tools)
       {
-        const std::string name = tool.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
-      for (auto& util : utils)
+      for (auto&[name, description] : utils)
       {
-        const std::string name = util.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
+      }
+      for (auto &plugin : plugins)
+      {
+        std::cout << "starting work on " << plugin << std::endl;
+        param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin);
       }
       return true;
     }();
@@ -105,39 +106,25 @@ namespace OpenMS
 
   Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name)
   {
-    static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
-
+    FileHandler fh;
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
     QStringList args{"-write_ini", path.toQString()};
+    std::cout << "before finding exec " << tool_name << std::endl;
     // Start tool/util to write the ini file
-    Param tool_param;
-    String executable;
-    // Return empty param if tool executable cannot be found
-    try
-    {
-      executable = File::findSiblingTOPPExecutable(tool_name);
-    }
-    catch (const Exception::FileNotFound& e)
-    {
-      std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
-      return tool_param;
-    }
-    // Spawning a thread for all tools is no problem (if std::async decides to do so)
-    // but spawning that many processes failed with not enough file handles on machines with large number of cores.
-    // Restricting the number of running processes solves that issue.
-    while (running_processes >= 6) { std::this_thread::sleep_for(std::chrono::milliseconds(10)); QCoreApplication::processEvents(); }
-    ++running_processes;
-    // Write tool ini to temporary file
-    auto return_state = ExternalProcess().run(executable.toQString(), args, working_dir.toQString(), false, ExternalProcess::IO_MODE::NO_IO);
-    --running_processes;
+    String executable = File::exists(tool_name) ? tool_name : File::findSiblingTOPPExecutable(tool_name);
+
+    std::cout << "after finding exec " << executable << std::endl;
+    ExternalProcess proc;
+    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
     // Return empty param if writing the ini file failed
+    Param tool_param;
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       return tool_param;
     }
-    // Parse ini file to param object
+    // Parse ini file to param object and return it
     ParamXMLFile paramFile;
     paramFile.load((path).c_str(), tool_param);
     return tool_param;
@@ -145,7 +132,6 @@ namespace OpenMS
 
   const StringList &TVToolDiscovery::getPlugins_()
   {
-    FileHandler fh;
     StringList plugins;
 
     std::vector<std::string> valid_extensions {".py"};
@@ -153,10 +139,10 @@ namespace OpenMS
 
     if (File::fileList(plugin_path, "*", plugins, true))
     {
-      const auto comparator = [plugin_path, fh, valid_extensions](std::string plugin) 
+      const auto comparator = [plugin_path, valid_extensions](std::string plugin) -> bool
       {
-        return !File::executable(plugin) /*|| 
-          std::find(valid_extensions.begin(), valid_extensions.end(), fh.stripExtension(plugin)) != valid_extensions.end()*/; 
+        return !File::executable(plugin) /*&& 
+          (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end())*/; 
       };
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
     }
