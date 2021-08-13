@@ -1117,7 +1117,7 @@ namespace OpenMS::Math
       data_might_not_be_well_fit = false;
 
       engine.toUpper();
-      for (ProteinIdentification & prot : protein_ids)
+      for (ProteinIdentification& prot : protein_ids)
       {
         String se = prot.getSearchEngine();
         se.toUpper();
