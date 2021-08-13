@@ -176,8 +176,21 @@ namespace OpenMS
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
+    //TODO This triggers always also if there are just focus changes. Very very bad..
     connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) {
-      if (window != nullptr) /* 0 upon terminate */ updateBarsAndMenus(); 
+      Size s = 0;
+      int oldactiveSubwindowID = activeSubwindowID_;
+      for (const auto& child : ws_.subWindowList())
+      {
+        if (child == window)
+        {
+          activeSubwindowID_ = s;
+          break;
+        }
+        ++s;
+      }
+      if (window != nullptr && (oldactiveSubwindowID != activeSubwindowID_)) /* 0 upon terminate */ updateBarsAndMenus();
+
     });
     connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&ws_);
@@ -1365,7 +1378,7 @@ namespace OpenMS
 
   void TOPPViewBase::updateViewBar()
   {
-    selection_view_->update();
+    selection_view_->callUpdateEntries();
   }
 
   void TOPPViewBase::updateMenu()
@@ -1534,6 +1547,10 @@ namespace OpenMS
   {
     if (!ws_.currentSubWindow())
     {
+      if (activeSubwindowID_ < (Size) ws_.subWindowList().size())
+      {
+        return qobject_cast<PlotWidget*>(ws_.subWindowList()[int(activeSubwindowID_)]->widget());
+      }
       return nullptr;
     }
     return qobject_cast<PlotWidget*>(ws_.currentSubWindow()->widget());
@@ -1674,11 +1691,12 @@ namespace OpenMS
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
     // store active sub window
+    //TODO Why is this done? And why only here?
     QMdiSubWindow* old_active = ws_.currentSubWindow();
     RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
 
     QString open_path = current_path_.toQString();
-    if (path_overwrite != "")
+    if (!path_overwrite.empty())
     {
       open_path = path_overwrite.toQString();
     }
@@ -1691,7 +1709,7 @@ namespace OpenMS
     {
        return dialog.selectedFiles();
     }
-    return QStringList();
+    return {};
   }
 
   void TOPPViewBase::openFilesByDialog(const String& dir)
@@ -2004,6 +2022,8 @@ namespace OpenMS
     {
       return;
     }
+    selection_view_->setCurrentIndex(DataSelectionTabs::IDENT_IDX); //switch to ID view
+    selection_view_->currentTabChanged(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithOSW()

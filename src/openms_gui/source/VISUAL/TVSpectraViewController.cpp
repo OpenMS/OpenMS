@@ -188,6 +188,7 @@ namespace OpenMS
     // new spectrum.
     if (!layer.chromatogram_flag_set())
     {
+      std::cout << "Activating spectrum1D from TVspectraViewController:" << index << std::endl;
       widget_1d->canvas()->activateSpectrum(index);
     }
     else 
