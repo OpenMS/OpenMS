@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -413,12 +413,11 @@ END_SECTION
 
 /////
 
-ConsensusMap::ColumnHeader* fd_ptr = nullptr;
-ConsensusMap::ColumnHeader* fd_nullPointer = nullptr;
-
 START_SECTION(([ConsensusMap::ColumnHeader] ColumnHeader()))
-fd_ptr = new ConsensusMap::ColumnHeader();
-TEST_NOT_EQUAL(fd_ptr, fd_nullPointer)
+  ConsensusMap::ColumnHeader* fd_ptr = new ConsensusMap::ColumnHeader();;
+  ConsensusMap::ColumnHeader* fd_nullPointer = nullptr;
+  TEST_NOT_EQUAL(fd_ptr, fd_nullPointer)
+  delete fd_ptr;
 END_SECTION
 
 START_SECTION((const ColumnHeaders& getColumnHeaders() const))

@@ -11,7 +11,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
     
     cdef cppclass PercolatorFeatureSetHelper "OpenMS::PercolatorFeatureSetHelper":
 
-        PercolatorFeatureSetHelper(PercolatorFeatureSetHelper) nogil except + #wrap-ignore
+        PercolatorFeatureSetHelper() nogil except + 
+        PercolatorFeatureSetHelper(PercolatorFeatureSetHelper &) nogil except +
 
         void concatMULTISEPeptideIds(libcpp_vector[ PeptideIdentification ] & all_peptide_ids, libcpp_vector[ PeptideIdentification ] & new_peptide_ids, String search_engine) nogil except +
         void mergeMULTISEPeptideIds(libcpp_vector[ PeptideIdentification ] & all_peptide_ids, libcpp_vector[ PeptideIdentification ] & new_peptide_ids, String search_engine) nogil except +

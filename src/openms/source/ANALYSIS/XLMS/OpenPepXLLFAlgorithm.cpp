@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -305,7 +305,7 @@ using namespace OpenMS;
     TheoreticalSpectrumGeneratorXLMS specGen_full;
     SimpleTSGXLMS specGen_mainscore;
 
-    // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
+    // settings for full-scoring, annotations, 2nd isotopic peaks, losses and precursors
     Param specGenParams_full = specGen_full.getParameters();
     specGenParams_full.setValue("add_b_ions", add_b_ions_, "Add peaks of y-ions to the spectrum");
     specGenParams_full.setValue("add_y_ions", add_y_ions_, "Add peaks of b-ions to the spectrum");
@@ -390,7 +390,7 @@ using namespace OpenMS;
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass_ + max_peptide_allowed_error;
 
-    // search for the first mass greater than the maximim, cut off everything larger
+    // search for the first mass greater than the maximum, cut off everything larger
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);

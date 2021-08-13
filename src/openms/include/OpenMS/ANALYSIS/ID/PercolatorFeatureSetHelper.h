@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,6 +164,14 @@ namespace OpenMS
          * checks and removes requested extra Percolator features that are actually unavailable (to compute)
          */
         static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
+
+        /**
+         * @brief addMSFraggerFeatures
+         * @param extra_features register of added features
+         *
+         * Registers the MSFragger specific Percolator features in extra_features.
+         */
+        static void addMSFRAGGERFeatures(StringList& extra_features);
         
 
     protected:

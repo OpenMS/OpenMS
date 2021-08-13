@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -418,7 +418,7 @@ void MSChromatogram::clear(bool clear_meta_data)
 
 // This helper function is based on the cstd::set_union implementation. It is different in that it has a separate concept of "close enough to merge"
 // This is defined as having retention times of within 1/1000 seconds
-// Note: We assume that RTs are distint in each of the two Chromatograms but may be the same between Chromatograms.
+// Note: We assume that RTs are distinct in each of the two Chromatograms but may be the same between Chromatograms.
 OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iterator first1,
                     OpenMS::MSChromatogram::Iterator last1,
                     OpenMS::MSChromatogram::Iterator first2,

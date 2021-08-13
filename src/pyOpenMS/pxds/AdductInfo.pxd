@@ -13,7 +13,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
     
     cdef cppclass AMSE_AdductInfo "OpenMS::AdductInfo":
 
+        # private
+        AMSE_AdductInfo() nogil except + #wrap-ignore
+        # private
         AMSE_AdductInfo(AMSE_AdductInfo) nogil except + #wrap-ignore
+
         AMSE_AdductInfo(const String & name, EmpiricalFormula & adduct, int charge, UInt mol_multiplier) nogil except +
 
         double getNeutralMass(double observed_mz) nogil except +
@@ -22,6 +26,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         int getCharge() nogil except +
         String getName() nogil except +
 
-        # TODO: AMSE_AdductInfo has private constructor
         # AMSE_AdductInfo parseAdductString(const String & adduct) nogil except +
 

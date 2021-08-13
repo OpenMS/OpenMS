@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ struct SIPPeptide
 
   vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambiguously
 
   double mz_theo = -1.; ///< theoretical mz
 

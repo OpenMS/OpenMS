@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,7 +166,7 @@ namespace OpenMS
           true,   // annotate isotopic peak counts
           true,   // use simple averagine model
           3,      // peak to start averagine model
-          true    // add upp intensity into monoisotopic peak
+          true    // add up intensity into monoisotopic peak
           );
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping

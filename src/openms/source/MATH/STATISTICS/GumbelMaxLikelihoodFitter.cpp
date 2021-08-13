@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,10 +39,9 @@
 using namespace std;
 
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     double GumbelMaxLikelihoodFitter::GumbelDistributionFitResult::log_eval_no_normalize(const double x) const
     {
       // -log b is a constant again
@@ -65,5 +64,4 @@ namespace OpenMS
       init_param_ = param;
     }
 
-  }   //namespace Math
-} // namespace OpenMS
+} // namespace OpenMS   //namespace Math

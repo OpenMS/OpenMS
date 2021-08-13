@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -299,6 +299,12 @@ namespace OpenMS
               String
       */
       inline const std::string   PSM_EXPLAINED_ION_CURRENT_USERPARAM = "PSM_explained_ion_current";
+
+      // User parameter name for the fraction of prefix ions that have been matched 
+      inline const std::string MATCHED_PREFIX_IONS_FRACTION = "matched_prefix_ions_fraction";
+
+      // User parameter name for the fraction of suffix ions that have been matched 
+      inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
 
       /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
               String

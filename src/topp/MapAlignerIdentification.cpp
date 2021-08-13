@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,7 +171,7 @@ private:
       if (getFlag_("force"))
       {
         OPENMS_LOG_ERROR
-          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "Error: alignment failed. Details:\n" << err.what()
           << "\nSince 'force' is set, processing will continue using 'identity' transformations."
           << endl;
         model_type = "identity";
@@ -299,6 +299,11 @@ private:
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
+    if (input_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerIdentification." << std::endl;
+    }   
+
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
     FileTypes::Type in_type = FileHandler::getType(input_files[0]);

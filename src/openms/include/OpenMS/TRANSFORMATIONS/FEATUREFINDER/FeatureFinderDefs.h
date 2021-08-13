@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,19 +67,16 @@ namespace OpenMS
     {
 public:
       NoSuccessor(const char * file, int line, const char * function, const IndexPair & index) :
-        BaseException(file, line, function, "NoSuccessor", "no successor/predecessor"),
+        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index.first) + "/" + String(index.second)),
         index_(index)
       {
-        what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
-        Exception::GlobalExceptionHandler::getInstance().setMessage(what_);
+        Exception::GlobalExceptionHandler::setMessage(what());
       }
 
-      ~NoSuccessor() throw() override
-      {
-      }
+      ~NoSuccessor() noexcept override = default;
 
 protected:
-      IndexPair index_;            // index without successor/predecessor
+      IndexPair index_; // index without successor/predecessor
     };
   };
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ namespace OpenMS
     if (!v.empty())
     {
       for (auto it = v.begin(); it < v.end() - 1; ++it)
-      { // convert to String manually, since this is much faster than ostreams build-in conversion; 
+      { // convert to String manually, since this is much faster than ostream build-in conversion; 
         // If T is a String, the compiler will (hopefully) elide the copy
         os << String(*it) << ", ";
       }

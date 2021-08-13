@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,41 +65,44 @@ public:
 
 
     /** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
-        * Please use @see sampleTheWavelet instead.
-        *
-        * Note that this functions returns the pure function value of psi and not the normalized (average=0)
-        * value given by Psi.
-        * @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet).
-        * @param m The m/z position within the signal (i.e. the mass not de-charged) within the signal.
-        * @param z The charge @p z we want to detect.
-        * @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
+         Please use @see sampleTheWavelet instead.
+        
+         Note that this functions returns the pure function value of psi and not the normalized (average=0)
+         value given by Psi.
+         @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet).
+         @param m The m/z position within the signal (i.e. the mass not de-charged) within the signal.
+         @param z The charge @p z we want to detect.
+         @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. 
+    */
     static double getValueByMass(const double t, const double m, const UInt z, const Int mode = +1)
     {
       return getValueByLambda(getLambdaL(m * z - z * mode * Constants::IW_PROTON_MASS), t * z + 1);
     }
 
     /** @brief Returns the value of the isotope wavelet at position @p t via a fast table lookup.
-    *	Usually, you do not need to call this function.
-        * Please use @see sampleTheWavelet instead.
-        *
-        * Note that this functions returns the pure function value of psi and not the normalized (average=0)
-        * value given by Psi.
-        * @param lambda The mass-parameter lambda.
-        * @param tz1 t (the position) times the charge (z) plus 1. */
+    	   Usually, you do not need to call this function.
+         Please use @see sampleTheWavelet instead.
+        
+         Note that this functions returns the pure function value of psi and not the normalized (average=0)
+         value given by Psi.
+         @param lambda The mass-parameter lambda.
+         @param tz1 t (the position) times the charge (z) plus 1. 
+      */
     static double getValueByLambda(const double lambda, const double tz1);
 
     /** @brief Returns the value of the isotope wavelet at position @p t.
-        * This function is usually significantly slower than the table lookup performed in @see getValueByLambda.
-        * Nevertheless, it might be necessary to call this function due to extrapolating reasons caused by the
-        * alignment of the wavelet.
-        *
-        * Usually, you do not need to call this function.
-        * Please use @see sampleTheWavelet instead.
-        *
-        * Note that this functions returns the pure function value of psi and not the normalized (average=0)
-        * value given by Psi.
-        * @param lambda The mass-parameter lambda.
-        * @param tz1 t (the position) times the charge (z) plus 1. */
+         This function is usually significantly slower than the table lookup performed in @see getValueByLambda.
+         Nevertheless, it might be necessary to call this function due to extrapolating reasons caused by the
+         alignment of the wavelet.
+        
+         Usually, you do not need to call this function.
+         Please use @see sampleTheWavelet instead.
+        
+         Note that this functions returns the pure function value of psi and not the normalized (average=0)
+         value given by Psi.
+         @param lambda The mass-parameter lambda.
+         @param tz1 t (the position) times the charge (z) plus 1. 
+      */
     static double getValueByLambdaExtrapol(const double lambda, const double tz1);
 
     static double getValueByLambdaExact(const double lambda, const double tz1);
@@ -118,18 +121,20 @@ public:
     }
 
     /** @brief Returns the table_steps_ parameter.
-        *
-        * This is an internally used parameter controlling the precision of several pre-sampling steps.
-        * Normally, this parameter can be left unchanged. */
+        
+         This is an internally used parameter controlling the precision of several pre-sampling steps.
+         Normally, this parameter can be left unchanged. 
+        */
     static double getTableSteps()
     {
       return table_steps_;
     }
 
     /** @brief Returns the inv_table_steps_ parameter.
-        *
-        * This is an internally used parameter controlling the precision of several pre-sampling steps.
-        * Normally, this parameter can be left unchanged. */
+        
+         This is an internally used parameter controlling the precision of several pre-sampling steps.
+         Normally, this parameter can be left unchanged. 
+        */
     static double getInvTableSteps()
     {
       return inv_table_steps_;
@@ -147,9 +152,10 @@ public:
 
 
     /** @brief Computes the averagine isotopic distribution we would expect at the de-convoluted mass.
-        * @param m The de-convoluted mass m.
-        * @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
-        * @return The isotopic distribution. */
+         @param m The de-convoluted mass m.
+         @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
+         @return The isotopic distribution. 
+         */
     static const IsotopeDistribution::ContainerType & getAveragine(const double m, UInt * size = nullptr);
 
 
@@ -195,13 +201,14 @@ protected:
 
 
     /** @brief Should be called once before values are drawn from the isotope wavelet function.
-        * The function is automatically called by the public constructor.
-        *
-        * The function pre-computes the expensive gamma function. Parameters related to this function are:
-        * @see max_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
-        * the gamma function online.
-        *
-        * @param max_m The maximal de-convoluted mass that occurs in the current data set. */
+         The function is automatically called by the public constructor.
+        
+         The function pre-computes the expensive gamma function. Parameters related to this function are:
+         @see max_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
+         the gamma function online.
+        
+         @param max_m The maximal de-convoluted mass that occurs in the current data set. 
+         */
     static void preComputeExpensiveFunctions_(const double max_m);
 
 

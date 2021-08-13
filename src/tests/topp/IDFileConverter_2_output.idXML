@@ -58,38 +58,56 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="538.605091698566639" RT="1.3653" >
 			<PeptideHit score="8.0" sequence=".(Glu-&gt;pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
+				<UserParam type="float" name="hyperscore" value="329.0"/>
+				<UserParam type="float" name="nextscore" value="323.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="637.885175031899962" RT="1.719" >
 			<PeptideHit score="7.7" sequence=".(Gln-&gt;pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
+				<UserParam type="float" name="hyperscore" value="173.0"/>
+				<UserParam type="float" name="nextscore" value="167.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="678.384725031899961" RT="2.0436" >
 			<PeptideHit score="4.9" sequence="IFQAALYAAPYK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_4" >
+				<UserParam type="float" name="hyperscore" value="274.0"/>
+				<UserParam type="float" name="nextscore" value="250.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="762.728391698566725" RT="2.7843" >
 			<PeptideHit score="9.1e-04" sequence="EISPDTTLLDLQNNDISELR" charge="3" aa_before="K X X X" aa_after="K X X X" protein_refs="PH_5 PH_6 PH_7 PH_8" >
+				<UserParam type="float" name="hyperscore" value="807.0"/>
+				<UserParam type="float" name="nextscore" value="446.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="1143.595525031900024" RT="3.085" >
 			<PeptideHit score="7.9e-05" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K X X X" aa_after="K X X X" protein_refs="PH_5 PH_6 PH_7 PH_8" >
+				<UserParam type="float" name="hyperscore" value="705.0"/>
+				<UserParam type="float" name="nextscore" value="309.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="770.055225031900022" RT="3.4018" >
 			<PeptideHit score="14.0" sequence="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K" charge="3" aa_before="K X X" aa_after="H X X" protein_refs="PH_9 PH_10 PH_11" >
+				<UserParam type="float" name="hyperscore" value="350.0"/>
+				<UserParam type="float" name="nextscore" value="349.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="757.412291698566719" RT="4.4573" >
 			<PeptideHit score="0.65" sequence="VSLPNYPAIPSDATLEVQSLR" charge="3" aa_before="K X X" aa_after="S X X" protein_refs="PH_12 PH_13 PH_14" >
+				<UserParam type="float" name="hyperscore" value="463.0"/>
+				<UserParam type="float" name="nextscore" value="431.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="807.394125031899989" RT="4.8288" >
 			<PeptideHit score="4.6e-03" sequence="NALWHTGDTESQVR" charge="2" aa_before="R X X" aa_after="L X X" protein_refs="PH_15 PH_16 PH_17" >
+				<UserParam type="float" name="hyperscore" value="478.0"/>
+				<UserParam type="float" name="nextscore" value="278.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="512.784525031899989" RT="5.1785" >
 			<PeptideHit score="1.1" sequence="SSLKNYANK" charge="2" aa_before="R X" aa_after="I X" protein_refs="PH_18 PH_19" >
+				<UserParam type="float" name="hyperscore" value="266.0"/>
+				<UserParam type="float" name="nextscore" value="228.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

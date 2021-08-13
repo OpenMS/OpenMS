@@ -17,4 +17,3 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>" namespace "
         void filterSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakMap(MSExperiment & exp) nogil except +
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -133,14 +133,14 @@ public:
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes and transitions
     void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
-    /*
+    /**
        @brief Calculate the cross-correlation coelution score
 
        The score is a distance where zero indicates perfect coelution.
     */
     double calcXcorrCoelutionScore();
 
-    /*
+    /**
        @brief Calculate the weighted cross-correlation coelution score
 
        The score is a distance where zero indicates perfect coelution. The
@@ -158,7 +158,7 @@ public:
     /// calculate the precursor cross-correlation contrast score
     double calcXcorrPrecursorCoelutionScore();
 
-    /*
+    /**
        @brief Calculate the precursor cross-correlation contrast score against the transitions
 
        The score is a distance where zero indicates perfect coelution.
@@ -168,7 +168,7 @@ public:
     /// calculate the precursor cross-correlation coelution score including the transitions
     double calcXcorrPrecursorCombinedCoelutionScore();
 
-    /*
+    /**
        @brief Calculate the cross-correlation shape score
 
        The score is a correlation measure where 1 indicates perfect correlation
@@ -176,7 +176,7 @@ public:
     */
     double calcXcorrShapeScore();
 
-    /*
+    /**
        @brief Calculate the weighted cross-correlation shape score
 
        The score is a correlation measure where 1 indicates perfect correlation

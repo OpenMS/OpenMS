@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,7 +101,8 @@ public:
     offsets_(),
     data_fg_(),
     data_bg_(),
-    chunk_offset_(0)
+    chunk_offset_(0),
+    filename_(FASTA_file)
   {
     f_.readStart(FASTA_file);
   }
@@ -126,7 +127,7 @@ public:
     return !data_fg_.empty();
   }
 
-  /** @brief Prefetch a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
+  /** @brief Prefetch a new cache in the background, with up to @p suggested_size entries (or fewer upon reaching end-of-file)
 
      Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
      @param suggested_size Number of FASTA entries to read from disk
@@ -199,7 +200,7 @@ public:
   }
 
   /// is the FASTA file empty?
-  bool empty() const
+  bool empty()
   { // trusting the FASTA file can be read...
     return f_.atEnd() && offsets_.empty();
   }
@@ -207,11 +208,11 @@ public:
   /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
   void reset()
   {
-    f_.setPosition(0);
     offsets_.clear();
     data_fg_.clear();
     data_bg_.clear();
     chunk_offset_ = 0;
+    f_.readStart(filename_);
   }
 
 
@@ -231,6 +232,7 @@ private:
   std::vector<FASTAFile::FASTAEntry> data_fg_; ///< active (foreground) data
   std::vector<FASTAFile::FASTAEntry> data_bg_; ///< prefetched (background) data; will become the next active data
   size_t chunk_offset_; ///< number of entries before the current chunk
+  std::string filename_;///< FASTA file name
 };
 
 /**
@@ -336,7 +338,7 @@ private:
 };
 
 /**
-  @brief Helper class for calculcations on decoy proteins
+  @brief Helper class for calculations on decoy proteins
 */
 class DecoyHelper
 {

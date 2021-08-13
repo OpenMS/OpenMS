@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,16 +42,30 @@ using namespace std;
 namespace OpenMS
 { 
 
-  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
+  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
   {
     TIC::Result result;
-    MSChromatogram tic = exp.getTIC(bin_size);
+    MSChromatogram tic = exp.calculateTIC(bin_size, ms_level);
     if (!tic.empty())
     {
       for (const auto& p : tic)
       {
         result.intensities.push_back(p.getIntensity());
         result.retention_times.push_back(p.getRT());
+      }
+
+      UInt max_int = *max_element(result.intensities.begin(), result.intensities.end());
+
+      for (const auto& i: result.intensities)
+      {
+        if (max_int != 0)
+        {
+          result.relative_intensities.push_back((double)i / max_int * 100);
+        }
+        else
+        {
+          result.relative_intensities.push_back(0.0);
+        }
       }
 
       result.area = result.intensities[0];

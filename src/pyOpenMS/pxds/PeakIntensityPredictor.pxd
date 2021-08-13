@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>" namespace "Ope
     
     cdef cppclass PeakIntensityPredictor "OpenMS::PeakIntensityPredictor":
         PeakIntensityPredictor() nogil except +
+        # private
         PeakIntensityPredictor(PeakIntensityPredictor) nogil except + #wrap-ignore
         double predict(AASequence & sequence) nogil except +
         double predict(AASequence & sequence, libcpp_vector[ double ] & add_info) nogil except +
