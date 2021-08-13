@@ -313,11 +313,9 @@ namespace OpenMS
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
-        //array to store object of start and end postion of peptides;
+        //array to store object of start-end postions, sequence and mod data of peptides;
         QJsonArray peptides_data;
-        // Array to store objects of mod data of peptides, peptides start position and sequence
-        QJsonArray peptides_mod_data;
-
+       
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
         for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession])
         {
@@ -340,8 +338,7 @@ namespace OpenMS
               int pep_end = evidence.getEnd();
               if (id_accession.toQString() == current_accession)
               {
-                // contains the keys - mod_data, pep_start and seq and corresponding values
-                QJsonObject peptides_mod_obj;
+               
                 // contains key-value of modName and vector of indices
                 QJsonObject mod_data;
 
@@ -364,32 +361,22 @@ namespace OpenMS
                     }
                   }
                 }
-                peptides_mod_obj["mod_data"] = mod_data;
+               
                 pep_data_obj["start"] = pep_start;
                 pep_data_obj["end"] = pep_end;
                 pep_data_obj["seq"] = qstrseq;
-
-                //TODO why does the modification need to store the peptide sequence?
-                // the modifications in theory only need one index and this is their location
-                //peptides_mod_obj["pep_start"] = pep_start; -> this is not needed anymore as we're sending the location with pep_start in the array itself
-                // peptide sequence is needed to show the sequence as tooltip content when user hovers over the mod.
-                peptides_mod_obj["seq"] = qstrseq; 
+                pep_data_obj["mod_data"] = mod_data;
 
                 peptides_data.push_back(pep_data_obj);
-                peptides_mod_data.push_back(peptides_mod_obj);
               }
             }
           }
         }
 
-        //protein -> not needed, as we're storing the protein sequence as a new column in the protein_table_widget_ itself
-        /*const vector<ProteinIdentification>& prot_id = (*layer_->getPeakData()).getProteinIdentifications();
-        const vector<ProteinHit>& protein_hits = prot_id[current_identification_index].getHits();
-        */
 
         auto* widget = new SequenceVisualizer(); // no parent since we want a new window
         widget->resize(1500,500); // make a bit bigger
-        widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data, peptides_mod_data);
+        widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data);
         widget->show();
       }
     }

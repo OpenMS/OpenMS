@@ -51,7 +51,6 @@
             let acc_num = SequenceVisualizer.json_data_obj.accession_num;
             let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data;
             let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
-            let peptides_mod_data_arr = SequenceVisualizer.json_data_obj.peptides_mod_data;
             let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length;
 
             let peptide_obj = [];
@@ -88,7 +87,7 @@
                 peptide_obj.push(pep_obj);
             }
 
-            for (const pepList of peptides_mod_data_arr) {
+            for (const pepList of peptides_data_arr) {
                 for (let mod in pepList.mod_data) {
                     for(const index of pepList.mod_data[mod]){
                         let mod_obj = {};
@@ -129,6 +128,7 @@
                 displaystart="1"
                 displayend="${protlen}"
                 use-ctrl-to-zoom="true"
+                tooltip-event="mouseover"
             />
             `
             let modProtTrack = `
@@ -157,6 +157,7 @@
             document.querySelector("#track").data = peptide_obj;
             document.querySelector("#mod_track").data = mod_peptide_obj;
 
+            const trackElement = document.querySelector('#track');
             const modTrackElement = document.querySelector('#mod_track');
 	        const toolTipElement = document.querySelector('#toolTip');
 
@@ -175,6 +176,22 @@
 			        toolTipElement.visible = false;
 		        }
 	        });
+
+            trackElement.addEventListener('change', (event) => {
+		            if(event.detail.eventtype == "mouseover"){
+                        let cur_data = event.detail.feature
+			            let x = event.detail.coords[0];
+	  		            let y = event.detail.coords[1];
+	  		            toolTipElement.visible = true;
+	  		            toolTipElement.x = x;
+	  		            toolTipElement.y = y;	
+                        toolTipElement.title = "Peptide Sequence";
+                        toolTipElement.innerHTML = cur_data.accession;
+		            }
+		            if(event.detail.eventtype == "mouseout"){
+			            toolTipElement.visible = false;
+		            }
+	            });
             });
         });
     </script>

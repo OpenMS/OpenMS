@@ -63,13 +63,11 @@ namespace OpenMS
 
   void SequenceVisualizer::setProteinPeptideDataToJsonObj(const QString& accession_num,
       const QString& pro_seq,
-      const QJsonArray& pep_data,
-      const QJsonArray& pep_mod_data)
+      const QJsonArray& pep_data)
   {
     m_json_data_obj["accession_num"] = accession_num;
     m_json_data_obj["protein_sequence_data"] = pro_seq;
     m_json_data_obj["peptides_data"] = pep_data;
-    m_json_data_obj["peptides_mod_data"] = pep_mod_data;
   }
 }// namespace OpenMS
 #endif
