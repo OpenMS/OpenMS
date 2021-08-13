@@ -118,15 +118,17 @@ namespace OpenMS
     else if (rhs.meta_ == nullptr && meta_ != nullptr)
     {
       if (meta_->empty())
+      {
         return true;
-
+      }
       return false;
     }
     else if (rhs.meta_ != nullptr && meta_ == nullptr)
     {
       if (rhs.meta_->empty())
+      {
         return true;
-
+      }
       return false;
     }
     return *meta_ == *(rhs.meta_);
