@@ -438,6 +438,9 @@ namespace OpenMS
 
   void DBSuitability::calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const
   {
+    // make sure no old data messes up the calculations
+    data.clear();
+
     bool no_re_rank = param_.getValue("no_rerank").toBool();
     double cut_off_fract = param_.getValue("reranking_cutoff_percentile");
 
@@ -733,6 +736,19 @@ namespace OpenMS
       continue;
     }
     return worst_score;
+  }
+
+  void DBSuitability::SuitabilityData::clear()
+  {
+    num_top_novo = 0;
+    num_top_db = 0;
+    num_re_ranked = 0;
+    cut_off = DBL_MAX;
+    suitability = 0;
+    suitability_no_rerank = 0;
+    num_top_novo_corr = 0;
+    suitability_corr = 0;
+    suitability_corr_no_rerank = 0;
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

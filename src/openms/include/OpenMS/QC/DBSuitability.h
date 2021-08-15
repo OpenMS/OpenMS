@@ -109,6 +109,9 @@ namespace OpenMS
       /// the suitability after correcting the top deNovo hits, if re-ranking would have been disabled
       double suitability_corr_no_rerank = 0;
 
+      // resets all members to their defaults
+      void clear();
+
       /// apply a correction factor to the already calculated suitability
       /// only works if num_top_db and num_top_novo contain a non-zero value
       void setCorrectionFactor(double factor);
