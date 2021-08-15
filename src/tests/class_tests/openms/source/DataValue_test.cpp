@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -468,22 +469,28 @@ START_SECTION((operator ParamValue() const))
   StringList s_l = {"test", "list"};
   vector<std::string> std_s_l = {"test", "list"};
 
-  ParamValue p_i = DataValue(i);
+  DataValue d_i(i);
+  ParamValue p_i = d_i;
   TEST_EQUAL(p_i, ParamValue(i))
 
-  ParamValue p_d = DataValue(d);
+  DataValue d_d(d);
+  ParamValue p_d = d_d;
   TEST_EQUAL(p_d, ParamValue(d))
 
-  ParamValue p_s = DataValue(s);
+  DataValue d_s(s);
+  ParamValue p_s = d_s;
   TEST_EQUAL(p_s, ParamValue(s))
 
-  ParamValue p_i_l = DataValue(i_l);
+  DataValue d_i_l(i_l);
+  ParamValue p_i_l = d_i_l;
   TEST_EQUAL(p_i_l, ParamValue(i_l))
-
-  ParamValue p_d_l = DataValue(d_l);
+  
+  DataValue d_d_l(d_l);
+  ParamValue p_d_l = d_d_l;
   TEST_EQUAL(p_d_l, ParamValue(d_l))
 
-  ParamValue p_s_l = DataValue(s_l);
+  DataValue d_s_l(s_l);
+  ParamValue p_s_l = d_s_l;
   TEST_EQUAL(p_s_l, ParamValue(std_s_l))
 }
 END_SECTION
