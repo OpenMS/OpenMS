@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,8 +66,10 @@ namespace OpenMS
     // H5F_ACC_RDONLY - Open file as read-only, if it already exists, and fail, otherwise
     // H5F_ACC_RDWR - Open file for read/write, if it already exists, and fail, otherwise
     unsigned int openFlag = H5F_ACC_RDWR;
-    if (createNewFile) openFlag = H5F_ACC_TRUNC;
-
+    if (createNewFile)
+    {
+      openFlag = H5F_ACC_TRUNC;
+    }
     FileCreatPropList fcparm = FileCreatPropList::DEFAULT;
     FileAccPropList faparm = FileAccPropList::DEFAULT;
     file_ = new H5::H5File(filename, openFlag, fcparm, faparm);

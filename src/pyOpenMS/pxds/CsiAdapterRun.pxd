@@ -5,5 +5,5 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
     
     cdef cppclass CsiAdapterRun "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterRun":
         CsiAdapterRun() nogil except +
-        CsiAdapterRun(CsiAdapterRun) nogil except + #wrap-ignore
+        CsiAdapterRun(CsiAdapterRun &) nogil except + # compiler
         libcpp_vector[CsiAdapterIdentification] identifications

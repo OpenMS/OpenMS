@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ public:
 
       @param[in] quantitation_methods The absolute quantitation methods that has been determined for each component
       @param[in,out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
-        MRMFeatureQC::ComponentQCs.calculated_concetration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
+        MRMFeatureQC::ComponentQCs.calculated_concentration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
     */
     void TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC& filter_template);
 
@@ -166,7 +166,7 @@ public:
 
       @param[in] samples multiple Blank samples to estimate the background intensity values FeatureMaps
       @param[in,out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
-        to estimate the Percentinterference.  The average values will be stored in the upper bound parameter of the filter_template
+        to estimate the PercentInterference.  The average values will be stored in the upper bound parameter of the filter_template
       @param[in] transitions transitions from a TargetedExperiment
     */
     void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
@@ -257,7 +257,7 @@ public:
     ) const;
 
     /**
-      @brief Uses the supplied value to initilaize the metaValue ranges to the same value
+      @brief Uses the supplied value to initialize the metaValue ranges to the same value
 
       @param[in] component component of the numerator
       @param[in] meta_value_key Name of the metaValue

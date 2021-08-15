@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,8 +78,6 @@ public:
 
     /// Return a pointer to a chromatogram at the given id
     virtual ChromatogramPtr getChromatogramById(int id) = 0;
-    //virtual std::vector<std::size_t> getChromatogramByPrecursorMZ(double mz,
-    //    double deltaMZ) const = 0;
     /// Returns the number of chromatograms available
     virtual std::size_t getNrChromatograms() const = 0;
     /// Returns the native id of the chromatogram at the given id

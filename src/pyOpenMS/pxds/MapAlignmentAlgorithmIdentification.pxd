@@ -20,6 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         #    ProgressLogger
 
         MapAlignmentAlgorithmIdentification() nogil except +
+        # private
+        MapAlignmentAlgorithmIdentification(MapAlignmentAlgorithmIdentification &) nogil except + # wrap-ignore
         
         void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&, int) nogil except +
         void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) nogil except +

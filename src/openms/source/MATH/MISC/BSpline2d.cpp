@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,12 +70,6 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->slope(x);
-  }
-
-  double BSpline2d::derivatives(const double x, unsigned /* order */) const
-  {
-    // OPENMS_PRECONDITION(order == 1, "Spline was not initialized properly.")
-    return derivative(x);
   }
 
   bool BSpline2d::ok() const

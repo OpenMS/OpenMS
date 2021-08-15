@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -277,7 +277,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     p.setIsolationWindowUpperOffset(7);
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
-    p.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+    p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
     p.setMetaValue("peptide_sequence", "PEPTIDEK");
 
     std::vector<Precursor> prec;
@@ -392,7 +392,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     p.setIsolationWindowUpperOffset(7);
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
-    p.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+    p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
     p.setMetaValue("peptide_sequence", "PEPTIDEK");
 
     std::vector<Precursor> prec;

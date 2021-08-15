@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,8 +128,9 @@ print s
   {
     out.clear();
     if (in.empty())
+    {
       return;
-
+    }
     std::string str;
     std::string compressed;
     Byte* it;
@@ -137,7 +138,10 @@ print s
     for (Size i = 0; i < in.size(); ++i)
     {
       str = str.append(in[i]);
-      if (append_null_byte) str.push_back('\0');
+      if (append_null_byte)
+      {
+        str.push_back('\0');
+      }
     }
 
     if (zlib_compression)
@@ -209,10 +213,13 @@ print s
 
       // fixup for padding
       if (padding_count > 0)
+      {
         to[3] = '=';
+      }
       if (padding_count > 1)
+      {
         to[2] = '=';
-
+      }
       to += 4;
       written += 4;
     }

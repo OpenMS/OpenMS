@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         #  XMLFile
 
         XQuestResultXMLFile() nogil except +
-        XQuestResultXMLFile(XQuestResultXMLFile) nogil except + #wrap-ignore
+        XQuestResultXMLFile(XQuestResultXMLFile &) nogil except +
 
         void load(const String & filename,
                 libcpp_vector[ PeptideIdentification ] & pep_ids,

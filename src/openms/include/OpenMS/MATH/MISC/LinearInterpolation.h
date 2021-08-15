@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ public:
         }
       }
 
-      /**@brief Performs linear resampling.  The arg_value is split up and
+      /** @brief Performs linear resampling.  The arg_value is split up and
       added to the data points around arg_pos.
       */
       void addValue(KeyType arg_pos, ValueType arg_value)
@@ -237,7 +237,7 @@ public:
         }
       }
 
-      /**@brief Returns the interpolated derivative.
+      /** @brief Returns the interpolated derivative.
 
       Please drop me (= the maintainer) a message if you are using this.
       */
@@ -321,7 +321,7 @@ public:
         return data_;
       }
 
-      /**@brief Assigns data to the internal random access container from
+      /** @brief Assigns data to the internal random access container from
       which interpolated values are being sampled.
 
       SourceContainer must be assignable to ContainerType.
@@ -374,7 +374,7 @@ public:
         return scale_;
       }
 
-      /**@brief Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
+      /** @brief Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
 
       <b>Note:</b> Using this invalidates the inside and outside reference
       points.
@@ -401,8 +401,8 @@ public:
         offset_ = offset;
       }
 
-      /**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
-      - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
+      /** @brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
+       - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
       - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
 
       For example, when you have a complicated probability distribution
@@ -422,7 +422,7 @@ public:
         offset_  = outside - scale * inside;
       }
 
-      /**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
+      /** @brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
       - <code>inside_low</code> and <code>outside_low</code>: these axis positions are mapped onto each other.
       - <code>inside_high</code> and <code>outside_high</code>: these axis positions are mapped onto each other.
 

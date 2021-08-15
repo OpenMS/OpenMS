@@ -1481,32 +1481,6 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-     FeatureFinderAlgorithmSH.getDefaults
-     FeatureFinderAlgorithmSH.getName
-     FeatureFinderAlgorithmSH.getParameters
-     FeatureFinderAlgorithmSH.getProductName
-     FeatureFinderAlgorithmSH.setName
-     FeatureFinderAlgorithmSH.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -1807,17 +1781,6 @@ def testFeatureFinderAlgorithmPicked():
 
     assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-
-    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
 
 @report
 def testFeatureFinderAlgorithmIsotopeWavelet():

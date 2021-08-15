@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1679,16 +1679,22 @@ namespace OpenMS
     addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
 
     const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-    if (pep_ids.empty()) { return row; }
+    if (pep_ids.empty())
+    {
+      return row;
+    }
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
-    for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    for (const PeptideIdentification& it : pep_ids)
     {
-      all_hits.insert(all_hits.end(), it->getHits().begin(), it->getHits().end());
+      all_hits.insert(all_hits.end(), it.getHits().begin(), it.getHits().end());
     }
 
-    if (all_hits.empty()) { return row; }
+    if (all_hits.empty())
+    { 
+      return row;
+    }
 
     // create new peptide id object to assist in sorting
     PeptideIdentification new_pep_id = pep_ids[0];
@@ -2044,7 +2050,10 @@ namespace OpenMS
     const vector<PeptideHit>& phs = pid.getHits();
 
     // add the row and continue to next PepID, if the current one was an empty one
-    if (phs.empty()) { return row; }
+    if (phs.empty())
+    { 
+      return row;
+    }
 
     /////// Information that does require a peptide hit ///////
     PeptideHit current_ph;
@@ -2608,7 +2617,10 @@ Not sure how to handle these:
             return ph.getAccession() == a;
           }
         );
-        if (it == proteins.end()) { continue; }
+        if (it == proteins.end())
+        { 
+          continue;
+        }
         Size protein_index = std::distance(proteins.begin(), it);
         group2prot[idx].insert(protein_index);
       }
@@ -2945,9 +2957,8 @@ Not sure how to handle these:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = sp.db;
-      db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
+      String db_basename = File::basename(sp.db);
+      db_ = MzTabString(FileHandler::stripExtension(db_basename));
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
     }
 
@@ -3444,7 +3455,7 @@ state0:
 
     // create column names from meta values
     for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referencable via spectra_ref
+    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
@@ -3494,9 +3505,9 @@ state0:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = sp.db;
-      db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
+      String db_basename = File::basename(sp.db);
+      db_ = MzTabString(FileHandler::stripExtension(db_basename));
+
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
 
       ////////////////////////////////////////////////////////////////

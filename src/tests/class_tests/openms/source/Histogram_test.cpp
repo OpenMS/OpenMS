@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,6 +243,28 @@ START_SECTION((BinSizeType centerOfBin(Size bin_index) const))
 	TEST_REAL_SIMILAR(dist.centerOfBin(3),3.5);
 	TEST_REAL_SIMILAR(dist.centerOfBin(4),4.5);
 	TEST_EXCEPTION(Exception::IndexOverflow, dist.centerOfBin(5))
+END_SECTION
+
+START_SECTION((BinSizeType leftBorderOfBin(Size bin_index) const))
+	Histogram<float, float> dist(0, 5, 1);
+
+	TEST_EQUAL(dist.leftBorderOfBin(0), 0);
+  TEST_EQUAL(dist.leftBorderOfBin(1), 1);
+  TEST_EQUAL(dist.leftBorderOfBin(2), 2);
+  TEST_EQUAL(dist.leftBorderOfBin(3), 3);
+  TEST_EQUAL(dist.leftBorderOfBin(4), 4);
+  TEST_EXCEPTION(Exception::IndexOverflow, dist.leftBorderOfBin(5))
+END_SECTION
+
+START_SECTION((BinSizeType rightBorderOfBin(Size bin_index) const))
+	Histogram<float, float> dist(0, 5, 1);
+
+	TEST_EQUAL(dist.rightBorderOfBin(0), 1);
+	TEST_EQUAL(dist.rightBorderOfBin(1), 2);
+	TEST_EQUAL(dist.rightBorderOfBin(2), 3);
+	TEST_EQUAL(dist.rightBorderOfBin(3), 4);
+	TEST_EQUAL(dist.rightBorderOfBin(4), std::nextafter(5.0f, 6.0f));// its actually the next item after 5.0
+	TEST_EXCEPTION(Exception::IndexOverflow, dist.rightBorderOfBin(5))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
         #   getName().c_str()
 
         Ribonucleotide() nogil except +
-        Ribonucleotide(Ribonucleotide) nogil except + # wrap-ignore
+        Ribonucleotide(Ribonucleotide &) nogil except +
 
         # detailed constructor
         Ribonucleotide(String name,

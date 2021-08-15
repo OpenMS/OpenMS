@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <set>
 
@@ -60,6 +61,25 @@ namespace OpenMS
   {
 
 public:
+    /// Constructor
+    Precursor() = default;
+    /// Copy constructor
+    Precursor(const Precursor&) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    Precursor(Precursor&&) noexcept;
+    /// Destructor
+    ~Precursor() override = default;
+
+    /// Assignment operator
+    Precursor& operator=(const Precursor&) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
+
 
     /// Method of activation
     enum ActivationMethod
@@ -79,46 +99,15 @@ public:
       PQD,                      ///< Pulsed q dissociation
       SIZE_OF_ACTIVATIONMETHOD
     };
-
-    ///Drift time unit
-    enum DriftTimeUnit
-    {
-      NONE,                        ///< No unit
-      MILLISECOND,                 ///< milliseconds
-      VSSC,                        ///< volt-second per square centimeter
-      FAIMS_COMPENSATION_VOLTAGE,  ///< compensation voltage
-      SIZE_OF_DRIFTTIMEUNIT
-    };
-
-
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
-
-    /// Constructor
-    Precursor();
-    /// Copy constructor
-    Precursor(const Precursor &) = default;
-
-    // note: we implement the move constructor ourselves due to a bug in MSVS
-    // 2015/2017 which cannot produce a default move constructor for classes
-    // that contain STL containers (other than vector).
-
-    /// Move constructor
-    Precursor(Precursor&&) noexcept;
-    /// Destructor
-    ~Precursor() override;
-
-    /// Assignment operator
-    Precursor & operator=(const Precursor &) = default;
-    /// Move assignment operator
-    Precursor& operator=(Precursor&&) & = default;
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
     /// Equality operator
     bool operator!=(const Precursor & rhs) const;
-
+  
     /// returns a const reference to the activation methods
     const std::set<ActivationMethod>& getActivationMethods() const;
     /// returns a mutable reference to the activation methods
@@ -216,14 +205,14 @@ public:
     /// Mutable access to the charge
     void setCharge(Int charge);
 
-    ///Mutable access to possible charge states
-    std::vector<Int> & getPossibleChargeStates();
-    ///Non-mutable access to possible charge states
-    const std::vector<Int> & getPossibleChargeStates() const;
-    ///Sets the possible charge states
+    /// Mutable access to possible charge states
+    std::vector<Int>& getPossibleChargeStates();
+    /// Non-mutable access to possible charge states
+    const std::vector<Int>& getPossibleChargeStates() const;
+    /// Sets the possible charge states
     void setPossibleChargeStates(const std::vector<Int> & possible_charge_states);
 
-    /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+    /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0, our best guess is doubly charged
     inline double getUnchargedMass() const
     {
       int c = charge_;
@@ -234,14 +223,14 @@ public:
 protected:
 
     std::set<ActivationMethod> activation_methods_;
-    double activation_energy_;
-    double window_low_;
-    double window_up_;
-    double drift_time_;
-    double drift_window_low_;
-    double drift_window_up_;
-    DriftTimeUnit drift_time_unit_;
-    Int charge_;
+    double activation_energy_{};
+    double window_low_{};
+    double window_up_{};
+    double drift_time_{-1};
+    double drift_window_low_{};
+    double drift_window_up_{};
+    DriftTimeUnit drift_time_unit_{DriftTimeUnit::NONE};
+    Int charge_{};
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS

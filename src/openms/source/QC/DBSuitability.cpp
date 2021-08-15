@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -469,8 +469,10 @@ namespace OpenMS
     {
       const vector<PeptideHit>& hits = pep_id.getHits();
 
-      if (hits.empty()) continue;
-
+      if (hits.empty())
+      {
+        continue;
+      }
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
@@ -499,8 +501,10 @@ namespace OpenMS
 
         // check if target, also check for "target+decoy" value
         String td_info(hits[i].getMetaValue("target_decoy"));
-        if (td_info.find("target") != 0) continue;
-
+        if (td_info.find("target") != 0)
+        {
+          continue;
+        }
         // check if hit is novo hit
         if (isNovoHit_(hits[i])) continue;
 

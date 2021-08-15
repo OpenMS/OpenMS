@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Mathias Walzer, Axel Walter $
 // $Author: Mathias Walzer, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -145,7 +150,7 @@ protected:
     String inputfile_id = getStringOption_("id");
     String inputfile_feature = getStringOption_("feature");
     String inputfile_consensus = getStringOption_("consensus");
-    String inputfile_raw = getStringOption_("in");
+    String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
     String contact_name = getStringOption_("name");
     String contact_address = getStringOption_("address");
@@ -158,24 +163,49 @@ protected:
 
     // prepare input
     cout << "Reading mzML file..." << endl;
-    PeakMap exp;
-    MzMLFile().load(inputfile_raw, exp);
-
+    MSExperiment exp;
+    MzMLFile().load(inputfile_name, exp);
     exp.sortSpectra();
     exp.updateRanges();
+
+    FeatureMap feature_map;
+    if (!inputfile_feature.empty())
+    {
+      cout << "Reading featureXML file..." << endl;
+      FeatureXMLFile().load(inputfile_feature, feature_map);
+      feature_map.updateRanges();
+      feature_map.sortByRT();
+    }
+
+    ConsensusMap consensus_map;
+    if (!inputfile_consensus.empty())
+    {
+      cout << "Reading consensusXML file..." << endl;
+      ConsensusXMLFile().load(inputfile_consensus, consensus_map);
+    }
+
+    vector<ProteinIdentification> prot_ids;
+    vector<PeptideIdentification> pep_ids;
+    if (!inputfile_id.empty())
+    {
+      cout << "Reading idXML file..." << endl;
+      IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
+    }
     
     // collect QC data and store according to output file extension
     if (out_type == FileTypes::QCML) 
     {
       QcMLFile qcmlfile;
-      qcmlfile.collectQCData(inputfile_id, inputfile_feature,
-                    inputfile_consensus, inputfile_raw, remove_duplicate_features, exp);
+      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
+                    consensus_map, inputfile_name, remove_duplicate_features, exp);
       qcmlfile.store(outputfile_name);
     } 
     else if (out_type == FileTypes::MZQC)
     {
       MzQCFile mzqcfile;
-      mzqcfile.store(inputfile_raw, outputfile_name, exp, contact_name, contact_address, description, label);
+
+      mzqcfile.store(inputfile_name, outputfile_name, exp, contact_name, contact_address,
+                     description, label, feature_map, prot_ids, pep_ids);
     }
 
     return EXECUTION_OK;

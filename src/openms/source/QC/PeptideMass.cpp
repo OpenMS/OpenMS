@@ -42,7 +42,10 @@ namespace OpenMS
   {
     features.applyFunctionOnPeptideIDs([](PeptideIdentification& pi)
     {
-      if (pi.getHits().empty()) return;
+      if (pi.getHits().empty())
+      {
+        return;
+      }
       auto& hit = pi.getHits()[0];
       hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
     }, true);

@@ -14,7 +14,8 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         #  XMLFile
         #  ProgressLogger
         QcMLFile() nogil except +
-        QcMLFile(QcMLFile) nogil except + #wrap-ignore
+        # copy constructor of 'QcMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor public Internal::XMLHandler,
+        QcMLFile(QcMLFile &) nogil except + # wrap-ignore
         String map2csv(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, const String & separator) nogil except + # wrap-ignore
         String exportIDstats(const String & filename) nogil except +
         void addRunQualityParameter(String r, QualityParameter qp) nogil except +
@@ -42,12 +43,11 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         String exportQPs(String filename, StringList qpnames) nogil except +
         void getRunIDs(libcpp_vector[ String ] & ids) nogil except +
 
-
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
     
     cdef cppclass QualityParameter "OpenMS::QcMLFile::QualityParameter":
         QualityParameter() nogil except +
-        QualityParameter(QualityParameter) nogil except +
+        QualityParameter(QualityParameter &) nogil except + # compiler
         String name
         String id
         String value
@@ -60,4 +60,3 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
         bool operator<(QualityParameter & rhs) nogil except +
         bool operator>(QualityParameter & rhs) nogil except +
         String toXMLString(UInt indentation_level) nogil except +
-
