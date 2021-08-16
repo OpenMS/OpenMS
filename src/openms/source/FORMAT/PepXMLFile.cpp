@@ -1499,11 +1499,11 @@ namespace OpenMS
       {
         // look up the modification in the search_summary by mass
         bool found = false;
-        for (const AminoAcidModification& it : variable_modifications_)
+        for (const AminoAcidModification& amino : variable_modifications_)
         {
-          if ((fabs(mod_cterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "c")
+          if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(amino.getRegisteredMod(), 42); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
