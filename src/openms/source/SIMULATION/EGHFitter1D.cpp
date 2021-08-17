@@ -158,8 +158,9 @@ namespace OpenMS
   EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -175,9 +176,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -255,8 +260,9 @@ namespace OpenMS
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
     if (std::isnan(correlation))
+    {
       correlation = -1.0;
-
+    }
     return correlation;
   }
 
@@ -265,8 +271,9 @@ namespace OpenMS
     // sum over all intensities
     CoordinateType sum = 0.0;
     for (Size i = 0; i < set.size(); ++i)
+    {
       sum += set[i].getIntensity();
-
+    }
     // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;

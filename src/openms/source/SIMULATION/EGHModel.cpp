@@ -94,8 +94,9 @@ namespace OpenMS
   EGHModel & EGHModel::operator=(const EGHModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -108,8 +109,9 @@ namespace OpenMS
     ContainerType & data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
-
+    }
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
 
