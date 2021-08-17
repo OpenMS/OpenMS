@@ -284,14 +284,12 @@ namespace OpenMS
     // Open browser with accession when clicked on the accession column on a row
     if (column == ProteinClmn::ACCESSION)
     {
-
       // This stores the complete accession, eg, "tr|A9GID7|A9GID7_SORC5"
       QString accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
 
       // As with the current logic, we have only one accession per row, we can directy use that accession 
       // while opening the window instead of showing another widget that lists all accessions
       openUniProtSiteWithAccession_(accession);
-      
     }
 
     //Open window
@@ -338,7 +336,6 @@ namespace OpenMS
               int pep_end = evidence.getEnd();
               if (id_accession.toQString() == current_accession)
               {
-               
                 // contains key-value of modName and vector of indices
                 QJsonObject mod_data;
 
@@ -361,18 +358,16 @@ namespace OpenMS
                     }
                   }
                 }
-               
                 pep_data_obj["start"] = pep_start;
                 pep_data_obj["end"] = pep_end;
                 pep_data_obj["seq"] = qstrseq;
                 pep_data_obj["mod_data"] = mod_data;
-
+                //Push objects to array that will be passed to html
                 peptides_data.push_back(pep_data_obj);
               }
             }
           }
         }
-
 
         auto* widget = new SequenceVisualizer(); // no parent since we want a new window
         widget->resize(1500,500); // make a bit bigger
@@ -469,7 +464,6 @@ namespace OpenMS
         // column might not be present. Check the header name to make sure
         && table_widget_->horizontalHeaderItem(Clmn::PEAK_ANNOTATIONS)->text() == Clmn::HEADER_NAMES[Clmn::PEAK_ANNOTATIONS])
     {
-
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)// might be null for MS1 spectra
       {
@@ -530,12 +524,10 @@ namespace OpenMS
         fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
         QApplication::setActiveWindow(fragment_window_);
       }
-
     } // PeakAnnotation cell clicked
 
     // Update the protein table with data of the id row that was clicked
     updateProteinEntries_(row);
-
   }
 
   bool SpectraIDViewTab::hasData(const LayerData* layer)
@@ -560,7 +552,6 @@ namespace OpenMS
     is_first_time_loading = true;
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
-
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -920,7 +911,6 @@ namespace OpenMS
     // call this updateProteinEntries_(-1) function after the table_widget data is filled, 
     // otherwise table_widget_->item(row, clm) returns nullptr;
     updateProteinEntries_(selected_row);
-
   }
  
   void SpectraIDViewTab::saveIDs_()

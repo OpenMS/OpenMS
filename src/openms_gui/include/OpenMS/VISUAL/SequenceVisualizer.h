@@ -48,7 +48,6 @@ namespace Ui
 
 namespace OpenMS
 {
-
   class OPENMS_GUI_DLLAPI SequenceVisualizer : public QWidget
   {
     Q_OBJECT
@@ -59,7 +58,6 @@ namespace OpenMS
     ~SequenceVisualizer() override;
 
   public slots:
-
     void setProteinPeptideDataToJsonObj(
         const QString& accession_num, 
         const QString& pro_seq, 

@@ -97,12 +97,12 @@ namespace OpenMS
     void requestVisibleArea1D(double lower_mz, double upper_mz);
 
   private:
-   /// partially fill the bottom-most row  
-   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
-   // extract the required part of the accession 
-   static QString extractNumFromAccession_(const QString& listItem);
-   //open browser to navigate to uniport site with accession
-   void openUniProtSiteWithAccession_(const QString& accession);
+    /// partially fill the bottom-most row  
+    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
+    // extract the required part of the accession 
+    static QString extractNumFromAccession_(const QString& listItem);
+    //open browser to navigate to uniport site with accession
+    void openUniProtSiteWithAccession_(const QString& accession);
 
     LayerData* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
@@ -112,6 +112,7 @@ namespace OpenMS
     QTableWidget* fragment_window_ = nullptr;
     bool is_first_time_loading = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
+
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
@@ -130,6 +131,5 @@ namespace OpenMS
     void updatedSingleProteinCell_(QTableWidgetItem* item);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
-
   };
 }

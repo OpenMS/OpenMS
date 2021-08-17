@@ -19,7 +19,7 @@
     <!-- d3 -->
     <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2" defer></script>
 
-    <!-- protvista -->
+    <!-- protvista components -->
     <script src="https://cdn.jsdelivr.net/npm/protvista-manager@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-utils@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-zoomable@latest" defer></script>
@@ -28,7 +28,6 @@
     <script src="https://cdn.jsdelivr.net/npm/protvista-tooltip@latest" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/protvista-sequence@latest" defer></script>
     <script defer>
-
         document.addEventListener("DOMContentLoaded", function () {
             console.log("DOM Loaded...");
             new QWebChannel(qt.webChannelTransport,
@@ -163,14 +162,14 @@
 
 	        modTrackElement.addEventListener('change', (event) => {
 		        if(event.detail.eventtype == "mouseover"){
-                    let cur_mod_data = event.detail.feature
+                    let pep_mod_data = event.detail.feature;
 			        let x = event.detail.coords[0];
 	  		        let y = event.detail.coords[1];
 	  		        toolTipElement.visible = true;
 	  		        toolTipElement.x = x;
 	  		        toolTipElement.y = y;	
-                    toolTipElement.title = cur_mod_data.tooltipContent;
-                    toolTipElement.innerHTML = cur_mod_data.accession;
+                    toolTipElement.title = pep_mod_data.tooltipContent;
+                    toolTipElement.innerHTML = pep_mod_data.accession;
 		        }
 		        if(event.detail.eventtype == "mouseout"){
 			        toolTipElement.visible = false;
@@ -179,14 +178,14 @@
 
             trackElement.addEventListener('change', (event) => {
 		            if(event.detail.eventtype == "mouseover"){
-                        let cur_data = event.detail.feature
+                        let pep_data = event.detail.feature
 			            let x = event.detail.coords[0];
 	  		            let y = event.detail.coords[1];
 	  		            toolTipElement.visible = true;
 	  		            toolTipElement.x = x;
 	  		            toolTipElement.y = y;	
-                        toolTipElement.title = "Peptide Sequence";
-                        toolTipElement.innerHTML = cur_data.accession;
+                        toolTipElement.title = "Peptide " + pep_data.start + "-" + pep_data.end;
+                        toolTipElement.innerHTML = pep_data.accession;
 		            }
 		            if(event.detail.eventtype == "mouseout"){
 			            toolTipElement.visible = false;
