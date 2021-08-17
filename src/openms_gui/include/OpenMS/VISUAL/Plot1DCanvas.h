@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -286,9 +286,9 @@ protected:
     // Docu in base class
     void intensityModeChange_() override;
 
-    /// Draw modes (for each spectrum)
+    /// Draw modes (for each layer)
     std::vector<DrawModes> draw_modes_;
-    /// Draw style
+    /// Draw style (for each layer)
     std::vector<Qt::PenStyle> peak_penstyle_;
 
     /// start point of "ruler" for measure mode

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,20 +50,20 @@ namespace OpenMS
     defaults_.setMinFloat("gapcost", 0.0);
     defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.). Therefore the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
-    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", {"advanced"});
     defaults_.setMinFloat("cutoff_score", 0.0);
     defaults_.setMaxFloat("cutoff_score", 1.0);
-    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", {"advanced"});
     defaults_.setMinInt("bucketsize", 1);
-    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", {"advanced"});
+    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", {"advanced"});
     defaults_.setMinInt("anchorpoints", 1);
     defaults_.setMaxInt("anchorpoints", 100);
-    defaults_.setValidStrings("debug", ListUtils::create<String>("true,false"));
-    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("debug", {"true","false"});
+    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", {"advanced"});
     defaults_.setMaxFloat("mismatchscore", 0.0);
     defaults_.setValue("scorefunction", "SteinScottImproveScore", "The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two spectra. The score influence defines later the way of possible traceback. There are multiple spectra similarity scores available..");
-    defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore")); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    defaults_.setValidStrings("scorefunction", {"SteinScottImproveScore","ZhangSimilarityScore"}); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     defaultsToParam_();
     setLogType(CMD);
   }
@@ -99,11 +99,11 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation)
   {
-    //tempalign ->container for holding only MSSpectrums with MS-Level 1
+    //tempalign -> container for holding only MSSpectrums with MS-Level 1
     std::vector<MSSpectrum*> tempalign;
     msFilter_(aligned, tempalign);
 
-    //if it's possible, built 4 blocks. These can be individually be aligned.
+    //if it is possible, built 4 blocks. These can be aligned individually
     std::vector<Size> alignpoint;
     //saving the first coordinates
     alignpoint.push_back(0);
@@ -173,7 +173,7 @@ namespace OpenMS
     /*
         for (Size i = 0; i< xcoordinate.size(); ++i)
         {
-            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
         }
         std::cout << std::endl;
         */
@@ -181,7 +181,7 @@ namespace OpenMS
     /*std::cout << xcoordinate.size()<< std::endl;
             for (Size i = 0; i< xcoordinate.size(); ++i)
             {
-                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
             }*/
 
     // store the data points defining the transformation:
@@ -269,7 +269,7 @@ namespace OpenMS
                 if (insideBand_(i, j, n, m, k_))
                 {
                   mh = firstcolummatchmatrix[i][j] - gap_;
-                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" firstcolumnnn "<<std::endl;
+                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" first column "<<std::endl;
                   i += 1;
                 }
                 else
@@ -291,7 +291,7 @@ namespace OpenMS
                 float md = firstcolummatchmatrix[i - 1][j - 1] + s;
                 //std::cout << i << " " << j << " i j " << mv << " mv " << mh << " mh " << md << " md " << std::endl;
                 secondcolummatchmatrix[i][j] = std::max((float)md, std::max((float)(mv), (float)(mh)));
-                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j zweiter colum" << std::endl;
+                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j second column" << std::endl;
                 if (secondcolummatchmatrix[i][j] == mh)
                 {
                   traceback[i][j] = 1;
@@ -436,12 +436,12 @@ namespace OpenMS
   {
     if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
-      //std::cout << i << " i " << j << " j " << " innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " inside" << std::endl;
       return true;
     }
     else
     {
-      //std::cout << i << " i " << j << " j " << "NICHT innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " outside" << std::endl;
       return false;
     }
   }
@@ -809,9 +809,9 @@ namespace OpenMS
     e_      = (float)param_.getValue("affinegapcost");
 
     // create spectrum compare functor if it does not yet exist
-    if (c1_ == nullptr || c1_->getName() != (String)param_.getValue("scorefunction"))
+    if (c1_ == nullptr || c1_->getName() != param_.getValue("scorefunction"))
     {
-      c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
+      c1_ = Factory<PeakSpectrumCompareFunctor>::create(param_.getValue("scorefunction").toString());
     }
 
     cutoffScore_ = (float)param_.getValue("cutoff_score");
@@ -825,8 +825,7 @@ namespace OpenMS
       anchorPoints_ = 100;
     }
 
-    String tmp = (String)param_.getValue("debug");
-    debug_ = (tmp == "true");
+    debug_ = param_.getValue("debug").toBool();
     threshold_ = 1 - cutoffScore_;
   }
 

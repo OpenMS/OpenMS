@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,13 +145,13 @@ END_SECTION
 START_SECTION((void preCheck(Param &param) const ))
 {
   Param p;
-  p.setValue("Digestion:enzyme","Trypsin","Test Param", ListUtils::create<String>(""));
+  p.setValue("Digestion:enzyme","Trypsin","Test Param", {});
 
   O18Labeler labeler;
   labeler.preCheck(p);
 
   Param p_Exception;
-  p_Exception.setValue("Digestion:enzyme","not-Trypsin","Test Param", ListUtils::create<String>(""));
+  p_Exception.setValue("Digestion:enzyme","not-Trypsin","Test Param",{});
   TEST_EXCEPTION(Exception::InvalidParameter, labeler.preCheck(p_Exception))
 }
 END_SECTION

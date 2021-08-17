@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
     defaults_.setValue("rt_settings:gauss_mean", -1.0, "mean of the gauss curve");
     defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
-    defaults_.setValidStrings("precursor_mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("precursor_mass_tolerance_unit", {"ppm","Da"});
     defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
@@ -245,7 +245,7 @@ namespace OpenMS
   void PrecursorIonSelectionPreprocessing::loadPreprocessing()
   {
     // first check if preprocessed db already exists
-    String path = param_.getValue("preprocessed_db_path");
+    String path = param_.getValue("preprocessed_db_path").toString();
 
     // check if file exists
     std::ifstream test(path.c_str());
@@ -313,7 +313,7 @@ namespace OpenMS
     {
 
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -331,32 +331,30 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-
         std::vector<String> peptide_seqs;
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& vec_iter : vec)
         {
 
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < vec_iter.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((vec_iter.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  vec_iter.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
@@ -364,26 +362,26 @@ namespace OpenMS
 
           // write peptide seq in temporary file, for rt prediction
           //seq_file << *vec_iter << "\n";
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (tmp_peptide_map.find(vec_iter->toUnmodifiedString()) != tmp_peptide_map.end())
+          if (tmp_peptide_map.find(vec_iter.toUnmodifiedString()) != tmp_peptide_map.end())
           {
-            tmp_peptide_map[vec_iter->toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
+            tmp_peptide_map[vec_iter.toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
                                                                                 prot_masses.size() - 1));
           }
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
             tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
-            tmp_peptide_map.insert(make_pair(vec_iter->toUnmodifiedString(), tmp_vec));
+            tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(vec_iter);
             masses_.push_back(mass);
           }
           if (store_pep_seqs)
-            peptide_seqs.push_back(vec_iter->toUnmodifiedString());
+            peptide_seqs.push_back(vec_iter.toUnmodifiedString());
         }
         prot_masses_.insert(make_pair(entries[e].identifier, prot_masses));
         if (store_pep_seqs)
@@ -612,7 +610,7 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDBWithRT_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDBWithRT_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
   }
 
@@ -636,7 +634,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -654,39 +652,38 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& seq : vec)
         {
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < seq.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((seq.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(seq.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  seq.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
           }
 
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = seq.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(seq) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(seq);
             masses_.push_back(mass);
           }
         }
@@ -821,7 +818,7 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDB_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDB_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
 
   }
@@ -841,7 +838,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -917,7 +914,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -933,7 +930,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);

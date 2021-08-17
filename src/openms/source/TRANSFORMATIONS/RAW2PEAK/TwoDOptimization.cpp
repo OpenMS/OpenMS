@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ namespace OpenMS
                                                     "If the left width gets too broad or negative during the fitting it can be penalized.");
     defaults_.setValue("penalties:right_width", 0.0, "penalty term for the fitting of the right width:" \
                                                      "If the right width gets too broad or negative during the fitting it can be penalized.");
-    defaults_.setValue("2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", ListUtils::create<String>("advanced"));
-    defaults_.setValue("2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", ListUtils::create<String>("advanced"));
+    defaults_.setValue("2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", {"advanced"});
+    defaults_.setValue("2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", {"advanced"});
     defaults_.setValue("iterations", 10, "maximal number of iterations for the fitting step");
 
 

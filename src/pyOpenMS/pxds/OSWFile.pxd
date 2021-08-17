@@ -1,14 +1,14 @@
 from Types cimport *
 from libcpp.map cimport map as libcpp_map
-from libcpp.string cimport string as libcpp_string
+from libcpp.string cimport string as libcpp_utf8_string
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
 
 cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
     
     cdef cppclass OSWFile "OpenMS::OSWFile":
-        OSWFile(const libcpp_string filename) nogil except +
-        OSWFile(OSWFile) nogil except + #wrap-ignore
+        OSWFile(const libcpp_utf8_string filename) nogil except +
+        OSWFile(OSWFile &) nogil except +
         
         # Cannot wrap libcpp_ostream
         # void readToPIN(const libcpp_string & in_osw,

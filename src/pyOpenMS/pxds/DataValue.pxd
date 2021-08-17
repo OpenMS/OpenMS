@@ -1,5 +1,5 @@
-from libcpp.string cimport string as libcpp_string
 from libcpp.vector cimport vector as libcpp_vector
+from ParamValue cimport *
 from String cimport *
 from StringList cimport *
 from IntList cimport *
@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
     cdef cppclass DataValue:
          DataValue() nogil except +
-         DataValue(DataValue) nogil except + # wrap-ignore
+         DataValue(DataValue &) nogil except +
          DataValue(char *) nogil except +
          DataValue(const String&) nogil except +
          DataValue(int) nogil except +
@@ -17,9 +17,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue(StringList) nogil except +
          DataValue(IntList) nogil except +
          DataValue(DoubleList) nogil except +
+         DataValue(ParamValue) nogil except +
 
          #conversion ops, different declarations as in c++ !
-         int operator()(int) nogil except + #wrap-cast:toInt
+         int operator()(DataValue) nogil except + #wrap-cast:toInt
          String operator()(DataValue) nogil except + #wrap-cast:toString
          double operator()(DataValue) nogil except + #wrap-cast:toDouble
          StringList toStringList() nogil except +

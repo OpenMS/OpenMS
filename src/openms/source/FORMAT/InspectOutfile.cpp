@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,8 +69,9 @@ namespace OpenMS
   InspectOutfile& InspectOutfile::operator=(const InspectOutfile& inspect_outfile)
   {
     if (this == &inspect_outfile)
+    {
       return *this;
-
+    }
     return *this;
   }
 
@@ -126,10 +127,13 @@ namespace OpenMS
 
     DateTime datetime = DateTime::now();
     if (protein_identification.getSearchEngine().empty())
+    {
       identifier = "InsPecT_" + datetime.getDate();
+    }
     else
+    {
       protein_identification.getSearchEngine() + "_" + datetime.getDate();
-
+    }
     // to get the precursor retention time and mz values later, save the filename and the numbers of the scans
     vector<pair<String, vector<pair<Size, Size> > > > files_and_peptide_identification_with_scan_number;
     // the record number is mapped to the position in the protein hits, to retrieve their sequences
@@ -158,7 +162,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      OPENMS_LOG_WARN << "ParseError (" << p_e.getMessage() << ") caught in " << __FILE__ << "\n";
+      OPENMS_LOG_WARN << "ParseError (" << p_e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
 
@@ -181,8 +185,9 @@ namespace OpenMS
 
       // if the pvalue is too small, skip the line
       if (substrings[p_value_column].toFloat() > p_value_threshold)
+      {
         continue;
-
+      }
       // the protein
       ProteinHit protein_hit;
       // get accession number and type
@@ -351,7 +356,9 @@ namespace OpenMS
       database.get(sequence, trie_delimiter_);
       sequences.push_back(sequence.str());
       if (sequences.back().empty())
+      {
         not_found.push_back(wr_i->first);
+      }
       sequence.str("");
     }
 
@@ -375,9 +382,13 @@ namespace OpenMS
 
     // if it's a FASTA line
     if (line.hasPrefix(">"))
+    {
       line.erase(0, 1);
+    }
     if (!line.empty() && (line[line.length() - 1] < 33))
+    {
       line.resize(line.length() - 1);
+    }
     line.trim();
 
     // if it's a swissprot accession
@@ -398,29 +409,45 @@ namespace OpenMS
         accession_type = line.substr(snd, third - 1 - snd);
       }
       if (accession_type == "gb")
+      {
         accession_type = "GenBank";
+      }
       else if (accession_type == "emb")
+      {
         accession_type = "EMBL";
+      }
       else if (accession_type == "dbj")
+      {
         accession_type = "DDBJ";
+      }
       else if (accession_type == "ref")
+      {
         accession_type = "NCBI";
+      }
       else if ((accession_type == "sp") || (accession_type == "tr"))
+      {
         accession_type = "SwissProt";
+      }
       else if (accession_type == "gnl")
       {
         accession_type = accession;
         snd = line.find('|', third);
         third = line.find('|', ++snd);
         if (third != String::npos)
+        {
           accession = line.substr(snd, third - snd);
+        }
         else
         {
           third = line.find(' ', snd);
           if (third != String::npos)
+          {
             accession = line.substr(snd, third - snd);
+          }
           else
+          {
             accession = line.substr(snd);
+          }
         }
       }
       else
@@ -453,8 +480,14 @@ namespace OpenMS
           else
           {
             snd = line.find(' ', 3);
-            if (snd != String::npos) accession = line.substr(3, snd - 3);
-            else accession = line.substr(3);
+            if (snd != String::npos)
+            {
+              accession = line.substr(3, snd - 3);
+            }
+            else
+            {
+              accession = line.substr(3);
+            }
           }
         }
       }
@@ -487,9 +520,13 @@ namespace OpenMS
         {
           accession = line.substr(pos1, pos2 - pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
+          {
             accession.clear();
+          }
         }
       }
       if (accession.empty())
@@ -503,14 +540,20 @@ namespace OpenMS
           pos1 = line.find(' ');
           accession = line.substr(0, pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
           {
             accession = line.substr(0, 6);
             if (String(swissprot_prefixes).find(accession[0], 0) != String::npos)
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
       }
@@ -592,9 +635,13 @@ namespace OpenMS
     // take the wanted records, copy their sequences to the new db and write the index file accordingly
     ofstream snd_database;
     if (append)
+    {
       snd_database.open(snd_database_filename.c_str(), std::ios::out | std::ios::app);
+    }
     else
+    {
       snd_database.open(snd_database_filename.c_str(), std::ios::out | std::ios::trunc);
+    }
     if (!snd_database)
     {
       database.close();
@@ -606,9 +653,13 @@ namespace OpenMS
 
     ofstream snd_index;
     if (append)
+    {
       snd_index.open(snd_index_filename.c_str(), std::ios::out | std::ios::binary | std::ios::app);
+    }
     else
+    {
       snd_index.open(snd_index_filename.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+    }
     if (!snd_index)
     {
       database.close();
@@ -645,7 +696,9 @@ namespace OpenMS
 
       // all but the first sequence are preceded by an asterisk
       if (append)
+      {
         snd_database.put(trie_delimiter_);
+      }
       append = true;
 
       // check if we have to reverse the database_pos part (which is saved in little endian)
@@ -692,7 +745,9 @@ namespace OpenMS
 
 
     if (empty_records)
+    {
       wanted_records.clear();
+    }
     delete[] index_record;
     database.close();
     database.clear();
@@ -863,7 +918,7 @@ namespace OpenMS
             protein_name = line.substr(pos, protein_name_length_);
             protein_name.substitute('>', '}');
             // cppcheck produces a false positive warning here -> ignore
-            // cppcheck-suppress redundantCopy
+            // cppcheck-suppress redundant copy
             memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
             record_flags |= ac_flag; // set the ac flag
@@ -967,10 +1022,13 @@ namespace OpenMS
     while (getline(source_database, line) && (sequence_start_label.empty()))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       if (line.trim().empty())
+      {
         continue;
-
+      }
       else if (line.hasPrefix(">"))
       {
         ac_label = ">";
@@ -1051,10 +1109,14 @@ namespace OpenMS
     {
       ++line_number;
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       if (line.empty())
+      {
         continue;
+      }
       line.split('\t', substrings);
 
       // check whether the line has enough columns
@@ -1066,12 +1128,14 @@ namespace OpenMS
 
       // check whether the line has enough columns
       if (substrings.size() != number_of_columns)
+      {
         continue;
-
+      }
       // take only those peptides whose p-value is less or equal the given threshold
       if (substrings[p_value_column].toFloat() > p_value_threshold)
+      {
         continue;
-
+      }
       wanted_records_set.insert(substrings[record_number_column].toInt());
     }
 
@@ -1097,8 +1161,9 @@ namespace OpenMS
     QString response(cmd_output.toQString());
     QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     if (rx.indexIn(response) == -1)
+    {
       return false;
-
+    }
     protein_identification.setSearchEngineVersion(String(rx.cap(2)));
     return true;
   }
@@ -1128,25 +1193,45 @@ namespace OpenMS
     for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
     {
       if ((*s_i) == "#SpectrumFile")
+      {
         spectrum_file_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Scan#")
+      {
         scan_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Annotation")
+      {
         peptide_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Protein")
+      {
         protein_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Charge")
+      {
         charge_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "MQScore")
+      {
         MQ_score_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "p-value")
+      {
         p_value_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "RecordNumber")
+      {
         record_number_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "DBFilePos")
+      {
         DB_file_pos_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "SpecFilePos")
+      {
         spec_file_pos_column = s_i - substrings.begin();
+      }
     }
 
     if ((spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1))

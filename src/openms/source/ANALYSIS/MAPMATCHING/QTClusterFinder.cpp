@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_identifications", {"true","false"});
     defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution).");
     defaults_.setMinInt("nr_partitions", 1);
     defaults_.setValue("min_nr_diffs_per_bin", 50, "If IDs are used: How many differences from matching IDs should be used to calculate a linking tolerance for unIDed features in an RT region. RT regions will be extended until that number is reached.");
@@ -82,7 +82,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
-    use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+    use_IDs_ = param_.getValue("use_identifications").toBool();
     nr_partitions_ = param_.getValue("nr_partitions");
     min_nr_diffs_per_bin_ = param_.getValue("min_nr_diffs_per_bin");
     min_score_ = param_.getValue("min_IDscore_forTolCalc");
@@ -525,7 +525,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   {
     feature.setQuality(quality);
 
-    // the features of the current best cluster are inserted into the new consesus feature
+    // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
       // Store the id of already used features (important: needs to be done

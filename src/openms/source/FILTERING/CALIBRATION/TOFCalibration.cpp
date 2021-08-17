@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -199,36 +199,34 @@ namespace OpenMS
     PeakMap::SpectrumType::iterator peak_iter, help_iter;
 
 #ifdef DEBUG_CALIBRATION
-    spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
     // iterate through all spectra
-    for (; spec_iter != calib_peaks.end(); ++spec_iter)
+    for (PeakMap& spec_iter : calib_peaks)
     {
-      peak_iter = spec_iter->begin();
       // go through current scan
-      for (; peak_iter != spec_iter->end(); ++peak_iter)
+      for (PeakMap::SpectrumType& peak_iter : spec_iter)
       {
-        std::cout << peak_iter->getMZ() << std::endl;
+        std::cout << peak_iter.getMZ() << std::endl;
       }
     }
 #endif
 
-    spec_iter = calib_peaks.begin();
+    
     // iterate through all spectra
-    for (; spec_iter != calib_peaks.end(); ++spec_iter)
+    for (MSSpectrum& spec_iter : calib_peaks)
     {
-      peak_iter = spec_iter->begin();
+      peak_iter = spec_iter.begin();
       help_iter = peak_iter;
       std::vector<unsigned int> vec;
       // go through current scan
-      while (peak_iter < spec_iter->end())
+      while (peak_iter < spec_iter.end())
       {
-        while (peak_iter + 1 < spec_iter->end() && ((peak_iter + 1)->getMZ() - peak_iter->getMZ() < 1.2))
+        while (peak_iter + 1 < spec_iter.end() && ((peak_iter + 1)->getMZ() - peak_iter->getMZ() < 1.2))
         {
           ++peak_iter;
         }
 
-        vec.push_back(distance(spec_iter->begin(), help_iter));
+        vec.push_back(distance(spec_iter.begin(), help_iter));
 
         help_iter = peak_iter + 1;
         ++peak_iter;
@@ -258,16 +256,16 @@ namespace OpenMS
 
   void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
   {
-    PeakMap::iterator spec_iter = calib_spectra.begin();
+    
     PeakMap::SpectrumType::iterator peak_iter;
     unsigned int idx = 0;
 
     //two point conversion
     if (ml3s_.empty())
     {
-      for (; spec_iter != calib_spectra.end(); ++spec_iter)
+      for (MSSpectrum& spec_iter : calib_spectra)
       {
-        peak_iter = spec_iter->begin();
+        peak_iter = spec_iter.begin();
         double ml1, ml2;
         if (ml1s_.size() == 1)
         {
@@ -281,7 +279,7 @@ namespace OpenMS
         }
 
         // go through current scan
-        for (; peak_iter != spec_iter->end(); ++peak_iter)
+        for (; peak_iter != spec_iter.end(); ++peak_iter)
         {
           double time = peak_iter->getMZ();
           peak_iter->setPos(ml1 / 1E12 * (time * 1000 - ml2));
@@ -292,9 +290,9 @@ namespace OpenMS
     else
     {
       // three point conversion
-      for (; spec_iter != calib_spectra.end(); ++spec_iter)
+      for (MSSpectrum& spec_iter : calib_spectra)
       {
-        peak_iter = spec_iter->begin();
+        peak_iter = spec_iter.begin();
         double ml1, ml2, ml3;
         if (ml1s_.size() == 1)
         {
@@ -310,7 +308,7 @@ namespace OpenMS
         }
 
         // go through current scan
-        for (; peak_iter != spec_iter->end(); ++peak_iter)
+        for (; peak_iter != spec_iter.end(); ++peak_iter)
         {
           double time = peak_iter->getMZ();
           peak_iter->setPos((-ml2 - (0.1E7 * (-5E5 + sqrt(0.25E12 - ml1 * ml2 * ml3 + ml1 * ml3 * time))) / (ml1 * ml3) + time) / ml3);
@@ -354,17 +352,19 @@ namespace OpenMS
       {
         double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
         if (xi > calib_masses[error_medians_.size() - 1])
+        {
           continue;
+        }
         if (xi < calib_masses[0])
+        {
           continue;
+        }
         std::cout << exp_masses[p] << "\t"
                   << Math::getPPM(xi - spline(xi), exp_masses[p])
                   << std::endl;
 
       }
-
     }
-
 
     double xi;
     std::cout << "interpolation \n\n";
@@ -421,4 +421,3 @@ namespace OpenMS
   }
 
 } //namespace OpenMS
-

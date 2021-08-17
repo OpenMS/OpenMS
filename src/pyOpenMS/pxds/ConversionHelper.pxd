@@ -9,6 +9,9 @@ cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
 
     cdef cppclass MapConversion:
 
+      MapConversion() nogil except + # compiler
+      MapConversion(MapConversion &) nogil except + # compiler
+
       void convert(UInt64 input_map_index,
                    FeatureMap input_map,
                    ConsensusMap & output_map,

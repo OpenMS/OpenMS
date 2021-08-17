@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
 
     cdef cppclass SiriusAdapterIdentification "OpenMS::SiriusMzTabWriter::SiriusAdapterIdentification":
         SiriusAdapterIdentification() nogil except +
-        SiriusAdapterIdentification(SiriusAdapterIdentification) nogil except +
+        SiriusAdapterIdentification(SiriusAdapterIdentification &) nogil except + # compiler
 
         double mz
         double rt

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
         static unsigned precision(T /*n*/) 
         {
             /* The following would be the only way for a lossless double-string-double
-            * rountrip but:
+            * roundtrip but:
             * a) We only care about speed
             * b) Many tests have to be changed
             * c) In the end boost::karma is bugged and hard limits the fractional digits
@@ -502,8 +502,8 @@ public:
     {
       if (method == String::ESCAPE)
       {
-        this_s.substitute(String("\\"), String("\\\\"));
-        this_s.substitute(String(q), "\\" + String(q));
+        this_s.substitute(String(R"(\)"), String(R"(\\)"));
+        this_s.substitute(String(q), R"(\)" + String(q));
       }
       else if (method == String::DOUBLE)
         this_s.substitute(String(q), String(q) + String(q));
@@ -523,8 +523,8 @@ public:
       this_s.std::string::operator=(this_s.substr(1, this_s.size() - 2)); // remove quotation marks
       if (method == String::ESCAPE)
       {
-        this_s.substitute("\\" + String(q), String(q));
-        this_s.substitute(String("\\\\"), String("\\"));
+        this_s.substitute(R"(\)" + String(q), String(q));
+        this_s.substitute(String(R"(\\)"), String(R"(\)"));
       }
       else if (method == String::DOUBLE)
         this_s.substitute(String(q) + String(q), String(q));

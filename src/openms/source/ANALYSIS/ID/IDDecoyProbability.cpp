@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,12 +47,12 @@ namespace OpenMS
   IDDecoyProbability::IDDecoyProbability() :
     DefaultParamHandler("IDDecoyProbability")
   {
-    defaults_.setValue("number_of_bins", 40, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", ListUtils::create<String>("advanced"));
-    defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("number_of_bins", 40, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", {"advanced"});
+    defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", {"advanced"});
 
 #ifdef IDDECOYPROBABILITY_DEBUG
-    defaults_.setValue("rev_filename", "", "bla", ListUtils::create<String>("advanced"));
-    defaults_.setValue("fwd_filename", "", "bla", ListUtils::create<String>("advanced"));
+    defaults_.setValue("rev_filename", "", "bla", {"advanced"});
+    defaults_.setValue("fwd_filename", "", "bla", {"advanced"});
 #endif
 
     defaultsToParam_();
@@ -75,19 +75,19 @@ namespace OpenMS
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
-    for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (PeptideIdentification& pep : ids)
     {
-      String score_type = it->getScoreType();
-      if (it->getHits().size() > 0)
+      String score_type = pep.getScoreType();
+      if (pep.getHits().size() > 0)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+        vector<PeptideHit> hits = pep.getHits();
+        for (PeptideHit& pit : hits)
         {
-          double score = pit->getScore();
+          double score = pit.getScore();
 
-          pit->setMetaValue(score_type + "_Score", score);
+          pit.setMetaValue(score_type + "_Score", score);
 
-          if (!it->isHigherScoreBetter())
+          if (!pep.isHigherScoreBetter())
           {
             if (score < lower_score_better_default_value_if_zero_exp)
             {
@@ -99,7 +99,7 @@ namespace OpenMS
             }
           }
 
-          String target_decoy = (String)pit->getMetaValue("target_decoy");
+          String target_decoy = (String)pit.getMetaValue("target_decoy");
           if (target_decoy == "target")
           {
             fwd_scores.push_back(score);
@@ -110,7 +110,7 @@ namespace OpenMS
           }
           all_scores.push_back(score);
         }
-        it->setHits(hits);
+        pep.setHits(hits);
       }
     }
 #ifdef IDDECOYPROBABILITY_DEBUG
@@ -128,19 +128,19 @@ namespace OpenMS
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
-    for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+    for (PeptideIdentification& pep : fwd_ids)
     {
-      String score_type = it->getScoreType();
-      if (it->getHits().size() > 0)
+      String score_type = pep.getScoreType();
+      if (pep.getHits().size() > 0)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+        vector<PeptideHit> hits = pep.getHits();
+        for (PeptideHit& pit : hits)
         {
-          double score = pit->getScore();
+          double score = pit.getScore();
 
-          pit->setMetaValue(score_type + "_Score", score);
+          pit.setMetaValue(score_type + "_Score", score);
 
-          if (!it->isHigherScoreBetter())
+          if (!pep.isHigherScoreBetter())
           {
             if (score < lower_score_better_default_value_if_zero_exp)
             {
@@ -154,19 +154,19 @@ namespace OpenMS
           fwd_scores.push_back(score);
           all_scores.push_back(score);
         }
-        it->setHits(hits);
+        pep.setHits(hits);
       }
     }
 
     // get the reverse scores
-    for (vector<PeptideIdentification>::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+    for (const PeptideIdentification& pep : rev_ids)
     {
-      if (it->getHits().size() > 0)
+      if (pep.getHits().size() > 0)
       {
-        for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+        for (const PeptideHit& pit : pep.getHits())
         {
-          double score = pit->getScore();
-          if (!it->isHigherScoreBetter())
+          double score = pit.getScore();
+          if (!pep.isHigherScoreBetter())
           {
             if (score < lower_score_better_default_value_if_zero_exp)
             {
@@ -374,17 +374,17 @@ namespace OpenMS
 
     vector<PeptideIdentification> new_prob_ids;
     // calculate the probabilities and write them to the IDs
-    for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+    for (const PeptideIdentification& pep : ids)
     {
-      if (it->getHits().size() > 0)
+      if (pep.getHits().size() > 0)
       {
         vector<PeptideHit> hits;
-        String score_type = it->getScoreType() + "_score";
-        for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+        String score_type = pep.getScoreType() + "_score";
+        for (const PeptideHit& pit : pep.getHits())
         {
-          PeptideHit hit = *pit;
+          PeptideHit hit = pit;
           double score = hit.getScore();
-          if (!it->isHigherScoreBetter())
+          if (!pep.isHigherScoreBetter())
           {
             score = -log10(score);
           }
@@ -392,7 +392,7 @@ namespace OpenMS
           hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
           hits.push_back(hit);
         }
-        PeptideIdentification id = *it;
+        PeptideIdentification id = pep;
         id.setHigherScoreBetter(true);
         id.setScoreType(id.getScoreType() + "_DecoyProbability");
         id.setHits(hits);

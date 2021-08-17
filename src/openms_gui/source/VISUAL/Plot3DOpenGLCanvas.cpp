@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -192,7 +192,7 @@ namespace OpenMS
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    QColor color(canvas_3d_.param_.getValue("background_color").toQString());
+    QColor color(String(canvas_3d_.param_.getValue("background_color").toString()).toQString());
     qglClearColor_(color);
     calculateGridLines_();
 
@@ -498,7 +498,7 @@ namespace OpenMS
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
     glBegin(GL_QUADS);
-    QColor color(canvas_3d_.param_.getValue("background_color").toQString());
+    QColor color(String(canvas_3d_.param_.getValue("background_color").toString()).toQString());
     qglColor_(color);
     glVertex3d(-corner_, -corner_ - 2.0, -near_ - 2 * corner_);
     glVertex3d(-corner_, -corner_ - 2.0, -far_ + 2 * corner_);

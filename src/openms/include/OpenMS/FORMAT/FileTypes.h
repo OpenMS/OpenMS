@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,6 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI FileTypes
   {
-    //NOTE: if you change/add something here, do not forget to change FileTypes::initializeMap_
 
     ///Actual file types enum.
     enum Type
@@ -76,6 +75,7 @@ namespace OpenMS
       MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
       MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
       QCML,               ///< qcML (will undergo standardisation maybe) (.qcml)
+      MZQC,               ///< mzQC (HUPO PSI format) (.mzQC)
       GELML,              ///< GelML (HUPO PSI format) (.gelML)
       TRAML,              ///< TraML (HUPO PSI format) for transitions (.traML)
       MSP,                ///< NIST spectra library file format (.msp)
@@ -155,7 +155,8 @@ namespace OpenMS
     /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
     static String typeToDescription(Type type);
     
-    /// Converts a file type name into a Type
+    /// Converts a file type name into a Type 
+    /// @param name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const String& name);
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)

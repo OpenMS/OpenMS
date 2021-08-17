@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -523,7 +523,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:doubleoption",0.4711,"double description");
 	p2.setValue("TOPPBaseTest:1:intlist",ListUtils::create<Int>("1,2,3,4"),"intlist description");
 	p2.setValue("TOPPBaseTest:1:doublelist", ListUtils::create<double>("0.4711,1.022,4.0"),"doubelist description");
-	p2.setValue("TOPPBaseTest:1:stringlist", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description");
+	p2.setValue("TOPPBaseTest:1:stringlist", std::vector<std::string>{"abc","def","ghi","jkl"},"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
   p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
@@ -532,10 +532,8 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:force","false","Overwrite tool specific checks.");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
 	//with restriction
-  p2.setValue("TOPPBaseTest:1:stringlist2", ListUtils::create<String>("hopla,dude"),"stringlist with restrictions");
-	vector<String> rest;
-	rest.push_back("hopla");
-	rest.push_back("dude");
+  p2.setValue("TOPPBaseTest:1:stringlist2", std::vector<std::string>{"hopla","dude"},"stringlist with restrictions");
+	vector<std::string> rest = {"hopla","dude"};
 	String stringlist2 = "TOPPBaseTest:1:stringlist2";
 	p2.setValidStrings(stringlist2,rest);
 	String intlist2 = "TOPPBaseTest:1:intlist2";
@@ -752,11 +750,11 @@ START_SECTION(([EXTRA] const Param& getParam_()))
 	test_param.setValue("param_int", 123, "param int description");
 	test_param.setValue("param_double", -4.56, "param double description");
 	test_param.setValue("param_string", "test", "param string description");
-	test_param.setValue("param_stringlist", ListUtils::create<String>("this,is,a,test"), "param stringlist description");
+	test_param.setValue("param_stringlist", std::vector<std::string>{"this","is","a","test"}, "param stringlist description");
 	test_param.setValue("param_intlist", ListUtils::create<Int>("7,-8,9"), "param intlist description");
 	test_param.setValue("param_doublelist", ListUtils::create<double>("123,-4.56,0.789"), "param doublelist description");
 	test_param.setValue("param_flag", "true", "param flag description");
-	test_param.setValidStrings("param_flag", ListUtils::create<String>("true,false"));
+	test_param.setValidStrings("param_flag", {"true","false"});
 
 	TOPPBaseTestParam temp(test_param);
 	Param result = temp.getParam(); // contains "test_param" + some default stuff
@@ -838,6 +836,9 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp3.getParam().getValue("other:param4"), "val4");
 }
 END_SECTION
+
+delete [] a7;
+delete [] a8;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

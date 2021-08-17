@@ -7,33 +7,33 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
     cdef cppclass IonDetector(MetaInfoInterface):
         # wrap-inherits:
         #    MetaInfoInterface
-
-        IonDetector() nogil except +
-        IonDetector(IonDetector) nogil except + # wrap-ignore
+        
+        IonDetector() nogil except + # wrap-doc:Description of a ion detector (part of a MS Instrument)
+        IonDetector(IonDetector &) nogil except + 
 
         # returns the detector type
-        Type_IonDetector getType() nogil except +
+        Type_IonDetector getType() nogil except + # wrap-doc:Returns the detector type
         # sets the detector type
-        void setType(Type_IonDetector type_) nogil except +
+        void setType(Type_IonDetector type_) nogil except + # wrap-doc:Sets the detector type
 
         # returns the acquisition mode
-        AcquisitionMode getAcquisitionMode() nogil except +
+        AcquisitionMode getAcquisitionMode() nogil except + # wrap-doc:Returns the acquisition mode
         # sets the acquisition mode
-        void setAcquisitionMode(AcquisitionMode acquisition_mode) nogil except +
+        void setAcquisitionMode(AcquisitionMode acquisition_mode) nogil except + # wrap-doc:Sets the acquisition mode
 
         # returns the resolution (in ns)
-        double getResolution() nogil except +
+        double getResolution() nogil except + # wrap-doc:Returns the resolution (in ns)
         # sets the resolution (in ns)
-        void setResolution(double resolution) nogil except +
+        void setResolution(double resolution) nogil except + # wrap-doc:Sets the resolution (in ns)
 
         # returns the analog-to-digital converter sampling frequency (in Hz)
-        double getADCSamplingFrequency() nogil except +
+        double getADCSamplingFrequency() nogil except + # wrap-doc:Returns the analog-to-digital converter sampling frequency (in Hz)
         # sets the analog-to-digital converter sampling frequency (in Hz)
-        void setADCSamplingFrequency(double ADC_sampling_frequency) nogil except +
+        void setADCSamplingFrequency(double ADC_sampling_frequency) nogil except + # wrap-doc:Sets the analog-to-digital converter sampling frequency (in Hz)
 
-        Int getOrder() nogil except +
+        Int getOrder() nogil except + # wrap-doc:Returns the order
         # sets the order
-        void setOrder(Int order) nogil except +
+        void setOrder(Int order) nogil except + # wrap-doc:Sets the order
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 

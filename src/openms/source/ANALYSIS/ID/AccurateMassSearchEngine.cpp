@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -536,10 +536,10 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", {"false", "true"});
 
-    defaults_.setValue("db:mapping", ListUtils::create<String>("CHEMISTRY/HMDBMappingFile.tsv"), "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
+    defaults_.setValue("db:mapping", std::vector<std::string>{"CHEMISTRY/HMDBMappingFile.tsv"}, "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("db:struct", ListUtils::create<String>("CHEMISTRY/HMDB2StructMapping.tsv"), "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
+    defaults_.setValue("db:struct", std::vector<std::string>{"CHEMISTRY/HMDB2StructMapping.tsv"}, "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
@@ -613,7 +613,7 @@ namespace OpenMS
       // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
       // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
       // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
-      // (the other approach is to precompute m/z values for all combinations of adducts, charges and DB entries -- too much)
+      // (the other approach is to pre-compute m/z values for all combinations of adducts, charges and DB entries -- too much)
       double diff_mz;
       // check if mass error window is given in ppm or Da
       if (mass_error_unit_ == "ppm")
@@ -1271,19 +1271,19 @@ namespace OpenMS
   void AccurateMassSearchEngine::updateMembers_()
   {
     mass_error_value_ = (double)param_.getValue("mass_error_value");
-    mass_error_unit_ = (String)param_.getValue("mass_error_unit");
-    ion_mode_ = (String)param_.getValue("ionization_mode");
+    mass_error_unit_ = param_.getValue("mass_error_unit").toString();
+    ion_mode_ = param_.getValue("ionization_mode").toString();
 
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
 
     // use defaults if empty for all .tsv files
-    db_mapping_file_ = param_.getValue("db:mapping").toStringList();
-    if (db_mapping_file_.empty()) db_mapping_file_ = defaults_.getValue("db:mapping").toStringList();
-    db_struct_file_ = param_.getValue("db:struct").toStringList();
-    if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
+    db_mapping_file_ = ListUtils::toStringList<std::string>(param_.getValue("db:mapping"));
+    if (db_mapping_file_.empty()) db_mapping_file_ = ListUtils::toStringList<std::string>(defaults_.getValue("db:mapping"));
+    db_struct_file_ = ListUtils::toStringList<std::string>(param_.getValue("db:struct"));
+    if (db_struct_file_.empty()) db_struct_file_ = ListUtils::toStringList<std::string>(defaults_.getValue("db:struct"));
 
-    pos_adducts_fname_ = (String)param_.getValue("positive_adducts");
-    neg_adducts_fname_ = (String)param_.getValue("negative_adducts");
+    pos_adducts_fname_ = param_.getValue("positive_adducts").toString();
+    neg_adducts_fname_ = param_.getValue("negative_adducts").toString();
 
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query

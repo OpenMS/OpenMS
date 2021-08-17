@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,12 +121,6 @@ public:
      * Returns zero if the current state is not ok().
      */
     double derivative(const double x) const;
-
-    /**
-     * Return the first derivative of the spline curve at the given @p x.
-     * Returns zero if the current state is not ok().
-     */
-    double derivatives(double x, unsigned order = 1) const;
 
     /**
      * Return whether the spline fit was successful.

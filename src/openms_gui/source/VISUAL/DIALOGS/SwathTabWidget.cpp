@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -261,8 +261,8 @@ namespace OpenMS
 
       Param tmp;
       // grab the files
-      tmp.setValue("tr", ui->input_tr->getFilename());
-      tmp.setValue("tr_irt", ui->input_iRT->getFilename());
+      tmp.setValue("tr", ui->input_tr->getFilename().toStdString());
+      tmp.setValue("tr_irt", ui->input_iRT->getFilename().toStdString());
       // do not set 'in' because it allows for one file only, while we have more and need to iterate manually
       String swath_windows = ui->input_swath_windows->getFilename();
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);

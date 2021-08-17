@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,10 +89,13 @@ START_SECTION((static void registerChildren()))
 {
   BinnedSpectrumCompareFunctor* c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSharedPeakCount");
   TEST_EQUAL(c1->getName(), "BinnedSharedPeakCount")
+  delete c1;
   c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSpectralContrastAngle");
   TEST_EQUAL(c1->getName(), "BinnedSpectralContrastAngle")
+  delete c1;
   c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSumAgreeingIntensities");
   TEST_EQUAL(c1->getName(), "BinnedSumAgreeingIntensities")
+  delete c1;
 }
 END_SECTION
 

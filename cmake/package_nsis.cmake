@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -48,46 +48,41 @@ set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
 
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
-	string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]).*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
-	if("${OPENMS_MSVC_VERSION_STRING}" GREATER "15" AND DEFINED ENV{VCINSTALLDIR})
-	  ## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
-	  get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v142" ABSOLUTE)
-	  file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-	  if (VC_REDIST_ABS_PATH)
-	    ## arbitrarily pick first of the found redists
-	    list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
-	    get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
-	  endif()
-	endif()
-	if (NOT VC_REDIST_PATH) ## if still not found, try to use older methods
-		if("${OPENMS_MSVC_VERSION_STRING}" GREATER "14" AND DEFINED ENV{VCToolsRedistDir})
-		  ## An alternative solution to find redists
-		  #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
-		  #                OUTPUT_VARIABLE VC_ROOT_PATH
-		  #				  ERROR_VARIABLE VSWHERE_ERROR
-		  #				  RESULT_VARIABLE VSWHERE_RESULT)
-		  #if ("${VSWHERE_RESULT}" NOTEQUAL "0")
-		  #  message(FATAL_ERROR "Executing vswhere to find vsredist executable for win packaging failed. Either specify VC_REDIST_PATH or make sure vswhere works.")
-		  #endif()
+  string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]).*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
+  if("${OPENMS_MSVC_VERSION_STRING}" GREATER "15")
+    if (DEFINED ENV{VCINSTALLDIR})
+      ## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
+      get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v142" ABSOLUTE)
+      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
+      message(STATUS "VS Redist locations (1st try): ${VC_REDIST_ABS_PATH}")
+    endif()
+    if (NOT VC_REDIST_ABS_PATH AND DEFINED ENV{VCToolsRedistDir}) ## if still not found, try to use older methods
+      ## An alternative solution to find redists
+      #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
+      #                OUTPUT_VARIABLE VC_ROOT_PATH
+      #				  ERROR_VARIABLE VSWHERE_ERROR
+      #				  RESULT_VARIABLE VSWHERE_RESULT)
+      #if ("${VSWHERE_RESULT}" NOTEQUAL "0")
+      #  message(FATAL_ERROR "Executing vswhere to find vsredist executable for win packaging failed. Either specify VC_REDIST_PATH or make sure vswhere works.")
+      #endif()
 
-		  ## We have to glob recurse in the parent folder because there is a version number in the end.
-		  ## Unfortunately in my case the default version (latest) does not include the redist?!
-		  ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
-		  get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
-		  file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-		  if (VC_REDIST_ABS_PATH)
-			## arbitrarily pick first of the found redists
-			list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
-			get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
-		  endif()
-		elseif(OPENMS_MSVC_VERSION_STRING GREATER "10")
-		  set(VC_REDIST_PATH "$ENV{VCINSTALLDIR}redist/1033")  
-		else()
-		  message(FATAL_ERROR "Variable VC_REDIST_PATH missing."
-		  "Before Visual Studio 2012 you have to provide the path"
-		  "to the redistributable package of the VS you are using on your own.")
-		endif()
-	endif()
+      ## We have to glob recurse in the parent folder because there is a version number in the end.
+      ## Unfortunately in my case the default version (latest) does not include the redist?!
+      ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
+      get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
+      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
+      message(STATUS "VS Redist locations (2nd try): ${VC_REDIST_ABS_PATH}")
+    endif()
+    if (VC_REDIST_ABS_PATH)
+      ## arbitrarily pick first of the found redists
+      list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
+      get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
+      message(STATUS "   ... picked first directory: ${VC_REDIST_PATH}")
+    endif()
+  endif()
+  if (NOT VC_REDIST_PATH) ## if still not found
+    message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Are you on a proper VS 2019+ command line?")
+  endif()
 endif()
 
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})

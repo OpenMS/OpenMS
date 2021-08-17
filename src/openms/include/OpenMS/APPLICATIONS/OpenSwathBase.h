@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -403,7 +403,7 @@ protected:
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
       model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-      String model_type = irt_detection_param.getValue("alignmentMethod");
+      String model_type = irt_detection_param.getValue("alignmentMethod").toString();
       trafo_rtnorm.fitModel(model_type, model_params);
     }
     else if (!irt_tr_file.empty())

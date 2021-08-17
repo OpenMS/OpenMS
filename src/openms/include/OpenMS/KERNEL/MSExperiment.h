@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -537,14 +537,16 @@ public:
     //@}
 
     /**
-    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    @brief Computes the total ion chromatogram (TIC) for a given MS level (use ms_level = 0 for all levels). 
 
-    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    If a bin size in RT seconds greater than 0 is given resampling is used.
 
-    @param bin_size RT bin size in seconds
+    @param bin_size RT bin size in seconds (0 = no resampling)
+    @param ms_level MS level of spectra for calculation (0 = all levels)
     @return TIC Chromatogram
     **/
-    const MSChromatogram getTIC(float rt_bin_size = 0) const;
+    const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
 
     /**
       @brief Clears all data and meta data
@@ -559,19 +561,16 @@ public:
     /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a peptideID?
+    /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
 
-protected:
-
+  protected:
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
     /// Number of all data points
     UInt64 total_size_;
-
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
-
     /// spectra
     std::vector<SpectrumType> spectra_;
 

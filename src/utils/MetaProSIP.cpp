@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ struct SIPPeptide
 
   vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambiguously
 
   double mz_theo = -1.; ///< theoretical mz
 
@@ -2997,10 +2997,11 @@ protected:
     bool cluster_flag = getFlag_("cluster");
 
     // read descriptions from FASTA and create map for fast annotation
-    OPENMS_LOG_INFO << "loading sequences..." << endl;
     String in_fasta = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> fasta_entries;
-    FASTAFile::load(in_fasta, fasta_entries);
+    FASTAFile fasta_file;
+    fasta_file.setLogType(log_type_);
+    fasta_file.load(in_fasta, fasta_entries);
     map<String, String> proteinid_to_description;
     for (vector<FASTAFile::FASTAEntry>::const_iterator it = fasta_entries.begin(); it != fasta_entries.end(); ++it)
     {

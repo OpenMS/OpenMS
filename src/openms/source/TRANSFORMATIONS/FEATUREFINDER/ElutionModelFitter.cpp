@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@ using namespace std;
 ElutionModelFitter::ElutionModelFitter():
   DefaultParamHandler("ElutionModelFitter")
 {
-  vector<String> truefalse = ListUtils::create<String>("true,false");
-  vector<String> advanced(1, "advanced");
+  std::vector<std::string> truefalse = {"true","false"};
+  std::vector<std::string> advanced = {"advanced"};
 
   defaults_.setValue("asymmetric", "false", "Fit an asymmetric (exponential-Gaussian hybrid) model? By default a symmetric (Gaussian) model is used.");
   defaults_.setValidStrings("asymmetric", truefalse);
@@ -130,7 +130,7 @@ void ElutionModelFitter::fitAndValidateModel_(
   {
     OPENMS_LOG_ERROR << "Error fitting model to feature '"
                      << feature.getUniqueId() << "': " << except.getName()
-                     << " - " << except.getMessage() << endl;
+                     << " - " << except.what() << endl;
     fit_success = false;
   }
 

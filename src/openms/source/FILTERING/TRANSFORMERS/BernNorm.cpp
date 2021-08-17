@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ namespace OpenMS
     // values from the paper
     // they should be good for GoodDiff and Complements
     // IsotopeDiffs needs lower peaks
-    defaults_.setValue("C1", 28.0, "C1 value of the normalization.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("C2", 400.0, "C2 value of the normalization.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("C1", 28.0, "C1 value of the normalization.", {"advanced"});
+    defaults_.setValue("C2", 400.0, "C2 value of the normalization.", {"advanced"});
     defaults_.setValue("threshold", 0.1, "Threshold of the Bern et al. normalization."); // i.e. what is a significant peak
     defaultsToParam_();
     c1_ = 28.0;

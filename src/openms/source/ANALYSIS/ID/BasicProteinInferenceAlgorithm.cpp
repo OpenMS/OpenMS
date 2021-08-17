@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setValue("score_aggregation_method",
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");
-    defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
+    defaults_.setValidStrings("score_aggregation_method", {"maximum","product","sum"});
     //TODO set valid strings
     defaults_.setValue("treat_charge_variants_separately", "true",
                        "If this is set, different charge variants of the same peptide sequence count as individual evidences.");

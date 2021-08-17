@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
+#include <mutex>
 
 
 namespace OpenMS
@@ -149,9 +150,14 @@ public:
     static String absolutePath(const String& file);
 
     /// Returns the basename of the file (without the path).
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return ''.
     static String basename(const String& file);
 
-    /// Returns the path of the file (without the file name).
+    /// Returns the path of the file (without the file name and without path separator).
+    /// If just a filename is given without any path, then "." is returned.
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return '/path/some_entity'.
     static String path(const String& file);
 
     /// Return true if the file exists and is readable
@@ -219,7 +225,7 @@ public:
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
     ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - Sytem temp directory (usually defined by environment 'TMP' or 'TEMP'
+    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
@@ -352,6 +358,7 @@ private:
         TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
         TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
+        std::mutex mtx_;
     };
 
 

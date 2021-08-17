@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -232,7 +232,7 @@ namespace OpenMS
 
   Plot1DWidget::~Plot1DWidget()
   {
-
+    delete spacer_;
   }
 
   void Plot1DWidget::showGoToDialog()
@@ -366,7 +366,7 @@ namespace OpenMS
     }
     else // raster graphics formats
     {
-      QPixmap pixmap = QPixmap::grabWidget(this);
+      QPixmap pixmap = this->grab();
       x_scrollbar_->setVisible(x_visible);
       y_scrollbar_->setVisible(y_visible);
       pixmap.save(file_name);

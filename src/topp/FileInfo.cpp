@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -444,14 +444,15 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-
-      Map<char, int> aacids; // required for default construction of non-existing keys
-      size_t number_of_aacids = 0;
+      file.setLogType(log_type_);
 
       SysInfo::MemUsage mu;
       // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
+
+      Map<char, int> aacids;// required for default construction of non-existing keys
+      size_t number_of_aacids = 0;
 
       Size dup_header(0);
       Size dup_seq(0);

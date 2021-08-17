@@ -13,5 +13,5 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "
         #    DefaultParamHandler
 
         TheoreticalSpectrumGenerator() nogil except +
-        TheoreticalSpectrumGenerator(TheoreticalSpectrumGenerator) nogil except +
+        TheoreticalSpectrumGenerator(TheoreticalSpectrumGenerator &) nogil except +
         void getSpectrum(MSSpectrum &spec, AASequence &peptide, Int min_charge, Int max_charge) nogil except +

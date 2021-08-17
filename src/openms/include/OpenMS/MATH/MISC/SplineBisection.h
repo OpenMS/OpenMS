@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ namespace OpenMS
       do
       {
         double mid = (lefthand + righthand) / 2.0;
-        double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
+        double midpoint_deriv_val = peak_spline.derivative(mid);
 
         // if deriv nearly zero then maximum already found
         if (!(std::fabs(midpoint_deriv_val) > eps))

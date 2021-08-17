@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@
 #endif
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -103,7 +103,7 @@ START_SECTION((static void applyFixedModifications(const ModifiedPeptideGenerato
   fixed_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   seq0 = AASequence::fromString("KAAAAAAAA"); // exactly one target site
-  seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambigous case: is mod Carbamyl (K) or (N-Term)?
+  seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambiguous case: is mod Carbamyl (K) or (N-Term)?
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, seq0);
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, seq1);
   TEST_EQUAL(seq0.toString(), ".(Carbamyl)KAAAAAAAA");

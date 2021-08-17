@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ If the filename is empty, the application name + ".ini" is used as filename
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const StringList& list, QSplashScreen* splash_screen);
+    void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window

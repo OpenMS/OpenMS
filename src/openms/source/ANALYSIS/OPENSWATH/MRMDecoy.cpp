@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,11 +48,11 @@ namespace OpenMS
   {
     defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
-    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideNTerm", {"true","false"});
 
-    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideCTerm", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -60,7 +60,7 @@ namespace OpenMS
 
   void MRMDecoy::updateMembers_()
     {
-    keep_const_pattern_ = param_.getValue("non_shuffle_pattern");
+    keep_const_pattern_ = param_.getValue("non_shuffle_pattern").toString();
     keepN_ = param_.getValue("keepPeptideNTerm").toBool();
     keepC_ = param_.getValue("keepPeptideCTerm").toBool();
   }
@@ -167,7 +167,7 @@ namespace OpenMS
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
       // one could also use std::random_shuffle here but then the code becomes
-      // untestable since the implementation of std::random_shuffle differs
+      // not testable since the implementation of std::random_shuffle differs
       // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
       // see also https://code.google.com/p/chromium/issues/detail?id=358564
       // the actual code here for the shuffling is based on the implementation of

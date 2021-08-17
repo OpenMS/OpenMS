@@ -49,7 +49,7 @@
 
   <ul>
     <li>
-      Essential are \b gcc/g++ (>= 4.9) or similar ANSI C++ compiler with full C++11 support,
+      Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
       \b CMake (>= 3.1; with >= 3.9 suggested), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
@@ -151,7 +151,7 @@
 
   You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section),
   it will complain about anything unusual/missing.
-  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or deinstall and use the contrib version.
+  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or uninstall and use the contrib version.
   @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are WildMagic and CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,13 +45,13 @@ using namespace std;
 
 int SiriusMzTabWriter::extractScanIndex(const String& path)
 {
-  boost::regex regexp_ind("--(?<SCAN>\\d+)--");
+  boost::regex regexp_ind(R"(--(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp_ind, false);
 }
 
 int SiriusMzTabWriter::extractScanNumber(const String& path)
 {
-  boost::regex regexp("-(?<SCAN>\\d+)--");
+  boost::regex regexp(R"(-(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp, false);
 }
 
@@ -59,7 +59,7 @@ String SiriusMzTabWriter::extractFeatureId(const String& path)
 {
   boost::smatch match;
   String feature_id;
-  boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+  boost::regex regexp_feature(R"(_(?<SCAN>\d+)-)");
   bool found = boost::regex_search(path, match, regexp_feature);
   if (found && match["SCAN"].matched) 
   {
@@ -205,7 +205,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("Sirius-4.6.0");
+        md.description = MzTabString("Sirius-" + SiriusVersion::CURRENT_VERSION);
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;

@@ -1,12 +1,18 @@
 tasks:
-  - init:     cp -r .vscode-gitpod .vscode && echo "Welcome!" 
-    prebuild: git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
-              git submodule update --init THIRDPARTY &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
-              mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && make -j16 && popd
-    command:  export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
+    - init: >
+        cp -r .vscode-gitpod .vscode && echo "Welcome!" 
+        git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
+        git submodule update --init THIRDPARTY &&
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+        mkdir -p build && pushd build &&
+        cmake -DCMAKE_BUILD_TYPE=Debug -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ &&
+        make -j7 OpenMS TOPP &&
+        popd
+      command:  >
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+        pushd build && make -j7 all && popd
 image:
   file: .gitpod.Dockerfile
 github:
@@ -30,11 +36,13 @@ github:
     addLabel: false
 vscode:
   extensions:
-    - ms-vscode.cpptools@1.0.1:JVeklbO2P0U3A8Dqh4ivIA==
-    - ms-vscode.cmake-tools@1.4.2:85XiRZZTNCh6JgvEqefqww==
-    - mhutchie.git-graph@1.26.0:m8EvA1owa1dL2R6+Swieyg==
-    - twxs.cmake@0.0.17:aQNzlYa74rJFJ5/BnUF1yA==
-    - cschlosser.doxdocgen@0.7.2:g0DIKlW09t+j2Xi04fzrAA==
-    - hbenl.vscode-test-explorer@2.19.2:8rKHUShFJJd0UivektEkng==
-    - fredericbonnet.cmake-test-adapter@0.10.0:Fb9mp0fAtp8s6LKtpzJAyw==
-    - notskm.clang-tidy@0.5.1:+QMYmPGGWj0QCN6sba42Vw==
+    #Will never be available on OpenVSX
+    #- ms-vscode.cpptools
+    - https://github.com/microsoft/vscode-cpptools/releases/download/1.5.1/cpptools-linux.vsix
+    - hbenl.vscode-test-explorer
+    #Currently not available on OpenVSX
+    #- fredericbonnet.cmake-test-adapter
+    - llvm-vs-code-extensions.vscode-clangd
+    - ms-vscode.cmake-tools
+    - mhutchie.git-graph
+    - cschlosser.doxdocgen

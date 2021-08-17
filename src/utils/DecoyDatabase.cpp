@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,7 @@ protected:
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
     bool keepC = decoy_param.getValue("keepPeptideCTerm").toBool();
 
-    String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern");
+    String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern").toString();
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
 

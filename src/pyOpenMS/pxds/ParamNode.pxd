@@ -1,7 +1,7 @@
 from Types cimport *
 from libcpp cimport bool
 from Types cimport *
-from DataValue cimport *
+from ParamValue cimport *
 from String cimport *
 from Map cimport *
 from ParamEntry cimport *
@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
     
     cdef cppclass ParamNode "OpenMS::Param::ParamNode":
         ParamNode() nogil except +
-        ParamNode(ParamNode) nogil except + #wrap-ignore
+        ParamNode(ParamNode &) nogil except +
 
         String name
         String description

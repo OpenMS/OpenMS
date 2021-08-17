@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,6 @@ START_SECTION((MSExperiment(const MSExperiment&& source)))
 #ifndef OPENMS_COMPILER_MSVC
   TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
 #endif
-
   PeakMap tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
@@ -1215,7 +1214,7 @@ START_SECTION((std::vector<MSChromatogram >& getChromatograms()))
 }
 END_SECTION
 
-START_SECTION((const MSChromatogram getTIC(float rt_bin_size=0) const))
+START_SECTION((const MSChromatogram calculateTIC(float rt_bin_size=0) const))
 {
 	MSChromatogram chrom;
   // Dummy peakmap
@@ -1264,18 +1263,18 @@ START_SECTION((const MSChromatogram getTIC(float rt_bin_size=0) const))
 
 	// empty MSExperiment
 	MSExperiment exp2;
-	chrom = exp2.getTIC();
+	chrom = exp2.calculateTIC();
 	TEST_EQUAL(chrom.empty(),true);
 
 	// no binning
-	chrom = exp.getTIC();
+	chrom = exp.calculateTIC();
 	ABORT_IF(chrom.size() != 3);
 	TEST_EQUAL(chrom[0].getIntensity(),8);
 	TEST_EQUAL(chrom[1].getIntensity(),2);
 	TEST_EQUAL(chrom[2].getIntensity(),9);
 
 	// bin size smaller than highest RT
-	chrom = exp.getTIC(2.0);
+	chrom = exp.calculateTIC(2.0);
 	ABORT_IF(chrom.size() != 4);
 	TEST_EQUAL(chrom[0].getIntensity(),8);
 	TEST_EQUAL(chrom[1].getIntensity(),2);
@@ -1284,14 +1283,14 @@ START_SECTION((const MSChromatogram getTIC(float rt_bin_size=0) const))
 	TEST_EQUAL(chrom[3].getIntensity(),4.5);
 
 	// bin size bigger than highest RT
-	chrom = exp.getTIC(6.0);
+	chrom = exp.calculateTIC(6.0);
 	ABORT_IF(chrom.size() != 2);
 	// Intensities at RT = 2 and RT = 5 in between new data points at 0.0 and 6.0
 	TEST_REAL_SIMILAR(chrom[0].getIntensity(),8.0 + 2.0* 4.0/6.0 + 9 * 1.0/6.0);
 	TEST_REAL_SIMILAR(chrom[1].getIntensity(),2.0* 2.0/6.0 + 9 * 5.0/6.0);
 
 	// negative bin size
-	chrom = exp.getTIC(-1.0);
+	chrom = exp.calculateTIC(-1.0);
 	// should be like no bin size was given
 	ABORT_IF(chrom.size() != 3);
 	TEST_EQUAL(chrom[0].getIntensity(),8);

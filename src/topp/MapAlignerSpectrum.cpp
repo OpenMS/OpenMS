@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,7 +135,7 @@ protected:
     StringList outs = getStringList_("out");
     StringList trafos = getStringList_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
     model_params = model_params.copy(model_type + ":", true);
     std::vector<TransformationDescription> transformations;
 

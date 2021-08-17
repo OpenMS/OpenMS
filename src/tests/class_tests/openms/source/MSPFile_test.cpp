@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,8 +88,8 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	vector<PeptideIdentification> ids;
 	PeakMap exp;
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
-	TEST_EQUAL(exp.size(), 5)
-	TEST_EQUAL(ids.size(), 5)
+	TEST_EQUAL(exp.size(), 7)
+	TEST_EQUAL(ids.size(), 7)
 
 		//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
@@ -101,6 +101,21 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	TEST_STRING_EQUAL(exp[2].getNativeID(), "index=2")
 	TEST_STRING_EQUAL(exp[3].getNativeID(), "index=3")
 	TEST_STRING_EQUAL(exp[4].getNativeID(), "index=4")
+  TEST_STRING_EQUAL(exp[5].getNativeID(), "index=5")
+  TEST_STRING_EQUAL(exp[6].getNativeID(), "index=6")
+  TEST_STRING_EQUAL(ids[5].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAGAGPEM(Oxidation)VR")
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[0].annotation, "a3")
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].annotation, "b3")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].charge, 1)
+  // next only with parse_firstonly = false
+  //TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "y2-H2O")
+  //TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 1)
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "?")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 0)
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].annotation, "y4")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].charge, 2)
+  TEST_STRING_EQUAL(ids[6].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAVGPGAGGAGSAVPGGAGPC(Carbamidomethyl)ATVSVFPGAR")
+
 
 	Param p(msp_file.getParameters());
 	p.setValue("instrument", "qtof");
@@ -119,8 +134,8 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	ids.clear();
 	exp.clear(true);
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
-	TEST_EQUAL(exp.size(), 3)
-	TEST_EQUAL(ids.size(), 3)
+	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(ids.size(), 5)
 
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=2")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=3")
@@ -144,8 +159,8 @@ START_SECTION(void store(const String& filename, const PeakMap& exp) const)
 	exp.clear(true);
 	ids.clear();
 	msp_file.load(filename, ids, exp);
-	TEST_EQUAL(ids.size(), 5)
-	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(ids.size(), 7)
+	TEST_EQUAL(exp.size(), 7)
 
 	TEST_EQUAL(ids[0].getHits().size(), 1)
 	TEST_EQUAL(ids[1].getHits().size(), 1)

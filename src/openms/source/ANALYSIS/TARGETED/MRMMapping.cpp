@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,10 +50,10 @@ namespace OpenMS
       defaults_.setValue("product_tolerance", 0.1, "Product tolerance when mapping (in Th)");
 
       defaults_.setValue("map_multiple_assays", "false", "Allow to map multiple assays to chromatograms and duplicate these chromatograms in the output.");
-      defaults_.setValidStrings("map_multiple_assays", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("map_multiple_assays", {"true","false"});
 
       defaults_.setValue("error_on_unmapped", "false", "Treat remaining, unmapped chromatograms as an error");
-      defaults_.setValidStrings("error_on_unmapped", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("error_on_unmapped", {"true","false"});
 
       // write defaults into Param object param_
       defaultsToParam_();

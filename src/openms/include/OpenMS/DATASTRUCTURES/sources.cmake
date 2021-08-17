@@ -37,6 +37,7 @@ MatchedIterator.h
 Matrix.h
 OSWData.h
 Param.h
+ParamValue.h
 QTCluster.h
 SeqanIncludeWrapper.h
 String.h

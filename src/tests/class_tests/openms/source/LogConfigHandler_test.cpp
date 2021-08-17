@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ START_SECTION((Param parse(const StringList &setting)))
   Param p = LogConfigHandler::getInstance().parse(settings);
 
   // p should contain a list of the above set commands
-  StringList parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
+  std::vector<std::string> parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
 
   TEST_EQUAL(parsedConfigs[0] , "DEBUG add cout FILE")
   TEST_EQUAL(parsedConfigs[1] , "DEBUG add a.out FILE")
@@ -82,13 +82,12 @@ END_SECTION
 
 START_SECTION((void configure(const Param &param)))
 {
-  StringList settings;
-  settings.push_back("INFO add testing_info_warn_stream STRING");
-  settings.push_back("WARNING add testing_info_warn_stream STRING");
-  settings.push_back("ERROR add only_error_string_stream STRING");
-  settings.push_back("INFO remove cout FILE");
-  settings.push_back("WARNING remove cout");
-  settings.push_back("ERROR remove cerr FILE");
+  std::vector<std::string> settings = {"INFO add testing_info_warn_stream STRING",
+                                      "WARNING add testing_info_warn_stream STRING",
+                                      "ERROR add only_error_string_stream STRING",
+                                      "INFO remove cout FILE",
+                                      "WARNING remove cout",
+                                      "ERROR remove cerr FILE"};
 
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
@@ -143,7 +142,7 @@ END_SECTION
 
 START_SECTION((ostream& getStream(const String &stream_name)))
 {
-  StringList settings;
+  std::vector<std::string> settings;
   settings.push_back("INFO add testing_getStream STRING");
 
   Param p;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -221,11 +221,11 @@ namespace OpenMS
 
     // some pretty printing
     QString text = text_;
-    if (!text.contains("<\\")) // don't process HTML strings again
+    if (!text.contains(R"(<\)")) // don't process HTML strings again
     {
       // extract ion index
       {
-        QRegExp reg_exp("[abcdwxyz](\\d+)");
+        QRegExp reg_exp(R"([abcdwxyz](\d+))");
         int match_pos = reg_exp.indexIn(text);
 
         if (match_pos == 0)
@@ -239,7 +239,7 @@ namespace OpenMS
         } 
         else // protein-protein XL specific ion names
         {
-          QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
+          QRegExp reg_exp_xlms(R"((ci|xi)[$][abcxyz](\d+))");
           match_pos = reg_exp_xlms.indexIn(text);
           if ( (match_pos == 6) || (match_pos == 7))
           {
@@ -269,7 +269,7 @@ namespace OpenMS
       text.replace("C3O","C<sub>3</sub>O");
 
       // charge format: +z
-      QRegExp charge_rx("[\\+|\\-](\\d+)$");
+      QRegExp charge_rx(R"([\+|\-](\d+)$)");
       int match_pos = charge_rx.indexIn(text);
       if (match_pos > 0)
       {
@@ -279,7 +279,7 @@ namespace OpenMS
       }
 
       // charge format: z+
-      charge_rx = QRegExp("(\\d+)[\\+|\\-]$");
+      charge_rx = QRegExp(R"((\d+)[\+|\-]$)");
       match_pos = charge_rx.indexIn(text);
       if (match_pos > 0)
       {
@@ -288,10 +288,10 @@ namespace OpenMS
                + text[match_pos + charge_rx.cap(1).size()] + QString("</sup>"); // + or -
       }
 
-      text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
-      text.replace(QRegExp("\\+$"), "");
-      text.replace(QRegExp("\\-\\-$"), "<sup>2-</sup>");
-      text.replace(QRegExp("\\-$"), "");
+      text.replace(QRegExp(R"(\+\+$)"), "<sup>2+</sup>");
+      text.replace(QRegExp(R"(\+$)"), "");
+      text.replace(QRegExp(R"(\-\-$)"), "<sup>2-</sup>");
+      text.replace(QRegExp(R"(\-$)"), "");
 
     }
 

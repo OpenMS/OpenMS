@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,7 +107,7 @@ namespace Internal
 
       @note You *need* to check getParsingSuccess after calling this!
     */
-    void parseFooter_(String filename);
+    void parseFooter_();
 
     std::string getChromatogramById_helper_(int id);
 
@@ -138,7 +138,7 @@ namespace Internal
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    void openFile(String filename);
+    void openFile(const String& filename);
 
     /**
       @brief Returns whether parsing was successful
@@ -228,7 +228,7 @@ namespace Internal
       @param id The chromatogram native id
       @param s The chromatogram to be used and filled with data
     */
-    void getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c);
+    void getMSChromatogramByNativeId(const std::string& id, OpenMS::MSChromatogram& c);
 
     /**
       @brief Retrieve the raw data for the chromatogram at position "id"

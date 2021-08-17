@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,6 +171,22 @@ START_SECTION((static String swapExtension(const String& filename, const FileTyp
   TEST_STRING_EQUAL(FileHandler::swapExtension("c:\\home.with.dot\\file", FileTypes::UNKNOWN), "c:\\home.with.dot\\file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
 END_SECTION
+
+START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)))
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("", ""), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.unknown", "weird"), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.idXML", ""), FileTypes::IDXML)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.txt", ""), FileTypes::TXT)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.txt", "featureXML"), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.mzML.gz", ""), FileTypes::MZML)          // special extension, known to OpenMS
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.mzML.gz", "mzML"), FileTypes::MZML)      // special extension, known to OpenMS
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.txt.tgz", ""), FileTypes::UNKNOWN)       // not special to us... 
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.unknown", "idxml"), FileTypes::IDXML)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home.with.dot/file", "mzML"), FileTypes::MZML)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("c:\\home.with.dot\\file", "mzML"), FileTypes::MZML)
+END_SECTION
+
+
 
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;

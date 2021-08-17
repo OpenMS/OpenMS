@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
     
     cdef cppclass OptimizePick "OpenMS::OptimizePick":
         OptimizePick() nogil except +
-        OptimizePick(OptimizePick) nogil except + #wrap-ignore
+        OptimizePick(OptimizePick &) nogil except + # compiler
         OptimizePick(OptimizationFunctions_PenaltyFactors penalties_, int max_iteration_) nogil except +
         OptimizationFunctions_PenaltyFactors getPenalties() nogil except +
         void setPenalties(OptimizationFunctions_PenaltyFactors penalties) nogil except +
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
     
     cdef cppclass OptimizationFunctions_PenaltyFactors "OpenMS::OptimizationFunctions::PenaltyFactors":
         OptimizationFunctions_PenaltyFactors() nogil except +
-        OptimizationFunctions_PenaltyFactors(OptimizationFunctions_PenaltyFactors) nogil except +
+        OptimizationFunctions_PenaltyFactors(OptimizationFunctions_PenaltyFactors) nogil except + # wrap-ignore
         double pos
         double lWidth
         double rWidth

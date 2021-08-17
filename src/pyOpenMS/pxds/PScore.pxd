@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
     
     cdef cppclass PScore "OpenMS::PScore":
         PScore() nogil except + 
-        PScore(PScore) nogil except + #wrap-ignore
+        PScore(PScore &) nogil except + # compiler
 
         libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz, libcpp_vector[ double ] & intensities, double mz_window) nogil except +
 

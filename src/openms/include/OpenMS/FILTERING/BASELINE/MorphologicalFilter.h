@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -172,10 +172,10 @@ public:
       //structuring element
       defaults_.setValue("struc_elem_length", 3.0, "Length of the structuring element. This should be wider than the expected peak width.");
       defaults_.setValue("struc_elem_unit", "Thomson", "The unit of the 'struct_elem_length'.");
-      defaults_.setValidStrings("struc_elem_unit", ListUtils::create<String>("Thomson,DataPoints"));
+      defaults_.setValidStrings("struc_elem_unit", {"Thomson","DataPoints"});
       //methods
       defaults_.setValue("method", "tophat", "Method to use, the default is 'tophat'.  Do not change this unless you know what you are doing.  The other methods may be useful for tuning the parameters, see the class documentation of MorpthologicalFilter.");
-      defaults_.setValidStrings("method", ListUtils::create<String>("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
+      defaults_.setValidStrings("method", {"identity","erosion","dilation","opening","closing","gradient","tophat","bothat","erosion_simple","dilation_simple"});
 
       defaultsToParam_();
     }
@@ -210,7 +210,7 @@ public:
       }
 
       //apply the filtering
-      String method = param_.getValue("method");
+      std::string method = param_.getValue("method");
       if (method == "identity")
       {
         std::copy(input_begin, input_end, output_begin);
@@ -291,7 +291,7 @@ public:
       if (spectrum.size() <= 1) { return; }
 
       //Determine structuring element size in datapoints (depending on the unit)
-      if ((String)(param_.getValue("struc_elem_unit")) == "Thomson")
+      if (param_.getValue("struc_elem_unit") == "Thomson")
       {
         const double struc_elem_length = (double)param_.getValue("struc_elem_length");
         const double mz_diff = spectrum.back().getMZ() - spectrum.begin()->getMZ();        

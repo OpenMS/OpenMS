@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -148,7 +148,7 @@ protected:
 
     Param p_epd;
     p_epd.setValue("enabled", "true", "Enable splitting of isobaric mass traces by chromatographic peak detection. Disable for direct injection.");
-    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.setValidStrings("enabled", {"true","false"});
     p_epd.insert("", ElutionPeakDetection().getDefaults());
     p_epd.remove("chrom_peak_snr");
     p_epd.remove("chrom_fwhm");

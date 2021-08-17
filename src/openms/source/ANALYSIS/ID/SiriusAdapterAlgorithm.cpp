@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
     using FingeridName = String;
     using PassatuttoName = String;
     using OpenMSName = String;
-    using DefaultValue = DataValue;
+    using DefaultValue = ParamValue;
     using Description = String;
 
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
@@ -293,7 +293,7 @@ namespace OpenMS
 
       parameter(
                  FingeridName("db"),
-                 DefaultValue(""),
+                 DefaultValue("BIO"),
                  Description("Search formulas in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
@@ -316,10 +316,10 @@ namespace OpenMS
     {
       for (auto it = param.begin(); it != param.end(); ++it)
       {
-        const String name = it.getName();
+        const std::string name = it.getName();
         if (hasFullNameParameter(name))
         {
-          vector<String> tags(it->tags.begin(), it->tags.end());
+          vector<std::string> tags(it->tags.begin(), it->tags.end());
           param_.setValue(name, it->value, it->description, tags);
         }
       }
@@ -568,9 +568,9 @@ namespace OpenMS
 
       std::stringstream ss;
       ss << "COMMAND: " << executable_qstring.toStdString();
-      for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
+      for (const QString& it : command_line)
       {
-        ss << " " << it->toStdString();
+        ss << " " << it.toStdString();
       }
       OPENMS_LOG_WARN << ss.str() << std::endl;
       OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;
@@ -611,7 +611,7 @@ namespace OpenMS
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,
-            const DataValue &default_value,
+            const ParamValue &default_value,
             const String &parameter_description)
     {
       const String full_parameter = toFullParameter(parameter_name);

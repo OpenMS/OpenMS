@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,6 +102,22 @@ public:
       If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
     */
     static String swapExtension(const String& filename, const FileTypes::Type new_type);
+
+    
+    /**
+      @brief Useful function for TOPP tools which have an 'out_type' parameter and want to know what
+             output format to write.
+             This function makes sure that the type derived from @p output_filename and @p requested_type are consistent, i.e.
+             are either identical or one of them is UNKNOWN. Upon conflict, an error message is printed and the UNKNOWN type is returned.
+
+      @param output_filename A full filename (with none, absolute or relative paths) whose type is 
+                             determined using FileHandler::getTypeByFileName() internally
+      @param requested_type A type as string, usually obtained from '-out_type', e.g. "FASTA" (case insensitive).
+                            The string can be empty (yields UNKNOWN for this type)
+      @return A consistent file type or UNKNOWN upon conflict
+    */
+    static FileTypes::Type getConsistentOutputfileType(const String& output_filename, const String& requested_type);
+
 
     /**
       @brief Determines the file type of a file by parsing the first few lines

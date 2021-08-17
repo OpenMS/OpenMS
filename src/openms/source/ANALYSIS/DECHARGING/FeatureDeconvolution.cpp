@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,14 +115,14 @@ namespace OpenMS
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
 
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
-    defaults_.setValidStrings("q_try", ListUtils::create<String>("feature,heuristic,all"));
+    defaults_.setValidStrings("q_try", {"feature","heuristic","all"});
 
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 
     defaults_.setValue("mass_max_diff", 0.5, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<String>("K:+:0.1"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", std::vector<std::string>{"K:+:0.1"}, "Adducts used to explain mass differences in format: 'Element:Charge(+/-):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("max_minority_bound", 2, "Maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
@@ -133,13 +133,13 @@ namespace OpenMS
     defaults_.setMaxFloat("min_rt_overlap", 1);
 
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
-    defaults_.setValidStrings("intensity_filter", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");    
 
-    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<String>("advanced"));
+    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
-    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", {"advanced"});
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
 
@@ -150,8 +150,8 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
-    map_label_[0] = param_.getValue("default_map_label");
+    map_label_inverse_[String(param_.getValue("default_map_label").toString())] = 0; // default virtual map (for unlabeled experiments)
+    map_label_[0] = String(param_.getValue("default_map_label").toString());
 
     if (param_.getValue("q_try") == "feature")
       q_try_ = QFROMFEATURE;
@@ -161,7 +161,7 @@ namespace OpenMS
       q_try_ = QALL;
 
 
-    StringList potential_adducts_s = param_.getValue("potential_adducts");
+    StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
     potential_adducts_.clear();
 
     bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
@@ -373,7 +373,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);
@@ -414,7 +414,7 @@ namespace OpenMS
       { // ** RT-window
 
         // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
+        // use sorted structure and use 2nd start--1st end / 1st start--2nd end
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
@@ -476,7 +476,7 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)                                
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)                                
                 }
                 else
                 {
@@ -743,7 +743,7 @@ namespace OpenMS
     // write groups to consensusXML (with type="charge_groups")
 
     // **find cliques from pairs
-    // find which featureIdx maps to which consensusFeatureIdx
+    // find which featureId maps to which consensusFeatureId
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
@@ -874,7 +874,7 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
+            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {
@@ -1262,13 +1262,13 @@ namespace OpenMS
     Size ladders_with_odd(0);
 
     // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
-    for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (const ConsensusFeature& cfeature : cons_map)
     {
-      if (it->size() == 1)
+      if (cfeature.size() == 1)
         continue;
 
       ++ladders_total;
-      IntList charges = it->getMetaValue("distinct_charges");
+      IntList charges = cfeature.getMetaValue("distinct_charges");
 
       for (Size i = 0; i < charges.size(); ++i)
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,9 @@ namespace OpenMS
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
 
     defaults_.setValue("fragment_mass_unit", "Da", "Unit of fragment mass tolerance");
-    defaults_.setValidStrings("fragment_mass_unit", ListUtils::create<String>("Da,ppm"));
+    defaults_.setValidStrings("fragment_mass_unit", {"Da","ppm"});
 
-    vector<String> advanced(1, "advanced"); // tag for advanced parameters
+    vector<std::string> advanced(1, "advanced"); // tag for advanced parameters
 
     defaults_.setValue("max_peptide_length", 40, "Restrict scoring to peptides with a length no greater than this value ('0' for 'no restriction')", advanced);
     defaults_.setMinInt("max_peptide_length", 0);

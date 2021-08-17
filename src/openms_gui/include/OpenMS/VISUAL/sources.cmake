@@ -58,6 +58,7 @@ TVControllerBase.h
 TVDIATreeTabController.h
 TVIdentificationViewController.h
 TVSpectraViewController.h
+TVToolDiscovery.h
 )
 
 ### add path to the filenames

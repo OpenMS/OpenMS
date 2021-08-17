@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "Op
         # wrap-inherits:
         #    ProgressLogger
 
-        TransitionTSVFile()                       nogil except +
-        TransitionTSVFile(TransitionTSVFile)    nogil except + # wrap-ignore
+        TransitionTSVFile() nogil except +
+        TransitionTSVFile(TransitionTSVFile &) nogil except + # compiler
 
         void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) nogil except +
     
@@ -22,4 +22,3 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "Op
         void convertTSVToTargetedExperiment(char * filename, FileType filetype, LightTargetedExperiment& targeted_exp) nogil except +
     
         void validateTargetedExperiment(TargetedExperiment targeted_exp) nogil except +
-

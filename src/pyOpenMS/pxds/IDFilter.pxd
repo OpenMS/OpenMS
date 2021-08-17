@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
     cdef cppclass IDFilter:
 
-        IDFilter()           nogil except +
-        IDFilter(IDFilter)   nogil except + # wrap-ignore
+        IDFilter() nogil except +
+        IDFilter(IDFilter &) nogil except + # compiler
 
         Size countHits(libcpp_vector[PeptideIdentification] identifications) nogil except +
         Size countHits(libcpp_vector[ProteinIdentification] identifications) nogil except +
@@ -91,7 +91,11 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
 
         void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
+        
+        void keepBestPerPeptide(libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
 
+        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) nogil except + #wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
+        
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
 
 cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
@@ -114,4 +118,3 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter"
 
         # bool operator()(PeptideEvidence & evidence) nogil except +
         void filterPeptideEvidences(libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
-
