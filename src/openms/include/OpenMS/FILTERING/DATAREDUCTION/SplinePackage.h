@@ -87,7 +87,7 @@ double getPosStepWidth() const;
 bool isInPackage(double pos) const;
 
 /**
- * @brief returns interpolated intensity @ position pos
+ * @brief returns interpolated intensity position `pos`
  */
 double eval(double pos) const;
 

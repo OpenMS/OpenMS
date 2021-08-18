@@ -18,32 +18,23 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
 
         bool validate(String filename, StringList errors, StringList warnings) nogil except +
 
-        # Checks if a CVTerm is allowed in a given path
-        bool locateTerm(String path, SemanticValidator_CVTerm & parsed_term) nogil except +
+        bool locateTerm(String path, SemanticValidator_CVTerm & parsed_term) nogil except + Checks if a CVTerm is allowed in a given path
 
-        # Sets the CV parameter tag name (default: 'cvParam')
-        void setTag(String tag) nogil except +
+        void setTag(String tag) nogil except + Sets the CV parameter tag name (default: 'cvParam')
 
-        # Sets the name of the attribute for accessions in the CV parameter tag name (default: 'accession')
-        void setAccessionAttribute(String accession) nogil except +
+        void setAccessionAttribute(String accession) nogil except + Sets the name of the attribute for accessions in the CV parameter tag name (default: 'accession')
 
-        # Sets the name of the attribute for accessions in the CV parameter tag name (default: 'name')
-        void setNameAttribute(String name) nogil except +
+        void setNameAttribute(String name) nogil except + Sets the name of the attribute for accessions in the CV parameter tag name (default: 'name')
 
-        # Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
-        void setValueAttribute(String value) nogil except +
+        void setValueAttribute(String value) nogil except + Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
 
-        # Set if CV term value types should be check (enabled by default)
-        void setCheckTermValueTypes(bool check) nogil except +
+        void setCheckTermValueTypes(bool check) nogil except + Set if CV term value types should be check (enabled by default)
 
-        # Set if CV term units should be check (disabled by default)
-        void setCheckUnits(bool check) nogil except +
+        void setCheckUnits(bool check) nogil except + Set if CV term units should be check (disabled by default)
 
-        # Sets the name of the unit accession attribute (default: 'unitAccession')
-        void setUnitAccessionAttribute(String accession) nogil except +
+        void setUnitAccessionAttribute(String accession) nogil except + Sets the name of the unit accession attribute (default: 'unitAccession')
 
-        # Sets the name of the unit name attribute (default: 'unitName')
-        void setUnitNameAttribute(String name) nogil except +
+        void setUnitNameAttribute(String name) nogil except + Sets the name of the unit name attribute (default: 'unitName')
 
 cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "OpenMS::Internal::SemanticValidator":
 

@@ -68,14 +68,14 @@ namespace OpenMS
       bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); }
       int getIsotopePatternIterations() const { return  preprocessing.getValue("isotope_pattern_iterations"); }
 
-      /*
-       * Accessors for Sirius Parameters
+      /**
+       * @brief Accessors for Sirius Parameters
        */
 
       int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
 
       /**
-       * Updates all parameters that already exist in this DefaultParamHandler
+       * @brief Updates all parameters that already exist in this DefaultParamHandler
        * with the values provided by the input param object.
        *
        * @param param The Param object supplying updated parameter values. Keys that exist in the param
@@ -84,7 +84,7 @@ namespace OpenMS
       void updateExistingParameter(const Param &param);
 
       /**
-       * Checks whether this DefaultParamHandler has a ParamEntry with the provided name.
+       * @brief Checks whether this DefaultParamHandler has a ParamEntry with the provided name.
        * @param name The name of the ParamEntry that should be checked for its existence in this DefaultParamHandler
        * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
        */
