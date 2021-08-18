@@ -197,7 +197,7 @@ namespace OpenMS
   {
     for (Feature& it_f : features)
     {
-      (it_f).setRT(-1);
+      it_f.setRT(-1);
     }
   }
 

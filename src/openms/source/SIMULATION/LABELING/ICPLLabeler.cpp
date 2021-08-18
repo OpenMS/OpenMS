@@ -158,9 +158,9 @@ namespace OpenMS
       Map<String, Feature> light_labeled_features_index;
       for (Feature& light_label : light_labeled_features)
       {
-        (light_label).ensureUniqueId();
+        light_label.ensureUniqueId();
         light_labeled_features_index.insert(std::make_pair(
-                                              getUnmodifiedAASequence_((light_label), light_channel_label_),
+                                              getUnmodifiedAASequence_(light_label, light_channel_label_),
                                               light_label
                                               ));
       }

@@ -86,25 +86,23 @@ namespace OpenMS
       {
         continue;
       }
-      for (std::vector<ProteinHit>::const_iterator protein_hit = (mapit).getProteinIdentifications()[0].getHits().begin();
-           protein_hit != (mapit).getProteinIdentifications()[0].getHits().end();
-           ++protein_hit)
+      for (const ProteinHit& protein_hit : (mapit).getProteinIdentifications()[0].getHits())
       {
-        if (prot_hits.count((*protein_hit).getSequence())) // we already know this protein -- sum up abundances
+        if (prot_hits.count((protein_hit).getSequence())) // we already know this protein -- sum up abundances
         {
-          SimTypes::SimIntensityType new_intensity = prot_hits[(*protein_hit).getSequence()].getMetaValue("intensity");
+          SimTypes::SimIntensityType new_intensity = prot_hits[(protein_hit).getSequence()].getMetaValue("intensity");
 
           // remember channel intensity
-          prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
+          prot_hits[(protein_hit).getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
 
-          new_intensity += static_cast<SimTypes::SimIntensityType>((*protein_hit).getMetaValue("intensity"));
-          prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity", new_intensity);
+          new_intensity += static_cast<SimTypes::SimIntensityType>((protein_hit).getMetaValue("intensity"));
+          prot_hits[(protein_hit).getSequence()].setMetaValue("intensity", new_intensity);
         }
         else // new protein hit .. remember
         {
-          ProteinHit protHit(*protein_hit);
+          ProteinHit protHit(protein_hit);
           protHit.setMetaValue("intensity_" + String(channel_index), protHit.getMetaValue("intensity"));
-          prot_hits.insert(std::pair<String, ProteinHit>((*protein_hit).getSequence(), protHit));
+          prot_hits.insert(std::pair<String, ProteinHit>((protein_hit).getSequence(), protHit));
         }
       }
       ++channel_index;
@@ -198,7 +196,7 @@ namespace OpenMS
       for (const FeatureHandle& cf : (cm))
       {
         complete &= id_map.has(String((cf).getUniqueId()));
-        OPENMS_LOG_DEBUG << "\t" << String((cf).getUniqueId()) << std::endl;
+        OPENMS_LOG_DEBUG << "\t" << String(cf.getUniqueId()) << std::endl;
       }
 
       if (complete)
@@ -207,29 +205,29 @@ namespace OpenMS
         // adduct compositions we use the adduct-string as indicator to find the groups
         Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > charge_mapping;
 
-        for (const FeatureHandle& cf : (cm))
+        for (const FeatureHandle& cf : cm)
         {
-          IntList feature_indices = id_map[String((cf).getUniqueId())];
+          IntList feature_indices = id_map[String(cf.getUniqueId())];
 
-          for (int& feat : feature_indices)
+          for (const int f_index : feature_indices)
           {
             UInt64 map_index = 0;
-            if (simulated_features[feat].metaValueExists("map_index"))
+            if (simulated_features[f_index].metaValueExists("map_index"))
             {
-              map_index = simulated_features[feat].getMetaValue("map_index");
+              map_index = simulated_features[f_index].getMetaValue("map_index");
             }
 
-            if (charge_mapping.has(simulated_features[feat].getMetaValue("charge_adducts")))
+            if (charge_mapping.has(simulated_features[f_index].getMetaValue("charge_adducts")))
             {
-              charge_mapping[simulated_features[feat].getMetaValue("charge_adducts")].insert(FeatureHandle(map_index, simulated_features[feat]));
+              charge_mapping[simulated_features[f_index].getMetaValue("charge_adducts")].insert(FeatureHandle(map_index, simulated_features[f_index]));
             }
             else
             {
-              OPENMS_LOG_DEBUG << "Create new set with charge composition " << simulated_features[feat].getMetaValue("charge_adducts") << std::endl;
+              OPENMS_LOG_DEBUG << "Create new set with charge composition " << simulated_features[f_index].getMetaValue("charge_adducts") << std::endl;
               std::set<FeatureHandle, FeatureHandle::IndexLess> fh_set;
 
-              fh_set.insert(FeatureHandle(map_index, simulated_features[feat]));
-              charge_mapping.insert(std::make_pair(simulated_features[feat].getMetaValue("charge_adducts"), fh_set));
+              fh_set.insert(FeatureHandle(map_index, simulated_features[f_index]));
+              charge_mapping.insert(std::make_pair(simulated_features[f_index].getMetaValue("charge_adducts"), fh_set));
             }
           }
         }

@@ -96,9 +96,9 @@ namespace OpenMS
 
     for (Feature& unlabel : unlabeled_features)
     {
-      (unlabel).ensureUniqueId();
+      unlabel.ensureUniqueId();
       unlabeled_features_index.insert(std::make_pair(
-                                        (unlabel).getPeptideIdentifications()[0].getHits()[0].getSequence()
+                                        unlabel.getPeptideIdentifications()[0].getHits()[0].getSequence()
                                                     ,
                                         unlabel
                                         ));
