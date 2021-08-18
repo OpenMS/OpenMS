@@ -556,8 +556,8 @@ namespace OpenMS
     buildElement_("Bismuth", "Bi", 83u, bismuth_abundance, bismuth_mass);
 
 
-    map<unsigned int, double> polonium_abundance = {{209u, 0.0}, {210u, 0.0}};
-    map<unsigned int, double> polonium_mass = {{209u, 208.9824308}, {210u, 209.9828741}};
+    map<unsigned int, double> polonium_abundance = {{210u, 0.99998}};
+    map<unsigned int, double> polonium_mass = {{210u, 209.9828741}};
     buildElement_("Polonium", "Po", 84u, polonium_abundance, polonium_mass);
 
 
@@ -566,12 +566,12 @@ namespace OpenMS
     buildElement_("Astatine", "At", 85u, astatine_abundance, astatine_mass);
 
   
-    map<unsigned int, double> radon_abundance = {{211u, 0.0}, {220u, 0.0}, {222u, 0.0}};
-    map<unsigned int, double> radon_mass = {{211u, 210.9906011}, {220u, 220.0113941}, {222u, 222.0175782}};
+    map<unsigned int, double> radon_abundance = {{220u, 0.09}, {222u, 0.900000001}};
+    map<unsigned int, double> radon_mass = {{220u, 220.0113941}, {222u, 222.0175782}};
     buildElement_("Radon", "Rn", 86u, radon_abundance, radon_mass);
 
 
-    map<unsigned int, double> francium_abundance = {{223u, 0.0}};
+    map<unsigned int, double> francium_abundance = {{223u, 0.0000001}};
     map<unsigned int, double> francium_mass = {{223u, 223.0197360}};
     buildElement_("Francium", "Fr", 87u, francium_abundance, francium_mass);
 
@@ -648,11 +648,6 @@ namespace OpenMS
     map<unsigned int, double> lawrencium_abundance = {{262u, 0.0000}};
     map<unsigned int, double> lawrencium_mass = {{262u, 262.10961}};
     buildElement_("Lawrencium", "Lr", 103u, lawrencium_abundance, lawrencium_mass);
-
-
-    map<unsigned int, double> rutherfordium_abundance = {{267u, 0.0}};
-    map<unsigned int, double> rutherfordium_mass = {{267u, 267.12179}};
-    buildElement_("Rutherfordium", "Rf", 104u, rutherfordium_abundance, rutherfordium_mass);
 
 
     map<unsigned int, double> rutherfordium_abundance = {{267u, 0.0}};
