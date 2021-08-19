@@ -180,6 +180,7 @@ namespace OpenMS
     m_help->addAction("Tutorials and documentation", [&]() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
 
     m_help->addSeparator();
+    // This is important
     m_help->addAction("&About", [parent]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
   }
 

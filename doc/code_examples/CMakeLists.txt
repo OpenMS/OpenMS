@@ -69,7 +69,8 @@ add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network WebEngineWidgets OpenGL Svg REQUIRED)
+  find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
+  find_package(Qt5 COMPONENTS WebEngineWidgets)
   # add OpenMS GUI includes
   include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 

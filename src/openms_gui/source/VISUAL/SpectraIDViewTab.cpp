@@ -95,12 +95,12 @@ namespace ProteinClmn
     DESCRIPTION,
     SCORE,
     COVERAGE,
-    NR_PEPTIDES,
+    NR_PSM,
     /* last entry --> */ SIZE_OF_HEADERNAMES
       };
   // keep in SYNC with enum HeaderNames
   const QStringList HEADER_NAMES = QStringList()
-      << "accession" << "full sequence" << "sequence" << "description" << "score" << "coverage" << "#peptides";
+      << "accession" << "full sequence" << "sequence" << "description" << "score" << "coverage" << "#PSMs";
 }
 
 namespace OpenMS
@@ -262,7 +262,8 @@ namespace OpenMS
   void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
   {
     QString accession_num = extractNumFromAccession_(accession);
-    if (!accession_num.isEmpty()) {
+    if (!accession_num.isEmpty()) 
+    {
       QString base_url = "https://www.uniprot.org/uniprot/";
       QString url = base_url + accession_num;
       GUIHelpers::openURL(url);
@@ -292,20 +293,22 @@ namespace OpenMS
       openUniProtSiteWithAccession_(accession);
     }
 
-    //Open window
+    //
+    // Check if Qt WebEngineWidgets is installed on user's machine and if so,
+    // open a new window to visualize protein sequece
     #ifdef QT_WEBENGINEWIDGETS_LIB
     if (column == ProteinClmn::SEQUENCE)
     {
-      // store the current sequence clicked
-      //TODO this will always set the protein sequence to "show" since that is what we put in the column
-      // a) store a pointer to the ProteinHit in the protein_to_peptide_id_map (value = pair<const Prothit*, const PepId*>)
-      // b) store a hidden column with the full sequence in the protein_table_widget.
+      // store the current sequence clicked from the FULL_PROTEIN_SEQUENCE column. This column(hidden by default) 
+      // stores the full protein sequence
       QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::FULL_PROTEIN_SEQUENCE)->data(Qt::DisplayRole).toString();
-      // return whole accession as string, eg: tr|P02769|ALBU_BOVIN
+      // store the accession as string, eg: tr|P02769|ALBU_BOVIN
       QString current_accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
-     
+     // extract the part of accession , eg: P02769
       QString accession_num = extractNumFromAccession_(current_accession);
+
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
+
       if (item_pepid)
       {
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
@@ -562,7 +565,8 @@ namespace OpenMS
   namespace Detail
   {
     template<>
-    struct MetaKeyGetter<std::reference_wrapper<const PeptideHit>> {
+    struct MetaKeyGetter<std::reference_wrapper<const PeptideHit>> 
+    {
       static void getKeys(const std::reference_wrapper<const PeptideHit>& object, std::vector<String>& keys)
       {
         object.get().getKeys(keys);
@@ -632,6 +636,8 @@ namespace OpenMS
         // set row background color
         QColor bg_color = accs.empty() ? Qt::white : Qt::lightGray;
 
+        int total_pepids = protein_to_peptide_id_map[protein.getAccession()].size();
+        
         // add new row at the end of the table
         protein_table_widget_->insertRow(protein_table_widget_->rowCount());
 
@@ -641,7 +647,7 @@ namespace OpenMS
         protein_table_widget_->setAtBottomRow(protein.getDescription().toQString(), ProteinClmn::DESCRIPTION, bg_color);
         protein_table_widget_->setAtBottomRow(protein.getScore(), ProteinClmn::SCORE, bg_color);
         protein_table_widget_->setAtBottomRow(protein.getCoverage(), ProteinClmn::COVERAGE, bg_color);
-        protein_table_widget_->setAtBottomRow(0, ProteinClmn::NR_PEPTIDES, bg_color); //TODO actually calculate
+        protein_table_widget_->setAtBottomRow(total_pepids, ProteinClmn::NR_PSM, bg_color);
 
         /*if ((int)i == restore_spec_index) //TODO actually extract the accessions for the selected spectrum and compare
         {
@@ -902,7 +908,7 @@ namespace OpenMS
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
-      currentCellChanged_(selected_row,0,0,0); //simulate cell change to trigger repaint and reannotation of spectrum 1D view
+      currentCellChanged_(selected_row, 0, 0, 0); // simulate cell change to trigger repaint and reannotation of spectrum 1D view
     }
 
     table_widget_->blockSignals(false);

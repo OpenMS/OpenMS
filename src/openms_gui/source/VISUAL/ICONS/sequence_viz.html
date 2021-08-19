@@ -29,7 +29,6 @@
     <script src="https://cdn.jsdelivr.net/npm/protvista-sequence@latest" defer></script>
     <script defer>
         document.addEventListener("DOMContentLoaded", function () {
-            console.log("DOM Loaded...");
             new QWebChannel(qt.webChannelTransport,
             async function(channel){
 
@@ -54,9 +53,8 @@
 
             let peptide_obj = [];
             let mod_peptide_obj = [];
-
+            
             if(!protein_seq.length){ 
-                console.log('protein seq doesnot exists in file...')
                 async function fetchSeqDataJSON() {
                   const response = await fetch('https://www.ebi.ac.uk/proteins/api/proteins/' + acc_num, {
                         method:'GET',
@@ -194,11 +192,63 @@
             });
         });
     </script>
+    <style>
+		
+		.helpBtn {
+		  position: absolute;
+		  bottom: 10px;
+		  left: 10px;
+		  display: inline-block;
+		  border: 1px solid black;
+		  border-radius: 4px;
+		  padding: 5px 10px;
+		}
+
+		.helpBtn .helpText {
+		  visibility: hidden;
+		  width: max-content;
+		  background-color: white;
+		  color: #000;
+		  text-align: center;
+		  border: 1px solid black;
+		  border-radius: 6px;
+		  padding: 10px 20px;
+		  position: absolute;
+		  z-index: 1;
+		  bottom: 150%;
+		  left: 50%;
+		  text-align: left;
+		}
+
+		.helpBtn .helpText::after {
+		  content: "";
+		  position: absolute;
+		  top: 100%;
+		  left: 2%;
+		  margin-left: 0px;
+		  border-width: 10px;
+		  border-style: solid;
+		  border-color: black transparent transparent transparent;
+		}
+        .helpBtn:hover {
+            cursor: pointer;
+        }
+		.helpBtn:hover .helpText {
+		  visibility: visible;
+		}
+	</style>
 </head>
-  <body>
-      <protvista-manager 
-        attributes="length displaystart displayend highlight onclick"
-        id="toppview_prot_visualizer">
-      </protvista-manager>
-  </body>
+<body>
+    <protvista-manager attributes="length displaystart displayend highlight onclick"
+                       id="toppview_prot_visualizer">
+    </protvista-manager>
+    <div class="helpBtn">
+        Help
+        <div class="helpText">
+            <span>1) Keep your mouse over a track and use <kbd>ctrl + scroll</kbd> to zoom in/out</span><br>
+            <span>2) Hover over the modification track to view modification data</span><br>
+            <span>3) Hover over the peptide track to view peptide data</span>
+        </div>
+    </div>
+</body>
 </html>

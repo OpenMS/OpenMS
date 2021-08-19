@@ -2096,7 +2096,7 @@ namespace OpenMS
     // be an in-memory representation in the peak data structure. Using
     // setCurrentSpectrumIndex will select the appropriate spectrum and load it
     // into memory.
-    std::cout << "Current nr. spec: " << getCurrentLayer().getPeakData()->size() << std::endl;
+    
     if (index < getCurrentLayer().getPeakData()->size())
     {
       getCurrentLayer().setCurrentSpectrumIndex(index);

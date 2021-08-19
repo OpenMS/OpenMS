@@ -41,6 +41,7 @@
 
 #include <QtWebEngineWidgets/QWebEngineView>
 
+// This is the window that appears when we click on 'show' in the 'sequence' column of the protein table
 
 namespace OpenMS
 {
@@ -49,9 +50,9 @@ namespace OpenMS
   {
     ui->setupUi(this);
     auto* view = new QWebEngineView(parent);
-    auto* channel = new QWebChannel(this);
+    auto* channel = new QWebChannel(this); // setup Qt WebChannel API
     view->page()->setWebChannel(channel);
-    channel->registerObject(QString("SequenceVisualizer"), this);
+    channel->registerObject(QString("SequenceVisualizer"), this); // This object will be available in HTML file.
     view->load(QUrl("qrc:/new/sequence_viz.html"));
     ui->gridLayout->addWidget(view);
   }
@@ -61,6 +62,9 @@ namespace OpenMS
     delete ui;
   }
 
+  // Get protein and peptide data from the protein table and store inside the m_json_data_obj object. 
+  // Inside the HTML file, this QObject will be available and we'll access these protein and 
+  // peptide data using the qtWebEngine and webChannel API.
   void SequenceVisualizer::setProteinPeptideDataToJsonObj(const QString& accession_num,
       const QString& pro_seq,
       const QJsonArray& pep_data)

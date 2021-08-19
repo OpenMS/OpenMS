@@ -166,13 +166,9 @@ namespace OpenMS
     case IDENT_IDX:
       spectraview_controller_->deactivateBehavior();
       diatab_controller_->deactivateBehavior();
-      std::cout << "trying to switch to Ident tab" << std::endl;
       if (tv_->getActive2DWidget()) // currently, 2D window is open
       {
-        std::cout << "2D was open" << std::endl;
         idview_controller_->showSpectrumAsNew1D(0);
-      } else {
-        std::cout << "2D was NOT open" << std::endl;
       }
       idview_controller_->activateBehavior();
       break;

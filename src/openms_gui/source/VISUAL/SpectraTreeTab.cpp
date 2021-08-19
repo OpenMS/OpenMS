@@ -184,7 +184,6 @@ namespace OpenMS
 
   void SpectraTreeTab::updateIndexFromCurrentLayer()
   {
-    std::cout << "Spectra tab view activated to go to position " << layer_->getCurrentSpectrumIndex() << std::endl;
     spectra_treewidget_->setTreePosition(layer_->getCurrentSpectrumIndex());
   }
 
@@ -194,7 +193,6 @@ namespace OpenMS
         the wrong spectrum will be selected after finishing
         the execution of a TOPP tool on the whole data */
     // WUT????
-    std::cout << "itemselection in specra tabview changed:" << std::endl;
     if (current == nullptr)
     {
       return;
@@ -203,7 +201,6 @@ namespace OpenMS
     IndexExtrator ie(current);
     if (!ie.hasChromIndices())
     {
-      std::cout << "Spectrum selected from Spec View Table: "  << ie.spectrum_index << std::endl;
       emit spectrumSelected(ie.spectrum_index);
     }
     else
@@ -305,7 +302,6 @@ namespace OpenMS
 
   void SpectraTreeTab::updateEntries(LayerData* layer)
   {
-    std::cout << "Updating spectrum table view entries" << std::endl;
     if (layer == nullptr)
     {
       clear();
@@ -321,8 +317,8 @@ namespace OpenMS
 
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){
-      std::cout << "signals in spectra table unblocked" << std::endl;
-      spectra_treewidget_->blockSignals(false); });
+      spectra_treewidget_->blockSignals(false); 
+    });
 
     QTreeWidgetItem* toplevel_item = nullptr;
     QTreeWidgetItem* selected_item = nullptr;

@@ -85,7 +85,7 @@ namespace OpenMS
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
-
+    ///  Rebuild protein table entries
     void updateProteinEntries_(int spec_cell_row_idx);
 
   signals:
@@ -99,9 +99,9 @@ namespace OpenMS
   private:
     /// partially fill the bottom-most row  
     void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
-    // extract the required part of the accession 
+    /// extract the required part of the accession 
     static QString extractNumFromAccession_(const QString& listItem);
-    //open browser to navigate to uniport site with accession
+    /// open browser to navigate to uniport site with accession
     void openUniProtSiteWithAccession_(const QString& accession);
 
     LayerData* layer_ = nullptr;
@@ -121,7 +121,7 @@ namespace OpenMS
     /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
     void currentCellChanged_(int row, int column, int old_row, int old_column);
 
-    // Create protein accession to peptide identification map using C++ STL unordered_map
+    /// Create 'protein accession to peptide identification' map using C++ STL unordered_map
     void createProteinToPeptideIDMap_();
 
     /// Cell selected or deselected: this is only used to check for deselection, rest happens in currentCellChanged_

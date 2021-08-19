@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets WebEngineWidgets Network Svg)
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg)
 
 # On macOS the platform plugin of QT requires PrintSupport. We link
 # so it's packaged via the bundling/dependency tools/scripts
@@ -48,12 +48,21 @@ endif()
 
 set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
+set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+
 find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
+
+find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+
 
 IF (NOT Qt5Widgets_FOUND)
   message(STATUS "QT5Widgets not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
+
+if(Qt5_WebEngineWidgets_NOTFOUND) 
+    set(OpenMS_GUI_QT_COMPONENTS_OPT "")
+endif()
 
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
