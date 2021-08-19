@@ -168,16 +168,16 @@ namespace OpenMS
       // iterate over second map
       for (Feature& medium_label : medium_labeled_features)
       {
-        AASequence medium_labeled_feature_sequence = (medium_label).getPeptideIdentifications()[0].getHits()[0].getSequence();
+        AASequence medium_labeled_feature_sequence = medium_label.getPeptideIdentifications()[0].getHits()[0].getSequence();
 
         // guarantee uniqueness
         (medium_label).ensureUniqueId();
 
         // check if we have a pair
-        if (light_labeled_features_index.has(getUnmodifiedAASequence_((medium_label), medium_channel_label_)))
+        if (light_labeled_features_index.has(getUnmodifiedAASequence_(medium_label, medium_channel_label_)))
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
-          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((medium_label), medium_channel_label_)];
+          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_(medium_label, medium_channel_label_)];
           // guarantee uniqueness
           light_labeled_feature.ensureUniqueId();
 
@@ -195,7 +195,7 @@ namespace OpenMS
             consensus_.push_back(cf);
 
             // remove light-labeled feature
-            light_labeled_features_index.erase(getUnmodifiedAASequence_((medium_label), medium_channel_label_));
+            light_labeled_features_index.erase(getUnmodifiedAASequence_(medium_label, medium_channel_label_));
           }
           else
           {
@@ -224,7 +224,7 @@ namespace OpenMS
       Map<String, Feature> light_labeled_features_index;
       for (Feature& light_label : light_labeled_features)
       {
-        (light_label).ensureUniqueId();
+        light_label.ensureUniqueId();
         light_labeled_features_index.insert(std::make_pair(
                                               getUnmodifiedAASequence_(light_label, light_channel_label_),
                                               light_label
@@ -235,9 +235,9 @@ namespace OpenMS
       Map<String, Feature> medium_labeled_features_index;
       for (Feature& medium_label : medium_labeled_features)
       {
-        (medium_label).ensureUniqueId();
+        medium_label.ensureUniqueId();
         medium_labeled_features_index.insert(std::make_pair(
-                                               getUnmodifiedAASequence_((medium_label), medium_channel_label_),
+                                               getUnmodifiedAASequence_(medium_label, medium_channel_label_),
                                                medium_label
                                                ));
       }
@@ -441,7 +441,7 @@ namespace OpenMS
       SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
       for (Feature& feat : feature_map)
       {
-        id_map.insert(std::make_pair<UInt64, Feature*>(feat.getUniqueId(), &(feat)));
+        id_map.insert(std::make_pair<UInt64, Feature*>(feat.getUniqueId(), &feat));
       }
 
       // recompute RT of pairs

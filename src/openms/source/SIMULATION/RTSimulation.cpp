@@ -617,14 +617,14 @@ namespace OpenMS
       Size id = 1;
       for (MSSpectrum& spec : experiment)
       {
-        (spec).setRT(current_scan_rt);
+        spec.setRT(current_scan_rt);
 
         String spec_id = String("spectrum=") + id;
         ++id;
-        (spec).setNativeID(spec_id);
+        spec.setNativeID(spec_id);
 
         // dice & store distortion
-        (spec).setMetaValue("distortion", 1);
+        spec.setMetaValue("distortion", 1);
 
         // TODO (for CE) store peak broadening parameter
         current_scan_rt += rt_sampling_rate_;

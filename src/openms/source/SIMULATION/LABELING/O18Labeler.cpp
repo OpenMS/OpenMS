@@ -110,10 +110,10 @@ namespace OpenMS
 
     for (Feature& lf : labeled_features)
     {
-      AASequence unmodified_sequence = (lf).getPeptideIdentifications()[0].getHits()[0].getSequence();
+      AASequence unmodified_sequence = lf.getPeptideIdentifications()[0].getHits()[0].getSequence();
 
       // check if feature has tryptic c-terminus
-      PeptideHit ph = (lf).getPeptideIdentifications()[0].getHits()[0];
+      PeptideHit ph = lf.getPeptideIdentifications()[0].getHits()[0];
       if (ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'R'
          ||
           ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'K')
@@ -130,7 +130,7 @@ namespace OpenMS
           Feature b2(lf);
           b2.ensureUniqueId();
 
-          SimTypes::SimIntensityType total_intensity = (lf).getIntensity();
+          SimTypes::SimIntensityType total_intensity = lf.getIntensity();
 
           // di-labeled
           addModificationToPeptideHit_(b2, "UniMod:193");
@@ -146,7 +146,7 @@ namespace OpenMS
 
           // merge unlabeled with possible labeled feature
           // modify unlabeled intensity
-          (lf).setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
+          lf.setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
 
           // all three partial intensities from above should add up to 1 now
 
@@ -174,7 +174,7 @@ namespace OpenMS
           // labeling_efficiency is 100% so we transform the complete
           // feature in a di-labeled feature
           addModificationToPeptideHit_(lf, "UniMod:193");
-          (lf).ensureUniqueId();
+          lf.ensureUniqueId();
           final_feature_map.push_back(lf);
 
           // add corresponding feature if it exists

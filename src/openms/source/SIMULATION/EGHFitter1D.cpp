@@ -304,11 +304,17 @@ namespace OpenMS
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
     Size i = apex_rt;
-    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5) --i;
+    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5)
+    {
+      --i;
+    }
     CoordinateType A = retention_ - set[i + 1].getPos();
 
     i = apex_rt;
-    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5) ++i;
+    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5)
+    {
+      ++i;
+    }
     CoordinateType B = set[i - 1].getPos() - retention_;
 
     // compute estimates for tau / sigma_square based on A/B

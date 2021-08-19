@@ -89,7 +89,7 @@ namespace OpenMS
 
     for (Feature& feat : features)
     {
-      (feat).setMetaValue("detectability", defaultDetectibility);
+      feat.setMetaValue("detectability", defaultDetectibility);
     }
   }
 

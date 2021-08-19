@@ -183,9 +183,9 @@ namespace OpenMS
       Map<String, Feature> unlabeled_features_index;
       for (Feature& unlabeled_feature : light_channel_features)
       {
-        (unlabeled_feature).ensureUniqueId();
+        unlabeled_feature.ensureUniqueId();
         unlabeled_features_index.insert(std::make_pair(
-                                          (unlabeled_feature).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
+                                          unlabeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
                                                       ,
                                           unlabeled_feature
                                           ));
@@ -197,7 +197,7 @@ namespace OpenMS
         const String unmodified_sequence = getUnmodifiedSequence_(labeled_feature, medium_channel_arginine_label_, medium_channel_lysine_label_);
 
         // guarantee uniqueness
-        (labeled_feature).ensureUniqueId();
+        labeled_feature.ensureUniqueId();
 
         // check if we have a pair
         if (unlabeled_features_index.has(unmodified_sequence))
@@ -208,7 +208,7 @@ namespace OpenMS
           unlabeled_feature.ensureUniqueId();
 
           // feature has a SILAC Label and is not equal to non-labeled
-          if ((labeled_feature).getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
+          if (labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
             final_feature_map.push_back(labeled_feature);
@@ -254,9 +254,9 @@ namespace OpenMS
       Map<String, Feature> unlabeled_features_index;
       for (Feature& unlabeled_features : light_channel_features)
       {
-        (unlabeled_features).ensureUniqueId();
+        unlabeled_features.ensureUniqueId();
         unlabeled_features_index.insert(std::make_pair(
-                                          (unlabeled_features).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
+                                          unlabeled_features.getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
                                                       ,
                                           unlabeled_features
                                           ));
@@ -266,7 +266,7 @@ namespace OpenMS
       Map<String, Feature> medium_features_index;
       for (Feature& labeled_features : medium_channel_features)
       {
-        (labeled_features).ensureUniqueId();
+        labeled_features.ensureUniqueId();
         medium_features_index.insert(std::make_pair(
                                        getUnmodifiedSequence_(labeled_features, medium_channel_arginine_label_, medium_channel_lysine_label_)
                                                    ,

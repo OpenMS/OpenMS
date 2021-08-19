@@ -1106,10 +1106,10 @@ namespace OpenMS
 
     for (MSSpectrum& spectrum : experiment)
     {
-      SimTypes::MSSimExperiment::SpectrumType new_spec = (spectrum);
+      SimTypes::MSSimExperiment::SpectrumType new_spec = spectrum;
       new_spec.clear(false);
 
-      for (Peak1D& peak : (spectrum))
+      for (Peak1D& peak : spectrum)
       {
         SimTypes::SimIntensityType intensity = peak.getIntensity() + ndist(rnd_gen_->getTechnicalRng());
         if (intensity > 0.0)
@@ -1140,7 +1140,7 @@ namespace OpenMS
     boost::normal_distribution<SimTypes::SimIntensityType> ndist(detector_noise_mean, detector_noise_stddev);
     for (MSSpectrum& spectrum : experiment)
     {
-      SimTypes::MSSimExperiment::SpectrumType new_spec = (spectrum);
+      SimTypes::MSSimExperiment::SpectrumType new_spec = spectrum;
       new_spec.clear(false);
 
       std::vector<SimTypes::SimCoordinateType>::iterator grid_it = grid_.begin();

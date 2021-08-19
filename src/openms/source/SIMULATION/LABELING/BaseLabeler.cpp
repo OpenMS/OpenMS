@@ -86,23 +86,23 @@ namespace OpenMS
       {
         continue;
       }
-      for (const ProteinHit& protein_hit : (mapit).getProteinIdentifications()[0].getHits())
+      for (const ProteinHit& protein_hit : mapit.getProteinIdentifications()[0].getHits())
       {
-        if (prot_hits.count((protein_hit).getSequence())) // we already know this protein -- sum up abundances
+        if (prot_hits.count(protein_hit.getSequence())) // we already know this protein -- sum up abundances
         {
-          SimTypes::SimIntensityType new_intensity = prot_hits[(protein_hit).getSequence()].getMetaValue("intensity");
+          SimTypes::SimIntensityType new_intensity = prot_hits[protein_hit.getSequence()].getMetaValue("intensity");
 
           // remember channel intensity
-          prot_hits[(protein_hit).getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
+          prot_hits[protein_hit.getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
 
-          new_intensity += static_cast<SimTypes::SimIntensityType>((protein_hit).getMetaValue("intensity"));
-          prot_hits[(protein_hit).getSequence()].setMetaValue("intensity", new_intensity);
+          new_intensity += static_cast<SimTypes::SimIntensityType>(protein_hit.getMetaValue("intensity"));
+          prot_hits[protein_hit.getSequence()].setMetaValue("intensity", new_intensity);
         }
         else // new protein hit .. remember
         {
           ProteinHit protHit(protein_hit);
           protHit.setMetaValue("intensity_" + String(channel_index), protHit.getMetaValue("intensity"));
-          prot_hits.insert(std::pair<String, ProteinHit>((protein_hit).getSequence(), protHit));
+          prot_hits.insert(std::pair<String, ProteinHit>(protein_hit.getSequence(), protHit));
         }
       }
       ++channel_index;
@@ -193,9 +193,9 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Checking consensus feature containing: " << std::endl;
 
       // check if we have all elements of current CF in the new feature map (simulated_features)
-      for (const FeatureHandle& cf : (cm))
+      for (const FeatureHandle& cf : cm)
       {
-        complete &= id_map.has(String((cf).getUniqueId()));
+        complete &= id_map.has(String(cf.getUniqueId()));
         OPENMS_LOG_DEBUG << "\t" << String(cf.getUniqueId()) << std::endl;
       }
 
