@@ -287,7 +287,6 @@ namespace OpenMS
     {
       // This stores the complete accession, eg, "tr|A9GID7|A9GID7_SORC5"
       QString accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
-
       // As with the current logic, we have only one accession per row, we can directy use that accession 
       // while opening the window instead of showing another widget that lists all accessions
       openUniProtSiteWithAccession_(accession);
@@ -378,7 +377,7 @@ namespace OpenMS
         widget->show();
       }
     }
-    #endif
+#endif
   }
 
   void SpectraIDViewTab::currentSpectraSelectionChanged_()
@@ -400,7 +399,6 @@ namespace OpenMS
       // TODO also currently, the current active spectrum can be restored after deselection by clicking on
       //  the Scans tab and then switching back to ID tab. (Scans will get the current scan in the 1D View, which
       //  is still there. I guess I have to deselect in the 1D view, too, after all.
-
       updateProteinEntries_(-1);
     }
     //TODO if you deselected the current spectrum, you currently cannot click on/navigate to the same spectrum

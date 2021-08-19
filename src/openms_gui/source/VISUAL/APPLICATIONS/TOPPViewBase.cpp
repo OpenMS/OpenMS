@@ -176,7 +176,7 @@ namespace OpenMS
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
-    //TODO This triggers always also if there are just focus changes. Very very bad..
+    //Trigger updates only when the active subWindow index changes and update it
     connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) {
       Size s = 0;
       int oldactiveSubwindowID = activeSubwindowID_;
@@ -2624,7 +2624,6 @@ namespace OpenMS
           }
         }
       }
-
     }
     catch (Exception::BaseException& e)
     {
