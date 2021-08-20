@@ -141,28 +141,24 @@ namespace OpenMS
     }
 
     MSSpectrum::Chunks chunks(spectrum);
-    PeakSpectrum::StringDataArray* ion_names;
-    PeakSpectrum::IntegerDataArray* charges;
-
-    bool charges_dynamic = false, ion_names_dynamic = false;
+    std::shared_ptr<PeakSpectrum::StringDataArray> ion_names;
+    std::shared_ptr<PeakSpectrum::IntegerDataArray> charges;
 
     if (spectrum.getIntegerDataArrays().empty())
     {
-      charges = new PeakSpectrum::IntegerDataArray();
-      charges_dynamic = true;
+      charges = std::make_shared<PeakSpectrum::IntegerDataArray>();
     }
     else
     {
-      charges = &(spectrum.getIntegerDataArrays()[0]);
+      charges = std::make_shared<PeakSpectrum::IntegerDataArray>(spectrum.getIntegerDataArrays()[0]);
     }
     if (spectrum.getStringDataArrays().empty())
     {
-      ion_names = new PeakSpectrum::StringDataArray();
-      ion_names_dynamic = true;
+      ion_names = std::make_shared<PeakSpectrum::StringDataArray>();
     }
     else
     {
-      ion_names = &(spectrum.getStringDataArrays()[0]);
+      ion_names = std::make_shared<PeakSpectrum::StringDataArray>(spectrum.getStringDataArrays()[0]);
     }
     ion_names->setName("IonNames");
     charges->setName("Charges");
@@ -211,9 +207,6 @@ namespace OpenMS
         spectrum.getStringDataArrays().push_back(std::move(*ion_names));
       }
     }
-
-    if (charges_dynamic) delete charges;
-    if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
 
