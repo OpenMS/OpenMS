@@ -1456,12 +1456,6 @@ namespace OpenMS
       }
       else
       {
-        //TODO this does not solve the ultimate problem of setting the scores, since setScores always uses lower_bound.
-        // Which for higher_score_better yields the correct "greater or equal = better or equal". But for
-        // lower_score_better this yields "greater or equal = worse or equal".
-        // Two options now: revert current changes and wrap map<K,V,correctcomparator> to something that one can pass to all
-        // the set methods and lower_bound gives always the right element.
-        // Pass OLD score (i.e. the score in score_to_fdr) higher_better sorting to the set methods
         for (auto&& rit = scores_to_FDR.rbegin(); rit != scores_to_FDR.rend(); ++rit)
         {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
