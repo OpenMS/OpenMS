@@ -133,7 +133,7 @@ namespace OpenMS
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
     for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = (spl).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
       navigators.push_back(nav);
     }
     
