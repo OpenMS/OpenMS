@@ -30,7 +30,7 @@ from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUI
                   OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
-OMP = (OPENMP_FOUND.upper() == "ON" || OPENMP_FOUND.upper() == "TRUE" || OPENMP_FOUND == "1")
+OMP = (OPENMP_FOUND.upper() == "ON" or OPENMP_FOUND.upper() == "TRUE" or OPENMP_FOUND == "1")
 
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
