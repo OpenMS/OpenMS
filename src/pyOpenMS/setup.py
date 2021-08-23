@@ -194,7 +194,7 @@ elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
     if OMP:
         libraries.append("gomp")
-        libraries.append("pthreads")
+        libraries.append("pthread")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
     if OMP:
