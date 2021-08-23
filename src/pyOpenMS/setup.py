@@ -26,9 +26,11 @@ from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUI
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND, OPENMS_GIT_LC_DATE_FORMAT)
+                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND,
+                  OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
+OMP = (OPENMP_FOUND.upper() == "ON" || OPENMP_FOUND.upper() == "TRUE" || OPENMP_FOUND == "1")
 
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
@@ -185,6 +187,7 @@ if iswin:
     extra_compile_args = ["/EHs", "/bigobj"]
     extra_compile_args.append("/std:c++17")
     extra_link_args.append("/std:c++17")
+
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
@@ -194,6 +197,8 @@ elif sys.platform == "darwin":
     extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
+if OMP:
+    extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
 
 if not iswin:
     extra_link_args.append("-std=c++17")
