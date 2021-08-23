@@ -148,8 +148,10 @@ include_dirs = [
 
 # append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
-library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
-libraries.extend(LIBRARIES_EXTEND.split(";"))
+if LIBRARY_DIRS_EXTEND: # only add if not empty
+    library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
+if LIBRARIES_EXTEND: # only add if not empty
+    libraries.extend(LIBRARIES_EXTEND.split(";"))
 
 
 # libraries of any type to be parsed and added
@@ -190,14 +192,19 @@ if iswin:
 
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
+    if OMP:
+        libraries.append("gomp")
+        libraries.append("pthreads")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
+    if OMP:
+        libraries.append("omp")
     # we need to manually link to the Qt Frameworks
     extra_compile_args = ["-Qunused-arguments"]
     extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
-if OMP:
+if OMP and OPENMP_CXX_FLAGS:
     extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
 
 if not iswin:

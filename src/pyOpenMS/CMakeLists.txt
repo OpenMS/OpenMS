@@ -376,12 +376,17 @@ if(NOT WIN32)
   
   # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
-  if (OpenMP_FOUND)
-   foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
-     list(APPEND LIBRARIES_EXTEND ${LIB})
-     #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
-   endforeach()
-  endif()
+  
+  # Unfortunately this does not work, since CMake somehow calls the library on macOS libomp.
+  # Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+  # Might need regular updates..
+  #if (OpenMP_FOUND)
+  # foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
+  #   list(APPEND LIBRARIES_EXTEND ${LIB})
+  #   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
+  # endforeach()
+  #endif()
+  
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
   # We would need something recursive
