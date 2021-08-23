@@ -376,7 +376,7 @@ if(NOT WIN32)
   
   # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
-  if (OPENMP_FOUND)
+  if (OpenMP_FOUND)
    list(APPEND LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:OpenMP::OpenMP_CXX>" )
   endif()
   # the following gets all dependent libraries of OpenMS
