@@ -608,7 +608,7 @@ namespace OpenMS
         {
           merged.insert(merged.end(), group_it->begin(), group_it->end());
         }
-        merged.push_back(&(feat));
+        merged.push_back(&feat);
         no_overlaps.push_back(merged);
       }
       overlap_groups.swap(no_overlaps);
