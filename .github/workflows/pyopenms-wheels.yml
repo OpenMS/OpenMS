@@ -264,7 +264,7 @@ jobs:
       with:
         name: ${{ runner.os }}-buildfiles
         path: |
-          bld/CMakeCache.txt,
+          bld/CMakeCache.txt
           bld/pyOpenMS/env.py
         
     - uses: actions/upload-artifact@v1
