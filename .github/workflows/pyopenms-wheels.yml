@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly, py_actions ]
+    branches: [ nightly, py_nightly_test ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -191,6 +191,10 @@ jobs:
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
+          # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
+          # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+          export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
+          export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
           pushd $Qt5_Dir/include
