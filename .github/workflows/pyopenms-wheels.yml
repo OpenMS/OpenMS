@@ -261,6 +261,12 @@ jobs:
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
       with:
+        name: ${{ runner.os }}-buildfiles
+        path: bld/CMakeCache.txt
+        
+    - uses: actions/upload-artifact@v1
+      name: Upload wheels
+      with:
         name: ${{ runner.os }}-wheels
         path: bld/pyopenms_whls
 
