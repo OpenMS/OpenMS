@@ -358,7 +358,7 @@ if (MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
 endif()
 if (OpenMP_FOUND)
-  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIRS})
+  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
 # Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
 # Althought the library name should clearly be just "omp". We do it manually in setup.py now.
 # Might need regular updates..
