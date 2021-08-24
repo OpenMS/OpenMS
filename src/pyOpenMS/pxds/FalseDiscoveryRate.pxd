@@ -23,17 +23,17 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
         double applyEvaluateProteinIDs(libcpp_vector[ProteinIdentification] & ids, double pepCutoff, UInt fpCutoff, double diffWeight) nogil except +
         double applyEvaluateProteinIDs(ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight) nogil except +
 
-        /// simpler reimplementation of the apply function above.
+        # simpler reimplementation of the apply function above.
         void applyBasic(libcpp_vector[PeptideIdentification] & ids) nogil except +
-        /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
+        # simpler reimplementation of the apply function above for peptides in ConsensusMaps.
         void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides) nogil except +
-        /// simpler reimplementation of the apply function above for proteins.
+        # simpler reimplementation of the apply function above for proteins.
         void applyBasic(ProteinIdentification & id, bool groups_too) nogil except +
-        /// applies a picked protein FDR (TODO explain/ref)
+        # applies a picked protein FDR (TODO explain/ref)
         void applyPickedProteinFDR(ProteinIdentification & id, String & decoy_prefix) nogil except +
 
-        /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
-        /// if fp_cutoff = 0, it will calculate the full AUC
+        # calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
+        # if fp_cutoff = 0, it will calculate the full AUC
         double rocN(libcpp_vector[PeptideIdentification] & ids, Size fp_cutoff) nogil except +
         double rocN(ConsensusMap& ids, Size fp_cutoff) nogil except +
 
