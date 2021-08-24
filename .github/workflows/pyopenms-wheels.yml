@@ -260,6 +260,7 @@ jobs:
 
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
+      if: always()
       with:
         name: ${{ runner.os }}-buildfiles
         path: bld/CMakeCache.txt
