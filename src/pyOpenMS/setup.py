@@ -148,6 +148,9 @@ include_dirs = [
 
 # append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
+
+if INCLUDE_DIRS_EXTEND: # only add if not empty
+    include_dirs.extend(INCLUDE_DIRS_EXTEND.split(";"))
 if LIBRARY_DIRS_EXTEND: # only add if not empty
     library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
 if LIBRARIES_EXTEND: # only add if not empty
