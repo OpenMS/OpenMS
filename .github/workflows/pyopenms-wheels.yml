@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly, py_nightly_test ]
+    branches: [ nightly, py_actions ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -456,8 +456,8 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to nightly PyPI
-      if: "!contains(github.ref, 'Release')"
+    - name: Publish package to nightly PyPI (warning, somehow also can publish to general package)
+      if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
