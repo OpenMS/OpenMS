@@ -354,6 +354,20 @@ if (WITH_CRAWDAD)
   set(LIBRARY_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${LIBRARY_DIRS_EXTEND})
 endif()
 
+if (MT_ENABLE_OPENMP)
+  find_package(OpenMP COMPONENTS CXX)
+endif()
+if (OpenMP_FOUND)
+  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIRS})
+# Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
+# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+# Might need regular updates..
+# foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
+#   list(APPEND LIBRARIES_EXTEND ${LIB})
+#   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
+# endforeach()
+endif()
+
 #-----------------------------------------------------------------------------
 # since boost 1.69 there seem to be symbols visible/imported after linking it
 # statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
@@ -381,26 +395,12 @@ if(NOT WIN32)
   # for the current config but filters out imported targets unfortunately.
   # We would need something recursive
   #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
-
-  file(GENERATE
-       OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
-       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 endif()
 
-if (MT_ENABLE_OPENMP)
-  find_package(OpenMP COMPONENTS CXX)
-endif()
-if (OpenMP_FOUND)
-  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
-# Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
-# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
-# Might need regular updates..
-# foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
-#   list(APPEND LIBRARIES_EXTEND ${LIB})
-#   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
-# endforeach()
-endif()
-  
+file(GENERATE
+     OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
+     INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
+       
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
