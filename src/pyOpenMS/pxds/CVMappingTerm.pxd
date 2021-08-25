@@ -48,11 +48,11 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingTerm.h>" namespace "OpenMS":
         void setCVIdentifierRef(String cv_identifier_ref) nogil except + # wrap-doc:Sets the CV identifier reference string, e.g. UO for unit obo
 
         # returns the cv identifier reference string
-        String getCVIdentifierRef() nogil except + # wrap-doc:Returns the CV identifier reference string
+        String getCVIdentifierRef() nogil except + # wrap-doc:Returns the CV identifier reference string.
+
 
         # equality operator
         bool operator==(CVMappingTerm rhs) nogil except +
 
         # inequality operator
         bool operator!=(CVMappingTerm rhs) nogil except +
-
