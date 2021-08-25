@@ -97,7 +97,6 @@ class OPENMS_DLLAPI Deisotoper
       unsigned int min_isopeaks = 2,
       unsigned int max_isopeaks = 7,
       bool make_single_charged = true,
-      bool use_averagine_model = true,
       bool annotate_charge = false,
       bool annotate_iso_peak_count = false,
       bool add_up_intensity = false,
