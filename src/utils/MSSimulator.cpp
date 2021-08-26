@@ -361,7 +361,7 @@ protected:
       {
         origin = "SIMULATED";
       }
-      proteins.setPrimaryMSRunPath({origin});
+      proteins[0].setPrimaryMSRunPath({origin});
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
