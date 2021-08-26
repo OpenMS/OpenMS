@@ -356,6 +356,12 @@ protected:
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       ms_simulation.getIdentifications(proteins, peptides);
+      String origin = !outputfile_name.empty() ? outputfile_name : pxml_out;
+      if (origin.empty())
+      {
+        origin = "SIMULATED";
+      }
+      proteins.setPrimaryMSRunPath({origin});
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
