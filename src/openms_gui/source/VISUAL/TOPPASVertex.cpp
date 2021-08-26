@@ -206,8 +206,14 @@ namespace OpenMS
     painter->setPen(pen);
 
     QPainterPath path;
-    if (round_shape) path.addRoundRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20);
-    else path.addRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)));
+    if (round_shape)
+    {
+      path.addRoundRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20);
+    }
+    else
+    {
+      path.addRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)));
+    }
     painter->drawPath(path);
 
     pen.setColor(pen_color_);
@@ -296,8 +302,9 @@ namespace OpenMS
     {
       TOPPASVertex * tv = (*it)->getSourceVertex();
       if (!tv->allow_output_recycling_)
+      {
         continue;
-
+      }
       if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
       {
         error_msg = String(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
@@ -380,14 +387,21 @@ namespace OpenMS
 
   TOPPASVertex::SUBSTREESTATUS TOPPASVertex::getSubtreeStatus() const
   {
-    if (!this->isFinished()) return TV_UNFINISHED;
-
-    if (!this->isUpstreamFinished()) return TV_UNFINISHED_INBRANCH; // only looks for immediate predecessors!
-
+    if (!this->isFinished())
+    {
+      return TV_UNFINISHED;
+    }
+    if (!this->isUpstreamFinished())
+    {
+      return TV_UNFINISHED_INBRANCH; // only looks for immediate predecessors!
+    }
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       SUBSTREESTATUS status = (*it)->getTargetVertex()->getSubtreeStatus();
-      if (status != TV_ALLFINISHED) return status;
+      if (status != TV_ALLFINISHED)
+      {
+        return status;
+      }
     }
     return TV_ALLFINISHED;
   }

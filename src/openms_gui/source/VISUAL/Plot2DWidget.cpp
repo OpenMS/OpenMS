@@ -230,7 +230,9 @@ namespace OpenMS
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
+        {
           continue;
+        }
         //float arrays
         for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
@@ -239,9 +241,13 @@ namespace OpenMS
             for (Size i = 0; i < it->size(); ++i)
             {
               if ((*it)[i] < min)
+              {
                 min = (*it)[i];
+              }
               if ((*it)[i] > max)
+              {
                 max = (*it)[i];
+              }
             }
             break;
           }
@@ -254,23 +260,30 @@ namespace OpenMS
             for (Size i = 0; i < it->size(); ++i)
             {
               if ((*it)[i] < min)
+              {
                 min = (*it)[i];
+              }
               if ((*it)[i] > max)
+              {
                 max = (*it)[i];
+              }
             }
             break;
           }
         }
       }
       if (min >= max)
+      {
         return tmp;
-
+      }
       //create histogram
       tmp.reset(min, max, (max - min) / 500.0);
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
+        {
           continue;
+        }
         //float arrays
         for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
@@ -307,9 +320,13 @@ namespace OpenMS
         {
           float value = it->getMetaValue(name);
           if (value < min)
+          {
             min = value;
+          }
           if (value > max)
+          {
             max = value;
+          }
         }
       }
       //create histogram
@@ -449,7 +466,10 @@ namespace OpenMS
       {
         goto_dialog.fixRange();
         PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
+        if (goto_dialog.checked())
+        {
+          correctAreaToObeyMinMaxRanges_(area);
+        }
         canvas()->setVisibleArea(area);
       }
       else
@@ -461,9 +481,13 @@ namespace OpenMS
 
         Size feature_index(-1); // TODO : not use -1
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        {
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        {
           feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         if (feature_index == Size(-1)) // UID does not exist
         {
           try

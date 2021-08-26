@@ -185,13 +185,18 @@ namespace OpenMS
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)
+          {
             min = (*it)[i];
+          }
           if ((*it)[i] > max)
+          {
             max = (*it)[i];
+          }
         }
         if (min >= max)
+        {
           return tmp;
-
+        }
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
         for (Size i = 0; i < it->size(); ++i)
@@ -211,13 +216,18 @@ namespace OpenMS
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)
+          {
             min = (*it)[i];
+          }
           if ((*it)[i] > max)
+          {
             max = (*it)[i];
+          }
         }
         if (min >= max)
+        {
           return tmp;
-
+        }
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
         for (Size i = 0; i < it->size(); ++i)
@@ -244,7 +254,10 @@ namespace OpenMS
     {
       goto_dialog.fixRange();
       PlotCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
+      if (goto_dialog.checked())
+      {
+        correctAreaToObeyMinMaxRanges_(area);
+      }
       canvas()->setVisibleArea(area);
     }
   }

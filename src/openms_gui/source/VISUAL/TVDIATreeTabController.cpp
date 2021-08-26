@@ -110,8 +110,10 @@ namespace OpenMS
   void addFeatures(Plot1DWidget* w, std::vector<OSWPeakGroup>& features)
   {
     // nothing to do...
-    if (features.empty()) return;
-
+    if (features.empty())
+    {
+      return;
+    }
     // sort features by left RT
     std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b)
     {
@@ -120,7 +122,10 @@ namespace OpenMS
     const OSWPeakGroup* best_feature = &features[0];
     auto findBestFeature = [&best_feature](const OSWPeakGroup& f)
     {
-      if (best_feature->getQValue() > f.getQValue()) best_feature = &f;
+      if (best_feature->getQValue() > f.getQValue())
+      {
+        best_feature = &f;
+      }
     };
     std::for_each(features.begin(), features.end(), findBestFeature);
     if (best_feature->getQValue() == -1)
