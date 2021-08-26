@@ -122,7 +122,24 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   std::vector< std::vector<size_t> > clusters;
   std::vector<int> charges_of_extensions;
   const float averagine_check_threshold[7] = {0.0f, 0.0f, 0.05f, 0.1f, 0.2f, 0.4f, 0.6f};
-  CoarseIsotopePatternGenerator gen(max_isopeaks);
+
+  // precalculate values needed for approximation of isotope distribution
+  std::vector<UInt> factorials(max_isopeaks, 1);
+  UInt curr_factorial = 1;
+  for (UInt i = 1; i < max_isopeaks; ++i)
+  {
+    curr_factorial *= i;
+    factorials[i] = curr_factorial;
+  }
+
+  std::vector<double> powers(max_isopeaks, 1.0);
+  double lambda = 1.0 / 1800.0;
+  double curr_power = 1.0;
+  for (UInt i = 1; i < max_isopeaks; ++i)
+  {
+    curr_power *= lambda;
+    powers[i] = curr_power;
+  }
 
   bool has_precursor_data(false);
   double precursor_mass(0);
@@ -181,13 +198,13 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       // Save frequently used values for performance reasons
       Int num_considered_peaks = 1;
       std::vector<double> extensions_intensities = {current_intensity};
-
+      
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      IsotopeDistribution distr = gen.estimateFromPeptideWeight(q * (current_mz - Constants::PROTON_MASS_U));
-
+      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, factorials, powers, lambda);
+      
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;
-      double dist_total_intensity = distr[0].getIntensity();
+      double dist_total_intensity = distr[0];
 
       for (UInt i = 1; i < max_isopeaks; ++i)
       {
@@ -215,7 +232,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
         // update sums of intensities
         spec_total_intensity += extensions_intensities.back();
-        dist_total_intensity += distr[num_considered_peaks].getIntensity();
+        dist_total_intensity += distr[num_considered_peaks];
 
         num_considered_peaks++;
 
@@ -227,7 +244,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           // thresholds were probably determined for distributions adding up to 1
           // not all peaks from the estimated distribution are used, so we need to normalize these
           double Px = extensions_intensities[peak] / spec_total_intensity;
-          KL += Px * log(Px / (distr[peak].getIntensity() / dist_total_intensity));
+          KL += Px * log(Px / (distr[peak] / dist_total_intensity));
         }
 
         // choose threshold corresponding to cluster size
@@ -331,6 +348,22 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   spec.select(select_idx);
   spec.sortByPosition();
   return;
+}
+
+// static
+std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistribution(MSSpectrum::PeakType::CoordinateType weight, 
+  UInt number_of_isotopes, 
+  std::vector<UInt>& factorials,
+  std::vector<double>& powers, 
+  double lambda)
+{
+  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 0.0);
+  for (UInt k = 0; k < number_of_isotopes; ++k)
+  {
+    _distr[k] = ((powers[k] * std::pow(weight, k)) / factorials[k]) * std::pow(OpenMS::Constants::E, -weight * lambda);
+  }
+
+  return _distr;
 }
 
 // static

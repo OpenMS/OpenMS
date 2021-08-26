@@ -37,6 +37,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <vector>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -95,12 +97,21 @@ class OPENMS_DLLAPI Deisotoper
       int max_charge = 3,
       bool keep_only_deisotoped = false,
       unsigned int min_isopeaks = 2,
-      unsigned int max_isopeaks = 7,
+      unsigned int max_isopeaks = 10,
       bool make_single_charged = true,
       bool annotate_charge = false,
       bool annotate_iso_peak_count = false,
       bool add_up_intensity = false,
       bool used_for_open_search = false);
+
+    /*
+    * Return non-normalized approximation of the distribution, similar to Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+    */
+    static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType weight,
+                                                                                      UInt number_of_isotopes,
+                                                                                      std::vector<UInt>& factorials,
+                                                                                      std::vector<double>& powers, 
+                                                                                      double lambda);
 
     /** @brief Detect isotopic clusters in a mass spectrum.
 
