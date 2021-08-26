@@ -315,7 +315,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
 
   // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
   Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, false, 1, 3, true);// do not remove low intensity peaks beforehand, but keep only deisotoped
-  TEST_EQUAL(theo1.size(), 105);
+  TEST_EQUAL(theo1.size(), 104);
 }
 END_SECTION
 
