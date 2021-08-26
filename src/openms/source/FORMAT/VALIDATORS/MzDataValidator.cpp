@@ -41,10 +41,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MzDataValidator::MzDataValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
@@ -181,5 +180,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal
