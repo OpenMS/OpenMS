@@ -137,8 +137,8 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
   // values of lambda ^ k
   std::vector<double> powers(max_isopeaks, 1.0);
-  double lambda = 1.0 / 1800.0;
   {
+    double lambda = 1.0 / 1800.0;
     double curr_power = 1.0;
     for (UInt i = 1; i < max_isopeaks; ++i)
     {
@@ -186,11 +186,11 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
         }
       }
 
-      // try to fail early if you do not find a single extension
+      // fail early if you do not find a single extension
       const double expected_first_mz = current_mz + Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
       Int p = old_spectrum.findNearest(expected_first_mz, tolerance_dalton);
-      if (p == -1)// test for missing peak
-      {
+      if (p == -1) // test for missing peak
+      { 
         continue;
       }
 
@@ -206,7 +206,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       std::vector<double> extensions_intensities = {current_intensity};
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, factorials, powers, lambda);
+      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, factorials, powers);
       
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;
@@ -360,8 +360,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistribution(MSSpectrum::PeakType::CoordinateType weight, 
   UInt number_of_isotopes, 
   std::vector<UInt>& factorials,
-  std::vector<double>& powers, 
-  double lambda)
+  std::vector<double>& powers)
 {
   std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
 

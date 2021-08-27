@@ -113,8 +113,7 @@ class OPENMS_DLLAPI Deisotoper
     static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType weight,
                                                                                       UInt number_of_isotopes,
                                                                                       std::vector<UInt>& factorials,
-                                                                                      std::vector<double>& powers, 
-                                                                                      double lambda);
+                                                                                      std::vector<double>& powers);
 
     /** @brief Detect isotopic clusters in a mass spectrum.
 
