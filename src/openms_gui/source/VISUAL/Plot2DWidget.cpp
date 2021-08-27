@@ -234,38 +234,38 @@ namespace OpenMS
           continue;
         }
         //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::FloatDataArray& fdat : s_it->getFloatDataArrays())
         {
-          if (it->getName() == name)
+          if (fdat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < fdat.size(); ++i)
             {
-              if ((*it)[i] < min)
+              if ((fdat)[i] < min)
               {
-                min = (*it)[i];
+                min = (fdat)[i];
               }
-              if ((*it)[i] > max)
+              if ((fdat)[i] > max)
               {
-                max = (*it)[i];
+                max = (fdat)[i];
               }
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& dat : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              if ((*it)[i] < min)
+              if ((dat)[i] < min)
               {
-                min = (*it)[i];
+                min = (dat)[i];
               }
-              if ((*it)[i] > max)
+              if ((dat)[i] > max)
               {
-                max = (*it)[i];
+                max = (dat)[i];
               }
             }
             break;
@@ -285,25 +285,25 @@ namespace OpenMS
           continue;
         }
         //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::FloatDataArray& dat : s_it->getFloatDataArrays())
         {
-          if (it->getName() == name)
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc((dat)[i]);
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& spe : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (idat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < idat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc((idat)[i]);
             }
             break;
           }
