@@ -124,6 +124,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   const float averagine_check_threshold[7] = {0.0f, 0.0f, 0.05f, 0.1f, 0.2f, 0.4f, 0.6f};
 
   // precalculate values needed for approximation of isotope distribution
+  // values of k!
   std::vector<UInt> factorials(max_isopeaks, 1);
   {
     UInt curr_factorial = 1;
@@ -134,6 +135,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     }
   }
 
+  // values of lambda ^ k
   std::vector<double> powers(max_isopeaks, 1.0);
   double lambda = 1.0 / 1800.0;
   {
@@ -361,11 +363,15 @@ std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistrib
   std::vector<double>& powers, 
   double lambda)
 {
-  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 0.0);
-  double _e_term = std::pow(OpenMS::Constants::E, -weight * lambda);
-  for (UInt k = 0; k < number_of_isotopes; ++k)
+  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
+
+  double _weight_pow = 1.0;
+
+  // start at 1 as first entry is 1.0 anyway
+  for (UInt k = 1; k < number_of_isotopes; ++k)
   {
-    _distr[k] = ((powers[k] * std::pow(weight, k)) / factorials[k]) * _e_term;
+    _weight_pow *= weight;
+    _distr[k] = ((powers[k] * _weight_pow) / factorials[k]);
   }
 
   return _distr;
