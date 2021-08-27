@@ -124,26 +124,23 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   const float averagine_check_threshold[7] = {0.0f, 0.0f, 0.05f, 0.1f, 0.2f, 0.4f, 0.6f};
 
   // precalculate values needed for approximation of isotope distribution
-  // values of k!
-  std::vector<UInt> factorials(max_isopeaks, 1);
+  // (lambda^k / k!)
+  std::vector<double> precalculated(max_isopeaks, 1.0);
   {
+    // values of k!
     UInt curr_factorial = 1;
+
+    // values of lambda ^ k
+    double curr_power = 1.0;
+
+    // lambda, value taken from Bellew et al
+    double lambda = 1.0 / 1800.0;
+    
     for (UInt i = 1; i < max_isopeaks; ++i)
     {
       curr_factorial *= i;
-      factorials[i] = curr_factorial;
-    }
-  }
-
-  // values of lambda ^ k
-  std::vector<double> powers(max_isopeaks, 1.0);
-  {
-    double lambda = 1.0 / 1800.0;
-    double curr_power = 1.0;
-    for (UInt i = 1; i < max_isopeaks; ++i)
-    {
       curr_power *= lambda;
-      powers[i] = curr_power;
+      precalculated[i] = curr_power / curr_factorial;
     }
   }
 
@@ -206,7 +203,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       std::vector<double> extensions_intensities = {current_intensity};
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, factorials, powers);
+      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, precalculated);
       
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;
@@ -357,10 +354,9 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 }
 
 // static
-std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistribution(MSSpectrum::PeakType::CoordinateType weight, 
+std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistribution(MSSpectrum::PeakType::CoordinateType mass, 
   UInt number_of_isotopes, 
-  std::vector<UInt>& factorials,
-  std::vector<double>& powers)
+  std::vector<double>& precalculated)
 {
   std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
 
@@ -369,8 +365,8 @@ std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistrib
   // start at 1 as first entry is 1.0 anyway
   for (UInt k = 1; k < number_of_isotopes; ++k)
   {
-    _weight_pow *= weight;
-    _distr[k] = ((powers[k] * _weight_pow) / factorials[k]);
+    _weight_pow *= mass;
+    _distr[k] = precalculated[k] * _weight_pow;
   }
 
   return _distr;

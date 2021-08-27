@@ -108,12 +108,14 @@ class OPENMS_DLLAPI Deisotoper
     * Return non-normalized approximation of the distribution, similar to Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
     * As in most occasions, not all theoretical peaks are used in the calculation of KL divergence, normalization is done there anyway.
     * This makes only the relative height of peaks in one distribution relevant, which is why the e-term is omitted as well.
+    * 
     * This yields a 10-fold speed improvement over use of the OpenMS classes CoarseIsotopePatternGenerator + IsotopeDistribution. 
+    * 
+    * P(k) = (( (lambda*mass) ^ k) / k!) = (lambda^k / k!) * mass^k = precalculated[k] * mass^k 
     */
-    static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType weight,
-                                                                                      UInt number_of_isotopes,
-                                                                                      std::vector<UInt>& factorials,
-                                                                                      std::vector<double>& powers);
+    static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType mass,
+                                                                                     UInt number_of_isotopes,
+                                                                                     std::vector<double>& precalculated);
 
     /** @brief Detect isotopic clusters in a mass spectrum.
 
