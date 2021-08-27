@@ -161,17 +161,14 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
     const double current_mz = old_spectrum[current_peak].getMZ();
     const double current_intensity = old_spectrum[current_peak].getIntensity();
-    if (add_up_intensity)
-    {
-      mono_iso_peak_intensity[current_peak] = current_intensity;
-    }
+    const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+
     clusters.clear();
     charges_of_extensions.clear();
+
     for (int q = min_charge; q <= max_charge; ++q) // all charges are always considered -> order does not matter
     {      
       // try to extend isotopes from mono-isotopic peak
-
-      const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
 
       // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
       if (has_precursor_data)
@@ -199,8 +196,9 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       extensions.push_back(current_peak);
 
       // Save frequently used values for performance reasons
-      Int num_considered_peaks = 1;
       std::vector<double> extensions_intensities = {current_intensity};
+      // This is essentially extensions.size() (which is needed a lot)
+      Int num_considered_peaks = 1;
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
       std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, precalculated);
@@ -211,7 +209,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
       for (UInt i = 1; i < max_isopeaks; ++i)
       {
-
         // find next extension (if not first; we found that already)
         if (found_first_extension)
         {
@@ -245,7 +242,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
         {
           // normalize spectrum intensities and averagine distribution intensities as this is a density measure and 
           // thresholds were probably determined for distributions adding up to 1
-          // not all peaks from the estimated distribution are used, so we need to normalize these
           double Px = extensions_intensities[peak] / spec_total_intensity;
           KL += Px * log(Px / (distr[peak] / dist_total_intensity));
         }
@@ -265,11 +261,12 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
         if (annotate_iso_peak_count)
         {
-          iso_peak_count[current_peak] = i + 1;// with "+ 1" the monoisotopic peak is counted as well
+          // with "+ 1" the monoisotopic peak is counted as well
+          // current peak is the monoisotopic peak
+          iso_peak_count[current_peak] = i + 1;
         }
-      }
+      } // cluster has been formed
 
-      // cluster has been formed
       if (has_min_isopeaks)
       {
         clusters.push_back(extensions);
@@ -281,25 +278,28 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     {
       // pick cluster with largest size and highest charge (since all have the same monoisotopic peak)
       UInt best_idx = 0;
-      Size largest_size = 0;
-      Int best_cluster_charge = min_charge;
-      for (UInt i = 0; i != clusters.size(); ++i)
+      if (clusters.size() > 1)
       {
-        if ((clusters[i].size() > largest_size) || ((clusters[i].size() == largest_size) && (charges_of_extensions[i] > best_cluster_charge)))
+        Size largest_size = 0;
+        Int best_cluster_charge = min_charge;
+        for (UInt i = 0; i != clusters.size(); ++i)
         {
-          largest_size = clusters[i].size();
-          best_cluster_charge = charges_of_extensions[i];
-          best_idx = i;
+          if ((clusters[i].size() > largest_size) || ((clusters[i].size() == largest_size) && (charges_of_extensions[i] > best_cluster_charge)))
+          {
+            largest_size = clusters[i].size();
+            best_cluster_charge = charges_of_extensions[i];
+            best_idx = i;
+          }
         }
       }
 
       // save result
       mono_isotopic_peak_charge[current_peak] = charges_of_extensions[best_idx];
-      for (unsigned int i = 0; i != clusters[best_idx].size(); ++i)
+      for (UInt i = 0; i != clusters[best_idx].size(); ++i)
       {
         features[clusters[best_idx][i]] = feature_number;
-        // monoisotopic peak intensity is already set above, add up the other intensities here
-        if (add_up_intensity && (i != 0))
+
+        if (add_up_intensity)
         {
           mono_iso_peak_intensity[current_peak] += old_spectrum[clusters[best_idx][i]].getIntensity();
         }
@@ -323,28 +323,30 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     {
       spec.getIntegerDataArrays()[iso_peak_count_index].push_back((int)iso_peak_count[i]);
     }
-    if (add_up_intensity)
-    {
-      spec[i].setIntensity(mono_iso_peak_intensity[i]);
-    }
 
     if (!keep_only_deisotoped)
     { // keep all unassigned peaks
-      if (features[i] < 0)
+      if (features[i] < 0) // this peak is not part of a cluster
       {
         select_idx.push_back(i);
         continue;
       }
     }
 
-    if (z == 0) continue;
-
-    // convert mono-isotopic peak with charge assigned by deisotoping
-    if (make_single_charged)
+    if (z != 0) // this is a monoisotopic peak
     {
-      spec[i].setMZ(spec[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+      if (add_up_intensity)
+      {
+        spec[i].setIntensity(mono_iso_peak_intensity[i]);
+      }
+
+      // convert mono-isotopic peak with charge assigned by deisotoping
+      if (make_single_charged)
+      {
+        spec[i].setMZ(spec[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+      }
+      select_idx.push_back(i);
     }
-    select_idx.push_back(i);
   }
 
   // properly subsets all datapoints (incl. dataArrays)

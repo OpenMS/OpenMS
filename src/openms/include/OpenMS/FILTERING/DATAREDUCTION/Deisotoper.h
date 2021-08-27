@@ -90,34 +90,21 @@ class OPENMS_DLLAPI Deisotoper
    * @param [used_for_open_search] If true, all but the 1000 most intense peaks are removed, else 5000 peaks are kept
    */
     static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
-      double fragment_tolerance,
-      bool fragment_unit_ppm,
-      bool rem_low_intensity = true,
-      int min_charge = 1,
-      int max_charge = 3,
-      bool keep_only_deisotoped = false,
-      unsigned int min_isopeaks = 2,
-      unsigned int max_isopeaks = 10,
-      bool make_single_charged = true,
-      bool annotate_charge = false,
-      bool annotate_iso_peak_count = false,
-      bool add_up_intensity = false,
-      bool used_for_open_search = false);
+                                            double fragment_tolerance,
+                                            bool fragment_unit_ppm,
+                                            bool rem_low_intensity = true,
+                                            int min_charge = 1,
+                                            int max_charge = 3,
+                                            bool keep_only_deisotoped = false,
+                                            unsigned int min_isopeaks = 2,
+                                            unsigned int max_isopeaks = 10,
+                                            bool make_single_charged = true,
+                                            bool annotate_charge = false,
+                                            bool annotate_iso_peak_count = false,
+                                            bool add_up_intensity = false,
+                                            bool used_for_open_search = false);
 
-    /*
-    * Return non-normalized approximation of the distribution, similar to Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
-    * As in most occasions, not all theoretical peaks are used in the calculation of KL divergence, normalization is done there anyway.
-    * This makes only the relative height of peaks in one distribution relevant, which is why the e-term is omitted as well.
-    * 
-    * This yields a 10-fold speed improvement over use of the OpenMS classes CoarseIsotopePatternGenerator + IsotopeDistribution. 
-    * 
-    * P(k) = (( (lambda*mass) ^ k) / k!) = (lambda^k / k!) * mass^k = precalculated[k] * mass^k 
-    */
-    static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType mass,
-                                                                                     UInt number_of_isotopes,
-                                                                                     std::vector<double>& precalculated);
-
-    /** @brief Detect isotopic clusters in a mass spectrum.
+  /** @brief Detect isotopic clusters in a mass spectrum.
 
     Deisotoping is based on C13 abundance and will try to identify a simple
     model based on the C12-C13 distance and charge state. This is often a good
@@ -156,20 +143,35 @@ class OPENMS_DLLAPI Deisotoper
    *
    * Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
-            double fragment_tolerance,
-            bool fragment_unit_ppm,
-            int min_charge = 1,
-            int max_charge = 3,
-            bool keep_only_deisotoped = false,
-            unsigned int min_isopeaks = 3,
-            unsigned int max_isopeaks = 10,
-            bool make_single_charged = true,
-            bool annotate_charge = false,
-            bool annotate_iso_peak_count = false,
-            bool use_decreasing_model = true,
-            unsigned int start_intensity_check = 2,
-            bool add_up_intensity = false);
+    static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
+                                         double fragment_tolerance,
+                                         bool fragment_unit_ppm,
+                                         int min_charge = 1,
+                                         int max_charge = 3,
+                                         bool keep_only_deisotoped = false,
+                                         unsigned int min_isopeaks = 3,
+                                         unsigned int max_isopeaks = 10,
+                                         bool make_single_charged = true,
+                                         bool annotate_charge = false,
+                                         bool annotate_iso_peak_count = false,
+                                         bool use_decreasing_model = true,
+                                         unsigned int start_intensity_check = 2,
+                                         bool add_up_intensity = false);
+    
+  protected:
+
+  /*
+   * Return non-normalized approximation of the distribution, similar to Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+   * As in most occasions, not all theoretical peaks are used in the calculation of KL divergence, normalization is done there anyway.
+   * This makes only the relative height of peaks in one distribution relevant, which is why the e-term is omitted as well.
+   * 
+   * This yields a 10-fold speed improvement over use of the OpenMS classes CoarseIsotopePatternGenerator + IsotopeDistribution. 
+   * 
+   * P(k) = (( (lambda*mass) ^ k) / k!) = (lambda^k / k!) * mass^k = precalculated[k] * mass^k 
+   */
+    static std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType mass,
+                                                                                     UInt number_of_isotopes,
+                                                                                     std::vector<double>& precalculated);
 };
 
 }
