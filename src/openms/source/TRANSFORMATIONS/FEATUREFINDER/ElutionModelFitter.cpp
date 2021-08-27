@@ -276,6 +276,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       trace.updateMaximum();
       if (trace.peaks.empty())
       {
+        ++index;
         continue;
       }
       if (each_trace)
@@ -323,8 +324,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     // fit the model:
     fitAndValidateModel_(fitter, traces, feat, region_start, region_end,
                          asymmetric, area_limit, check_boundaries);
-
-  ++index;
+    ++index;
   }
   delete fitter;
 
