@@ -164,9 +164,9 @@ namespace OpenMS
     }
     Histogram<> tmp(min, max, (max - min) / 500.0);
 
-    for (ExperimentType::SpectrumType::ConstIterator it = (*canvas_->getCurrentLayer().getPeakData())[0].begin(); it != (*canvas_->getCurrentLayer().getPeakData())[0].end(); ++it)
+    for (const Peak1D& spec : (*canvas_->getCurrentLayer().getPeakData())[0])
     {
-      tmp.inc(it->getIntensity());
+      tmp.inc(spec.getIntensity());
     }
     return tmp;
   }
@@ -176,21 +176,21 @@ namespace OpenMS
     Histogram<> tmp;
     //float arrays
     const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
-    for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = f_arrays.begin(); it != f_arrays.end(); ++it)
+    for (const OpenMS::DataArrays::FloatDataArray& dat : f_arrays)
     {
-      if (it->getName() == name)
+      if (dat.getName() == name)
       {
         //determine min and max of the data
         float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < it->size(); ++i)
+        for (Size i = 0; i < dat.size(); ++i)
         {
-          if ((*it)[i] < min)
+          if ((dat)[i] < min)
           {
-            min = (*it)[i];
+            min = (dat)[i];
           }
-          if ((*it)[i] > max)
+          if ((dat)[i] > max)
           {
-            max = (*it)[i];
+            max = (dat)[i];
           }
         }
         if (min >= max)
@@ -199,29 +199,29 @@ namespace OpenMS
         }
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < it->size(); ++i)
+        for (Size i = 0; i < dat.size(); ++i)
         {
-          tmp.inc((*it)[i]);
+          tmp.inc((dat)[i]);
         }
       }
     }
     //integer arrays
     const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
-    for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = i_arrays.begin(); it != i_arrays.end(); ++it)
+    for (const OpenMS::DataArrays::IntegerDataArray& dat : i_arrays)
     {
-      if (it->getName() == name)
+      if (dat.getName() == name)
       {
         //determine min and max of the data
         float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < it->size(); ++i)
+        for (Size i = 0; i < dat.size(); ++i)
         {
-          if ((*it)[i] < min)
+          if ((dat)[i] < min)
           {
-            min = (*it)[i];
+            min = (dat)[i];
           }
-          if ((*it)[i] > max)
+          if ((dat)[i] > max)
           {
-            max = (*it)[i];
+            max = (dat)[i];
           }
         }
         if (min >= max)
@@ -230,9 +230,9 @@ namespace OpenMS
         }
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < it->size(); ++i)
+        for (Size i = 0; i < dat.size(); ++i)
         {
-          tmp.inc((*it)[i]);
+          tmp.inc((dat)[i]);
         }
       }
     }
