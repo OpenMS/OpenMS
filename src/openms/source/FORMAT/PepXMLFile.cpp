@@ -549,6 +549,7 @@ namespace OpenMS
     {
       if (pep.getHits().empty())
       {
+        ++count;
         continue;
       }
       for (const PeptideHit& hit : pep.getHits())
