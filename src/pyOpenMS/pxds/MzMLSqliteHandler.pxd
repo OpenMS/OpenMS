@@ -27,17 +27,17 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
   
         void readSpectra(libcpp_vector[MSSpectrum] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
             # wrap-doc:
-                #   Read an set of spectra (potentially restricted to a subset)
+                #   Read a set of spectra (potentially restricted to a subset)
                 #   -----
-                #   :param exp: The result
+                #   :param exp: The result data structure
                 #   :param indices: A list of indices restricting the resulting spectra only to those specified here
                 #   :param meta_only: Only read the meta data
 
         void readChromatograms(libcpp_vector[MSChromatogram] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
-             wrap-doc:
-                #   Read an set of spectra (potentially restricted to a subset)
+            # wrap-doc:
+                #   Read a set of chromatograms (potentially restricted to a subset)
                 #   -----
-                #   :param exp: The result
+                #   :param exp: The result data structure
                 #   :param indices: A list of indices restricting the resulting spectra only to those specified here
                 #   :param meta_only: Only read the meta data
   
@@ -52,7 +52,6 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #   :param write_full_meta: Whether to write a complete mzML meta data structure into the RUN_EXTRA field (allows complete recovery of the input file)
                 #   :param use_lossy_compression: Whether to use lossy compression (ms numpress)
                 #   :param linear_abs_mass_acc: Accepted loss in mass accuracy (absolute m/z, in Th)
-                #   :param sql_batch_size: Batch size of SQL insert statements
   
         libcpp_vector[size_t] getSpectraIndicesbyRT(double RT, double deltaRT, libcpp_vector[int] indices) nogil except +
             # wrap-doc:
@@ -63,7 +62,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #   :param indices: Spectra to consider (if empty, all spectra are considered)
                 #   :returns: The indices of the spectra within RT +/- deltaRT
   
-        void writeExperiment(MSExperiment exp) nogil except + # wrap-doc:Write an experiment to disk
+        void writeExperiment(MSExperiment exp) nogil except + # wrap-doc:Write an MSExperiment to disk
   
         void createTables() nogil except + # wrap-doc:Create data tables for a new file
   

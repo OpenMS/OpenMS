@@ -16,10 +16,11 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         MzDataFile() nogil except + # wrap-doc:File adapter for MzData files
         MzDataFile(MzDataFile &) nogil except +
 
-        void load(const String&, MSExperiment &) nogil except +
+        void load(const String& filename, MSExperiment & map) nogil except +
             # wrap-doc:
             #   Loads a map from a MzData file
             #   -----
+            #   :param filename: Directory of the file with the file name
             #   :param map: It has to be a MSExperiment or have the same interface
             #   -----
             #   :raises:
@@ -27,10 +28,11 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
             #   :raises:
             #     Exception: ParseError is thrown if an error occurs during parsing
 
-        void store(const String&, MSExperiment &) nogil except +
+        void store(const String& filename, MSExperiment & map) nogil except +
             # wrap-doc:
             #   Stores a map in a MzData file
             #   -----
+            #   :param filename: Directory of the file with the file name
             #   :param map: It has to be a MSExperiment or have the same interface
             #   -----
             #   :raises:

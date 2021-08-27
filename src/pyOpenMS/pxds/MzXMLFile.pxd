@@ -15,17 +15,17 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         MzXMLFile() nogil except +
         MzXMLFile(MzXMLFile &) nogil except + #compiler
 
-        void load(String, MSExperiment &) nogil except + 
+        void load(String filename, MSExperiment & exp) nogil except + 
             # wrap-doc:
-                #   Loads a map from a MzXML file
+                #   Loads a MSExperiment from a MzXML file
                 #   -----
-                #   :param map: Has to be a MSExperiment or have the same interface
+                #   :param exp: MSExperiment
 
-        void store(String, MSExperiment &) nogil except +
+        void store(String filename, MSExperiment & exp) nogil except +
             # wrap-doc:
-                #   Stores a map in a MzXML file
+                #   Stores a MSExperiment in a MzXML file
                 #   -----
-                #   :param map: Has to be a MSExperiment or have the same interface
+                #   :param exp: MSExperiment
 
         void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
 

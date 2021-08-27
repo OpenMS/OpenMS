@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/MzQuantMLFile.h>" namespace "OpenMS":
         MzQuantMLFile() nogil except +
         MzQuantMLFile(MzQuantMLFile &) nogil except +
 
-        void load(String, MSQuantifications &) nogil except +
+        void load(String filename, MSQuantifications & msq) nogil except +
             # wrap-doc:
                 #   Loads a map from a MzQuantML file
                 #   -----
@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FORMAT/MzQuantMLFile.h>" namespace "OpenMS":
                 #   :raises:
                 #     Exception: ParseError is thrown if an error occurs during parsing
 
-        void store(String, MSQuantifications &) nogil except +
+        void store(String filename, MSQuantifications & msq) nogil except +
             # wrap-doc:
                 #   Stores a map in a MzQuantML file
                 #   -----

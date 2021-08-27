@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #   result as Chromatogram
                 #   -----
                 #   :param in: Input string containing the raw XML
-                #   :param c: Resulting chromatogram
+                #   :param cptr: Resulting chromatogram
 
         void domParseSpectrum(String in_, shared_ptr[Spectrum] & cptr) nogil except +
             # wrap-doc:
@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #   extract the contained binaryDataArray and provide the result as Spectrum
                 #   -----
                 #   :param in: Input string containing the raw XML
-                #   :param sptr: Resulting spectrum
+                #   :param cptr: Resulting spectrum
 
         void setSkipXMLChecks(bool only) nogil except + # wrap-doc:Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
 

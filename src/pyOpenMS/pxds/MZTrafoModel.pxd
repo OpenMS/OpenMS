@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         MZTrafoModel(bool) nogil except +
         bool isTrained() nogil except + # wrap-doc:Returns true if the model have coefficients (i.e. was trained successfully)
         double getRT() nogil except + # wrap-doc:Get RT associated with the model (training region)
-        double predict(double) nogil except +
+        double predict(double mz) nogil except +
             # wrap-doc:
                 #   Apply the model to an uncalibrated m/z value
                 #   -----
@@ -41,11 +41,11 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #   :param mz: The uncalibrated m/z value
                 #   :returns The calibrated m/z value
 
-        bool train(CalibrationData, MZTrafoModel_MODELTYPE, bool, double, double) nogil except +
+        bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) nogil except +
             # wrap-doc:
                 #   Train a model using calibrant data
                 #   -----
-                #   If the CalibrationData were created using peak groups (usually corresponding to mass traces),
+                #   If the CalibrationData was created using peak groups (usually corresponding to mass traces),
                 #   the median for each group is used as a group representative. This
                 #   is more robust, and reduces the number of data points drastically, i.e. one value per group
                 #   -----
@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #   :param rt_right: Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
                 #   :returns: True if model was build, false otherwise
                 
-        bool train(libcpp_vector[double], libcpp_vector[double], libcpp_vector[double], MZTrafoModel_MODELTYPE, bool) nogil except +
+        bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) nogil except +
             # wrap-doc:
                 #   Train a model using calibrant data
                 #   -----

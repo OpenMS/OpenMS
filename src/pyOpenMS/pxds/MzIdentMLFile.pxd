@@ -21,6 +21,8 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Loads the identifications from a MzIdentML file
                 #   -----
+                #   :param filename: File name of the file to be checked
+                #   -----
                 #   :raises:
                 #     Exception: FileNotFound is thrown if the file could not be opened
                 #   :raises:

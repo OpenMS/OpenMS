@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         MzMLFile(MzMLFile &) nogil except +
 
         void load(const String& filename, MSExperiment &) nogil except+ # wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
-        void store(const String& filename, MSExperiment &) nogil except+ # wrap-doc:Stores a map in an MzML file
+        void store(const String& filename, MSExperiment &) nogil except+ # wrap-doc:Stores a MSExperiment in an MzML file
 
         # COMMENT: store/load XML structure to/from a string
         void storeBuffer(String & output, MSExperiment exp) nogil except +
@@ -44,14 +44,14 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
                 #   Stores a map in an output string
                 #   -----
                 #   :param output: An empty string to store the result
-                #   :param map: Has to be an MSExperiment
+                #   :param exp: Has to be an MSExperiment
 
         void loadBuffer(const String& input, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a map from a MzML file stored in a buffer (in memory)
                 #   -----
                 #   :param buffer: The buffer with the data (i.e. string with content of an mzML file)
-                #   :param map: Is an MSExperiment
+                #   :param exp: Is an MSExperiment
                 #   -----
                 #   :raises:
                 #     Exception: ParseError is thrown if an error occurs during parsing
