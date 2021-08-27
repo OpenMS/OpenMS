@@ -297,7 +297,7 @@ namespace OpenMS
           }
         }
         //integer arrays
-        for (const OpenMS::DataArrays::IntegerDataArray& spe : s_it->getIntegerDataArrays())
+        for (const OpenMS::DataArrays::IntegerDataArray& idat : s_it->getIntegerDataArrays())
         {
           if (idat.getName() == name)
           {
