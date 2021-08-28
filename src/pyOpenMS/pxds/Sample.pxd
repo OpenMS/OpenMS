@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         void setOrganism(String organism) nogil except +
 
         
-        String getNumber() nogil except + # wrap-doc:Returns the sample number (default: "")
+        String getNumber() nogil except + # wrap-doc:Returns the sample number
         
         void setNumber(String number) nogil except + # wrap-doc:Sets the sample number (e.g. sample ID)
 

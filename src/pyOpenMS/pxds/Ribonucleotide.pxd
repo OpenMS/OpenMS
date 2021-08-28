@@ -36,15 +36,15 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
                 EmpiricalFormula baseloss_formula) nogil except +
 
  
-        String getCode() nogil except + # wrap-doc:Return the short name
+        String getCode() nogil except + # wrap-doc:Returns the short name
 
-        void setCode(String code) nogil except + # wrap-doc:Set the short name
+        void setCode(String code) nogil except + # wrap-doc:Sets the short name
 
         void setName(String name) nogil except + # wrap-doc:Sets the name of the ribonucleotide
 
         String getName() nogil except + # wrap-doc:Returns the name of the ribonucleotide
 
-        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Set empirical formula of the ribonucleotide (must be full, with N and C-terminus)
+        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets empirical formula of the ribonucleotide (must be full, with N and C-terminus)
 
         EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the empirical formula of the residue
 
@@ -56,25 +56,25 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
 
         double getMonoMass() nogil except + # wrap-doc:Returns monoisotopic mass of the ribonucleotide
 
-        String getNewCode() nogil except + # wrap-doc:Return the new code
+        String getNewCode() nogil except + # wrap-doc:Returns the new code
 
-        void setNewCode(String code) nogil except + # wrap-doc:Set the new code
+        void setNewCode(String code) nogil except + # wrap-doc:Sets the new code
 
         char getOrigin() nogil except + # wrap-doc:Get the code of the unmodified base (e.g., "A", "C", ...)
 
-        void setOrigin(char origin) nogil except + # wrap-doc:Set the code of the unmodified base (e.g., "A", "C", ...)
+        void setOrigin(char origin) nogil except + # wrap-doc:Sets the code of the unmodified base (e.g., "A", "C", ...)
 
-        void setHTMLCode(String html_code) nogil except + # wrap-doc:Set the HTML (RNAMods) code
+        void setHTMLCode(String html_code) nogil except + # wrap-doc:Sets the HTML (RNAMods) code
 
         String getHTMLCode() nogil except + # wrap-doc:Get the HTML (RNAMods) code
 
-        void setTermSpecificity(TermSpecificityNuc term_spec) nogil except + # wrap-doc:Set the terminal specificity
+        void setTermSpecificity(TermSpecificityNuc term_spec) nogil except + # wrap-doc:Sets the terminal specificity
 
         TermSpecificityNuc getTermSpecificity() nogil except + # wrap-doc:Get the terminal specificity
 
         EmpiricalFormula getBaselossFormula() nogil except + # wrap-doc:Get sum formula after loss of the nucleobase
 
-        void setBaselossFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Set sum formula after loss of the nucleobase
+        void setBaselossFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets sum formula after loss of the nucleobase
 
         bool operator==(Ribonucleotide & ribonucleotide) nogil except + # wrap-doc:Equality operator
 

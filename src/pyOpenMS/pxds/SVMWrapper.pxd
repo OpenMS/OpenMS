@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         # Int train(struct svm_problem *problem) nogil except +
         Int train(SVMData &problem) nogil except + # wrap-doc:The svm is trained with the data stored in the 'svm_problem' structure
         void saveModel(String modelFilename) nogil except + # wrap-doc:The model of the trained svm is saved into 'modelFilename'
-        void loadModel(String modelFilename) nogil except + # wrap-doc:The svm- model is loaded. After this, the svm is ready for prediction
+        void loadModel(String modelFilename) nogil except + # wrap-doc:The svm-model is loaded. After this, the svm is ready for prediction
         # void predict(struct svm_problem *problem, libcpp_vector[ double ] &predicted_labels) nogil except +
         void predict(SVMData &problem, libcpp_vector[ double ] &results) nogil except + # wrap-doc:The prediction process is started and the results are stored in 'predicted_labels'
         Int getIntParameter(SVM_parameter_type type_) nogil except +
