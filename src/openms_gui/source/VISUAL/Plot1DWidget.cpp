@@ -232,7 +232,7 @@ namespace OpenMS
         tmp.reset(min, max, (max - min) / 500.0);
         for (Size i = 0; i < dat.size(); ++i)
         {
-          tmp.inc((dat)[i]);
+          tmp.inc(dat[i]);
         }
       }
     }
