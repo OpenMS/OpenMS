@@ -240,13 +240,13 @@ namespace OpenMS
           {
             for (Size i = 0; i < fdat.size(); ++i)
             {
-              if ((fdat)[i] < min)
+              if (fdat[i] < min)
               {
-                min = (fdat)[i];
+                min = fdat[i];
               }
-              if ((fdat)[i] > max)
+              if (fdat[i] > max)
               {
-                max = (fdat)[i];
+                max = fdat[i];
               }
             }
             break;
@@ -259,13 +259,13 @@ namespace OpenMS
           {
             for (Size i = 0; i < dat.size(); ++i)
             {
-              if ((dat)[i] < min)
+              if (dat[i] < min)
               {
-                min = (dat)[i];
+                min = dat[i];
               }
-              if ((dat)[i] > max)
+              if (dat[i] > max)
               {
-                max = (dat)[i];
+                max = dat[i];
               }
             }
             break;
@@ -291,7 +291,7 @@ namespace OpenMS
           {
             for (Size i = 0; i < dat.size(); ++i)
             {
-              tmp.inc((dat)[i]);
+              tmp.inc(dat[i]);
             }
             break;
           }
@@ -303,7 +303,7 @@ namespace OpenMS
           {
             for (Size i = 0; i < idat.size(); ++i)
             {
-              tmp.inc((idat)[i]);
+              tmp.inc(idat[i]);
             }
             break;
           }
