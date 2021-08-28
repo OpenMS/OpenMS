@@ -184,13 +184,13 @@ namespace OpenMS
         float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
         for (Size i = 0; i < dat.size(); ++i)
         {
-          if ((dat)[i] < min)
+          if (dat[i] < min)
           {
-            min = (dat)[i];
+            min = dat[i];
           }
-          if ((dat)[i] > max)
+          if (dat[i] > max)
           {
-            max = (dat)[i];
+            max = dat[i];
           }
         }
         if (min >= max)
@@ -215,13 +215,13 @@ namespace OpenMS
         float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
         for (Size i = 0; i < dat.size(); ++i)
         {
-          if ((dat)[i] < min)
+          if (dat[i] < min)
           {
-            min = (dat)[i];
+            min = dat[i];
           }
-          if ((dat)[i] > max)
+          if (dat[i] > max)
           {
-            max = (dat)[i];
+            max = dat[i];
           }
         }
         if (min >= max)
