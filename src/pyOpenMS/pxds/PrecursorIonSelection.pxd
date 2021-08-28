@@ -13,7 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
     cdef cppclass PrecursorIonSelection(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        PrecursorIonSelection() nogil except + # wrap-doc:This class implements different precursor ion selection strategies
+        # wrap-doc:
+        # This class implements different precursor ion selection strategies
+        PrecursorIonSelection() nogil except +
         PrecursorIonSelection(PrecursorIonSelection &) nogil except +
 
         double  getMaxScore() nogil except +

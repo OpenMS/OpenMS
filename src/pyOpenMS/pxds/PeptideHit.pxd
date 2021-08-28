@@ -25,26 +25,26 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
         PeptideHit(PeptideHit &) nogil except +
 
-        float getScore() nogil except + Returns the PSM score
-        UInt getRank() nogil except + Returns the PSM rank
-        AASequence getSequence() nogil except + Returns the peptide sequence without trailing or following spaces
-        Int getCharge() nogil except + Returns the charge of the peptide
-        libcpp_vector[PeptideEvidence] getPeptideEvidences() nogil except + Returns information on peptides (potentially) identified by this PSM
-        void setPeptideEvidences(libcpp_vector[PeptideEvidence]) nogil except + Set information on peptides (potentially) identified by this PSM
-        void addPeptideEvidence(PeptideEvidence) nogil except + Adds information on a peptide that is (potentially) identified by this PSM
-        libcpp_set[String] extractProteinAccessionsSet() nogil except + Extracts the set of non-empty protein accessions from peptide evidences
+        float getScore() nogil except + # wrap-doc:Returns the PSM score
+        UInt getRank() nogil except + # wrap-doc:Returns the PSM rank
+        AASequence getSequence() nogil except + # wrap-doc:Returns the peptide sequence without trailing or following spaces
+        Int getCharge() nogil except + # wrap-doc:Returns the charge of the peptide
+        libcpp_vector[PeptideEvidence] getPeptideEvidences() nogil except + # wrap-doc:Returns information on peptides (potentially) identified by this PSM
+        void setPeptideEvidences(libcpp_vector[PeptideEvidence]) nogil except + # wrap-doc:Sets information on peptides (potentially) identified by this PSM
+        void addPeptideEvidence(PeptideEvidence) nogil except + # wrap-doc:Adds information on a peptide that is (potentially) identified by this PSM
+        libcpp_set[String] extractProteinAccessionsSet() nogil except + # wrap-doc:Extracts the set of non-empty protein accessions from peptide evidences
 
-        void setAnalysisResults(libcpp_vector[PeptideHit_AnalysisResult] aresult) nogil except + Set information on (search engine) sub scores associated with this PSM
-        void addAnalysisResults(PeptideHit_AnalysisResult aresult) nogil except + Add information on (search engine) sub scores associated with this PSM
-        libcpp_vector[PeptideHit_AnalysisResult] getAnalysisResults() nogil except + Returns information on (search engine) sub scores associated with this PSM
+        void setAnalysisResults(libcpp_vector[PeptideHit_AnalysisResult] aresult) nogil except + # wrap-doc:Sets information on (search engine) sub scores associated with this PSM
+        void addAnalysisResults(PeptideHit_AnalysisResult aresult) nogil except + # wrap-doc:Add information on (search engine) sub scores associated with this PSM
+        libcpp_vector[PeptideHit_AnalysisResult] getAnalysisResults() nogil except + # wrap-doc:Returns information on (search engine) sub scores associated with this PSM
 
-        void setPeakAnnotations(libcpp_vector[PeptideHit_PeakAnnotation]) nogil except + Sets the fragment annotations
+        void setPeakAnnotations(libcpp_vector[PeptideHit_PeakAnnotation]) nogil except + # wrap-doc:Sets the fragment annotations
         libcpp_vector[PeptideHit_PeakAnnotation] getPeakAnnotations() nogil except +
 
-        void setScore(double) nogil except + Sets the PSM score
-        void setRank(UInt) nogil except + Sets the PSM rank
-        void setSequence(AASequence) nogil except + Sets the peptide sequence
-        void setCharge(Int) nogil except + Sets the charge of the peptide
+        void setScore(double) nogil except + # wrap-doc:Sets the PSM score
+        void setRank(UInt) nogil except + # wrap-doc:Sets the PSM rank
+        void setSequence(AASequence) nogil except + # wrap-doc:Sets the peptide sequence
+        void setCharge(Int) nogil except + # wrap-doc:Sets the charge of the peptide
 
         bool operator==(PeptideHit) nogil except +
         bool operator!=(PeptideHit) nogil except +
