@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
                 #   -----
                 #   returns: Whether the parsing of the file was successful (if false, the file most likely was not an indexed mzML file)
 
-        Size getNrSpectra() nogil except +
+        Size getNrSpectra() nogil except + # wrap-doc:Get the total number of spectra available
         Size getNrChromatograms() nogil except + # wrap-doc:Get the total number of chromatograms available
 
         # COMMENT: only retrieves experiment meta data (no actual data in spectra/chromatograms)
@@ -29,14 +29,22 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except + # wrap-doc:Returns the meta information of this experiment (const access)
         shared_ptr[MSExperiment] getMetaData() nogil except +
 
-        MSSpectrum getSpectrum(Size id) nogil except + # wrap-doc:Alias for getSpectrum
+        MSSpectrum getSpectrum(Size id) nogil except +
+            # wrap-doc:
+                #   Returns a single spectrum
+                #   -----
+                #   :param id: The index of the spectrum
         MSSpectrum getSpectrumByNativeId(String id) nogil except +
             # wrap-doc:
                 #   Returns a single spectrum
                 #   -----
                 #   :param id: The native identifier of the spectrum
                 
-        MSChromatogram getChromatogram(Size id) nogil except + # wrap-doc:Returns a single chromatogram
+        MSChromatogram getChromatogram(Size id) nogil except +
+            # wrap-doc:
+                #   Returns a single chromatogram
+                #   -----
+                #   :param id: The index of the chromatogram
         MSChromatogram getChromatogramByNativeId(String id) nogil except +
             # wrap-doc:
                 #   Returns a single chromatogram

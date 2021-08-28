@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
                                                double rt_min, double rt_max) nogil except +
 
         # convert from the OpenMS Targeted experiment to the light Targeted Experiment
-        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) nogil except + # wrap-doc:Convert from the OpenMS Targeted experiment to the light Targeted Experiment
+        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) nogil except + # wrap-doc:Convert from the OpenMS TargetedExperiment to the OpenMs LightTargetedExperiment
 
         # convert from the LightCompound to an OpenMS AASequence (with correct modifications)
         void convertPeptideToAASequence(LightCompound & peptide, AASequence & aa_sequence) nogil except + # wrap-doc:Convert from the LightCompound to an OpenMS AASequence (with correct modifications)
