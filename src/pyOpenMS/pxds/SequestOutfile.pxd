@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
                 #   :param database: The database used for the search
                 #   :param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
 
-        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + retrieve columns from a Sequest outfile line
+        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + # wrap-doc:Retrieve columns from a Sequest outfile line
         void getSequences(const String &database_filename,
                           libcpp_map[ String, size_t ] &ac_position_map,
                           libcpp_vector[ String ] &sequences,
