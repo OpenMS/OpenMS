@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
                 #   Look up spectrum by index (position in the vector of spectra)
                 #   -----
                 #   :param index: Index to look up
-                #   :param count_from_one: Do indexes start counting at one (default: zero)?
+                #   :param count_from_one: Do indexes start counting at one (default zero)?
                 #   :returns: Index of the spectrum that matched
 
         Size findByScanNumber(Size scan_number) nogil except +

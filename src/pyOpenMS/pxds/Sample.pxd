@@ -29,27 +29,27 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         void setNumber(String number) nogil except + # wrap-doc:Sets the sample number (e.g. sample ID)
 
         
-        String getComment() nogil except + # wrap-doc:Returns the comment (default: "")
+        String getComment() nogil except + # wrap-doc:Returns the comment (default "")
         
         void setComment(String comment) nogil except + # wrap-doc:Sets the comment (may contain newline characters)
 
         
-        SampleState getState() nogil except + # wrap-doc:Returns the state of aggregation (default: SAMPLENULL)
+        SampleState getState() nogil except + # wrap-doc:Returns the state of aggregation (default SAMPLENULL)
         
         void setState(SampleState state) nogil except + # wrap-doc:Sets the state of aggregation
 
         
-        double getMass() nogil except + # wrap-doc:Returns the mass (in gram) (default: 0.0)
+        double getMass() nogil except + # wrap-doc:Returns the mass (in gram) (default 0.0)
         
         void setMass(double mass) nogil except + # wrap-doc:Sets the mass (in gram)
 
         
-        double getVolume() nogil except + # wrap-doc:Returns the volume (in ml) (default: 0.0)
+        double getVolume() nogil except + # wrap-doc:Returns the volume (in ml) (default 0.0)
         
         void setVolume(double volume) nogil except + # wrap-doc:Sets the volume (in ml)
 
         
-        double getConcentration() nogil except + # wrap-doc:Returns the concentration (in g/l) (default: 0.0)
+        double getConcentration() nogil except + # wrap-doc:Returns the concentration (in g/l) (default 0.0)
         
         void setConcentration(double concentration) nogil except + # wrap-doc:Sets the concentration (in g/l)
 
