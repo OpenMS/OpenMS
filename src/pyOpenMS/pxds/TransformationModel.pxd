@@ -31,7 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         # void getDefaultParameters(Param & params) nogil except +
         
         void weightData(libcpp_vector[TM_DataPoint]& data) nogil except + # wrap-doc:Weight the data by the given weight function
-        void weightData(libcpp_vector[TM_DataPoint]& data) nogil except + # wrap-doc:Weight the data by the given weight function
         bool checkValidWeight(const String& weight, libcpp_vector[String]& valid_weights) nogil except + # wrap-doc:Check for a valid weighting function string
         double weightDatum(double& datum, const String& weight) nogil except + # wrap-doc:Weight the data according to the weighting function
         double unWeightDatum(double& datum, const String& weight) nogil except + # wrap-doc:Apply the reverse of the weighting function to the data
