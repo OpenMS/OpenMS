@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/KERNEL/RichPeak2D.h>" namespace "OpenMS":
         #    UniqueIdInterface
         #    MetaInfoInterface
 
-        RichPeak2D() nogil except +
+        RichPeak2D() nogil except + # wrap-doc:A 2-dimensional raw data point or peak with meta information
         RichPeak2D(RichPeak2D &) nogil except +
         #RichPeak2D(DPosition2 &, float) nogil except +
 
