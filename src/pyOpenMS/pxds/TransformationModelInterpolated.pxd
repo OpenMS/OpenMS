@@ -13,8 +13,13 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
         TransformationModelInterpolated(TransformationModelInterpolated &) nogil except + #wrap-ignore
         TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
 
-        void getDefaultParameters(Param &) nogil except +
+        void getDefaultParameters(Param &) nogil except + # wrap-doc:Gets the default parameters
         double evaluate(double value) nogil except +
+        # wrap-doc:
+                #   Evaluate the interpolation model at the given value
+                #   -----
+                #   :param value: The position where the interpolation should be evaluated
+                #   :returns: The interpolated value
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>" namespace "OpenMS::TransformationModelInterpolated":
 

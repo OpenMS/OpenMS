@@ -90,13 +90,13 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         double theoretical_mass
         libcpp_vector[ RetentionTime ] rts
 
-        void setChargeState(int charge) nogil except +
-        int getChargeState() nogil except +
-        bool hasCharge() nogil except +
-        double getRetentionTime() nogil except +
-        bool hasRetentionTime() nogil except +
-        RTType getRetentionTimeType() nogil except +
-        RTUnit getRetentionTimeUnit() nogil except +
+        void setChargeState(int charge) nogil except + # wrap-doc:Sets the peptide or compound charge state
+        int getChargeState() nogil except + # wrap-doc:Returns the peptide or compound charge state
+        bool hasCharge() nogil except + # wrap-doc:Whether peptide or compound has set charge state
+        double getRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        bool hasRetentionTime() nogil except + # wrap-doc:Check whether compound or peptide has an annotated retention time
+        RTType getRetentionTimeType() nogil except + # wrap-doc:Get compound or peptide retentiontime type
+        RTUnit getRetentionTimeUnit() nogil except + # wrap-doc:Get compound or peptide retentiontime type
 
     cdef cppclass Peptide(CVTermList):
         # wrap-inherits:
@@ -113,16 +113,16 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String sequence
         libcpp_vector[TargetedExperiment_Modification] mods
 
-        void setPeptideGroupLabel(String label) nogil except +
-        String getPeptideGroupLabel() nogil except +
+        void setPeptideGroupLabel(String label) nogil except + # wrap-doc:Sets the peptide group label
+        String getPeptideGroupLabel() nogil except + # wrap-doc:Get the peptide group label
 
-        void setChargeState(int charge) nogil except +
-        int getChargeState() nogil except +
-        bool hasCharge() nogil except +
-        double getRetentionTime() nogil except +
-        bool hasRetentionTime() nogil except +
-        RTType getRetentionTimeType() nogil except +
-        RTUnit getRetentionTimeUnit() nogil except +
+        void setChargeState(int charge) nogil except + # wrap-doc:Sets the peptide or compound charge states
+        int getChargeState() nogil except + # wrap-doc:Returns the peptide or compound charge state
+        bool hasCharge() nogil except + # wrap-doc:Whether product has set charge state
+        double getRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        bool hasRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        RTType getRetentionTimeType() nogil except + # wrap-doc:Get compound or peptide retentiontime type
+        RTUnit getRetentionTimeUnit() nogil except + # wrap-doc:Get compound or peptide retentiontime unit (minute/seconds)
 
     cdef cppclass Contact(CVTermList):
         # wrap-inherits:

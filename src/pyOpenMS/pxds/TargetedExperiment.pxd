@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
     cdef cppclass TargetedExperiment:
 
-        TargetedExperiment() nogil except +
+        TargetedExperiment() nogil except + # TODO
         TargetedExperiment(TargetedExperiment &) nogil except +
 
         bool operator==(TargetedExperiment) nogil except +
