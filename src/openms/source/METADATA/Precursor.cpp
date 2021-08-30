@@ -122,7 +122,10 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowLowerOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
+    if (bound < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
+    }
     window_low_ = bound;
   }
 
@@ -133,7 +136,10 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowUpperOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
+    if (bound < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
+    }
     window_up_ = bound;
   }
 

@@ -64,8 +64,9 @@ namespace OpenMS
   bool Digestion::operator==(const SampleTreatment & rhs) const
   {
     if (type_ != rhs.getType())
+    {
       return false;
-
+    }
     const Digestion * tmp = dynamic_cast<const Digestion *>(&rhs);
     return SampleTreatment::operator==(* tmp) &&
            enzyme_ == tmp->enzyme_ &&

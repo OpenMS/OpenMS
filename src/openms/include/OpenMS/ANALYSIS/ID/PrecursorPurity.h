@@ -83,10 +83,10 @@ namespace OpenMS
 
        @note This function is implemented in a general way and can also be used for e.g. MS3 precursor isolation windows in MS2 spectra
 
-     * @param ms1 The Spectrum containing the isolation window
-     * @param pre The precursor containing the definition the isolation window
-     * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
-     * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
+      @param ms1 The Spectrum containing the isolation window
+      @param pre The precursor containing the definition the isolation window
+      @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
+      @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
     */
     static PurityScores computePrecursorPurity(const PeakSpectrum& ms1, const Precursor& pre, const double precursor_mass_tolerance, const bool precursor_mass_tolerance_unit_ppm);
 

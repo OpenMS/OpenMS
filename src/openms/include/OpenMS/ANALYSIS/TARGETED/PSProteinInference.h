@@ -43,11 +43,6 @@ namespace OpenMS
 
   /**
        @brief This class implements protein inference for the precursor ion selection strategies.
-
-
-
-
-
   */
   class OPENMS_DLLAPI PSProteinInference
   {
