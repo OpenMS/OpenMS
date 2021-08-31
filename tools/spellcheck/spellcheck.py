@@ -5,9 +5,10 @@ import json
 import re
 from typing import Union
 
-PATH_VOCABULARY = 'tools/spellcheck/vocabulary.json'
-PATH_UNKNOWN_WORDS = 'tools/spellcheck/unknown_words.json'
-PATH_RULES = 'tools/spellcheck/rules.json'
+WORKING_DIR = 'tools/spellcheck/'
+PATH_VOCABULARY = WORKING_DIR + 'vocabulary.json'
+PATH_UNKNOWN_WORDS = WORKING_DIR + 'unknown_words.json'
+PATH_RULES = WORKING_DIR + 'rules.json'
 
 
 def clear():
@@ -128,7 +129,7 @@ def get_vocab_keys(vocabulary, header: str = '', indent: str = ' ', prefix: str 
     return ''.join(printable)
 
 
-COMMENT_TYPES = load_json(Path('comment_types.json'))
+COMMENT_TYPES = load_json(Path(WORKING_DIR + 'comment_types.json'))
 
 
 def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose: bool = False):
