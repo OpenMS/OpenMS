@@ -5,7 +5,7 @@ import json
 import re
 from typing import Union
 
-SP_DIR = os.path.dirname(os.path.realpath(__file__))
+SP_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
 
 
