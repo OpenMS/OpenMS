@@ -2,6 +2,8 @@ name: spellcheck - process unknown words
 on:
   issues:
     types: [edited]
+env:
+   working_directory: './tools/spellcheck/'
 jobs:
   process-unknown-words:
     if: startsWith(github.event.issue.title, format('Spell-Check Results - {0}', github.actor))
@@ -15,4 +17,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyGithub
       - name: Process unknown words
-        run: python ./tools/spellcheck/github_process_unknown.py -to ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -ti '${{ github.event.issue.title }}' -in ${{ github.event.issue.number }}
+        run: python python ${{ format('{0}github_process_unknown.py', env.working_directory }} -to ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -ti '${{ github.event.issue.title }}' -in ${{ github.event.issue.number }}
