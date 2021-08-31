@@ -290,7 +290,7 @@ namespace OpenMS
                     std::vector<IDType> &ids,
                     const std::string &score_type,
                     bool higher_better,
-                    Args &... args)
+                    Args &&... args)
     {
       for (auto &id : ids)
       {
@@ -481,7 +481,7 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
-                           bool higher_better, int charge)
+                           bool /*higher_better*/, int charge)
     {
       for (auto& hit : id.getHits())
       {
