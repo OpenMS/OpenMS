@@ -18,4 +18,4 @@ jobs:
         run: python ./github_show_unknown.py -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA
       - name: Show unknown words - full search
         if: github.event_name == 'workflow_dispatch'
-        run: python ./github_show_unknown.py -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA -f
+        run: python ./tools/spellcheck/github_show_unknown.py -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA -f
