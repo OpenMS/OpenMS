@@ -1,10 +1,10 @@
 name: spellcheck - show unknown words
 on: [push, workflow_dispatch]
-env:
-  working_directory: './tools/spellcheck/'
 jobs:
   show-unknown-words:
     runs-on: ubuntu-latest
+    env:
+      working_directory: './tools/spellcheck/'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -17,7 +17,7 @@ jobs:
           pip install PyGithub
       - name: Show unknown words
         if: github.event_name == 'push'
-        run: python ${{ format('{0}github_show_unknown.py', env.working_directory }} -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA
+        run: python ${{ format('{0}github_show_unknown.py', env.working_directory) }} -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA
       - name: Show unknown words - full search
         if: github.event_name == 'workflow_dispatch'
-        run: python ${{ format('{0}github_show_unknown.py', env.working_directory }} -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA -f
+        run: python ${{ format('{0}github_show_unknown.py', env.working_directory) }} -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA -f
