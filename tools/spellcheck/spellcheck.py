@@ -5,10 +5,8 @@ import json
 import re
 from typing import Union
 
-WORKING_DIR = 'tools/spellcheck/'
-PATH_VOCABULARY = WORKING_DIR + 'vocabulary.json'
-PATH_UNKNOWN_WORDS = WORKING_DIR + 'unknown_words.json'
-PATH_RULES = WORKING_DIR + 'rules.json'
+SP_DIR = os.path.dirname(os.path.realpath(__file__))
+PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
 
 
 def clear():
@@ -26,6 +24,11 @@ def load_json(path: Path):
         return json.load(file)
 
 
+RULES = load_json(Path(SP_DIR + 'rules.json'))
+COMMENT_TYPES = load_json(Path(SP_DIR + 'comment_types.json'))
+VOCABULARY = load_json(Path(SP_DIR + 'vocabulary.json'))
+
+
 def write_json(obj: dict, path: Path):
     """
     Write dict to .json file
@@ -37,28 +40,27 @@ def write_json(obj: dict, path: Path):
         json.dump(obj, file, indent=4)
 
 
-def build_file_list(rules: dict) -> set:
+def build_file_list() -> set:
     """
     Build list of all files to search, based on the rules provided.
 
-    :param rules: Dictionary to save
     :return: set of included files
     """
-    incl_ext = set(rules['include']['extensions'])
+    incl_ext = set(RULES['include']['extensions'])
     incl = set()
-    excl_ext = set(rules['exclude']['extensions'])
-    for included in rules['include']['locations']:
+    excl_ext = set(RULES['exclude']['extensions'])
+    for included in RULES['include']['locations']:
         for path in Path(included).rglob("*"):
             if path.is_file():
                 file_ext = path.suffix
                 if (len(incl_ext) > 0 and file_ext in incl_ext) or len(incl_ext) == 0:
                     if file_ext not in excl_ext \
-                            and not any([path.is_relative_to(excl_loc) for excl_loc in rules['exclude']['locations']]):
+                            and not any([path.is_relative_to(excl_loc) for excl_loc in RULES['exclude']['locations']]):
                         incl.add(path)
     return incl
 
 
-def flatten_vocab(vocabulary) -> set:
+def flatten_vocab() -> set:
     """
     Flatten a nested dictionary.
 
@@ -75,15 +77,14 @@ def flatten_vocab(vocabulary) -> set:
                 for entry in values:
                     set_out.add(entry)
 
-    _inner(vocabulary)
+    _inner(VOCABULARY)
     return set_out
 
 
-def set_ref(vocabulary: dict) -> dict:
+def set_ref() -> dict:
     """
     Reference the nested vocabulary correct_words
 
-    :param vocabulary: Vocabulary of all whitelisted words
     :return: Reference dictionary for each list containing header of vocabulary
     """
     i = 0
@@ -98,15 +99,14 @@ def set_ref(vocabulary: dict) -> dict:
                 ref[i] = value
                 i += 1
 
-    _inner(vocabulary)
+    _inner(VOCABULARY)
     return ref
 
 
-def get_vocab_keys(vocabulary, header: str = '', indent: str = ' ', prefix: str = '') -> str:
+def get_vocab_keys(header: str = '', indent: str = ' ', prefix: str = '') -> str:
     """
     Return a pretty print string from all keys from vocabulary.
 
-    :param vocabulary: Vocabulary of all whitelisted words
     :param header: Header string prefix
     :param indent: Indentation string prefix
     :param prefix: Prefix used for all headers equally
@@ -125,30 +125,25 @@ def get_vocab_keys(vocabulary, header: str = '', indent: str = ' ', prefix: str 
                 printable.append(f'{prefix}{indt} {i} {key}\n')
                 i += 1
 
-    _inner(vocabulary, '')
+    _inner(VOCABULARY, '')
     return ''.join(printable)
 
 
-COMMENT_TYPES = load_json(Path(WORKING_DIR + 'comment_types.json'))
-
-
-def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose: bool = False):
+def get_words(files_filter: Union[set, bool] = False, verbose: bool = False):
     """
     Find all valid words from all files defined by rules.json.
 
-    :param vocabulary: Vocabulary of all whitelisted words
     :param files_filter: Filter for included_files
     :param verbose: Verbosity of word search in files
     :return: All valid words from all included files
     """
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
                                          'files': defaultdict(list)})
-    flat_vocab = flatten_vocab(vocabulary)
-    rules = load_json(PATH_RULES)
-    included_files = build_file_list(rules)
+    flat_vocab = flatten_vocab()
+    included_files = build_file_list()
     errors = []
     file_list = files_filter.intersection(included_files) if files_filter else included_files
-    pattern = rules['include']['pattern']
+    pattern = RULES['include']['pattern']
 
     def _search_file():
         try:
@@ -172,7 +167,7 @@ def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose:
                     if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
                         for word in re.findall(pattern, txt_block):
                             if word not in flat_vocab and \
-                                    all([re.fullmatch(p, word) is None for p in rules['exclude']['patterns']]):
+                                    all([re.fullmatch(p, word) is None for p in RULES['exclude']['patterns']]):
                                 unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(n_line)
             file.close()
         except UnicodeDecodeError:

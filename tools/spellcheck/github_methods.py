@@ -11,7 +11,7 @@ the vocabulary.
 """
 
 
-def words_to_body(title: str, vocabulary: dict, unknown_words: defaultdict) -> str:
+def words_to_body(title: str, unknown_words: defaultdict) -> str:
     """
     Convert unknown words to github issue body
 
@@ -22,7 +22,7 @@ def words_to_body(title: str, vocabulary: dict, unknown_words: defaultdict) -> s
     """
     issue_body = f'---\n{title}\n---\n'
     issue_body += f'{INFORMATION}\n\n'
-    issue_body += get_vocab_keys(vocabulary, '::', '......', '>')
+    issue_body += get_vocab_keys('::', '......', '>')
     issue_body += '\n\n'
 
     for i, (word, properties) in enumerate(unknown_words.items()):

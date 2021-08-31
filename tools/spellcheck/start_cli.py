@@ -177,7 +177,7 @@ def process_actions():
     if len(unknown_words) == 0:
         os.remove(PATH_UNKNOWN_WORDS)
     print(unknown_words)
-    write_json(vocabulary, PATH_VOCABULARY)
+    write_json(VOCABULARY, Path(SP_DIR + 'vocabulary.json'))
     write_json(unknown_words, PATH_UNKNOWN_WORDS)
     print('All words processed, successfully!')
 
@@ -197,9 +197,6 @@ def start_cli():
     global curr_id, curr_word, unknown_words
     clear()
 
-    rules = load_json(Path(PATH_RULES))
-    comment_types = load_json(Path(PATH_UNKNOWN_WORDS))
-
     branch = 'Main Menu'
     while True:
         clear()
@@ -210,14 +207,14 @@ def start_cli():
         if branch == 'Main Menu' or branch == 'Start':
             pass
         elif branch == 'Search':
-            unknown_words = get_words(vocabulary, verbose=True)
+            unknown_words = get_words(verbose=True)
             print(f'Found {len(unknown_words)} unknown words!')
             time.sleep(2)
             navigation['Main Menu']['choices'][2]['disabled'] = ''
             branch = 'Main Menu'
         elif branch == 'Load & Update':
 
-            unknown_words = get_words(vocabulary, verbose=True)
+            unknown_words = get_words(verbose=True)
             old_unknown_words = load_json(PATH_UNKNOWN_WORDS)
             for word, properties in old_unknown_words.items():
                 if word in unknown_words:
@@ -271,9 +268,9 @@ def main():
 
     # Load all
     vocabulary = load_json(Path('vocabulary.json'))
-    reference = set_ref(vocabulary)
-    flat_vocab = flatten_vocab(vocabulary)
-    vocab_keys = get_vocab_keys(vocabulary, '::', '......')
+    reference = set_ref()
+    flat_vocab = flatten_vocab()
+    vocab_keys = get_vocab_keys('::', '......')
 
     if os.path.exists(PATH_UNKNOWN_WORDS):
         navigation['Main Menu']['choices'][1]['disabled'] = ''
