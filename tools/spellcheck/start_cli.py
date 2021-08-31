@@ -207,14 +207,14 @@ def start_cli():
         if branch == 'Main Menu' or branch == 'Start':
             pass
         elif branch == 'Search':
-            unknown_words = get_words(verbose=True)
+            unknown_words = get_words()
             print(f'Found {len(unknown_words)} unknown words!')
             time.sleep(2)
             navigation['Main Menu']['choices'][2]['disabled'] = ''
             branch = 'Main Menu'
         elif branch == 'Load & Update':
 
-            unknown_words = get_words(verbose=True)
+            unknown_words = get_words()
             old_unknown_words = load_json(PATH_UNKNOWN_WORDS)
             for word, properties in old_unknown_words.items():
                 if word in unknown_words:

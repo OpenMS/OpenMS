@@ -4,6 +4,7 @@ from collections import defaultdict
 import json
 import re
 from typing import Union
+from progress.bar import Bar
 
 SP_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
@@ -129,7 +130,7 @@ def get_vocab_keys(header: str = '', indent: str = ' ', prefix: str = '') -> str
     return ''.join(printable)
 
 
-def get_words(files_filter: Union[set, bool] = False, verbose: bool = False):
+def get_words(files_filter: Union[set, bool] = False):
     """
     Find all valid words from all files defined by rules.json.
 
@@ -173,13 +174,9 @@ def get_words(files_filter: Union[set, bool] = False, verbose: bool = False):
         except UnicodeDecodeError:
             errors.append(f'{UnicodeDecodeError}: {path}')
 
-    if verbose:
-        from progress.bar import Bar
-        with Bar('Searching files..', max=len(file_list)) as bar:
-            for path in file_list:
-                _search_file()
-                bar.next()
-    else:
+    with Bar('Searching files..', max=len(file_list)) as bar:
         for path in file_list:
             _search_file()
+            bar.next()
+
     return unknown_words
