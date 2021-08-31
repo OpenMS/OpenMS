@@ -17,6 +17,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    print("Here")
 
     g = Github(args.token)
 
@@ -34,6 +35,7 @@ def main():
         edited_files = {Path(file.filename) for file in commit.files}
 
     unknown_words = get_words(edited_files)
+    print(unknown_words)
 
     if len(unknown_words) > 0:
 
