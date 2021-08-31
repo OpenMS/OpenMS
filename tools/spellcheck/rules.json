@@ -1,8 +1,8 @@
 {
   "include": {
-    "locations": ["../Spellcheck/test_files"],
+    "locations": ["src"],
     "pattern": "[A-Za-z'_-]{3,}",
-    "extensions": [".py", ".h", ".cpp"]
+    "extensions": [".py", ".h", ".cpp", ".pyx"]
   },
   "exclude": {
     "locations": [],
