@@ -28,14 +28,16 @@ def main():
     # Find out if issue already exists
     issue = [issue for issue in repo.get_issues() if issue.title == title]
 
-    vocabulary = load_json(PATH_VOCABULARY)
+    rules = json.loads(repo.get_contents(PATH_RULES).content)
+    comment_types = json.loads(repo.get_contents(PATH_COMMENT_TYPES).content)
+    vocabulary = json.loads(repo.get_contents(PATH_VOCABULARY).content)
 
     edited_files = False
     if not args.full:
         commit = repo.get_commit(args.commit)
         edited_files = {Path(file.filename) for file in commit.files}
 
-    unknown_words = get_words(vocabulary, edited_files)
+    unknown_words = get_words(rules, comment_types, vocabulary, edited_files)
 
     if len(unknown_words) > 0:
 

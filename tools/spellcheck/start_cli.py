@@ -190,25 +190,15 @@ def update_word_header():
     navigation['Start']['message'] = header
 
 
-def load_old_words():
-    """
-    Load and update an old list of unknown words
-    """
-    global unknown_words
-
-    unknown_words = get_words(vocabulary, verbose=True)
-    old_unknown_words = load_json(PATH_UNKNOWN_WORDS)
-    for word, properties in old_unknown_words.items():
-        if word in unknown_words:
-            unknown_words[word]['action'] = properties['action']
-
-
 def start_cli():
     """
     Interface initiation
     """
     global curr_id, curr_word, unknown_words
     clear()
+
+    rules = load_json(Path(PATH_RULES))
+    comment_types = load_json(Path(PATH_UNKNOWN_WORDS))
 
     branch = 'Main Menu'
     while True:
@@ -220,13 +210,19 @@ def start_cli():
         if branch == 'Main Menu' or branch == 'Start':
             pass
         elif branch == 'Search':
-            unknown_words = get_words(vocabulary, verbose=True)
+            unknown_words = get_words(rules, comment_types, vocabulary, verbose=True)
             print(f'Found {len(unknown_words)} unknown words!')
             time.sleep(2)
             navigation['Main Menu']['choices'][2]['disabled'] = ''
             branch = 'Main Menu'
         elif branch == 'Load & Update':
-            load_old_words()
+
+            unknown_words = get_words(rules, comment_types, vocabulary, verbose=True)
+            old_unknown_words = load_json(PATH_UNKNOWN_WORDS)
+            for word, properties in old_unknown_words.items():
+                if word in unknown_words:
+                    unknown_words[word]['action'] = properties['action']
+
             print(f'Loaded old unknown words file!')
             time.sleep(2)
             navigation['Main Menu']['choices'][2]['disabled'] = ''
@@ -238,7 +234,7 @@ def start_cli():
             else:
                 branch = 'Main Menu'
         elif branch == 'Save':
-            write_json(unknown_words, 'unknown_words.json')
+            write_json(unknown_words, Path('unknown_words.json'))
             print('Progress saved!')
             branch = 'Main Menu'
             time.sleep(2)
@@ -273,8 +269,8 @@ def start_cli():
 def main():
     global vocabulary, reference, flat_vocab, vocab_keys
 
-    # load vocabulary
-    vocabulary = load_json('vocabulary.json')
+    # Load all
+    vocabulary = load_json(Path('vocabulary.json'))
     reference = set_ref(vocabulary)
     flat_vocab = flatten_vocab(vocabulary)
     vocab_keys = get_vocab_keys(vocabulary, '::', '......')

@@ -5,9 +5,10 @@ import json
 import re
 from typing import Union
 
+PATH_RULES = 'rules.json'
+PATH_COMMENT_TYPES = 'comment_types.json'
 PATH_VOCABULARY = 'vocabulary.json'
 PATH_UNKNOWN_WORDS = 'unknown_words.json'
-PATH_RULES = 'rules.json'
 
 
 def clear():
@@ -128,10 +129,8 @@ def get_vocab_keys(vocabulary, header: str = '', indent: str = ' ', prefix: str 
     return ''.join(printable)
 
 
-COMMENT_TYPES = load_json(Path('comment_types.json'))
-
-
-def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose: bool = False):
+def get_words(comment_types: dict, rules: dict, vocabulary: dict,
+              files_filter: Union[set, bool] = False, verbose: bool = False):
     """
     Find all valid words from all files defined by rules.json.
 
@@ -143,7 +142,6 @@ def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose:
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
                                          'files': defaultdict(list)})
     flat_vocab = flatten_vocab(vocabulary)
-    rules = load_json(PATH_RULES)
     included_files = build_file_list(rules)
     errors = []
     file_list = files_filter.intersection(included_files) if files_filter else included_files
@@ -158,17 +156,17 @@ def get_words(vocabulary: dict, files_filter: Union[set, bool] = False, verbose:
             for n_line, line in enumerate(txt.split('\n')):
                 line_comment = ''
                 for txt_block in line.split():
-                    if file_ext in COMMENT_TYPES:
+                    if file_ext in comment_types:
                         if txt_block == block_comment:
                             block_comment = ''
-                        elif txt_block in {ext.split()[0] for ext in COMMENT_TYPES[file_ext]['block']}:
+                        elif txt_block in {ext.split()[0] for ext in comment_types[file_ext]['block']}:
                             block_comment = {(e := ext.split())[0]: e[1] for ext in
-                                             COMMENT_TYPES[file_ext]['block']}[txt_block]
+                                             comment_types[file_ext]['block']}[txt_block]
                             continue
-                        elif txt_block in COMMENT_TYPES[file_ext]['line']:
+                        elif txt_block in comment_types[file_ext]['line']:
                             line_comment = txt_block
                             continue
-                    if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
+                    if block_comment != '' or line_comment != '' or file_ext not in comment_types:
                         for word in re.findall(pattern, txt_block):
                             if word not in flat_vocab and \
                                     all([re.fullmatch(p, word) is None for p in rules['exclude']['patterns']]):
