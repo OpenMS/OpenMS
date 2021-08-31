@@ -131,9 +131,9 @@ namespace OpenMS
     
     // construct navigators for all spline spectra
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
-    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
       navigators.push_back(nav);
     }
     
