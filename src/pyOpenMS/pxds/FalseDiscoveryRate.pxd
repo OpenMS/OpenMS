@@ -3,6 +3,7 @@ from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
+from ConsensusMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
 
