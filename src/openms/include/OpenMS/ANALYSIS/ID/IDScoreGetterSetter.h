@@ -481,13 +481,20 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
-                           bool /*higher_better*/, int charge)
+                           bool higher_better, int charge)
     {
       for (auto& hit : id.getHits())
       {
         if (hit.getCharge() == charge)
         {
-          setScore_(scores_to_FDR, hit, score_type);
+          if (higher_better)
+          {
+            setScore_(scores_to_FDR, hit, score_type);
+          }
+          else
+          {
+            setScoreHigherWorse_(scores_to_FDR, hit, score_type);
+          }
         }
       }
     }
