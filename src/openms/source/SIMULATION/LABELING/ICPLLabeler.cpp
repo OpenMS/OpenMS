@@ -171,7 +171,7 @@ namespace OpenMS
         AASequence medium_labeled_feature_sequence = medium_label.getPeptideIdentifications()[0].getHits()[0].getSequence();
 
         // guarantee uniqueness
-        (medium_label).ensureUniqueId();
+        medium_label.ensureUniqueId();
 
         // check if we have a pair
         if (light_labeled_features_index.has(getUnmodifiedAASequence_(medium_label, medium_channel_label_)))
