@@ -121,11 +121,11 @@ protected:
     registerInputFile_("executable", "<executable>", 
       // choose the default value according to the platform where it will be executed
 #ifdef OPENMS_WINDOWSPLATFORM
-      "sirius-console-64.exe",
+      "sirius.exe",
 #else
       "sirius",
 #endif
-      "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, {"is_executable"});
+      "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
