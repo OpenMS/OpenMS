@@ -76,18 +76,17 @@ namespace OpenMS
   {
     // check if proteinIdentification exists before accessing it
     if (features.getProteinIdentifications().empty())
-      return;
-
-    for (std::vector<ProteinHit>::iterator protein_hit = features.getProteinIdentifications()[0].getHits().begin();
-         protein_hit != features.getProteinIdentifications()[0].getHits().end();
-         ++protein_hit)
     {
-      AASequence aa = AASequence::fromString(protein_hit->getSequence());
+      return;
+    }
+    for (ProteinHit& protein_hit : features.getProteinIdentifications()[0].getHits())
+    {
+      AASequence aa = AASequence::fromString(protein_hit.getSequence());
       // modify only if the term is accessible
       if (!aa.hasNTerminalModification())
       {
         aa.setNTerminalModification(label);
-        protein_hit->setSequence(aa.toString());
+        protein_hit.setSequence(aa.toString());
       }
     }
   }
@@ -124,17 +123,17 @@ namespace OpenMS
     if (param_.getValue("label_proteins") == "false") // loop for peptide-labeling (post-digest-labeling)
     {
       // iterate over first map for light labeling
-      for (SimTypes::FeatureMapSim::iterator lf_iter = light_labeled_features.begin(); lf_iter != light_labeled_features.end(); ++lf_iter)
+      for (Feature& lf : light_labeled_features)
       {
-        lf_iter->ensureUniqueId();
-        addModificationToPeptideHit_(*lf_iter, light_channel_label_);
+        lf.ensureUniqueId();
+        addModificationToPeptideHit_(lf, light_channel_label_);
       }
 
       // iterate over second map for medium labeling
-      for (SimTypes::FeatureMapSim::iterator lf_iter = medium_labeled_features.begin(); lf_iter != medium_labeled_features.end(); ++lf_iter)
+      for (Feature& lf : medium_labeled_features)
       {
-        lf_iter->ensureUniqueId();
-        addModificationToPeptideHit_(*lf_iter, medium_channel_label_);
+        lf.ensureUniqueId();
+        addModificationToPeptideHit_(lf, medium_channel_label_);
       }
 
       if (features_to_simulate.size() == 3) //third channel labeling can only be done, if a third channel exist
@@ -142,10 +141,10 @@ namespace OpenMS
         SimTypes::FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
 
         // iterate over third map
-        for (SimTypes::FeatureMapSim::iterator lf_iter = heavy_labeled_features.begin(); lf_iter != heavy_labeled_features.end(); ++lf_iter)
+        for (Feature& lf : heavy_labeled_features)
         {
-          lf_iter->ensureUniqueId();
-          addModificationToPeptideHit_(*lf_iter, heavy_channel_label_);
+          lf.ensureUniqueId();
+          addModificationToPeptideHit_(lf, heavy_channel_label_);
         }
       }
     }
@@ -157,59 +156,57 @@ namespace OpenMS
     {
       // create index of light channel features for easy mapping of medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
-      for (SimTypes::FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
-           light_labeled_features_iter != light_labeled_features.end();
-           ++light_labeled_features_iter)
+      for (Feature& light_label : light_labeled_features)
       {
-        (*light_labeled_features_iter).ensureUniqueId();
+        light_label.ensureUniqueId();
         light_labeled_features_index.insert(std::make_pair(
-                                              getUnmodifiedAASequence_((*light_labeled_features_iter), light_channel_label_),
-                                              *light_labeled_features_iter
+                                              getUnmodifiedAASequence_(light_label, light_channel_label_),
+                                              light_label
                                               ));
       }
 
       // iterate over second map
-      for (SimTypes::FeatureMapSim::iterator medium_labeled_feature_iter = medium_labeled_features.begin(); medium_labeled_feature_iter != medium_labeled_features.end(); ++medium_labeled_feature_iter)
+      for (Feature& medium_label : medium_labeled_features)
       {
-        AASequence medium_labeled_feature_sequence = (*medium_labeled_feature_iter).getPeptideIdentifications()[0].getHits()[0].getSequence();
+        AASequence medium_labeled_feature_sequence = medium_label.getPeptideIdentifications()[0].getHits()[0].getSequence();
 
         // guarantee uniqueness
-        (*medium_labeled_feature_iter).ensureUniqueId();
+        medium_label.ensureUniqueId();
 
         // check if we have a pair
-        if (light_labeled_features_index.has(getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)))
+        if (light_labeled_features_index.has(getUnmodifiedAASequence_(medium_label, medium_channel_label_)))
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
-          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)];
+          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_(medium_label, medium_channel_label_)];
           // guarantee uniqueness
           light_labeled_feature.ensureUniqueId();
 
           if (medium_labeled_feature_sequence.isModified()) // feature has a medium ICPL-Label and is not equal to light-labeled
           {
             // add features to final map
-            final_feature_map.push_back(*medium_labeled_feature_iter);
+            final_feature_map.push_back(medium_label);
             final_feature_map.push_back(light_labeled_feature);
 
             // create consensus feature
             ConsensusFeature cf;
-            cf.insert(MEDIUM_FEATURE_MAPID_, *medium_labeled_feature_iter);
+            cf.insert(MEDIUM_FEATURE_MAPID_, medium_label);
             cf.insert(LIGHT_FEATURE_MAPID_, light_labeled_feature);
 
             consensus_.push_back(cf);
 
             // remove light-labeled feature
-            light_labeled_features_index.erase(getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_));
+            light_labeled_features_index.erase(getUnmodifiedAASequence_(medium_label, medium_channel_label_));
           }
           else
           {
             // merge features since they are equal
-            Feature final_feature = mergeFeatures_(*medium_labeled_feature_iter, medium_labeled_feature_sequence, light_labeled_features_index);
+            Feature final_feature = mergeFeatures_(medium_label, medium_labeled_feature_sequence, light_labeled_features_index);
             final_feature_map.push_back(final_feature);
           }
         }
         else // no ICPL pair, just add the medium-labeled one
         {
-          final_feature_map.push_back(*medium_labeled_feature_iter);
+          final_feature_map.push_back(medium_label);
         }
       }
 
@@ -225,33 +222,29 @@ namespace OpenMS
     {
       // create index of light channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
-      for (SimTypes::FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
-           light_labeled_features_iter != light_labeled_features.end();
-           ++light_labeled_features_iter)
+      for (Feature& light_label : light_labeled_features)
       {
-        (*light_labeled_features_iter).ensureUniqueId();
+        light_label.ensureUniqueId();
         light_labeled_features_index.insert(std::make_pair(
-                                              getUnmodifiedAASequence_(*light_labeled_features_iter, light_channel_label_),
-                                              *light_labeled_features_iter
+                                              getUnmodifiedAASequence_(light_label, light_channel_label_),
+                                              light_label
                                               ));
       }
 
       // create index of medium channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> medium_labeled_features_index;
-      for (SimTypes::FeatureMapSim::iterator medium_labeled_features_iter = medium_labeled_features.begin();
-           medium_labeled_features_iter != medium_labeled_features.end();
-           ++medium_labeled_features_iter)
+      for (Feature& medium_label : medium_labeled_features)
       {
-        (*medium_labeled_features_iter).ensureUniqueId();
+        medium_label.ensureUniqueId();
         medium_labeled_features_index.insert(std::make_pair(
-                                               getUnmodifiedAASequence_((*medium_labeled_features_iter), medium_channel_label_),
-                                               *medium_labeled_features_iter
+                                               getUnmodifiedAASequence_(medium_label, medium_channel_label_),
+                                               medium_label
                                                ));
       }
 
-      for (SimTypes::FeatureMapSim::iterator heavy_labeled_feature_iter = features_to_simulate[2].begin(); heavy_labeled_feature_iter != features_to_simulate[2].end(); ++heavy_labeled_feature_iter)
+      for (Feature& heavy_label : features_to_simulate[2])
       {
-        Feature& heavy_feature = *heavy_labeled_feature_iter;
+        Feature& heavy_feature = heavy_label;
         String heavy_feature_unmodified_sequence = getUnmodifiedAASequence_(heavy_feature, heavy_channel_label_);
         heavy_feature.ensureUniqueId();
 
@@ -446,15 +439,15 @@ namespace OpenMS
     {
       Map<UInt64, Feature*> id_map;
       SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
-      for (SimTypes::FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
+      for (Feature& feat : feature_map)
       {
-        id_map.insert(std::make_pair<UInt64, Feature*>(it->getUniqueId(), &(*it)));
+        id_map.insert(std::make_pair<UInt64, Feature*>(feat.getUniqueId(), &feat));
       }
 
       // recompute RT of pairs
-      for (ConsensusMap::Iterator consensus_it = consensus_.begin(); consensus_it != consensus_.end(); ++consensus_it)
+      for (ConsensusFeature& consensus : consensus_)
       {
-        ConsensusFeature& cf = *consensus_it;
+        ConsensusFeature& cf = consensus;
 
         // check if these features are still available and were not removed during RT sim
         bool complete = true;
