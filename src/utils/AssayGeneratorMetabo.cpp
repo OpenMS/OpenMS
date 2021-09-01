@@ -128,7 +128,14 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+        registerInputFile_("executable", "<executable>",
+      // choose the default value according to the platform where it will be executed
+#ifdef OPENMS_WINDOWSPLATFORM
+      "sirius.bat",
+#else
+      "sirius",
+#endif
+      "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, {"is_executable"});
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
