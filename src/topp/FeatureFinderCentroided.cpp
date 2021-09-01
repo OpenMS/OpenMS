@@ -252,7 +252,6 @@ protected:
     // DEBUG
     if (debug_level_ > 10)
     {
-      
       for (const Feature& ft : features)
       {
         if (!ft.isMetaEmpty())
@@ -283,7 +282,6 @@ protected:
     // unless debugging is turned on.
     if (debug_level_ < 5)
     {
-
       for (Feature& ft : features)
       {
         ft.getConvexHull().expandToBoundingBox();
@@ -312,9 +310,7 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
-
 
 int main(int argc, const char** argv)
 {
