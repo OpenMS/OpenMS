@@ -139,7 +139,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
+    registerStringOption_("fragment_annotation", "<choice>", "sirius", "Fragment annotation method",false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
