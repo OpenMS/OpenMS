@@ -606,12 +606,14 @@ namespace OpenMS
   {
     //no layers => return invalid peak index
     if (layers_.empty())
+    {
       return PeakIndex();
-
+    }
     // mirror mode and p not on same half as active layer => return invalid peak index
     if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height() / 2)))
+    {
       return PeakIndex();
-
+    }
     //reference to the current data
     const SpectrumType& spectrum = getCurrentLayer().getCurrentSpectrum();
     Size spectrum_index = getCurrentLayer().getCurrentSpectrumIndex();
@@ -718,8 +720,9 @@ namespace OpenMS
   {
     //no layers
     if (layers_.empty())
+    {
       return;
-
+    }
     if (draw_modes_[getCurrentLayerIndex()] != mode)
     {
       draw_modes_[getCurrentLayerIndex()] = mode;
@@ -731,8 +734,9 @@ namespace OpenMS
   {
     //no layers
     if (layers_.empty())
+    {
       return DM_PEAKS;
-
+    }
     return draw_modes_[getCurrentLayerIndex()];
   }
 
@@ -785,10 +789,9 @@ namespace OpenMS
       SpectrumConstIteratorType vend = getLayer(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
 
       // draw dashed elongations for pairs of peaks annotated with a distance
-      for (auto it = layer.getCurrentAnnotations().begin();
-            it != layer.getCurrentAnnotations().end(); ++it)
+      for (auto& it : layer.getCurrentAnnotations())
       {
-        Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
+        Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
         if (distance_item)
         {
           QPoint from, to;
@@ -1086,13 +1089,19 @@ namespace OpenMS
     auto vbegin = current_spectrum.MZBegin(visible_area_.minX());
     auto vend = current_spectrum.MZEnd(visible_area_.maxX());
 
-    if (vbegin == vend) { return; }
+    if (vbegin == vend)
+    { 
+      return;
+    }
 
     // find interesting peaks
 
     // copy visible peaks into spec
     MSSpectrum spec;
-    for (auto it(vbegin); it != vend; ++it) { spec.push_back(*it); }
+    for (auto it(vbegin); it != vend; ++it)
+    { 
+      spec.push_back(*it);
+    }
 
     // calculate distance between first and last peak
     --vend;
@@ -1165,10 +1174,15 @@ namespace OpenMS
     }
 
     // store old zoom state
-    if (add_to_stack) { zoomAdd_(new_area); }
-
+    if (add_to_stack)
+    { 
+      zoomAdd_(new_area);
+    }
     // repaint
-    if (repaint) { update_(OPENMS_PRETTY_FUNCTION); }
+    if (repaint)
+    { 
+      update_(OPENMS_PRETTY_FUNCTION);
+    }
   }
 
   bool Plot1DCanvas::finishAdding_()
@@ -1307,8 +1321,9 @@ namespace OpenMS
   void Plot1DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
   {
     if (!start.isValid())
+    {
       return;
-
+    }
     //determine coordinates;
     double mz;
     float it;
@@ -1806,8 +1821,14 @@ namespace OpenMS
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
       PeakType p_temp(visible_area_.minX(), 0);
       SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
-      if (it_next != spec.begin()) --it_next; // move one peak left
-      if (it_next == spec.end()) return;
+      if (it_next != spec.begin())
+      {
+        --it_next; // move one peak left
+      }
+      if (it_next == spec.end())
+      {
+        return;
+      }
       newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
       newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
@@ -1837,7 +1858,10 @@ namespace OpenMS
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
       PeakType p_temp(visible_area_.maxX(), 0);
       SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
-      if (it_next == spec.end()) return;
+      if (it_next == spec.end())
+      {
+        return;
+      }
       newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
       newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
@@ -1869,8 +1893,9 @@ namespace OpenMS
   void Plot1DCanvas::paintGridLines_(QPainter& painter)
   {
     if (!show_grid_ || !spectrum_widget_)
+    {
       return;
-
+    }
     QPen p1(QColor(130, 130, 130));
     p1.setStyle(Qt::DashLine);
     QPen p2(QColor(170, 170, 170));

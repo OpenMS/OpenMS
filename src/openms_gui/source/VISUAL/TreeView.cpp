@@ -123,8 +123,10 @@ namespace OpenMS
   QString TreeView::getHeaderName(const int header_column) const
   {
     const auto& header = this->headerItem();
-    if (header->columnCount() <= header_column) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
-
+    if (header->columnCount() <= header_column)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+    }
     return header->text(header_column);
   }
 

@@ -156,7 +156,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::RubberBandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
     else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
@@ -187,7 +190,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::ScrollHandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
   }

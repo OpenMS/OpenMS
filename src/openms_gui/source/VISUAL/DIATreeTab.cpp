@@ -257,7 +257,10 @@ namespace OpenMS
   void DIATreeTab::rowDoubleClicked_(QTreeWidgetItem* item, int /*col*/)
   {
     auto tr = prepareSignal_(item);
-    if (tr.isSet()) entityDoubleClicked(tr);
+    if (tr.isSet())
+    {
+      entityDoubleClicked(tr);
+    }
   }
 
   void DIATreeTab::searchAndShow_()
@@ -271,7 +274,10 @@ namespace OpenMS
 
   bool DIATreeTab::hasData(const LayerData* layer)
   {
-    if (layer == nullptr) return false;
+    if (layer == nullptr)
+    {
+      return false;
+    }
     OSWData* data = layer->getChromatogramAnnotation().get();
     return (data != nullptr && !data->getProteins().empty());
   }

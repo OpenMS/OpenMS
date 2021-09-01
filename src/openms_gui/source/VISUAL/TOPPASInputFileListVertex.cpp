@@ -171,8 +171,10 @@ namespace OpenMS
   {
     output_files_.clear();
 
-    if (files.empty()) return;
-
+    if (files.empty())
+    {
+      return;
+    }
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)
     {
