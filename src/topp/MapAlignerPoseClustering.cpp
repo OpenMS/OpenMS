@@ -136,8 +136,10 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     MapAlignmentAlgorithmPoseClustering algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
@@ -251,8 +253,14 @@ protected:
       {
         PeakMap map;
         MzMLFile().load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
+        if (i == static_cast<int>(reference_index))
+        {
+          trafo.fitModel("identity");
+        }
+        else
+        {
+          algorithm.align(map, trafo);
+        }
         if (out_files.size())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
