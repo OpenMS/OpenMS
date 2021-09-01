@@ -121,7 +121,7 @@ protected:
     registerInputFile_("executable", "<executable>", 
       // choose the default value according to the platform where it will be executed
 #ifdef OPENMS_WINDOWSPLATFORM
-      "sirius.exe",
+      "sirius.bat",
 #else
       "sirius",
 #endif
