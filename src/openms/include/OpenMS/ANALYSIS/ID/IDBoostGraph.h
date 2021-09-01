@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -473,7 +473,7 @@ namespace OpenMS
     /* ---------------------------------------------------------------------------- */
 
     #ifdef INFERENCE_BENCH
-    /// nrnodes, nredges, nrmessages and times of last functor execution per connected component
+    /// nrNodes, nrEdges, nrMessages and times of last functor execution per connected component
     std::vector<std::tuple<vertex_t, vertex_t, unsigned long, double>> sizes_and_times_{1};
     #endif
 

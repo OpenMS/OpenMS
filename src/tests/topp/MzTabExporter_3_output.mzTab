@@ -4,7 +4,7 @@ MTD	mzTab-type	Quantification
 MTD	description	OpenMS export from featureXML
 MTD	peptide_search_engine_score[1]	null
 MTD	psm_search_engine_score[1]	null
-MTD	uri[1]	/home/sachsenb/OMS/OpenMS/src/tests/topp/MzTabExporter_3_input.featureXML
+MTD	uri[1]	/Users/pfeuffer/git/OpenMS-fixes-src/src/tests/topp/MzTabExporter_3_input.featureXML
 MTD	fixed_mod[1]	[MS, MS:1002453, No fixed modifications searched, ]
 MTD	variable_mod[1]	[MS, MS:1002454, No variable modifications searched, ]
 MTD	ms_run[1]-location	file://tmp/mzTabtest.mzML
@@ -1087,4 +1087,3 @@ PEP	null	null	null	null	null	null	null	null	null	2019.844895735210002	2014.96998
 PEP	null	null	null	null	null	null	null	null	null	2019.85713423253992	1996.471919999999955|2038.101840000000038	3	884.449311491881986	null	4.82483e07	null	null	null
 PEP	null	null	null	null	null	null	null	null	null	2019.981246980750029	2012.049179999999978|2024.25870000000009	3	602.348977619529023	null	8.586590080000001e08	null	null	null
 PEP	null	null	null	null	null	null	null	null	null	2019.999353022659989	2013.331920000000082|2024.268700000000081	3	539.287158164583957	null	8.3478096e07	null	null	null
-

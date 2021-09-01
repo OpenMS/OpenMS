@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -203,54 +203,58 @@ namespace OpenMS
   {
     std::pair<int,int> result{0,0};
 
-    if (charges.hasSubstring(',')) //it's probably a list
+    try // is there only one number (min = max)?
     {
-      StringList chgs;
-      charges.split(',', chgs);
-      for (String& chg : chgs)
-      {
-        int val = getChargeValue_(chg);
-        if (val < result.first) result.first = val;
-        if (val > result.second) result.second = val;
-      }
+      result.first = charges.toInt();
+      result.second = result.first;
     }
-    else if (charges.hasSubstring(':')) //it's probably a range
+    catch (Exception::ConversionError&) // nope, something else
     {
-      StringList chgs;
-      charges.split(':', chgs);
-      if (chgs.size() > 2)
+      if (charges.hasSubstring(',')) // it's probably a list
       {
-        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge string in SearchParameters not parseable.");
+        IntList chgs = ListUtils::create<Int>(charges);
+        auto minmax = minmax_element(chgs.begin(), chgs.end());
+        result.first = *minmax.first;
+        result.second = *minmax.second;
       }
-      result.first = getChargeValue_(chgs[0]);
-      result.second = getChargeValue_(chgs[1]);
-    }
-    else
-    {
-      size_t pos = charges.find('-', 0);
-      std::vector<size_t> minus_positions;
-      while (pos != string::npos)
+      else if (charges.hasSubstring(':')) // it's probably a range
       {
-        minus_positions.push_back(pos);
-        pos = charges.find('-', pos+1);
+        StringList chgs;
+        charges.split(':', chgs);
+        if (chgs.size() > 2)
+        {
+          throw OpenMS::Exception::MissingInformation(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Charge string in SearchParameters not parseable.");
+        }
+        result.first = getChargeValue_(chgs[0]);
+        result.second = getChargeValue_(chgs[1]);
       }
-      if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
+      else
       {
-        Size split_pos(0);
-        if (minus_positions.size() <= 1)
+        size_t pos = charges.find('-', 0);
+        std::vector<size_t> minus_positions;
+        while (pos != string::npos)
         {
-          //split at first minus
-          split_pos = minus_positions[0];
+          minus_positions.push_back(pos);
+          pos = charges.find('-', pos + 1);
         }
-        else
+        if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
         {
-          split_pos = minus_positions[1];
+          Size split_pos(0);
+          if (minus_positions.size() <= 1) // split at first minus
+          {
+            split_pos = minus_positions[0];
+          }
+          else
+          {
+            split_pos = minus_positions[1];
+          }
+          String first = charges.substr(0, split_pos);
+          String second = charges.substr(split_pos + 1, string::npos);
+          result.first = getChargeValue_(first);
+          result.second = getChargeValue_(second);
         }
-        String first = charges.substr(0, split_pos);
-        String second = charges.substr(split_pos + 1, string::npos);
-        result.first = getChargeValue_(first);
-        result.second = getChargeValue_(second);
-
       }
     }
     return result;
@@ -488,7 +492,7 @@ namespace OpenMS
     String se = getSearchEngine();
     return
         se == "Fido" || // FidoAdapter overwrites when it merges several runs
-        se == "BayesianProteinInference" || // for backwards compat
+        se == "BayesianProteinInference" || // for backwards compatibility
         se == "Epifany" ||
         (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
         se == "ProteinInference";
@@ -884,4 +888,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

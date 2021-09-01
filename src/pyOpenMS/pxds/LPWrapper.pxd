@@ -6,7 +6,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
     
     cdef cppclass LPWrapper "OpenMS::LPWrapper":
         LPWrapper() nogil except +
-        LPWrapper(LPWrapper) nogil except + #wrap-ignore
         Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, const String & name) nogil except +
         Int addColumn() nogil except +
         Int addColumn(libcpp_vector[ int ] column_indices, libcpp_vector[ double ] column_values, const String & name) nogil except +
@@ -43,14 +42,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         double getColumnValue(Int index) nogil except +
         Int getNumberOfNonZeroEntriesInRow(Int idx) nogil except +
         void getMatrixRow(Int idx, libcpp_vector[ int ] & indexes) nogil except +
-        void setSolver(SOLVER s) nogil except +
         SOLVER getSolver() nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     
     cdef cppclass SolverParam "OpenMS::LPWrapper::SolverParam":
         SolverParam() nogil except +
-        SolverParam(SolverParam) nogil except + #wrap-ignore
+        SolverParam(SolverParam &) nogil except +
         Int message_level
         Int branching_tech
         Int backtrack_tech

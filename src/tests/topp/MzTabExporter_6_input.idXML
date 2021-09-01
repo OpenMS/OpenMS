@@ -82,6 +82,25 @@
 				<UserParam type="float" name="Luciphor_global_flr" value="1.0"/>
 				<UserParam type="float" name="Luciphor_local_flr" value="1.0"/>
 			</PeptideHit>
+			<PeptideHit score="3.844931000000001" sequence="MKSMATSS(Phospho)PLR" charge="3" aa_before="[" aa_after="V" start="0" end="10" protein_refs="PH_8" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="11.1"/>
+				<UserParam type="float" name="delta" value="7.88e-03"/>
+				<UserParam type="float" name="mass" value="1305.581969999999956"/>
+				<UserParam type="float" name="E-Value" value="2.3"/>
+				<UserParam type="float" name="hyperscore" value="12.6"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.5"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.6"/>
+				<UserParam type="float" name="q-value_score" value="0.034090909090909"/>
+				<UserParam type="string" name="search_engine_sequence" value="MKSAMTSS(Phospho)PLR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="12.195266"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="1.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="1.0"/>
+			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="499.867412723291011" RT="1477.122900000000072" spectrum_reference="controllerType=0 controllerNumber=1 scan=7529" >
 			<PeptideHit score="20.119319000000001" sequence="AS(Phospho)LM(Oxidation)S(Phospho)M(Oxidation)T(Phospho)PT(Phospho)LNR" charge="3" aa_before="K" aa_after="G" start="607" end="618" protein_refs="PH_5" >

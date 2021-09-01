@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,11 +44,9 @@
 
 */
 
-namespace OpenMS
+namespace OpenMS::NNLS
 {
 
-  namespace NNLS
-  {
 
     /* start of original code (with modification as described above) */
 
@@ -451,7 +449,7 @@ L260:
       /*        SEE IF THE REMAINING COEFFS IN SET P ARE FEASIBLE.  THEY SHOULD */
       /*        BE BECAUSE OF THE WAY ALPHA WAS DETERMINED. */
       /*        IF ANY ARE INFEASIBLE IT IS DUE TO ROUND-OFF ERROR.  ANY */
-      /*        THAT ARE NONPOSITIVE WILL BE SET TO ZERO */
+      /*        THAT ARE NON-POSITIVE WILL BE SET TO ZERO */
       /*        AND MOVED FROM SET P TO SET Z. */
 
       i__1 = nsetp;
@@ -743,7 +741,7 @@ L70:
         return 0;
       }
       b = *up * u[*lpivot * u_dim1 + 1];
-      /*                       B  MUST BE NONPOSITIVE HERE.  IF B = 0., RETURN. */
+      /*                       B  MUST BE NON-POSITIVE HERE.  IF B = 0., RETURN. */
 
       if (b >= 0.)
       {
@@ -820,6 +818,5 @@ L130:
       double x = (a >= 0 ? a : -a);
       return b >= 0 ? x : -x;
     }
-
-  } // namespace NNLS
-} // namespace OpenMS
+ 
+} // namespace OpenMS // namespace NNLS

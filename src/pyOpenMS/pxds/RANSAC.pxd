@@ -11,7 +11,13 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         #   RANSACQuadratic := RANSAC[RansacModelQuadratic]
 
         RANSAC() nogil except +
+        RANSAC(unsigned long long seed) nogil except +
         RANSAC(RANSAC[TModelType] &) nogil except + # wrap-ignore
+        
+        libcpp_vector[libcpp_pair[double,double]] ransac(
+            libcpp_vector[libcpp_pair[double,double]] pairs,
+            size_t n, size_t k, double t, size_t d, bool relative_d
+            ) nogil except +
 
     cdef cppclass RANSACParam:
 
@@ -27,18 +33,4 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         size_t d # ; //< The number of close data values (according to 't') required to assert that a model fits well to data
         bool relative_d #; //< Should 'd' be interpreted as percentages (0-100) of data input size.
         # int (*rng)(int); //< Optional RNG function (useful for testing with fixed seeds)
-
-cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>":
-
-    libcpp_vector[libcpp_pair[double,double]] ransac(
-            libcpp_vector[libcpp_pair[double,double]] pairs,
-            size_t n, size_t k, double t, size_t d, bool test
-            ) nogil except + # wrap-attach:RANSAC
-
-cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math::RANSAC<OpenMS:Math::RansacModelQuadratic>":
-
-    libcpp_vector[libcpp_pair[double,double]] ransac(
-            libcpp_vector[libcpp_pair[double,double]] pairs,
-            size_t n, size_t k, double t, size_t d, bool test
-            ) nogil except + # wrap-attach:RANSACQuadratic
 

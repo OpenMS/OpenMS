@@ -13,9 +13,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         # wrap-instances:
         #   IsotopeWaveletTransform := IsotopeWaveletTransform[Peak1D]
 
-        # IsotopeWaveletTransform() nogil except +
-        IsotopeWaveletTransform(IsotopeWaveletTransform) nogil except + #wrap-ignore
         IsotopeWaveletTransform(double min_mz, double max_mz, UInt max_charge, Size max_scan_size, bool hr_data, String intenstype) nogil except +
+        IsotopeWaveletTransform(IsotopeWaveletTransform &) nogil except + # compiler
 
         void getTransform(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) nogil except +
         void getTransformHighRes(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) nogil except +

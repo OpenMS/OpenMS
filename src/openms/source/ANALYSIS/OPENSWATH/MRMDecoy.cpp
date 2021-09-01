@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -47,11 +48,11 @@ namespace OpenMS
   {
     defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
-    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideNTerm", {"true","false"});
 
-    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideCTerm", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -59,7 +60,7 @@ namespace OpenMS
 
   void MRMDecoy::updateMembers_()
     {
-    keep_const_pattern_ = param_.getValue("non_shuffle_pattern");
+    keep_const_pattern_ = param_.getValue("non_shuffle_pattern").toString();
     keepN_ = param_.getValue("keepPeptideNTerm").toBool();
     keepC_ = param_.getValue("keepPeptideCTerm").toBool();
   }
@@ -130,6 +131,7 @@ namespace OpenMS
     }
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
+    //TODO use Math::RandomShuffler (=same approach) and put this rather general method somewhere more prominent.
     boost::mt19937 generator(seed);
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
@@ -165,7 +167,7 @@ namespace OpenMS
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
       // one could also use std::random_shuffle here but then the code becomes
-      // untestable since the implementation of std::random_shuffle differs
+      // not testable since the implementation of std::random_shuffle differs
       // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
       // see also https://code.google.com/p/chromium/issues/detail?id=358564
       // the actual code here for the shuffling is based on the implementation of
@@ -398,7 +400,8 @@ namespace OpenMS
     }
     else if ( aim_decoy_fraction < 1.0)
     {
-      std::random_shuffle(item_list.begin(), item_list.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
       selection_list.reserve(aim_decoy_fraction * exp.getPeptides().size());
       Size k = 0;
       while (selection_list.size() < aim_decoy_fraction * exp.getPeptides().size())
@@ -514,7 +517,7 @@ namespace OpenMS
             enable_unspecific_losses, round_decPow);
 
       // Compute (new) decoy precursor m/z based on the K/R replacement and the AA changes in the shuffle algorithm
-      double decoy_precursor_mz = decoy_peptide_sequence.getMonoWeight(Residue::Full, decoy_charge) / decoy_charge;
+      double decoy_precursor_mz = decoy_peptide_sequence.getMZ(decoy_charge);
       decoy_precursor_mz += precursor_mz_shift; // fix for TOPPView: Duplicate precursor MZ is not displayed.
 
       for (Size i = 0; i < pep_it->second.size(); i++)

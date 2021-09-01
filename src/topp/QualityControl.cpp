@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,11 @@
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/PeptideMass.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
+#include <OpenMS/QC/MQEvidenceExporter.h>
 #include <cstdio>
 
 #include <map>
@@ -126,7 +128,7 @@ protected:
     setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR", "<files>", {}, "FeatureXMLs after FDR filtering", false);
     setValidFormats_("in_postFDR", {"featureXML"});
-    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", true);
+    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", false);
     setValidFormats_("out", { "mzTab" });
     registerOutputFile_("out_cm", "<file>", "", "ConsensusXML with QC information (as metavalues)", false);
     setValidFormats_("out_cm", { "consensusXML" });
@@ -141,7 +143,10 @@ protected:
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
-    registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR is missing (accepts all pep_ids as target hits).", false);
+    registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
+    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
+
+
     //TODO get ProteinQuantifier output for PRT section
   }
 
@@ -164,13 +169,16 @@ protected:
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
-      FASTAFile::load(in_contaminants, contaminants);
+      FASTAFile().load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
-
+    for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
+    {
+      sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
+    }
     std::vector<FeatureMap> fmaps;
     if (in_postFDR.empty())
     {
@@ -206,6 +214,11 @@ protected:
     }
     FeatureMap* fmap;
 
+    // mztab writer requires single PIs per CF
+    // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
+    // check for identical IDs of the ConsensusFeatures in Export from MQEvidence_result.txt
+    IDConflictResolverAlgorithm::resolve(cmap);
+
     //-------------------------------------------------------------
     // prot/pepID-identifier -->  ms-run-path
     //-------------------------------------------------------------
@@ -214,25 +227,29 @@ protected:
     //-------------------------------------------------------------
     // Build a PepID Map to later find the corresponding PepID in the CMap
     //-------------------------------------------------------------
-    multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+    multimap<String, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+
+
+    customID_to_cpepID = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
     }
-    fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+
+
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
 
 
     // check flags
-    bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
+    bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
-    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
-    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, it);
-    auto tolerance_unit = FragmentMassError::ToleranceUnit(idx);
+    auto it = std::find(QCBase::names_of_toleranceUnit, QCBase::names_of_toleranceUnit + (int) QCBase::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
+    auto idx = std::distance(QCBase::names_of_toleranceUnit, it);
+    auto tolerance_unit = QCBase::ToleranceUnit(idx);
 
 
     // Instantiate the QC metrics
@@ -244,6 +261,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     PeptideMass qc_pepmass;
+    PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
     MzMLFile mzml_file;
@@ -252,6 +270,13 @@ protected:
 
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
+
+
+    String out_evidence = getStringOption_("out_evd");
+    MQEvidence export_evidence(out_evidence);
+
+
+    vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -274,6 +299,10 @@ protected:
       else
       {
         fmap = &(fmaps[i]);
+      }
+      for (Feature & f: *fmap) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
+      {
+          sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
       mp_f.create(fmap->getProteinIdentifications());
 
@@ -299,7 +328,7 @@ protected:
 
       if (qc_ms2ir.isRunnable(status))
       {
-        qc_ms2ir.compute(*fmap, exp, fdr_flag);
+        qc_ms2ir.compute(*fmap, exp, all_target_flag);
       }
 
       if (qc_mz_calibration.isRunnable(status))
@@ -328,9 +357,14 @@ protected:
         qc_pepmass.compute(*fmap);
       }
 
+      if (qc_psm_corr.isRunnable(status))
+      {
+        qc_psm_corr.compute(*fmap, exp, spec_map, tolerance_unit, tolerance_value);
+      }
+
       if (qc_tic.isRunnable(status))
       {
-        qc_tic.compute(exp);
+        tic_results.push_back(qc_tic.compute(exp));
       }
 
       if (qc_ms2stats.isRunnable(status))
@@ -371,17 +405,19 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+      }
+
+      if (export_evidence.isValid())
+      {
+        export_evidence.exportFeatureMap(*fmap,cmap);
       }
     }
-    // mztab writer requires single PIs per CF
-    // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
-    IDConflictResolverAlgorithm::resolve(cmap);
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
@@ -411,14 +447,19 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
-    MzTabMetaData meta = mztab.getMetaData();
-    qc_tic.addMetaDataMetricsToMzTab(meta);
-    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
-    mztab.setMetaData(meta);
+    String out = getStringOption_("out");
+    if (!out.empty())
+    {
+      MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
+      MzTabMetaData meta = mztab.getMetaData();
+      qc_tic.addMetaDataMetricsToMzTab(meta, tic_results);
+      qc_ms2ir.addMetaDataMetricsToMzTab(meta);
+      mztab.setMetaData(meta);
 
-    MzTabFile mztab_out;
-    mztab_out.store(getStringOption_("out"), mztab);
+      MzTabFile mztab_out;
+      mztab_out.store(out, mztab);
+    }
+
     return EXECUTION_OK;
   }
 
@@ -438,71 +479,53 @@ private:
     }
     return files;
   }
-  
-  void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
-                              const map<String, StringList>& identifier_to_msrunpath,
-                              multimap<String, PeptideIdentification*>& customID_to_cpepID) const
-  {
-    for (PeptideIdentification& cpep_id : cpep_ids)
-    {
-      if (!cpep_id.metaValueExists("spectrum_reference"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
-      }
-      const auto& ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
 
-      String UID; //< unique ID to identify the PepID
-      if (ms_run_path.size() == 1)
-      {
-        UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (cpep_id.metaValueExists("map_index"))
-      {
-        UID = cpep_id.getMetaValue("map_index").toString() + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-      customID_to_cpepID.insert(make_pair(UID, &cpep_id));
+  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
+  {
+    for (PeptideIdentification& pep_id : pep_ids)
+    {
+      pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
     }
+    std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
+    {
+      if (a.empty() || b.empty())
+      {
+        return a.empty() > b.empty();
+      }
+      return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+    });
   }
 
-
-  void addPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
-    const multimap<String, PeptideIdentification*>& customID_to_pepID,
-    const map<String, StringList>& fidentifier_to_msrunpath) const
+  void addPepIDMetaValues_(
+    const vector<PeptideIdentification>& f_pep_ids,
+    const multimap<String, pair<Size, Size>>& customID_to_cpepID,
+    const map<String, StringList>& fidentifier_to_msrunpath,
+    ConsensusMap& cmap) const
   {
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
     {
       // for empty PIs which were created by a metric
       if (f_pep_id.getHits().empty()) continue;
-
-      String UID;
-      const auto& ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
-      if (ms_run_path.size() == 1)
-      {
-        UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (f_pep_id.metaValueExists("map_index"))
-      {
-        UID = f_pep_id.getMetaValue("map_index").toString() + f_pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-
-      const auto range = customID_to_pepID.equal_range(UID);
+      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
+      const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        it_pep->second->addMetaValues(f_pep_id);
-
         // copy all MetaValues that are at best Hit level
         //TODO check if first = best assumption is met!
-        (it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        Size cf_index = it_pep->second.first;     //ConsensusFeature Index
+        Size pi_index = it_pep->second.second;    //PeptideIdentification Index
+        if (cf_index != Size(-1))
+        {
+          cmap[cf_index].getPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
+          cmap[cf_index].getPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        }
+        else
+        {
+          cmap.getUnassignedPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
+          cmap.getUnassignedPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        }
       }
     }
   }
@@ -516,3 +539,4 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -372,14 +372,11 @@ namespace OpenMS
     // amino acid (or terminus) -> set of modifications (incl. no mod. = 0):
     map<String, set<const ResidueModification*> > mod_map;
 
-    for (vector<PeptideIdentification>::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    for (const PeptideIdentification& pep : peptides)
     {
-      for (vector<PeptideHit>::const_iterator hit_it =
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
-           ++hit_it)
+      for (const PeptideHit& hit : pep.getHits())
       {
-        const AASequence& seq = hit_it->getSequence();
+        const AASequence& seq = hit.getSequence();
         mod_map["N-term"].insert(seq.getNTerminalModification());
         mod_map["C-term"].insert(seq.getCTerminalModification());
         for (AASequence::ConstIterator seq_it = seq.begin();

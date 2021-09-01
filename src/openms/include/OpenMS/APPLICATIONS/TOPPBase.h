@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,7 @@ public:
       UnregisteredParameter(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "UnregisteredParameter", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -103,7 +103,7 @@ public:
       WrongParameterType(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "WrongParameterType", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -115,7 +115,7 @@ public:
       RequiredParameterNotGiven(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "RequiredParameterNotGiven", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -164,6 +164,14 @@ public:
       UNEXPECTED_RESULT
     };
 
+
+
+    /// No default constructor
+    TOPPBase() = delete;
+
+    /// No default copy constructor.
+    TOPPBase(const TOPPBase&) = delete;
+
     /**
       @brief Constructor
 
@@ -174,7 +182,7 @@ public:
 
       @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
     */
-    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor
     virtual ~TOPPBase();
@@ -191,6 +199,15 @@ public:
     */
     static void setMaxNumberOfThreads(int num_threads);
 
+    /**
+      @brief Returns the prefix used to identify the tool
+    
+      This prefix is later found in the INI file for a TOPP tool.
+      f.e.: "FileConverter:1:"
+
+    */
+    String getToolPrefix() const;
+
 private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
@@ -203,12 +220,6 @@ private:
 
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
-
-    /// No default constructor.  It is "declared away".
-    TOPPBase();
-
-    /// No default copy constructor.  It is "declared away".
-    TOPPBase(const TOPPBase&);
 
     /// All parameters relevant to this invocation of the program.
     Param param_;
@@ -343,7 +354,7 @@ private:
     bool getParamAsBool_(const String& key) const;
 
     /**
-      @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
+      @brief Return the value @p key of parameters as DataValue. ParamValue::EMPTY indicates that a parameter was not found.
 
       Parameters are searched in this order:
       -# command line
@@ -353,7 +364,7 @@ private:
 
       where "some_key" == key in the examples.
     */
-    const DataValue& getParam_(const String& key) const;
+    const ParamValue& getParam_(const String& key) const;
 
     /**
       @brief Get the part of a parameter name that makes up the subsection
@@ -362,6 +373,7 @@ private:
     */
     String getSubsection_(const String& name) const;
 
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
     String getDocumentationURL() const;
 
     /// Returns the default parameters
@@ -383,7 +395,10 @@ protected:
 
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;
-    
+
+    /// Enable the ToolHandler tests
+    bool toolhandler_test_;
+
     /**
       @brief Returns the location of the ini file where parameters are taken
       from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
@@ -479,7 +494,7 @@ protected:
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
       when the option is accessed in the TOPP tool. 
-      This may also enable lookup on the PATH or skipping of the existance-check (see @p tags).
+      This may also enable lookup on the PATH or skipping of the existence-check (see @p tags).
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
@@ -489,7 +504,7 @@ protected:
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                       Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
-                                  @em 'is_executable' - checks existance of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                  @em 'is_executable' - checks existence of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
     */
     void registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -623,7 +638,7 @@ protected:
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
        @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
-                                   'is_executable' - checks existance of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                   'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
        */
     void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -821,8 +836,12 @@ protected:
 
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
-    /// Runs an external process via ExternalProcess and reports its status in the logs
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
     ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
+
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
+    /// Additionally returns the process' stdout and stderr
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir = "") const;
     //@}
 
     /**

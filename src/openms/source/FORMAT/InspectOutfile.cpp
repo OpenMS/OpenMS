@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      OPENMS_LOG_WARN << "ParseError (" << p_e.getMessage() << ") caught in " << __FILE__ << "\n";
+      OPENMS_LOG_WARN << "ParseError (" << p_e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
 
@@ -536,7 +536,7 @@ namespace OpenMS
 
       if (experiment.size() < fs_i->second.back().second)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enought scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
       }
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
@@ -863,7 +863,7 @@ namespace OpenMS
             protein_name = line.substr(pos, protein_name_length_);
             protein_name.substitute('>', '}');
             // cppcheck produces a false positive warning here -> ignore
-            // cppcheck-suppress redundantCopy
+            // cppcheck-suppress redundant copy
             memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
             record_flags |= ac_flag; // set the ac flag
@@ -1097,8 +1097,9 @@ namespace OpenMS
     QString response(cmd_output.toQString());
     QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     if (rx.indexIn(response) == -1)
+    {
       return false;
-
+    }
     protein_identification.setSearchEngineVersion(String(rx.cap(2)));
     return true;
   }
@@ -1128,25 +1129,45 @@ namespace OpenMS
     for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
     {
       if ((*s_i) == "#SpectrumFile")
+      {
         spectrum_file_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Scan#")
+      {
         scan_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Annotation")
+      {
         peptide_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Protein")
+      {
         protein_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "Charge")
+      {
         charge_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "MQScore")
+      {
         MQ_score_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "p-value")
+      {
         p_value_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "RecordNumber")
+      {
         record_number_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "DBFilePos")
+      {
         DB_file_pos_column = s_i - substrings.begin();
+      }
       else if ((*s_i) == "SpecFilePos")
+      {
         spec_file_pos_column = s_i - substrings.begin();
+      }
     }
 
     if ((spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1))

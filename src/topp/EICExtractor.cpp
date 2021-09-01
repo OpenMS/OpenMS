@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -290,7 +290,7 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram tic = exp.getTIC();
+        MSChromatogram tic = exp.calculateTIC();
         MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
@@ -338,7 +338,7 @@ public:
           {
             Peak1D peak;
             peak.setMZ(tic[is].getMZ());
-            peak.setIntensity(snt.getSignalToNoise(tics[is]));
+            peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }
           out_debug.addChromatogram(toChromatogram(tics_sn));

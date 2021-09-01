@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,6 +117,7 @@ START_SECTION((virtual const String& getName() const =0))
 {
   IsobaricQuantitationMethod* quant_method = new TestQuantitationMethod();
   TEST_STRING_EQUAL(quant_method->getName(), "TestQuantitationMethod")
+  delete quant_method;
 }
 END_SECTION
 
@@ -131,6 +132,7 @@ START_SECTION((virtual const IsobaricChannelList& getChannelInformation() const 
   TEST_EQUAL(cl[0].name, 114)
   TEST_EQUAL(cl[0].id, 0)
   TEST_EQUAL(cl[0].center, 114.1112)
+  delete quant_method;
 }
 END_SECTION
 
@@ -138,6 +140,7 @@ START_SECTION((virtual Size getNumberOfChannels() const =0))
 {
   IsobaricQuantitationMethod* quant_method = new TestQuantitationMethod();
   TEST_EQUAL(quant_method->getNumberOfChannels(), 4)
+  delete quant_method;
 }
 END_SECTION
 
@@ -181,7 +184,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
       TEST_REAL_SIMILAR(real_m2[i][j], m(i,j))
     }
   }
-
+  delete quant_method;
 }
 END_SECTION
 
@@ -189,6 +192,7 @@ START_SECTION((virtual Size getReferenceChannel() const =0))
 {
   IsobaricQuantitationMethod* quant_method = new TestQuantitationMethod();
   TEST_EQUAL(quant_method->getReferenceChannel(), 0)
+  delete quant_method;
 }
 END_SECTION
 

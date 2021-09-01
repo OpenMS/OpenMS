@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -384,6 +385,20 @@ protected:
 
       OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
       sw.reset();
+
+      //Check if score types are valid.
+      try
+      {
+        IDScoreSwitcherAlgorithm switcher;
+        Size c = 0;
+        switcher.switchToGeneralScoreType(mergedpeps, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
+      }
+      catch(Exception::MissingInformation&)
+      {
+        OPENMS_LOG_FATAL_ERROR <<
+              "Epifany expects a Posterior Error Probability score in all Peptide IDs." << endl;
+             return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
 
       BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
       bpi1.setParameters(epifany_param);

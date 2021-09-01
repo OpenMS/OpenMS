@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -162,6 +162,10 @@ protected:
     setValidFormats_("in_negative", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
     setValidFormats_("out", ListUtils::create<String>("txt"));
+    registerOutputFile_("out_oligo_params", "<file>", "", "output file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_params", ListUtils::create<String>("paramXML"));
+    registerOutputFile_("out_oligo_trainset", "<file>", "", "output file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_trainset", ListUtils::create<String>("txt"));
     registerDoubleOption_("c", "<float>", 1, "the penalty parameter of the svm", false);
     registerStringOption_("svm_type", "<type>", "C_SVC", "the type of the svm (NU_SVC or C_SVC)", false);
     setValidStrings_("svm_type", ListUtils::create<String>("NU_SVC,C_SVC"));
@@ -447,9 +451,10 @@ protected:
     debug_string = String(training_labels.size()) + " positive sequences read";
     writeDebug_(debug_string, 1);
 
+    Math::RandomShuffler r{0};
     if (training_peptides.size() > max_positive_count)
     {
-      random_shuffle(training_peptides.begin(), training_peptides.end());
+      r.portable_random_shuffle(training_peptides.begin(), training_peptides.end());
       training_peptides.resize(max_positive_count, "");
       training_labels.resize(max_positive_count, 1.);
     }
@@ -496,7 +501,7 @@ protected:
     writeDebug_(debug_string, 1);
     if (temp_training_peptides.size() > max_negative_count)
     {
-      random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
+      r.portable_random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
       temp_training_peptides.resize(max_negative_count, "");
       training_labels.resize(training_peptides.size() + max_negative_count, -1.);
     }
@@ -559,6 +564,11 @@ protected:
                                                          output_flag,
                                                          "performances_" + digest + ".txt");
 
+      if (temp_type == SVMWrapper::OLIGO)
+      {
+        LibSVMEncoder::destroyProblem(encoded_training_sample);
+      }
+
       String debug_string = "Best parameters found in cross validation:";
 
       for (parameters_iterator = optimized_parameters.begin();
@@ -596,10 +606,26 @@ protected:
 
     svm.saveModel(outputfile_name);
 
-    // If the oligo-border kernel is used some additional information has to be stored
+    // If the oligo-border kernel is used some additional information has to be stored.
     if (temp_type == SVMWrapper::OLIGO)
     {
-      encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
+      String outfile_name = getStringOption_("out");
+      String param_outfile_name = getStringOption_("out_oligo_params");
+      String trainset_outfile_name = getStringOption_("out_oligo_trainset");
+
+      // Fallback to reasonable defaults if additional outfiles are not specified = empty.
+      if (param_outfile_name.empty())
+      {
+        param_outfile_name = outfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
+      }
+
+      if (trainset_outfile_name.empty())
+      {
+        trainset_outfile_name = outfile_name + "_samples";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
+      }
+      encoder.storeLibSVMProblem(trainset_outfile_name, encoded_training_sample);
       additional_parameters.setValue("kernel_type", temp_type);
 
       if (temp_type == SVMWrapper::OLIGO)
@@ -610,7 +636,7 @@ protected:
       }
 
       ParamXMLFile paramFile;
-      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
+      paramFile.store(param_outfile_name, additional_parameters);
     }
 
     return EXECUTION_OK;

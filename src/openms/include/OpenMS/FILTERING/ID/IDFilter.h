@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,10 +79,10 @@ namespace OpenMS
 public:
 
     /// Constructor
-    IDFilter();
+    IDFilter() = default;
 
     /// Destructor
-    virtual ~IDFilter();
+    virtual ~IDFilter() = default;
 
     /// Typedefs
     typedef std::map<Int, PeptideHit*> ChargeToPepHitP;
@@ -297,7 +297,7 @@ public:
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
 
-       @note Currently implemented for FastaEntries and Peptide Evidences
+       @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template <class HitType, class Entry>
     struct GetMatchingItems
@@ -628,8 +628,9 @@ public:
 
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param best_hit Contains the best hit if successful
 
-       @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
+       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
 
        @return true if a hit was present, false otherwise
     */
@@ -790,6 +791,15 @@ public:
       std::vector<ProteinIdentification::ProteinGroup>& groups,
       const std::vector<ProteinHit>& hits);
 
+    /**
+       @brief Update protein hits after protein groups were filtered
+
+       @param groups Available protein groups with protein accessions to keep
+       @param hits Input/output hits (all others are removed from the groups)
+    */
+    static void removeUngroupedProteins(
+        const std::vector<ProteinIdentification::ProteinGroup>& groups,
+        std::vector<ProteinHit>& hits);
     ///@}
 
 
@@ -821,6 +831,15 @@ public:
         keepMatchingItems(id_it->getHits(), score_filter);
       }
     }
+
+    /**
+      @brief Filters protein groups according to the score of the groups.
+
+      Only protein groups with a score at least as good as @p threshold_score are kept.
+      Score orientation (@p higher_better) should be taken from the protein hits and assumed equal.
+    */
+    static void filterGroupsByScore(std::vector<ProteinIdentification::ProteinGroup>& grps,
+                                  double threshold_score, bool higher_better);
 
     /**
       @brief Filters peptide or protein identifications according to the score of the hits.
@@ -1000,7 +1019,7 @@ public:
 
        Only peptide hits with a low mass deviation (between theoretical peptide mass and precursor mass) are kept.
 
-       @param identification Input/output
+       @param peptides Input/output
        @param mass_error Threshold for the mass deviation
        @param unit_ppm Is @p mass_error given in PPM?
 
@@ -1041,6 +1060,10 @@ public:
     static void removePeptidesWithMatchingModifications(
       std::vector<PeptideIdentification>& peptides,
       const std::set<String>& modifications);
+
+    static void removePeptidesWithMatchingRegEx(
+      std::vector<PeptideIdentification>& peptides,
+      const String& regex);
 
     /// Keeps only peptide hits that have at least one of the given modifications
     static void keepPeptidesWithMatchingModifications(
@@ -1137,6 +1160,10 @@ public:
       removeUnreferencedProteins(experiment.getProteinIdentifications(),
                                  all_peptides);
     }
+
+    /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
+    /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
+    static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
 
     /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
     template <class MapType>
@@ -1348,4 +1375,3 @@ public:
   };
 
 } // namespace OpenMS
-

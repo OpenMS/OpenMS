@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Mathias Walzer, Axel Walter $
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -37,14 +37,14 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
 
 namespace OpenMS
 {
+  class ConsensusMap;
+  class FeatureMap;
+
   /**
       @brief File adapter for QcML files used to load and store QcML files
 
@@ -60,10 +60,10 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
-
     /// Representation of a quality parameter
-    struct OPENMS_DLLAPI QualityParameter
+    class OPENMS_DLLAPI QualityParameter
     {
+    public:
       String name; ///< Name
       String id; ///< Identifier
       String value; ///< Value
@@ -87,8 +87,9 @@ public:
     };
 
     /// Representation of an attachment
-    struct OPENMS_DLLAPI Attachment
+    class OPENMS_DLLAPI Attachment
     {
+    public:
       String name; ///< Name
       String id; ///< Name
       String value; ///< Value
@@ -166,8 +167,31 @@ public:
     void existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
     ///Returns the ids of the parameter name given if found in given set, empty else
     void existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
+    ///Calculation and collection of QC data
+    /**
+      @brief Collects QC data in qualityParameters and qualityAttachments
+      @param prot_ids protein identifications from ID file
+      @param pep_ids peptide identifications
+      @param feature_map FeatureMap from feature file (featureXML)
+      @param consensus_map ConsensusMap from consensus file (consensusXML)
+      @param inputfile_raw mzML input file name
+      @param remove_duplicate_features removes duplicates in a set of merged features
+      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+    */
+    void collectQCData(std::vector<ProteinIdentification>& prot_ids,
+                       std::vector<PeptideIdentification>& pep_ids,
+                       const FeatureMap& feature_map,
+                       const ConsensusMap& consensus_map,
+                       const String& inputfile_raw,
+                       const bool remove_duplicate_features,
+                       const MSExperiment& exp);
     ///Store the QCFile
-    void store(const String & filename) const;
+    /**
+      @brief Store the qcML file
+      @param filename qcML output file name
+    */
+    void store(const String& filename) const;
+
     ///Load a QCFile
     void load(const String & filename);
 
@@ -202,8 +226,6 @@ protected:
     std::set<String> names_;
     std::vector<QualityParameter> qps_;
     std::vector<Attachment> ats_;
-
   };
 
 } // namespace OpenMS
-

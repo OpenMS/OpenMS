@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
     
     cdef cppclass PeakIndex "OpenMS::PeakIndex":
         PeakIndex() nogil except +
-        PeakIndex(PeakIndex) nogil except + #wrap-ignore
+        PeakIndex(PeakIndex &) nogil except + # compiler
         Size peak
         Size spectrum
         PeakIndex(Size peak) nogil except +

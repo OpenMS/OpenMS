@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -625,8 +626,9 @@ START_SECTION(([EXTRA] void uniqueIdToIndex()))
       TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first);
     }
     STATUS("shuffling ...");
-    std::random_shuffle(pairs.begin(),pairs.end());
-    std::random_shuffle(fm.begin(),fm.end());
+    Math::RandomShuffler r{0};
+    r.portable_random_shuffle(pairs.begin(),pairs.end());
+    r.portable_random_shuffle(fm.begin(),fm.end());
     for ( Size i = 0; i < num_features; ++i )
     {
       STATUS("pairs[i]:  " << pairs[i].first << ", " << pairs[i].second )

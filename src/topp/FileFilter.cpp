@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -851,14 +851,14 @@ protected:
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
         Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
-        for (MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto& spec : exp)
         {
-          snm.init(it->begin(), it->end());
-          for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
+          snm.init(spec);
+          for (Size i = 0; i != spec.size(); ++i)
           {
-            if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+            if (snm.getSignalToNoise(i) < sn) spec[i].setIntensity(0);
           }
-          it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), it->end());
+          spec.erase(remove_if(spec.begin(), spec.end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), spec.end());
         }
       }
 
@@ -973,7 +973,7 @@ protected:
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           map_sm.getUnassignedPeptideIdentifications().clear();
@@ -1035,7 +1035,7 @@ protected:
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           consensus_map_filtered.getUnassignedPeptideIdentifications().clear();

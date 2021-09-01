@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,18 +136,18 @@ namespace OpenMS
   void RawMSSignalSimulation::setDefaultParams_()
   {
     defaults_.setValue("enabled", "true", "Enable RAW signal simulation? (select 'false' if you only need feature-maps)");
-    defaults_.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("enabled", {"true","false"});
 
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 
     // peak and instrument parameter
     defaults_.setValue("resolution:value", 50000, "Instrument resolution at 400 Th");
     defaults_.setValue("resolution:type", "linear", "How does resolution change with increasing m/z?! QTOFs usually show 'constant' behavior, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass");
-    defaults_.setValidStrings("resolution:type", ListUtils::create<String>("constant,linear,sqrt"));
+    defaults_.setValidStrings("resolution:type", {"constant","linear","sqrt"});
 
     defaults_.setValue("peak_shape", "Gaussian", "Peak Shape used around each isotope peak (be aware that the area under the curve is constant for both types, but the maximal height will differ (~ 2:3 = Lorentz:Gaussian) due to the wider base of the Lorentzian");
-    defaults_.setValidStrings("peak_shape", ListUtils::create<String>("Gaussian,Lorentzian"));
+    defaults_.setValidStrings("peak_shape", {"Gaussian","Lorentzian"});
 
 
     // baseline
@@ -228,7 +228,7 @@ namespace OpenMS
   void RawMSSignalSimulation::updateMembers_()
   {
     res_base_ = (double) param_.getValue("resolution:value");
-    String model = param_.getValue("resolution:type");
+    std::string model = param_.getValue("resolution:type");
     if (model == "constant")
       res_model_ = RES_CONSTANT;
     else if (model == "linear")
@@ -252,7 +252,7 @@ namespace OpenMS
   void RawMSSignalSimulation::loadContaminants()
   {
     // contaminants:
-    String contaminants_file = param_.getValue("contaminants:file");
+    String contaminants_file = param_.getValue("contaminants:file").toString();
 
     if (contaminants_file.trim().size() != 0)
     {
@@ -260,8 +260,6 @@ namespace OpenMS
       {
         contaminants_file = File::find(contaminants_file);
       }
-      if (!File::readable(contaminants_file))
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, contaminants_file);
       // read & parse file:
       TextFile tf(contaminants_file, true);
       contaminants_.clear();
@@ -505,7 +503,7 @@ namespace OpenMS
       createContaminants_(c_map, experiment, experiment_ct);
     }
 
-    if ((String)param_.getValue("ionization_type") == "MALDI")
+    if (param_.getValue("ionization_type") == "MALDI")
     {
       addBaseLine_(experiment, minimal_mz_measurement_limit);
     }
@@ -621,8 +619,8 @@ namespace OpenMS
     EGHModel* elutionmodel = new EGHModel();
     chooseElutionProfile_(elutionmodel, active_feature, 1.0, rt_sampling_rate, experiment);
     ProductModel<2> pm;
-    pm.setModel(0, elutionmodel); // new'ed models will be deleted by the pm! no need to delete them manually
-    pm.setModel(1, isomodel); // new'ed models will be deleted by the pm! no need to delete them manually
+    pm.setModel(0, elutionmodel); // new models will be deleted by the pm! no need to delete them manually
+    pm.setModel(1, isomodel); // new models will be deleted by the pm! no need to delete them manually
     pm.setScale(scale); // scale
 
     // start and end points of the sampling
@@ -937,7 +935,7 @@ namespace OpenMS
     if (!contaminants_loaded_)
       loadContaminants();
 
-    IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type") == "ESI" ? IM_ESI : IM_MALDI;
+    IONIZATIONMETHOD this_im = param_.getValue("ionization_type") == "ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
 
     Size out_of_range_RT(0), out_of_range_MZ(0);
@@ -1293,8 +1291,7 @@ namespace OpenMS
     SimTypes::SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
 
     // add some noise
-    // TODO: German comment
-    // TODO: variables model f??r den intensit??ts-einfluss
+    // TODO: variables model for the intensity impact
     // e.g. sqrt(intensity) || ln(intensity)
     boost::normal_distribution<SimTypes::SimIntensityType> ndist(0, intensity_scale_stddev_ * intensity);
     intensity += ndist(rnd_gen_->getTechnicalRng());

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,6 +64,17 @@ namespace OpenMS
   class OPENMS_DLLAPI TargetedExperiment
   {
 public:
+    
+    struct OPENMS_DLLAPI SummaryStatistics
+    {
+      Size protein_count;
+      Size peptide_count;
+      Size compound_count;
+      Size transition_count;
+      std::map<ReactionMonitoringTransition::DecoyTransitionType, size_t> decoy_counts; ///< # target/decoy transitions
+      bool contains_invalid_references;
+    };
+
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
@@ -118,7 +129,7 @@ public:
 
       @param rhs The targeted experiment to add to this one.
     */
-    TargetedExperiment & operator+=(const TargetedExperiment & rhs);
+    TargetedExperiment& operator+=(const TargetedExperiment & rhs);
 
     /**
       @brief Clears all data and meta data
@@ -126,6 +137,9 @@ public:
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /// return summary stats about this TE.
+    SummaryStatistics getSummary() const;
 
     /** @name Accessors
     */
@@ -245,6 +259,14 @@ public:
     void sortTransitionsByProductMZ();
     //@}
 
+    ///@name Sorting peaks
+    //@{
+    /**
+      @brief Lexicographically sorts the transitions by their name.
+    */
+    void sortTransitionsByName();
+    //@}
+
     /**
       @brief Checks whether the data structure (and the underlying TraML file) contains invalid references
 
@@ -307,6 +329,9 @@ protected:
   namespace TargetedExperimentHelper
   {
   } // namespace TargetedExperimentHelper
+
+  /// prints out the summary statistics
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s);
 
 
 } // namespace OpenMS

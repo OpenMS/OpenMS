@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -231,7 +231,7 @@ protected:
                 charge = 1;
               }
               md.exp_mz = it->getMZ();
-              md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
+              md.theo_mz = hit.getSequence().getMonoWeight(Residue::Full, charge);
               md.charge = charge;
               precursor_diffs.push_back(md);
             }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 namespace OpenMS
 {
 const String TMTSixteenPlexQuantitationMethod::name_ = "tmt16plex";
-const std::vector<String> TMTSixteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N"};
+const std::vector<std::string> TMTSixteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N"};
 
 TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
 {
@@ -113,22 +113,22 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C).");
     defaults_.setValidStrings("reference_channel", TMTSixteenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/8.02/0.0,"
-                                                                      "0.0/0.68/7.46/0.0,"
-                                                                      "0.0/0.71/6.94/0.0,"
-                                                                      "0.0/1.88/6.67/0.0,"
-                                                                      "0.0/1.34/5.59/0.0,"
-                                                                      "0.0/2.41/5.48/0.0,"
-                                                                      "0.0/2.34/5.19/0.0,"
-                                                                      "0.0/3.53/4.57/0.0,"
-                                                                      "0.0/2.67/4.16/0.0,"
-                                                                      "0.0/3.92/3.73/0.0,"
-                                                                      "0.0/3.69/3.14/0.0,"
-                                                                      "0.0/3.22/2.76/0.0,"
-                                                                      "0.0/4.11/2.0/0.0,"
-                                                                      "0.0/3.85/1.58/0.0,"
-                                                                      "0.0/4.63/1.18/0.0,"
-                                                                      "0.0/5.22/0.86/0.0"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/8.02/0.0",
+                                                                      "0.0/0.68/7.46/0.0",
+                                                                      "0.0/0.71/6.94/0.0",
+                                                                      "0.0/1.88/6.67/0.0",
+                                                                      "0.0/1.34/5.59/0.0",
+                                                                      "0.0/2.41/5.48/0.0",
+                                                                      "0.0/2.34/5.19/0.0",
+                                                                      "0.0/3.53/4.57/0.0",
+                                                                      "0.0/2.67/4.16/0.0",
+                                                                      "0.0/3.92/3.73/0.0",
+                                                                      "0.0/3.69/3.14/0.0",
+                                                                      "0.0/3.22/2.76/0.0",
+                                                                      "0.0/4.11/2.0/0.0",
+                                                                      "0.0/3.85/1.58/0.0",
+                                                                      "0.0/4.63/1.18/0.0",
+                                                                      "0.0/5.22/0.86/0.0"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
@@ -136,28 +136,28 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTSixteenPlexQuantitationMethod::updateMembers_()
 {
-    channels_[0].description = param_.getValue("channel_126_description");
-    channels_[1].description = param_.getValue("channel_127N_description");
-    channels_[2].description = param_.getValue("channel_127C_description");
-    channels_[3].description = param_.getValue("channel_128N_description");
-    channels_[4].description = param_.getValue("channel_128C_description");
-    channels_[5].description = param_.getValue("channel_129N_description");
-    channels_[6].description = param_.getValue("channel_129C_description");
-    channels_[7].description = param_.getValue("channel_130N_description");
-    channels_[8].description = param_.getValue("channel_130C_description");
-    channels_[9].description = param_.getValue("channel_131N_description");
-    channels_[10].description = param_.getValue("channel_131C_description");
-    channels_[11].description = param_.getValue("channel_132N_description");
-    channels_[12].description = param_.getValue("channel_132C_description");
-    channels_[13].description = param_.getValue("channel_133N_description");
-    channels_[14].description = param_.getValue("channel_133C_description");
-    channels_[15].description = param_.getValue("channel_134N_description");
+    channels_[0].description = param_.getValue("channel_126_description").toString();
+    channels_[1].description = param_.getValue("channel_127N_description").toString();
+    channels_[2].description = param_.getValue("channel_127C_description").toString();
+    channels_[3].description = param_.getValue("channel_128N_description").toString();
+    channels_[4].description = param_.getValue("channel_128C_description").toString();
+    channels_[5].description = param_.getValue("channel_129N_description").toString();
+    channels_[6].description = param_.getValue("channel_129C_description").toString();
+    channels_[7].description = param_.getValue("channel_130N_description").toString();
+    channels_[8].description = param_.getValue("channel_130C_description").toString();
+    channels_[9].description = param_.getValue("channel_131N_description").toString();
+    channels_[10].description = param_.getValue("channel_131C_description").toString();
+    channels_[11].description = param_.getValue("channel_132N_description").toString();
+    channels_[12].description = param_.getValue("channel_132C_description").toString();
+    channels_[13].description = param_.getValue("channel_133N_description").toString();
+    channels_[14].description = param_.getValue("channel_133C_description").toString();
+    channels_[15].description = param_.getValue("channel_134N_description").toString();
 
 
     // compute the index of the reference channel
-    std::vector<String>::const_iterator t_it = std::find(TMTSixteenPlexQuantitationMethod::channel_names_.begin(),
+    std::vector<std::string>::const_iterator t_it = std::find(TMTSixteenPlexQuantitationMethod::channel_names_.begin(),
                                                          TMTSixteenPlexQuantitationMethod::channel_names_.end(),
-                                                         (String) param_.getValue("reference_channel"));
+                                                         param_.getValue("reference_channel"));
 
     reference_channel_ = t_it - TMTSixteenPlexQuantitationMethod::channel_names_.begin();
 }
@@ -202,7 +202,7 @@ Size TMTSixteenPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTSixteenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
 }
 

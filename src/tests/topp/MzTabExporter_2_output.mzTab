@@ -4,10 +4,10 @@ MTD	mzTab-type	Identification
 MTD	title	ID export from OpenMS
 MTD	description	OpenMS export from ID data
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
-MTD	peptide_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
-MTD	psm_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
-MTD	software[2]	[, , MS-GF+, Release (v2017.08.23)]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1002052, MS-GF:SpecEValue, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-27]
+MTD	software[2]	[MS, MS:1002048, MS-GF+, Release (v2017.08.23)]
 MTD	software[2]-setting[1]	db:D:\data\proteome-databases-OpenMS\uniprot_Escherichia-coli_June-2017_canonical-without-isoforms_reviewed_plus_shuffled.fasta
 MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	fragment_mass_tolerance:0.0

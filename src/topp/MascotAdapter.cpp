@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
@@ -329,23 +330,10 @@ protected:
     //-------------------------------------------------------------
 
     inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
     first_dim_rt = getDoubleOption_("first_dim_rt");
-    if (inputfile_name == "")
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
+
 
     outputfile_name = getStringOption_("out");
-    writeDebug_(String("Output file: ") + outputfile_name, 1);
-    if (outputfile_name == "")
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
     boundary = getStringOption_("boundary");
     if (boundary != "")
@@ -623,6 +611,10 @@ protected:
       //-------------------------------------------------------------
       vector<ProteinIdentification> protein_identifications;
       protein_identifications.push_back(protein_identification);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+
       IdXMLFile().store(outputfile_name,
                         protein_identifications,
                         identifications);

@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_32_input.mzML" location="file:///home/hr/openmsall/source/OpenMS_experimental/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_32_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="8653b60abb36f9f7e37b41603e27b328c03f1d8c" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -128,7 +128,7 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
@@ -215,6 +215,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -283,6 +288,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -302,7 +312,7 @@
 						<binary>mpmZQM3MLEEAAEBBmpkZQTMzU0FmZmZBAABAQQAAQEGamRlBZmbmQAAAwEBmZgZBZmaGQQAAQEGamRlBZmaGQc3MLEFmZuZAZmZmQWZmZkAzM1NBmpkZQJqZGUCamZlBmpl5QZqZmT9mZmZBZmaGQZqZmUBmZrZBmpkZQWZm5kBmZmZBAACQQZqZmUFmZoZBMzOjQc3MrEGamZlBmpl5QQAAwEHNzKxBzcysQQAAwEEzM6NBzcysQZqZmUFmZrZBmpmZQGZm5kAAAMBAmpkZQGZmZkCamZk/mpkZQGZmBkEAAJBBmpmZQJqZGUKamRlBmpmZQZqZmUFmZoZBZmbmQZqZ+UFmZgZCAAAQQs3MrEGamRlCAADAQTMzI0LNzCxCmpkZQmZm5kFmZmZBZmbmQZqZmUCamRlBzcwsQs3MLEJmZmZBAADAQQAAwEFmZgZCmpkZQAAAQEJmZgZCZmY2QjMz00FmZmZBAABAQQAAwEFmZuZAZmZmQZqZGUCamZlAzcysQZqZGUGamRlBAABAQWZm5kCamZlBmpmZQZqZmUBmZuZBAABAQpqZmUBmZjZCzcwsQpqZ+UEzMyNCZmYGQpqZGUIAABBCMzPTQWZmhkHNzKxBzcysQQAAkEEAABBCzcysQWZmZkFmZmZBAACQQWZmZkHNzCxBZmZmQc3MrEEzMztCZmZmQmZm5kCamclBzcwsQWZm5kBmZmZAZmbmQZqZyUFmZuZBZmbmQJqZAUJmZuZBZmbmQWZm5kBmZmZAAAAQQjMzO0KamUlCzcwsQpqZSULNzCxCmplJQs3MLEJmZh5CZmZmQgAAEELNzCxCmpkBQmZmHkJmZmZCmpmBQgAAkEIAABBCzcx0QpqZSUKamYFCAABYQgAAWEKamYFCzcyIQs3MiEKamYFCzcx0QmZmZkIAAJBCMzOjQjMzU0JmZmZCZmYGQmZmZkIAAMBBmpl5QmZm5kFmZoZCZmaGQgAAkEKamZlCmpmZQZqZmUIAAEBCmpkZQgAAQEKamRlCzcwsQpqZmUGamRlBZma2QpqZGUFmZmZBzcysQgAAwELNzKxCAADAQmZmtkIAAJBCZmbmQZqZmUKamZlAmpmZQs3MrELNzKxCZmZmQTMzo0KamRlBZmaGQpqZGUFmZmZCzcwsQpqZmUAAAEBCAABAQpqZmUFmZoZCAADAQZqZeUJmZuZBZmbmQZqZmUFmZgZCMzNTQpqZGUKamRlCZmZmQgAAQEIAAJBCAADkQgAA2EIAAPBCAADMQgAA8EIAAMBCAADkQgAAwEIAAJxCAADYQgAAtEIAAMxCAABwQgAAQEIAAHBCAABYQgAA2EIAAJBCAABwQgAAWEIAAHBCAACEQgAAnEIAAKhCAACQQgAAqEIAAJBCAABAQQAAQEEAABBCAABAQgAAKEIAAChCAABAQgAAwEAAAMBAAAAQQgAAQEEAAEBBAAAQQgAA8EEAABBCAACoQgAAwEEAAPBBAACEQgAAwEEAAJBBAACQQQAAwEEAAMBBAADYQgAAtEIAAMBCAADAQgAAqEI=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="290" encodedLength="1548" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility"  />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>5/upPgRWjj4pXI8+hxZZPk5ikD5zaJE+PQpXPgrXoz4Sg0A+nu+nPsP1qD556aY+d76fPlyPQj5U46U+vHSTPi/dpD7Jdj4+pptEPgwCqz7l0KI+MQisPjVeOj45tEg+nMSgPlYOrT7ByqE+8KdGPn9qPD51k5g+30+NPtEiWz70/VQ+4XqUPgaBlT6q8VI+K4eWPlCNlz5g5VA+mG6SPpqZmT4X2U4+46WbPs3MTD4IrJw+g8BKPi2ynT6+n5o+Gy9dPpZDiz5xPYo+ZDtfPicxiD7dJIY+AiuHPrpJjD5SuJ4+TDeJPjm0SD4bL10+EoNAPocWWT556aY+c2iRPphukj68dJM+4XqUPi/dpD4GgZU+CtejPiuHlj5QjZc+YOVQPvT9VD7Jdj4+pptEPmQ7Xz5/ajw+F9lOPoPASj7RIls+PQpXPlyPQj6q8VI+3SSGPs3MTD7wp0Y+dZOYPk5ikD6WQ4s+cT2KPilcjz4MAqs+nu+nPlYOrT4CK4c+BFaOPkw3iT7n+6k+w/WoPicxiD7fT40+VOOlPjEIrD7ByqE+mpmZPjVeOj6+n5o+46WbPpzEoD4IrJw+d76fPi2ynT5SuJ4+5dCiPrpJjD7RIls+yXY+PsP1qD49Clc+lkOLPuf7qT5MN4k+cT2KPhsvXT4MAqs+f2o8Pp7vpz6cxKA+BoGVPjEIrD66SYw+JzGIPmQ7Xz7dJIY+30+NPnnppj6HFlk+NV46PgRWjj4Sg0A+VOOlPgIrhz5WDq0+KVyPPphukj7wp0Y+9P1UPqrxUj7ByqE+vHSTPqabRD7l0KI+YOVQPgrXoz5zaJE+L92kPk5ikD45tEg+46WbPs3MTD5cj0I+K4eWPne+nz5QjZc+UriePuF6lD4X2U4+dZOYPr6fmj6DwEo+CKycPi2ynT6amZk+K4eWPk5ikD5zaJE+ukmMPvT9VD5xPYo+mG6SPpZDiz68dJM+qvFSPuF6lD4GgZU+Gy9dPmDlUD49Clc+30+NPilcjz6HFlk+BFaOPkw3iT5kO18+dZOYPgIrhz4nMYg+F9lOPpqZmT5QjZc+zcxMPr6fmj5SuJ4+0SJbPi2ynT5WDq0+ObRIPuOlmz6DwEo+DAKrPgisnD41Xjo+8KdGPjEIrD6mm0Q+L92kPt0khj4K16M+XI9CPuf7qT53vp8+w/WoPpzEoD7Jdj4+nu+nPn9qPD556aY+5dCiPhKDQD5U46U+wcqhPlTjpT5zaJE+vp+aPuOlmz6amZk+CKycPs3MTD45tEg+dZOYPi2ynT6cxKA+F9lOPlK4nj4rh5Y+PQpXPhKDQD4pXI8+L92kPoPASj70/VQ+CtejPgRWjj5cj0I+5dCiPphukj6q8VI+wcqhPrx0kz6mm0Q+NV46PmQ7Xz7Jdj4+hxZZPrpJjD556aY+30+NPt0khj5WDq0+nu+nPgIrhz4xCKw+lkOLPsP1qD7RIls+8KdGPn9qPD5xPYo+TmKQPuf7qT4nMYg+DAKrPkw3iT4bL10+UI2XPuF6lD5g5VA+BoGVPne+nz4=</binary>
@@ -351,6 +361,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -419,6 +434,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -450,16 +470,16 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=10">13242</offset>
-		<offset idRef="spectrum=11">16285</offset>
-		<offset idRef="spectrum=12">25067</offset>
-		<offset idRef="spectrum=13">28082</offset>
-		<offset idRef="spectrum=14">36783</offset>
-		<offset idRef="spectrum=15">39798</offset>
-		<offset idRef="spectrum=16">48580</offset>
-		<offset idRef="spectrum=17">51595</offset>
+		<offset idRef="spectrum=10">13252</offset>
+		<offset idRef="spectrum=11">16295</offset>
+		<offset idRef="spectrum=12">25328</offset>
+		<offset idRef="spectrum=13">28343</offset>
+		<offset idRef="spectrum=14">37294</offset>
+		<offset idRef="spectrum=15">40309</offset>
+		<offset idRef="spectrum=16">49342</offset>
+		<offset idRef="spectrum=17">52357</offset>
 	</index>
 </indexList>
-<indexListOffset>60407</indexListOffset>
+<indexListOffset>61420</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

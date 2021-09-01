@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,6 +85,9 @@ namespace OpenMS
   signals:
     /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
     void updatedCWD(QString new_cwd);
+    /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
+    void updatedFile(QString new_path);
+
   public slots:
 
     /// Lets the user select the file via a file dialog

@@ -12,8 +12,8 @@ from Matrix cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "OpenMS":
     
     cdef cppclass ItraqConstants "OpenMS::ItraqConstants":
-        ItraqConstants() nogil except + 
-        ItraqConstants(ItraqConstants) nogil except + #wrap-ignore
+        ItraqConstants() nogil except + # compiler
+        ItraqConstants(ItraqConstants &) nogil except + # compiler
 
         # Int CHANNEL_COUNT()
         # Int CHANNELS_FOURPLEX()

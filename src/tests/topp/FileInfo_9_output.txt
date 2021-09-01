@@ -1,25 +1,36 @@
 
 -- General information --
 
-File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_9_input.mzML
+File name: C:/dev/openms_test/src/tests/topp/FileInfo_9_input.mzML
 File type: mzML
+
+Instrument: LCQ Deca
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+  Mass Analyzer: Linear ion trap (resolution: 0)
 
 MS levels: 1, 2
 Total number of peaks: 40
 Number of spectra: 4
 
+Ranges:
+  retention time: 5.10 .. 5.40 sec (0.0 min)
+  mass-to-charge: 0.00 .. 18.00
+  intensity:      1.00 .. 20.00
+
 Number of spectra per MS level:
   level 1: 3
   level 2: 1
 
-Ranges:
-  retention time: 5.10 .. 5.40
-  mass-to-charge: 0.00 .. 18.00
-  intensity:      1.00 .. 20.00
-
-Peak type metadata (estimated)
+Peak type from metadata (or estimated from data)
   level 1: Centroid (Centroid)
   level 2: Centroid (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
 Meta data array:
   charge array:          1 spectra
   signal to noise array: 1 spectra

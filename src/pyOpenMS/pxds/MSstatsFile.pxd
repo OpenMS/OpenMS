@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
     cdef cppclass MSstatsFile:
 
         MSstatsFile() nogil except +
+        MSstatsFile(MSstatsFile &) nogil except + # compiler
 
         void storeLFQ(String & filename,
                       ConsensusMap & consensus_map,

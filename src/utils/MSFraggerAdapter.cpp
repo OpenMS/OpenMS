@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -99,6 +100,8 @@ class TOPPMSFraggerAdapter final :
 {
 public:
 
+  static const String license;
+
   static const String java_executable;
   static const String java_heapmemory;
   static const String executable;
@@ -108,7 +111,8 @@ public:
   static const String database;
 
   // tolerance
-  static const String precursor_mass_tolerance;
+  static const String precursor_mass_tolerance_lower;
+  static const String precursor_mass_tolerance_upper;
   static const String precursor_mass_unit;
   static const String precursor_true_tolerance;
   static const String precursor_true_unit;
@@ -156,6 +160,7 @@ public:
   static const String min_matched_fragments;
   static const String output_report_topn;
   static const String output_max_expect;
+  static const String localize_delta_mass;
 
   // statmod
   static const String add_cterm_peptide;
@@ -188,14 +193,27 @@ public:
 
 
   TOPPMSFraggerAdapter() :
-    TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false,
+    TOPPBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
+                                  "Important note:\n"
+                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
+                                  "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
+                                  "for use on related service offerings supported by the University of Tubingen and the Center for\n"
+                                  "Integrative Bioinformatics.                                                                    \n"
+                                  "Per the license agreement the use of the pipeline and associated materials is for academic     \n"
+                                  "research, non-commercial or educational purposes. Any commercial use inquiries                 \n"
+                                  "must be directed to the University of Michigan Technology Transfer Office at                   \n"
+                                  "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       \n"
+                                  "University of Michigan.\n"
+                                  "\n"
+                                  "For details, please see the supplied license file or                                           \n"
+				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
+    , false,
              {
                  {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
                   "MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics",
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
-    working_directory(debug_level_ >= 2),
     java_exe(""),
     exe(""),
     parameter_file_path(""),
@@ -215,12 +233,16 @@ protected:
     const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
+    // License agreement
+    registerStringOption_(TOPPMSFraggerAdapter::license, "<license>", "", "Set to yes, if you have read and agreed to the MSFragger license terms.", true, false);
+    setValidStrings_(TOPPMSFraggerAdapter::license, {"yes","no"});
+
     // Java executable
-    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"skipexists"});
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -242,7 +264,8 @@ protected:
     registerTOPPSubsection_("tolerance", "Search Tolerances");
 
     // Precursor mass tolerance and unit
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance (window is +/- this value)", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower, "<precursor_mass_tolerance>", 20.0, "Lower precursor mass tolerance", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper, "<precursor_mass_tolerance>", 20.0, "Upper precursor mass tolerance", false, false);
     registerStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit, "<precursor_mass_unit>", "ppm", "Unit of precursor mass tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::precursor_mass_unit, validUnits);
 
@@ -344,6 +367,7 @@ protected:
     _registerNonNegativeInt(TOPPMSFraggerAdapter::min_matched_fragments, "<min_matched_fragments>", 4, "Minimum number of matched peaks for PSM to be reported. MSFragger recommends a minimum of 4 for narrow window searching and 6 for open searches", false, false);
     _registerNonNegativeInt(TOPPMSFraggerAdapter::output_report_topn, "<output_report_topn>", 1, "Reports top N PSMs per input spectrum", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::output_max_expect, "<output_max_expect>", 50.0, "Suppresses reporting of PSM if top hit has expectation greater than this threshold", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::localize_delta_mass, "<localize_delta_mass>", 0, "Include fragment ions mass-shifted by unknown modifications (recommended for open and mass offset searches) (0 for OFF, 1 for ON)", false, false);
 
     registerTOPPSubsection_("statmod", "Static Modification Parameters");
 
@@ -376,7 +400,13 @@ protected:
 
 
   ExitCodes main_(int, const char**) override
-  {  
+  {
+    if (getStringOption_(TOPPMSFraggerAdapter::license) != "yes" && !getFlag_("test"))
+    {
+      _fatalError("MSFragger may only be used upon acceptance of license terms.");
+    }
+
+    File::TempDir working_directory(debug_level_ >= 2);
     try
     {
       // java executable
@@ -408,7 +438,8 @@ protected:
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
 
       // tolerance
-      const double arg_precursor_mass_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance));
+      const double arg_precursor_mass_tolerance_lower(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower));
+      const double arg_precursor_mass_tolerance_upper(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper));
       const String & arg_precursor_mass_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit);
       const double arg_precursor_true_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_true_tolerance));
       const String & arg_precursor_true_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_true_unit);
@@ -494,7 +525,8 @@ protected:
       const int arg_min_matched_fragments = this->getIntOption_(TOPPMSFraggerAdapter::min_matched_fragments);
       const int arg_output_report_topn = this->getIntOption_(TOPPMSFraggerAdapter::output_report_topn);
       const double arg_output_max_expect = this->getDoubleOption_(TOPPMSFraggerAdapter::output_max_expect);
-
+      const int arg_localize_delta_mass = this->getIntOption_(TOPPMSFraggerAdapter::localize_delta_mass);
+      
       // statmod
       const double arg_add_cterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_peptide);
       const double arg_add_nterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_peptide);
@@ -522,11 +554,11 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      const QFileInfo tmp_param_file(this->working_directory.getPath().toQString(), "fragger.params");
+      const QFileInfo tmp_param_file(working_directory.getPath().toQString(), "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
-      writeDebug_("Working Directory: '" + this->working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -534,7 +566,8 @@ protected:
       // Write all the parameters into the file
       os << "database_name = " << String(database)
                                << "\nnum_threads = " << this->getIntOption_("threads")
-                               << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
+                               << "\n\nprecursor_mass_lower = " << (-arg_precursor_mass_tolerance_lower)
+                               << "\nprecursor_mass_upper = " << arg_precursor_mass_tolerance_upper
                                << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
                                << "\nprecursor_true_tolerance = " << arg_precursor_true_tolerance
                                << "\nprecursor_true_units = " << (arg_precursor_true_unit == "Da" ? 0 : 1)
@@ -577,6 +610,7 @@ protected:
           << "\nadd_topN_complementary = " << arg_add_topn_complementary
           << "\n\nminimum_peaks = " << arg_minimum_peaks
           << "\nuse_topN_peaks = " << arg_use_topn_peaks
+          << "\nlocalize_delta_mass = " << arg_localize_delta_mass
           << "\nmin_fragments_modelling = " << arg_min_fragments_modeling
           << "\nmin_matched_fragments = " << arg_min_matched_fragments
           << "\nminimum_ratio = " << arg_minimum_ratio
@@ -619,7 +653,7 @@ protected:
         << input_file;
 
     QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(this->working_directory.getPath().toQString());
+    process_msfragger.setWorkingDirectory(working_directory.getPath().toQString());
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
@@ -654,9 +688,16 @@ protected:
     { 
         it->setSearchEngine("MSFragger");
     }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
-    // remove the msfragger pepXML output from the user lcoation
+    // remove the msfragger pepXML output from the user location
 
     if (optional_output_file.empty())
     {
@@ -664,7 +705,7 @@ protected:
     }
     else
     {
-    // rename the pepXML file to the opt_out
+      // rename the pepXML file to the opt_out
       QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
@@ -680,8 +721,6 @@ protected:
 
 
 private:
-
-  File::TempDir working_directory;
 
   String java_exe;
   String exe;
@@ -760,7 +799,8 @@ const String TOPPMSFraggerAdapter::opt_out = "opt_out";
 const String TOPPMSFraggerAdapter::database = "database";
 
 // tolerance
-const String TOPPMSFraggerAdapter::precursor_mass_tolerance = "tolerance:precursor_mass_tolerance";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_lower = "tolerance:precursor_mass_tolerance_lower";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_upper = "tolerance:precursor_mass_tolerance_upper";
 const String TOPPMSFraggerAdapter::precursor_mass_unit = "tolerance:precursor_mass_unit";
 const String TOPPMSFraggerAdapter::precursor_true_tolerance = "tolerance:precursor_true_tolerance";
 const String TOPPMSFraggerAdapter::precursor_true_unit = "tolerance:precursor_true_unit";
@@ -808,6 +848,7 @@ const String TOPPMSFraggerAdapter::min_fragments_modeling = "search:min_fragment
 const String TOPPMSFraggerAdapter::min_matched_fragments = "search:min_matched_fragments";
 const String TOPPMSFraggerAdapter::output_report_topn = "search:output_report_topn";
 const String TOPPMSFraggerAdapter::output_max_expect = "search:output_max_expect";
+const String TOPPMSFraggerAdapter::localize_delta_mass = "search:localize_delta_mass";
 
 // statmod
 const String TOPPMSFraggerAdapter::add_cterm_peptide = "statmod:add_cterm_peptide";
@@ -834,6 +875,7 @@ const String TOPPMSFraggerAdapter::add_F_phenylalanine = "statmod:add_F_phenylal
 const String TOPPMSFraggerAdapter::add_R_arginine = "statmod:add_R_arginine";
 const String TOPPMSFraggerAdapter::add_Y_tyrosine = "statmod:add_Y_tyrosine";
 const String TOPPMSFraggerAdapter::add_W_tryptophan = "statmod:add_W_tryptophan";
+const String TOPPMSFraggerAdapter::license = "license";
 
 const int TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE = 1;
 

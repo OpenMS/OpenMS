@@ -8,8 +8,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" n
     
     cdef cppclass PeakWidthEstimator "OpenMS::PeakWidthEstimator":
 
-        # PeakWidthEstimator() nogil except + # default constructor is private
-        PeakWidthEstimator(PeakWidthEstimator) nogil except + #wrap-ignore
+        # private
+        # PeakWidthEstimator() nogil except +
+        PeakWidthEstimator(PeakWidthEstimator &) nogil except + # compiler
         PeakWidthEstimator(MSExperiment exp_picked,
                            libcpp_vector[libcpp_vector[PeakBoundary] ] & boundaries) nogil except +
 

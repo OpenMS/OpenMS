@@ -3,65 +3,51 @@ from libcpp.set cimport set as libcpp_set
 from libcpp cimport bool
 from Types cimport *
 from String cimport *
-from EmpiricalFormula cimport *
+from DigestionEnzyme cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
-    cdef cppclass DigestionEnzymeRNA:
-        DigestionEnzymeRNA() nogil except + # wrap-ignore
+    cdef cppclass DigestionEnzymeRNA(DigestionEnzyme):
+        # wrap-inherits:
+        #    DigestionEnzyme
+        #
+        # wrap-doc:
+        #   Representation of a digestion enzyme for RNA (RNase)
+        #   -----
+        #   The cutting sites of these enzymes are defined using two different mechanisms:
+        #   First, a single regular expression that is applied to strings of unmodified RNA sequence and defines cutting sites via zero-length matches (using lookahead/lookbehind assertions).
+        #   This is the same mechanism that is used for proteases (see ProteaseDigestion).
+        #   However, due to the complex notation involved, this approach is not practical for modification-aware digestion.
+        #   Thus, the second mechanism uses two regular expressions ("cuts after"/"cuts before"), which are applied to the short codes (e.g. "m6A") of sequential ribonucleotides.
+        #   If both expressions match, then there is a cutting site between the two ribonucleotides.
+        #   -----
+        #   There is support for terminal (5'/3') modifications that may be generated on fragments as a result of RNase cleavage.
+        #   A typical example is 3'-phosphate, resulting from cleavage of the phosphate backbone.
 
-        DigestionEnzymeRNA(DigestionEnzymeRNA) nogil except + # wrap-ignore
+        DigestionEnzymeRNA() nogil except +
 
-        bool setValueFromFile(const String & key, const String & value) nogil except +
+        DigestionEnzymeRNA(DigestionEnzymeRNA &) nogil except +
 
-        # sets the name of the Enzyme
-        void setName(String name) nogil except +
+        # sets the "cuts after ..." regular expression
+        void setCutsAfterRegEx(String value) nogil except + # wrap-doc:Sets the "cuts after ..." regular expression
 
-        # returns the name of the Enzyme
-        String getName() nogil except +
+        # returns the "cuts after ..." regular expression
+        String getCutsAfterRegEx() nogil except + # wrap-doc:Returns the "cuts after ..." regular expression
 
-        # sets the synonyms
-        void setSynonyms(libcpp_set[String] synonyms) nogil except +
+        # sets the "cuts before ..." regular expression
+        void setCutsBeforeRegEx(String value) nogil except + # wrap-doc:Sets the "cuts before ..." regular expression
 
-        # adds a synonym
-        void addSynonym(String synonym) nogil except +
-
-        # returns the sysnonyms
-        libcpp_set[String] getSynonyms() nogil except +
-
-        # sets the name of the Enzyme as three letter code
-        void setRegEx(String three_letter_code) nogil except +
-
-        # returns the name of the Enzyme as three letter code
-        String getRegEx() nogil except +
-
-        # sets the regex description
-        void setRegExDescription(String one_letter_code) nogil except +
-
-        # returns the regex description
-        String getRegExDescription() nogil except +
+        # returns the "cuts before ..." regular expression
+        String getCutsBeforeRegEx() nogil except + # wrap-doc:Returns the "cuts before ..." regular expression
 
         # sets the 3' gain
-        void setThreePrimeGain(String value) nogil except +
+        void setThreePrimeGain(String value) nogil except + # wrap-doc:Sets the 3' gain
 
         # sets the 5' gain
-        void setFivePrimeGain(String value) nogil except +
+        void setFivePrimeGain(String value) nogil except + # wrap-doc:Sets the 5' gain
 
         # returns the 3' gain
-        String getThreePrimeGain() nogil except +
+        String getThreePrimeGain() nogil except + # wrap-doc:Returns the 3' gain
 
         # returns the 5' gain
-        String getFivePrimeGain() nogil except +
-
-        # equality operator
-        bool operator==(DigestionEnzymeRNA& Enzyme) nogil except +
-
-        # inequality operator
-        bool operator!=(DigestionEnzymeRNA& Enzyme) nogil except +
-
-        # equality operator for cleavage regex
-        bool operator==(EmpiricalFormula cleavage_regex) nogil except +
-
-        # equality operator for cleavage regex
-        bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
-
+        String getFivePrimeGain() nogil except + # wrap-doc:Returns the 5' gain

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ namespace OpenMS
         to_ignore.insert("StudyVariable"); // .
         to_ignore.insert("Assay_refs"); // .
 
-        to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices rows
+        to_ignore.insert("FeatureList"); // we only need to see the features and data matrices rows
         to_ignore.insert("AssayList"); // we only need to see the assays
         to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
         to_ignore.insert("SoftwareList"); // we only need to see the Softwares
@@ -172,7 +172,7 @@ namespace OpenMS
         ExperimentalSettings es;
         es.setLoadedFilePath(attributeAsString_(attributes, "location"));
         current_files_[current_id_].push_back(es);
-        //here would be the place to start looking for additional experimentalsettings readin
+        //here would be the place to start looking for additional experimental settings reading
       }
       else if (tag_ == "Assay")
       {
@@ -184,7 +184,7 @@ namespace OpenMS
         }
         current_id_ = attributeAsString_(attributes, "rawFilesGroup_ref");
         current_assay_.raw_files_ = current_files_[current_id_];
-        //TODO CVhandling
+        //TODO CV handling
       }
       else if (tag_ == "Modification")
       {
@@ -198,7 +198,7 @@ namespace OpenMS
           {
             current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
           }
-          //TODO CVhandling
+          //TODO CV handling
         }
         else
         {
@@ -303,7 +303,7 @@ namespace OpenMS
         current_row_.clear();
       }
       else
-        error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+        error(LOAD, "MzQuantMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -346,7 +346,7 @@ namespace OpenMS
         String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
-          warning(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
+          warning(LOAD, "MzQuantMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
       }
     }
 
@@ -497,13 +497,13 @@ namespace OpenMS
           }
           cm.push_back(cf_cf_obj_[it->second]);
         }
-        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
+        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after data matrix f_cf_ids_ get cleared so we know here.
         {
           msq_->addConsensusMap(cm);
         }
       }
       else
-        warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
+        warning(LOAD, String("MzQuantMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring."));
     }
 
     void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)
@@ -895,7 +895,7 @@ namespace OpenMS
       // ---Ratios tag---
 
       String glob_rfgr;
-      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its rawfilegroup
+      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its raw file group
       String assay_xml("\t<AssayList id=\"assaylist1\">\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
       std::map<String, String> files;
       for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)

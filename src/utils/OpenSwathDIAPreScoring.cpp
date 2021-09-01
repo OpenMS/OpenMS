@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,15 +90,19 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
-    registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    // registerOutputFile_("out", "<file>", "", "output file");
+    // setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerInputFileList_("swath_files", "<files>", StringList(),
                            "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
-                           false);
+                           true);
     setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
+    registerOutputFileList_("output_files", "<files>", StringList(),
+                           "Output files. One per Swath input file.",
+                           true);
+    setValidFormats_("output_files", ListUtils::create<String>("tsv"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",
@@ -115,6 +119,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     OpenMS::StringList file_list = getStringList_("swath_files");
+    OpenMS::StringList outfile_list = getStringList_("output_files");
     std::string tr_file = getStringOption_("tr");
     std::cout << tr_file << std::endl;
     //std::string out = getStringOption_("out");
@@ -122,7 +127,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
@@ -154,7 +159,7 @@ protected:
 
       // no progress log on the console in parallel
 
-      std::string fileout = file_list[i];
+      // std::string fileout = file_list[i];
 
       /// Returns the basename of the file (without the path).
       /// Returns the path of the file (without the file name).
@@ -163,11 +168,7 @@ protected:
       //boost::filesystem::path y = x.parent_path()  ;
       //std::string fname = x.stem().string();
 
-
-      //std::string tmp = File.basename(fileout);
-      std::string fname = FileHandler::swapExtension(fileout, FileTypes::TSV);
-
-
+      String fname = outfile_list[i];
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
       if (swath_map->size() == 0 || (*swath_map)[0].getPrecursors().size() == 0)

@@ -7,7 +7,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
     cdef cppclass SpectrumLookup:
 
         SpectrumLookup() nogil except +
-        # SpectrumLookup(SpectrumLookup) nogil except + # private
+        # private
+        SpectrumLookup(SpectrumLookup &) nogil except + # wrap-ignore
 
         double rt_tolerance
 
@@ -35,4 +36,3 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
         # # NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) nogil except +
 
         Int extractScanNumber(const String& native_id, const String& native_id_type_accession) nogil except +
-

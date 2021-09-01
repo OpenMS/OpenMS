@@ -17,13 +17,16 @@ set(concept_executables_list
 )
 set(qc_executables_list
   Contaminants_test
+  DBSuitability_test
   FragmentMassError_test
   FWHM_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
+  MQEvidenceExporter_test
   MzCalibration_test
   PeptideMass_test
+  PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
   TIC_test
@@ -51,6 +54,7 @@ set(datastructures_executables_list
   DefaultParamHandler_test
   DistanceMatrix_test
   FASTAContainer_test
+  FlagSet_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test
@@ -65,6 +69,7 @@ set(datastructures_executables_list
   #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
+  ParamValue_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -225,6 +230,7 @@ set(format_executables_list
   TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
+  OSWFile_test
   PTMXMLFile_test
   ParamXMLFile_test
   PeakFileOptions_test
@@ -485,6 +491,7 @@ set(analysis_executables_list
   IDRipper_test
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
+  IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test
@@ -522,9 +529,11 @@ set(analysis_executables_list
   MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
+  NeedlemanWunsch_test
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
+  PeptideProteinResolution_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
@@ -565,6 +574,7 @@ set(analysis_executables_list
 set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
+  SearchEngineBase_test
   TOPPBase_test
   ToolHandler_test
   ParameterInformation_test
@@ -625,6 +635,12 @@ set(transformations_executables_list
   EmgScoring_test
 )
 endif(NOT DISABLE_OPENSWATH)
+
+set(ionmobility_executables_list
+  FAIMSHelper_test
+  IMDataConverter_test
+  IMTypes_test
+)
 
 set(simulation_executables_list
   DetectabilitySimulation_test
@@ -717,6 +733,7 @@ set(TEST_executables
     ${analysis_executables_list}
     ${applications_executables_list}
     ${transformations_executables_list}
+    ${ionmobility_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}

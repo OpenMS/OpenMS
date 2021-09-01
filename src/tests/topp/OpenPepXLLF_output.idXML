@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
-				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Desktop/DATA/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6,7,8" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Desktop/DATA/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXLLF_output.spec.xml.tmp"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
-				<UserParam type="int" name="precursor:min_charge" value="3"/>
-				<UserParam type="int" name="precursor:max_charge" value="7"/>
+				<UserParam type="int" name="precursor:min_charge" value="2"/>
+				<UserParam type="int" name="precursor:max_charge" value="8"/>
 				<UserParam type="float" name="fragment:mass_tolerance_xlinks" value="20.0"/>
 				<UserParam type="int" name="peptide:min_size" value="5"/>
 				<UserParam type="stringList" name="cross_link:residue1" value="[K,N-term]"/>
@@ -16,13 +18,13 @@
 				<UserParam type="float" name="cross_link:mass" value="138.068079600000004"/>
 				<UserParam type="floatList" name="cross_link:mass_monolink" value="[156.078644309999987, 155.094628714999999]"/>
 				<UserParam type="string" name="cross_link:name" value="DSS"/>
-				<UserParam type="intList" name="precursor:corrections" value="[2, 1, 0]"/>
-				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
-				<UserParam type="int" name="MS:1001029" value="397"/>
+				<UserParam type="intList" name="precursor:corrections" value="[4, 3, 2, 1, 0]"/>
+				<UserParam type="int" name="modifications:variable_max_per_peptide" value="3"/>
+				<UserParam type="int" name="MS:1001029" value="1547"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-12-13T15:17:14" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-OPXL-opt-2019-12-12" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-10-31T22:11:36" search_engine="OpenPepXL" search_engine_version="2.6.0-pre-feature-OPXLLF-default-mods-2020-10-31" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -31,8 +33,67 @@
 			<UserParam type="stringList" name="spectra_data_raw" value="[file:///C:\MSData\LRRK2_DSG\GUA1354-S15-A-LRRK2_DSG_A4.raw]"/>
 			<UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input.mzML]"/>
 		</ProteinIdentification>
+		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="876.126953125" RT="5589.068699999999808" spectrum_reference="controllerType=0 controllerNumber=1 scan=12254" >
+			<PeptideHit score="0.123665721777754" sequence="LPDPVKEYGC(Carbamidomethyl)APWPMVEK(Xlink:DSS[156])LIK" charge="3" aa_before="K" aa_after="Q" start="2091" end="2111" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1160.5650634765625,0.015980837866664,1,&quot;[alpha|ci$b10]&quot;|1593.7440185546875,2.409036038443446e-03,1,&quot;[alpha|ci$b14-H3N1]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=12254"/>
+				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
+				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="xl_pos1" value="17"/>
+				<UserParam type="int" name="spectrum_index" value="124"/>
+				<UserParam type="string" name="xl_type" value="mono-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
+				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.138823940710363"/>
+				<UserParam type="float" name="OpenPepXL:score" value="0.123665721777754"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="4.250335410565448"/>
+				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="6.097560975609756e-03"/>
+				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.021428571428571"/>
+				<UserParam type="float" name="OpenPepXL:match-odds" value="1.894873624175941"/>
+				<UserParam type="float" name="OpenPepXL:intsum" value="0.018389873905107"/>
+				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.018389873905107"/>
+				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="7.490965527656954"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="2.454940399500065e-03"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="2.454940399500065e-03"/>
+				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy" value="3.505610280390416"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="3.505610280390416"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="0.0"/>
+				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
+				<UserParam type="int" name="matched_xlink_beta" value="0"/>
+				<UserParam type="int" name="matched_linear_alpha" value="2"/>
+				<UserParam type="int" name="matched_linear_beta" value="0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="8.162167429924011"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear" value="8.162167429924011"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="8.162167429924011"/>
+				<UserParam type="float" name="ppm_error_abs_sum_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum" value="8.162167429924011"/>
+				<UserParam type="float" name="precursor_total_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_target_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_signal_proportion" value="0.0"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="0"/>
+				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="sequence_beta" value="-"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="string" name="xl_pos1_protein" value="2109"/>
+				<UserParam type="string" name="xl_pos2_protein" value="-"/>
+				<UserParam type="string" name="accessions_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
+				<UserParam type="string" name="xl_target_decoy_beta" value="-"/>
+				<UserParam type="float" name="delta_score" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="787.740356445312955" RT="2175.300299999999879" spectrum_reference="controllerType=0 controllerNumber=1 scan=2395" >
-			<PeptideHit score="0.016159569010225" sequence="IVEGLK(Xlink:DSS)FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >
+			<PeptideHit score="0.016159569010225" sequence="IVEGLK(Xlink:DSS[156])FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="446.2843017578125,0.012478295713663,1,&quot;[alpha|ci$y4]&quot;|516.26025390625,0.013793655671179,3,&quot;[alpha|xi$b12]&quot;|913.46435546875,0.091375932097435,1,&quot;[alpha|ci$y8-H2O1]&quot;|1108.56494140625,0.429302453994751,2,&quot;[alpha|xi$b18]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=2395"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
@@ -90,72 +151,185 @@
 				<UserParam type="float" name="delta_score" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="738.165161132812955" RT="4618.08310000001984" spectrum_reference="controllerType=0 controllerNumber=1 scan=9435" >
-			<PeptideHit score="0.298713563877706" sequence="KNVPIEFPVIDR" charge="4" aa_before="R" aa_after="K" start="1538" end="1549" protein_refs="PH_0" >
-				<UserParam type="string" name="fragment_annotation" value="226.120040893554688,0.004028677474707,2,&quot;[beta|ci$y3]&quot;|599.35516357421875,0.198931530117989,1,&quot;[alpha|ci$y5]&quot;|690.13250732421875,0.030434126034379,4,&quot;[alpha|xi$b11-H2O1]&quot;|690.13250732421875,0.030434126034379,4,&quot;[beta|xi$b11-H2O1]&quot;|876.46697998046875,0.066084638237953,1,&quot;[alpha|ci$y7]&quot;|914.52728271484375,0.031179253011942,1,&quot;[beta|ci$y7]&quot;|989.551025390625,0.021392868831754,1,&quot;[alpha|ci$y8]&quot;"/>
-				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9435"/>
-				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
-				<UserParam type="int" name="xl_pos2" value="3"/>
-				<UserParam type="int" name="xl_pos1" value="0"/>
-				<UserParam type="int" name="spectrum_index" value="110"/>
-				<UserParam type="string" name="xl_type" value="cross-link"/>
+		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="875.934692382812955" RT="3781.867200000000139" spectrum_reference="controllerType=0 controllerNumber=1 scan=6693" >
+			<PeptideHit score="-0.173165645774245" sequence="ILSSDDSLRSSK(Xlink:DSS[155])LQSHM(Oxidation)RHSDSISSLASER" charge="4" aa_before="K" aa_after="E" start="951" end="980" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="562.9696044921875,0.07221557199955,3,&quot;[alpha|xi$b14]&quot;|1109.55224609375,1.0,3,&quot;[alpha|xi$b29]&quot;|1205.57177734375,0.053743191063404,2,&quot;[alpha|xi$y20-H3N1]&quot;|1728.7900390625,9.406867437064648e-03,1,&quot;[alpha|ci$y15]&quot;|1944.87646484375,8.123230189085007e-03,1,&quot;[alpha|ci$y17]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6693"/>
+				<UserParam type="float" name="xl_mass" value="155.094628714999999"/>
+				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="xl_pos1" value="11"/>
+				<UserParam type="int" name="spectrum_index" value="73"/>
+				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
 				<UserParam type="int" name="isotope_error" value="0"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="0.176896726659988"/>
-				<UserParam type="float" name="OpenPepXL:score" value="0.298713563877706"/>
-				<UserParam type="float" name="OpenPepXL:xquest_score" value="11.816187657266255"/>
-				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.028880866425993"/>
-				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.09375"/>
-				<UserParam type="float" name="OpenPepXL:match-odds" value="4.57269298751272"/>
-				<UserParam type="float" name="OpenPepXL:intsum" value="0.352051093708724"/>
-				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.291632137370909"/>
-				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.064682415317429"/>
-				<UserParam type="float" name="OpenPepXL:total_current" value="8.859554039838258"/>
-				<UserParam type="float" name="OpenPepXL:wTIC" value="0.040218113810934"/>
-				<UserParam type="float" name="OpenPepXL:TIC" value="0.039736886543688"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="-6.537138257364363"/>
+				<UserParam type="float" name="OpenPepXL:score" value="-0.173165645774245"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="4.440965820166976"/>
+				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.019480519480519"/>
+				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:match-odds" value="1.121584503269045"/>
+				<UserParam type="float" name="OpenPepXL:intsum" value="1.143488860689104"/>
+				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="1.143488860689104"/>
+				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="20.151052305242047"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="0.056745863360775"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.056745863360775"/>
 				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
-				<UserParam type="float" name="OpenPepXL:log_occupancy" value="6.76638009258823"/>
-				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="7.6199187737815"/>
-				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="5.91284141139496"/>
-				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
-				<UserParam type="int" name="matched_xlink_beta" value="1"/>
-				<UserParam type="int" name="matched_linear_alpha" value="3"/>
-				<UserParam type="int" name="matched_linear_beta" value="2"/>
-				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="3.290437459945679"/>
-				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="3.95820164680481"/>
-				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="2.844416856765747"/>
-				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="2.844416856765747"/>
-				<UserParam type="float" name="ppm_error_abs_sum_linear" value="3.557543134689331"/>
-				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="2.844416856765747"/>
-				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="3.178932309150696"/>
-				<UserParam type="float" name="ppm_error_abs_sum_beta" value="3.586940050125122"/>
-				<UserParam type="float" name="ppm_error_abs_sum" value="3.353792769568307"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy" value="3.176532771554878"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="3.176532771554878"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="0.0"/>
+				<UserParam type="int" name="matched_xlink_alpha" value="3"/>
+				<UserParam type="int" name="matched_xlink_beta" value="0"/>
+				<UserParam type="int" name="matched_linear_alpha" value="2"/>
+				<UserParam type="int" name="matched_linear_beta" value="0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="11.86742639541626"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="7.665446440378825"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear" value="11.86742639541626"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="7.665446440378825"/>
+				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="9.3462384223938"/>
+				<UserParam type="float" name="ppm_error_abs_sum_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum" value="9.3462384223938"/>
 				<UserParam type="float" name="precursor_total_intensity" value="0.0"/>
 				<UserParam type="float" name="precursor_target_intensity" value="0.0"/>
 				<UserParam type="float" name="precursor_signal_proportion" value="0.0"/>
 				<UserParam type="int" name="precursor_target_peak_count" value="0"/>
 				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
-				<UserParam type="string" name="sequence_beta" value="LGCKALHVLFER"/>
-				<UserParam type="string" name="xl_mod" value="DSS"/>
+				<UserParam type="string" name="sequence_beta" value="-"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="string" name="xl_pos1_protein" value="1539"/>
-				<UserParam type="string" name="xl_pos2_protein" value="182"/>
-				<UserParam type="string" name="accessions_beta" value="Protein1"/>
+				<UserParam type="string" name="xl_pos1_protein" value="963"/>
+				<UserParam type="string" name="xl_pos2_protein" value="-"/>
+				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
-				<UserParam type="string" name="xl_target_decoy_beta" value="target"/>
-				<UserParam type="string" name="BetaPepEv:pre" value="K"/>
-				<UserParam type="string" name="BetaPepEv:post" value="V"/>
-				<UserParam type="string" name="BetaPepEv:start" value="178"/>
-				<UserParam type="string" name="BetaPepEv:end" value="189"/>
+				<UserParam type="string" name="xl_target_decoy_beta" value="-"/>
+				<UserParam type="float" name="delta_score" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="786.43212890625" RT="3964.34880000000021" spectrum_reference="controllerType=0 controllerNumber=1 scan=7277" >
+			<PeptideHit score="0.129440882637377" sequence="KK(Xlink:DSS[156])SNSISVGEFYRDAVLQR" charge="3" aa_before="K" aa_after="C" start="905" end="923" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="839.4923095703125,0.185570329427719,1,&quot;[alpha|ci$y7-H2O1]&quot;|870.47021484375,0.21797414124012,2,&quot;[alpha|ci$y15]&quot;|1003.53167724609375,0.093184314668179,1,&quot;[alpha|ci$y8-H3N1]&quot;|1434.7498779296875,4.189326427876949e-03,1,&quot;[alpha|ci$y12-H2O1]&quot;|1941.9888916015625,2.923572203144431e-03,1,&quot;[alpha|ci$y17]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7277"/>
+				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
+				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="xl_pos1" value="1"/>
+				<UserParam type="int" name="spectrum_index" value="79"/>
+				<UserParam type="string" name="xl_type" value="mono-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
+				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
+				<UserParam type="int" name="isotope_error" value="4"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="7.383384716895757"/>
+				<UserParam type="float" name="OpenPepXL:score" value="0.129440882637377"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="13.718011243305632"/>
+				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.013513513513514"/>
+				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.060606060606061"/>
+				<UserParam type="float" name="OpenPepXL:match-odds" value="5.781782946819241"/>
+				<UserParam type="float" name="OpenPepXL:intsum" value="0.503841683967039"/>
+				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.503841683967039"/>
+				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="21.161806880612858"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="0.023809010582581"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.023809010582581"/>
+				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy" value="8.663384912523929"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="8.663384912523929"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="0.0"/>
+				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
+				<UserParam type="int" name="matched_xlink_beta" value="0"/>
+				<UserParam type="int" name="matched_linear_alpha" value="5"/>
+				<UserParam type="int" name="matched_linear_beta" value="0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="5.295818245410919"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear" value="5.295818245410919"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="5.295818245410919"/>
+				<UserParam type="float" name="ppm_error_abs_sum_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum" value="5.295818245410919"/>
+				<UserParam type="float" name="precursor_total_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_target_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_signal_proportion" value="0.0"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="0"/>
+				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="sequence_beta" value="-"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="string" name="xl_pos1_protein" value="907"/>
+				<UserParam type="string" name="xl_pos2_protein" value="-"/>
+				<UserParam type="string" name="accessions_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
+				<UserParam type="string" name="xl_target_decoy_beta" value="-"/>
+				<UserParam type="float" name="delta_score" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="876.79052734375" RT="4147.750799999999799" spectrum_reference="controllerType=0 controllerNumber=1 scan=7896" >
+			<PeptideHit score="0.030814500712501" sequence="LPDPVK(Xlink:DSS[156])EYGC(Carbamidomethyl)APWPMVEKLIK" charge="3" aa_before="K" aa_after="Q" start="2091" end="2111" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="842.53021240234375,0.22773115336895,1,&quot;[alpha|ci$y7-H2O1]&quot;|1104.084716796875,0.143211632966995,2,&quot;[alpha|xi$y17]&quot;|1673.86181640625,4.408837761729956e-03,1,&quot;[alpha|ci$y14-H2O1]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7896"/>
+				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
+				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="xl_pos1" value="5"/>
+				<UserParam type="int" name="spectrum_index" value="89"/>
+				<UserParam type="string" name="xl_type" value="mono-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
+				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
+				<UserParam type="int" name="isotope_error" value="2"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="-5.950672505742553"/>
+				<UserParam type="float" name="OpenPepXL:score" value="0.030814500712501"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="6.837337449535137"/>
+				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.018072289156627"/>
+				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.021739130434783"/>
+				<UserParam type="float" name="OpenPepXL:match-odds" value="2.848160491497108"/>
+				<UserParam type="float" name="OpenPepXL:intsum" value="0.375351624097675"/>
+				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.375351624097675"/>
+				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="33.009482161025517"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="0.01137102430952"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.01137102430952"/>
+				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy" value="4.76076132254593"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="4.76076132254593"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="0.0"/>
+				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
+				<UserParam type="int" name="matched_xlink_beta" value="0"/>
+				<UserParam type="int" name="matched_linear_alpha" value="2"/>
+				<UserParam type="int" name="matched_linear_beta" value="0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="10.212628126144409"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="8.292072296142578"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear" value="10.212628126144409"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="8.292072296142578"/>
+				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="9.572442849477133"/>
+				<UserParam type="float" name="ppm_error_abs_sum_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum" value="9.572442849477133"/>
+				<UserParam type="float" name="precursor_total_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_target_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_signal_proportion" value="0.0"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="0"/>
+				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="sequence_beta" value="-"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="string" name="xl_pos1_protein" value="2097"/>
+				<UserParam type="string" name="xl_pos2_protein" value="-"/>
+				<UserParam type="string" name="accessions_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
+				<UserParam type="string" name="xl_target_decoy_beta" value="-"/>
 				<UserParam type="float" name="delta_score" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="738.72900390625" RT="4706.791199999999662" spectrum_reference="controllerType=0 controllerNumber=1 scan=9705" >
-			<PeptideHit score="0.258873993871556" sequence="VEPSWLGPLFPDK(Xlink:DSS)TSNLR" charge="3" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+			<PeptideHit score="0.258873993871556" sequence="VEPSWLGPLFPDK(Xlink:DSS[156])TSNLR" charge="3" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="496.26251220703125,0.022027505561709,2,&quot;[alpha|xi$y7]&quot;|713.3824462890625,0.80065792798996,1,&quot;[alpha|ci$b6]&quot;|813.43035888671875,0.177123248577118,2,&quot;[alpha|xi$b13]&quot;|1108.561767578125,0.016015261411667,1,&quot;[alpha|ci$b10-H2O1]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9705"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
@@ -210,6 +384,70 @@
 				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
 				<UserParam type="string" name="xl_target_decoy_beta" value="-"/>
+				<UserParam type="float" name="delta_score" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="876.445373535156023" RT="4800.875100000000202" spectrum_reference="controllerType=0 controllerNumber=1 scan=9986" >
+			<PeptideHit score="0.21548369201134" sequence="C(Carbamidomethyl)FAKVAMDDYLKNVMLER" charge="4" aa_before="K" aa_after="A" start="697" end="714" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="514.30291748046875,0.011350315995514,1,&quot;[beta|ci$y4-H3N1]&quot;|735.1070556640625,0.021036062389612,4,&quot;[alpha|xi$b14-H3N1]&quot;|819.45086669921875,0.049754735082388,1,&quot;[beta|ci$y7]&quot;|831.93353271484375,0.058876249939203,4,&quot;[alpha|xi$y17-H3N1]&quot;|1679.802490234375,5.471547599881887e-03,1,&quot;[alpha|ci$y14-H3N1]&quot;|1697.8472900390625,3.217958845198154e-03,1,&quot;[alpha|ci$y14]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9986"/>
+				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
+				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="xl_pos1" value="3"/>
+				<UserParam type="int" name="spectrum_index" value="115"/>
+				<UserParam type="string" name="xl_type" value="cross-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
+				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
+				<UserParam type="int" name="isotope_error" value="1"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.695571609584936"/>
+				<UserParam type="float" name="OpenPepXL:score" value="0.21548369201134"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="7.735905651792681"/>
+				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.036666666666667"/>
+				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.043010752688172"/>
+				<UserParam type="float" name="OpenPepXL:match-odds" value="3.260087941126399"/>
+				<UserParam type="float" name="OpenPepXL:intsum" value="0.149706869851798"/>
+				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.088601818773896"/>
+				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.061105051077902"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="12.947140592033975"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="8.521440154743393e-03"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.011562929187925"/>
+				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy" value="5.084386829681149"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="4.601299643273607"/>
+				<UserParam type="float" name="OpenPepXL:log_occupancy_beta" value="5.56747401608869"/>
+				<UserParam type="int" name="matched_xlink_alpha" value="2"/>
+				<UserParam type="int" name="matched_xlink_beta" value="0"/>
+				<UserParam type="int" name="matched_linear_alpha" value="2"/>
+				<UserParam type="int" name="matched_linear_beta" value="2"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_alpha" value="4.42039430141449"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear_beta" value="11.035577774047852"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_alpha" value="9.508496284484863"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks_beta" value="0.0"/>
+				<UserParam type="float" name="ppm_error_abs_sum_linear" value="7.727986037731171"/>
+				<UserParam type="float" name="ppm_error_abs_sum_xlinks" value="9.508496284484863"/>
+				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="6.964445292949677"/>
+				<UserParam type="float" name="ppm_error_abs_sum_beta" value="11.035577774047852"/>
+				<UserParam type="float" name="ppm_error_abs_sum" value="8.321489453315735"/>
+				<UserParam type="float" name="precursor_total_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_target_intensity" value="0.0"/>
+				<UserParam type="float" name="precursor_signal_proportion" value="0.0"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="0"/>
+				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="sequence_beta" value="KNTEGTQKQK"/>
+				<UserParam type="string" name="xl_mod" value="DSS"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="string" name="xl_pos1_protein" value="701"/>
+				<UserParam type="string" name="xl_pos2_protein" value="2478"/>
+				<UserParam type="string" name="accessions_beta" value="Protein1"/>
+				<UserParam type="string" name="xl_target_decoy_alpha" value="target"/>
+				<UserParam type="string" name="xl_target_decoy_beta" value="target"/>
+				<UserParam type="string" name="BetaPepEv:pre" value="R"/>
+				<UserParam type="string" name="BetaPepEv:post" value="E"/>
+				<UserParam type="string" name="BetaPepEv:start" value="2477"/>
+				<UserParam type="string" name="BetaPepEv:end" value="2486"/>
 				<UserParam type="float" name="delta_score" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>

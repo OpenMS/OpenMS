@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,21 +47,21 @@ using namespace std;
 
 namespace OpenMS
 {
+
   // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz,
-                                       const MSSpectrum& spectrum1,
+  Int SiriusMSFile::getHighestIntensityPeakInMZRange_(double test_mz,
+                                       const MSSpectrum& spectrum,
                                        double tolerance,
                                        bool ppm)
   {
-
     // get tolerance window and left/right iterator
     pair<double, double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
 
     // Here left has to be smaller than right
     OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
 
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
-    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
+    MSSpectrum::ConstIterator left = spectrum.MZBegin(tolerance_window.first);
+    MSSpectrum::ConstIterator right = spectrum.MZBegin(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
     if (left == right)
@@ -71,21 +71,25 @@ namespace OpenMS
 
     MSSpectrum::ConstIterator max_intensity_it = max_element(left, right, Peak1D::IntensityLess());
 
-    return max_intensity_it - spectrum1.begin();
+    return max_intensity_it - spectrum.begin();
   }
 
   // extract precursor isotope pattern if no feature information is available
-  vector<Peak1D> extractPrecursorIsotopePattern(const double& precursor_mz,
-                                                const MSSpectrum& precursor_spectrum,
-                                                int& iterations,
-                                                const int& charge)
+  std::vector<Peak1D> SiriusMSFile::extractPrecursorIsotopePattern_(const double& precursor_mz,
+                                                               const MSSpectrum& precursor_spectrum,
+                                                               int& iterations,
+                                                               const int& charge)
   {
     vector<Peak1D> isotopes;
     int peak_index;
     Peak1D peak;
 
     // monoisotopic_trace
-    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, 10, true);
+    const int tolerance = 10;
+    const bool ppm = true;
+    const int isotope_tolerance = 1;
+
+    peak_index = getHighestIntensityPeakInMZRange_(precursor_mz, precursor_spectrum, tolerance, ppm);
     if (peak_index != -1)
     {
       peak = precursor_spectrum[peak_index];
@@ -103,8 +107,8 @@ namespace OpenMS
 
     while (peak_index != -1 && iterations > 0)
     {
-      // check for isotope trace with one ppm error
-      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, 1, true);
+      // check for isotope trace with "isotope_tolerance" ppm error
+      peak_index = SiriusMSFile::getHighestIntensityPeakInMZRange_(peak.getMZ() + massdiff, precursor_spectrum, isotope_tolerance, ppm);
       if (peak_index != -1)
       {
         peak = precursor_spectrum[peak_index];
@@ -117,12 +121,12 @@ namespace OpenMS
 
   void SiriusMSFile::writeMsFile_(ofstream& os,
                                   const MSExperiment& spectra,
-                                  const vector<size_t>& ms2_spectra_index,
+                                  const std::vector<size_t>& ms2_spectra_index,
                                   const SiriusMSFile::AccessionInfo& ainfo,
                                   const StringList& adducts,
-                                  const vector<String>& v_description,
-                                  const vector<String>& v_sumformula,
-                                  const vector<pair<double,double>>& f_isotopes,
+                                  const std::vector<String>& v_description,
+                                  const std::vector<String>& v_sumformula,
+                                  const std::vector<pair<double,double>>& f_isotopes,
                                   int& feature_charge,
                                   uint64_t& feature_id,
                                   const double& feature_rt,
@@ -139,19 +143,19 @@ namespace OpenMS
     // let SIRIUS sort it out using fragment annotation
     for (unsigned int k = 0; k != v_description.size(); ++k)
     {
-      if (v_description.size() > 1) { writecompound = true; }
+      if (v_description.size() > 1) { writecompound = true; } // write the same "entry" for each possible hit (different: description, adduct, sumformula)
       SiriusMSFile::CompoundInfo cmpinfo;
 
       for (const size_t& ind : ms2_spectra_index)
       {
         // construct compound info structure
-        const MSSpectrum &current_ms2 = spectra[ind];
-        const double current_rt = current_ms2.getRT();
+        const MSSpectrum& current_ms2 = spectra[ind];
+        const double& current_rt = current_ms2.getRT();
 
-        const String native_id = current_ms2.getNativeID();
-        const int scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
+        const String& native_id = current_ms2.getNativeID();
+        const int& scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
 
-        const vector<Precursor> &precursor = current_ms2.getPrecursors();
+        const std::vector<Precursor> &precursor = current_ms2.getPrecursors();
 
         // get m/z and intensity of precursor
         if (precursor.empty())
@@ -187,8 +191,10 @@ namespace OpenMS
             ++count_assume_mono;
           }
           // negative mode - make sure charges are < 0
-          if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -(std::abs(precursor_charge)); }
-
+          if (p == IonSource::Polarity::NEGATIVE)
+          { 
+            precursor_charge = -(std::abs(precursor_charge));
+          }
           // set feature_charge for msfile if feature information is available
           // no charge annotated - assume mono-charged
           if (feature_id != 0 && feature_charge == 0)
@@ -230,11 +236,11 @@ namespace OpenMS
             // extract precursor isotope pattern via C13 isotope distance
             if (feature_id != 0 && feature_charge != 0)
             {
-              isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
+              isotopes = SiriusMSFile::extractPrecursorIsotopePattern_(test_mz, precursor_spectrum, interations, feature_charge);
             }
             else
             {
-              isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, precursor_charge);
+              isotopes = SiriusMSFile::extractPrecursorIsotopePattern_(test_mz, precursor_spectrum, interations, precursor_charge);
             }
             for (Size i = 0; i < precursor_spectrum.size(); ++i)
             {
@@ -250,8 +256,8 @@ namespace OpenMS
 
           String query_id = "_" + String(feature_id) +
                             String("-" + String(scan_number) + "-") +
-                            String(des_wo_space) +
-                            String(ind);
+                            String("-" + String(ind) + "--") +
+                            String(des_wo_space);
 
           if (writecompound)
           {
@@ -282,7 +288,6 @@ namespace OpenMS
               cmpinfo.ionization = adducts[k];
             }
 
-            // first
             if (v_sumformula[k] != "UNKNOWN")
             {
               os << ">formula " << v_sumformula[k] << "\n";
@@ -323,13 +328,13 @@ namespace OpenMS
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = feature_id;
             }
-            os << "##des " << String(v_description[k]) << "\n";
+            os << "##des " << String(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
-            os << "##source file " << ainfo.sf_path << endl;
+            os << "##source file " << ainfo.sf_path << ainfo.sf_filename << endl;
             os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
-            cmpinfo.des = String(v_description[k]);
+            cmpinfo.des = String(des_wo_space);
             cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
-            cmpinfo.source_file = ainfo.sf_path;
+            cmpinfo.source_file = String(ainfo.sf_path + ainfo.sf_filename);
             cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
 
             // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
@@ -390,16 +395,16 @@ namespace OpenMS
           {
             os << ">collision" << " " << collision << "\n";
           }
-          os << "##nid " << native_id<< endl;
-          // "mid" annotation for multiple possible identifications (native_id_k)
-          // fragment mapping will be done using the mid
-          String mid = native_id + "_" + k;
-          os << "##mid " << mid << endl;
+          os << "##n_id " << native_id << endl;
+          // "m_id" annotation for multiple possible identifications (description_filepath_native_id_k)
+          // fragment mapping will be done using the m_id
+          String m_id = cmpinfo.des + "_" + ainfo.sf_filename + "_" + native_id + "_" + k;
+          os << "##m_id " << m_id << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;
 
           cmpinfo.native_ids.push_back(native_id);
-          cmpinfo.mids.push_back(mid);
+          cmpinfo.m_ids.push_back(m_id);
           cmpinfo.scan_indices.push_back(ind);
           cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
 
@@ -418,6 +423,8 @@ namespace OpenMS
           }
         }
       }
+      cmpinfo.native_ids_id = ListUtils::concatenate(cmpinfo.native_ids, "|");
+      cmpinfo.m_ids_id = ListUtils::concatenate(cmpinfo.m_ids, "|");
       v_cmpinfo.push_back(std::move(cmpinfo));
     }
   }
@@ -430,7 +437,7 @@ namespace OpenMS
                            const bool no_masstrace_info_isotope_pattern,
                            std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
-    const Map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+    const std::map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;
@@ -440,13 +447,13 @@ namespace OpenMS
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
-    // feature information was provided and unassigend ms2 should be used (feature only parameter)
+    // feature information was provided and unassigned ms2 should be used in addition
     if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
     if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
-    int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
+    int count_assume_mono = 0; // count if mono charge was assumed and set to current ion mode
     int count_no_ms1 = 0; // count if no precursor was found
     int count_skipped_features = 0; // features skipped due to charge
 
@@ -472,9 +479,21 @@ namespace OpenMS
 
     AccessionInfo ainfo;
 
-    // sourcefile 
-    ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
-    ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+    // sourcefile
+    if (spectra.getSourceFiles().empty())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
+    }
+    else
+    {
+      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+      ainfo.sf_filename = spectra.getSourceFiles()[0].getNameOfFile();
+      ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+
+      // native_id
+      ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
+      ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+    }
  
     // extract accession by name
     ControlledVocabulary cv;
@@ -491,10 +510,6 @@ namespace OpenMS
     };
     cv.iterateAllChildren("MS:1000560", lambda);
 
-    // native_id
-    ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
-    ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
-
     vector<String> adducts;
     String description;
     String sumformula;
@@ -506,7 +521,6 @@ namespace OpenMS
     double feature_rt;
     double feature_mz;
     vector<pair<double, double>> f_isotopes;
-    f_isotopes.clear();
 
     // if feature information is available to this first (write features in one compound)
     if (use_feature_information)
@@ -515,11 +529,11 @@ namespace OpenMS
                 it != assigned_ms2.end();
                 ++it)
       {
-        const BaseFeature* feature = it->first;
-        const vector<size_t> feature_associated_ms2 = it->second;
-        
         // reset feature information with each iteration
         f_isotopes.clear();
+
+        const BaseFeature* feature = it->first;
+        const vector<size_t> feature_associated_ms2 = it->second;
 
         feature_id = feature->getUniqueId();
         feature_charge = feature->getCharge();
@@ -534,28 +548,34 @@ namespace OpenMS
         }
 
         // ffm featureXML
-          if (feature->metaValueExists("adducts"))
+        if (feature->metaValueExists("adducts"))
+        {
+          adducts = feature->getMetaValue("adducts");
+        }
+        if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
+        {
+          vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
+          vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
+          if (masstrace_centroid_mz.size() == masstrace_intensity.size())
           {
-            adducts = feature->getMetaValue("adducts");
-          }
-          if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
-          {
-            vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
-            vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
-            if (masstrace_centroid_mz.size() == masstrace_intensity.size())
+            for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
             {
-              for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
-              {
-                pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i],masstrace_intensity[i]);
-                f_isotopes.push_back(masstrace_mz_int);
-              }
+              pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i], masstrace_intensity[i]);
+              f_isotopes.push_back(masstrace_mz_int);
             }
+          }
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "The feature " << feature->getUniqueId() << " misses the MetaValues for 'masstrace_centroid_mz' and 'masstrace_intensity'."
+                             "If this happens more often, please validate your featureXML."  << endl;
         }
 
         // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed
         // if multiple PeptideHits / identifications occur - use all for SIRIUS
         v_description.clear();
         v_sumformula.clear();
+        // descriptions is "[null]" if AccurateMassSearch was run with "keep unidentified masses"
         if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
         {
           adducts.clear();
@@ -564,18 +584,33 @@ namespace OpenMS
           {
            String adduct;
            description = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
+           if (description == "[null]")
+           {
+             description = "[UNKNOWN]";
+           }
            sumformula = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
+           if (sumformula.empty())
+           {
+             sumformula = "UNKNOWN";
+           }
            adduct = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+           if (adduct != "null")
+           {
+             // change format of adduct information M+H;1+ -> [M+H]1+
+             String adduct_prefix = adduct.prefix(';').trim();
+             String adduct_suffix = adduct.suffix(';').trim();
+             adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+           }
+           else
+           {
+            adduct = "";
+           }
 
            // change format of description [name] to name
            description.erase(remove_if(begin(description),
                                        end(description),
                                        [](char c) { return c == '[' || c == ']'; }), end(description));
 
-           // change format of adduct information M+H;1+ -> [M+H]1+
-           String adduct_prefix = adduct.prefix(';').trim();
-           String adduct_suffix = adduct.suffix(';').trim();
-           adduct = "[" + adduct_prefix + "]" + adduct_suffix;
            adducts.insert(adducts.begin(), adduct);
            v_description.push_back(description);
            v_sumformula.push_back(sumformula);
@@ -583,7 +618,7 @@ namespace OpenMS
         }
         else
         {
-          // initialization with UNKNOWN in case no feature information is available.
+          // initialization with UNKNOWN in case no feature information was available
           v_description.push_back("UNKNOWN");
           v_sumformula.push_back("UNKNOWN");
         }
@@ -612,11 +647,12 @@ namespace OpenMS
         }
     }
 
-    // if not mappend information available (e.g. empty featurexml or only a few features)
+    // ms2 spectra without an associated feature based on the provided featureXML
     if (use_unassigned_ms2)
     {
-      // no feature information was provided
       bool writecompound = true;
+      v_description = {"UNKNOWN"};
+      v_sumformula = {"UNKNOWN"};
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;
@@ -645,12 +681,12 @@ namespace OpenMS
                    v_cmpinfo);
     }
 
+    // no feature information was provided
     if (no_feature_information)
     {
-      // no feature information was provided
       bool writecompound = true;
-      v_description.push_back("UNKNOWN");
-      v_sumformula.push_back("UNKNOWN");
+      v_description = {"UNKNOWN"};
+      v_sumformula = {"UNKNOWN"};
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;

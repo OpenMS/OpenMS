@@ -14,7 +14,8 @@ cdef extern from "<OpenMS/FORMAT/ProtXMLFile.h>" namespace "OpenMS":
     cdef cppclass ProtXMLFile:
 
         ProtXMLFile() nogil except +
-        ProtXMLFile(ProtXMLFile) nogil except + # wrap-ignore
+        # copy constructor of 'ProtXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler
+        ProtXMLFile(ProtXMLFile &) nogil except + # wrap-ignore
 
         void load(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids) nogil except +
 

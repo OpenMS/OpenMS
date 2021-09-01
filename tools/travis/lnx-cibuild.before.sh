@@ -19,7 +19,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   # Note: ensure that cmake uses the same python!
   pyenv versions
   # select the desired Python version
-  pyenv global 2.7
+  pyenv global 3.6
   which pip
   which python
 
@@ -33,15 +33,12 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U nose
   pip install -U numpy
   pip install -U wheel
-  pip install -U Cython==0.25
-  pip install -U autowrap==0.18.1
+  pip install -U Cython
+  pip install -U autowrap
 fi
 
 # move to automatically cloned contrib submodule
 pushd contrib
-
-# we build seqan as the versions shipped in Ubuntu are not recent enough
-build_contrib SEQAN
 
 # we build WildMagic
 build_contrib WILDMAGIC

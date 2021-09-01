@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <memory>  // unique_ptr
 #include <unordered_map>
 
 namespace OpenMS
@@ -142,13 +143,16 @@ public:
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
-    bool has(String modification) const;
+    bool has(const String& modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
-       Will skip adding if modification already exists (based on its fullID)
+       If the modification already exists (based on its fullID) it is not added.
+       The function returns a pointer to the modification in the ModificationDB (which can be differ from input if mod was already present).
+
+       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
-    void addModification(ResidueModification * new_mod);
+    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
@@ -161,12 +165,24 @@ public:
     Size findModificationIndex(const String& mod_name) const;
 
     /**
-       @brief Collects all modifications with matching delta mass
+       @brief Collects all modifications with delta mass inside a tolerance window
+       @warning This function adds the results in the order of appearance in the DB, not considering proximity in mass. Use searchModificationsByDiffMonoMassSorted for this.
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+
+    /**
+     @brief Collects all modifications with delta mass inside a tolerance window and adds them sorted
+     by mass difference
+
+     If @p residue is set, only modifications with matching residue of origin are considered.
+     If @p term_spec is set, only modifications with matching term specificity are considered.
+    */
+    void searchModificationsByDiffMonoMassSorted(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue
@@ -193,7 +209,10 @@ public:
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
-protected:
+    /// Writes tab separated entries: FullId,FullName,Origin,AA,TerminusSpecificity,DiffMonoMass (including header) to TSV file
+    void writeTSV(const String& filename);
+
+  protected:
 
     /// Stores whether ModificationsDB was instantiated before
     static bool is_instantiated_;
@@ -230,8 +249,7 @@ private:
 
      */
     //@{
-    /// Default constructor
-    ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    explicit ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);
@@ -256,6 +274,5 @@ private:
 
     /// Adds modifications from a given file in Unimod XML format
     void readFromUnimodXMLFile(const String& filename);
-    
   };
 }

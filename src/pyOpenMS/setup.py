@@ -66,7 +66,7 @@ autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
 # patch for parallel compilation
 # https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
-# -- this is not what we want, we dont want to compile each object with
+# -- this is not what we want, we don't want to compile each object with
 #    multiple threads, we want to compile multiple extensions at the same time:
 from setuptools import setup, Extension
 import multiprocessing.pool
@@ -103,13 +103,13 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
+    libraries = ["OpenMS", "OpenSwathAlgo"]
 else:
     print("\n")
     print("platform", sys.platform, "not supported yet")
@@ -138,9 +138,10 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 import numpy
 
+
 include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include"),
+    j(numpy.core.__path__[0], "include")
 ]
 
 # append all include and library dirs exported by CMake
@@ -182,6 +183,8 @@ if iswin:
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
+    extra_compile_args.append("/std:c++17")
+    extra_link_args.append("/std:c++17")
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
@@ -192,21 +195,19 @@ elif sys.platform == "darwin":
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 
-# Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
-    extra_link_args.append("-std=c++11")
-    if isosx: # MacOS c++11
-        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
+    extra_link_args.append("-std=c++17")
+    extra_compile_args.append("-std=c++17")
+    if isosx: # MacOS
+        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
         extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
-    extra_compile_args.append("-std=c++11")
-    if isosx: # MacOS c++11
-        extra_compile_args.append("-stdlib=libc++")
-        extra_compile_args.append("-mmacosx-version-min=10.7")
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wno-deprecated-register")
+    extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
+    extra_compile_args.append("-Wno-misleading-indentation") # caused by seqan on gcc
+    extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
     extra_compile_args.append("-Wno-unknown-pragmas")
@@ -214,6 +215,8 @@ if not iswin:
     extra_compile_args.append("-Wno-unused-function")
     extra_compile_args.append("-Wno-deprecated-declarations")
     extra_compile_args.append("-Wno-missing-declarations")
+    extra_compile_args.append("-Wno-int-in-bool-context")
+    extra_compile_args.append("-Wno-deprecated-copy")
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
@@ -268,6 +271,7 @@ setup(
         "Topic :: Scientific/Engineering :: Chemistry",
     ],
     long_description=open("README.rst").read(),
+    long_description_content_type="text/x-rst",
     zip_safe=False,
 
     url="http://open-ms.de",

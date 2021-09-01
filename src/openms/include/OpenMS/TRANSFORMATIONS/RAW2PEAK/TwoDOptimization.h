@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -740,27 +740,25 @@ protected:
     d.picked_peaks = ms_exp;
     d.raw_data_first =  first;
 
-    //std::cout << "richtig hier" << std::endl;
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
-
-    DataValue dv = param_.getValue("penalties:position");
-    if (dv.isEmpty() || dv.toString() == "")
+    ParamValue pv = param_.getValue("penalties:position");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.pos = 0.;
     else
-      penalties.pos = (float)dv;
+      penalties.pos = (float)pv;
 
-    dv = param_.getValue("penalties:left_width");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("penalties:left_width");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.lWidth = 1.;
     else
-      penalties.lWidth = (float)dv;
+      penalties.lWidth = (float)pv;
 
-    dv = param_.getValue("penalties:right_width");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("penalties:right_width");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.rWidth = 1.;
     else
-      penalties.rWidth = (float)dv;
+      penalties.rWidth = (float)pv;
 #ifdef DEBUG_2D
     std::cout << penalties.pos << " "
               << penalties.rWidth << " "
@@ -776,11 +774,11 @@ protected:
     // std::cout << "---------------------------------------------------------------\n\n\n\n";
 
     UInt max_iteration;
-    dv = param_.getValue("iterations");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("iterations");
+    if (pv.isEmpty() || pv.toString() == "")
       max_iteration = 15;
     else
-      max_iteration = (UInt)dv;
+      max_iteration = (UInt)pv;
 
     std::vector<PeakShape> peak_shapes;
 
@@ -1045,7 +1043,6 @@ protected:
       d.signal2D.push_back(right);
     }
 #ifdef DEBUG2D
-    //std::cout << "fertig"<< std::endl;
     std::cout << first_peak_mz << "\t" << last_peak_mz << std::endl;
 #endif
   }

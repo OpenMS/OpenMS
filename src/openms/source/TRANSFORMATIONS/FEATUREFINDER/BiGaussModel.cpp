@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,11 +41,11 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("bounding_box:max", 1.0, "Upper end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:mean", 0.0, "Centroid position of the model, this also separates both halves of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", {"advanced"});
+    defaults_.setValue("bounding_box:max", 1.0, "Upper end of bounding box enclosing the data used to fit the model.", {"advanced"});
+    defaults_.setValue("statistics:mean", 0.0, "Centroid position of the model, this also separates both halves of the model.", {"advanced"});
+    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", {"advanced"});
+    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", {"advanced"});
 
     defaultsToParam_();
   }

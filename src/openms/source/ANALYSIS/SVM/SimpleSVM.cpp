@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -45,7 +46,7 @@ SimpleSVM::SimpleSVM():
   DefaultParamHandler("SimpleSVM"), data_(), model_(nullptr)
 {
   defaults_.setValue("kernel", "RBF", "SVM kernel");
-  defaults_.setValidStrings("kernel", ListUtils::create<String>("RBF,linear"));
+  defaults_.setValidStrings("kernel", {"RBF","linear"});
 
   defaults_.setValue("xval", 5, "Number of partitions for cross-validation (parameter optimization)");
   defaults_.setMinInt("xval", 1);
@@ -56,7 +57,7 @@ SimpleSVM::SimpleSVM():
   values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
   defaults_.setValue("log2_gamma", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.");
 
-  vector<String> advanced(1, "advanced");
+  vector<std::string> advanced(1, "advanced");
   defaults_.setValue("epsilon", 0.001, "Stopping criterion", advanced);
   defaults_.setMinFloat("epsilon", 0.0);
 
@@ -67,7 +68,7 @@ SimpleSVM::SimpleSVM():
   defaults_.setValue("no_shrinking", "false",
                      "Disable the shrinking heuristics", advanced);
   defaults_.setValidStrings("no_shrinking",
-                            ListUtils::create<String>("true,false"));
+                            {"true","false"});
 
   defaultsToParam_();
 
@@ -138,7 +139,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   OPENMS_LOG_INFO << msg << endl;
 
   svm_params_.svm_type = C_SVC;
-  String kernel = param_.getValue("kernel");
+  std::string kernel = param_.getValue("kernel");
   svm_params_.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
   svm_params_.eps = param_.getValue("epsilon");
   svm_params_.cache_size = param_.getValue("cache_size");

@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,11 +43,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  CrossLinksDB::CrossLinksDB()
+  CrossLinksDB::CrossLinksDB():
+      ModificationsDB("","","") // if you clear the mods you don't need to read them in the first place! Also avoids easy memory leaks.
   {
     mods_.clear();
     modification_names_.clear();
-    readFromOBOFile("CHEMISTRY/XLMOD.obo");
+    readFromOBOFile("CHEMISTRY/XLMOD.obo"); //TODO please comment why this is needed! Why not use the one from ModificationsDB
   }
 
 

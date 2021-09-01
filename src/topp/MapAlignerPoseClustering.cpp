@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,8 +118,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML,mzML",
-                                                 REF_RESTRICTED);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_("featureXML,mzML",
+                                                            REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
@@ -144,6 +144,11 @@ protected:
     algorithm.setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
+    if (in_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerPoseClustering." << std::endl;
+    }
+    
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
 

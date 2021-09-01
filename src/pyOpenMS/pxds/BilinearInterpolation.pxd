@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/MATH/MISC/BilinearInterpolation.h>" namespace "OpenMS:
         #   BilinearInterpolation := BilinearInterpolation[double, double]
 
         BilinearInterpolation() nogil except +
-        BilinearInterpolation(BilinearInterpolation) nogil except +
+        BilinearInterpolation(BilinearInterpolation &) nogil except +
         ValueType value(KeyType arg_pos_0, KeyType arg_pos_1) nogil except +
         void addValue(KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value) nogil except +
 

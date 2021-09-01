@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,8 +72,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 {
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
-  std::vector<String> fm;
-  fm.push_back("Carbamidomethyl (C)");
+  std::vector<String> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
@@ -93,8 +92,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_NOT_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"database.fasta")
   TEST_EQUAL(protein_ids[0].getSearchParameters().missed_cleavages, 1000)
-  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(), fm.size())
-  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.back(), fm.back())
+  ABORT_IF(protein_ids[0].getSearchParameters().fixed_modifications.size() != fm.size())
+  for (size_t i = 0; i < fm.size(); ++i)
+  {
+    TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications[i], fm[i]);
+  }
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,20)
 
@@ -536,7 +538,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[2].charge, 1)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[4].charge, 2)
 
-  TEST_EQUAL(peptide_ids2[2].getHits()[0].getSequence().toString(), "VEPSWLGPLFPDK(Xlink:DSS)TSNLR")
+  TEST_EQUAL(peptide_ids2[2].getHits()[0].getSequence().toString(), "VEPSWLGPLFPDK(Xlink:DSS[156])TSNLR")
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "-")
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 12)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), "-")

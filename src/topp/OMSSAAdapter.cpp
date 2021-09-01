@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,12 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -49,6 +50,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <algorithm>
 #include <fstream>
@@ -126,6 +128,9 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
+    @note This adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
+
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -135,7 +140,6 @@ using namespace std;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_OMSSAAdapter.html
 
-    @improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -143,11 +147,11 @@ using namespace std;
 
 
 class TOPPOMSSAAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPOMSSAAdapter() :
-    TOPPBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
+    SearchEngineBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
   {
   }
 
@@ -433,10 +437,8 @@ protected:
       }
     }
     // parse arguments
-    String inputfile_name = getStringOption_("in");
+    String inputfile_name = getRawfileName();
     String outputfile_name = getStringOption_("out");
-    String db_name = String(getStringOption_("database"));
-    // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
     //-------------------------------------------------------------
     // Validate user parameters
@@ -447,27 +449,14 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+
+    String db_name = getStringOption_("database");
     if (db_name.suffix('.') != "psq")
     {
       db_name += ".psq";
     }
-
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
-
-    db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
+    db_name = getDBFilename(db_name); // resolve (search in DB dirs)
+    db_name = FileHandler::stripExtension(db_name); // OMSSA requires the filename without the .psq part
     // check for .pin and .phr files
     bool has_pin = File::readable(db_name + ".pin");
     bool has_phr = File::readable(db_name + ".phr");
@@ -722,8 +711,15 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
+
+          double neutral_loss_mono = 0;
+          double neutral_loss_avg = 0;
+
+          if (!ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas().empty())
+          {
+            neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getMonoWeight();
+            neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getAverageWeight();
+          }
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -799,7 +795,7 @@ protected:
                 ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
                 empty = true;
             }
-            
+
             UInt lvl = s.getMSLevel();
             bool profile = s.getType() == MSSpectrum::SpectrumType::PROFILE;
             if (lvl == 2 && !profile)
@@ -809,7 +805,7 @@ protected:
                 empty = false;
             }
         };
-        
+
         c.setSpectraProcessingFunc(f);
         MzMLFile().transform(inputfile_name, &c, true);
         ofs.close();
@@ -1018,11 +1014,33 @@ protected:
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");
 
+    // reannotate file origin and native ids
+    MSExperiment exp;
+    MzMLFile mz_file;
+    PeakFileOptions opt;
+    opt.setMetadataOnly(true);
+    mz_file.setOptions(opt);
+    mz_file.load(inputfile_name, exp);
+    protein_identification.setPrimaryMSRunPath({inputfile_name}, exp);
+
+    // add RT and precursor m/z to the peptide IDs (look them up in the spectra):
+    SpectrumMetaDataLookup::addMissingSpectrumReferences(
+        peptide_ids, 
+        inputfile_name,
+        true);
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats

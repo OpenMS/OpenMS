@@ -9,15 +9,14 @@ from String cimport *
 from ProgressLogger cimport *
 from PeakFileOptions cimport *
 from IMSDataConsumer cimport *
+from Types cimport *
 
 cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenMS::Internal":
 
     cdef cppclass MzMLSqliteHandler:
 
-        # MzMLSqliteHandler() nogil except +
-
-        MzMLSqliteHandler(String filename) nogil except +
-        MzMLSqliteHandler(MzMLSqliteHandler h) nogil except +
+        MzMLSqliteHandler(String filename, UInt64 run_id) nogil except +
+        MzMLSqliteHandler(MzMLSqliteHandler &) nogil except + # compiler
 
         void readExperiment(MSExperiment & exp, bool meta_only )  nogil except +
   
@@ -41,5 +40,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
   
         void writeChromatograms(libcpp_vector[MSChromatogram] chroms) nogil except +
   
-        void writeRunLevelInformation(MSExperiment exp, bool write_full_meta, int run_id) nogil except +
-
+        void writeRunLevelInformation(MSExperiment exp, bool write_full_meta) nogil except +
+        
+        UInt64 getRunID() nogil except +
+        

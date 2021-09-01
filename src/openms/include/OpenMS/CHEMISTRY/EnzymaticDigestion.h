@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 public:
     /// when querying for valid digestion products, this determines if the specificity of the two peptide ends is considered important
     enum Specificity
-    {
+    { // note: the value of the first three items is important, since some engines just report the number of required termini (0, 1, 2)
       SPEC_NONE = 0, ///< no requirements on start / end
       SPEC_SEMI = 1, ///< semi specific, i.e., one of the two cleavage sites must fulfill requirements
       SPEC_FULL = 2, ///< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends

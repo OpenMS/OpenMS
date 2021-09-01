@@ -1,4 +1,4 @@
->compound _13442776035824190606-2167005-UNKNOWN6
+>compound _13442776035824190606-2167005--6--UNKNOWN
 >parentmass 292.121752827683
 >charge 1
 >rt 410.145000000000
@@ -6,7 +6,7 @@
 ##fid 13442776035824190606
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.121752827683 5446638.265330639668
@@ -20,8 +20,8 @@
 294.118709098161 3537.000000000000
 295.120851794460 581.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2167 experiment=5
-##mid sample=1 period=1 cycle=2167 experiment=5_0
+##n_id sample=1 period=1 cycle=2167 experiment=5
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2167 experiment=5_0
 ##scan 6
 ##specref ms_run[1]:sample=1 period=1 cycle=2167 experiment=5
 292.120347921437 2157.000000000000
@@ -66,8 +66,8 @@
 296.525951846672 471.541839599609
 296.814412450300 484.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2175 experiment=4
-##mid sample=1 period=1 cycle=2175 experiment=4_0
+##n_id sample=1 period=1 cycle=2175 experiment=4
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2175 experiment=4_0
 ##scan 18
 ##specref ms_run[1]:sample=1 period=1 cycle=2175 experiment=4
 291.217137556058 714.000000000000
@@ -119,8 +119,8 @@
 296.674889401153 510.000000000000
 296.691543393358 583.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2176 experiment=6
-##mid sample=1 period=1 cycle=2176 experiment=6_0
+##n_id sample=1 period=1 cycle=2176 experiment=6
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2176 experiment=6_0
 ##scan 20
 ##specref ms_run[1]:sample=1 period=1 cycle=2176 experiment=6
 291.222353601227 923.000000000000
@@ -133,13 +133,13 @@
 292.953203258155 546.000000000000
 292.977891955669 420.000000000000
 293.196421777814 210.000000000000
->compound _0-2165004-UNKNOWN2
+>compound _0-2165004--2--UNKNOWN
 >parentmass 292.118520142944
 >charge 1
 >rt 404.455000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.118520142944 1915.000000000000
@@ -147,18 +147,18 @@
 292.118520142944 1915.000000000000
 294.117460558153 780.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2165 experiment=4
-##mid sample=1 period=1 cycle=2165 experiment=4_0
+##n_id sample=1 period=1 cycle=2165 experiment=4
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2165 experiment=4_0
 ##scan 2
 ##specref ms_run[1]:sample=1 period=1 cycle=2165 experiment=4
 292.121314370419 294.000000000000
->compound _0-2166006-UNKNOWN4
+>compound _0-2166006--4--UNKNOWN
 >parentmass 292.121468920531
 >charge 1
 >rt 404.875000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.121468920531 5829.000000000000
@@ -167,18 +167,18 @@
 293.123073196945 1108.000000000000
 294.116966544654 1439.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2166 experiment=6
-##mid sample=1 period=1 cycle=2166 experiment=6_0
+##n_id sample=1 period=1 cycle=2166 experiment=6
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2166 experiment=6_0
 ##scan 4
 ##specref ms_run[1]:sample=1 period=1 cycle=2166 experiment=6
 292.121333456885 798.000000000000
->compound _0-2171003-UNKNOWN11
+>compound _0-2171003--11--UNKNOWN
 >parentmass 296.123099065922
 >charge 1
 >rt 406.816999999980
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.123099065922 1194.000000000000
@@ -190,19 +190,19 @@
 295.120631519007 8426.000000000000
 296.123099065922 1194.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2171 experiment=3
-##mid sample=1 period=1 cycle=2171 experiment=3_0
+##n_id sample=1 period=1 cycle=2171 experiment=3
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2171 experiment=3_0
 ##scan 11
 ##specref ms_run[1]:sample=1 period=1 cycle=2171 experiment=3
 296.123852278497 84.000000000000
 296.170279302095 28.000000000000
->compound _0-2172004-UNKNOWN13
+>compound _0-2172004--13--UNKNOWN
 >parentmass 296.123821549630
 >charge 1
 >rt 407.245000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.123821549630 1828.000000000000
@@ -216,20 +216,20 @@
 295.121889009140 17240.000000000000
 296.123821549630 1828.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2172 experiment=4
-##mid sample=1 period=1 cycle=2172 experiment=4_0
+##n_id sample=1 period=1 cycle=2172 experiment=4
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2172 experiment=4_0
 ##scan 13
 ##specref ms_run[1]:sample=1 period=1 cycle=2172 experiment=4
 296.124718247637 252.000000000000
 296.181428565605 42.000000000000
 296.200211990605 42.000000000000
->compound _0-2173002-UNKNOWN15
+>compound _0-2173002--15--UNKNOWN
 >parentmass 296.125008105473
 >charge 1
 >rt 407.655000000000
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.125008105473 3131.000000000000
@@ -248,19 +248,19 @@
 296.125008105473 3131.000000000000
 296.176985366327 631.191101074219
 >ms2peaks
-##nid sample=1 period=1 cycle=2173 experiment=2
-##mid sample=1 period=1 cycle=2173 experiment=2_0
+##n_id sample=1 period=1 cycle=2173 experiment=2
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2173 experiment=2_0
 ##scan 15
 ##specref ms_run[1]:sample=1 period=1 cycle=2173 experiment=2
 296.125886082126 602.945556640625
 296.147120140233 714.000000000000
->compound _0-2199003-UNKNOWN43
+>compound _0-2199003--43--UNKNOWN
 >parentmass 295.187072485748
 >charge 1
 >rt 418.393999999980
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 295.187072485748 607.000000000000
@@ -273,19 +273,19 @@
 295.119930960168 607.000000000000
 295.187072485748 607.000000000000
 >ms2peaks
-##nid sample=1 period=1 cycle=2199 experiment=3
-##mid sample=1 period=1 cycle=2199 experiment=3_0
+##n_id sample=1 period=1 cycle=2199 experiment=3
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2199 experiment=3_0
 ##scan 43
 ##specref ms_run[1]:sample=1 period=1 cycle=2199 experiment=3
 295.083913845584 42.000000000000
 295.119725048092 42.000000000000
->compound _0-2204006-UNKNOWN49
+>compound _0-2204006--49--UNKNOWN
 >parentmass 290.124002639251
 >charge 1
 >rt 420.444000000000
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
+##source file file://.PestMix1pos.wiff
 ##source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 290.124002639251 1184.000000000000
@@ -302,8 +302,8 @@
 295.026278830448 1267.607299804688
 295.185958723798 337.209289550781
 >ms2peaks
-##nid sample=1 period=1 cycle=2204 experiment=6
-##mid sample=1 period=1 cycle=2204 experiment=6_0
+##n_id sample=1 period=1 cycle=2204 experiment=6
+##m_id UNKNOWN_PestMix1pos.wiff_sample=1 period=1 cycle=2204 experiment=6_0
 ##scan 49
 ##specref ms_run[1]:sample=1 period=1 cycle=2204 experiment=6
 290.106948471714 84.000000000000

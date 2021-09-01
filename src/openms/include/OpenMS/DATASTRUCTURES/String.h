@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -491,17 +491,16 @@ public:
     public:
 
     // create view on string
-    StringView() : begin_(), size_(0) 
-    {
-    }
+    StringView() = default;
+
+    // construct from other view
+    StringView(const StringView&) = default;
+
+    // copy assignment
+    StringView& operator=(const StringView&) = default;
 
     // create view on string
     StringView(const std::string& s) : begin_(s.data()), size_(s.size())
-    {
-    }
-
-    // construct from other view
-    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
     {
     }
 

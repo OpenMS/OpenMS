@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from libcpp cimport bool
 from MSSpectrum cimport *
@@ -7,8 +6,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass BinnedSpectrum:
-        BinnedSpectrum() nogil except + #wrap-ignore
-        BinnedSpectrum(BinnedSpectrum &) nogil except + #wrap-ignore
+        BinnedSpectrum() nogil except +
+        BinnedSpectrum(BinnedSpectrum &) nogil except +
         BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread, float offset) nogil except +
 
         bool operator==(BinnedSpectrum & rhs) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -276,10 +276,10 @@ namespace OpenMS
     }
 
     //TODO add psm regularizer nodes here optionally if using multiple psms
-    auto pepIt = spectrum.getHits().begin();
+    
     //TODO sort or assume sorted
     auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
-    for (; pepIt != pepItEnd; ++pepIt)
+    for (auto pepIt = spectrum.getHits().begin(); pepIt != pepItEnd; ++pepIt)
     {
       IDPointer pepPtr(&(*pepIt));
       vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
@@ -1019,7 +1019,7 @@ namespace OpenMS
 
   void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData = true/*, bool resolveTies*/)
   {
-    GetPosteriorVisitor gpv{};
+    GetPosteriorVisitor gpv;
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
@@ -1033,9 +1033,10 @@ namespace OpenMS
     {
       if (fg[*ui].which() == 2)
         // It should suffice to resolve at the pep cluster level
-        // if a pep does not belong to a cluster it didnt have multiple parents and
+        // if a pep does not belong to a cluster it didn't have multiple parents and
         // therefore does not need to be resolved
       {
+        accs_to_remove.clear();
         q.push(*ui);
         getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
 
@@ -1089,6 +1090,7 @@ namespace OpenMS
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();
           }
+          singles.clear();
         }
       }
     }
@@ -1137,7 +1139,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1323,7 +1325,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1581,13 +1583,13 @@ namespace OpenMS
           Graph::vertex_iterator ui, ui_end;
           boost::tie(ui,ui_end) = boost::vertices(fg);
 
-          GetPosteriorVisitor gpv{};
+          GetPosteriorVisitor gpv;
           std::unordered_map<vertex_t, double> prot_to_current_max;
           for (; ui != ui_end; ++ui)
           {
             if (fg[*ui].which() == 2)
               // It should suffice to resolve at the pep cluster level
-              // if a pep does not belong to a cluster it didnt have multiple parents and
+              // if a pep does not belong to a cluster it didn't have multiple parents and
               // therefore does not need to be resolved
             {
               vector<vertex_t> prots;
@@ -1674,7 +1676,9 @@ namespace OpenMS
   {
     /// Hashers for the strong typedefs
     //TODO switch everything to pointers so we compare memory addresses
-    // then we dont need those. They are just here to fulfill the "interface".
+
+    // then we don't need those. They are just here to fulfill the "interface".
+
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;

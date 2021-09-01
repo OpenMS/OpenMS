@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -424,8 +425,9 @@ namespace OpenMS
 
   Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
   {
-    Int charge = 0;
+    Int charge{0};
     String formula(input_formula);
+    formula.trim();
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
     String suffix;
@@ -452,6 +454,7 @@ namespace OpenMS
           break;
         }
       }
+
       if (i != suffix.size())
       {
         // we found the charge part
@@ -466,6 +469,7 @@ namespace OpenMS
         {
           tmp_charge = charge_str.toInt();
         }
+
         if (suffix[i] == '-')
         {
           charge = -1 * tmp_charge;
@@ -581,7 +585,38 @@ namespace OpenMS
       }
 
       const ElementDB* db = ElementDB::getInstance();
-      if (db->hasElement(symbol))
+      // support D and T for Deuterium and Tritium
+      if (symbol == "D") // Deuterium is represented as (2)H in DB.
+      {
+        if (num != 0)
+        {
+          const Element* e = db->getElement("(2)H");
+          if (auto it = ef.find(e); it != ef.end())
+          {
+            it->second += num;
+          }
+          else
+          {
+            ef.insert({e, num});
+          }
+        }
+      }
+      else if (symbol == "T") // Tritium is represented as (3)H in DB
+      {
+        if (num != 0)
+        {
+          const Element* e = db->getElement("(3)H");
+          if (auto it = ef.find(e); it != ef.end())
+          {
+            it->second += num;
+          }
+          else
+          {
+            ef.insert({e, num});
+          }
+        }
+      } 
+      else if (db->hasElement(symbol))
       {
         if (num != 0)
         {
@@ -599,7 +634,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found.");
       }
     }
 
@@ -643,8 +678,11 @@ namespace OpenMS
       return formula_.size() < rhs.formula_.size();
     }
 
-    if (charge_ != rhs.charge_) return charge_ < rhs.charge_;
-
+    if (charge_ != rhs.charge_) 
+    {
+      return charge_ < rhs.charge_;
+    }
+    
     return formula_ < rhs.formula_;
   }
 

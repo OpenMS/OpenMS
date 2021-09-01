@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,23 +35,25 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -108,6 +110,8 @@ Support for conversion to/from mzIdentML (.mzid) is still experimental and may l
 
 The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
 of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+
+Also supports generation of .mzML files with theoretical spectra from a .FASTA input.
 
 <B>Details on additional parameters:</B>
 
@@ -182,9 +186,7 @@ private:
       FileHandler().loadExperiment(filename, expmap);
       lookup.readSpectra(expmap.getSpectra());
 
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
       for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
       {
         try
@@ -195,9 +197,7 @@ private:
         }
         catch (Exception::ElementNotFound&)
         {
-#ifdef _OPENMP
 #pragma omp critical (IDFileConverter_ERROR)
-#endif
           {
             OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
@@ -208,18 +208,32 @@ private:
   }
 
 protected:
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    Param p(TheoreticalSpectrumGenerator().getDefaults());
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
+    p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
+    p.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
+    p.setValue("missed_cleavages", 0, "Number of allowed missed cleavages while digesting the fasta proteins");
+    p.setValue("min_charge", 1, "Minimum charge");
+    p.setValue("max_charge", 1, "Maximum charge");
+    p.setValue("precursor_charge", 0, "Manually set precursor charge. (default: 0, meaning max_charge + 1 will be used as precursor charge)");
+    return p; 
+  }
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
                        "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
+                       "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml,fasta"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -239,6 +253,11 @@ protected:
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
     registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+
+    registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
+    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A value of 0 or less exports all hits.", false, true);
+
+    registerSubsection_("fasta_to_mzml", "[FASTA input + MzML output only] Parameters used to adjust simulation of the theoretical spectra.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -256,6 +275,14 @@ protected:
     //-------------------------------------------------------------
     const String in = getStringOption_("in");
     const String mz_file = getStringOption_("mz_file");
+
+    const String out = getStringOption_("out");
+    FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
 
     ProgressLogger logger;
     logger.setLogType(ProgressLogger::CMD);
@@ -289,7 +316,7 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -335,7 +362,7 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
@@ -357,7 +384,7 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
+          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
@@ -562,6 +589,91 @@ protected:
         XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
       }
 
+      else if (in_type == FileTypes::FASTA)
+      {
+        // handle out type
+        if (out_type != FileTypes::MZML)
+        {
+          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
+        MSExperiment exp;
+        TheoreticalSpectrumGenerator tsg;
+
+        // extract parameters and remove non tsg params
+        Param p = getParam_().copy("fasta_to_mzml:", true);
+        String enzyme = p.getValue("enzyme").toString();
+        Int mc = p.getValue("missed_cleavages");
+        Int min_charge = p.getValue("min_charge");
+        Int max_charge = p.getValue("max_charge");
+        Int pc_charge = p.getValue("precursor_charge");
+        p.remove("enzyme");
+        p.remove("missed_cleavages");
+        p.remove("min_charge");
+        p.remove("max_charge");
+        p.remove("precursor_charge");
+
+        if (min_charge > max_charge)
+        {
+          writeLog_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
+        OPENMS_PRECONDITION(pc_charge == 0 || pc_charge >= max_charge, "Error: 'fasta_to_mzml:precursor_charge' must be bigger than or equal to 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
+
+        tsg.setParameters(p);
+        ProteaseDigestion digestor;
+        digestor.setEnzyme(enzyme);
+        digestor.setMissedCleavages(mc);
+
+        // loop through fasta input
+        FASTAFile::FASTAEntry entry;
+        FASTAFile f;
+        f.readStart(in);
+        UInt count_catches{};
+        while (f.readNext(entry))
+        {
+          // digest sequence of fasta entry
+          vector<AASequence> digested_peptides;
+          AASequence seq = AASequence::fromString(entry.sequence);
+          digestor.digest(seq, digested_peptides);
+
+          // for each peptide calculate the theoretical spectrum
+          for (const auto& peptide : digested_peptides)
+          {
+            PeakSpectrum spec;
+
+            try
+            {
+              tsg.getSpectrum(spec, peptide, min_charge, max_charge, pc_charge);
+            }
+            catch (Exception::InvalidSize())
+            {
+              ++count_catches;
+            }
+
+            exp.addSpectrum(move(spec));
+          }
+        }
+        if (count_catches > 0)
+        {
+          writeLog_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
+        }
+        logger.endProgress();
+
+        logger.startProgress(0, 1, "Storing...");
+        
+        MzMLFile mz_file;
+        mz_file.store(out, exp);
+
+        logger.endProgress();
+
+        return EXECUTION_OK;
+      }
+
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -574,18 +686,6 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    const String out = getStringOption_("out");
-    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      out_type = fh.getTypeByFileName(out);
-    }
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      writeLog_("Error: Could not determine output file type!");
-      return PARSE_ERROR;
-    }
-
     logger.startProgress(0, 1, "Storing...");
 
     if (out_type == FileTypes::PEPXML)
@@ -615,28 +715,62 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
-      ofstream fasta(out.c_str(), ios::out);
-      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      Int max_hits = getIntOption_("number_of_hits");
+      if (max_hits < 1)
       {
-        for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+        max_hits = INT_MAX;
+      }
+
+      bool concat = getFlag_("concatenate_peptides");
+      //Because by concatenation of peptides [KR]|P sites will probably be created, peptides starting with 'P' are
+      //saved separately and later moved to the beginning of the concatenated sequence.
+      //This is done to avoid losing information about the preceding peptides if a peptides starts with 'P'.
+      String all_p; //peptides beginning with 'P'
+      String all_but_p; //all the others
+
+      FASTAFile f;
+      f.writeStart(out);
+      FASTAFile::FASTAEntry entry;
+      for (const PeptideIdentification& pep_id : peptide_identifications)
+      {
+        Int curr_hit = 1;
+        for (const PeptideHit& hit : pep_id.getHits())
         {
-          const PeptideHit& hit = peptide_identifications[i].getHits()[l];
+          if (curr_hit > max_hits) break;
+          ++curr_hit;
+
           String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessionsSet();
-          fasta << ">" << seq
-                << " " << ++count
-                << " " << hit.getSequence().toString()
-                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
-                << "\n";
-          // FASTA files should have at most 60 characters of sequence info per line
-          for (Size j = 0; j < seq.size(); j += 60)
+          if (concat)
           {
-            Size k = min(j + 60, seq.size());
-            fasta << seq.substr(j, k - j) << "\n";
+            if (seq[0] == 'P')
+            {
+              all_p += seq;
+            }
+            else
+            {
+              all_but_p += seq;
+            }
+          }
+          else
+          {
+            std::set<String> prot = hit.extractProteinAccessionsSet();
+            entry.sequence = seq;
+            entry.identifier = seq;
+            entry.description = String(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+
+            f.writeNext(entry);
+            ++count;
           }
         }
       }
-      fasta.close();
+      if (concat)
+      {
+        entry.sequence = all_p + all_but_p;
+        entry.identifier = protein_identifications[0].getSearchEngine() + "_" + Constants::UserParam::CONCAT_PEPTIDE;
+        entry.description = "";
+        
+        f.writeNext(entry);
+      }
     }
 
     else

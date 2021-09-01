@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS"
     
     cdef cppclass MRMIonSeries "OpenMS::MRMIonSeries":
         MRMIonSeries() nogil except +
-        MRMIonSeries(MRMIonSeries) nogil except + #wrap-ignore
+        MRMIonSeries(MRMIonSeries &) nogil except + # compiler
 
         ## Typedef boost::unordered_map
         ## libcpp_pair[ String, double ] getIon(IonSeries ionseries, String ionid) nogil except +

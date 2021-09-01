@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,11 +44,11 @@ namespace OpenMS
     setName(SpectrumAlignmentScore::getProductName());
     defaults_.setValue("tolerance", 0.3, "Defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm");
-    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", {"true","false"});
     defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
-    defaults_.setValidStrings("use_linear_factor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_linear_factor", {"true","false"});
     defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
-    defaults_.setValidStrings("use_gaussian_factor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_gaussian_factor", {"true","false"});
     defaultsToParam_();
   }
 
@@ -87,7 +87,7 @@ namespace OpenMS
     SpectrumAlignment aligner;
     Param p;
     p.setValue("tolerance", tolerance);
-    p.setValue("is_relative_tolerance", (String)param_.getValue("is_relative_tolerance"));
+    p.setValue("is_relative_tolerance", param_.getValue("is_relative_tolerance"));
     aligner.setParameters(p);
 
     vector<pair<Size, Size>> alignment;
@@ -97,11 +97,16 @@ namespace OpenMS
     
     // calculate sum of squared intensities
     double sum1(0);
-    for (auto const & p : s1) { sum1 += pow(p.getIntensity(), 2); }
+    for (auto const & p : s1)
+    { 
+      sum1 += pow(p.getIntensity(), 2);
+    }
 
     double sum2(0);
-    for (auto const & p : s2) { sum2 += pow(p.getIntensity(), 2); }
-
+    for (auto const & p : s2)
+    { 
+      sum2 += pow(p.getIntensity(), 2);
+    }
     for (auto const & ap : alignment)
     {
       const double mz_tolerance = is_relative_tolerance ? tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance;

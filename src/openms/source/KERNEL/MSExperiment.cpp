@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -371,6 +371,22 @@ namespace OpenMS
     return ms_levels_;
   }
 
+  const String sqMassRunID = "sqMassRunID";
+
+  UInt64 MSExperiment::getSqlRunID() const
+  {
+    if (metaValueExists(sqMassRunID))
+    {
+      return getMetaValue(sqMassRunID);
+    }
+    return 0;
+  }
+
+  void MSExperiment::setSqlRunID(UInt64 id)
+  {
+    setMetaValue(sqMassRunID, id);
+  }
+
   ///@}
 
   ///@name Sorting spectra and peaks
@@ -671,18 +687,19 @@ namespace OpenMS
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::getTIC(float rt_bin_size) const
+  const MSChromatogram MSExperiment::calculateTIC(float rt_bin_size, UInt ms_level) const
   {
-    // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
+    // The TIC is (re)calculated from the MS spectra with set ms_level (default 1).
+    // Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
     for (const auto& spec: spectra_)
     {
-      if (spec.getMSLevel() == 1)
+      if ((spec.getMSLevel() == ms_level) || (ms_level == 0))
       {
         // fill chromatogram
         ChromatogramPeakType peak;
         peak.setRT(spec.getRT());
-        peak.setIntensity(spec.getTIC());
+        peak.setIntensity(spec.calculateTIC());
         TIC.push_back(peak);
       }
     }
@@ -716,6 +733,51 @@ namespace OpenMS
     }
   }
 
+  // static
+  bool MSExperiment::containsScanOfLevel(size_t ms_level) const
+  {
+    //test if no scans with MS-level 1 exist
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() == ms_level)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool MSExperiment::hasZeroIntensities(size_t ms_level) const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() != ms_level)
+      {
+        continue;
+      }
+      for (const auto& p : spec)
+      {
+        if (p.getIntensity() == 0.0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool MSExperiment::hasPeptideIdentifications() const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (!spec.getPeptideIdentifications().empty())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());
@@ -726,10 +788,10 @@ namespace OpenMS
   }
 
   /*
-  @brief Append a spectrum including floatdata arrays to current MSExperiment
+  @brief Append a spectrum including float data arrays to current MSExperiment
 
   @param rt RT of new spectrum
-  @param metadata_names Names of floatdata arrays attached to this spectrum
+  @param metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)

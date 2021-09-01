@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,6 +176,19 @@ protected:
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
 
+      //check and warn if merged from multiple runs
+      if (protein_ids.size() > 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " all original single-run idXML inputs as list to this tool.",
+            "# runs: " + String(protein_ids.size()));
+      }
+
       // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
       if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())
       {
@@ -244,10 +257,26 @@ protected:
         PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    else if (search_engine == "MS-GF+") PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MS-GF+") 
+    {
+      PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Mascot") 
+    {
+      PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "XTandem") 
+    {
+      PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Comet") 
+    {
+      PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "MSFragger") 
+    {
+      PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    }
     else
     {
       OPENMS_LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;

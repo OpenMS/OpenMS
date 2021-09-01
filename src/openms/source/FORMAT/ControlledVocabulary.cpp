@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <iostream>
@@ -552,6 +553,20 @@ namespace OpenMS
   const String& ControlledVocabulary::name() const
   {
     return name_;
+  }
+
+  const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
+  {
+    static const ControlledVocabulary cv = []() {
+      ControlledVocabulary cv;
+      cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      return cv;
+    }();
+    return cv;
   }
 
   bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)

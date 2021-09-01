@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -261,7 +261,7 @@ namespace OpenMS
 
         return;
       }
-      error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+      error(LOAD, "MzIdentMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
     void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -287,7 +287,7 @@ namespace OpenMS
         return;
       }
 
-      //error(LOAD, "MzIdentMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+      //error(LOAD, "MzIdentMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
     void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -338,7 +338,7 @@ namespace OpenMS
         current_id_hit_ = IdentificationHit();
         return;
       }
-      error(LOAD, "MzIdentMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring.");
+      error(LOAD, "MzIdentMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring.");
     }
 
     void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
@@ -424,7 +424,7 @@ namespace OpenMS
       /*
       1st: iterate over proteinidentification vector
       */
-      //TODO read type of crosslink reagens from settings
+      //TODO read type of crosslink reagent from settings
       bool is_ppxl = false;
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
@@ -570,9 +570,13 @@ namespace OpenMS
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
+        
         // empty date would lead to XML schema validation error:
         DateTime date_time = it->getDateTime();
-        if (!date_time.isValid()) date_time = DateTime::now();
+        if (!date_time.isValid()) 
+        { 
+          date_time = DateTime::now(); 
+        }
         sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
@@ -690,9 +694,9 @@ namespace OpenMS
       2nd: iterate over peptideidentification vector
       */
       //TODO ppxl - write here "MS:1002511" Cross-linked spectrum identification item linking the other spectrum
-      //          PeptideIdentification repräsentiert xl paar.
-      //          PeptideHit score_type ist dann final score von xQuest_cpp.
-      //          top5 ids -> 5 PeptideIdentification für ein (paar) spectra. SIR with 5 entries and ranks
+      //          PeptideIdentification represents xl pair.
+      //          PeptideHit score_type is then the final score of xQuest_cpp.
+      //          top5 ids -> 5 PeptideIdentification for one (pair) spectra. SIR with 5 entries and ranks
       std::map<String, String> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
@@ -1084,7 +1088,7 @@ namespace OpenMS
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
-        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\][(\\d+)\\+]*"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\][(\d+)\+]*)"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         String ionseries_index;
         String iontype;
         //String loss_gain;
@@ -1366,7 +1370,7 @@ namespace OpenMS
           pevid_ids =  pep_evis[pepi];
         }
 
-        String cmz((hit.getSequence().getMonoWeight() +  hit.getCharge() * Constants::PROTON_MASS_U) / hit.getCharge()); //calculatedMassToCharge
+        String cmz(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
         String r(hit.getRank()); //rank
         String sc(hit.getScore());
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,9 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -99,11 +100,11 @@ using namespace OpenMS;
 using namespace std;
 
 class MyriMatchAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   MyriMatchAdapter() :
-    TOPPBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
+    SearchEngineBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
   {
   }
 
@@ -334,9 +335,9 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String inputfile_name = File::absolutePath(getStringOption_("in"));
+    String inputfile_name = File::absolutePath(getRawfileName());
     String outputfile_name = getStringOption_("out");
-    String db_name = File::absolutePath(String(getStringOption_("database")));
+    String db_name = File::absolutePath(getDBFilename());
 
     // building parameter String
     StringList parameters;
@@ -514,6 +515,9 @@ protected:
     if (!protein_identifications.empty())
     {
       protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

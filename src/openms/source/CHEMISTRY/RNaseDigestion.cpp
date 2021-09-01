@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,9 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
-#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 
 using namespace std;
 
@@ -45,20 +45,40 @@ namespace OpenMS
     EnzymaticDigestion::setEnzyme(enzyme);
 
     const DigestionEnzymeRNA* rnase =
-      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
+        dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
     String five_prime_code = rnase->getFivePrimeGain();
-    if (five_prime_code == "p") five_prime_code = "5'-p";
+    if (five_prime_code == "p")
+    {
+      five_prime_code = "5'-p";
+    }
     String three_prime_code = rnase->getThreePrimeGain();
-    if (three_prime_code == "p") three_prime_code = "3'-p";
+    if (three_prime_code == "p")
+    {  
+      three_prime_code = "3'-p";
+    }
 
     static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
     five_prime_gain_ = five_prime_code.empty() ?
-      nullptr : ribo_db->getRibonucleotide(five_prime_code);
+                           nullptr :
+                           ribo_db->getRibonucleotide(five_prime_code);
     three_prime_gain_ = three_prime_code.empty() ?
-      nullptr : ribo_db->getRibonucleotide(three_prime_code);
+                            nullptr :
+                            ribo_db->getRibonucleotide(three_prime_code);
 
-    cuts_after_regex_.assign(rnase->getCutsAfterRegEx());
-    cuts_before_regex_.assign(rnase->getCutsBeforeRegEx());
+    cuts_after_regexes_.clear();
+    cuts_before_regexes_.clear();
+
+    StringList CAregexes, CBregexes;
+    rnase->getCutsAfterRegEx().split(',', CAregexes);
+    rnase->getCutsBeforeRegEx().split(',', CBregexes);
+    for (auto it = std::begin(CAregexes); it != std::end(CAregexes); ++it)
+    {
+      cuts_after_regexes_.push_back(boost::regex(*it));
+    }
+    for (auto it = std::begin(CBregexes); it != std::end(CBregexes); ++it)
+    {
+      cuts_before_regexes_.push_back(boost::regex(*it));
+    }
   }
 
 
@@ -69,9 +89,12 @@ namespace OpenMS
 
 
   vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions_(
-    const NASequence& rna, Size min_length, Size max_length) const
+      const NASequence& rna, Size min_length, Size max_length) const
   {
-    if (min_length == 0) min_length = 1;
+    if (min_length == 0)
+      {
+        min_length = 1;
+      }
     if ((max_length == 0) || (max_length > rna.size()))
     {
       max_length = rna.size();
@@ -103,8 +126,27 @@ namespace OpenMS
       vector<Size> fragment_pos(1, 0);
       for (Size i = 1; i < rna.size(); ++i)
       {
-        if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
-            boost::regex_search(rna[i]->getCode(), cuts_before_regex_))
+        bool is_match = true;
+        // can't match if we don't have enough bases before or after
+        if (i < cuts_after_regexes_.size() || rna.size() - i < cuts_before_regexes_.size())
+        {
+          is_match = false;
+        }
+        for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it) // Check if the cuts_after_regexes all match
+        {
+          if (!boost::regex_search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode(), *it))
+          {
+            is_match = false;
+          }
+        }
+        for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it) // Check if the cuts_before_regexes all match
+        {
+          if (!boost::regex_search(rna[i + (it - cuts_before_regexes_.begin())]->getCode(), *it))
+          {
+            is_match = false;
+          }
+        }
+        if (is_match)
         {
           fragment_pos.push_back(i);
         }
@@ -118,7 +160,10 @@ namespace OpenMS
         for (Size offset = 0; offset <= missed_cleavages_; ++offset)
         {
           Size end_it = start_it + offset + 1;
-          if (end_it >= fragment_pos.size()) break;
+          if (end_it >= fragment_pos.size())
+          {
+            break;
+          }
           Size end_pos = fragment_pos[end_it];
 
           Size length = end_pos - start_pos;
@@ -137,7 +182,8 @@ namespace OpenMS
                               Size min_length, Size max_length) const
   {
     output.clear();
-    if (rna.empty()) return;
+    if (rna.empty())
+      return;
 
     vector<pair<Size, Size>> positions = getFragmentPositions_(rna, min_length,
                                                                max_length);
@@ -162,8 +208,10 @@ namespace OpenMS
                               Size max_length) const
   {
     for (IdentificationData::ParentMoleculeRef parent_ref =
-           id_data.getParentMolecules().begin(); parent_ref !=
-           id_data.getParentMolecules().end(); ++parent_ref)
+             id_data.getParentMolecules().begin();
+         parent_ref !=
+         id_data.getParentMolecules().end();
+         ++parent_ref)
     {
       if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
       {
@@ -172,7 +220,7 @@ namespace OpenMS
 
       NASequence rna = NASequence::fromString(parent_ref->sequence);
       vector<pair<Size, Size>> positions =
-        getFragmentPositions_(rna, min_length, max_length);
+          getFragmentPositions_(rna, min_length, max_length);
 
       for (const auto& pos : positions)
       {
@@ -186,17 +234,17 @@ namespace OpenMS
           fragment.setThreePrimeMod(three_prime_gain_);
         }
         IdentificationData::IdentifiedOligo oligo(fragment);
-        Size end_pos = pos.first + pos.second; // past-the-end position!
+        Size end_pos = pos.first + pos.second;// past-the-end position!
         IdentificationData::MoleculeParentMatch match(pos.first, end_pos - 1);
         match.left_neighbor = (pos.first > 0) ? rna[pos.first - 1]->getCode() :
-          IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
+                                                IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
         match.right_neighbor = (end_pos < rna.size()) ?
-          rna[end_pos]->getCode() :
-          IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
+                                   rna[end_pos]->getCode() :
+                                   IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);
       }
     }
   }
 
-} //namespace
+} // namespace OpenMS

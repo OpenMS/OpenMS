@@ -43,13 +43,13 @@
  	<Peptide id="PEP_474525871221756682" name="IVEGLK[284.173608765599965]FPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7898004582401008768" name="VEPSWLGPLFPDK[284.173608765599965]TSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<PeptideEvidence id="PEV_12524258085768770586" peptide_ref="PEP_10306100746905639127" dBSequence_ref="PROT_15916652588957785155" post="K" pre="R" start="1538" end="1549" isDecoy="0"/>

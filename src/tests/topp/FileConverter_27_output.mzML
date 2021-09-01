@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_27_input.mzML" location="file:///home/hr/openmsall/source/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_27_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="527bd77ecd57f783f88a772decb6b7ff6628a57f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -58,9 +58,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="217" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="217" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 217"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 217.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -89,9 +94,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="218" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="218" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 218"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 218.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -120,9 +130,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="219" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="219" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 219"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 219.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -151,9 +166,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="220" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="220" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 220"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 220.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -182,9 +202,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="221" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="221" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 221"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 221.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -213,9 +238,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="222" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="222" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 222"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 222.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -244,9 +274,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="223" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="223" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 223"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 223.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -275,9 +310,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="245" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="245" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 245"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 245.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -306,9 +346,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="246" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="246" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 246"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 246.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -337,9 +382,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="247" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="247" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 247"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 247.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -368,9 +418,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="248" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="248" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 248"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 248.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -399,9 +454,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="249" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="249" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 249"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 249.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -430,9 +490,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="250" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="250" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 250"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 250.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -461,9 +526,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="307" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="307" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 307"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 307.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -492,9 +562,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="308" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="308" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 308"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 308.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -523,9 +598,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="309" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="309" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 309"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 309.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -554,9 +634,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="310" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="310" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 310"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 310.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -585,9 +670,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="311" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="311" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 311"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 311.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -616,9 +706,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="357" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="357" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 357"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 357.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -647,9 +742,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="358" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="358" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 358"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 358.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -678,9 +778,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="359" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="359" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 359"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 359.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -709,9 +814,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="360" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="360" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 360"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 360.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -740,9 +850,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 400"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 400.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -771,9 +886,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="401" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="401" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 401"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 401.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -802,9 +922,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="402" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="402" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 402"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 402.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -833,9 +958,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="403" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="403" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 403"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 403.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -864,9 +994,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="404" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="404" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 404"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 404.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -895,9 +1030,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 445"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 445.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -926,9 +1066,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="446" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="446" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 446"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 446.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -957,9 +1102,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="447" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="447" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 447"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 447.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -988,9 +1138,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="448" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="448" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 448"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 448.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1019,9 +1174,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="449" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="449" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 449"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 449.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1050,9 +1210,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 471"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 471.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1081,9 +1246,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="472" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="472" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 472"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 472.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1112,9 +1282,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="473" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="473" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 473"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 473.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1143,9 +1318,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="474" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="474" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 474"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 474.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1174,9 +1354,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="475" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="475" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 475"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 475.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1205,9 +1390,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="476" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="476" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 476"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 476.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1236,9 +1426,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="765" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="765" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 765"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 765.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1267,9 +1462,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="767" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="767" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 767"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 767.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1298,9 +1498,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="769" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="769" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 769"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 769.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1329,9 +1534,14 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="770" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="770" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="description" type="xsd:string" value="XIC @ 770"/>
+							<userParam name="description" type="xsd:string" value="XIC @ 770.0"/>
 						</activation>
 					</precursor>
 					<product>
@@ -1359,50 +1569,50 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="">3602</offset>
-		<offset idRef="">5289</offset>
-		<offset idRef="">6976</offset>
-		<offset idRef="">8683</offset>
-		<offset idRef="">10390</offset>
-		<offset idRef="">12097</offset>
-		<offset idRef="">13755</offset>
-		<offset idRef="">15413</offset>
-		<offset idRef="">17071</offset>
-		<offset idRef="">18729</offset>
-		<offset idRef="">20387</offset>
-		<offset idRef="">22046</offset>
-		<offset idRef="">23705</offset>
-		<offset idRef="">25364</offset>
-		<offset idRef="">27023</offset>
-		<offset idRef="">28682</offset>
-		<offset idRef="">30341</offset>
-		<offset idRef="">32000</offset>
-		<offset idRef="">33659</offset>
-		<offset idRef="">35347</offset>
-		<offset idRef="">37035</offset>
-		<offset idRef="">38723</offset>
-		<offset idRef="">40399</offset>
-		<offset idRef="">42058</offset>
-		<offset idRef="">43717</offset>
-		<offset idRef="">45376</offset>
-		<offset idRef="">47035</offset>
-		<offset idRef="">48694</offset>
-		<offset idRef="">50353</offset>
-		<offset idRef="">52012</offset>
-		<offset idRef="">53671</offset>
-		<offset idRef="">55330</offset>
-		<offset idRef="">56989</offset>
-		<offset idRef="">58648</offset>
-		<offset idRef="">60307</offset>
-		<offset idRef="">61966</offset>
-		<offset idRef="">63625</offset>
-		<offset idRef="">65284</offset>
-		<offset idRef="">66943</offset>
-		<offset idRef="">68602</offset>
-		<offset idRef="">70261</offset>
-		<offset idRef="">71920</offset>
+		<offset idRef="">3623</offset>
+		<offset idRef="">5568</offset>
+		<offset idRef="">7513</offset>
+		<offset idRef="">9478</offset>
+		<offset idRef="">11443</offset>
+		<offset idRef="">13408</offset>
+		<offset idRef="">15324</offset>
+		<offset idRef="">17240</offset>
+		<offset idRef="">19156</offset>
+		<offset idRef="">21072</offset>
+		<offset idRef="">22988</offset>
+		<offset idRef="">24905</offset>
+		<offset idRef="">26822</offset>
+		<offset idRef="">28739</offset>
+		<offset idRef="">30656</offset>
+		<offset idRef="">32573</offset>
+		<offset idRef="">34490</offset>
+		<offset idRef="">36407</offset>
+		<offset idRef="">38324</offset>
+		<offset idRef="">40270</offset>
+		<offset idRef="">42216</offset>
+		<offset idRef="">44162</offset>
+		<offset idRef="">46096</offset>
+		<offset idRef="">48013</offset>
+		<offset idRef="">49930</offset>
+		<offset idRef="">51847</offset>
+		<offset idRef="">53764</offset>
+		<offset idRef="">55681</offset>
+		<offset idRef="">57598</offset>
+		<offset idRef="">59515</offset>
+		<offset idRef="">61432</offset>
+		<offset idRef="">63349</offset>
+		<offset idRef="">65266</offset>
+		<offset idRef="">67183</offset>
+		<offset idRef="">69100</offset>
+		<offset idRef="">71017</offset>
+		<offset idRef="">72934</offset>
+		<offset idRef="">74851</offset>
+		<offset idRef="">76768</offset>
+		<offset idRef="">78685</offset>
+		<offset idRef="">80602</offset>
+		<offset idRef="">82519</offset>
 	</index>
 </indexList>
-<indexListOffset>73613</indexListOffset>
+<indexListOffset>84470</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

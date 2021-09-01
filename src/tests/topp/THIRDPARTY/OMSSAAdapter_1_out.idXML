@@ -1,28 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="OMSSAAdapter:1:in" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/spectra.mzML"/>
+				<UserParam type="string" name="OMSSAAdapter:1:out" value="OMSSAAdapter_1_out.tmp"/>
+				<UserParam type="float" name="OMSSAAdapter:1:precursor_mass_tolerance" value="5.0"/>
+				<UserParam type="string" name="OMSSAAdapter:1:precursor_error_units" value="ppm"/>
+				<UserParam type="float" name="OMSSAAdapter:1:fragment_mass_tolerance" value="0.3"/>
+				<UserParam type="string" name="OMSSAAdapter:1:database" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="int" name="OMSSAAdapter:1:min_precursor_charge" value="1"/>
+				<UserParam type="int" name="OMSSAAdapter:1:max_precursor_charge" value="3"/>
+				<UserParam type="stringList" name="OMSSAAdapter:1:fixed_modifications" value="[]"/>
+				<UserParam type="stringList" name="OMSSAAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
+				<UserParam type="string" name="OMSSAAdapter:1:omssa_executable" value="omssacl.exe"/>
+				<UserParam type="int" name="OMSSAAdapter:1:pc" value="1"/>
+				<UserParam type="int" name="OMSSAAdapter:1:hs" value="4"/>
+				<UserParam type="int" name="OMSSAAdapter:1:tez" value="1"/>
+				<UserParam type="int" name="OMSSAAdapter:1:tom" value="0"/>
+				<UserParam type="int" name="OMSSAAdapter:1:tem" value="0"/>
+				<UserParam type="float" name="OMSSAAdapter:1:tex" value="1446.940000000000055"/>
+				<UserParam type="int" name="OMSSAAdapter:1:zt" value="3"/>
+				<UserParam type="float" name="OMSSAAdapter:1:z1" value="0.95"/>
+				<UserParam type="int" name="OMSSAAdapter:1:zc" value="1"/>
+				<UserParam type="int" name="OMSSAAdapter:1:zcc" value="2"/>
+				<UserParam type="int" name="OMSSAAdapter:1:zoh" value="2"/>
+				<UserParam type="int" name="OMSSAAdapter:1:v" value="1"/>
+				<UserParam type="string" name="OMSSAAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="int" name="OMSSAAdapter:1:no" value="4"/>
+				<UserParam type="int" name="OMSSAAdapter:1:nox" value="40"/>
+				<UserParam type="string" name="OMSSAAdapter:1:i" value="1,4"/>
+				<UserParam type="int" name="OMSSAAdapter:1:sp" value="100"/>
+				<UserParam type="int" name="OMSSAAdapter:1:sb1" value="1"/>
+				<UserParam type="int" name="OMSSAAdapter:1:sct" value="0"/>
+				<UserParam type="string" name="OMSSAAdapter:1:x" value="0"/>
+				<UserParam type="int" name="OMSSAAdapter:1:hm" value="2"/>
+				<UserParam type="int" name="OMSSAAdapter:1:ht" value="6"/>
+				<UserParam type="int" name="OMSSAAdapter:1:hl" value="30"/>
+				<UserParam type="float" name="OMSSAAdapter:1:he" value="1.0"/>
+				<UserParam type="int" name="OMSSAAdapter:1:mm" value="128"/>
+				<UserParam type="string" name="OMSSAAdapter:1:mnm" value="false"/>
+				<UserParam type="float" name="OMSSAAdapter:1:is" value="0.0"/>
+				<UserParam type="float" name="OMSSAAdapter:1:ir" value="0.0"/>
+				<UserParam type="float" name="OMSSAAdapter:1:ii" value="0.0"/>
+				<UserParam type="int" name="OMSSAAdapter:1:chunk_size" value="0"/>
+				<UserParam type="string" name="OMSSAAdapter:1:log" value=""/>
+				<UserParam type="int" name="OMSSAAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="OMSSAAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="OMSSAAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="OMSSAAdapter:1:force" value="false"/>
+				<UserParam type="string" name="OMSSAAdapter:1:test" value="true"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-11-28T11:40:56" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-08-06T09:53:17" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="BSA2" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="BSA2" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="BSA3" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="BSA3" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="test2_rev" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="test2_rev" score="0.0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
 			<PeptideHit score="1.36050876414269e-16" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" protein_refs="PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
 			<PeptideHit score="2.3157988088133e-21" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" protein_refs="PH_0" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
-			<PeptideHit score="8.12582445679073e-21" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" protein_refs="PH_1" >
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
+			<PeptideHit score="8.125824456790731e-21" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

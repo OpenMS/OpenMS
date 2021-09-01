@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,10 +29,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
@@ -56,30 +58,39 @@ namespace OpenMS
   }
 
   Residue::Residue(const String& name,
-                   const String& three_letter_code,
-                   const String& one_letter_code,
-                   const EmpiricalFormula& formula) :
+            const String& three_letter_code,
+            const String& one_letter_code,
+            const EmpiricalFormula& formula,
+            double pka,
+            double pkb,
+            double pkc,
+            double gb_sc,
+            double gb_bb_l,
+            double gb_bb_r,
+            const set<String>& synonyms):
+                
     name_(name),
+    synonyms_(synonyms),
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
     formula_(formula),
-    average_weight_(0),
-    mono_weight_(0),
+    average_weight_(formula.getAverageWeight()),
+    mono_weight_(formula.getMonoWeight()),
     modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
-    pka_(0.0),
-    pkb_(0.0),
-    pkc_(-1.0),
-    gb_sc_(0.0),
-    gb_bb_l_(0.0),
-    gb_bb_r_(0.0)
+    pka_(pka),
+    pkb_(pkb),
+    pkc_(pkc),
+    gb_sc_(gb_sc),
+    gb_bb_l_(gb_bb_l),
+    gb_bb_r_(gb_bb_r)
   {
     if (!formula_.isEmpty())
     {
       internal_formula_ = formula_ - getInternalToFull();
     }
-  }
+  } 
 
   Residue::~Residue()
   {
@@ -97,7 +108,6 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    String ion("-ion");
     switch (res_type)
     {
     case Residue::Full:
@@ -113,37 +123,48 @@ namespace OpenMS
       return "C-terminal";
 
     case Residue::AIon:
-      return "a" + ion;
+      return "a-ion";
 
     case Residue::BIon:
-      return "b" + ion;
+      return "b-ion";
 
     case Residue::CIon:
-      return "c" + ion;
+      return "c-ion";
 
     case Residue::XIon:
-      return "x" + ion;
+      return "x-ion";
 
     case Residue::YIon:
-      return "y" + ion;
+      return "y-ion";
 
     case Residue::ZIon:
-      return "z" + ion;
+      return "z-ion";
+
+    case Residue::Precursor:
+      return "precursor-ion";
+
+    case Residue::BIonMinusH20:
+      return "b-H2O-ion";
+
+    case Residue::YIonMinusH20:
+      return "y-H2O-ion";
+
+    case Residue::BIonMinusNH3:
+      return "B-NH3-ion";
+
+    case Residue::YIonMinusNH3:
+      return "y-NH3-ion";
+
+    case Residue::NonIdentified:
+      return "Non-identified ion";
+
+    case Residue::Unannotated:
+      return "unannotated";
 
     default:
-      cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
+      cerr << "Error: Residue::getResidueTypeName - residue type has no name. The developer should add a residue name to Residue.cpp" << endl;
     }
     return "";
-  }
-
-  void Residue::setShortName(const String& short_name)
-  {
-    short_name_ = short_name;
-  }
-
-  const String& Residue::getShortName() const
-  {
-    return short_name_;
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)
@@ -437,36 +458,36 @@ namespace OpenMS
     }
   }
 
-  void Residue::setModification_(const ResidueModification& mod)
+  void Residue::setModification(const ResidueModification* mod)
   {
-    modification_ = &mod;
+    modification_ = mod;
 
     // update all the members
-    if (mod.getAverageMass() != 0)
+    if (mod->getAverageMass() != 0)
     {
-      average_weight_ = mod.getAverageMass();
+      average_weight_ = mod->getAverageMass();
     }
-    if (mod.getMonoMass() != 0)
+    if (mod->getMonoMass() != 0)
     {
-      mono_weight_ = mod.getMonoMass();
+      mono_weight_ = mod->getMonoMass();
     }
     // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
     // as in the case of XLMOD.obo modifications
-    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
     {
-      mono_weight_ += mod.getDiffMonoMass();
+      mono_weight_ += mod->getDiffMonoMass();
     }
 
     bool updated_formula(false);
-    if (!mod.getDiffFormula().isEmpty())
+    if (!mod->getDiffFormula().isEmpty())
     {
       updated_formula = true;
-      setFormula(getFormula() + mod.getDiffFormula());
+      setFormula(getFormula() + mod->getDiffFormula());
     }
-    if (mod.getFormula() != "" && !updated_formula)
+    else if (mod->getFormula() != "")
     {
       updated_formula = true;
-      String formula = mod.getFormula();
+      String formula = mod->getFormula();
       formula.removeWhitespaces();
       formula_ = EmpiricalFormula(formula);
     }
@@ -476,25 +497,14 @@ namespace OpenMS
       average_weight_ = formula_.getAverageWeight();
       mono_weight_ = formula_.getMonoWeight();
     }
-    else
-    {
-      if (mod.getAverageMass() != 0)
-      {
-        average_weight_ = mod.getAverageMass();
-      }
-      if (mod.getMonoMass() != 0)
-      {
-        mono_weight_ = mod.getMonoMass();
-      }
-    }
-
+    
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
-    if (mod.hasNeutralLoss())
+    if (mod->hasNeutralLoss())
     {
-      loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
-      loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
+      loss_formulas_.insert(loss_formulas_.end(), mod->getNeutralLossDiffFormulas().begin(), mod->getNeutralLossDiffFormulas().end());
+      loss_names_.insert(loss_names_.end(), loss_names_.begin(), loss_names_.end());
     }
   }
 
@@ -507,7 +517,7 @@ namespace OpenMS
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
-    setModification_(*mod);
+    setModification(mod);
   }
 
   const String& Residue::getModificationName() const
@@ -589,7 +599,6 @@ namespace OpenMS
   bool Residue::operator==(const Residue& residue) const
   {
     return name_ == residue.name_ &&
-           short_name_ == residue.short_name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
            one_letter_code_ == residue.one_letter_code_ &&
@@ -647,6 +656,22 @@ namespace OpenMS
        cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
+  }
+
+  String Residue::toString() const
+  {
+    if (getOneLetterCode().empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue does not have a OneLetterCode. This is a bug. Please report it!", "");
+    }
+    if (!isModified())
+    {
+      return one_letter_code_;
+    }
+    else
+    { // this already contains the origin!
+      return modification_->toString();
+    }
   }
 
   ostream& operator<<(ostream& os, const Residue& residue)

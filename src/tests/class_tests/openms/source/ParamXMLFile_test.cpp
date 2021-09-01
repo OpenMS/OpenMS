@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 
 ///////////////////////////
 
+#include <fstream>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 
@@ -58,6 +60,7 @@ START_SECTION((ParamXMLFile()))
 {
   ptr = new ParamXMLFile();
   TEST_NOT_EQUAL(ptr, nullPtr)
+  delete ptr;
 }
 END_SECTION
 
@@ -76,7 +79,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", ListUtils::create<String>("a,b,c"));
+p.addTags("test:float", {"a","b","c"});
 
 START_SECTION((void store(const String& filename, const Param& param) const))
   ParamXMLFile paramFile;
@@ -86,7 +89,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",ListUtils::create<String>("advanced"));
+	p2.setValue("test2:b:b1", 47.1,"",{"advanced"});
 	p2.setSectionDescription("test2:a","adesc");
 
 	//exception
@@ -119,7 +122,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	//advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
-	p7.setValue("true",5,"",ListUtils::create<String>("advanced"));
+	p7.setValue("true",5,"",{"advanced"});
 	p7.setValue("false",5,"");
 
 	paramFile.store(filename,p7);
@@ -151,7 +154,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setMinFloat("float_min_max",0.1);
 	p5.setMaxFloat("float_min_max",10.1);
 
-	vector<String> strings;
+	vector<std::string> strings;
 	p5.setValue("string","bli");
 	strings.push_back("bla");
 	strings.push_back("bluff");
@@ -159,11 +162,9 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setValidStrings("string_2",strings);
 
 		//list restrictions
-	vector<String> strings2;
-	strings2.push_back("xml");
-	strings2.push_back("txt");
-	p5.setValue("stringlist2",ListUtils::create<String>("a.txt,b.xml,c.pdf"));
-	p5.setValue("stringlist",ListUtils::create<String>("aa.C,bb.h,c.doxygen"));
+	vector<std::string> strings2 = {"xml", "txt"};
+	p5.setValue("stringlist2",std::vector<std::string>{"a.txt","b.xml","c.pdf"});
+	p5.setValue("stringlist",std::vector<std::string>{"aa.C","bb.h","c.doxygen"});
 	p5.setValidStrings("stringlist2",strings2);
 
 	p5.setValue("intlist",ListUtils::create<Int>("2,5,10"));
@@ -249,21 +250,21 @@ END_SECTION
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
 {
 	Param p;
-	p.setValue("stringlist", ListUtils::create<String>("a,bb,ccc"), "StringList Description");
+	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"}, "StringList Description");
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", ListUtils::create<String>(""));
+	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", ListUtils::create<String>("1"));
+	p.setValue("stringlist3", std::vector<std::string>{"1"});
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
 	p.setValue("doublelist3", ListUtils::create<double>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
-  p.setValidStrings("file_parameter", ListUtils::create<String>("*.mzML,*.mzXML"));
-  p.setValue("advanced_parameter", "", "This is an advanced parameter.", ListUtils::create<String>("advanced"));
+  p.setValidStrings("file_parameter", std::vector<std::string>{"*.mzML","*.mzXML"});
+  p.setValue("advanced_parameter", "", "This is an advanced parameter.", {"advanced"});
   p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
   p.setValidStrings("flag",{"true","false"});
   p.setValue("noflagJustTrueFalse", "true", "This is not a flag but has a boolean meaning.");
@@ -282,14 +283,14 @@ START_SECTION([EXTRA] loading and storing of lists)
   ParamXMLFile paramFile;
 
 	Param p;
-	p.setValue("stringlist", ListUtils::create<String>("a,bb,ccc"));
+	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"});
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", ListUtils::create<String>(""));
+	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", ListUtils::create<String>("1"));
+	p.setValue("stringlist3", std::vector<std::string>{"1"});
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
 	p.setValue("doublelist2", ListUtils::create<double>(""));
@@ -304,50 +305,50 @@ START_SECTION([EXTRA] loading and storing of lists)
 
 	TEST_EQUAL(p2.size(),12);
 
-	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
-	StringList list = p2.getValue("stringlist");
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), ParamValue::STRING_LIST)
+	std::vector<std::string> list = p2.getValue("stringlist");
 	TEST_EQUAL(list.size(),3)
 	TEST_EQUAL(list[0],"a")
 	TEST_EQUAL(list[1],"bb")
 	TEST_EQUAL(list[2],"ccc")
 
-	TEST_EQUAL(p2.getValue("stringlist2").valueType(), DataValue::STRING_LIST)
+	TEST_EQUAL(p2.getValue("stringlist2").valueType(), ParamValue::STRING_LIST)
 	list = p2.getValue("stringlist2");
 	TEST_EQUAL(list.size(),0)
 
-	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), ParamValue::STRING_LIST)
 	list = p2.getValue("stringlist3");
 	TEST_EQUAL(list.size(),1)
 	TEST_EQUAL(list[0],"1")
 
-	TEST_EQUAL(p2.getValue("intlist").valueType(), DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist").valueType(), ParamValue::INT_LIST)
 	IntList intlist = p2.getValue("intlist");
 	TEST_EQUAL(intlist.size(),3);
 	TEST_EQUAL(intlist[0], 1)
 	TEST_EQUAL(intlist[1], 22)
 	TEST_EQUAL(intlist[2], 333)
 
-	TEST_EQUAL(p2.getValue("intlist2").valueType(),DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist2").valueType(),ParamValue::INT_LIST)
 	intlist = p2.getValue("intlist2");
 	TEST_EQUAL(intlist.size(),0)
 
-	TEST_EQUAL(p2.getValue("intlist3").valueType(),DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist3").valueType(),ParamValue::INT_LIST)
 	intlist = p2.getValue("intlist3");
 	TEST_EQUAL(intlist.size(),1)
 	TEST_EQUAL(intlist[0],1)
 
-	TEST_EQUAL(p2.getValue("doublelist").valueType(), DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist").valueType(), ParamValue::DOUBLE_LIST)
 	DoubleList doublelist = p2.getValue("doublelist");
 	TEST_EQUAL(doublelist.size(),3);
 	TEST_EQUAL(doublelist[0], 1.22)
 	TEST_EQUAL(doublelist[1], 2.33)
 	TEST_EQUAL(doublelist[2], 4.55)
 
-	TEST_EQUAL(p2.getValue("doublelist2").valueType(),DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist2").valueType(),ParamValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist2");
 	TEST_EQUAL(doublelist.size(),0)
 
-	TEST_EQUAL(p2.getValue("doublelist3").valueType(),DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist3").valueType(),ParamValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist3");
 	TEST_EQUAL(doublelist.size(),1)
 	TEST_EQUAL(doublelist[0],1.4)
