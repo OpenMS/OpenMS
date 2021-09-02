@@ -86,7 +86,9 @@ namespace OpenMS
     for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
     {
       if (spec_it->getMSLevel() != 1)
+      {
         continue;
+      }
       for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
       {
         tmp.inc(peak_it->getIntensity());
@@ -105,7 +107,9 @@ namespace OpenMS
     for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
     {
       if (s_it->getMSLevel() != 1)
+      {
         continue;
+      }
       //float arrays
       for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
       {
@@ -114,9 +118,13 @@ namespace OpenMS
           for (Size i = 0; i < it->size(); ++i)
           {
             if ((*it)[i] < m_min)
+            {
               m_min = (*it)[i];
+            }
             if ((*it)[i] > m_max)
+            {
               m_max = (*it)[i];
+            }
           }
           break;
         }
@@ -129,9 +137,13 @@ namespace OpenMS
           for (Size i = 0; i < it->size(); ++i)
           {
             if ((*it)[i] < m_min)
+            {
               m_min = (*it)[i];
+            }
             if ((*it)[i] > m_max)
+            {
               m_max = (*it)[i];
+            }
           }
           break;
         }

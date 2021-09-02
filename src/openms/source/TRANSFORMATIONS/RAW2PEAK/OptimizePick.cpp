@@ -71,8 +71,9 @@ namespace OpenMS
   void OptimizePick::optimize(std::vector<PeakShape> & peaks, Data & data)
   {
     if (peaks.empty())
+    {
       return;
-
+    }
     size_t global_peak_number = 0;
     data.peaks.assign(peaks.begin(), peaks.end());
 

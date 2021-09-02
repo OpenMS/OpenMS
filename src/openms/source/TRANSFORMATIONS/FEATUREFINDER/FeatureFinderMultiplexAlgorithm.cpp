@@ -677,8 +677,10 @@ namespace OpenMS
             }
           }
 
-          if (intensity_sum <= 0) continue;
-
+          if (intensity_sum <= 0)
+          {
+            continue;
+          }
           rt /= intensity_sum;
           mz /= intensity_sum;
 
@@ -724,9 +726,9 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (Feature& feat : features)
           {
-            feature_map_.push_back(*it);
+            feature_map_.push_back(feat);
           }
         }
 
@@ -883,9 +885,9 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (Feature& feat : features)
           {
-            feature_map_.push_back(*it);
+            feature_map_.push_back(feat);
           }
         }
 

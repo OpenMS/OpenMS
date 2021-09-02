@@ -156,8 +156,9 @@ namespace OpenMS
   {
     QList<QTreeWidgetItem *> list = treeview_->selectedItems();
     if (list.empty())
+    {
       return;
-
+    }
     ws_->setCurrentIndex(list[0]->text(1).toInt());
   }
 
@@ -1035,9 +1036,9 @@ namespace OpenMS
   void MetaDataBrowser::add(Feature & feature)
   {
     //peptide ids
-    for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
+    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
     {
-      add(*it);
+      add(pep);
     }
 
     add(static_cast<MetaInfoInterface &>(feature));
@@ -1048,9 +1049,9 @@ namespace OpenMS
   void MetaDataBrowser::add(ConsensusFeature & feature)
   {
     //peptide ids
-    for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
+    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
     {
-      add(*it);
+      add(pep);
     }
 
     add(static_cast<MetaInfoInterface &>(feature));
