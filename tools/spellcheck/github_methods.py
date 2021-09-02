@@ -1,9 +1,17 @@
 from spellcheck import *
 from github.Repository import Repository
-from github import ContentFile, PaginatedList
+from github import Github, ContentFile, PaginatedList
 
 
-def words_to_comments(unknown_words: defaultdict) -> list:
+INFORMATION = """
+Please read the provided README.md in `tools/spellcheck` carefully before continuing.
+State the replacement and or the vocabulary index by replacing the whitespace in the respective ` ` code-box.
+Word replacements, that are assigned a vocabulary index, will be ignored, if the replacement already exists in
+the vocabulary.
+"""
+
+
+def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
     """
     Convert unknown words to github issue body
 
@@ -14,7 +22,7 @@ def words_to_comments(unknown_words: defaultdict) -> list:
     comment = ''
     for i, word in enumerate(sorted(unknown_words.keys(), key=str.casefold)):
         properties = unknown_words[word]
-        if len(comment) > 10000:
+        if len(comment) > 50000:
             comments.append(str(comment))
             comment = ''
         comment += f'[{i + 1}] "**{word}**" in file(s):\n'
@@ -66,7 +74,24 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
     return unknown_words
 
 
-def process_actions_github(reference: dict, unknown_words: defaultdict, repo: Repository, branch: str):
+def update_issue(issue, title, comments, len_unknown_words):
+    body = f"---\n{title}\n---\n\n" \
+           f"{INFORMATION}\n\n" \
+           f"**Vocabulary**\n" \
+           f"{get_vocab_keys('::', '......', '>')}\n\n" \
+           f"Found {len_unknown_words} unknown words!"
+    issue.update(body)
+
+    for comment in issue.get_comments():
+        comment.delete()
+
+    for n_comment, comment in enumerate(comments):
+        if n_comment >= 12:
+            issue.create_comment('End of accepted number of comments reached. Printed words need to be processed first')
+        issue.create_comment(body=comment)
+
+
+def process_actions_github(reference: dict, unknown_words: Union[dict, defaultdict], repo: Repository, branch: str):
     """
     Process actions of unknown words in github
 

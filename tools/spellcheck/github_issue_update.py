@@ -1,14 +1,5 @@
 from github_methods import *
-from github import Github
 import argparse
-
-
-INFORMATION = """
-Please read the provided README.md in `tools/spellcheck` carefully before continuing.
-State the replacement and or the vocabulary index by replacing the whitespace in the respective ` ` code-box.
-Word replacements, that are assigned a vocabulary index, will be ignored, if the replacement already exists in
-the vocabulary.
-"""
 
 
 def parse_args():
@@ -43,7 +34,6 @@ def main():
         edited_files = {Path(file.filename) for file in commit.files}
 
     unknown_words = get_words(edited_files)
-    print(unknown_words)
 
     if len(unknown_words) > 0:
 
@@ -61,18 +51,12 @@ def main():
                         old_unknown_words[word]['files'][file] = lines
                 unknown_words = {key: old_unknown_words[key] for key in
                                  sorted(old_unknown_words.keys(), key=str.casefold)}
-
-            print(unknown_words)
-            comments = words_to_comments(unknown_words)
-            for comment in issue.get_comments():
-                comment.delete()
-            for comment in comments:
-                issue.create_comment(body=comment)
         else:
             # Create new issue
-            body = f"---\n{title}\n---\n\n{INFORMATION}\n\n**Vocabulary**\n{get_vocab_keys('::', '......', '>')}"
-            issue = repo.create_issue(title, body)
-            issue.set_labels('spellcheck')
+            issue = repo.create_issue(title, '', labels='spellcheck')
+
+        comments = words_to_comments(unknown_words)
+        update_issue(issue, title, comments, len(unknown_words))
 
 
 if __name__ == '__main__':

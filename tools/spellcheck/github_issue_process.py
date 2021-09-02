@@ -1,5 +1,4 @@
 from github_methods import *
-from github import Github
 import argparse
 
 
@@ -22,6 +21,7 @@ def main():
     repo = g.get_repo(args.repository)
     issue = repo.get_issue(args.issue_number)
     branch = args.title.split('/')[-1]
+    title = f'Spell-Check Results - {args.repository.split("/")[0]}/{branch}'
 
     reference = set_ref()
 
@@ -35,10 +35,7 @@ def main():
 
     # Update issue comments
     comments = words_to_comments(unknown_words)
-    for comment in issue.get_comments():
-        comment.delete()
-    for comment in comments:
-        issue.create_comment(comment)
+    update_issue(issue, title, comments, len(unknown_words))
 
 
 if __name__ == '__main__':
