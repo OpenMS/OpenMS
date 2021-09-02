@@ -64,8 +64,9 @@ namespace OpenMS
   GaussModel & GaussModel::operator=(const GaussModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     setParameters(source.getParameters());
     InterpolationModel::operator=(source);
     updateMembers_();
@@ -78,8 +79,9 @@ namespace OpenMS
     LinearInterpolation::container_type & data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
-
+    }
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
     for (UInt i = 0; pos < max_; ++i)

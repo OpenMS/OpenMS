@@ -191,12 +191,17 @@ namespace OpenMS
     double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz);
-
+    }
     return res;
   }
 
@@ -205,12 +210,17 @@ namespace OpenMS
     double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
-
+    }
     return res;
   }
 
@@ -218,12 +228,17 @@ namespace OpenMS
   {
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
-
+    }
     return res;
   }
 

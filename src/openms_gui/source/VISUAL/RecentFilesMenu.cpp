@@ -138,7 +138,10 @@ namespace OpenMS
   void RecentFilesMenu::itemClicked_()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    if (!action) return;
+    if (!action)
+    {
+      return;
+    }
     String filename = String(action->text());
     emit recentFileClicked(filename);
   }

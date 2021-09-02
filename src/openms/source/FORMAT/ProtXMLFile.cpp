@@ -113,7 +113,9 @@ namespace OpenMS
       date.set(time);
 
       if (!date.isValid())
+      {
         OPENMS_LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
+      }
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);

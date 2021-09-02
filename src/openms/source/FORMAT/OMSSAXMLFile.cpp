@@ -285,12 +285,13 @@ namespace OpenMS
         {
           String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
           UInt position(0);
-          for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
+          for (const Residue& ait : seq)
           {
-            if (ait->getOneLetterCode() == origin)
+            if (ait.getOneLetterCode() == origin)
             {
               seq.setModification(position, *it);
             }
+            ++position;
           }
         }
       }

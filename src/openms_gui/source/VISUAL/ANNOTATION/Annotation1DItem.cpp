@@ -98,7 +98,10 @@ namespace OpenMS
     QString text = QInputDialog::getText(nullptr, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
     if (ok && !text.isEmpty())
     {
-      if (text == getText()) return false;
+      if (text == getText())
+      {
+        return false;
+      }
       this->setText(text);
       return true;
     }

@@ -85,8 +85,10 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
-
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " success" << std::endl;
+    }
     return true;
   }
 

@@ -106,7 +106,10 @@ namespace OpenMS
       {
         has_pyroglu_q = true;
       }
-      if (has_pyroglu_e && has_pyroglu_q) break;
+      if (has_pyroglu_e && has_pyroglu_q)
+      {
+        break;
+      }
     }
 
     map<String, double> origin_set;

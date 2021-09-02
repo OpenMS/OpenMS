@@ -128,8 +128,9 @@ namespace OpenMS
   void Plot2DCanvas::highlightPeak_(QPainter & painter, const PeakIndex & peak)
   {
     if (!peak.isValid())
+    {
       return;
-
+    }
     //determine coordinates;
     QPoint pos;
     if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -186,8 +187,9 @@ namespace OpenMS
   {
     ///no layers => return invalid peak index
     if (layers_.empty())
+    {
       return PeakIndex();
-
+    }
     const auto center = widgetToData_(pos);
     //Constructing the area corrects swapped mapping of RT and m/z
     AreaType area(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5)));
@@ -264,7 +266,10 @@ namespace OpenMS
       for (const auto& chrom : exp.getChromatograms())
       {
         ++count;
-        if (chrom.empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
+        if (chrom.empty())
+        {
+          continue;   // ensure that empty chromatograms are not examined (iter->front = segfault)
+        } 
 
         mz_origin = chrom.getPrecursor().getMZ();
 
@@ -482,7 +487,10 @@ namespace OpenMS
       QPoint posi2;
       for (const auto& chrom : exp.getChromatograms())
       {
-        if (chrom.empty()) continue;
+        if (chrom.empty())
+        {
+          continue;
+        }
         mz_origin = chrom.getPrecursor().getMZ();
         dataToWidget_(mz_origin, chrom.front().getRT(), posi);
         dataToWidget_(mz_origin, chrom.back().getRT(), posi2);
@@ -649,8 +657,10 @@ namespace OpenMS
       //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
 
       // reached the end of data
-      if (rt_end >= (--map.end())->getRT()) break;
-
+      if (rt_end >= (--map.end())->getRT())
+      {
+        break;
+      }
       //determine the relevant spectra and reserve an array for the peak indices
       vector<Size> scan_indices, peak_indices;
       for (Size i = scan_index; i < map.size(); ++i)
@@ -669,8 +679,9 @@ namespace OpenMS
       //cout << "  scans: " << scan_indices.size() << endl;
 
       if (scan_indices.empty())
+      {
         continue;
-
+      }
       //iterate over all pixels (m/z dimension)
       for (Size mz = 0; mz < mz_pixel_count; ++mz)
       {
@@ -686,7 +697,9 @@ namespace OpenMS
           for (; p < map[s].size(); ++p)
           {
             if (map[s][p].getMZ() >= mz_end)
+            {
               break;
+            }
             if (map[s][p].getIntensity() > max && layer.filters.passes(map[s], p))
             {
               max = map[s][p].getIntensity();
@@ -904,11 +917,14 @@ namespace OpenMS
         }
         double rt = pep_begin->getRT();
         if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1])
+        {
           continue;
+        }
         double mz = getIdentificationMZ_(layer_index, *pep_begin);
         if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0])
+        {
           continue;
-
+        }
         //draw dot
         QPoint pos;
         dataToWidget_(mz, rt, pos);
@@ -982,11 +998,11 @@ namespace OpenMS
       QPoint consensus_pos;
       dataToWidget_(cf.getMZ(), cf.getRT(), consensus_pos);
       //iterate over elements
-      for (ConsensusFeature::HandleSetType::const_iterator element = cf.begin(); element != cf.end(); ++element)
+      for (const FeatureHandle& element : cf)
       {
         //calculate position of consensus element
         QPoint pos;
-        dataToWidget_(element->getMZ(), element->getRT(), pos);
+        dataToWidget_(element.getMZ(), element.getRT(), pos);
         //paint line
         p.drawLine(consensus_pos, pos);
         //paint point
@@ -1055,7 +1071,10 @@ namespace OpenMS
     {
       gradient_str = linear_gradient_.toString();
     }
-    if (layers_.empty()) return;
+    if (layers_.empty())
+    {
+      return;
+    }
     layers_.getCurrentLayer().param.setValue("dot:gradient", gradient_str);
     for (Size i = 0; i < layers_.getLayerCount(); ++i)
     {
@@ -1811,8 +1830,9 @@ namespace OpenMS
   void Plot2DCanvas::drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end)
   {
     if (!start.isValid())
+    {
       return;
-
+    }
     //determine coordinates;
     double mz = 0.0;
     double rt = 0.0;
@@ -2819,26 +2839,50 @@ namespace OpenMS
 
   void Plot2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( -0.05, 0.0 );
-    else translateVisibleArea_( 0.0, -0.05 );
+    if ( isMzToXAxis() )
+    {
+      translateVisibleArea_( -0.05, 0.0 );
+    }
+    else
+    {
+      translateVisibleArea_( 0.0, -0.05 );
+    }
   }
 
   void Plot2DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.05, 0.0 );
-    else translateVisibleArea_( 0.0, 0.05 );
+    if ( isMzToXAxis() )
+    {
+      translateVisibleArea_( 0.05, 0.0 );
+    }
+    else
+    {
+      translateVisibleArea_( 0.0, 0.05 );
+    }
   }
 
   void Plot2DCanvas::translateForward_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, 0.05 );
-    else translateVisibleArea_( 0.05, 0.0 );
+    if ( isMzToXAxis() )
+    {
+      translateVisibleArea_( 0.0, 0.05 );
+    }
+    else 
+    {
+      translateVisibleArea_( 0.05, 0.0 );
+    }
   }
 
   void Plot2DCanvas::translateBackward_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, -0.05 );
-    else translateVisibleArea_( -0.05, 0.0 );
+    if ( isMzToXAxis() )
+    {
+      translateVisibleArea_( 0.0, -0.05 );
+    }
+    else
+    {
+      translateVisibleArea_( -0.05, 0.0 );
+    }
   }
 
   void Plot2DCanvas::keyPressEvent(QKeyEvent * e)
