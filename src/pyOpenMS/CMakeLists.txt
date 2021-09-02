@@ -34,6 +34,7 @@
 
 project("pyOpenMS")
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+include(../../cmake/build_system_macros.cmake) # for find_boost (+to be the same as for OpenMS)
 
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
@@ -354,6 +355,14 @@ if (WITH_CRAWDAD)
   set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
 endif()
 
+if(NOT TARGET OpenMS)
+  find_package(OpenMS)
+  include(../../cmake/modules/GetGitRevisionDescription.cmake) #TODO set module path instead?
+  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+else()
+  # Find Qt5 includes for pyOpenMS again, since they are not cached across subdirectories
+  find_package(Qt5 COMPONENTS Core Network REQUIRED)
+endif()
 #-----------------------------------------------------------------------------
 # since boost 1.69 there seem to be symbols visible/imported after linking it
 # statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
@@ -402,12 +411,7 @@ set(OPENMS_GIT_LC_DATE_REPLACED_LIST "${OPENMS_GIT_LC_DATE_REPLACED}")
 separate_arguments(OPENMS_GIT_LC_DATE_REPLACED_LIST)
 list(GET OPENMS_GIT_LC_DATE_REPLACED_LIST 0 OPENMS_GIT_LC_DATE_FORMAT)
 
-###debug
-set(OPENMS_GIT_LC_DATE ${OPENMS_GIT_LC_DATE})
-###debug 
-
-set(OPENMS_GIT_LC_DATE_FORMAT ${OPENMS_GIT_LC_DATE_FORMAT})
-
+#TODO BIG Check if we can replicate all the vars inside there to be standalone. Just based on the (found) OpenMS target
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
@@ -423,8 +427,6 @@ endif()
 #------------------------------------------------------------------------------
 # collection of include dirs that is necessary to compile pyOpenMS
 
-# Find Qt5 includes for pyOpenMS
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
 get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
 set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
@@ -432,6 +434,7 @@ exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_I
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
+#TODO maybe we need to rewrite to read from the target properties or export these variables
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
@@ -440,7 +443,7 @@ set(PYOPENMS_INCLUDE_DIRS
 
 list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
 
-set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
+set(CONTRIB_DIR ${CMAKE_PREFIX_PATH}) #TODO This seems a bit overkill. Do we really need all those folders as "library_dirs"?
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 add_custom_target(
@@ -466,6 +469,10 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
 else()
     ## Assemble common required non-system libraries
     ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+    # TODO OPENMS_CONTRIB_LIBS might be tricky to obtain in a separate pyopenms build. We probably need to expand all CMAKE_PREFIX_PATHs + lib.
+    #  Not sure if this is even enough since for hardcoded paths in an imported OpenMS target (i.e. dependencies that do not have an imported target yet),
+    #  we have no information on which prefixes were searched. And they do not need to be specified again for searching in a separate pyopenms build since they are hardcoded.
+    #  We probably have to separate hardcoded paths from targets
     foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
             TARGET prepare_pyopenms_libs POST_BUILD
@@ -524,7 +531,7 @@ ELSE()
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
-add_dependencies(pyopenms_build OpenMS)
+add_dependencies(pyopenms_build OpenMS) # TODO is this necessary? the predecessor prepare_pyopenms_libs already has the dependency.
 
 if(APPLE)
 add_custom_command(
@@ -556,17 +563,7 @@ ENDIF()
 #####                      Testing pyOpenMS                           #####
 ###########################################################################
 
-# Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we don't see which tests
-# actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
-add_test(NAME test_pyopenms_unittests
-         COMMAND ${PYTHON_EXECUTABLE} run_nose.py
-         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
-        )
-if(NOT WIN32)
-    set_tests_properties(test_pyopenms_unittests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
-endif()
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
@@ -599,6 +596,20 @@ set(pyopenms_unittest_testfiles
 set(pyopenms_integrationtest_testfiles
 test_MRMRTNormalizer.py
 )
+
+# Original test using the "run_nose.py" script, testing all unittests at once
+# => this is suboptimal for ctest and cdash because we don't see which tests
+# actually have gone wrong. Thus we add additional tests below ...
+
+add_test(NAME test_pyopenms_unittests
+         COMMAND ${PYTHON_EXECUTABLE} run_nose.py
+         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
+         )
+if(NOT WIN32)
+  #TODO does the following really have an effect? ${CMAKE_BINARY_DIR} should be build/pyopenms. Is there ever a lib folder?
+  # see also following calls of set_tests_properties
+  set_tests_properties(test_pyopenms_unittests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+endif()
 
 # Loop through all the test files
 foreach (t ${pyopenms_unittest_testfiles})

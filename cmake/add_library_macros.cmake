@@ -132,15 +132,20 @@ function(openms_add_library)
   CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
+  # Add the library
+  add_library(${openms_add_library_TARGET_NAME})
+  target_sources(${openms_add_library_TARGET_NAME} PRIVATE ${openms_add_library_SOURCE_FILES})
+  
+  #------------------------------------------------------------------------------
   # Include directories
 
   ## TODO BIG figure out how to make the paths relative to the super projects folder.
   target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>
-                             $<INSTALL_INTERFACE:include/mylib>  # <prefix>/include/mylib
+                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:include/${openms_add_library_TARGET_NAME}>"  # <prefix>/include/OpenMS
                              )
-  target_include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
-  target_include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_EXTERNAL_INCLUDES})
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
 
   #------------------------------------------------------------------------------
   # Check if we want a unity build
@@ -149,9 +154,7 @@ function(openms_add_library)
   	convert_to_unity_build(${openms_add_library_TARGET_NAME}_UnityBuild openms_add_library_SOURCE_FILES)
   endif()
 
-  #------------------------------------------------------------------------------
-  # Add the library
-  add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.

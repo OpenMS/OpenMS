@@ -56,6 +56,9 @@ foreach(i ${TOPP_executables})
   endif()
 endforeach(i)
 
+# TODO move stuff involving thirdparty includes to library algorithms if possible
+target_include_directories(ProteinInference PRIVATE ${EVERGREEN_INCLUDE_DIRECTORY})
+
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
   ## TODO Check if the find command actually does anything but double check.

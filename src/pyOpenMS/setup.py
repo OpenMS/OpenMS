@@ -92,10 +92,6 @@ with open("pyopenms/version.py", "w") as fp:
 if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
     OPEN_MS_CONTRIB_BUILD_DIRS = OPEN_MS_CONTRIB_BUILD_DIRS[:-1]
 
-for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
-    if os.path.exists(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR, "lib")):
-        break
-
 
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared

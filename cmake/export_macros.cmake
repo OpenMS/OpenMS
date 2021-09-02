@@ -51,7 +51,7 @@ macro(openms_export_targets )
   configure_package_config_file(
     "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/OpenMSConfig.cmake"
-    @ONLY
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/OpenMS/cmake
   )
 
   # write OpenMSConfigVersion.cmake

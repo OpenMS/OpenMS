@@ -58,8 +58,11 @@ add_subdirectory(thirdparty)
 openms_add_library(TARGET_NAME OpenSwathAlgo
                    SOURCE_FILES ${OpenSwathAlgoFiles}
                    HEADER_FILES ${OpenSwathAlgoHeaders}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include ${MITOOLBOX_INCLUDE_DIRECTORY} ${MITOOLBOX_SOURCE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include
+                                     ${PROJECT_BINARY_DIR}/include
+                                     ${MITOOLBOX_INCLUDE_DIRECTORY}
+                                     ${MITOOLBOX_SOURCE_DIRECTORY} # some source files include other sources
+                   PRIVATE_INCLUDES ${Boost_INCLUDE_DIRS}
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

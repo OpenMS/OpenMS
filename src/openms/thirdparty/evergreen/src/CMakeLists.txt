@@ -38,6 +38,6 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 # export include directory
 set(EVERGREEN_INCLUDE_DIRECTORY
   ${PROJECT_SOURCE_DIR}
-  CACHE
-  INTERNAL "evergreen include directories" FORCE
+    CACHE
+    INTERNAL "evergreen include directories" FORCE
 )

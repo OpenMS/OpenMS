@@ -122,7 +122,7 @@ if (OPENMS_CONTRIB_LIBS)
   set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
 endif()
 
-## Sort include directories into contrib ones (prefered in order) and system ones.
+## Sort include directories into contrib ones (preferred in order) and system ones.
 foreach (includedir
          ${SEQAN_INCLUDE_DIRS}
          ${SQLite_INCLUDE_DIR}
@@ -153,12 +153,12 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
+                                    ${EVERGREEN_INCLUDE_DIRECTORY}
+                                    ${SEQAN_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
-                                     ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${SEQAN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
+                                     #${OpenSwathAlgo_INCLUDE_DIRECTORIES} # Should be included transitively through linking
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo

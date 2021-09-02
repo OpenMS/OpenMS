@@ -71,16 +71,22 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-set(CF_USECOINOR 1)
-find_package(COIN REQUIRED)
+find_package(COIN)
+if(COIN_FOUND)
+  set(CF_USECOINOR 1)
+endif()
 
 #------------------------------------------------------------------------------
 # GLPK
-find_package(GLPK REQUIRED)
+find_package(GLPK)
 if (GLPK_FOUND)
 	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
 	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
 	set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+endif()
+
+if (NOT COIN_FOUND AND NOT GLPK_FOUND)
+  message(FATAL_ERROR "At least one solver, GLPK or COINOR needs to be installed")
 endif()
 
 #------------------------------------------------------------------------------

@@ -32,3 +32,4 @@ cmake-build-release
 cmake-build-*
 *.code-workspace
 .vs
+/pyopenms_build/

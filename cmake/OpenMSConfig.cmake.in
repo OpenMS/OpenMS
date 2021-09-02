@@ -32,8 +32,31 @@
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
+@PACKAGE_INIT@
+
 ### CMake OpenMS config file for external code
 ### configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in
+include(CMakeFindDependencyMacro)
+
+#------------------------------------------------------------------------------
+
+#TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
+find_dependency(Qt5 COMPONENTS Core Network)
+if (@OPENMP_FOUND@)
+  find_dependency(Threads)
+  find_dependency(OpenMP COMPONENTS CXX)
+endif()
+
+#TODO the above are the only libs whose FindModules (or Configs) currently define (imported) targets (the rest only populates LIB_INCLUDE_DIRS etc.). For some libs we could upgrade or enable it
+# (Boost, Xerces, ..) but for most we would need to write this ourselves. We need to make sure that we specify STATIC
+# or SHARED correctly so that (in theory) only SHARED libs show up in our targets' interfaces and only those should be searched again by find_dependency by our config
+# If we adapt our own FindModules, we also need to ship them https://stackoverflow.com/questions/44920389/installing-a-cmake-library-also-ship-find-modules-for-the-dependencies
+# Another nice way to automate this and also add an important version requirement is https://stackoverflow.com/questions/46836767/generic-transitive-behavior-in-cmake-package-configuration-file-find-dependen
+# Instead of going through the global FOUND_PACKAGES, we could go through the INTERFACE_LINK_LIBRARIES property of our libs
+# and list all the targets which do not have hardcoded paths. We need to separate library name and components. Qt5::Core -> find_dependency(Qt5 ${Qt5_VERSION} COMPONENTS Core)
+# But then there is OpenMP::OpenMP_CXX.. which has a different pattern, so forget about it. Just specify manually.
+
+check_required_components(OpenMS)
 
 # we need this to reference the target file
 get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
