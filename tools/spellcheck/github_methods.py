@@ -14,7 +14,7 @@ def words_to_comments(unknown_words: defaultdict) -> list:
     comment = ''
     for i, word in enumerate(sorted(unknown_words.keys(), key=str.casefold)):
         properties = unknown_words[word]
-        if len(comment) > 50000:
+        if len(comment) > 10000:
             comments.append(str(comment))
             comment = ''
         comment += f'[{i + 1}] "**{word}**" in file(s):\n'
