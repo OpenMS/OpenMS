@@ -43,6 +43,7 @@ def main():
         edited_files = {Path(file.filename) for file in commit.files}
 
     unknown_words = get_words(edited_files)
+    print(unknown_words)
 
     if len(unknown_words) > 0:
 
@@ -61,6 +62,7 @@ def main():
                 unknown_words = {key: old_unknown_words[key] for key in
                                  sorted(old_unknown_words.keys(), key=str.casefold)}
 
+            print(unknown_words)
             comments = words_to_comments(unknown_words)
             for comment in issue.get_comments():
                 comment.delete()
