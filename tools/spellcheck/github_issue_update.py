@@ -68,16 +68,7 @@ def main():
                 issue.create_comment(body=comment)
         else:
             # Create new issue
-            body = f"""
-            ---
-            {title}
-            ---
-            
-            {INFORMATION}
-            
-            **Vocabulary**
-            {get_vocab_keys('::', '......', '>')}
-            """
+            body = f"---\n{title}\n---\n\n{INFORMATION}\n\n**Vocabulary**\n{get_vocab_keys('::', '......', '>')}"
             issue = repo.create_issue(title, body)
             issue.set_labels('spellcheck')
 
