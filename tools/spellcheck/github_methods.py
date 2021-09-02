@@ -80,7 +80,7 @@ def update_issue(issue, title, comments, len_unknown_words):
            f"**Vocabulary**\n" \
            f"{get_vocab_keys('::', '......', '>')}\n\n" \
            f"Found {len_unknown_words} unknown words!"
-    issue.update(body)
+    issue.edit(body=body)
 
     for comment in issue.get_comments():
         comment.delete()
