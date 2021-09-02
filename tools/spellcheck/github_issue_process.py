@@ -22,22 +22,23 @@ def main():
     repo = g.get_repo(args.repository)
     issue = repo.get_issue(args.issue_number)
     branch = args.title.split('/')[-1]
-    path_vocabulary = SP_DIR + 'vocabulary.json'
 
-    vocabulary_file = repo.get_contents(path_vocabulary)
-    vocabulary = json.loads(vocabulary_file.decoded_content)
     reference = set_ref()
 
-    unknown_words = body_to_words(issue.body)
+    unknown_words = comments_to_words(issue.get_comments())
     process_actions_github(reference, unknown_words, repo, branch)
 
-    new_vocabulary_file_content = json.dumps(vocabulary, indent=4)
-    repo.update_file(path_vocabulary, 'Update words', new_vocabulary_file_content, vocabulary_file.sha, branch)
+    new_vocabulary_file_content = json.dumps(VOCABULARY, indent=4)
 
-    # Update issue
-    title = f'Spell-Check Results - {args.repository.split("/")[0]}/{branch}'
-    issue_body = words_to_body(title, unknown_words)
-    issue.edit(body=issue_body)
+    vocabulary_file = repo.get_contents(VOCAB_PATH, branch)
+    repo.update_file(VOCAB_PATH, 'Update words', new_vocabulary_file_content, vocabulary_file.sha, branch)
+
+    # Update issue comments
+    comments = words_to_comments(unknown_words)
+    for comment in issue.get_comments():
+        comment.delete()
+    for comment in comments:
+        issue.create_comment(comment)
 
 
 if __name__ == '__main__':

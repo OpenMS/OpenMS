@@ -6,6 +6,8 @@ import re
 from typing import Union
 from progress.bar import Bar
 
+
+VOCAB_PATH = 'tools/spellcheck/vocabulary.json'  # TODO: Set path
 SP_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
 
@@ -130,12 +132,11 @@ def get_vocab_keys(header: str = '', indent: str = ' ', prefix: str = '') -> str
     return ''.join(printable)
 
 
-def get_words(files_filter: Union[set, bool] = False):
+def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
     """
     Find all valid words from all files defined by rules.json.
 
     :param files_filter: Filter for included_files
-    :param verbose: Verbosity of word search in files
     :return: All valid words from all included files
     """
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
@@ -178,5 +179,4 @@ def get_words(files_filter: Union[set, bool] = False):
         for path in file_list:
             _search_file()
             bar.next()
-
     return unknown_words

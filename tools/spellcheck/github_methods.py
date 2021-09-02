@@ -1,74 +1,68 @@
 from spellcheck import *
 from github.Repository import Repository
-from github import ContentFile
+from github import ContentFile, PaginatedList
 
 
-INFORMATION = """
-Please read the provided README.md in `tools/spellcheck` carefully before continuing.
-State the replacement and or the vocabulary index by replacing the whitespace in the respective ` ` code-box.
-Word replacements, that are assigned a vocabulary index, will be ignored, if the replacement already exists in
-the vocabulary.
-"""
-
-
-def words_to_body(title: str, unknown_words: defaultdict) -> str:
+def words_to_comments(unknown_words: defaultdict) -> list:
     """
     Convert unknown words to github issue body
 
-    :param title: Title of issue body
-    :param vocabulary: Vocabulary of all whitelisted words
     :param unknown_words: All unknown, unprocessed words
     :return: Issue body
     """
-    issue_body = f'---\n{title}\n---\n'
-    issue_body += f'{INFORMATION}\n\n'
-    issue_body += get_vocab_keys('::', '......', '>')
-    issue_body += '\n\n'
-
-    for i, (word, properties) in enumerate(unknown_words.items()):
-        issue_body += f'[{i + 1}] "**{word}**" in file(s):\n'
+    comments = []
+    comment = ''
+    for i, word in enumerate(sorted(unknown_words.keys(), key=str.casefold)):
+        properties = unknown_words[word]
+        if len(comment) > 50000:
+            comments.append(str(comment))
+            comment = ''
+        comment += f'[{i + 1}] "**{word}**" in file(s):\n'
         for file, lines in list(properties['files'].items()):
-            issue_body += f'`{file}: {str(lines)[1:-1]}`\n'
+            comment += f'`{file}: {str(lines)[1:-1]}`\n'
         if properties['error'] != '':
-            issue_body += f'{properties["error"]}\n'
-        issue_body += f'\n- Replace "{word}" with: ` `\n'
-        issue_body += '- Add to Vocabulary: ` `\n\n\n'
+            comment += f'{properties["error"]}\n'
+        comment += f'\n- Replace "{word}" with: ` `\n'
+        comment += '- Add to Vocabulary: ` `\n\n\n'
+    comments.append(comment)
+    return comments
 
-    return issue_body
 
-
-def body_to_words(issue_body: str) -> [defaultdict, str]:
+def comments_to_words(comments: PaginatedList) -> defaultdict:
     """
     Convert github issue body to unknown words dictionary
 
-    :param issue_body: Issue body
+    :param comments: All comments of the issue
     :return: Unknown words
     """
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
                                          'files': defaultdict(list)})
-    lines = issue_body.split('\n')
-    i = 0
-    while i < len(lines):
-        if lines[i].startswith('['):
-            word = lines[i].split('**')[1]
+
+    for comment in comments:
+        lines = comment.body.split('\n')
+        i = 0
+        while i < len(lines):
+            if lines[i].startswith('['):
+                word = lines[i].split('**')[1]
+                i += 1
+                while lines[i].startswith('`'):
+                    file, file_lines = lines[i][1:-1].split(':')
+                    unknown_words[word]['files'][Path(file)] = [int(l) for l in
+                                                                file_lines.strip(' ').strip('`').split(',')]
+                    i += 1
+                while not lines[i].startswith('-'):
+                    i += 1
+                replace_action = lines[i].split('`')[-2].strip()
+                vocab_action = lines[i + 1].split('`')[-2].strip()
+                if vocab_action != '':
+                    try:
+                        vocab_action = int(vocab_action)
+                        unknown_words[word]['action']['vocab_index'] = vocab_action
+                    except ValueError:
+                        unknown_words[word]['error'] = f'Input "{vocab_action}" for "{word}" is invalid'
+                if replace_action != '':
+                    unknown_words[word]['action']['replacement'] = replace_action
             i += 1
-            while lines[i].startswith('`'):
-                file, file_lines = lines[i][1:-1].split(':')
-                unknown_words[word]['files'][Path(file)] = [int(l) for l in file_lines.strip(' ').strip('`').split(',')]
-                i += 1
-            while not lines[i].startswith('-'):
-                i += 1
-            replace_action = lines[i].split('`')[-2].strip()
-            vocab_action = lines[i + 1].split('`')[-2].strip()
-            if vocab_action != '':
-                try:
-                    vocab_action = int(vocab_action)
-                    unknown_words[word]['action']['vocab_index'] = vocab_action
-                except ValueError:
-                    unknown_words[word]['error'] = f'Input "{vocab_action}" for "{word}" is invalid'
-            if replace_action != '':
-                unknown_words[word]['action']['replacement'] = replace_action
-        i += 1
     return unknown_words
 
 

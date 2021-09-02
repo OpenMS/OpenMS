@@ -118,6 +118,8 @@ def replace():
 
     :return: Next menu branch: "Start"
     """
+    global curr_id
+
     for path, n_lines in unknown_words[curr_word]['files'].items():
         with open(path, 'r') as file:
             lines = file.readlines()
@@ -138,6 +140,8 @@ def replace():
             for i, words in reference.items():
                 if replacement in set(words):
                     unknown_words[curr_word]['action']['vocab_index'] = i+1
+    else:
+        curr_id -= 1
     return 'Start'
 
 
@@ -267,7 +271,6 @@ def main():
     global vocabulary, reference, flat_vocab, vocab_keys
 
     # Load all
-    vocabulary = load_json(Path('vocabulary.json'))
     reference = set_ref()
     flat_vocab = flatten_vocab()
     vocab_keys = get_vocab_keys('::', '......')

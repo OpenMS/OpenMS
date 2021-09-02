@@ -3,6 +3,14 @@ from github import Github
 import argparse
 
 
+INFORMATION = """
+Please read the provided README.md in `tools/spellcheck` carefully before continuing.
+State the replacement and or the vocabulary index by replacing the whitespace in the respective ` ` code-box.
+Word replacements, that are assigned a vocabulary index, will be ignored, if the replacement already exists in
+the vocabulary.
+"""
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Create or update GitHub issue with identified unknown words.'
                                                  'Only correctly callable from GitHub-push action.')
@@ -28,6 +36,7 @@ def main():
     # Find out if issue already exists
     issue = [issue for issue in repo.get_issues() if issue.title == title]
 
+    # Default: run search only on edited files
     edited_files = False
     if not args.full:
         commit = repo.get_commit(args.commit)
@@ -37,24 +46,40 @@ def main():
 
     if len(unknown_words) > 0:
 
+        # Issue exists already
         if len(issue) > 0:
             issue = issue[0]
 
             if not args.full:
-                old_unknown_words = body_to_words(issue.body)
+                old_unknown_words = comments_to_words(issue.get_comments())
                 for word, properties in unknown_words.items():
                     for file in list(old_unknown_words[word]['files'].keys()):
                         if file in edited_files and file not in unknown_words[word]['files']:
                             old_unknown_words[word]['files'].pop(file)
                     for file, lines in properties['files'].items():
                         old_unknown_words[word]['files'][file] = lines
-                unknown_words = old_unknown_words
+                unknown_words = {key: old_unknown_words[key] for key in
+                                 sorted(old_unknown_words.keys(), key=str.casefold)}
 
-            issue_body = words_to_body(title, unknown_words)
-            issue.edit(body=issue_body)
+            comments = words_to_comments(unknown_words)
+            for comment in issue.get_comments():
+                comment.delete()
+            for comment in comments:
+                issue.create_comment(body=comment)
         else:
-            issue_body = words_to_body(title, unknown_words)
-            issue = repo.create_issue(title, issue_body)
+            # Create new issue
+            body = f"""
+            ---
+            {title}
+            ---
+            
+            {INFORMATION}
+            
+            **Vocabulary**
+            {get_vocab_keys('::', '......', '>')}
+            """
+            issue = repo.create_issue(title, body)
+            issue.set_labels('spellcheck')
 
 
 if __name__ == '__main__':
