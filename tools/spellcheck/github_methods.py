@@ -88,7 +88,8 @@ def update_issue(issue, title, comments, len_unknown_words):
     for n_comment, comment in enumerate(comments):
         if n_comment >= 12:
             issue.create_comment('End of accepted number of comments reached. Printed words need to be processed first')
-        issue.create_comment(body=comment)
+            break
+        issue.create_comment(comment)
 
 
 def process_actions_github(reference: dict, unknown_words: Union[dict, defaultdict], repo: Repository, branch: str):
