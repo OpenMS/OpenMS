@@ -5,8 +5,8 @@
     "extensions": [".py", ".h", ".cpp", ".pyx"]
   },
   "exclude": {
-    "locations": [],
-    "patterns": ["[--]{2,}"],
+    "locations": ["src/openms/thirdparty"],
+    "patterns": ["[0-9]+"],
     "extensions": []
   }
 }
