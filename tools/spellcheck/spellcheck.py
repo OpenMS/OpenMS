@@ -152,7 +152,7 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
         def _search_block():
             for word in re.findall(pattern, txt_block):
                 if word not in flat_vocab and \
-                        all([re.fullmatch(p, word) is None for p in RULES['exclude']['patterns']]):
+                        all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
                     unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
 
         try:

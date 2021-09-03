@@ -6,7 +6,7 @@
   },
   "exclude": {
     "locations": ["src/openms/thirdparty"],
-    "patterns": ["[0-9]+"],
+    "patterns": ["[0-9]"],
     "extensions": []
   }
 }
