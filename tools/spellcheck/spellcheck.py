@@ -7,7 +7,7 @@ from typing import Union
 from progress.bar import Bar
 
 
-VOCAB_PATH = 'tools/spellcheck/vocabulary.json'  # TODO: Set path
+VOCAB_PATH = 'tools/spellcheck/vocabulary.json'  # TODO: Path is required for PyGitHub
 SP_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
 
@@ -148,31 +148,46 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
     pattern = RULES['include']['pattern']
 
     def _search_file():
+
+        def _search_block():
+            for word in re.findall(pattern, txt_block):
+                if word not in flat_vocab and \
+                        all([re.fullmatch(p, word) is None for p in RULES['exclude']['patterns']]):
+                    unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
+
         try:
             file = open(path, 'r')
             txt = file.read()
             file_ext = path.suffix
             block_comment = ''
-            for n_line, line in enumerate(txt.split('\n')):
+            for i_line, line in enumerate(txt.split('\n')):
                 line_comment = ''
-                for txt_block in line.split():
+                for i_block, txt_block in enumerate(line.split()):
                     if file_ext in COMMENT_TYPES:
-                        if txt_block == block_comment:
+                        # Block comment end
+                        if block_comment != '' and txt_block.endswith(block_comment):
+                            txt_block = txt_block.strip(block_comment)
                             block_comment = ''
-                        elif txt_block in {ext.split()[0] for ext in COMMENT_TYPES[file_ext]['block']}:
-                            block_comment = {(e := ext.split())[0]: e[1] for ext in
-                                             COMMENT_TYPES[file_ext]['block']}[txt_block]
-                            continue
-                        elif txt_block in COMMENT_TYPES[file_ext]['line']:
-                            line_comment = txt_block
-                            continue
+                            _search_block()
+                        # Block comment start
+                        elif i_block == 0:
+                            for ext in COMMENT_TYPES[file_ext]['block']:
+                                bc_start, bc_end = ext.split()
+                                if txt_block.startswith(bc_start):
+                                    block_comment = bc_end
+                                    txt_block = txt_block.strip(bc_start)
+                                    break
+                        # Line comment start
+                        for ext in COMMENT_TYPES[file_ext]['line']:
+                            if txt_block.startswith(ext):
+                                line_comment = ext
+                                txt_block = txt_block.strip(ext)
+                                break
                     if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
-                        for word in re.findall(pattern, txt_block):
-                            if word not in flat_vocab and \
-                                    all([re.fullmatch(p, word) is None for p in RULES['exclude']['patterns']]):
-                                unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(n_line)
+                        _search_block()
+
             file.close()
-        except UnicodeDecodeError:
+        except UnicodeDecodeError:  # TODO: Add error handling
             errors.append(f'{UnicodeDecodeError}: {path}')
 
     with Bar('Searching files..', max=len(file_list)) as bar:

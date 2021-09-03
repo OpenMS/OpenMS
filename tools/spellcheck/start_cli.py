@@ -279,7 +279,11 @@ def main():
         navigation['Main Menu']['choices'][1]['disabled'] = ''
 
     # bring up user prompt
-    start_cli()
+    # start_cli()
+
+    unknown_words = get_words()
+    for key in unknown_words.keys():
+        print(key)
 
 
 if __name__ == '__main__':
