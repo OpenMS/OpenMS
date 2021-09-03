@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,8 +44,11 @@
 
 #include <QCoreApplication>
 
+
 namespace OpenMS
 {
+
+
 
   void TVToolDiscovery::loadParams()
   {
@@ -57,15 +60,17 @@ namespace OpenMS
       const auto &utils = ToolHandler::getUtilList();
       const auto &plugins = getPlugins_();
       // Launch threads for loading tool/util params.
-      for (auto&[name, description] : tools)
+      for (auto& tool : tools)
       {
+        const std::string name = tool.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
-      for (auto&[name, description] : utils)
+      for (auto& util : utils)
       {
+        const std::string name = util.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
-      for (auto &plugin : plugins)
+      for (auto& plugin : plugins)
       {
         std::cout << "starting work on " << plugin << std::endl;
         param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin);
@@ -98,6 +103,8 @@ namespace OpenMS
 
   const std::map<std::string, Param> &TVToolDiscovery::getToolParams()
   {
+    std::cout << "STARTING" << std::endl;
+
     // Make sure threads have been launched and waited for before accessing results
     loadParams();
     waitForParams();
@@ -111,29 +118,74 @@ namespace OpenMS
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
     QStringList args{"-write_ini", path.toQString()};
-    std::cout << "before finding exec " << tool_name << std::endl;
-    // Start tool/util to write the ini file
-    String executable = File::exists(tool_name) ? tool_name : File::findSiblingTOPPExecutable(tool_name);
-
-    std::cout << "after finding exec " << executable << std::endl;
+//    std::cout << "before finding exec " << tool_name << std::endl;
+    Param tool_param;
+    String executable;
+    // Return empty param if tool executable cannot be found
+    try
+    {
+      // Is an executable already or has a sibling Executable
+      executable = File::exists(tool_name) ? tool_name : File::findSiblingTOPPExecutable(tool_name);
+    }
+    catch (const Exception::FileNotFound& e)
+    {
+      std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
+      return tool_param;
+    }
+//    std::cout << "after finding exec " << executable << std::endl;
+    // Write tool ini to temporary file
     ExternalProcess proc;
     auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
     // Return empty param if writing the ini file failed
-    Param tool_param;
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       return tool_param;
     }
-    // Parse ini file to param object and return it
+    // Parse ini file to param object
     ParamXMLFile paramFile;
-    paramFile.load((path).c_str(), tool_param);
+    try
+    {
+      paramFile.load((path).c_str(), tool_param);
+    }
+    catch(const Exception::FileNotFound& e)
+    {
+      std::cerr << e << "\n" << "TOPP tool: " << executable << 
+        " not able to write ini. Plugins must include -write-ini flag. Skipping." << std::endl;
+      return tool_param;
+    }
+
+
+    if (executable.hasSuffix("test.py"))    
+    {
+      std::cout << "TOOL_PARAMS: " << tool_param << std::endl;
+    }
+
     return tool_param;
   }
 
-  const StringList &TVToolDiscovery::getPlugins_()
+  const ToolListType &TVToolDiscovery::getPlugins()
+  {
+    ToolListType tool_map;
+    std::map<std::string, Param> params;
+    StringList plugins;
+
+    params = TVToolDiscovery::getToolParams();
+    plugins = TVToolDiscovery::getPlugins_();
+
+    for (auto param : params)
+    {
+      std::cout << param.first << std::endl;
+    }
+  
+    return tool_map;
+  }
+
+  const StringList TVToolDiscovery::getPlugins_()
   {
     StringList plugins;
 
+    std::cout << "PLUGIN DETECTION" << std::endl; 
+   
     std::vector<std::string> valid_extensions {".py"};
     const std::string plugin_path = File::absolutePath("./test/");
 
@@ -145,6 +197,11 @@ namespace OpenMS
           (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end())*/; 
       };
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
+    }
+
+    for (auto p : plugins) 
+    {
+      std::cout << "plugin " << p << std::endl; 
     }
 
     return plugins;

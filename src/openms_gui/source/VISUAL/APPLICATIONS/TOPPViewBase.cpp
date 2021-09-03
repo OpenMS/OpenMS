@@ -1627,6 +1627,7 @@ namespace OpenMS
     for (const auto& pair : tool_scanner_.getToolParams())
     {
       param_.insert("tool_params:", pair.second);
+      
     }
   }
 
@@ -1688,6 +1689,9 @@ namespace OpenMS
     {
       addToolParamsToIni_();
     }
+
+    tool_scanner_.getPlugins();
+
     ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
