@@ -209,7 +209,7 @@ namespace OpenMS
     bool is_positive_;
 
     /// information on the deconvouted mass
-    double monoisotopic_mass_;
+    double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
 
     /// scoring variables

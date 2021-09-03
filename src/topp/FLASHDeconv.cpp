@@ -210,7 +210,7 @@ protected:
     fd_defaults.setValue("min_intensity", 100.0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.8, .9},
+                         DoubleList{.85, .95},
                          "cosine similarity thresholds "
                          "between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
@@ -242,7 +242,7 @@ protected:
     mf_defaults.remove("chrom_peak_snr");
 
     mf_defaults.remove("mass_error_ppm"); // hide entry
-    //mf_defaults.remove("min_sample_rate");
+    mf_defaults.setValue("min_sample_rate", 0.2);
 
     Param combined;
     combined.insert("Algorithm:", fd_defaults);

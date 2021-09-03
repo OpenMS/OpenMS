@@ -265,8 +265,8 @@ namespace OpenMS
 
     if (ms_level > 1)
     {
-      if (precursor_peak_group_.empty()
-          || precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold)
+      if (precursor_peak_group_.empty() ||
+          precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold)
       {
         return;
       }
@@ -277,7 +277,6 @@ namespace OpenMS
        << "ID=" << scan_number_ << "\n"
        << "SCANS=" << scan_number_ << "\n"
        << "RETENTION_TIME=" << spec_.getRT() << "\n";
-
 
     if (ms_level > 1)
     {
@@ -322,7 +321,7 @@ namespace OpenMS
         isotope_scores.push_back(pg.getIsotopeCosine());
       }
       std::sort(isotope_scores.begin(), isotope_scores.end());
-      isotope_score_threshold = isotope_scores[isotope_scores.size() - 500];
+      isotope_score_threshold = isotope_scores[isotope_scores.size() - topFD_max_peak_count_];
       std::vector<double>().swap(isotope_scores);
     }
 
@@ -405,7 +404,6 @@ namespace OpenMS
                precursor.getIsolationWindowUpperOffset() :
                precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
     }
-
 
     if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty())
     {
@@ -521,7 +519,7 @@ namespace OpenMS
     }
 
 
-    double max_score = 0;
+    double max_score = -1.0;
 
     for (int i = survey_scans.size() - 1; i >= 0; i--)
     {
@@ -534,6 +532,7 @@ namespace OpenMS
 
       for (auto &pg: precursor_spectrum)
       {
+        //std::sort(pg.begin(),pg.end());
         if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
         {
           continue;
@@ -544,56 +543,35 @@ namespace OpenMS
         const LogMzPeak *tmp_precursor = nullptr;
 
         int c = int(.5 + pg.getMonoMass() / start_mz);
-        bool contained = true;
-
+        //bool contained = true;
+        double sum = 0;
+        double i_sum = 0;
         for (auto &tmp_peak:pg)
         {
           if (tmp_peak.abs_charge != c)
           {
             continue;
           }
-          //if(abs(tmp_peak.mz - precursor_peak_.getMZ())>1e-2){
-          //    continue;
-          //}
-          if (tmp_peak.mz < start_mz)
+          i_sum += tmp_peak.intensity;
+          sum += tmp_peak.mz * tmp_peak.intensity;
+
+          if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz)
           {
-            contained = false;
-            break;
+            continue;
           }
-          if (tmp_peak.mz > end_mz)
-          {
-            contained = false;
-            break;
-          }
+
           if (tmp_peak.intensity < max_intensity)
           {
             continue;
           }
           max_intensity = tmp_peak.intensity;
           tmp_precursor = &tmp_peak;
-          //sum_int += tmp_peak.intensity * tmp_peak.intensity;
         }
-
-        if (!contained || tmp_precursor == nullptr)
+        sum /= i_sum;
+        if (tmp_precursor == nullptr || i_sum <= 0 || sum < start_mz || sum > end_mz)
         {
           continue;
         }
-        /*
-                        double pg_start_mz = end_mz;
-                        double pg_end_mz = start_mz;
-                        for (auto &tmp_peak:pg) {
-                            if(tmp_peak.abs_charge != tmp_precursor->abs_charge){
-                                continue;
-                            }
-                            double mz = tmp_peak.mz;
-                            pg_start_mz = pg_start_mz < mz? pg_start_mz : mz;
-                            pg_end_mz = pg_end_mz > mz? pg_end_mz : mz;
-                        }
-
-                        if(pg_start_mz < start_mz || pg_end_mz > end_mz){
-                            continue;
-                        }
-        */
         auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
         if (score < max_score)
         {
