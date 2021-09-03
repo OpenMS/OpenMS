@@ -161,8 +161,14 @@ namespace OpenMS
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:
     size_t len = peptide.size(), start = 0, count = std::string::npos;
-    if (peptide[1] == '.') start = 2;
-    if (peptide[len - 2] == '.') count = len - start - 2;
+    if (peptide[1] == '.')
+    {
+      start = 2;
+    }
+    if (peptide[len - 2] == '.')
+    {
+      count = len - start - 2;
+    }
     peptide = peptide.substr(start, count);
 
     // re-format modifications:

@@ -204,7 +204,9 @@ namespace OpenMS
     painter2.setPen(Qt::black);
     QString label = "count";
     if (log_mode_)
+    {
       label = "log ( count )";
+    }
     painter2.drawText(0, 0, -height(), margin_, Qt::AlignHCenter | Qt::AlignVCenter, label);
     painter2.end();
 
@@ -311,10 +313,14 @@ namespace OpenMS
     QMenu menu(this);
     QAction * action = menu.addAction("Normal mode");
     if (!log_mode_)
+    {
       action->setEnabled(false);
+    }
     action = menu.addAction("Log mode");
     if (log_mode_)
+    {
       action->setEnabled(false);
+    }
     //execute
     QAction * result = menu.exec(mapToGlobal(pos));
     //change according to selected value
@@ -335,7 +341,9 @@ namespace OpenMS
   {
     log_mode_ = log_mode;
     if (!buffer_.isNull())
+    {
       invalidate_();
+    }
   }
 
 } //namespace OpenMS

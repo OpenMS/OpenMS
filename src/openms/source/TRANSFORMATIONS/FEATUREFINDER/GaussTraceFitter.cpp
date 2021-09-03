@@ -275,7 +275,9 @@ namespace OpenMS
     // find RT values where intensity is at half-maximum:
     Int left_index = static_cast<Int>(max_index);
     while ((left_index > 0) && (smoothed[left_index] > height_ * 0.5))
+    {
       --left_index;
+    }
     double left_height = smoothed[left_index];
     it = total_intensities.begin();
     std::advance(it, left_index);
@@ -283,7 +285,9 @@ namespace OpenMS
 
     Int right_index = static_cast<Int>(max_index);
     while ((right_index < Int(N - 1)) && (smoothed[right_index] > height_ * 0.5))
+    {
       ++right_index;
+    }
     double right_height = smoothed[right_index];
     it = total_intensities.end();
     std::advance(it, right_index - Int(N));
@@ -291,9 +295,14 @@ namespace OpenMS
 
     double delta_x = right_rt - left_rt;
     double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-    if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
-    else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
-
+    if (alpha >= 1)
+    {
+      sigma_ = 1.0; // degenerate case, all values are the same
+    }
+    else
+    {
+      sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
+    }
     #ifndef NDEBUG
     OPENMS_LOG_DEBUG << "\nMax. idx: " << max_index
       << "\nHeight: " << height_

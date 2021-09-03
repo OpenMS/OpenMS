@@ -142,7 +142,9 @@ namespace OpenMS
     for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
     {
       if (it->second.active)
+      {
         ++active_channel_count;
+      }
     }
     if (features.size() != active_channel_count)
     {
@@ -163,18 +165,14 @@ namespace OpenMS
 
     for (Size i = 0; i < channels.size(); ++i)
     {
-      for (SimTypes::FeatureMapSim::iterator it_f_o = channels[i].begin();
-           it_f_o != channels[i].end();
-           ++it_f_o)
+      for (Feature& feat_o : channels[i])
       {
         // derive iTRAQ labeled features from original sequence (might be more than one due to partial labeling)
         SimTypes::FeatureMapSim labeled_features;
-        labelPeptide_(*it_f_o, labeled_features);
-        for (SimTypes::FeatureMapSim::iterator it_f = labeled_features.begin();
-             it_f != labeled_features.end();
-             ++it_f)
+        labelPeptide_(feat_o, labeled_features);
+        for (Feature& feat : labeled_features)
         {
-          const String& seq = it_f->getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
+          const String& seq = feat.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
           Size f_index;
           //check if we already have a feature for this peptide
           if (peptide_to_feature.count(seq) > 0)
@@ -183,16 +181,16 @@ namespace OpenMS
           }
           else // create new feature
           {
-            final_feature_map.push_back(*it_f);
+            final_feature_map.push_back(feat);
             // update map:
             f_index = final_feature_map.size() - 1;
             peptide_to_feature[seq] = f_index;
           }
           // add intensity as metavalue
-          final_feature_map[f_index].setMetaValue(getChannelIntensityName(i), it_f->getIntensity());
+          final_feature_map[f_index].setMetaValue(getChannelIntensityName(i), feat.getIntensity());
           // increase overall intensity
-          final_feature_map[f_index].setIntensity(final_feature_map[f_index].getIntensity() + it_f->getIntensity());
-          mergeProteinAccessions_(final_feature_map[f_index], *it_f);
+          final_feature_map[f_index].setIntensity(final_feature_map[f_index].getIntensity() + feat.getIntensity());
+          mergeProteinAccessions_(final_feature_map[f_index], feat);
         }
       }
     }
@@ -239,21 +237,22 @@ namespace OpenMS
     boost::uniform_real<double> udist(0.0, 1.0);
 
     // add signal...
-    for (SimTypes::MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
+    for (MSSpectrum& spec : exp)
     {
-      if (it->getMSLevel() != 2)
+      if (spec.getMSLevel() != 2)
+      {
         continue;
-
+      }
       // reset sum matrix to 0
       itraq_intensity_sum.setZero();
 
       // add up signal of all features
-      OPENMS_PRECONDITION(it->metaValueExists("parent_feature_ids"), "Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
-      IntList parent_fs = it->getMetaValue("parent_feature_ids");
+      OPENMS_PRECONDITION(spec.metaValueExists("parent_feature_ids"), "Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
+      IntList parent_fs = spec.getMetaValue("parent_feature_ids");
       for (Size i_f = 0; i_f < parent_fs.size(); ++i_f)
       {
         // get RT scaled iTRAQ intensities
-        EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
+        EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], spec.getRT());
 
         // apply isotope matrix to active channels
         // row * channel_frequency_old = observed iTRAQ intensities
@@ -270,7 +269,7 @@ namespace OpenMS
         double rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
         p.setIntensity(itraq_intensity_sum(i_channel, 0));
-        it->push_back(p);
+        spec.push_back(p);
       }
     }
 
@@ -302,7 +301,9 @@ namespace OpenMS
     for (Size i = 0; i < seq.size(); ++i)
     {
       if (seq[i] == 'K' && !seq[i].isModified())
+      {
         seq.setModification(i, modification);
+      }
     }
     result.resize(1);
     result[0] = feature;
@@ -311,8 +312,9 @@ namespace OpenMS
     // some "Y":
     // for each "Y" create two new features, depending on labeling efficiency on "Y":
     if (y_labeling_efficiency_ == 0)
+    {
       return;
-
+    }
     for (Size i = 0; i < seq.size(); ++i)
     {
       if (seq[i] == 'Y' && !seq[i].isModified())

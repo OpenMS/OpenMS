@@ -8,6 +8,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>" namespace
     cdef cppclass NeutralLossMarker(PeakMarker) :
         # wrap-inherits:
         #  PeakMarker
+        # wrap-doc:
+        #  NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss (water, ammonia)
+        
         NeutralLossMarker() nogil except +
         NeutralLossMarker(NeutralLossMarker &) nogil except +
         void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +

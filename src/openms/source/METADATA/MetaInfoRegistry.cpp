@@ -125,8 +125,10 @@ namespace OpenMS
 
   MetaInfoRegistry& MetaInfoRegistry::operator=(const MetaInfoRegistry& rhs)
   {
-    if (this == &rhs) return *this;
-
+    if (this == &rhs)
+    {
+      return *this;
+    }
 #pragma omp critical (MetaInfoRegistry)
     {
       next_index_ = rhs.next_index_;

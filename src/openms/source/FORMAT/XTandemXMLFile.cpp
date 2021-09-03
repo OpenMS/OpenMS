@@ -334,8 +334,10 @@ namespace OpenMS
         hit.setAccession(current_protein_);
 
         double score(0);
-        if (optionalAttributeAsDouble_(score, attributes, "expect")) hit.setScore(score);
-
+        if (optionalAttributeAsDouble_(score, attributes, "expect"))
+        {
+          hit.setScore(score);
+        }
         protein_hits_.push_back(hit);
         protein_uids_.insert(uid);
         skip_protein_acc_update_ = false;

@@ -144,8 +144,9 @@ namespace OpenMS
   EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -161,9 +162,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -319,8 +324,9 @@ namespace OpenMS
     // sum over all intensities
     CoordinateType sum = 0.0;
     for (Size i = 0; i < set.size(); ++i)
+    {
       sum += set[i].getIntensity();
-
+    }
     // calculate the median
     Size median = 0;
     float count = 0.0;
@@ -328,7 +334,9 @@ namespace OpenMS
     {
       count += set[i].getIntensity();
       if (count <= sum / 2)
+      {
         median = i;
+      }
     }
 
     double max_peak_width = fabs(set[set.size() - 1].getPos() - set[median].getPos()); // cannot be wider than this

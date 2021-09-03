@@ -11,8 +11,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>" namespace "
         # wrap-inherits:
         #    DefaultParamHandler
 
-        ParentPeakMower()           nogil except +
-        ParentPeakMower(ParentPeakMower) nogil except + #wrap-ignore
+        ParentPeakMower() nogil except +
+        ParentPeakMower(ParentPeakMower &) nogil except + 
 
         void filterSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +

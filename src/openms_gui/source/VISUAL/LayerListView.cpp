@@ -74,10 +74,15 @@ namespace OpenMS
 
     spectrum_widget_ = active_widget;
     // during program exit, this could be called after PlotWidgets are gone
-    if (spectrum_widget_ == nullptr) return;
-
+    if (spectrum_widget_ == nullptr)
+    {
+      return;
+    }
     PlotCanvas* cc = spectrum_widget_->canvas();
-    if (cc == nullptr) return;
+    if (cc == nullptr)
+    {
+      return;
+    }
 
     // determine if this is a 1D view (for text color)
     bool is_1d_view = (dynamic_cast<Plot1DCanvas*>(cc) != nullptr);
@@ -157,8 +162,10 @@ namespace OpenMS
   void LayerListView::contextMenuEvent(QContextMenuEvent* event)
   {
     QListWidgetItem* item = this->itemAt(event->pos());
-    if (!item) return;
-
+    if (!item)
+    {
+      return;
+    }
     int layer_idx = this->row(item);
     QMenu* context_menu = new QMenu(this);
     

@@ -63,8 +63,10 @@ namespace OpenMS
   void TOPPASSplitterVertex::run()
   {
     // check if everything ready
-    if (!isUpstreamFinished())  return;
-
+    if (!isUpstreamFinished()) 
+    {
+      return;
+    }
     RoundPackages pkg;
     String error_msg("");
     bool success = buildRoundPackages(pkg, error_msg);
