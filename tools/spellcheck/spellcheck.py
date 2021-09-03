@@ -173,16 +173,18 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
                         elif i_block == 0:
                             for ext in COMMENT_TYPES[file_ext]['block']:
                                 bc_start, bc_end = ext.split()
-                                if txt_block.startswith(bc_start):
+                                i_bc = txt_block.find(bc_start)
+                                if i_bc != -1:
                                     block_comment = bc_end
-                                    txt_block = txt_block.strip(bc_start)
+                                    txt_block = txt_block[i_bc:].strip(bc_start)
                                     break
                         # Line comment start
-                        for ext in COMMENT_TYPES[file_ext]['line']:
-                            if txt_block.startswith(ext):
-                                line_comment = ext
-                                txt_block = txt_block.strip(ext)
-                                break
+                        else:
+                            for lc in COMMENT_TYPES[file_ext]['line']:
+                                if txt_block.startswith(lc):
+                                    line_comment = lc
+                                    txt_block = txt_block.strip(lc)
+                                    break
                     if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
                         _search_block()
 
