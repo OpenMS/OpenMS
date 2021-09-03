@@ -1,7 +1,7 @@
 {
   "include": {
     "locations": ["src"],
-    "pattern": "[A-Za-z'_-]{3,}",
+    "pattern": "[A-Za-z]{3,}.*(?<!-)$",
     "extensions": [".py", ".h", ".cpp", ".pyx"]
   },
   "exclude": {
