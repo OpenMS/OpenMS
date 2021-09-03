@@ -89,9 +89,6 @@ def update_issue(issue, title, comments, len_unknown_words):
         comment.delete()
 
     for n_comment, comment in enumerate(comments):
-        if n_comment >= 20:
-            issue.create_comment('End of printed number of comments reached. Words need to be processed first')
-            break
         issue.create_comment(comment)
 
 
