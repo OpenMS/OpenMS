@@ -28,7 +28,7 @@ def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
         comment += f'[{i + 1}] "**{word}**" in file(s):\n'
         for i_files, (file, lines) in enumerate(list(properties['files'].items())):
             if i_files >= 5:
-                comment += '...\n'
+                comment += '`...`\n'
                 break
             comment += f'`{file}: {str(lines)[1:-1]}`\n'
         if properties['error'] != '':
