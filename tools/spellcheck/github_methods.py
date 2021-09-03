@@ -26,12 +26,15 @@ def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
             comments.append(str(comment))
             comment = ''
         comment += f'[{i + 1}] "**{word}**" in file(s):\n'
-        for file, lines in list(properties['files'].items()):
+        for i_files, (file, lines) in enumerate(list(properties['files'].items())):
+            if i_files >= 5:
+                comment += '...\n'
+                break
             comment += f'`{file}: {str(lines)[1:-1]}`\n'
         if properties['error'] != '':
             comment += f'{properties["error"]}\n'
-        comment += f'\n- Replace "{word}" with: ` `\n'
-        comment += '- Add to Vocabulary: ` `\n\n\n'
+        comment += f'\n- Replace "{word}" with: ` `'
+        comment += '\n- Add to Vocabulary: ` `\n\n\n'
     comments.append(comment)
     return comments
 
@@ -86,8 +89,8 @@ def update_issue(issue, title, comments, len_unknown_words):
         comment.delete()
 
     for n_comment, comment in enumerate(comments):
-        if n_comment >= 12:
-            issue.create_comment('End of accepted number of comments reached. Printed words need to be processed first')
+        if n_comment >= 20:
+            issue.create_comment('End of printed number of comments reached. Words need to be processed first')
             break
         issue.create_comment(comment)
 
