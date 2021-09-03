@@ -63,6 +63,9 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
+
+    
+
     TVToolDiscovery() {};
 
     TVToolDiscovery(const TVToolDiscovery &) = delete;
@@ -90,6 +93,8 @@ namespace OpenMS
      */
     const std::map<std::string, Param> &getToolParams();
 
+    const ToolListType &getPlugins();
+
   private:
     /// Returns param for a given tool/util. This function is thread-safe
     static Param getParamFromIni_(const std::string &tool_name);
@@ -100,6 +105,6 @@ namespace OpenMS
     /// Contains a mapping of each tool/util name to its param.
     std::map<std::string, Param> params_;
 
-    const StringList &getPlugins_();
+    const StringList getPlugins_();
   };
 }

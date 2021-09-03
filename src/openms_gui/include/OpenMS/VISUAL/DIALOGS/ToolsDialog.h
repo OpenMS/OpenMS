@@ -80,6 +80,18 @@ public:
         @param default_dir The default directory for loading and storing INI files
         @param layer_type The type of data (determines the applicable tools)
         @param layer_name The name of the selected layer
+        @param plugin_map Mapping of the loaded plugins
+    */
+    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
+    /**
+        @brief Constructor
+
+        @param parent Qt parent widget
+        @param params Containing all TOPP tool/util params
+        @param ini_file The file name of the temporary INI file created by this dialog
+        @param default_dir The default directory for loading and storing INI files
+        @param layer_type The type of data (determines the applicable tools)
+        @param layer_name The name of the selected layer
     */
     ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor

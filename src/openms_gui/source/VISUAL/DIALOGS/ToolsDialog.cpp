@@ -55,6 +55,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
+
 
 using namespace std;
 
@@ -96,11 +98,15 @@ namespace OpenMS
     };
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
+
     for (auto& pair : tools)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      auto prefix = pair.first + ":";
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(prefix));
+      
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
+        std::cout << pair.first << std::endl;
         list << pair.first.toQString();
       }
     }
