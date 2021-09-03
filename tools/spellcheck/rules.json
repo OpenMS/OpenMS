@@ -1,12 +1,12 @@
 {
   "include": {
     "locations": ["src"],
-    "pattern": "\\b[\\w\\-\\'_]{3,}\\b",
+    "pattern": "\\b[A-Za-z\\']{3,}\\b",
     "extensions": [".py", ".h", ".cpp", ".pyx"]
   },
   "exclude": {
     "locations": ["src/openms/thirdparty"],
-    "patterns": ["[0-9]", "__"],
+    "patterns": [],
     "extensions": []
   }
 }
