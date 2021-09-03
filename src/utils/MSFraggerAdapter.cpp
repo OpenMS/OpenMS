@@ -613,7 +613,7 @@ protected:
           int nt = arg_varmod_unimod[i].find(" (N-term");
           int ct = arg_varmod_unimod[i].find(" (C-term");
 
-          if ((nt != -1) or (ct != -1))
+          if (!(nt == -1 && ct == -1)) // has -term modification
           {
             int closed_arg = arg_varmod_unimod[i].find("term)"); // Check if the terminal argument is closed or continued with aminoacid
             if (closed_arg == -1)
