@@ -240,39 +240,7 @@ START_SECTION((static PrecalculatedAveragine calculateAveragines(const double ma
 END_SECTION
 
 
-/// testing TopPicItem
-START_SECTION(([FLASHDeconvHelperStructs::TopPicItem] TopPicItem()))
-{
-  TopPicItem* tpi_ptr = new TopPicItem();
-  TopPicItem* tpi_null_ptr = 0;
-
-  TEST_NOT_EQUAL(tpi_ptr, tpi_null_ptr)
-}
-END_SECTION
-
-START_SECTION(([FLASHDeconvHelperStructs::TopPicItem] TopPicItem(String in)))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION(([FLASHDeconvHelperStructs::TopPicItem] bool operator<(const TopPicItem &a) const))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION(([FLASHDeconvHelperStructs::TopPicItem] bool operator>(const TopPicItem &a) const))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION(([FLASHDeconvHelperStructs::TopPicItem] bool operator==(const TopPicItem &other) const))
-    {
-      // TODO
-    }
-END_SECTION
+/// testing TopPicItem part is skipped
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

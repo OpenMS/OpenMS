@@ -34,11 +34,11 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -54,10 +54,7 @@ DeconvolutedSpectrum* null_ptr = 0;
 START_SECTION(DeconvolutedSpectrum())
 {
   ptr = new DeconvolutedSpectrum();
-  TEST_NOT_EQUAL(ptr, null_ptr){
-  ptr = new DeconvolutedSpectrum();
   TEST_NOT_EQUAL(ptr, null_ptr)
-}
 }
 END_SECTION
 
@@ -68,23 +65,23 @@ START_SECTION(~DeconvolutedSpectrum())
 END_SECTION
 
 
-// test data
+// load test data
 PeakMap input;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input.mzML"), input);
-MSSpectrum test_spec = input[0];
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
 
 /// detailed constructor
+MSSpectrum test_spec = input[0];
 START_SECTION((DeconvolutedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
 {
   DeconvolutedSpectrum tmp_spec = DeconvolutedSpectrum(test_spec, 1);
   TEST_EQUAL(tmp_spec.getScanNumber(), 1);
-  TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), 16124);
+  TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
 }
 END_SECTION
 
-DeconvolutedSpectrum test_deconv_spec = DeconvolutedSpectrum(test_spec, 1);
 
-///
+////////
+DeconvolutedSpectrum test_deconv_spec = DeconvolutedSpectrum(test_spec, 1);
 START_SECTION((int getScanNumber() const))
 {
   int tmp_num = test_deconv_spec.getScanNumber();
@@ -95,114 +92,117 @@ END_SECTION
 START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
 {
   MSSpectrum tmp_s = test_deconv_spec.getOriginalSpectrum();
-  TEST_EQUAL(tmp_s.size(), 16124);
+  TEST_EQUAL(tmp_s.size(), test_spec.size());
 }
 END_SECTION
 
-    START_SECTION((double getCurrentMinMass(const double min_mass) const))
-        {
-          // TODO
-        }
-    END_SECTION
 
-///
-START_SECTION((void writeDeconvolutedMasses(std::fstream &fs, const String &file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, const bool write_detail)))
-    {
-      // TODO
-    }
-END_SECTION
+FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
+Param fd_param;
+fd_param.setValue("min_charge", 5);
+fd_param.setValue("max_charge", 20);
+fd_algo.setParameters(fd_param);
+fd_algo.calculateAveragine(false);
+std::vector<DeconvolutedSpectrum> null_specs;
+const std::map<int, std::vector<std::vector<double>>> null_map;
 
-START_SECTION((void writeTopFD(std::fstream &fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, const double snr_threshold=1.0, const double harmonic_factor=1.0, const double precursor_offset=.0)))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
-    {
-      // TODO
-    }
-END_SECTION
+DeconvolutedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolutedSpectrum(input[1], null_specs, 2, null_map);
+DeconvolutedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolutedSpectrum(input[3], null_specs, 4, null_map);
+DeconvolutedSpectrum ms2_deconv_spec = DeconvolutedSpectrum(input[5], 6);
 
 START_SECTION((bool registerPrecursor(const std::vector< DeconvolutedSpectrum > &survey_scans, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_real_time_acquisition)))
-    {
-      // TODO
-    }
-END_SECTION
+{
+  // prepare arguments
+  std::vector<DeconvolutedSpectrum> survey_specs;
+  survey_specs.push_back(prec_deconv_spec_1);
+  survey_specs.push_back(prec_deconv_spec_2);
+  bool is_not_registered = ms2_deconv_spec.registerPrecursor(survey_specs, null_map);
+  Size precursor_pg_size = ms2_deconv_spec.getPrecursorPeakGroup().size();
 
-
-
-START_SECTION((PeakGroup getPrecursorPeakGroup() const))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION((int getPrecursorCharge() const))
-    {
-      // TODO
-    }
-END_SECTION
-
-START_SECTION((const Precursor getPrecursor() const))
-    {
-      // TODO
-    }
+  TEST_EQUAL(is_not_registered, false);
+  TEST_EQUAL(precursor_pg_size, 39);
+}
 END_SECTION
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
-    {
-      // TODO
-    }
+{
+  double ms1_max_mass = test_deconv_spec.getCurrentMaxMass(1000.);
+  double ms2_max_mass = ms2_deconv_spec.getCurrentMaxMass(1000.);
+  TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
+  TEST_REAL_SIMILAR(ms2_max_mass, 13673.076424825478);
+}
 END_SECTION
 
-
-START_SECTION((int getCurrentMaxAbsCharge(const int max_abs_charge) const))
-    {
-      // TODO
-    }
+START_SECTION((double getCurrentMinMass(const double min_mass) const))
+{
+  double ms1_min_mass = test_deconv_spec.getCurrentMinMass(1000.);
+  double ms2_min_mass = ms2_deconv_spec.getCurrentMinMass(1000.);
+  TEST_REAL_SIMILAR(ms1_min_mass, 1000.);
+  TEST_REAL_SIMILAR(ms2_min_mass, 50.);
+}
 END_SECTION
 
+START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
+{
+  MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
+  TEST_EQUAL(peakgroup_spec.size(), 3);
+  TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
+}
+END_SECTION
 
+START_SECTION((PeakGroup getPrecursorPeakGroup() const))
+{
+  PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
+
+  TEST_EQUAL(tmp_precursor_pgs.size(), 39);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13673.076424825478);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 90717.793212890625);
+  TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
+}
+END_SECTION
+
+START_SECTION((const Precursor getPrecursor() const))
+{
+  Precursor tmp_precursor = ms2_deconv_spec.getPrecursor();
+  TEST_EQUAL(tmp_precursor.getCharge(), 9);
+  TEST_REAL_SIMILAR(tmp_precursor.getUnchargedMass(), 13682.3053614085);
+  TEST_REAL_SIMILAR(tmp_precursor.getIntensity(), 12293.3936);
+}
+END_SECTION
+
+START_SECTION((int getPrecursorCharge() const))
+{
+  int prec_cs = ms2_deconv_spec.getPrecursorCharge();
+  TEST_EQUAL(prec_cs, 9);
+}
+END_SECTION
 
 START_SECTION((int getPrecursorScanNumber() const))
-    {
-      // TODO
-    }
+{
+  // TODO
+  int p_scan_num = ms2_deconv_spec.getPrecursorScanNumber();
+  TEST_EQUAL(p_scan_num, 4);
+}
 END_SECTION
 
-START_SECTION((static void writeDeconvolutedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)))
-    {
-      // TODO
-    }
+START_SECTION((int getCurrentMaxAbsCharge(const int max_abs_charge) const))
+{
+  // TODO
+  int tmp_cs_ms1 = test_deconv_spec.getCurrentMaxAbsCharge(5);
+  int tmp_cs_ms2 = ms2_deconv_spec.getCurrentMaxAbsCharge(5);
+
+  TEST_EQUAL(tmp_cs_ms1, 5);
+  TEST_EQUAL(tmp_cs_ms2, 9);
+}
 END_SECTION
 
+////////
 
-    /// copy constructor
-    START_SECTION((DeconvolutedSpectrum(const DeconvolutedSpectrum &)))
-        {
-          // TODO
-          DeconvolutedSpectrum tmp_spec(test_deconv_spec);
 
-          TEST_EQUAL(tmp_spec.getScanNumber(), 1);
-          TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), 16124);
-        }
-    END_SECTION
-
-    ///// move constructor
-    //START_SECTION((DeconvolutedSpectrum(DeconvolutedSpectrum &&other)))
-    //    {
-    //      // TODO
-    //    }
-    //END_SECTION
-
-    /// assignment operator
-    START_SECTION((DeconvolutedSpectrum& operator=(const DeconvolutedSpectrum &deconvoluted_spectrum)=default))
-        {
-          // TODO
-        }
-    END_SECTION
-
+/// < public methods without tests >
+/// - writeDeconvolutedMassesHeader : writing headers are not worth testing
+/// - default constructors and operators are not used (copy, move, assignment)
+/// - writeTopFD, writeDeconvolutedMasses : method for writing files only
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

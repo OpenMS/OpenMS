@@ -91,6 +91,12 @@ protected:
     auto generator = new CoarseIsotopePatternGenerator();
     auto iso = generator->estimateFromPeptideWeight(mass);
 
+    double threshold = iso.getMostAbundant().getIntensity() * 0.6;
+    iso.trimRight(iso.getMostAbundant().getIntensity() * 0.7);
+    iso.trimLeft(iso.getMostAbundant().getIntensity() * 0.6);
+
+    auto iso_size = iso.size();
+
     for (int s_index = 0; s_index < num_of_scans; ++s_index)
     {
       MSSpectrum spec;
@@ -106,7 +112,7 @@ protected:
         for (auto& i : iso)
         {
           Peak1D tmp_p;
-          tmp_p.setMZ(i.getMZ()/cs + + Constants::PROTON_MASS_U);
+          tmp_p.setMZ(i.getMZ()/cs + Constants::PROTON_MASS_U);
           tmp_p.setIntensity(i.getIntensity() * 10e7);
           spec.push_back(tmp_p);
         }
@@ -132,7 +138,7 @@ protected:
     //------------------------------------------------------------
     double mass = 18000.0;
     MSExperiment exp;
-    exp = generateMS1Scans(mass, 15, 18, 4);
+    exp = generateMS1Scans(mass, 15, 18, 3);
 
     //-------------------------------------------------------------
     // writing output
@@ -144,7 +150,7 @@ protected:
   }
 
   double rt_starts = 50.0;
-  double rt_intervals = 4;
+  double rt_intervals = 6;
 
 };
 

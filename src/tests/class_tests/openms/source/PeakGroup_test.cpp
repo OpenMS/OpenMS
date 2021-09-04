@@ -75,10 +75,6 @@ START_SECTION(~PeakGroup())
 END_SECTION
 
 /// test data
-// load a mzML file for testing the algorithm
-//PeakMap input;
-//MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input.mzML"), input);
-
 PeakGroup sample_pg(1, 2, true);
 sample_pg.setScanNumber(3);
 
@@ -127,13 +123,6 @@ START_SECTION((PeakGroup& operator=(const PeakGroup &t)))
   TEST_REAL_SIMILAR(sample_pg[1].mz, tmp_pg[1].mz);
 }
 END_SECTION
-
-/// move constructor test
-//START_SECTION((PeakGroup(PeakGroup &&other)=default))
-//{
-//  // TODO
-//}
-//END_SECTION
 
 
 /////////////////////////////////////////////////////////////
@@ -376,6 +365,7 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
+
 START_SECTION((void updateMassesAndIntensity(const int offset=0, const int max_isotope_index=0)))
 {
   sample_pg2.updateMassesAndIntensity();
