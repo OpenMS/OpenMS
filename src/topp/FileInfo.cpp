@@ -1484,6 +1484,7 @@ protected:
           rt_qualities[idx] = fm.getQuality(Feature::RT);
           mz_qualities[idx] = fm.getQuality(Feature::MZ);
           peak_widths[idx] = fm.getWidth();
+          ++idx;
         }
 
         Math::SummaryStatistics<vector<double>> intensities_summary;
