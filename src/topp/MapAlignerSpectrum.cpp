@@ -161,10 +161,9 @@ protected:
     algorithm.align(peak_maps, transformations);
     if (model_type != "none")
     {
-      for (vector<TransformationDescription>::iterator it = 
-             transformations.begin(); it != transformations.end(); ++it)
+      for (TransformationDescription& tra : transformations)
       {
-        it->fitModel(model_type, model_params);
+        tra.fitModel(model_type, model_params);
       }
     }
 
