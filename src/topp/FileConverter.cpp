@@ -48,6 +48,7 @@
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
@@ -55,7 +56,7 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -125,6 +126,7 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
   @ref OpenMS::SqMassFile "sqmass"
+  @ref OpenMS::OMSFile "oms"
 
   @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
@@ -338,7 +340,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
@@ -504,7 +506,8 @@ protected:
       fh.loadFeatures(in, fm, in_type);
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::OMS))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
         writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
@@ -879,6 +882,16 @@ protected:
     {
       SqMassFile sqm;
       sqm.store(out, exp);
+    }
+    else if (out_type == FileTypes::OMS) // TODO: That only works for featureXML input!
+    {
+      if (in_type != FileTypes::FEATUREXML)
+      {
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+
+      OMSFile().store(out, fm);
     }
     else
     {

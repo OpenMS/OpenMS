@@ -292,14 +292,13 @@ namespace OpenMS
     if (!tableExists_(db_name_, "DataValue")) createTableDataValue_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
-    createTable_(
-      parent_table + "_MetaInfo",
+    createTable_(parent_table + "_MetaInfo",
       "parent_id INTEGER NOT NULL, "                            \
       "name TEXT NOT NULL, "                                    \
       "data_value_id INTEGER NOT NULL, "                        \
+      "UNIQUE (parent_id, name), "                              \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
-      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
-      "UNIQUE (parent_id, name)");
+      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id)");
   }
 
 
@@ -319,7 +318,6 @@ namespace OpenMS
                                              Key parent_id, QSqlQuery& query)
   {
     if (info.isMetaEmpty()) return;
-
     // this assumes the "..._MetaInfo" and "DataValue" tables exist already,
     // and the query has been prepared using "getQueryMetaInfo_"!
     query.bindValue(":parent_id", parent_id);
@@ -331,8 +329,7 @@ namespace OpenMS
       query.bindValue(":name", info_key.toQString());
       Key value_id = storeDataValue_(info.getMetaValue(info_key));
       query.bindValue(":data_value_id", value_id);
-      bool success = query.exec();
-      if (!success) // TODO: Fails here! Not sure why.
+      if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
@@ -1307,6 +1304,7 @@ namespace OpenMS
     QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
     QSqlQuery& query_match)
   {
+    if (tableExists_(db_name_, "FEAT_Feature"))
     query_feat.bindValue(":id", feature_id);
     query_feat.bindValue(":rt", feature.getRT());
     query_feat.bindValue(":mz", feature.getMZ());
@@ -1480,7 +1478,7 @@ namespace OpenMS
   void OMSFile::OMSFileStore::storeMapMetaData_(const FeatureMap& features)
   {
     createTable_("FEAT_MapMetaData",
-                 "unique_id INTEGER, "          \
+                 "unique_id INTEGER UNIQUE NOT NULL, "          \
                  "identifier TEXT, "            \
                  "file_path TEXT, "             \
                  "file_type TEXT");
@@ -1491,7 +1489,7 @@ namespace OpenMS
                   ":identifier, "                         \
                   ":file_path, "                          \
                   ":file_type)");
-                  query.bindValue(":unique_id",  quint64(features.getUniqueId())); // qint64 (-4317911969993237730) seems to change Uint64 (14128832103716313886) > quint64 (14128832103716313886)
+    query.bindValue(":unique_id",  quint64(features.getUniqueId())); // qint64 (-4317911969993237730) seems to change Uint64 (14128832103716313886) > quint64 (14128832103716313886)
     query.bindValue(":identifier", features.getIdentifier().toQString());
     query.bindValue(":file_path", features.getLoadedFilePath().toQString());
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
@@ -1501,12 +1499,11 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
-    // TODO: reactivate FIX issue throws exception in storeMetaInfo_
     if (!features.isMetaEmpty())
     {
       createTableMetaInfo_("FEAT_MapMetaData", "unique_id");
       QSqlQuery query_meta = getQueryMetaInfo_("FEAT_MapMetaData");
-      storeMetaInfo_(features, quint64(features.getUniqueId()), query_meta); // TODO: FIX
+      storeMetaInfo_(features, quint64(features.getUniqueId()), query_meta);
     }
   }
 
