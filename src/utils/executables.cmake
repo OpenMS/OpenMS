@@ -21,7 +21,6 @@ FeatureFinderSuperHirn
 FFEval
 FilterTopPicResults
 FuzzyDiff
-GenerateTheoreticalMS1Scan
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
