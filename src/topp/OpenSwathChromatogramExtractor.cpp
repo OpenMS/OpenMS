@@ -257,7 +257,10 @@ protected:
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
       f.load(file_list[i], *exp);
-      if (exp->empty() ) { continue; } // if empty, go on
+      if (exp->empty() )
+      { 
+        continue; // if empty, go on
+      } 
       OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       bool do_continue = true;
       if (is_swath)
@@ -299,10 +302,10 @@ protected:
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
           extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
-          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
+          for (ChromatogramExtractor::ExtractionCoordinates& chrom : coordinates)
           {
-            it->rt_start = trafo_inverse.apply(it->rt_start) - rt_extraction_window / 2.0;
-            it->rt_end = trafo_inverse.apply(it->rt_end) + rt_extraction_window / 2.0;
+            chrom.rt_start = trafo_inverse.apply(chrom.rt_start) - rt_extraction_window / 2.0;
+            chrom.rt_end = trafo_inverse.apply(chrom.rt_end) + rt_extraction_window / 2.0;
           }
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 

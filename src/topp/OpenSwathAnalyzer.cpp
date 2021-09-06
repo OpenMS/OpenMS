@@ -287,17 +287,13 @@ protected:
 #pragma omp critical (featureFinder)
 #endif
         {
-          for (FeatureMap::iterator feature_it = featureFile.begin();
-               feature_it != featureFile.end(); ++feature_it)
+          for (const Feature& feature : featureFile)
           {
-            out_featureFile.push_back(*feature_it);
+            out_featureFile.push_back(feature);
           }
-          for (std::vector<ProteinIdentification>::iterator protid_it =
-                 featureFile.getProteinIdentifications().begin();
-               protid_it != featureFile.getProteinIdentifications().end();
-               ++protid_it)
+          for (const ProteinIdentification& protid : featureFile.getProteinIdentifications())
           {
-            out_featureFile.getProteinIdentifications().push_back(*protid_it);
+            out_featureFile.getProteinIdentifications().push_back(protid);
           }
 
         }
