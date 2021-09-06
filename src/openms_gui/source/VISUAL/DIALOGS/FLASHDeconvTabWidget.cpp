@@ -48,6 +48,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QSignalBlocker>
+#include <QDesktopServices>
 
 #include <algorithm>
 
@@ -182,6 +183,11 @@ namespace OpenMS
       ui->tab_run->setEnabled(true);
       ParamXMLFile().load(tmp_file, tmp_param);
       flashdeconv_param_.update(tmp_param, false);
+    }
+
+    void FLASHDeconvTabWidget::on_open_output_directory_clicked()
+    {
+      QDesktopServices::openUrl( QUrl::fromLocalFile(getCurrentOutDir_()) );
     }
 
     void FLASHDeconvTabWidget::updateFLASHDeconvParamFromWidgets_()

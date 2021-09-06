@@ -96,6 +96,7 @@ namespace OpenMS
     private slots:
       void on_run_fd_clicked();
       void on_edit_advanced_parameters_clicked();
+      void on_open_output_directory_clicked();
       /// update the current working directory for all file input fields
       void broadcastNewCWD_(const QString& new_cwd);
 

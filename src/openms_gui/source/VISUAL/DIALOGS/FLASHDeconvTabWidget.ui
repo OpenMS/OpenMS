@@ -104,7 +104,21 @@
         </widget>
        </item>
        <item>
-        <widget class="OutputDirectory" name="out_dir" native="true"/>
+        <layout class="QHBoxLayout" name="horizontalLayout_outputdirectory">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+           <widget class="OutputDirectory" name="out_dir" native="true"/>
+         </item>
+         <item>
+           <widget class="QPushButton" name="open_output_directory">
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QLabel" name="label_5">

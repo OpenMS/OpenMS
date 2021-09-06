@@ -65,7 +65,7 @@ namespace OpenMS
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
     setWindowTitle("FLASHDeconvWizard");
-    setWindowIcon(QIcon(":/SwathWizard.png")); // TODO : change
+    setWindowIcon(QIcon(":/FLASHDeconvWizard.png"));
 
     FLASHDeconvTabWidget* cwidget = new FLASHDeconvTabWidget(this);
     setCentralWidget(cwidget);
