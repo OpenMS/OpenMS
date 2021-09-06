@@ -63,17 +63,18 @@ namespace OpenMS
       for (auto& tool : tools)
       {
         const std::string name = tool.first;
-        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
+        param_futures_[name] = std::async(std::launch::async, [name] { return TVToolDiscovery::getParamFromIni_(name); });
       }
       for (auto& util : utils)
       {
         const std::string name = util.first;
-        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
+        param_futures_[name] = std::async(std::launch::async, [name] { return TVToolDiscovery::getParamFromIni_(name); });
       }
       for (auto& plugin : plugins)
       {
         std::cout << "starting work on " << plugin << std::endl;
-        param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin);
+        param_futures_[File::basename(plugin)] = std::async(std::launch::async, [this, plugin] 
+          { return TVToolDiscovery::getParamFromIni_(plugin, &plugins_); });
       }
       return true;
     }();
@@ -111,7 +112,13 @@ namespace OpenMS
     return params_;
   }
 
-  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name)
+  
+  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name) {
+    getParamFromIni_(tool_name, nullptr);
+  }
+
+
+  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name, StringList *plugins)
   {
     FileHandler fh;
     // Temporary file path and arguments
@@ -155,29 +162,37 @@ namespace OpenMS
     }
 
 
-    if (executable.hasSuffix("test.py"))    
+    /*if (executable.hasSuffix("test.py"))    
     {
       std::cout << "TOOL_PARAMS: " << tool_param << std::endl;
+
+
+    }*/
+    
+    std::cout << plugins << std::endl;
+
+    if (plugins) {
+      auto param_line = tool_param.begin().getName();
+      std::cout << "PLUGIN NAME: " << param_line.substr(0, param_line.find_first_of(':')) << std::endl;
+     
+      // fill list of plugins with the Plugin Name from the ini
+      plugins->emplace(plugins->end(), param_line.substr(0, param_line.find_first_of(':')));
+      std::cout << "PLUGINS LIST ENTRY 1: " << plugins->at(0) << std::endl;
     }
+
+
+
 
     return tool_param;
   }
 
-  const ToolListType &TVToolDiscovery::getPlugins()
+  const StringList &TVToolDiscovery::getPlugins()
   {
-    ToolListType tool_map;
-    std::map<std::string, Param> params;
-    StringList plugins;
+    // Make sure threads have been launched and waited for before accessing results
+    loadParams();
+    waitForParams();
 
-    params = TVToolDiscovery::getToolParams();
-    plugins = TVToolDiscovery::getPlugins_();
-
-    for (auto param : params)
-    {
-      std::cout << param.first << std::endl;
-    }
-  
-    return tool_map;
+    return plugins_;
   }
 
   const StringList TVToolDiscovery::getPlugins_()
