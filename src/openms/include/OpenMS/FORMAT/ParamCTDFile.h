@@ -55,19 +55,16 @@ namespace OpenMS
   };
 
   /**
-  @brief The file pendant of the Param class used to ( load ) and store the param
-         datastructure as paramCTD.
-
-   only storing is currently possible !
+  @brief Serializes a Param class in paramCTD file format.
+         Note: only storing is currently possible
 
 */
   class OPENMS_DLLAPI ParamCTDFile
   {
   public:
-    ///Constructor
-    ParamCTDFile();
-    ///Destructor
-    ~ParamCTDFile() = default;
+    ParamCTDFile(); ///Constructor
+    
+    ~ParamCTDFile() = default; ///Destructor
 
     /**
        @brief Write CTD file
