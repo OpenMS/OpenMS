@@ -82,7 +82,7 @@ public:
         @param layer_name The name of the selected layer
         @param plugin_map Mapping of the loaded plugins
     */
-    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
+    // ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     /**
         @brief Constructor
 
