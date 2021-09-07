@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -94,8 +93,6 @@ protected:
     // TODO: add mtd, epd param
 
     Param p_ffi = FeatureFindingIntact().getDefaults();
-//    p_ffm.remove("chrom_fwhm");
-//    p_ffm.remove("report_chromatograms");
     combined.insert("ffi:", p_ffi);
     combined.setSectionDescription("ffi", "FeatureFinder parameters (assembling mass traces to charged features)");
 
@@ -122,9 +119,6 @@ public:
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
-    /// for test purpose : reduce in_ex
-//    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1000.0), DPosition<1>(1600)));
-//    mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(130.0), DPosition<1>(410)));
     mz_data_file.load(in, ms_peakmap);
 
     if (ms_peakmap.empty())
@@ -157,7 +151,7 @@ public:
     p_mtd.setValue("noise_threshold_int" , 0.0);
     p_mtd.setValue("chrom_peak_snr" , 0.0);
     p_mtd.setValue("mass_error_ppm", 5.0);
-    p_mtd.setValue("reestimate_mt_sd", "false");
+//    p_mtd.setValue("reestimate_mt_sd", "false");
 //    p_mtd.setValue("trace_termination_criterion", "sample_rate");
 //    p_mtd.setValue("min_sample_rate", 0.2);
 
@@ -170,23 +164,18 @@ public:
     //-------------------------------------------------------------
     // Elution peak detection
     //-------------------------------------------------------------
-//    Param p_epd = ElutionPeakDetection().getDefaults();
-//    p_epd.insert("", ElutionPeakDetection().getDefaults());
-//    p_epd.remove("chrom_peak_snr");
-//    p_epd.remove("chrom_fwhm");
-//    p_epd.remove("noise_threshold_int");
+    Param p_epd = ElutionPeakDetection().getDefaults();
+    p_epd.setValue("width_filtering", "off");
 
     std::vector<MassTrace> m_traces_final;
-//    ElutionPeakDetection epdet;
-//    epdet.setParameters(p_epd);
-//    // fill mass traces with smoothed data as well .. bad design..
-//    epdet.detectPeaks(m_traces, m_traces_final);
+    ElutionPeakDetection epdet;
+    epdet.setParameters(p_epd);
+    // fill mass traces with smoothed data as well .. bad design..
+    epdet.detectPeaks(m_traces, m_traces_final);
     for (auto &m : m_traces)
     {
       m.estimateFWHM(false);
     }
-//    m_traces_final = splitted_mtraces;
-    m_traces_final = m_traces;
     OPENMS_LOG_INFO << "# final input mass traces : " << m_traces_final.size() << endl;
 
     // for test output TODO: remove
@@ -197,11 +186,6 @@ public:
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
-//    FeatureFindingIntact ffi;
-//    ffi.setParameters(ffi_param);
-//    FeatureMap out_map;
-//    ffi.run(m_traces_final, out_map, in);
-
     FLASHDeconvQuant fdq;
     fdq.setParameters(ffi_param);
     if (!out_dir.empty())

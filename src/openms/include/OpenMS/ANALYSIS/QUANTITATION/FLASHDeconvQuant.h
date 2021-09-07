@@ -429,6 +429,11 @@ namespace OpenMS
       return centroid_rt_of_apices;
     }
 
+    double getRtOfApex() const
+    {
+      return rt_of_apex;
+    }
+
     double getIntensityOfMostAbundantCharge() const
     {
       return *std::max_element(per_charge_int_.begin(), per_charge_int_.end());
@@ -451,6 +456,20 @@ namespace OpenMS
     int getMostAbundantCharge() const
     {
       return std::distance(per_charge_int_.begin(), std::max_element(per_charge_int_.begin(), per_charge_int_.end()));
+    }
+
+    double getAvgFwhmLength() const
+    {
+      double avg_fwhm_len(0.0);
+      std::vector<double> fwhm_len_arr;
+      fwhm_len_arr.reserve(this->size());
+
+      for (auto& l_trace : *this)
+      {
+        double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
+        fwhm_len_arr.push_back(tmp_fwhm_len);
+      }
+      return accumulate( fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0)/(this->size());
     }
 
     void setChargeRange(const int min_c, const int max_c) {
@@ -499,6 +518,7 @@ namespace OpenMS
     {
       double min_fwhm(numeric_limits<double>::max());
       double max_fwhm(0.0);
+
       for (auto& l_trace : *this)
       {
         std::pair<double, double> tmp_fwhm(l_trace.getFwhmStart(), l_trace.getFwhmEnd());
@@ -615,14 +635,23 @@ namespace OpenMS
     void setCentroidRtOfApices()
     {
       double tmp_rt = .0;
+      double max_inty = .0;
+      double apex_rt = .0;
 
       for(const auto& lmt : *this)
       {
         Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(true);
-        tmp_rt += (*lmt.getMassTrace())[max_idx].getRT();
+        auto tmp_max_peak = (*lmt.getMassTrace())[max_idx];
+        tmp_rt += tmp_max_peak.getRT();
+        if (max_inty < tmp_max_peak.getIntensity())
+        {
+          max_inty = tmp_max_peak.getIntensity();
+          apex_rt = tmp_max_peak.getRT();
+        }
       }
       tmp_rt /= this->size();
       centroid_rt_of_apices = tmp_rt;
+      rt_of_apex = apex_rt;
     }
 
 
@@ -644,6 +673,7 @@ namespace OpenMS
     std::vector<float> per_charge_int_;
 
     double centroid_rt_of_apices;
+    double rt_of_apex; // Apex : apex of most abundant mass traces
 
 //    int most_intense_charge_;
 //    double most_intense_mt_intensity;
@@ -698,124 +728,6 @@ namespace OpenMS
 //      return x->getIsotopeCosine() < y->getIsotopeCosine();
 //    }
 
-  };
-
-  struct OPENMS_DLLAPI DeconvMassStruct
-  {
-  public:
-    /// default constructor
-    DeconvMassStruct() = default;
-
-    double deconv_mass = 0.0; // median mass of current
-    std::vector<Size> feature_idx;
-    std::vector<double> feature_masses; // sorted
-    std::set<int> charges;
-    std::pair<double, double> fwhm_border;
-    double combined_score = 0.0;
-    double quant_values = 0.0;
-
-    void initialize(double mass, int cs, Size f_idx, std::pair<double, double> fwhm, double score)
-    {
-      deconv_mass = mass;
-      charges.insert(cs);
-      feature_idx.push_back(f_idx);
-      feature_masses.push_back(mass);
-      fwhm_border = fwhm;
-      combined_score = score;
-    }
-
-    bool operator<(const DeconvMassStruct& other) const
-    {
-      return combined_score < other.combined_score;
-    }
-
-    bool operator==(const DeconvMassStruct& other) const
-    {
-      return combined_score == other.combined_score;
-    }
-
-    void addFeatureHypothesis(double mass, int cs, int f_idx, std::pair<double, double> fwhm, double s)
-    {
-      feature_masses.push_back(mass);
-      charges.insert(cs);
-      feature_idx.push_back(f_idx);
-      updateFwhmBorder(fwhm);
-      combined_score += s;
-    }
-
-    void removeFeatureHypothesis(double mass, double score)
-    {
-      combined_score -= score;
-
-      auto iter = std::find(feature_masses.begin(), feature_masses.end(), mass);
-      if (iter != feature_masses.end())
-      {
-        feature_masses.erase(iter);
-      }
-    }
-
-    // update deconv_mass from calculating median of masses
-    // return true if deconv_mass is changed - this step is needed to reduce unnecessary step in DeconvMassStruct set update
-    bool updateDeconvMass()
-    {
-      if (feature_masses.size() == 1)
-      {
-        deconv_mass = feature_masses[0];
-        return false;
-      }
-      std::sort(feature_masses.begin(), feature_masses.end());
-
-      Size m_size = feature_masses.size();
-      Size mid = static_cast<Size>(m_size / 2.0);
-      double new_mass(0.0);
-      if ((m_size % 2) == 0)
-      {
-        new_mass = (feature_masses[mid - 1] +  feature_masses[mid]) / 2;
-      }
-      else
-      {
-        new_mass = feature_masses[mid];
-      }
-
-      if (new_mass != deconv_mass)
-      {
-        deconv_mass = new_mass;
-        return true;
-      }
-      return false;
-    }
-
-    bool hasContinuousCharges() const
-    {
-      // at least three charges should be continuously appearing
-      for (auto c_itr = charges.cbegin(); c_itr != charges.cend(); ++c_itr)
-      {
-        auto next_itr = std::next(c_itr);
-        auto next_itr2 = std::next(c_itr, 2);
-        if (next_itr == charges.cend() || next_itr2 == charges.cend())
-        {
-          break;
-        }
-        if ( (*next_itr2)-(*c_itr)==2 )
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    void updateFwhmBorder(std::pair<double, double> new_fwhm)
-    {
-      // it is guaranteed new_fwhm overlaps with current fwhm_border;
-      if (new_fwhm.first < fwhm_border.first)
-      {
-        fwhm_border.first = new_fwhm.first;
-      }
-      if (new_fwhm.second > fwhm_border.second)
-      {
-        fwhm_border.second = new_fwhm.second;
-      }
-    }
   };
 
   /// TODO: replace this with FLASHDeconv
@@ -1076,15 +988,9 @@ namespace OpenMS
                                                         const double tol,
                                                         const int iso_length) const;
 
-    void addFeature2DeconvMassStruct(FeatureGroup &in_feature,
-                                                       Size feature_idx,
-                                                       std::map<double, DeconvMassStruct> &deconv_masses) const;
-
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
     bool rescoreFeatureGroup_(FeatureGroup& fg) const;
-
-    void addFeatureGroup_(std::vector<FeatureGroup>& features, std::vector<FeatureGroup>& local_fgroup) const;
 
     bool doFWHMbordersOverlap(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
@@ -1169,5 +1075,8 @@ namespace OpenMS
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5};
+
+    /// for test purpose : remove this
+    std::vector<bool> feature_with_shared_;
   };
 }

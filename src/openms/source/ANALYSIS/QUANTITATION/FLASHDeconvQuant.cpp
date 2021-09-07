@@ -91,10 +91,13 @@ namespace OpenMS
     // header
     out << "mono_mass\tmin_charge\tmax_charge\tquant_value\tsummed_inty\tmost_abundant_charge\t"
            "quant_of_most_abundant_charge\tquant_of_apices_of_cs\tcharge_score\tiso_cosine\tweighted_iso_score\t"
-           "fwhm_start\tfwhm_end\trt_start\trt_end\tiso_length\tperIsotopeIntensity\n";
+           "fwhm_start\tfwhm_end\tfwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
+           "iso_length\tperIsotopeIntensity\tis_shared\n";
 
+    int counter = -1;
     for (auto& fg : features)
     {
+      counter++;
       double quant_value = fg.getIntensity();
 
       // intys
@@ -124,6 +127,9 @@ namespace OpenMS
           max_rt = tmp_max;
       }
 
+      // get centroid rt of Apices
+      fg.setCentroidRtOfApices();
+
       auto iso_start = std::distance(per_iso_intys.begin(), find_if( per_iso_intys.begin(), per_iso_intys.end(), [](double x) { return x != 0; }));
       auto iso_end = std::distance(per_iso_intys.rbegin(), find_if( per_iso_intys.rbegin(), per_iso_intys.rend(), [](double x) { return x != 0; }));
       iso_end = per_iso_intys.size() - iso_end;
@@ -149,10 +155,72 @@ namespace OpenMS
           << std::to_string(fg.getFeatureGroupScore()) << "\t"
           << std::to_string(fg.getFwhmRange().first) << "\t"
           << std::to_string(fg.getFwhmRange().second) << "\t"
+          << std::to_string(fg.getAvgFwhmLength()) << "\t"
           << std::to_string(min_rt) << "\t"
           << std::to_string(max_rt) << "\t"
+          << std::to_string(fg.getCentroidRtOfApices()) << "\t"
+          << std::to_string(fg.getRtOfApex()) << "\t"
           << (iso_end - iso_start) << "\t"
-          << iso_ss_str << "\n";
+          << iso_ss_str << "\t"
+          << feature_with_shared_[counter] << "\n";
+    }
+
+    out.close();
+  }
+
+  void printSharedMassTraces(std::vector<std::vector<Size>>& shared_m_traces,
+                             String outputPath,
+                             std::vector<FeatureGroup>& fgroups,
+                             std::vector<MassTrace>& input_mtraces)
+  {
+    ofstream out;
+    out.open(outputPath, ios::out);
+    out << "mass_trace_idx\tmass_trace_centroid_mz\tmass_trace_centroid_rt\tfeature_indices\tfeature_masses\tfeature_cs_iso\trts_or_apices\n" ;
+
+    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
+    {
+      if (shared_m_traces[mt_idx].size() < 2)
+        continue;
+
+      out << mt_idx << "\t"
+          << std::to_string(input_mtraces[mt_idx].getCentroidMZ()) << "\t"
+          << std::to_string(input_mtraces[mt_idx].getCentroidRT()) << "\t";
+
+      stringstream f_indices;
+      stringstream f_masses;
+      stringstream f_infos;
+      stringstream f_rts;
+      for (auto & f_idx : shared_m_traces[mt_idx])
+      {
+        auto& feature = fgroups[f_idx];
+
+        feature.setCentroidRtOfApices();
+        f_indices << f_idx << ", ";
+        f_masses << std::to_string(feature.getMonoisotopicMass()) << ", ";
+        f_rts << std::to_string(feature.getCentroidRtOfApices()) << ", ";
+
+        for (auto& mt : feature)
+        {
+          if (mt.getTraceIndex() == mt_idx)
+          {
+            f_infos << mt.getCharge() << "(" << mt.getIsotopeIndex() << ")" << ", ";
+            break;
+          }
+        }
+      }
+      std::string f_str = f_indices.str();
+      f_str.pop_back(); // comma
+      f_str.pop_back(); // white space
+      f_str = f_str + "\t" + f_masses.str();
+      f_str.pop_back();
+      f_str.pop_back();
+      f_str = f_str + "\t" + f_infos.str();
+      f_str.pop_back();
+      f_str.pop_back();
+      f_str = f_str + "\t" + f_rts.str();
+      f_str.pop_back();
+      f_str.pop_back();
+      out << f_str << "\n";
     }
 
     out.close();
@@ -181,7 +249,7 @@ namespace OpenMS
     // *********************************************************** //
     // Step 2 mass artifact removal & post processing...
     // *********************************************************** //
-//    refineFeatureGroups_(features);
+    refineFeatureGroups_(features);
 
     // filter out mass traces in each features and re-score them
 //    std::vector<FeatureGroup> tmpFGroups;
@@ -210,7 +278,8 @@ namespace OpenMS
       }
     }
 
-    std::vector<bool> feature_with_shared(features.size(), false);
+    feature_with_shared_.reserve(features.size());
+    feature_with_shared_.assign(features.size(), false);
     for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
     {
       if (shared_m_traces[mt_idx].size() < 2) // this mass trace is not shared
@@ -219,19 +288,26 @@ namespace OpenMS
       }
       for (auto& f_idx : shared_m_traces[mt_idx])
       {
-        feature_with_shared[f_idx] = true;
+        feature_with_shared_[f_idx] = true;
       }
     }
 
-    auto count = std::count(feature_with_shared.begin(), feature_with_shared.end(), true);
+    auto count = std::count(feature_with_shared_.begin(), feature_with_shared_.end(), true);
     OPENMS_LOG_INFO << "total #feature - #features_with_shared : " << features.size() << "\t" << count << endl;
-    OPENMS_LOG_INFO << "#feature with shared : " << count << endl;
     OPENMS_LOG_INFO << "percentage : " << (count/features.size()) << endl;
 
 //    resolveSharedMassTraces_simple(features, shared_m_traces, input_mtraces);
 //    resolveSharedMassTraces(features, shared_m_traces, input_mtraces);
     writeFeatureGroupsInFile(features);
     //    clusterFeatureGroups_(features, shared_m_traces, input_mtraces);
+
+    // writing mass traces (when no resolution is done)
+    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    ofstream out;
+    out.open(out_path, ios::out);
+    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
+    writeMassTracesOfFeatureGroup(features, shared_m_traces, out);
+    out.close();
   }
 
   void FLASHDeconvQuant::logTransformMassTraces_(std::vector<MassTrace> &input_mtraces, std::vector<LogMassTrace> &log_mtraces)
@@ -1422,113 +1498,6 @@ namespace OpenMS
 //      prev_mass_bin_vector_.shrink_to_fit();
   }
 
-  void FLASHDeconvQuant::addFeatureGroup_(std::vector<FeatureGroup> &features, std::vector<FeatureGroup>& new_fgroups) const
-  {
-    std::sort(new_fgroups.begin(), new_fgroups.end());
-
-    Size fg_pointer = 0;
-    for (auto new_fg_iter = new_fgroups.begin(); new_fg_iter != new_fgroups.end(); ++new_fg_iter)
-    {
-      // reached end of features. add the rest of new_fgroups to features
-      if ( features.size() == fg_pointer )
-      {
-        features.insert(features.end(), new_fg_iter, new_fgroups.end());
-        break;
-      }
-
-      // check if similar mass doesn't exist in the vector within tolerance
-      if ( features[fg_pointer].getMonoisotopicMass() - new_fg_iter->getMonoisotopicMass() > mass_tolerance_ )
-      {
-        features.insert(features.begin()+fg_pointer, *new_fg_iter);
-        continue;
-      }
-
-      // move fg_pointer to fit new_fg
-      if ( new_fg_iter->getMonoisotopicMass() - features[fg_pointer].getMonoisotopicMass() > mass_tolerance_)
-      {
-        for (; std::abs(new_fg_iter->getMonoisotopicMass() - features[fg_pointer].getMonoisotopicMass()) > mass_tolerance_
-              ; ++fg_pointer )
-        {
-          if (fg_pointer == features.size())
-          {
-//            ++fg_pointer;
-            break;
-          }
-          auto tm = fg_pointer;
-        }
-//        --fg_pointer;
-
-        // if reached at the end of features
-        if (fg_pointer == features.size())
-        {
-          features.push_back(*new_fg_iter);
-          continue;
-        }
-      }
-
-      // find closest & within RT range
-      double smallest_diff(std::abs(features[fg_pointer].getMonoisotopicMass()-new_fg_iter->getMonoisotopicMass()));
-      Size selected_index = fg_pointer;
-      for (Size p = fg_pointer-1; p < fg_pointer+2; ++p)
-      {
-        if (p < 0 || p >= features.size())
-        {
-          continue;
-        }
-
-        // if out of wanted RT range, ignore
-        if( !doFWHMbordersOverlap(features[p].getFwhmRange(), new_fg_iter->getFwhmRange()))
-        {
-          continue;
-        }
-
-        double diff = std::fabs(features[p].getMonoisotopicMass() - new_fg_iter->getMonoisotopicMass());
-        if (diff < smallest_diff)
-        {
-          selected_index = p;
-          smallest_diff = diff;
-        }
-      }
-      fg_pointer = selected_index;
-
-      // if smallest_diff is not smaller than tolerance, add the new_fg to features
-      if (smallest_diff > mass_tolerance_ ||
-          !doFWHMbordersOverlap(features[fg_pointer].getFwhmRange(), new_fg_iter->getFwhmRange()) )
-      {
-        if (features[fg_pointer].getMonoisotopicMass() > new_fg_iter->getMonoisotopicMass())
-        {
-          --fg_pointer;
-        }
-        features.insert(features.begin()+fg_pointer, *new_fg_iter);
-        continue;
-      }
-
-      // within mass_tolerance & rt overlaps -> combine
-      // TODO : maybe only when overlaps?
-      if ( features[fg_pointer].getTraceIndices() == new_fg_iter->getTraceIndices()) // if exactly same feature exist
-      {
-        continue;
-      }
-
-      auto trace_indices = features[fg_pointer].getTraceIndices();
-      for (auto& fg : *new_fg_iter)
-      {
-        if ( std::find( trace_indices.begin(), trace_indices.end(), fg.getTraceIndex() )
-              != trace_indices.end())
-        {
-          features[fg_pointer].push_back(fg);
-        }
-      }
-      features[fg_pointer].setFwhmRange();
-      features[fg_pointer].setTraceIndices();
-      features[fg_pointer].updateMassesAndIntensity();
-    }
-
-
-    // sort features (for later)
-    std::sort(features.begin(), features.end());
-  }
-
   bool FLASHDeconvQuant::doFWHMbordersOverlap(const std::pair<double, double>& border1,
                                                   const std::pair<double, double>& border2) const
   {
@@ -2013,76 +1982,10 @@ namespace OpenMS
     out.close();
   }
 
-  void printSharedMassTraces(std::vector<std::vector<Size>>& shared_m_traces,
-                             String outputPath,
-                             std::vector<FeatureGroup>& fgroups,
-                             std::vector<MassTrace>& input_mtraces)
-  {
-    ofstream out;
-    out.open(outputPath, ios::out);
-    out << "mass_trace_idx\tmass_trace_centroid_mz\tmass_trace_centroid_rt\tfeature_indices\tfeature_masses\tfeature_cs_iso\trts_or_apices\n" ;
-
-    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
-    {
-      if (shared_m_traces[mt_idx].size() < 2)
-        continue;
-
-      out << mt_idx << "\t"
-          << std::to_string(input_mtraces[mt_idx].getCentroidMZ()) << "\t"
-          << std::to_string(input_mtraces[mt_idx].getCentroidRT()) << "\t";
-
-      stringstream f_indices;
-      stringstream f_masses;
-      stringstream f_infos;
-      stringstream f_rts;
-      for (auto & f_idx : shared_m_traces[mt_idx])
-      {
-        auto& feature = fgroups[f_idx];
-
-        f_indices << f_idx << ", ";
-        f_masses << std::to_string(feature.getMonoisotopicMass()) << ", ";
-        f_rts << std::to_string(feature.getCentroidRtOfApices()) << ", ";
-
-        for (auto& mt : feature)
-        {
-          if (mt.getTraceIndex() == mt_idx)
-          {
-            f_infos << mt.getCharge() << "(" << mt.getIsotopeIndex() << ")" << ", ";
-            break;
-          }
-        }
-      }
-      std::string f_str = f_indices.str();
-      f_str.pop_back(); // comma
-      f_str.pop_back(); // white space
-      f_str = f_str + "\t" + f_masses.str();
-      f_str.pop_back();
-      f_str.pop_back();
-      f_str = f_str + "\t" + f_infos.str();
-      f_str.pop_back();
-      f_str.pop_back();
-      f_str = f_str + "\t" + f_rts.str();
-      f_str.pop_back();
-      f_str.pop_back();
-      out << f_str << "\n";
-    }
-
-    out.close();
-  }
-
   void FLASHDeconvQuant::resolveSharedMassTraces_simple(std::vector<FeatureGroup> &fgroups,
                                                         std::vector<std::vector<Size>> &shared_m_traces,
                                                         std::vector<MassTrace> &input_mtraces) const
   {
-    /// generate array with indices of shared mass traces
-    for (Size fg_index = 0; fg_index<fgroups.size(); ++fg_index)
-    {
-      for (auto& mt_i : fgroups[fg_index].getTraceIndices())
-      {
-        shared_m_traces[mt_i].push_back(fg_index);
-      }
-    }
-
     /// test writing for shared mass traces
     String s_out = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_sharedMTs.tsv";
     printSharedMassTraces(shared_m_traces, s_out, fgroups, input_mtraces);
@@ -2142,10 +2045,9 @@ namespace OpenMS
 
       double sum_of_quant = std::accumulate(feat_quant_pair.begin(), feat_quant_pair.end(), 0.0,
                                             [](auto &a, auto &b){return a + b.first;});
-//      std::vector<double> weight_vec;
+
       for (auto& q_pair : feat_quant_pair)
       {
-//        weight_vec.push_back( q_pair.first/sum_of_quant );
         double weight = q_pair.first/sum_of_quant;
         auto &fg_lmt = fgroups[q_pair.second.first][q_pair.second.second];
         fg_lmt.setIntensity(fg_lmt.getIntensity() * weight);
@@ -2448,10 +2350,6 @@ namespace OpenMS
     OPENMS_LOG_INFO << "----- # FeatureGroup : " << feature_groups.size() << " -----" << endl;
     for (const auto& feat : feature_groups)
     {
-//      OPENMS_LOG_INFO << std::to_string(feat.getMonoisotopicMass()) << "\n";
-
-      //    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
-
       double quant(0.0);
       auto mt_idxs = feat.getTraceIndices();
 
