@@ -568,7 +568,7 @@ namespace OpenMS
           tmp_precursor = &tmp_peak;
         }
         sum /= i_sum;
-        if (tmp_precursor == nullptr || i_sum <= 0 || sum < start_mz || sum > end_mz)
+        if (tmp_precursor == nullptr)// || i_sum <= 0 || sum < start_mz || sum > end_mz)
         {
           continue;
         }

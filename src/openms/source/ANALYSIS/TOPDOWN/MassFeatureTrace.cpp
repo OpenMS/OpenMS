@@ -46,10 +46,9 @@ namespace OpenMS
     mtd_defaults.setValue("min_sample_rate",
                           .1,
                           "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
-
-    mtd_defaults.setValue("mass_error_da",
-                          1.5,
-                          "da tolerance for feature tracing. Due to frequent isotope error, 1.5 Da is recommended.");
+    //mtd_defaults.setValue("mass_error_da",
+    //                      1.5,
+    //                      "da tolerance for feature tracing. Due to frequent isotope error, 1.5 Da is recommended.");
     mtd_defaults.setValue("min_trace_length", 10.0);//
 
     mtd_defaults.setValue("chrom_peak_snr", .0);

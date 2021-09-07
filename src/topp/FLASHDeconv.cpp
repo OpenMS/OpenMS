@@ -241,7 +241,10 @@ protected:
     mf_defaults.remove("trace_termination_outliers");
     mf_defaults.remove("chrom_peak_snr");
 
-    mf_defaults.remove("mass_error_ppm"); // hide entry
+    DoubleList tols = fd_defaults.getValue("tol");
+    mf_defaults.setValue("mass_error_ppm", tols[0]);
+
+    //mf_defaults.remove("mass_error_ppm"); // hide entry
     mf_defaults.setValue("min_sample_rate", 0.2);
 
     Param combined;
@@ -649,6 +652,7 @@ protected:
     mf_param.setValue("trace_termination_criterion", "outlier");
     mf_param.setValue("trace_termination_outliers", 20);
     mf_param.setValue("chrom_peak_snr", .0);
+
     if (((double) mf_param.getValue("min_isotope_cosine")) < 0)
     {
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
