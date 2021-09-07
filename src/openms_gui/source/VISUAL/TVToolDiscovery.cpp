@@ -63,18 +63,17 @@ namespace OpenMS
       for (auto& tool : tools)
       {
         const std::string name = tool.first;
-        param_futures_[name] = std::async(std::launch::async, [name] { return TVToolDiscovery::getParamFromIni_(name); });
+        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name, nullptr);
       }
       for (auto& util : utils)
       {
         const std::string name = util.first;
-        param_futures_[name] = std::async(std::launch::async, [name] { return TVToolDiscovery::getParamFromIni_(name); });
+        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name, nullptr);
       }
       for (auto& plugin : plugins)
       {
         std::cout << "starting work on " << plugin << std::endl;
-        param_futures_[File::basename(plugin)] = std::async(std::launch::async, [this, plugin] 
-          { return TVToolDiscovery::getParamFromIni_(plugin, &plugins_); });
+        param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin, &plugins_);
       }
       return true;
     }();
@@ -111,12 +110,6 @@ namespace OpenMS
     waitForParams();
     return params_;
   }
-
-  
-  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name) {
-    getParamFromIni_(tool_name, nullptr);
-  }
-
 
   Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name, StringList *plugins)
   {
@@ -162,19 +155,18 @@ namespace OpenMS
     }
 
 
-    /*if (executable.hasSuffix("test.py"))    
+    if (executable.hasSuffix("test.py"))    
     {
       std::cout << "TOOL_PARAMS: " << tool_param << std::endl;
 
 
-    }*/
+    }
     
-    std::cout << plugins << std::endl;
-
     if (plugins) {
       auto param_line = tool_param.begin().getName();
       std::cout << "PLUGIN NAME: " << param_line.substr(0, param_line.find_first_of(':')) << std::endl;
      
+      // is this a problem for thread safety that we use plugins?
       // fill list of plugins with the Plugin Name from the ini
       plugins->emplace(plugins->end(), param_line.substr(0, param_line.find_first_of(':')));
       std::cout << "PLUGINS LIST ENTRY 1: " << plugins->at(0) << std::endl;
@@ -186,6 +178,7 @@ namespace OpenMS
     return tool_param;
   }
 
+  // MAYBE USE THIS TO GET THE PLUGINS IN TOOLSDIALOG
   const StringList &TVToolDiscovery::getPlugins()
   {
     // Make sure threads have been launched and waited for before accessing results
@@ -200,8 +193,9 @@ namespace OpenMS
     StringList plugins;
 
     std::cout << "PLUGIN DETECTION" << std::endl; 
-   
+    // this is unused right now... change the return value in the comparator to use this
     std::vector<std::string> valid_extensions {".py"};
+    // Path checked for plugins 
     const std::string plugin_path = File::absolutePath("./test/");
 
     if (File::fileList(plugin_path, "*", plugins, true))
@@ -214,6 +208,7 @@ namespace OpenMS
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
     }
 
+    // this is just for debugging
     for (auto p : plugins) 
     {
       std::cout << "plugin " << p << std::endl; 

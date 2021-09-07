@@ -93,17 +93,14 @@ namespace OpenMS
      */
     const std::map<std::string, Param> &getToolParams();
 
+    /// Returns the list of read Plugins as saved in the ini.
     const StringList &getPlugins();
 
   private:
-    /// Returns param for a given tool/util. This function is thread-safe. 
-    static Param getParamFromIni_(const std::string &tool_name);
     /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
         plugin list
      */
     static Param getParamFromIni_(const std::string &tool_name, StringList *plugins);
-    /// Returns param for a given plugin. Uses getParamFromIni_
-
 
     /// Contains a param future for each tool/util name
     std::map<std::string, std::future<Param>> param_futures_;
@@ -112,7 +109,7 @@ namespace OpenMS
     std::map<std::string, Param> params_;
 
     StringList plugins_;
-
+    /// Returns a list of executables that are found at the plugin path
     const StringList getPlugins_();
   };
 }
