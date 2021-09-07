@@ -4,7 +4,7 @@ jobs:
   update-issue:
     runs-on: ubuntu-latest
     env:
-      working_directory: 'tools/spellcheck'
+      working_directory: 'tools/spellcheck/'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
