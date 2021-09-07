@@ -257,7 +257,7 @@ protected:
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
       f.load(file_list[i], *exp);
-      if (exp->empty() )
+      if (exp->empty())
       { 
         continue; // if empty, go on
       } 
