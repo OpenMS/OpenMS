@@ -383,7 +383,10 @@ protected:
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
             // skip ahead if accession is not new:
-            if (accessions.find(acc) != accessions.end()) continue;
+            if (accessions.find(acc) != accessions.end())
+            {
+              continue;
+            }
             OPENMS_LOG_DEBUG << "new accession!" << endl;
             // first find the right protein identification:
             const String& id = pep_it->getIdentifier();

@@ -284,11 +284,11 @@ protected:
       file.load(in, msq);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
-      for (std::vector<ConsensusMap>::iterator it = msq.getConsensusMaps().begin(); it != msq.getConsensusMaps().end(); ++it)
+      for (ConsensusMap& cm : msq.getConsensusMaps())
       {
-        mapper.annotate(*it, peptide_ids, protein_ids, measure_from_subelements);
+        mapper.annotate(cm, peptide_ids, protein_ids, measure_from_subelements);
         //annotate output with data processing info
-        addDataProcessing_(*it, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+        addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       }
 
       //~ writeDebug_(msq.getConsensusMaps().size(),3);

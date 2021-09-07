@@ -183,10 +183,9 @@ private:
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
-      for (vector<TransformationDescription>::iterator it =
-             transformations.begin(); it != transformations.end(); ++it)
+      for (TransformationDescription& tra : transformations)
       {
-        it->fitModel(model_type, model_params);
+        tra.fitModel(model_type, model_params);
       }
     }
   }

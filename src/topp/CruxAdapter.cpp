@@ -239,15 +239,31 @@ protected:
       params += " --digestion " + getStringOption_("digestion");
       params += " --decoy-format " + getStringOption_("decoy_format");
       params += " --keep-terminal-aminos " + getStringOption_("keep_terminal_aminos");
-      if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
-      if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
-      if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
-      if (!getStringOption_("cterm_modifications").empty()) params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
-      if (!getStringOption_("nterm_modifications").empty()) params += " --nterm-peptide-mods-spec " + getStringOption_("nterm_modifications");
-
+      if (!getStringOption_("enzyme").empty())
+      {
+        params += " --enzyme " + getStringOption_("enzyme");
+      }
+      if (!getStringOption_("custom_enzyme").empty())
+      {
+        params += " --custom-enzyme " + getStringOption_("custom_enzyme");
+      }
+      if (!getStringOption_("modifications").empty())
+      {
+        params += " --mods-spec " + getStringOption_("modifications");
+      }
+      if (!getStringOption_("cterm_modifications").empty())
+      {
+        params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
+      }
+      if (!getStringOption_("nterm_modifications").empty())
+      {
+        params += " --nterm-peptide-mods-spec " + getStringOption_("nterm_modifications");
+      }
       // add extra arguments passed on the command-line (pass through args)
-      if (!getStringOption_("extra_index_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_index_args"));
-
+      if (!getStringOption_("extra_index_args").empty())
+      {
+        params += " " + argumentPassthrough(getStringOption_("extra_index_args"));
+      }
       params.trim();
       params.simplify();
 
@@ -278,12 +294,17 @@ protected:
       String params = "--overwrite T --file-column F --num-threads " + String(getIntOption_("threads"));
       params += " --output-dir " + output_dir;
       String debug_args = " --verbosity 30 ";
-      if (debug_level_ > 5) debug_args = " --verbosity 60 ";
+      if (debug_level_ > 5)
+      {
+        debug_args = " --verbosity 60 ";
+      }
       params += debug_args;
 
       String extra_args;
-      if (!run_percolator) extra_args += " --mzid-output T"; // not recommended, too slow
-
+      if (!run_percolator)
+      {
+        extra_args += " --mzid-output T"; // not recommended, too slow
+      }
       params += concat;
       params += extra_args;
       params += parser;
@@ -292,12 +313,19 @@ protected:
       params += " --precursor-window-type " + getStringOption_("precursor_mass_units");
       params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
       params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
-      if (deisotope) params += " --deisotope ";
-      if (!getStringOption_(Constants::UserParam::ISOTOPE_ERROR).empty()) params += " --isotope-error " + getStringOption_(Constants::UserParam::ISOTOPE_ERROR);
-
+      if (deisotope)
+      {
+        params += " --deisotope ";
+      }
+      if (!getStringOption_(Constants::UserParam::ISOTOPE_ERROR).empty())
+      {
+        params += " --isotope-error " + getStringOption_(Constants::UserParam::ISOTOPE_ERROR);
+      }
       // add extra arguments passed on the command-line (pass through args)
-      if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
-
+      if (!getStringOption_("extra_search_args").empty())
+      {
+        params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
+      }
       params.simplify();
       params.trim();
 
@@ -329,7 +357,10 @@ protected:
       String params = " --output-dir " + output_dir;
       String input = out_dir_q + "tide-search.txt";
       String debug_args = " --verbosity 30 ";
-      if (debug_level_ > 5) debug_args = " --verbosity 60 ";
+      if (debug_level_ > 5)
+      {
+        debug_args = " --verbosity 60 ";
+      }
       params += debug_args;
 
       String extra_args = concat;
@@ -342,8 +373,10 @@ protected:
       params += " --overwrite T ";
 
       // add extra arguments passed on the command-line (pass through args)
-      if (!getStringOption_("extra_percolator_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
-
+      if (!getStringOption_("extra_percolator_args").empty())
+      {
+        params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
+      }
       params.simplify();
       params.trim();
 
