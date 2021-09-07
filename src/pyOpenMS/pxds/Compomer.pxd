@@ -40,10 +40,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNegativeCharges() nogil except + # wrap-doc:Summed negative charges of contained adducts
 
         # /// return log probability
-        double getLogP() nogil except + # wrap-doc:Returns log probability
+        double getLogP() nogil except + # wrap-doc:Returns the log probability
 
         # /// return log probability
-        double getRTShift() nogil except + # wrap-doc:Returns log probability
+        double getRTShift() nogil except + # wrap-doc:Returns the log probability
 
         # /// get adducts with their abundance as compact string for both sides
         String getAdductsAsString() nogil except + # wrap-doc:Get adducts with their abundance as compact string for both sides

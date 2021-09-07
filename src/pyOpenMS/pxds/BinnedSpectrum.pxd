@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         bool operator==(BinnedSpectrum & rhs) nogil except +
         bool operator!=(BinnedSpectrum & rhs) nogil except +
 
-        float getBinSize() nogil except + # wrap-doc:Get the bin size
-        UInt getBinSpread() nogil except + # wrap-doc:Get the bin spread
+        float getBinSize() nogil except + # wrap-doc:Returns the bin size
+        UInt getBinSpread() nogil except + # wrap-doc:Returns the bin spread
         UInt getBinIndex(float mz) nogil except + # wrap-doc:Returns the bin index of a given m/z position
         float getBinLowerMZ(size_t i) nogil except + # wrap-doc:Returns the lower m/z of a bin given its index
         float getBinIntensity(double mz) nogil except + # wrap-doc:Returns the bin intensity at a given m/z position

@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         ChromatogramSettings() nogil except +
         ChromatogramSettings(ChromatogramSettings &) nogil except +
 
-        Product getProduct() nogil except + # wrap-doc:Access to the product ion
+        Product getProduct() nogil except + # wrap-doc:Returns the product ion
         void setProduct(Product p) nogil except + # wrap-doc:Sets the product ion
 
         String getNativeID() nogil except + # wrap-doc:Returns the native identifier for the spectrum, used by the acquisition software.
