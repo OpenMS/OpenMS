@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/Digestion.h>" namespace "OpenMS":
         void setEnzyme(const String& enzyme) nogil except + # wrap-doc:Sets the enzyme name
         double getDigestionTime() nogil except + # wrap-doc:Returns the digestion time in minutes (default is 0.0)
         void setDigestionTime(double digestion_time) nogil except + # wrap-doc:Sets the digestion time in minutes
-        double getTemperature() nogil except + # wrap-doc:Return the temperature during digestion in degree C (default is 0.0)
+        double getTemperature() nogil except + # wrap-doc:Returns the temperature during digestion in degree C (default is 0.0)
         void setTemperature(double temperature) nogil except + # wrap-doc:Sets the temperature during digestion in degree C
         double getPh() nogil except + # wrap-doc:Returns the pH value (default is 0.0)
         void setPh(double ph) nogil except + # wrap-doc:Sets the pH value
