@@ -18,10 +18,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         bool isConflicting(Compomer & cmp, UInt side_this, UInt side_other) nogil except +
 
         # /// set an Id which allows unique identification of a compomer
-        void setID(Size id) nogil except + # wrap-doc:Set an Id which allows unique identification of a compomer
+        void setID(Size id) nogil except + # wrap-doc:Sets an Id which allows unique identification of a compomer
 
         # /// return Id which allows unique identification of this compomer
-        Size getID() nogil except + # wrap-doc:Return Id which allows unique identification of this compomer
+        Size getID() nogil except + # wrap-doc:Returns Id which allows unique identification of this compomer
 
         # /// left and right adducts of this compomer
         # TODO OpenMS Map type
@@ -40,10 +40,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNegativeCharges() nogil except + # wrap-doc:Summed negative charges of contained adducts
 
         # /// return log probability
-        double getLogP() nogil except + # wrap-doc:Return log probability
+        double getLogP() nogil except + # wrap-doc:Returns log probability
 
         # /// return log probability
-        double getRTShift() nogil except + # wrap-doc:Return log probability
+        double getRTShift() nogil except + # wrap-doc:Returns log probability
 
         # /// get adducts with their abundance as compact string for both sides
         String getAdductsAsString() nogil except + # wrap-doc:Get adducts with their abundance as compact string for both sides

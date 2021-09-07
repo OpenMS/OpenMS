@@ -21,14 +21,14 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         # We will not catch C++ exceptions for get/set methods for performance
         # reasons (no memory allocation is involved).
 
-        IntensityType getIntensity() nogil except + # wrap-doc:Return the data point intensity
-        void setIntensity(IntensityType) nogil except + # wrap-doc:Set the data point intensity
+        IntensityType getIntensity() nogil except + # wrap-doc:Returns the data point intensity
+        void setIntensity(IntensityType) nogil except + # wrap-doc:Sets the data point intensity
 
         DPosition1 getPosition() nogil except + # TODO
         void setPosition(DPosition1) nogil except + # TODO
 
-        CoordinateType getRT() nogil except + # wrap-doc:Return the data point retention time
-        void setRT(CoordinateType) nogil except + # wrap-doc:Set the data point retention time
+        CoordinateType getRT() nogil except + # wrap-doc:Returns the data point retention time
+        void setRT(CoordinateType) nogil except + # wrap-doc:Sets the data point retention time
 
         CoordinateType getPos() nogil except + # wrap-doc:Alias for getRT()
         void setPos(CoordinateType) nogil except + # wrap-doc:Alias for setRT()

@@ -34,9 +34,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         ConsensusFeature(UInt64, BaseFeature) nogil except +
         ConsensusFeature(UInt64, ConsensusFeature) nogil except +
 
-        void computeConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge.
-        void computeMonoisotopicConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge.
-        void computeDechargeConsensus(FeatureMap, bool)    nogil except + # wrap-doc:Computes the uncharged parent RT & mass, assuming the handles are charge variants.
+        void computeConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge
+        void computeMonoisotopicConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge
+        void computeDechargeConsensus(FeatureMap, bool)    nogil except + # wrap-doc:Computes the uncharged parent RT & mass, assuming the handles are charge variants
 
         void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) nogil except +
         void insert(UInt64 map_idx, BaseFeature) nogil except +
