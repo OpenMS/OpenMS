@@ -161,6 +161,7 @@ namespace OpenMS
                << "  Labels: " << experimental_design.getNumberOfLabels()
                << "  Samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
+
       return experimental_design;
     }
 
@@ -492,6 +493,7 @@ namespace OpenMS
     {
       msfile_section_ = msfile_section;
       sort_();
+      isValid_();
     }
 
     void ExperimentalDesign::setSampleSection(const SampleSection& sample_section)
