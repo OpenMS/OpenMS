@@ -116,7 +116,7 @@ START_SECTION((bool registerPrecursor(const std::vector< DeconvolutedSpectrum > 
   std::vector<DeconvolutedSpectrum> survey_specs;
   survey_specs.push_back(prec_deconv_spec_1);
   survey_specs.push_back(prec_deconv_spec_2);
-  bool is_not_registered = ms2_deconv_spec.registerPrecursor(survey_specs, null_map);
+  bool is_not_registered = ms2_deconv_spec.registerPrecursor(survey_specs, true, null_map);
   Size precursor_pg_size = ms2_deconv_spec.getPrecursorPeakGroup().size();
 
   TEST_EQUAL(is_not_registered, false);
