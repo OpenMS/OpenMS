@@ -4,7 +4,7 @@ jobs:
   update-issue:
     runs-on: ubuntu-latest
     env:
-      working_directory: 'tools/spellcheck/'
+      working_directory: 'tools/spellcheck'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -16,5 +16,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyGithub
           pip install progress
+          pip install -U textblob
       - name: Search edited files
         run: python ${{ format('{0}github_issue_update.py', env.working_directory) }} -t ${{ secrets.GITHUB_TOKEN }} -repo $GITHUB_REPOSITORY -br $GITHUB_REF -c $GITHUB_SHA

@@ -5,9 +5,12 @@ import json
 import re
 from typing import Union
 from progress.bar import Bar
+from textblob import Word
+import pickle
+from bz2 import BZ2File
 
 
-VOCAB_PATH = 'tools/spellcheck/vocabulary.json'  # TODO: Path is required for PyGitHub
+PATH_VOCAB = 'tools/spellcheck/vocabulary.json'  # TODO: Path is required for PyGitHub
 SP_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 PATH_UNKNOWN_WORDS = Path(SP_DIR + 'unknown_words.json')
 
@@ -29,10 +32,10 @@ def load_json(path: Path):
 
 RULES = load_json(Path(SP_DIR + 'rules.json'))
 COMMENT_TYPES = load_json(Path(SP_DIR + 'comment_types.json'))
-VOCABULARY = load_json(Path(SP_DIR + 'vocabulary.json'))
+vocabulary = set(load_json(Path(SP_DIR + 'vocabulary.json')))
 
 
-def write_json(obj: dict, path: Path):
+def write_json(obj, path: Path):
     """
     Write dict to .json file
 
@@ -43,10 +46,11 @@ def write_json(obj: dict, path: Path):
         json.dump(obj, file, indent=4)
 
 
-def build_file_list() -> set:
+def build_file_list(files_filter: Union[set, bool] = False) -> set:
     """
     Build list of all files to search, based on the rules provided.
 
+    :param files_filter: Filter for included_files
     :return: set of included files
     """
     incl_ext = set(RULES['include']['extensions'])
@@ -60,76 +64,8 @@ def build_file_list() -> set:
                     if file_ext not in excl_ext \
                             and not any([path.is_relative_to(excl_loc) for excl_loc in RULES['exclude']['locations']]):
                         incl.add(path)
-    return incl
-
-
-def flatten_vocab() -> set:
-    """
-    Flatten a nested dictionary.
-
-    :return: Flattened dictionary
-    """
-    set_out = set()
-
-    def _inner(section):
-        for key, values in section.items():
-            set_out.add(key)
-            if type(values) == dict:
-                _inner(values)
-            else:
-                for entry in values:
-                    set_out.add(entry)
-
-    _inner(VOCABULARY)
-    return set_out
-
-
-def set_ref() -> dict:
-    """
-    Reference the nested vocabulary correct_words
-
-    :return: Reference dictionary for each list containing header of vocabulary
-    """
-    i = 0
-    ref = dict()
-
-    def _inner(dct):
-        nonlocal i
-        for key, value in dct.items():
-            if type(value) == dict:
-                _inner(value)
-            else:
-                ref[i] = value
-                i += 1
-
-    _inner(VOCABULARY)
-    return ref
-
-
-def get_vocab_keys(header: str = '', indent: str = ' ', prefix: str = '') -> str:
-    """
-    Return a pretty print string from all keys from vocabulary.
-
-    :param header: Header string prefix
-    :param indent: Indentation string prefix
-    :param prefix: Prefix used for all headers equally
-    :return: str representation of all vocabulary headers
-    """
-    i = 1
-    printable = []
-
-    def _inner(dct: dict, indt: str):
-        nonlocal i
-        for key, value in dct.items():
-            if type(value) == dict:
-                printable.append(f'{prefix}{indt}{header * (i // 10 + 1)} {key}\n')
-                _inner(value, indt + indent)
-            else:
-                printable.append(f'{prefix}{indt} {i} {key}\n')
-                i += 1
-
-    _inner(VOCABULARY, '')
-    return ''.join(printable)
+    file_list = files_filter.intersection(incl) if files_filter else incl
+    return file_list
 
 
 def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
@@ -139,19 +75,17 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
     :param files_filter: Filter for included_files
     :return: All valid words from all included files
     """
-    unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
-                                         'files': defaultdict(list)})
-    flat_vocab = flatten_vocab()
-    included_files = build_file_list()
+    unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocabulary': ''},
+                                         'blob': [], 'files': defaultdict(list)})
     errors = []
-    file_list = files_filter.intersection(included_files) if files_filter else included_files
+    file_list = build_file_list(files_filter)
     pattern = RULES['include']['pattern']
 
     def _search_file():
 
         def _search_block():
             for word in re.findall(pattern, txt_block):
-                if word not in flat_vocab and \
+                if word not in vocabulary and \
                         all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
                     unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
 
@@ -169,21 +103,22 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
                             txt_block = txt_block.strip(block_comment)
                             block_comment = ''
                             _search_block()
-                        # Block comment start
-                        elif i_block == 0:
+                        # Line comment option_start
+                        if block_comment == '':
+                            for lc in COMMENT_TYPES[file_ext]['line']:
+                                i_lc = txt_block.find(lc)
+                                if i_lc != -1:
+                                    line_comment = lc
+                                    txt_block = txt_block.strip(lc)
+                                    break
+                        # Block comment option_start
+                        if i_block == 0 and line_comment == '':
                             for ext in COMMENT_TYPES[file_ext]['block']:
                                 bc_start, bc_end = ext.split()
                                 i_bc = txt_block.find(bc_start)
-                                if i_bc != -1:
+                                if 1 >= i_bc > -1:
                                     block_comment = bc_end
                                     txt_block = txt_block[i_bc:].strip(bc_start)
-                                    break
-                        # Line comment start
-                        else:
-                            for lc in COMMENT_TYPES[file_ext]['line']:
-                                if txt_block.startswith(lc):
-                                    line_comment = lc
-                                    txt_block = txt_block.strip(lc)
                                     break
                     if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
                         _search_block()
@@ -196,4 +131,17 @@ def get_words(files_filter: Union[set, bool] = False) -> defaultdict:
         for path in file_list:
             _search_file()
             bar.next()
+    if len(unknown_words) > 0:
+        os.system('python -m textblob.download_corpora')
+        for word in list(unknown_words.keys()):
+            blob_words = Word(word).spellcheck()
+            bwords_sorted = [[word, 0]]
+            for w, c in blob_words:
+                c = round(c * 100, 2)
+                if w == word:
+                    bwords_sorted[0][1] = c
+                else:
+                    bwords_sorted.append([w, c])
+            unknown_words[word]['blob'] = bwords_sorted
     return unknown_words
+

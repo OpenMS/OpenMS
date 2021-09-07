@@ -23,15 +23,15 @@ def main():
     branch = args.title.split('/')[-1]
     title = f'Spell-Check Results - {args.repository.split("/")[0]}/{branch}'
 
-    reference = set_ref()
-
     unknown_words = comments_to_words(issue.get_comments())
-    process_actions_github(reference, unknown_words, repo, branch)
+    process_actions_github(unknown_words, repo, branch)
 
-    new_vocabulary_file_content = json.dumps(VOCABULARY, indent=4)
+    new_vocabulary = list(vocabulary)
+    new_vocabulary.sort()
+    new_vocabulary_file = json.dumps(new_vocabulary, indent=4)
 
-    vocabulary_file = repo.get_contents(VOCAB_PATH, branch)
-    repo.update_file(VOCAB_PATH, 'Update words', new_vocabulary_file_content, vocabulary_file.sha, branch)
+    vocabulary_file = repo.get_contents(PATH_VOCAB, branch)
+    repo.update_file(PATH_VOCAB, 'Update words', new_vocabulary_file, vocabulary_file.sha, branch)
 
     # Update issue comments
     comments = words_to_comments(unknown_words)

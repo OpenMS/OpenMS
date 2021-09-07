@@ -5,9 +5,15 @@ from github import Github, ContentFile, PaginatedList
 
 INFORMATION = """
 Please read the provided README.md in `tools/spellcheck` carefully before continuing.
-State the replacement and or the vocabulary index by replacing the whitespace in the respective ` ` code-box.
-Word replacements, that are assigned a vocabulary index, will be ignored, if the replacement already exists in
-the vocabulary.
+Use one of the options for each word. 
+
+Important: Check the "Confirm" comments first. The words are accepted by the spellcheck, 
+but are not placed in the vocabulary yet.
+
+Replacing the word will automatically put the replacement in the vocabulary.
+Replace the _-underscore and check the box in the last replacing option to use a custom word.
+When you are done, create another comment containing only the word "process". 
+This will trigger the processing and resolve any potential issues.
 """
 
 
@@ -18,24 +24,27 @@ def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
     :param unknown_words: All unknown, unprocessed words
     :return: Issue body
     """
-    comments = []
-    comment = ''
-    for i, word in enumerate(sorted(unknown_words.keys(), key=str.casefold)):
-        properties = unknown_words[word]
-        if len(comment) > 50000:
-            comments.append(str(comment))
-            comment = ''
-        comment += f'[{i + 1}] "**{word}**" in file(s):\n'
-        for i_files, (file, lines) in enumerate(list(properties['files'].items())):
+
+    comments = ['']
+    for i_word, word in enumerate(sorted(unknown_words.keys(), key=str.casefold)):
+        error, action, blob, files = unknown_words[word].values()
+        word_block = f'[{i_word+1}] "**{word}**" in file(s):\n'
+        if len(comments[-1]) >= 50000:
+            comments.append('')
+        for i_files, (file, lines) in enumerate(list(files.items())):
             if i_files >= 5:
-                comment += '`...`\n'
+                word_block += '`...`\n'
                 break
-            comment += f'`{file}: {str(lines)[1:-1]}`\n'
-        if properties['error'] != '':
-            comment += f'{properties["error"]}\n'
-        comment += f'\n- Replace "{word}" with: ` `'
-        comment += '\n- Add to Vocabulary: ` `\n\n\n'
-    comments.append(comment)
+            word_block += f'`{file}: {str(lines)[1:-1]}`\n'
+        if error != '':
+            word_block += f'{error}\n'
+
+        word_block += f'\n- [ ] Add "{word}" to vocabulary *({blob[0][1]}%)*'
+        if len(blob) > 1:
+            for blob_word, certainty in blob[1:]:
+                word_block += f'\n- [ ] Replace "{word}" with: "{blob_word}" *({certainty}%)*'
+        word_block += f'\n- [ ] Replace "{word}" with "_" *(custom)*'
+        comments[-1] += word_block + '\n\n\n'
     return comments
 
 
@@ -46,33 +55,60 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
     :param comments: All comments of the issue
     :return: Unknown words
     """
-    unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocab_index': ''},
-                                         'files': defaultdict(list)})
+    unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocabulary': ''},
+                                         'blob': [], 'files': defaultdict(list)})
 
     for comment in comments:
         lines = comment.body.split('\n')
         i = 0
         while i < len(lines):
+            # Word block begin
             if lines[i].startswith('['):
                 word = lines[i].split('**')[1]
                 i += 1
                 while lines[i].startswith('`'):
                     file, file_lines = lines[i][1:-1].split(':')
-                    unknown_words[word]['files'][Path(file)] = [int(l) for l in
-                                                                file_lines.strip(' ').strip('`').split(',')]
+                    unknown_words[word]['files'][file] = [int(l) for l in
+                                                          file_lines.strip(' ').strip('`').split(',')]
                     i += 1
+
+                # Skip error section
                 while not lines[i].startswith('-'):
                     i += 1
-                replace_action = lines[i].split('`')[-2].strip()
-                vocab_action = lines[i + 1].split('`')[-2].strip()
+
+                # Vocabulary
+                vocab_action = word if lines[i][3].casefold() == 'x' else ''
+                bwords = [[lines[i].split('"')[1], float(lines[i].split('(')[-1].split(')')[0][:-1])]]
+
+                i += 1
+
+                # Replacing
+                replace_action = ''
+                while lines[i].startswith('-'):
+                    choice = lines[i][3].casefold()
+                    replacement = lines[i].split('"')[-2]
+                    certainty = lines[i].split('(')[-1].split(')')[0]
+                    if certainty != 'custom':
+                        bwords.append([replacement, float(certainty[:-1])])
+                    if choice == 'x':
+                        if replace_action != '':
+                            unknown_words[word]['error'] = f'Error: You cannot assign multiple actions to a word.'
+                            replace_action = ''
+                            break
+                        else:
+                            replace_action = replacement
+                    i += 1
+
+                unknown_words[word]['blob'] = bwords
+
                 if vocab_action != '':
-                    try:
-                        vocab_action = int(vocab_action)
-                        unknown_words[word]['action']['vocab_index'] = vocab_action
-                    except ValueError:
-                        unknown_words[word]['error'] = f'Input "{vocab_action}" for "{word}" is invalid'
-                if replace_action != '':
+                    if replace_action != '':
+                        unknown_words[word]['error'] = f'Error: You cannot assign multiple actions to a word.'
+                    else:
+                        unknown_words[word]['action']['vocabulary'] = vocab_action
+                elif replace_action != '':
                     unknown_words[word]['action']['replacement'] = replace_action
+                    unknown_words[word]['action']['vocabulary'] = replace_action
             i += 1
     return unknown_words
 
@@ -80,62 +116,55 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
 def update_issue(issue, title, comments, len_unknown_words):
     body = f"---\n{title}\n---\n\n" \
            f"{INFORMATION}\n\n" \
-           f"**Vocabulary**\n" \
-           f"{get_vocab_keys('::', '......', '>')}\n\n" \
            f"Found {len_unknown_words} unknown words!"
     issue.edit(body=body)
 
+    issue.unlock()
     for comment in issue.get_comments():
         comment.delete()
 
     for n_comment, comment in enumerate(comments):
         issue.create_comment(comment)
+    issue.lock('resolved')
 
 
-def process_actions_github(reference: dict, unknown_words: Union[dict, defaultdict], repo: Repository, branch: str):
+def process_actions_github(unknown_words: Union[dict, defaultdict], repo: Repository, branch: str):
     """
     Process actions of unknown words in github
 
-    :param reference: Reference dictionary for each list containing header of vocabulary
     :param unknown_words: All unknown, unprocessed words
     :param repo: Github repository
     :param branch: Current branch of repository
     """
     words = list(unknown_words.keys())
-    files = defaultdict(lambda: {'content': [], 'content_file': ContentFile})
+    edited_files = defaultdict(lambda: {'content': [], 'content_file': ContentFile})
     for word in words:
-        properties = unknown_words[word]
-        replacement, vocab_index = properties['action'].values()
-        in_vocab = any([replacement in set(words) for words in reference.values()])
+        error, action, blob, files = unknown_words[word].values()
+        replacement, vocab_word = action.values()
 
         if replacement != '':
-            if vocab_index == '':
-                unknown_words[replacement] = unknown_words[word]
+            vocabulary.add(replacement)
 
-            for path, lines in properties['files'].items():
-                if path not in files:
-                    files[path]['content_file'] = repo.get_contents(str(path))
-                    files[path]['content'] = files[path]['content_file'].decoded_content.decode()
-                content = files[path]['content']
+            # Build files from all replacements
+            for path, lines in files.items():
+                if path not in edited_files:
+                    edited_files[path]['content_file'] = repo.get_contents(str(path))
+                    edited_files[path]['content'] = edited_files[path]['content_file'].decoded_content.decode()
+                content = edited_files[path]['content']
                 new_content = ''
                 for n_line, line in enumerate(content.split('\n')):
-                    if n_line in lines:
+                    if n_line+1 in lines:
                         line = line.replace(word, replacement)
                     new_content += f'{line}\n'
-                files[path]['content'] = new_content.strip()
+                edited_files[path]['content'] = new_content.strip() + '\n'
 
-        if vocab_index != '':
-            if vocab_index < 1 or vocab_index > len(reference):
-                unknown_words[word]['error'] = f'Invalid index, number must be 1-{len(reference)}.'
-                unknown_words[word]['action']['vocab_index'] = ''
-            if not in_vocab:
-                reference[vocab_index - 1].append(word if replacement == '' else replacement)
-                reference[vocab_index - 1].sort(key=str.casefold)
-
-        if replacement != '' or vocab_index != '':
             unknown_words.pop(word)
 
+        elif vocab_word != '':
+            vocabulary.add(vocab_word)
+            unknown_words.pop(vocab_word)
+
     # Process all files affected
-    for path, properties in files.items():
+    for path, properties in edited_files.items():
         repo.update_file(str(path), f'Replaced words', properties['content'].encode(),
                          properties['content_file'].sha, branch)

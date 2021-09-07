@@ -51,9 +51,10 @@ def main():
                         old_unknown_words[word]['files'][file] = lines
                 unknown_words = {key: old_unknown_words[key] for key in
                                  sorted(old_unknown_words.keys(), key=str.casefold)}
+                print(unknown_words)
         else:
             # Create new issue
-            issue = repo.create_issue(title, '', labels='spellcheck')
+            issue = repo.create_issue(title, ' ', labels=['spellcheck'])
 
         comments = words_to_comments(unknown_words)
         update_issue(issue, title, comments, len(unknown_words))
