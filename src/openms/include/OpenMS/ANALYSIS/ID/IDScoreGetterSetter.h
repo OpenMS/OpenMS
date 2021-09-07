@@ -290,7 +290,7 @@ namespace OpenMS
                     std::vector<IDType> &ids,
                     const std::string &score_type,
                     bool higher_better,
-                    Args &... args)
+                    Args &&... args)
     {
       for (auto &id : ids)
       {
@@ -487,7 +487,14 @@ namespace OpenMS
       {
         if (hit.getCharge() == charge)
         {
-          setScore_(scores_to_FDR, hit, score_type);
+          if (higher_better)
+          {
+            setScore_(scores_to_FDR, hit, score_type);
+          }
+          else
+          {
+            setScoreHigherWorse_(scores_to_FDR, hit, score_type);
+          }
         }
       }
     }

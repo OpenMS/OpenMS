@@ -267,9 +267,9 @@ protected:
       if (append_rows) {
           if (annotate_file_origin)
           {
-            for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
+            for (ConsensusFeature& cm : out)
             {
-              it->setMetaValue("file_origin", DataValue(file_list[0]));
+              cm.setMetaValue("file_origin", DataValue(file_list[0]));
             }
           }
 
@@ -281,9 +281,9 @@ protected:
 
             if (annotate_file_origin)
             {
-              for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+              for (ConsensusFeature& cm : map)
               {
-                it->setMetaValue("file_origin", DataValue(file_list[i]));
+                cm.setMetaValue("file_origin", DataValue(file_list[i]));
               }  
             } 
 
@@ -422,10 +422,9 @@ protected:
         }
 
         // handle special raw data options:
-        for (PeakMap::iterator spec_it = in.begin();
-             spec_it != in.end(); ++spec_it)
+        for (MSSpectrum& spec : in)
         {
-          float rt_final = spec_it->getRT();
+          float rt_final = spec.getRT();
           if (rt_auto_number)
           {
             rt_final = ++rt_auto;
@@ -455,11 +454,11 @@ protected:
             writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
-          spec_it->setRT(rt_final);
-          spec_it->setNativeID("spectrum=" + String(native_id));
+          spec.setRT(rt_final);
+          spec.setNativeID("spectrum=" + String(native_id));
           if (ms_level > 0)
           {
-            spec_it->setMSLevel(ms_level);
+            spec.setMSLevel(ms_level);
           }
           ++native_id;
         }
@@ -477,10 +476,9 @@ protected:
         }
 
         // add spectra to output
-        for (PeakMap::const_iterator spec_it = in.begin();
-             spec_it != in.end(); ++spec_it)
+        for (const MSSpectrum& spec : in)
         {
-          out.addSpectrum(*spec_it);
+          out.addSpectrum(spec);
         }
         // also add the chromatograms
         for (vector<MSChromatogram >::const_iterator

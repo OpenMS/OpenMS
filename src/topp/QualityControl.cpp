@@ -236,12 +236,17 @@ protected:
     {
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
-      for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
+      for (auto& pep_id : cmap[i].getPeptideIdentifications())
+      {
+        pep_id.setMetaValue("cf_id", i);
+      }
     }
 
 
-    for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
-
+    for (auto& pep_id : cmap.getUnassignedPeptideIdentifications())
+    {
+      pep_id.setMetaValue("cf_id", -1);
+    }
 
     // check flags
     bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
@@ -433,8 +438,10 @@ protected:
           }
         };
     cmap.applyFunctionOnPeptideIDs(f, true);
-    if (incomplete_features) return ILLEGAL_PARAMETERS;
-    
+    if (incomplete_features)
+    {
+      return ILLEGAL_PARAMETERS;
+    }    
     // add new PeptideIdentifications (for unidentified MS2 spectra)
     cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
 
@@ -470,7 +477,10 @@ private:
     StringList files = getStringList_(port);
     if (!files.empty())
     {
-      if (number_exps == 0) number_exps = files.size(); // Number of experiments is determined from first non empty file list.
+      if (number_exps == 0)
+      {
+        number_exps = files.size(); // Number of experiments is determined from first non empty file list.
+      }
       if (number_exps != files.size()) // exit if any file list has different length
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, port + ": invalid number of files. Expected were " + number_exps + ".\n"));
@@ -505,7 +515,10 @@ private:
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
     {
       // for empty PIs which were created by a metric
-      if (f_pep_id.getHits().empty()) continue;
+      if (f_pep_id.getHits().empty())
+      {
+        continue;
+      }
       String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
       const auto range = customID_to_cpepID.equal_range(UID);
 
