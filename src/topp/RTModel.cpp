@@ -368,9 +368,14 @@ protected:
     String outputfile_name = getStringOption_("out");
     additive_cv = getFlag_("additive_cv");
     skip_cv = getFlag_("cv:skip_cv");
-    if (skip_cv) OPENMS_LOG_INFO << "Cross-validation disabled!\n";
-    else OPENMS_LOG_INFO << "Cross-validation enabled!\n";
-
+    if (skip_cv)
+    {
+      OPENMS_LOG_INFO << "Cross-validation disabled!\n";
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Cross-validation enabled!\n";
+    }
     float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");
     if (!separation_prediction && total_gradient_time < 0)
@@ -825,11 +830,9 @@ protected:
             writeLog_("For one spectrum there should not be more than one peptide."
                       "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
             writeLog_("Hits: ");
-            for (vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin();
-                 it != identifications_negative[i].getHits().end();
-                 ++it)
+            for (const PeptideHit& hit : identifications_negative[i].getHits())
             {
-              writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
+              writeLog_(String(hit.getSequence().toUnmodifiedString()) + " score: " + String(hit.getScore()));
             }
             return INPUT_FILE_CORRUPT;
           }

@@ -262,20 +262,20 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     String aggr_Peak_Area = "";
     String aggr_Peak_Apex = "";
     String aggr_Fragment_Annotation = "";
-    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
+    for (Feature& sub : feature_it->getSubordinates())
     {
-      aggr_Peak_Area += String(sub_it->getIntensity()) + ";";
+      aggr_Peak_Area += String(sub.getIntensity()) + ";";
 
-      if (sub_it->metaValueExists("peak_apex_int"))
+      if (sub.metaValueExists("peak_apex_int"))
       {
-        aggr_Peak_Apex += String((double)sub_it->getMetaValue("peak_apex_int")) + ";";
+        aggr_Peak_Apex += String((double)sub.getMetaValue("peak_apex_int")) + ";";
       }
       else
       {
         aggr_Peak_Apex += "NA;";
       }
 
-      aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
+      aggr_Fragment_Annotation += (String)sub.getMetaValue("native_id") + ";";
     }
 
     // remove the last semicolon
@@ -289,15 +289,15 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
+    for (Feature& sub : feature_it->getSubordinates())
     {
       os.precision(writtenDigits(double()));
       String apex = "NA";
-      if (sub_it->metaValueExists("peak_apex_int"))
+      if (sub.metaValueExists("peak_apex_int"))
       {
-        apex = String((double)sub_it->getMetaValue("peak_apex_int"));
+        apex = String((double)sub.getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << String(sub_it->getIntensity()) << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << String(sub_it->getMZ()) << std::endl;
+      os << line << meta_values << String(sub.getIntensity()) << "\t" << apex << "\t" << (String)sub.getMetaValue("native_id") << "\t" << String(sub.getMZ()) << std::endl;
     }
   }
 }
@@ -327,10 +327,10 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
   // for each peptide reference search for the best feature
   typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
-  for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+  for (Feature& feature : feature_map)
   {
-    String peptide_ref = feature_it->getMetaValue("PeptideRef");
-    peptide_feature_map[peptide_ref].push_back(&(*feature_it));
+    String peptide_ref = feature.getMetaValue("PeptideRef");
+    peptide_feature_map[peptide_ref].push_back(&feature);
   }
 
   for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
@@ -391,10 +391,10 @@ protected:
 
     Size progress = 0;
     startProgress(0, feature_map.size(), "writing out features");
-    for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+    for (Feature& feature : feature_map)
     {
       setProgress(progress++);
-      write_out_body_(os, &(*feature_it), transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
+      write_out_body_(os, &feature, transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
     }
     endProgress();
   }

@@ -184,7 +184,9 @@ protected:
         if (PSMId != rhs.PSMId || score != rhs.score || qvalue != rhs.qvalue ||
             posterior_error_prob != rhs.posterior_error_prob || peptide != rhs.peptide ||
             proteinIds != rhs.proteinIds)
-          return true;
+          {
+            return true;
+          }
         return false;
       }
 
@@ -338,23 +340,23 @@ protected:
   {
     Int scan_number = 0;
     StringList fields = ListUtils::create<String>(scan_identifier);
-    for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    for (const String& str : fields)
     {
       // if scan number is not available, use the scan index
       Size idx = 0;
-      if ((idx = it->find("scan=")) != string::npos)
+      if ((idx = str.find("scan=")) != string::npos)
       {
-        scan_number = it->substr(idx + 5).toInt();
+        scan_number = str.substr(idx + 5).toInt();
         break;
       }
-      else if ((idx = it->find("index=")) != string::npos)
+      else if ((idx = str.find("index=")) != string::npos)
       {
-        scan_number = it->substr(idx + 6).toInt();
+        scan_number = str.substr(idx + 6).toInt();
         break;
       } 
-      else if ((idx = it->find("spectrum=")) != string::npos)
+      else if ((idx = str.find("spectrum=")) != string::npos)
       {
-        scan_number = it->substr(idx + 9).toInt();
+        scan_number = str.substr(idx + 9).toInt();
         break;
       }
     }
@@ -558,19 +560,19 @@ protected:
         
         //proteinId1
         StringList proteins;
-        for (vector<PeptideEvidence>::const_iterator kt = hit.getPeptideEvidences().begin(); kt != hit.getPeptideEvidences().end(); ++kt)
+        for (const PeptideEvidence& pep : hit.getPeptideEvidences())
         {
-          proteins.push_back(kt->getProteinAccession());
+          proteins.push_back(pep.getProteinAccession());
         }
         hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, '\t'));
         
         StringList feats;
-        for (vector<String>::const_iterator feat = feature_set.begin(); feat != feature_set.end(); ++feat)
+        for (const String& feat : feature_set)
         {
         // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-          if (hit.metaValueExists(*feat))
+          if (hit.metaValueExists(feat))
           {
-            feats.push_back(hit.getMetaValue(*feat).toString());
+            feats.push_back(hit.getMetaValue(feat).toString());
           }
         }
         if (feats.size() == feature_set.size())
@@ -616,9 +618,9 @@ protected:
       row[0].split(",", protein_accessions);
       double qvalue = row[2].toDouble();
       double posterior_error_prob = row[3].toDouble();
-      for (StringList::iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it) 
+      for (const String& str : protein_accessions) 
       {
-        protein_map.insert( map<String, PercolatorProteinResult>::value_type ( *it, PercolatorProteinResult(*it, qvalue, posterior_error_prob ) ) );
+        protein_map.insert( map<String, PercolatorProteinResult>::value_type (str, PercolatorProteinResult(str, qvalue, posterior_error_prob ) ) );
       }
 
       ProteinIdentification::ProteinGroup grp;
@@ -677,32 +679,32 @@ protected:
           scan_identifier = "file=" + file_idx + "," + scan_identifier;
           pit->setMetaValue("spectrum_reference", scan_identifier);
         }
-        for (vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
+        for (PeptideHit& hit : pit->getHits())
         {
-          if (!pht->metaValueExists("target_decoy"))
+          if (!hit.metaValueExists("target_decoy"))
           {
             if (isDecoy)
             {
-              pht->setMetaValue("target_decoy", "decoy");
+              hit.setMetaValue("target_decoy", "decoy");
               found_decoys = true;
             }
             else
             {
-              pht->setMetaValue("target_decoy", "target");
+              hit.setMetaValue("target_decoy", "target");
             }
           }
-          else if (pht->getMetaValue("target_decoy").toString() == "decoy")
+          else if (hit.getMetaValue("target_decoy").toString() == "decoy")
           {
             found_decoys = true;
           }
           
-          if (pht->getCharge() > max_charge)
+          if (hit.getCharge() > max_charge)
           {
-            max_charge = pht->getCharge();
+            max_charge = hit.getCharge();
           }
-          if (pht->getCharge() < min_charge)
+          if (hit.getCharge() < min_charge)
           {
-            min_charge = pht->getCharge();
+            min_charge = hit.getCharge();
           }
 
           // TODO: set min/max scores?
@@ -1026,7 +1028,10 @@ protected:
         arguments << "-L" << pout_decoy_file_proteins.toQString();
         
         String fasta_file = getStringOption_("fasta");
-        if (fasta_file.empty()) fasta_file = "auto";
+        if (fasta_file.empty())
+        {
+          fasta_file = "auto";
+        }
         arguments << "-f" << fasta_file.toQString();
 
         arguments << "-z" << String(enz_str).toQString();
@@ -1050,44 +1055,100 @@ protected:
       
       double cpos = getDoubleOption_("cpos");
       double cneg = getDoubleOption_("cneg");
-      if (cpos != 0.0) arguments << "-p" << String(cpos).toQString();
-      if (cneg != 0.0) arguments << "-n" << String(cneg).toQString();
-      
+      if (cpos != 0.0)
+      {
+        arguments << "-p" << String(cpos).toQString();
+      }
+      if (cneg != 0.0)
+      {
+        arguments << "-n" << String(cneg).toQString();
+      }
       double train_FDR = getDoubleOption_("trainFDR");
       double test_FDR = getDoubleOption_("testFDR");
-      if (train_FDR != 0.01) arguments << "-F" << String(train_FDR).toQString();
-      if (test_FDR != 0.01) arguments << "-t" << String(test_FDR).toQString();
-      
+      if (train_FDR != 0.01)
+      {
+        arguments << "-F" << String(train_FDR).toQString();
+      }
+      if (test_FDR != 0.01)
+      {
+        arguments << "-t" << String(test_FDR).toQString();
+      }
       Int max_iter = getIntOption_("maxiter");
-      if (max_iter != 10) arguments << "-i" << String(max_iter).toQString();
+      if (max_iter != 10)
+      {
+        arguments << "-i" << String(max_iter).toQString();
+      }
       Int subset_max_train = getIntOption_("subset_max_train");
-      if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
-      if (getFlag_("quick_validation")) arguments << "-x";
-      if (getStringOption_("post_processing_tdc") == "true") arguments << "-Y";
-      if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
-      if (getFlag_("static")) arguments << "--static";
+      if (subset_max_train > 0)
+      {
+        arguments << "-N" << String(subset_max_train).toQString();
+      }
+      if (getFlag_("quick_validation"))
+      {
+        arguments << "-x";
+      }
+      if (getStringOption_("post_processing_tdc") == "true")
+      {
+        arguments << "-Y";
+      }
+      if (getFlag_("train_best_positive"))
+      {
+        arguments << "--train-best-positive";
+      }
+      if (getFlag_("static"))
+      {
+        arguments << "--static";
+      }
       Int nested_xval_bins = getIntOption_("nested_xval_bins");
-      if (nested_xval_bins > 1) arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
- 
+      if (nested_xval_bins > 1)
+      {
+        arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
+      }
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init_weights");
       String default_search_direction = getStringOption_("default_direction");
-      if (!weights_file.empty()) arguments << "-w" << weights_file.toQString();
-      if (!init_weights_file.empty()) arguments << "-W" << init_weights_file.toQString();
-      if (!default_search_direction.empty()) arguments << "-V" << default_search_direction.toQString();
-      
+      if (!weights_file.empty())
+      {
+        arguments << "-w" << weights_file.toQString();
+      }
+      if (!init_weights_file.empty())
+      {
+        arguments << "-W" << init_weights_file.toQString();
+      }
+      if (!default_search_direction.empty())
+      {
+        arguments << "-V" << default_search_direction.toQString();
+      }
       Int verbose_level = getIntOption_("verbose");
-      if (verbose_level != 2) arguments << "-v" << String(verbose_level).toQString();
-      if (getFlag_("unitnorm")) arguments << "-u";
-      if (getFlag_("test_each_iteration")) arguments << "-R";
-      if (getFlag_("override")) arguments << "-O";
-      
+      if (verbose_level != 2)
+      {
+        arguments << "-v" << String(verbose_level).toQString();
+      }
+      if (getFlag_("unitnorm"))
+      {
+        arguments << "-u";
+      }
+      if (getFlag_("test_each_iteration"))
+      {
+        arguments << "-R";
+      }
+      if (getFlag_("override"))
+      {
+        arguments << "-O";
+      }
       Int seed = getIntOption_("seed");
-      if (seed != 1) arguments << "-S" << String(seed).toQString();
-      if (getFlag_("klammer")) arguments << "-K";
-
-      if (description_of_correct != 0) arguments << "-D" << String(description_of_correct).toQString();
-
+      if (seed != 1)
+      {
+        arguments << "-S" << String(seed).toQString();
+      }
+      if (getFlag_("klammer"))
+      {
+        arguments << "-K";
+      }
+      if (description_of_correct != 0)
+      {
+        arguments << "-D" << String(description_of_correct).toQString();
+      }
       arguments << pin_file.toQString();
     }
     writeLog_("Prepared percolator input.");
@@ -1256,16 +1317,16 @@ protected:
       OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
-      for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
+      for (ProteinIdentification& prot : all_protein_ids)
       {
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
-        it->setSearchEngine("Percolator");
-        it->setSearchEngineVersion("3.05"); // TODO: read from percolator
+        prot.setSearchEngine("Percolator");
+        prot.setSearchEngineVersion("3.05"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
-          for (vector<ProteinHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+          for (vector<ProteinHit>::iterator hit = prot.getHits().begin(); hit != prot.getHits().end(); ++hit)
           {
             String protein_accession = hit->getAccession();        
             map<String, PercolatorProteinResult>::iterator pr = protein_map.find(protein_accession);
@@ -1285,12 +1346,12 @@ protected:
           }
           if (protein_level_fdrs)
           {
-            it->setInferenceEngine("Percolator");
-            it->setInferenceEngineVersion("3.05");
+            prot.setInferenceEngine("Percolator");
+            prot.setInferenceEngineVersion("3.05");
           }
-          it->setScoreType("q-value");
-          it->setHigherScoreBetter(false);
-          it->sort();
+          prot.setScoreType("q-value");
+          prot.setHigherScoreBetter(false);
+          prot.sort();
         }
         
         if (!protein_map.empty())  //there remain unmapped proteins from Percolator
@@ -1308,8 +1369,8 @@ protected:
         }
 
         //TODO add software percolator and PercolatorAdapter
-        it->setMetaValue("percolator", "PercolatorAdapter");
-        ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
+        prot.setMetaValue("percolator", "PercolatorAdapter");
+        ProteinIdentification::SearchParameters search_parameters = prot.getSearchParameters();
         
         search_parameters.setMetaValue("Percolator:peptide_level_fdrs", peptide_level_fdrs);
         search_parameters.setMetaValue("Percolator:protein_level_fdrs", protein_level_fdrs);
@@ -1335,7 +1396,7 @@ protected:
         search_parameters.setMetaValue("Percolator:post_processing_tdc", getStringOption_("post_processing_tdc"));
         search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
         
-        it->setSearchParameters(search_parameters);
+        prot.setSearchParameters(search_parameters);
       }
       
       // Storing the PeptideHits with calculated q-value, pep and svm score
