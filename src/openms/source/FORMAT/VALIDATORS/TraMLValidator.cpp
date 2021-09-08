@@ -37,19 +37,17 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+
+  TraMLValidator::TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    SemanticValidator(mapping, cv)
   {
-    TraMLValidator::TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
-      SemanticValidator(mapping, cv)
-    {
-      setCheckUnits(true);
-    }
+    setCheckUnits(true);
+  }
 
-    TraMLValidator::~TraMLValidator()
-    {
-    }
+  TraMLValidator::~TraMLValidator()
+  {
+  }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

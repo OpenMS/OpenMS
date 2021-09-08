@@ -206,7 +206,9 @@ namespace OpenMS
                 QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
                 new_value = present_value;
                 if (new_value == "")
+                {
                   new_value = 0;
+                }
               }
 
               //restrictions

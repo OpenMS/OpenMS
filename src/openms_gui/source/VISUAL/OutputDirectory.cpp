@@ -96,8 +96,10 @@ namespace OpenMS
 
   bool OutputDirectory::dirNameValid() const
   {
-    if (!QFileInfo(getDirectory()).isDir()) return false;
-
+    if (!QFileInfo(getDirectory()).isDir())
+    {
+      return false;
+    }
     QString file_name = getDirectory();
     if (!file_name.endsWith(QDir::separator()))
     {

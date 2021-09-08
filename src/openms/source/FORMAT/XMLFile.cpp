@@ -54,10 +54,8 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
     /// useful when used in exception handling
@@ -277,8 +275,14 @@ private:
 
     String encodeTab(const String& to_encode)
     {
-      if (!to_encode.has('\t')) return to_encode;
-      else return String(to_encode).substitute("\t", "&#x9;");
+      if (!to_encode.has('\t'))
+      {
+        return to_encode;
+      }
+      else
+      {
+        return String(to_encode).substitute("\t", "&#x9;");
+      }
     }
 
     bool XMLFile::isValid(const String & filename, std::ostream & os)
@@ -296,5 +300,4 @@ private:
       return schema_version_;
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS  // namespace Internal

@@ -10,6 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>" namespace "O
     cdef cppclass SimplePairFinder(BaseGroupFinder) :
         # wrap-inherits:
         #  BaseGroupFinder
+        # wrap-doc:
+        # This class implements a simple point pair finding algorithm
 
         SimplePairFinder() nogil except +
         # copy constructor of 'SimplePairFinder' is implicitly deleted because base class 'OpenMS::BaseGroupFinder' has an inaccessible copy constructor public BaseGroupFinder
@@ -17,4 +19,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>" namespace "O
 
         void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) nogil except +
         # POINTER # BaseGroupFinder * create() nogil except +
-        String getProductName() nogil except +
+        String getProductName() nogil except + # wrap-doc:Returns the name of this module

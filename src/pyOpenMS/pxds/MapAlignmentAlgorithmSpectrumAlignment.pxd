@@ -17,5 +17,6 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlig
         MapAlignmentAlgorithmSpectrumAlignment() nogil except +
         # private
         MapAlignmentAlgorithmSpectrumAlignment(MapAlignmentAlgorithmSpectrumAlignment &) nogil except + # wrap-ignore
+ 
+        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&) nogil except + # wrap-doc:Align peak maps
 
-        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&) nogil except +

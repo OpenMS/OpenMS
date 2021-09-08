@@ -190,7 +190,10 @@ namespace OpenMS
 
   String SysInfo::MemUsage::delta(const String& event)
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s = String("Memory usage (") + event + "): ";
     s += diff_str_(mem_before, mem_after) + " (working set delta)";
     if (mem_after_peak > 0)
@@ -202,7 +205,10 @@ namespace OpenMS
 
   String SysInfo::MemUsage::usage()
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s("Memory usage: ");
     s += diff_str_(0, mem_after) + " (working set)";
     if (mem_after_peak > 0)

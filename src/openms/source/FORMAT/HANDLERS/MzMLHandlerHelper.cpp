@@ -38,10 +38,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/Base64.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     void MzMLHandlerHelper::warning(int mode, const String & msg, UInt line, UInt column)
     {
       String error_message_;
@@ -236,11 +235,17 @@ namespace OpenMS
         double unit_multiplier = bindata.unit_multiplier;
         if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_64)
         {
-          for (auto& it : bindata.floats_64) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_64)
+          {
+            it = it * unit_multiplier;
+          }
         }
         else if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_32)
         {
-          for (auto& it : bindata.floats_32) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_32)
+          {
+            it = it * unit_multiplier;
+          }
         }
       }
       else if (bindata.data_type == BinaryData::DT_INT)
@@ -404,5 +409,4 @@ namespace OpenMS
   }
 
 
-  }
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

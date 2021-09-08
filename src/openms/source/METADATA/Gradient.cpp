@@ -138,14 +138,18 @@ namespace OpenMS
     for (std::vector<String>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
+      {
         break;
+      }
       ++elu_index;
     }
     //look up timepoint index
     for (std::vector<Int>::iterator it = times_.begin(); it != times_.end(); ++it)
     {
       if (*it == timepoint)
+      {
         break;
+      }
       ++time_index;
     }
 
@@ -183,14 +187,18 @@ namespace OpenMS
     for (std::vector<String>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
+      {
         break;
+      }
       ++elu_index;
     }
     //look up timepoint index
     for (std::vector<Int>::const_iterator it = times_.begin(); it != times_.end(); ++it)
     {
       if (*it == timepoint)
+      {
         break;
+      }
       ++time_index;
     }
 

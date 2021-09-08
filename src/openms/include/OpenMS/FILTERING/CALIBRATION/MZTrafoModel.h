@@ -212,7 +212,7 @@ namespace OpenMS
     /**
       @brief Train a model using calibrant data
 
-      If the CalibrationData were created using peak groups (usually corresponding to mass traces),
+      If the CalibrationData was created using peak groups (usually corresponding to mass traces),
       the median for each group is used as a group representative. This
       is more robust, and reduces the number of data points drastically, i.e. one value per group.
 

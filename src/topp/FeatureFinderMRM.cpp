@@ -169,17 +169,16 @@ protected:
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (const Feature& ft : features)
       {
-        if (!it->isMetaEmpty())
+        if (!ft.isMetaEmpty())
         {
           vector<String> keys;
-          it->getKeys(keys);
-          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          ft.getKeys(keys);
+          OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << ft.getMetaValue(keys[i]) << endl;
           }
         }
       }

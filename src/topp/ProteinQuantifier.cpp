@@ -416,8 +416,10 @@ protected:
     bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
     for (auto const & q : quant) // loop over sequence->peptide data
     {
-      if (q.second.total_abundances.empty()) { continue; } // not quantified
-
+      if (q.second.total_abundances.empty())
+      { 
+        continue; // not quantified
+      }
       StringList accessions;
       for (String acc : q.second.accessions)
       {
@@ -519,12 +521,17 @@ protected:
 
     for (auto const & q : quant)
     {
-      if (q.second.total_abundances.empty()) continue; // not quantified
-
+      if (q.second.total_abundances.empty())
+      {
+        continue; // not quantified
+      }
       if (leader_to_group.empty())
       {
         out << q.first << 1;
-        if (proteins_.getHits().empty()) out << 0;
+        if (proteins_.getHits().empty())
+        {
+          out << 0;
+        }
         else
         {
           vector<ProteinHit>::iterator pos = proteins_.findHit(q.first);
@@ -593,7 +600,10 @@ protected:
       if (top != 1)
       {
         relevant_params.push_back("average");
-        if (top != 0) relevant_params.push_back("include_all");
+        if (top != 0)
+        {
+          relevant_params.push_back("include_all");
+        }
       }
     }
     relevant_params.push_back("best_charge_and_fraction"); // also for peptide output
@@ -601,18 +611,29 @@ protected:
     if (ed.getNumberOfSamples() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
-      if (proteins) relevant_params.push_back("consensus:fix_peptides");
+      if (proteins)
+      {
+        relevant_params.push_back("consensus:fix_peptides");
+      }
     }
 
     String params;
-    for (StringList::iterator it = relevant_params.begin();
-         it != relevant_params.end(); ++it)
+    for (const String& str : relevant_params)
     {
-      String value = algo_params_.getValue(*it).toString();
-      if (value != "false") params += *it + "=" + value + ", ";
+      String value = algo_params_.getValue(str).toString();
+      if (value != "false")
+      {
+        params += str + "=" + value + ", ";
+      }
     }
-    if (params.empty()) params = "(none)";
-    else params.resize(params.size() - 2); // remove trailing ", "
+    if (params.empty())
+    {
+      params = "(none)";
+    }
+    else
+    {
+      params.resize(params.size() - 2); // remove trailing ", "
+    }
     out << "# Parameters (relevant only): " + params << endl;
 
     if (ed.getNumberOfSamples() > 1)
@@ -622,10 +643,16 @@ protected:
       for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
            it != columns_headers_.end(); ++it, ++counter)
       {
-        if (counter > 1) desc += ", ";
+        if (counter > 1)
+        {
+          desc += ", ";
+        }
         desc += String(counter) + ": '" + it->second.filename + "'";
         String label = it->second.label;
-        if (!label.empty()) desc += " ('" + label + "')";
+        if (!label.empty())
+        {
+          desc += " ('" + label + "')";
+        }
       }
       out << desc << endl;
     }
@@ -660,12 +687,24 @@ protected:
                << " quantified";
       if (top > 1)
       {
-        if (include_all) OPENMS_LOG_INFO << " (incl. ";
-        else OPENMS_LOG_INFO << ", ";
+        if (include_all)
+        {
+          OPENMS_LOG_INFO << " (incl. ";
+        }
+        else
+        {
+          OPENMS_LOG_INFO << ", ";
+        }
         OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
                  << " peptides";
-        if (stats.n_samples > 1) OPENMS_LOG_INFO << " in every sample";
-        if (include_all) OPENMS_LOG_INFO << ")";
+        if (stats.n_samples > 1)
+        {
+          OPENMS_LOG_INFO << " in every sample";
+        }
+        if (include_all)
+        {
+          OPENMS_LOG_INFO << ")";
+        }
       }
     }
     OPENMS_LOG_INFO << endl;
@@ -858,12 +897,23 @@ protected:
     String separator = getStringOption_("format:separator");
     String replacement = getStringOption_("format:replacement");
     String quoting = getStringOption_("format:quoting");
-    if (separator.empty()) separator = "\t";
+    if (separator.empty())
+    {
+      separator = "\t";
+    }
     String::QuotingMethod quoting_method;
-    if (quoting == "none") quoting_method = String::NONE;
-    else if (quoting == "double") quoting_method = String::DOUBLE;
-    else quoting_method = String::ESCAPE;
-
+    if (quoting == "none")
+    {
+      quoting_method = String::NONE;
+    }
+    else if (quoting == "double")
+    {
+      quoting_method = String::DOUBLE;
+    }
+    else
+    {
+      quoting_method = String::ESCAPE;
+    }
     if (!peptide_out.empty())
     {
       ofstream outstr(peptide_out.c_str());

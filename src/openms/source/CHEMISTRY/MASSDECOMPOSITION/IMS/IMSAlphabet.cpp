@@ -41,11 +41,8 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
 
-namespace OpenMS
+namespace OpenMS::ims
 {
-
-  namespace ims
-  {
 
     const IMSAlphabet::name_type & IMSAlphabet::getName(size_type index) const
     {
@@ -174,5 +171,4 @@ namespace OpenMS
       return os;
     }
 
-  } // namespace ims
-} // namespace OpenMS
+} // namespace OpenMS // namespace ims

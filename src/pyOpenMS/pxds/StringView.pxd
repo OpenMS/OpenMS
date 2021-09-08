@@ -6,7 +6,7 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
     cdef cppclass StringView:
 
-        StringView() nogil except +
+        StringView() nogil except + # TODO
         StringView(const libcpp_string &) nogil except +
         StringView(StringView &) nogil except +
 

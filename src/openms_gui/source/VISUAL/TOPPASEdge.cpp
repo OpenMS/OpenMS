@@ -286,8 +286,10 @@ namespace OpenMS
 
   QPointF TOPPASEdge::borderPoint_(bool atTargetVertex) const
   {
-    if (!to_ || !from_) return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
-
+    if (!to_ || !from_)
+    {
+      return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
+    }
     const TOPPASVertex* to = (atTargetVertex ? to_ : from_);
     const TOPPASVertex* from = (!atTargetVertex ? to_ : from_);
 

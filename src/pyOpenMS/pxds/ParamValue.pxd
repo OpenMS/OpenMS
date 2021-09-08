@@ -6,6 +6,13 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
 
     cdef cppclass ParamValue:
+        # wrap-doc:
+            #   Class to hold strings, numeric values, vectors of strings and vectors of numeric values using the stl types
+            #   -----
+            #   - To choose one of these types, just use the appropriate constructor
+            #   - Automatic conversion is supported and throws Exceptions in case of invalid conversions
+            #   - An empty object is created with the default constructor
+
          ParamValue() nogil except +
          ParamValue(ParamValue &) nogil except +
          ParamValue(char *) nogil except +
@@ -27,7 +34,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
 
          ValueType valueType() nogil except +
 
-         int isEmpty() nogil except +
+         int isEmpty() nogil except + # wrap-doc:Test if the value is empty
 
 cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS::ParamValue":
 

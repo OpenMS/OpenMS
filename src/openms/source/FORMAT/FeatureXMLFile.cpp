@@ -400,7 +400,9 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
+      {
         throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
@@ -812,8 +814,9 @@ namespace OpenMS
     }
 
     if (disable_parsing_)
+    {
       return;
-
+    }
     // do the actual parsing:
     open_tags_.pop_back();
 
@@ -823,8 +826,9 @@ namespace OpenMS
       in_description_ = false;
     }
     if (in_description_)
+    {
       return;
-
+    }
     if (tag == "feature")
     {
       if ((!options_.hasRTRange() || options_.getRTRange().encloses(current_feature_->getRT()))
@@ -933,18 +937,21 @@ namespace OpenMS
   {
     // handle skipping of whole sections
     if (disable_parsing_)
+    {
       return;
-
+    }
     // do the actual parsing:
 
     //for downward compatibility, all tags in the old description must be ignored
     if (in_description_)
+    {
       return;
-
+    }
     // we are before first tag or beyond last tag
     if (open_tags_.size() == 0)
+    {
       return;
-
+    }
     String& current_tag = open_tags_.back();
     if (current_tag == "intensity")
     {
