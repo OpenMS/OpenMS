@@ -1378,7 +1378,7 @@ public:
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) carbon atoms
     {
       IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
-      
+
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
       {
         double a = abundance / 100.0;
@@ -1389,6 +1389,7 @@ public:
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
         dist.set(CoarseIsotopePatternGenerator().convolve_(dist.getContainer(), modification_dist.getContainer())); // convolve with modification distribution (which follows the natural distribution)
+        // size is now modification_dist.size() + dist.size()
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1926,10 +1927,13 @@ public:
       xic_mzs.push_back(mz);
     }
 
+    cout << "Element count (+ additional isotopes): " << element_count << endl;
+
     // extract xics
     vector<vector<double> > xics = extractXICs(seed_rt, xic_mzs, mz_tolerance_ppm, rt_tolerance_s, peak_map);
 
     vector<double> xic_intensities(xics.size(), 0.0);
+
     if (min_corr_mono > 0)
     {
       // calculate correlation to mono-isotopic peak
@@ -1949,6 +1953,8 @@ public:
         xic_intensities[i] = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
       }
     }
+
+    cout << "XICs: " << xic_intensities.size() << endl;
 
     return xic_intensities;
   }
@@ -2139,7 +2145,7 @@ protected:
   {
     if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
     {
-      OPENMS_LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
+      cout << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
     }
 
     if (pattern_begin == pattern_end)
@@ -3292,9 +3298,11 @@ protected:
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
+        cout << "Numver of labeling elements: " << element_count << "\t" << feature_hit_aaseq.toString() << endl;
       }
       else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
+        cout << "Unidentified" << endl;
         // calculate number of expected labeling elements using averagine model C:4.9384 H:7.7583 N:1.3577 O:1.4773 S:0.0417 divided by average weight 111.1254
         if (labeling_element == "C")
         {
@@ -3449,6 +3457,7 @@ protected:
       sip_peptide.patterns = patterns;
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
       {
+        cout << pit->first << "\t" << pit->second.size() << endl;
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
