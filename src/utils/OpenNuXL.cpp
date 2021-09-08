@@ -55,7 +55,6 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
 #include <OpenMS/ANALYSIS/NUXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
@@ -72,6 +71,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
@@ -2163,119 +2163,7 @@ score += ah.mass_error_p     *   1.15386068
            + 3.0 * ah.total_MIC + ah.ladder_score;
 */
 
-
-/*
-    return 
-              47.29 * ah.total_loss_score
-           +  16.93 * ah.partial_loss_score
-           +  69.35 * ah.mass_error_p 
-           -  72.84 * ah.err 
-           -  75.65 * ah.pl_err
-           +  26.34 * ah.total_MIC
-           +  21.85 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
-           +  39.64 * ah.ladder_score
-           +  60.15 * (ah.tag_shifted >= 1);
-*/
-/*
-    return 
-              64.4 * ah.total_loss_score
-           +  21.3 * ah.partial_loss_score
-           +  98.97 * ah.mass_error_p 
-           -  57.57 * ah.err 
-           -  19.23 * ah.pl_err
-           +  0.23 * ah.total_MIC
-           +  16.47 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
-           +  20.26 * ah.ladder_score
-           +  4.25 * (ah.tag_shifted >= 1);
-*/
-/*
-    return 
-              0.90 * ah.total_loss_score
-           +  0.12 * ah.partial_loss_score
-           +  2.19 * ah.mass_error_p 
-           -  54.60 * ah.err 
-           -  71.06 * ah.pl_err
-           +  67.47 * ah.total_MIC
-           +  66.27 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
-           +  11.45 * ah.ladder_score
-           +  28.09 * (ah.tag_shifted >= 1);
-*/
-
       return ah.modds + ah.pl_modds;
-    //return sqrt(ah.pl_modds*ah.pl_modds + ah.modds*ah.modds);
-/*
-           const double ret = 1.0 * ah.total_loss_score
-           +  0.5 * ah.partial_loss_score
-           +  1.0 * ah.mass_error_p 
-           -  0.001 * ah.err 
-           -  0.001 * ah.pl_err
-           + isXL * 0.1 * ah.marker_ions_score
-           +  1.0 * ah.total_MIC
-           + isXL * (ah.pl_pc_MIC + ah.precursor_score)
-//           +  1.0 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
-           +  0.1 * ah.ladder_score
-           +  1.0 * (ah.tag_shifted >= 1);
-           return ret;
-*/
-
-/*
- * [96.45142397 49.37352197  2.61098131 -1.21298196 -4.09934265 28.64381592
- *  53.84125899 41.37187898  7.66281392]
- */
-
-
-/*
- * good on IN VITRO:
-              1.0 * ah.total_loss_score
-           +  0.5 * ah.partial_loss_score
-           +  1.0 * ah.mass_error_p 
-           -  0.1 * ah.err 
-           -  0.1 * ah.pl_err
-           + isXL * 0.1 * ah.marker_ions_score
-           +  1.0 * ah.total_MIC
-           +  1.0 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
-           +  0.1 * ah.ladder_score
-           +  1.0 * (ah.tag_shifted >= 1);
-*/
-/*
-            -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err
-           + 52.2888 * ah.pl_err - 0.0105 * ah.modds
-           + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
-           + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
-           + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score)
-           4267 without perc / 5306 with perc auf 1-
-           5010 with perc auf 2-
-*/
-
-/*
-    return 
-       (ah.MIC - 0.00693372) * 0.00317232 
-    + (ah.Morph - 2.00693) * -5.67908 
-    + (ah.err - 1.8356e-05) * 0.0074405
-    + (ah.immonium_score) *   3.87159
-    + (isXL) *  -2.8901
- +   (ah.ladder_score - 0.0381864) * 2.09632
- +   (ah.marker_ions_score) *  2.53656
- +   (ah.mass_error_p - 0.6439) * 0.189849
- +   (ah.modds - 3.37613e-07) * 9.42353
- +   (ah.partial_loss_score) * 4.22367
- +   (ah.pl_MIC) * 0.0770935
- +   (ah.pl_Morph) * -4.25703
- +   (ah.pl_err - 0.000214374) * -0.059863
- +   (ah.pl_im_MIC) *  -0.367491
- +   (ah.pl_modds) *  2.29632
- +   (ah.pl_pc_MIC) *  1.13888
- +   (ah.precursor_score) * -0.597915
- +   (ah.rank_product - 1) * 0.460718
- +   (ah.sequence_score - 0.0218818) * -4.68762
- +   (ah.tag_XLed) * 2.61103
- +   (ah.tag_shifted) * -0.10144
- +   (ah.tag_unshifted - 1) * 10.8324
- +   (ah.total_MIC - 0.0100453) * 0.836277
- +   (ah.total_loss_score - 0.106861) * 34.8899
- +   (ah.wTop50 - 2) * -0.248061
- +   (ah.sequence.size() - 6) * 0.00656285; // length
-*/
   }
 
 
@@ -4593,6 +4481,39 @@ static void scoreXLIons_(
     if (filtered_spectra > 0) OPENMS_LOG_INFO << "  On average " << filtered_peaks_count / (double)filtered_spectra << " peaks per MS2." << endl;
   }
 
+  void addAugmentedFeatures_(vector<PeptideIdentification>& pep_ids, const vector<string>& positive_weights)
+  {
+    // only for XLs? because they are fewer?
+    if (pep_ids.empty()) return;
+    if (pep_ids[0].getHits().empty()) return;
+    vector<String> keys;
+    auto p_template = pep_ids[0].getHits()[0];
+    p_template.setScore(0);
+    p_template.getKeys(keys);
+
+    // clear scores
+    for (const auto& k : keys)
+    { 
+      if (p_template.getMetaValue(k).valueType() == DataValue::INT_VALUE) p_template.setMetaValue(k, 0);
+      if (p_template.getMetaValue(k).valueType() == DataValue::DOUBLE_VALUE) p_template.setMetaValue(k, 0.0);
+    }
+
+    size_t c = 0;
+    for (const auto& s : positive_weights) 
+    {
+      auto p = p_template;
+      p.setMetaValue(s, 1e7);
+      vector<PeptideHit> phs;
+      phs.push_back(p);
+      PeptideIdentification pid = pep_ids[0];
+      pid.setRT(1e6 + c);
+      pid.setHits(phs);
+      pep_ids.push_back(pid);
+      ++c;
+    } 
+    
+  }
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -4708,7 +4629,7 @@ static void scoreXLIons_(
                        << "-score_type" << "q-value"
                        << "-post_processing_tdc"
                        << "-weights" << weights_out.toQString()
-                       << "-nested_xval_bins" << "3"
+//                       << "-nested_xval_bins" << "3"
                        ;
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
@@ -5245,13 +5166,9 @@ static void scoreXLIons_(
         {
           if (aas.size() <= 2) { e.sequence += aas.toUnmodifiedString(); continue; }
 
-          //cout << "Seq. before reverse: " << s << endl; 
-          //auto last = --s.end();
-          //std::reverse(s.begin(), last); // standard peptide reverse
-          //cout << "Seq. after reverse : " << s << endl; 
-
-          // switch cleavage sites (like in Andromeda or DecoyPyrate)
-          // if (s.size() >= 2) std::swap(s[s.size() - 1], s[s.size() - 2]); 
+          // static const DecoyGenerator dg;
+          // e.sequence += dg.reversePeptides(aas, enzyme).toUnmodifiedString();
+          
           DecoyGenerator dg; // important to create inside the loop with same seed. Otherwise same peptides end up creating different decoys -> much more decoys than targets
           dg.setSeed(4711);
           e.sequence += dg.shufflePeptides(aas, enzyme).toUnmodifiedString();
@@ -6224,6 +6141,31 @@ static void scoreXLIons_(
       xl_pi.clear();
       pep_pi.clear();
 */
+     vector<string> positive_weights_features = { "NuXL:mass_error_p", "NuXL:total_loss_score", "NuXL:modds", "NuXL:immonium_score", "NuXL:MIC", "NuXL:Morph", "NuXL:total_MIC", "NuXL:ladder_score", "NuXL:sequence_score",
+                                              "NuXL:total_Morph",  "NuXL:total_HS", "NuXL:tag_XLed", "NuXL:tag_unshifted", "NuXL:tag_shifted", "NuXL:explained_peak_fraction", "NuXL:theo_peak_fraction",
+                                              "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC", "NuXL:score" };
+/*
+       << "NuXL:err"
+       << "NuXL:immonium_score"
+       << "NuXL:precursor_score"
+       << "NuXL:aminoacid_max_tag"
+       << "NuXL:aminoacid_id_to_max_tag_ratio"
+       << "nr_candidates"
+       << "NuXL:wTop50"
+
+       << "NuXL:isPhospho" 
+       << "NuXL:isXL" 
+       << "NuXL:score"
+       << "isotope_error"
+       << "variable_modifications"
+       << "precursor_intensity_log10"
+       << "NuXL:NA_MASS_z0"
+       << "NuXL:NA_length"   
+       << "nucleotide_mass_tags"
+       << "n_theoretical_peaks";
+*/
+      // addAugmentedFeatures_(peptide_ids, positive_weights_features); TODO: seems to work ... scales weights but no improvement
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
@@ -6281,7 +6223,7 @@ static void scoreXLIons_(
                        << "-score_type" << "svm"
                        << "-unitnorm"
                        << "-post_processing_tdc"
-                       << "-nested_xval_bins" << "3"
+//                       << "-nested_xval_bins" << "3"
                        << "-weights" << weights_out.toQString()
                        << "-out_pin" << pin.toQString();
 
