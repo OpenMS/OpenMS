@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   :param n_seconds: Input number of seconds
                 #   :param load_cached_spectrum: Load the cached picked spectrum if exists
                 #   :param output: Output of the accurate mass search results
-                #   :return: a boolean indicating if the picked spectrum was loaded from the cached file
+                #   :returns: A boolean indicating if the picked spectrum was loaded from the cached file
         # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +
         MSSpectrum extractPeaks(MSSpectrum & input_) nogil except +
@@ -47,7 +47,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   Pick peaks from the summed spectrum
                 #   -----
                 #   :param input: Input vector of spectra
-                #   :return: a spectrum with picked peaks
+                #   :returns: A spectrum with picked peaks
         FeatureMap convertToFeatureMap(MSSpectrum & input_) nogil except +
             # wrap-doc:
                 #   Convert a spectrum to a feature map with the corresponding polarity
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
                 #   -----
                 #   :param input: Input a picked spectrum
-                #   :return: a feature map with the peaks converted to features and polarity from the parameters
+                #   :returns: A feature map with the peaks converted to features and polarity from the parameters
         MSSpectrum trackNoise(MSSpectrum & input_) nogil except +
             # wrap-doc:
                 #   Estimate noise for each peak
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   Uses `SignalToNoiseEstimatorMedianRapid`
                 #   -----
                 #   :param input: Input a picked spectrum
-                #   :return: a spectrum object storing logSN information
+                #   :returns: A spectrum object storing logSN information
         # NAMESPACE # void runAccurateMassSearch(FeatureMap & input_, OpenMS::MzTab & output) nogil except +
         # libcpp_vector[ float ] getMZs() nogil except +
         # libcpp_vector[ float ] getBinSizes() nogil except +

@@ -1605,6 +1605,7 @@ protected:
         e.path = s;
         e.sample = count;
         msfs.push_back(e);
+        ++count;
       }      
       design.setMSFileSection(msfs);
     }
