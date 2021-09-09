@@ -177,6 +177,13 @@ jobs:
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
+          cd .. 
+
+    - name: Load contrib and build OpenMP
+      run: |
+          git clone https://github.com/OpenMS/contrib.git
+          cd contribbld
+          cmake -DBUILD_TYPE=OPENMP -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 ../contrib
 
     - name: Fix contrib install names
       shell: bash 
