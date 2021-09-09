@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 
       // residues do NOT match if the modification is user-defined and has origin
       // X (which here means an actual input AA X and it does *not* mean "match
-      // all AA") while the current residue is not X. Make sure we dont match things like
+      // all AA") while the current residue is not X. Make sure we don't match things like
       // PEPN[400] and PEPX[400] since these have very different masses.
       bool non_matching_user_defined = (
            curr_mod->isUserDefined() &&
@@ -429,7 +429,10 @@ namespace OpenMS
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     char res = '?'; // empty
-    if (!residue.empty()) res = residue[0];
+    if (!residue.empty())
+    {
+      res = residue[0];
+    }
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
@@ -823,8 +826,14 @@ namespace OpenMS
       size_t i(0);
       while (i < a.size() && i < b.size())
       {
-        if (tolower(a[i]) == tolower(b[i])) ++i;
-        else return tolower(a[i]) < tolower(b[i]);
+        if (tolower(a[i]) == tolower(b[i]))
+        {
+          ++i;
+        }
+        else
+        {
+          return tolower(a[i]) < tolower(b[i]);
+        }
       }
       return a.size() < b.size();
     });

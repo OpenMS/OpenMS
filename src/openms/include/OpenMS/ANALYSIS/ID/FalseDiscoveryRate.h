@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,12 +131,15 @@ public:
     double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
     double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
 
-    /// simpler reimplemetation of the apply function above.
+    /// simpler reimplementation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
-    /// simpler reimplemetation of the apply function above for peptides in ConsensusMaps.
+    /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
-    /// simpler reimplemetation of the apply function above for proteins.
+    /// simpler reimplementation of the apply function above for proteins.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
+
+    /// applies a picked protein FDR (TODO explain/ref)
+    void applyPickedProteinFDR(ProteinIdentification& id, String const& decoy_prefix);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
@@ -213,7 +216,6 @@ private:
 
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
     double trapezoidal_area(double x1, double x2, double y1, double y2) const;
-
   };
 
 } // namespace OpenMS

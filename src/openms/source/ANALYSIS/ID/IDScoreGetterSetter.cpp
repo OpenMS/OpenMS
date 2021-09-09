@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,10 +39,11 @@ using namespace std;
 namespace OpenMS
 {
 
-  /** @ingroup getScoresFunctions
-      * @brief For protein groups. Groups are target if at least one protein is target
-      * Therefore it needs an unordered set of decoy accessions to evaluate that.
-    */
+  /**
+   * @ingroup getScoresFunctions
+   * @brief For protein groups. Groups are target if at least one protein is target
+   * Therefore it needs an unordered set of decoy accessions to evaluate that.
+  */
   void IDScoreGetterSetter::getScores_(
       ScoreToTgtDecLabelPairs &scores_labels,
       const std::vector<ProteinIdentification::ProteinGroup> &grps,
@@ -65,6 +66,43 @@ namespace OpenMS
     }
   }
 
+
+  void IDScoreGetterSetter::getPickedProteinScores_(
+      ScoreToTgtDecLabelPairs& scores_labels,
+      const ProteinIdentification& id,
+      const String& decoy_prefix)
+  {
+    std::unordered_map<String, std::pair<double, double>> picked_scores;
+    for (const auto& hit : id.getHits())
+    {
+      checkTDAnnotation_(hit);
+      StringView tgt_accession(hit.getAccession());
+      bool target = getTDLabel_(hit);
+      if (!target)
+      {
+        tgt_accession = tgt_accession.substr(decoy_prefix.size(),-1);
+      }
+      auto[it, inserted] = picked_scores.try_emplace(tgt_accession.getString(), hit.getScore(), target);
+      if (!inserted)
+      {
+        if ((id.isHigherScoreBetter() && (hit.getScore() > it->second.first)) ||
+        (!id.isHigherScoreBetter() && (hit.getScore() < it->second.first)))
+        {
+          it->second = {hit.getScore(), target};
+        }
+        else if (hit.getScore() == it->second.first)
+        {
+          it->second = {hit.getScore(), true}; //prefer targets
+        }
+      }
+    }
+
+    scores_labels.reserve(picked_scores.size());
+    for(auto& kv : picked_scores)
+    {
+      scores_labels.emplace_back(std::move(kv.second));
+    }
+  }
 
   /** @ingroup setScoresFunctions
   * @brief For protein groups. Unaffected by keep_decoy_proteins. Always keeps all for now @todo.

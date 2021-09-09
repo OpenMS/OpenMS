@@ -5,8 +5,10 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/FORMAT/IBSpectraFile.h>" namespace "OpenMS":
     
     cdef cppclass IBSpectraFile "OpenMS::IBSpectraFile":
+
         IBSpectraFile() nogil except + # wrap-doc:Implements the export of consensusmaps into the IBSpectra format used by isobar to load quantification results
-        IBSpectraFile(IBSpectraFile) nogil except + # wrap-ignore
+        IBSpectraFile(IBSpectraFile &) nogil except +
+
         void store(const String & filename, ConsensusMap & cm) nogil except +
             # wrap-doc:
             #   Writes the contents of the ConsensusMap cm into the file named by filename.

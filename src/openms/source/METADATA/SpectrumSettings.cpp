@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,11 +93,14 @@ namespace OpenMS
     std::vector<UInt> keys;
     rhs.getKeys(keys);
     for (Size i = 0; i < keys.size(); ++i)
+    {
       setMetaValue(keys[i], rhs.getMetaValue(keys[i]));
-
+    }
 
     if (type_ != rhs.type_)
+    {
       type_ = UNKNOWN;                       // only keep if both are equal
+    }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
     //instrument_settings_ == rhs.instrument_settings_  // keep

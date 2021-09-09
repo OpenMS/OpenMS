@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ public:
       INVALID = 0
     };
 
-    /**@brief Returns true if the unique_id is valid, false otherwise.
+    /** @brief Returns true if the unique_id is valid, false otherwise.
 
      Currently, an invalid unique id is represented by UInt64(0), but please prefer using this method for clarity.
      */

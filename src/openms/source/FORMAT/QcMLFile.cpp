@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -266,9 +266,9 @@ namespace OpenMS
       s += indent + "\t" + "<tableColumnTypes>";
 
       std::vector<String> copy = colTypes;
-      for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
+      for (String& it : copy)
       {
-        it->substitute(String(" "), String("_"));
+        it.substitute(String(" "), String("_"));
       }
 
       s += ListUtils::concatenate(copy, " ").trim();
@@ -278,9 +278,9 @@ namespace OpenMS
         s += indent + "\t" + "<tableRowValues>";
 
         std::vector<String> copy_row = *it;
-        for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
+        for (String& sit : copy_row)
         {
-          sit->substitute(String(" "), String("_"));
+          sit.substitute(String(" "), String("_"));
         }
 
         s += ListUtils::concatenate(*it, " ").trim();
@@ -299,7 +299,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version uptodate
+    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version up-to-date
   {
   }
 
@@ -348,7 +348,7 @@ namespace OpenMS
 
   void QcMLFile::addRunAttachment(String run_id, Attachment at)
   {
-    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
+    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan write out in store),redundancy check
   }
 
   void QcMLFile::addSetAttachment(String run_id, Attachment at)
@@ -775,15 +775,15 @@ namespace OpenMS
     if (found != setQualityQPs_.end())
     {
       std::map<String, std::map<String, String> > cvs_table;
-      for (std::vector<QualityParameter>::const_iterator it = found->second.begin(); it != found->second.end(); ++it)
+      for (const QualityParameter& it : found->second)
       {
-        if (it->cvAcc == "QC:0000043" || it->cvAcc == "QC:0000044" || it->cvAcc == "QC:0000045" || it->cvAcc == "QC:0000046" || it->cvAcc == "QC:0000047")
+        if (it.cvAcc == "QC:0000043" || it.cvAcc == "QC:0000044" || it.cvAcc == "QC:0000045" || it.cvAcc == "QC:0000046" || it.cvAcc == "QC:0000047")
         {
-          cvs_table["id"][it->name.prefix(' ')] = it->value;
+          cvs_table["id"][it.name.prefix(' ')] = it.value;
         }
-        else if (it->cvAcc == "QC:0000053" || it->cvAcc == "QC:0000054" || it->cvAcc == "QC:0000055" || it->cvAcc == "QC:0000056" || it->cvAcc == "QC:0000057")
+        else if (it.cvAcc == "QC:0000053" || it.cvAcc == "QC:0000054" || it.cvAcc == "QC:0000055" || it.cvAcc == "QC:0000056" || it.cvAcc == "QC:0000057")
         {
-          cvs_table["ms2"][it->name.prefix(' ')] = it->value;
+          cvs_table["ms2"][it.name.prefix(' ')] = it.value;
         }
       }
       if (!cvs_table.empty())
@@ -799,11 +799,11 @@ namespace OpenMS
   {
     for (std::set<String>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
     {
-      for (std::vector<QualityParameter>::const_iterator jt = runQualityQPs_[*it].begin(); jt != runQualityQPs_[*it].end(); ++jt)
+      for (const QualityParameter& jt : runQualityQPs_[*it])
       {
-        if (jt->cvAcc == qp)
+        if (jt.cvAcc == qp)
         {
-          ret.push_back(jt->value);
+          ret.push_back(jt.value);
         }
       }
     }
@@ -880,7 +880,6 @@ namespace OpenMS
         {
           name_ = qp_.value;
         }
-        //TODO add cvhandling for validation etc
       }
       else //setQuality
       {
@@ -1008,13 +1007,13 @@ namespace OpenMS
         //TODO give warning that a run should have a name cv!!!
       }
       registerRun(run_id_, name_);
-      for (std::vector<QualityParameter>::const_iterator it = qps_.begin(); it != qps_.end(); ++it)
+      for (const QualityParameter& it : qps_)
       {
-        addRunQualityParameter(run_id_, *it);
+        addRunQualityParameter(run_id_, it);
       }
-      for (std::vector<Attachment>::const_iterator it = ats_.begin(); it != ats_.end(); ++it)
+      for (const Attachment& it : ats_)
       {
-        addRunAttachment(run_id_, *it);
+        addRunAttachment(run_id_, it);
       }
       ats_.clear();
       qps_.clear();
@@ -1028,13 +1027,13 @@ namespace OpenMS
         //TODO give warning that a run should have a name cv!!!
       }
       registerSet(run_id_, name_, names_);
-      for (std::vector<QualityParameter>::const_iterator it = qps_.begin(); it != qps_.end(); ++it)
+      for (const QualityParameter& it : qps_)
       {
-        addSetQualityParameter(run_id_, *it);
+        addSetQualityParameter(run_id_, it);
       }
-      for (std::vector<Attachment>::const_iterator it = ats_.begin(); it != ats_.end(); ++it)
+      for (const Attachment& it : ats_)
       {
-        addSetAttachment(run_id_, *it);
+        addSetAttachment(run_id_, it);
       }
       ats_.clear();
       qps_.clear();
@@ -1043,11 +1042,14 @@ namespace OpenMS
 
   float calculateSNmedian(const MSSpectrum& spec, bool norm = true)
   {
-    if (spec.size() == 0) return 0;
-    vector<UInt> intensities;
-    for (auto pt = spec.begin(); pt != spec.end(); ++pt)
+    if (spec.size() == 0)
     {
-      intensities.push_back(pt->getIntensity());
+      return 0;
+    }
+    vector<UInt> intensities;
+    for (auto& pt : spec)
+    {
+      intensities.push_back(pt.getIntensity());
     }
     float median = Math::median(intensities.begin(), intensities.end());
     
@@ -1062,20 +1064,23 @@ namespace OpenMS
     float nois_int = 0;
     size_t sign_cnt= 0;
     size_t nois_cnt = 0;
-    for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    for (const Peak1D& pt : spec)
     {
-      if (pt->getIntensity() <= median)
+      if (pt.getIntensity() <= median)
       {
         ++nois_cnt;
-        nois_int += pt->getIntensity();
+        nois_int += pt.getIntensity();
       }
       else
       {
         ++sign_cnt;
-        sign_int += pt->getIntensity();
+        sign_int += pt.getIntensity();
       }
     }
-    if (sign_cnt == 0 || nois_cnt == 0 || nois_int <= 0) return 0;
+    if (sign_cnt == 0 || nois_cnt == 0 || nois_int <= 0)
+    {
+      return 0;
+    }
     return (sign_int / sign_cnt) / (nois_int / nois_cnt);
   }
 
@@ -1716,22 +1721,22 @@ namespace OpenMS
 
         std::vector<double> deltas;
         //~ prot_ids[0].getSearchParameters();
-        for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+        for (PeptideIdentification& pep_id : pep_ids)
         {
-          if (!it->getHits().empty())
+          if (!pep_id.getHits().empty())
           {
             std::vector<String> row;
-            row.push_back(it->getRT());
-            row.push_back(it->getMZ());
-            PeptideHit tmp = it->getHits().front();  //N.B.: depends on score & sort
+            row.push_back(pep_id.getRT());
+            row.push_back(pep_id.getMZ());
+            PeptideHit tmp = pep_id.getHits().front();  //N.B.: depends on score & sort
             vector<UInt> pep_mods;
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
               pep_mods.push_back(0);
             }
-            for (AASequence::ConstIterator z =  tmp.getSequence().begin(); z != tmp.getSequence().end(); ++z)
+            for (const Residue& z : tmp.getSequence())
             {
-              Residue res = *z;
+              Residue res = z;
               String temp;
               if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
               {
@@ -1753,9 +1758,8 @@ namespace OpenMS
             row.push_back(tmp.getCharge());
             double mz = tmp.getSequence().getMZ(tmp.getCharge());
             row.push_back(String(mz));
-            double dppm = (it->getMZ()-mz)/(mz*(double)1e-6);
+            double dppm = (pep_id.getMZ()-mz)/(mz*(double)1e-6);
             row.push_back(String(dppm));
-  //          row.push_back(String(calculateSNident(tmp)));
             deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
@@ -1977,7 +1981,7 @@ namespace OpenMS
         qp.name = "consensuspoints"; ///< Name
         //~ qp.id = base_name + "_consensuses"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
-        qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featuremapper results"
+        qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "feature mapper results"
 
         at.colTypes.push_back("Native_spectrum_ID");
         at.colTypes.push_back("DECON_RT_(sec)");
@@ -2125,17 +2129,18 @@ namespace OpenMS
                 qp.name = "set name"; ///< Name
                 qp.cvRef = "QC"; ///< cv reference
                 qp.cvAcc = "QC:0000005";
-                for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
+                for (const QualityParameter& qit : rq->second)
                 {
-                  ///<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
-                  if (qit->cvAcc == "MS:1000577")
-                    qp.value = qit->value;
+                  if (qit.cvAcc == "MS:1000577")
+                  {
+                    qp.value = qit.value;
+                  }
                 }
                 os << qp.toXMLString(4);
             }
             else
             {
-              //TODO warn - no mzML file registered for this runQC
+              //TODO warn - no mzML file registered for this run
             }
           }
         }
@@ -2143,18 +2148,18 @@ namespace OpenMS
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
         if (qpsit != setQualityQPs_.end())
         {
-          for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+          for (const QcMLFile::QualityParameter& qit : qpsit->second)
           {
-            os << qit->toXMLString(4);
+            os << qit.toXMLString(4);
           }
         }
 
         std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
         if (attit != setQualityAts_.end())
         {
-          for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+          for (const QcMLFile::Attachment& ait : attit->second)
           {
-            os << ait->toXMLString(4);
+            os << ait.toXMLString(4);
           }
         }
         os << "\t</setQuality>\n";

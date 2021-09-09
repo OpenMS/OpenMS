@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,8 +77,10 @@ namespace OpenMS
     {
       return lower->second;
     }
-    if (upper_diff <= rt_tolerance) return upper->second;
-
+    if (upper_diff <= rt_tolerance)
+    {
+      return upper->second;
+    }
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      element);
@@ -101,7 +103,10 @@ namespace OpenMS
   Size SpectrumLookup::findByIndex(Size index, bool count_from_one) const
   {
     Size adjusted_index = index;
-    if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
+    if (count_from_one)
+    {
+      --adjusted_index; // overflow (index = 0) handled below
+    }
     if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
@@ -208,14 +213,13 @@ namespace OpenMS
 
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
-    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
-         it != reference_formats.end(); ++it)
+    for (const boost::regex& reg : reference_formats)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      bool found = boost::regex_search(spectrum_ref, match, reg);
       if (found)
       {
-        return findByRegExpMatch_(spectrum_ref, it->str(), match);
+        return findByRegExpMatch_(spectrum_ref, reg.str(), match);
       }
     }
     String msg = "Spectrum reference doesn't match any known format";
@@ -358,7 +362,10 @@ namespace OpenMS
   {
     rts_[rt] = index;
     ids_[native_id] = index;
-    if (scan_number != -1) scans_[scan_number] = index;
+    if (scan_number != -1)
+    {
+      scans_[scan_number] = index;
+    }
   }
 
 

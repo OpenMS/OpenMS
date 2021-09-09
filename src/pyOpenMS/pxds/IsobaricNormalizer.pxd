@@ -10,7 +10,7 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>" namespace "OpenMS":
     
     cdef cppclass IsobaricNormalizer "OpenMS::IsobaricNormalizer":
-        IsobaricNormalizer(IsobaricNormalizer) nogil except +
+        IsobaricNormalizer(IsobaricNormalizer &) nogil except +
 
         IsobaricNormalizer(IsobaricQuantitationMethod *quant_method) nogil except + # wrap-ignore
         IsobaricNormalizer(ItraqFourPlexQuantitationMethod *quant_method) nogil except +

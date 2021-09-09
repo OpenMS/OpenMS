@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
         # wrap-doc:
         #     Base class for digestion enzymes
 
-        DigestionEnzyme(DigestionEnzyme) nogil except +
+        DigestionEnzyme(DigestionEnzyme &) nogil except +
 
         DigestionEnzyme(const String & name, const String & cleavage_regex, libcpp_set[ String ] & synonyms, String regex_description) nogil except +
 
@@ -38,4 +38,4 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
 
         bool operator<(const DigestionEnzyme & enzyme) nogil except +
 
-        bool setValueFromFile(String key, String value) nogil except + # wrap-doc:Set the value of a member variable based on an entry from an input file
+        bool setValueFromFile(String key, String value) nogil except + # wrap-doc:Sets the value of a member variable based on an entry from an input file

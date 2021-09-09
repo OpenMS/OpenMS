@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,8 +158,9 @@ namespace OpenMS
   EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -175,9 +176,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -255,8 +260,9 @@ namespace OpenMS
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
     if (std::isnan(correlation))
+    {
       correlation = -1.0;
-
+    }
     return correlation;
   }
 
@@ -265,8 +271,9 @@ namespace OpenMS
     // sum over all intensities
     CoordinateType sum = 0.0;
     for (Size i = 0; i < set.size(); ++i)
+    {
       sum += set[i].getIntensity();
-
+    }
     // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
@@ -297,11 +304,17 @@ namespace OpenMS
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
     Size i = apex_rt;
-    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5) --i;
+    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5)
+    {
+      --i;
+    }
     CoordinateType A = retention_ - set[i + 1].getPos();
 
     i = apex_rt;
-    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5) ++i;
+    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5)
+    {
+      ++i;
+    }
     CoordinateType B = set[i - 1].getPos() - retention_;
 
     // compute estimates for tau / sigma_square based on A/B

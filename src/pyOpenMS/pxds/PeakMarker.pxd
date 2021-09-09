@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>" namespace "OpenM
     cdef cppclass PeakMarker(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        PeakMarker() nogil except +
-        PeakMarker(PeakMarker) nogil except +
+        PeakMarker() nogil except + # wrap-doc:PeakMarker marks peaks that seem to fulfill some criterion
+        PeakMarker(PeakMarker &) nogil except +
         # see child classes
         # void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +
         String getProductName() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,7 +110,10 @@ namespace OpenMS
   {
     MRMFeatureQC::ComponentGroupQCs cg;
     cg.component_group_name = getCastValue_(headers, line, "component_group_name", "");
-    if (cg.component_group_name.empty()) return;
+    if (cg.component_group_name.empty())
+    {
+      return;
+    }
     cg.retention_time_l = getCastValue_(headers, line, "retention_time_l", 0.0);
     cg.retention_time_u = getCastValue_(headers, line, "retention_time_u", 1e12);
     cg.intensity_l = getCastValue_(headers, line, "intensity_l", 0.0);

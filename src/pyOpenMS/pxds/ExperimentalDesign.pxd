@@ -8,8 +8,11 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
     
     cdef cppclass ExperimentalDesign "OpenMS::ExperimentalDesign":
-        ExperimentalDesign() nogil except + # wrap-doc:Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class.
-        ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
+    # wrap-doc:
+    #   Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class
+
+        ExperimentalDesign() nogil except + # compiler 
+        ExperimentalDesign(ExperimentalDesign &) nogil except + # compiler
 
         libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] getMSFileSection() nogil except + # TODO
         void setMSFileSection(libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] msfile_section) nogil except + # TODO
@@ -31,29 +34,29 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         #std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const;
 
         # @return the number of samples measured (= highest sample index)
-        unsigned int getNumberOfSamples() nogil except + # wrap-doc:Return the number of samples measured (= highest sample index)
+        unsigned int getNumberOfSamples() nogil except + # wrap-doc:Returns the number of samples measured (= highest sample index)
 
         # @return the number of fractions (= highest fraction index)
-        unsigned int getNumberOfFractions() nogil except + # wrap-doc:Return the number of fractions (= highest fraction index)
+        unsigned int getNumberOfFractions() nogil except + # wrap-doc:Returns the number of fractions (= highest fraction index)
 
         # @return the number of labels per file
-        unsigned int getNumberOfLabels() nogil except + # wrap-doc:Return the number of labels per file
+        unsigned int getNumberOfLabels() nogil except + # wrap-doc:Returns the number of labels per file
 
         # @return the number of MS files (= fractions * fraction_groups)
-        unsigned int getNumberOfMSFiles() nogil except + # wrap-doc:Return the number of MS files (= fractions * fraction_groups)
+        unsigned int getNumberOfMSFiles() nogil except + # wrap-doc:Returns the number of MS files (= fractions * fraction_groups)
 
         # @return the number of fraction_groups
         # Allows to group fraction ids and source files
         unsigned int getNumberOfFractionGroups() nogil except + # wrap-doc:Allows to group fraction ids and source files. Return the number of fraction_groups
 
         # @return sample index (depends on fraction_group and label)
-        unsigned int getSample(unsigned int fraction_group, unsigned int label) nogil except + # wrap-doc:Return sample index (depends on fraction_group and label)
+        unsigned int getSample(unsigned int fraction_group, unsigned int label) nogil except + # wrap-doc:Returns sample index (depends on fraction_group and label)
 
         # @return whether at least one fraction_group in this experimental design is fractionated
-        bool isFractionated() nogil except + # wrap-doc:Return whether at least one fraction_group in this experimental design is fractionated
+        bool isFractionated() nogil except + # wrap-doc:Returns whether at least one fraction_group in this experimental design is fractionated
 
         # return if each fraction number is associated with the same number of fraction_group
-        bool sameNrOfMSFilesPerFraction() nogil except + # wrap-doc:Return if each fraction number is associated with the same number of fraction_group
+        bool sameNrOfMSFilesPerFraction() nogil except + # wrap-doc:Returns if each fraction number is associated with the same number of fraction_group
                 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
@@ -92,10 +95,10 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           #                                  libcpp_map[ String, size_t ] columnname_to_columnindex) nogil except +
 
           # Get set of all samples that are present in the sample section
-          libcpp_set[ unsigned int ] getSamples() nogil except + # wrap-doc:Get set of all samples that are present in the sample section
+          libcpp_set[ unsigned int ] getSamples() nogil except + # wrap-doc:Returns a set of all samples that are present in the sample section
 
           # Get set of all factors (column names) that were defined for the sample section
-          libcpp_set[ String ] getFactors() nogil except + # wrap-doc:Get set of all factors (column names) that were defined for the sample section
+          libcpp_set[ String ] getFactors() nogil except + # wrap-doc:Returns a set of all factors (column names) that were defined for the sample section
 
           # Checks whether sample section has row for a sample number
           bool hasSample(unsigned int sample) nogil except + # wrap-doc:Checks whether sample section has row for a sample number

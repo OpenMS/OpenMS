@@ -9,6 +9,6 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>" namespace "OpenMS
     
     cdef cppclass ILPDCWrapper "OpenMS::ILPDCWrapper":
         ILPDCWrapper() nogil except +
-        ILPDCWrapper(ILPDCWrapper) nogil except + #wrap-ignore
+        ILPDCWrapper(ILPDCWrapper &) nogil except + # compiler
         double compute(FeatureMap fm, libcpp_vector[ChargePair] & pairs, Size verbose_level) nogil except +
 

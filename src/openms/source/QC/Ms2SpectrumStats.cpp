@@ -1,7 +1,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS
 {
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
-  // MS2 spectra without mate are returned as vector of unassignedPeptideIdentifications (with empty sequence but some metavalue)
+  // MS2 spectra without mate are returned as vector of unassigned PeptideIdentifications (with empty sequence but some metavalue)
   std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
@@ -123,11 +123,15 @@ namespace OpenMS
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
-      if (it->ms2_presence) continue;
-      
+      if (it->ms2_presence)
+      {
+        continue;
+      }
       const MSSpectrum& spec = exp.getSpectra()[distance(ms2_included_.begin(), it)];
-      if (spec.getMSLevel() != 2) continue;
-
+      if (spec.getMSLevel() != 2)
+      {
+        continue;
+      }
       PeptideIdentification unidentified_MS2;
       unidentified_MS2.setRT(spec.getRT());
       unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
@@ -147,7 +151,10 @@ namespace OpenMS
   {
     PeakSpectrum::PeakType::IntensityType bpi{ 0 };
     auto it = spec.getBasePeak();
-    if (it != spec.end()) bpi = it->getIntensity();
+    if (it != spec.end())
+    {
+      bpi = it->getIntensity();
+    }
     return bpi;
   }
 

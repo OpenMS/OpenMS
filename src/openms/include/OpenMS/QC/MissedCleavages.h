@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ namespace OpenMS
      *
      * The result is a key/value map: #missed_cleavages --> counts
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
-     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
+     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
      *
      * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */

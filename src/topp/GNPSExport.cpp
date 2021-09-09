@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -186,23 +186,23 @@ private:
     double last_mz = peaks.at(0).getMZ();
     double sum_mz = 0, sum_intensity = 0;
     int count = 0;
-    for (auto spec_iter = peaks.begin(); spec_iter != peaks.end(); ++spec_iter)
+    for (auto& spec : peaks)
     {
-      if (count > 0 && spec_iter->getMZ() - last_mz > bin_width)
+      if (count > 0 && spec.getMZ() - last_mz > bin_width)
       {
         if (sum_intensity > 0)
         {
           Peak1D curr(sum_mz/count, sum_intensity/count);
           binned_peaks.push_back(curr);
         }
-        last_mz = spec_iter->getMZ();
+        last_mz = spec.getMZ();
         sum_mz = 0;
         sum_intensity = 0;
         count = 0;
       }
 
-      sum_mz += spec_iter->getMZ();
-      sum_intensity += spec_iter->getIntensity();
+      sum_mz += spec.getMZ();
+      sum_intensity += spec.getIntensity();
       count += 1;
     }
     if (count > 0)
@@ -229,9 +229,9 @@ private:
     for (unsigned long i = 0; i < exp.getSpectra().size(); ++i)
     {
       MSExperiment::SpectrumType &spec = exp.getSpectrum(i);
-      for (auto spec_iter = spec.begin(); spec_iter != spec.end(); ++spec_iter)
+      for (auto& spec : spec)
       {
-        Peak1D curr(spec_iter->getMZ(), spec_iter->getIntensity());
+        Peak1D curr(spec.getMZ(), spec.getIntensity());
         flat_spectra.push_back(curr);
       }
     }
@@ -296,9 +296,9 @@ private:
     if (output_file.is_open())
     {
       output_file << setprecision(4) << fixed;
-      for (auto peak_iter = peaks.begin(); peak_iter != peaks.end(); ++peak_iter)
+      for (auto& peak : peaks)
       {
-        output_file << peak_iter->getMZ() << "\t" << peak_iter->getIntensity() << "\n";
+        output_file << peak.getMZ() << "\t" << peak.getIntensity() << "\n";
       }
 
       output_file << "END IONS" << "\n" << endl;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,7 +176,7 @@ namespace OpenMS
         addMetric("QC:4000070", chrom);
       }
     }
-    // Meabolomics: Detected compounds from featureXML file
+    // Metabolomics: Detected compounds from featureXML file
     if (feature_summary.isRunnable(status))
     {
       auto result = feature_summary.compute(feature_map);

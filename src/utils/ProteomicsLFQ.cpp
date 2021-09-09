@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -819,10 +819,14 @@ protected:
 
     StringList run_paths;
     protein_ids[0].getPrimaryMSRunPath(run_paths);
-    if (run_paths.size() != 1)
+    if (run_paths.size() > 1)
     {
       OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+    if (run_paths.size() == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: " << id_file_abs_path << endl;
     }
     
     return EXECUTION_OK;
@@ -1426,7 +1430,7 @@ protected:
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
@@ -1435,7 +1439,7 @@ protected:
     {
       // This is needed because we throw out decoy proteins during FDR
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
 
@@ -1601,6 +1605,7 @@ protected:
         e.path = s;
         e.sample = count;
         msfs.push_back(e);
+        ++count;
       }      
       design.setMSFileSection(msfs);
     }
