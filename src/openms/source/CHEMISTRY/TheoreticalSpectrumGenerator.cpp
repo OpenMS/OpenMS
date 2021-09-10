@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 
 #include <unordered_set>
 
@@ -141,24 +142,38 @@ namespace OpenMS
     }
 
     MSSpectrum::Chunks chunks(spectrum);
-    std::shared_ptr<PeakSpectrum::StringDataArray> ion_names;
-    std::shared_ptr<PeakSpectrum::IntegerDataArray> charges;
+    PeakSpectrum::StringDataArray* ion_names;
+    PeakSpectrum::IntegerDataArray* charges;
+
+    bool charges_dynamic = false;
+    bool ion_names_dynamic = false;
+
+    // Assure memory is freed even if an exception occurs.
+    RAIICleanup _(
+      [&]
+        {
+          if (charges_dynamic) delete charges;
+          if (ion_names_dynamic) delete ion_names;
+        }
+    );
 
     if (spectrum.getIntegerDataArrays().empty())
     {
-      charges = std::make_shared<PeakSpectrum::IntegerDataArray>();
+      charges = new PeakSpectrum::IntegerDataArray();
+      charges_dynamic = true;
     }
     else
     {
-      charges = std::make_shared<PeakSpectrum::IntegerDataArray>(spectrum.getIntegerDataArrays()[0]);
+      charges = &(spectrum.getIntegerDataArrays()[0]);
     }
     if (spectrum.getStringDataArrays().empty())
     {
-      ion_names = std::make_shared<PeakSpectrum::StringDataArray>();
+      ion_names = new PeakSpectrum::StringDataArray();
+      ion_names_dynamic = true;
     }
     else
     {
-      ion_names = std::make_shared<PeakSpectrum::StringDataArray>(spectrum.getStringDataArrays()[0]);
+      ion_names = &(spectrum.getStringDataArrays()[0]);
     }
     ion_names->setName("IonNames");
     charges->setName("Charges");
