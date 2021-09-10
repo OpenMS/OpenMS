@@ -1090,6 +1090,7 @@ namespace OpenMS
       ControlledVocabulary cv;
       cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+      cv.loadFromOBO("QC", File::find("/CV/qc-cv-legacy.obo"));
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
