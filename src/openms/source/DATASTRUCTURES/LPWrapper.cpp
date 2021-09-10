@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -534,7 +534,7 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
 #if COINOR_SOLVER == 1
-//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But afaik we prefer CLP as solver anyway so no need to look for different solvers.
+//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But as far as I know we prefer CLP as solver anyway so no need to look for different solvers.
 //#ifdef COIN_HAS_CLP
     OsiClpSolverInterface solver;
 //#elif COIN_HAS_OSL
@@ -570,7 +570,7 @@ namespace OpenMS
     //model.addCutGenerator(&generator1,-1,"Probing");
     model.addCutGenerator(&generator2, -1, "Gomory");
     model.addCutGenerator(&generator3, -1, "Knapsack");
-    //model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
+    //model.addCutGenerator(&generator4,-1,"OddHole"); // segfaults
     model.addCutGenerator(&generator5, -10, "Clique");
     //model.addCutGenerator(&flowGen,-1,"FlowCover");
     model.addCutGenerator(&mixedGen, -1, "MixedIntegerRounding");
@@ -611,24 +611,37 @@ namespace OpenMS
     solver_param_glp.bt_tech = solver_param.backtrack_tech;
     solver_param_glp.pp_tech = solver_param.preprocessing_tech;
     if (solver_param.enable_feas_pump_heuristic)
+    {
       solver_param_glp.fp_heur = GLP_ON;
+    }
     if (solver_param.enable_gmi_cuts)
+    {
       solver_param_glp.gmi_cuts = GLP_ON;
+    }
     if (solver_param.enable_mir_cuts)
+    {
       solver_param_glp.mir_cuts = GLP_ON;
+    }
     if (solver_param.enable_cov_cuts)
+    {
       solver_param_glp.cov_cuts = GLP_ON;
+    }
     if (solver_param.enable_clq_cuts)
+    {
       solver_param_glp.clq_cuts = GLP_ON;
+    }
     solver_param_glp.mip_gap = solver_param.mip_gap;
     solver_param_glp.tm_lim = solver_param.time_limit;
     solver_param_glp.out_frq = solver_param.output_freq;
     solver_param_glp.out_dly = solver_param.output_delay;
     if (solver_param.enable_presolve)
+    {
       solver_param_glp.presolve = GLP_ON;
+    }
     if (solver_param.enable_binarization)
+    {
       solver_param_glp.binarize = GLP_ON; // only with presolve
-
+    }
     return glp_intopt(lp_problem_, &solver_param_glp);
 #endif
   }
@@ -636,7 +649,7 @@ namespace OpenMS
   LPWrapper::SolverStatus LPWrapper::getStatus()
   {
 #if COINOR_SOLVER == 1
-    return LPWrapper::UNDEFINED; // solver lokale Variable, braucht man diese Abfrage
+    return LPWrapper::UNDEFINED;
 #else
     Int status = glp_mip_status(lp_problem_);
     switch (status)
@@ -735,9 +748,13 @@ namespace OpenMS
       return LPWrapper::MAX;
 #else
     if (glp_get_obj_dir(lp_problem_) == 1)
+    {
       return LPWrapper::MIN;
+    }
     else
+    {
       return LPWrapper::MAX;
+    }
 #endif
   }
 

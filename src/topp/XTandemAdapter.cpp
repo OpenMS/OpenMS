@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -330,16 +330,16 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp);
 
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    for (PeptideIdentification& pep : peptide_ids)
     {
-      String ref = it->getMetaValue("spectrum_reference");
+      String ref = pep.getMetaValue("spectrum_reference");
       Size index = lookup.findByNativeID(ref);
       if (index < exp.size())
       {
-        it->setRT(exp[index].getRT());
+        pep.setRT(exp[index].getRT());
         if (!exp[index].getPrecursors().empty())
         {
-          it->setMZ(exp[index].getPrecursors()[0].getMZ());
+          pep.setMZ(exp[index].getPrecursors()[0].getMZ());
         }
       }
       else

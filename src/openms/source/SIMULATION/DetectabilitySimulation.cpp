@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,11 +87,9 @@ namespace OpenMS
     // set detectibility to 1.0 for all given peptides
     double defaultDetectibility = 1.0;
 
-    for (SimTypes::FeatureMapSim::iterator feature_it = features.begin();
-         feature_it != features.end();
-         ++feature_it)
+    for (Feature& feat : features)
     {
-      (*feature_it).setMetaValue("detectability", defaultDetectibility);
+      feat.setMetaValue("detectability", defaultDetectibility);
     }
   }
 

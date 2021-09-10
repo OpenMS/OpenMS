@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,6 +62,7 @@ TheoreticalSpectrumGenerator* nullPointer = nullptr;
 START_SECTION(TheoreticalSpectrumGenerator())
   ptr = new TheoreticalSpectrumGenerator();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
@@ -908,6 +909,8 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
 }
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

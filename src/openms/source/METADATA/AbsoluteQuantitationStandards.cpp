@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,9 +75,18 @@ namespace OpenMS
         fmap.getPrimaryMSRunPath(filename);
         if (!filename.empty()) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
-          if (filename[0].hasSuffix(".mzML")) filename[0].resize(filename[0].size() - 5);
-          else if (filename[0].hasSuffix(".txt")) filename[0].resize(filename[0].size() - 4);
-          if (filename[0] != run.sample_name) continue;
+          if (filename[0].hasSuffix(".mzML"))
+          {
+            filename[0].resize(filename[0].size() - 5);
+          }
+          else if (filename[0].hasSuffix(".txt"))
+          {
+            filename[0].resize(filename[0].size() - 4);
+          }
+          if (filename[0] != run.sample_name)
+          {
+            continue;
+          }
         }
         AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.

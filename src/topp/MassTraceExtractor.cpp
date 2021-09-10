@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -258,16 +258,18 @@ protected:
       
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         ConsensusFeature fcons;
         int k = 0;
-        for (MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
+        for (const Peak2D& mss : m_traces_final[i])
         {
           FeatureHandle fhandle;
-          fhandle.setRT(it->getRT());
-          fhandle.setMZ(it->getMZ());
-          fhandle.setIntensity(it->getIntensity());
+          fhandle.setRT(mss.getRT());
+          fhandle.setMZ(mss.getMZ());
+          fhandle.setIntensity(mss.getIntensity());
           fhandle.setUniqueId(++k);
           fcons.insert(fhandle);
         }
@@ -310,8 +312,10 @@ protected:
 
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         m_traces_final[i].updateMeanMZ();
         m_traces_final[i].updateWeightedMZsd();
 
@@ -327,7 +331,10 @@ protected:
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue("SD", sd);
         f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        if (m_traces_final[i].fwhm_mz_avg > 0)
+        {
+          f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }

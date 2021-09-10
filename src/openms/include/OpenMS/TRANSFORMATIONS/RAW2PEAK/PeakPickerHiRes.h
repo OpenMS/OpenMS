@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,67 +89,67 @@ public:
     };
 
     /**
-     * @brief Applies the peak-picking algorithm to a single spectrum
-     * (MSSpectrum). The resulting picked peaks are written to the output
-     * spectrum.
-     *
-     * @param input  input spectrum in profile mode
-     * @param output  output spectrum with picked peaks
+      @brief Applies the peak-picking algorithm to a single spectrum
+      (MSSpectrum). The resulting picked peaks are written to the output
+      spectrum.
+     
+      @param input  input spectrum in profile mode
+      @param output  output spectrum with picked peaks
      */
     void pick(const MSSpectrum& input, MSSpectrum& output) const;
 
      /**
-     * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     *
-     * @param input  input chromatogram in profile mode
-     * @param output  output chromatogram with picked peaks
+      @brief Applies the peak-picking algorithm to a single chromatogram
+      (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     
+      @param input  input chromatogram in profile mode
+      @param output  output chromatogram with picked peaks
      */
     void pick(const MSChromatogram& input, MSChromatogram& output) const;
 
     /**
-     * @brief Applies the peak-picking algorithm to a single spectrum
-     * (MSSpectrum). The resulting picked peaks are written to the output
-     * spectrum. Peak boundaries are written to a separate structure.
-     *
-     * @param input  input spectrum in profile mode
-     * @param output  output spectrum with picked peaks
-     * @param boundaries  boundaries of the picked peaks
-     * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
+      @brief Applies the peak-picking algorithm to a single spectrum
+      (MSSpectrum). The resulting picked peaks are written to the output
+      spectrum. Peak boundaries are written to a separate structure.
+     
+      @param input  input spectrum in profile mode
+      @param output  output spectrum with picked peaks
+      @param boundaries  boundaries of the picked peaks
+      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
 
     /**
-     * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     *
-     * @param input  input chromatogram in profile mode
-     * @param output  output chromatogram with picked peaks
-     * @param boundaries  boundaries of the picked peaks
+      @brief Applies the peak-picking algorithm to a single chromatogram
+      (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     
+      @param input  input chromatogram in profile mode
+      @param output  output chromatogram with picked peaks
+      @param boundaries  boundaries of the picked peaks
      */
     void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
     /**
-     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-     * method picks peaks for each scan in the map consecutively. The resulting
-     * picked peaks are written to the output map.
-     *
-     * @param input  input map in profile mode
-     * @param output  output map with picked peaks
-     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
+      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      method picks peaks for each scan in the map consecutively. The resulting
+      picked peaks are written to the output map.
+     
+      @param input  input map in profile mode
+      @param output  output map with picked peaks
+      @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
     void pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const;
 
     /**
-     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-     * method picks peaks for each scan in the map consecutively. The resulting
-     * picked peaks are written to the output map.
-     *
-     * @param input  input map in profile mode
-     * @param output  output map with picked peaks
-     * @param boundaries_spec  boundaries of the picked peaks in spectra
-     * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
-     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
+      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      method picks peaks for each scan in the map consecutively. The resulting
+      picked peaks are written to the output map.
+     
+      @param input  input map in profile mode
+      @param output  output map with picked peaks
+      @param boundaries_spec  boundaries of the picked peaks in spectra
+      @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+      @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
     void pickExperiment(const PeakMap& input,
                         PeakMap& output,

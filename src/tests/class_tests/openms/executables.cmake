@@ -643,7 +643,8 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(ionmobility_executables_list
   FAIMSHelper_test
-  MSRunIMSplitter_test
+  IMDataConverter_test
+  IMTypes_test
 )
 
 set(simulation_executables_list

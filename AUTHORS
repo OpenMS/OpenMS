@@ -1,5 +1,4 @@
-
-﻿=========================================================================
+=========================================================================
                  OpenMS -- Open Source Mass Spectrometry
 =========================================================================
 
@@ -8,6 +7,7 @@ authors contributing to a specific piece of code, please refer to
 the authors tag in the respective file header.
  - Ahmed Khalil
  - Alexandra Scherbart
+ - Axel Walter
  - Alexandra Zerck
  - Andreas Bertsch
  - Andreas Simon
@@ -98,6 +98,5 @@ the authors tag in the respective file header.
  - Volker Mosthaf
  - Witold Wolski
  - Xiao Liang
+ - Justin Sing
  
-
-

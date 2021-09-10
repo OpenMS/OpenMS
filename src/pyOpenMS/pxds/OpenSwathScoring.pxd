@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
     cdef cppclass OpenSwathScoring:
 
         OpenSwathScoring() nogil except +
-        OpenSwathScoring(OpenSwathScoring) nogil except + # wrap-ignore
+        OpenSwathScoring(OpenSwathScoring &) nogil except + # compiler
 
         void initialize(double rt_normalization_factor,
                         int add_up_spectra,
@@ -17,6 +17,16 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                         double drift_extra,
                         OpenSwath_Scores_Usage su,
                         libcpp_string spectrum_addition_method) nogil except +
+            # wrap-doc:
+                #   Initialize the scoring object
+                #   -----
+                #   Sets the parameters for the scoring
+                #   -----
+                #   :param rt_normalization_factor: Specifies the range of the normalized retention time space
+                #   :param add_up_spectra: How many spectra to add up (default 1)
+                #   :param spacing_for_spectra_resampling: Spacing factor for spectra addition
+                #   :param su: Which scores to actually compute
+                #   :param spectrum_addition_method: Method to use for spectrum addition (valid: "simple", "resample")
 
         # void calculateChromatographicScores(
         #       OpenSwath::IMRMFeature* imrmfeature,

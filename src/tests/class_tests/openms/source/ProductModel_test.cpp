@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -187,6 +187,7 @@ DPosition<2> pos;
 pos[0] = 3.5;
 pos[1] = 7.5;
 TEST_REAL_SIMILAR(pm3.getIntensity(pos), pm2->getIntensity(pos))
+delete pm2;
 END_SECTION
 
 START_SECTION( IntensityType getIntensity(const PositionType &pos) const )
@@ -290,6 +291,8 @@ START_SECTION( BaseModel<1>* getModel(UInt dim) const )
 	TEST_EQUAL( pm1.getModel(1) == gm2, true)
 		
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

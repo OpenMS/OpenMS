@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>" namespace "Op
     
     cdef cppclass OSW_ChromExtractParams "OpenMS::ChromExtractParams":
 
-        OSW_ChromExtractParams(OSW_ChromExtractParams) nogil except + #wrap-ignore
+        OSW_ChromExtractParams(OSW_ChromExtractParams &) nogil except + # compiler
 
         double min_upper_edge_dist
         double mz_extraction_window

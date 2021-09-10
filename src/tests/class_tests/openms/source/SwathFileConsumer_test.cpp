@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -458,7 +458,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
     TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
     TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
-
+  delete cached_sfc_ptr;
 }
 END_SECTION
 
@@ -491,7 +491,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
     TEST_REAL_SIMILAR(maps[i].lower, 400+i*25.0)
     TEST_REAL_SIMILAR(maps[i].upper, 425+i*25.0)
   }
-
+  delete cached_sfc_ptr;
 }
 END_SECTION
 
@@ -517,6 +517,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
   TEST_EQUAL(maps[0].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
   TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100.0)
   TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200.0)
+  delete cached_sfc_ptr;
 }
 END_SECTION
 

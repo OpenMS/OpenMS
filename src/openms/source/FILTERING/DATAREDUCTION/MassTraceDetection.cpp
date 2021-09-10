@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -212,15 +212,17 @@ namespace OpenMS
       // *********************************************************** //
       //  Step 1: Detecting potential chromatographic apices
       // *********************************************************** //
-      for (PeakMap::ConstIterator it = input_exp.begin(); it != input_exp.end(); ++it)
+      for (const MSSpectrum& it : input_exp)
       {
         // check if this is a MS1 survey scan
-        if (it->getMSLevel() != 1) continue;
-
-        std::vector<Size> indices_passing;
-        for (Size peak_idx = 0; peak_idx < it->size(); ++peak_idx)
+        if (it.getMSLevel() != 1)
         {
-          double tmp_peak_int((*it)[peak_idx].getIntensity());
+          continue;
+        }
+        std::vector<Size> indices_passing;
+        for (Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
+        {
+          double tmp_peak_int((it)[peak_idx].getIntensity());
           if (tmp_peak_int > noise_threshold_int_)
           {
             // Assume that noise_threshold_int_ contains the noise level of the
@@ -234,7 +236,7 @@ namespace OpenMS
             ++total_peak_count;
           }
         }
-        PeakMap::SpectrumType tmp_spec(*it);
+        PeakMap::SpectrumType tmp_spec(it);
         tmp_spec.select(indices_passing);
         work_exp.addSpectrum(tmp_spec);
         spec_offsets.push_back(spec_offsets.back() + tmp_spec.size());
@@ -544,7 +546,10 @@ namespace OpenMS
           MassTrace new_trace(current_trace);
           new_trace.updateWeightedMeanRT();
           new_trace.updateWeightedMeanMZ();
-          if (!fwhms_mz.empty()) new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+          if (!fwhms_mz.empty())
+          {
+            new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+          }
           new_trace.setQuantMethod(quant_method_);
           //new_trace.setCentroidSD(ftl_sd);
           new_trace.updateWeightedMZsd();
@@ -557,7 +562,10 @@ namespace OpenMS
           this->setProgress(peaks_detected);
 
           // check if we already reached the (optional) maximum number of traces
-          if (max_traces > 0 && found_masstraces.size() == max_traces) break;
+          if (max_traces > 0 && found_masstraces.size() == max_traces)
+          {
+            break;
+          }
         }
       }
 

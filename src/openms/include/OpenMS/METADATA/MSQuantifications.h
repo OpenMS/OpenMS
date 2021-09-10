@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -216,7 +216,7 @@ public:
         @param trim_lines Whether or not the lines are trimmed when reading them from file.
         @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-        @note this function uses unix-style linebreaks
+        @note this function uses unix-style line breaks
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
 

@@ -13,30 +13,30 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
     cdef cppclass ControlledVocabulary:
 
         ControlledVocabulary() nogil except +
-        ControlledVocabulary(ControlledVocabulary & voc) nogil except +
+        ControlledVocabulary(ControlledVocabulary &) nogil except + # compiler
 
         # Returns the CV name (set in the load method)
-        String name() nogil except +
+        String name() nogil except + # wrap-doc:Returns the CV name (set in the load method)
 
-        void loadFromOBO(String name, String filename) nogil except +
+        void loadFromOBO(String name, String filename) nogil except + # wrap-doc:Loads the CV from an OBO file
 
         # Returns true if the term is in the CV. Returns false otherwise.
-        bool exists(String id) nogil except +
+        bool exists(String id) nogil except + # wrap-doc:Returns true if the term is in the CV. Returns false otherwise.
 
         # Returns true if a term with the given name is in the CV. Returns false otherwise.
-        bool hasTermWithName(String name) nogil except +
+        bool hasTermWithName(String name) nogil except + # wrap-doc:Returns true if a term with the given name is in the CV. Returns false otherwise
 
-        CVTerm_ControlledVocabulary getTerm(String id) nogil except +
+        CVTerm_ControlledVocabulary getTerm(String id) nogil except + # wrap-doc:Returns a term specified by ID
 
-        CVTerm_ControlledVocabulary getTermByName(String name, String desc) nogil except +
+        CVTerm_ControlledVocabulary getTermByName(String name, String desc) nogil except + # wrap-doc:Returns a term specified by name
 
         # returns all the terms stored in the CV
         # TODO OpenMS Map type
         # Map[String, CVTerm_ControlledVocabulary] getTerms() nogil except +
 
-        void getAllChildTerms(libcpp_set[String] terms, String parent) nogil except +
+        void getAllChildTerms(libcpp_set[String] terms, String parent) nogil except + # wrap-doc:Writes all child terms recursively into terms
 
-        bool isChildOf(String child, String parent) nogil except +
+        bool isChildOf(String child, String parent) nogil except + # wrap-doc:Returns True if `child` is a child of `parent`
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary":
 
@@ -58,8 +58,8 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
       CVTerm_ControlledVocabulary() nogil except +
       CVTerm_ControlledVocabulary(CVTerm_ControlledVocabulary rhs) nogil except +
 
-      String toXMLString(String ref, String value) nogil except +
-      String toXMLString(String ref, DataValue value) nogil except +
+      String toXMLString(String ref, String value) nogil except + # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
+      String toXMLString(String ref, DataValue value) nogil except + # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
       String getXRefTypeName(XRefType_CVTerm_ControlledVocabulary type) nogil except +
       bool isHigherBetterScore(CVTerm_ControlledVocabulary term) nogil except +
 

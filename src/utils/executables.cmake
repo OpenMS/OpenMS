@@ -17,7 +17,6 @@ DigestorMotif
 Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
-FeatureFinderSuperHirn
 FFEval
 FilterTopPicResults
 FuzzyDiff

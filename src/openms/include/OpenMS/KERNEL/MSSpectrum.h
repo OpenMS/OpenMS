@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@
 namespace OpenMS
 {
   class Peak1D;
-
+  enum class DriftTimeUnit;
   /**
     @brief The representation of a 1D spectrum.
 
@@ -161,7 +161,6 @@ public:
     using typename ContainerType::pointer;
     using typename ContainerType::difference_type;
 
-    typedef Precursor::DriftTimeUnit DriftTimeUnit;
     //@}
 
 
@@ -208,7 +207,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time (-1 means it is not set)
+      @brief Returns the ion mobility drift time (MSSpectrum::DRIFTTIME_NOT_SET means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -341,7 +340,7 @@ public:
       return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
     }
 
-    /// Sort by a user-definded property
+    /// Sort by a user-defined property
     /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
     /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
     /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
@@ -539,13 +538,18 @@ public:
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
-    /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    /// do the names of internal float metadata arrays contain any hint of ion mobility data, i.e. they are a child of 'MS:1002893 ! ion mobility array'?
     /// (for spectra which represent an IM-frame)
     bool containsIMData() const;
 
-    /// get the Ion mobility data array (for spectra which represent an IM-frame)
-    /// @throws Exception::MissingInformation if IM data is not present
-    const MSSpectrum::FloatDataArray& getIMData() const;
+    /**
+      @brief Get the Ion mobility data array's @p index and its associated @p unit
+
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'?
+
+      @throws Exception::MissingInformation if IM data is not present
+    */
+    std::pair<Size, DriftTimeUnit> getIMData() const;
     
     //@}
 
@@ -589,7 +593,7 @@ public:
     Iterator getBasePeak();
 
     /// compute the total ion count (sum of all peak intensities)
-    PeakType::IntensityType getTIC() const;
+    PeakType::IntensityType calculateTIC() const;
 
 protected:
     /// Retention time

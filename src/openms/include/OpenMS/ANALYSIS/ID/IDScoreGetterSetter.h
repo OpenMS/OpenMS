@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,6 +79,18 @@ namespace OpenMS
     };
 
   public:
+    /**
+     * @brief  Fills the scores_labels vector from an ProteinIdentification @p id for picked protein FDR.
+     *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
+     *  removal of the @p decoy_prefix.
+     * @todo  support decoy suffices
+     * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
+     * @param  decoy_prefix The decoy prefix to remove before comparing accesions for pairs.
+     */
+    static void getPickedProteinScores_(
+        ScoreToTgtDecLabelPairs& scores_labels,
+        const ProteinIdentification& id,
+        const String& decoy_prefix);
 
     /**
      * \defgroup getScoresFunctions Get scores from ID structures for FDR
@@ -91,8 +103,7 @@ namespace OpenMS
 
     //TODO could be done with set of target accessions, too
     //TODO even better: store nr targets and nr decoys when creating the groups!
-    //TODO alternative scoring is possible, too (e.g. ratio of tgts vs decoys),
-    // this requires templatization of the scores_labels vector though
+    //TODO alternative scoring is possible, too (e.g. ratio of tgts vs decoys)
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const std::vector<ProteinIdentification::ProteinGroup> &grps,
@@ -236,82 +247,20 @@ namespace OpenMS
     }
     /** @} */
 
+
+
     /**
      * @brief Helper for getting scores in ConsensusMaps
      * @todo allow FeatureMap?
      */
-    // GCC-OPT 4.8 -- the following functions can be replaced by a
-    // single one with a variadic template, see #4273 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
+    template<class ...Args>
     static void getPeptideScoresFromMap_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides)
+        const ConsensusMap &cmap, bool include_unassigned_peptides, Args &&... args)
     {
       auto f =
           [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, int charge)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, charge); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, const String &identifier)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, identifier); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, int charge, const String &identifier)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, charge, identifier); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, all_hits); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, all_hits, charge); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, const String &identifier)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, all_hits, identifier); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void getPeptideScoresFromMap_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge, const String &identifier)
-    {
-      auto f =
-          [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, all_hits, charge, identifier); };
+          { getScores_(scores_labels, id, std::forward<Args>(args)...); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 
@@ -326,11 +275,11 @@ namespace OpenMS
     }
 
     /**
-     * \defgroup setScoresFunctions Sets FDRs/qVals
+     * \defgroup setScoresFunctions Sets scores to FDRs/qVals in ID data structures to the closest in a given mapping
      * @brief  Sets FDRs/qVals from a scores_to_FDR map in the ID data structures
      * @param  scores_to_FDR Maps original score to calculated FDR or q-Value
-     * @param  score_type FDR or q-Value
-     * @param  higher_better should usually be false @todo remove?
+     * @param  score_type e.g. FDR or q-Value
+     * @param  higher_better the new ordering, should usually be false for FDR/qval
      *
      * Just use the one you need.
      * @{
@@ -341,7 +290,7 @@ namespace OpenMS
                     std::vector<IDType> &ids,
                     const std::string &score_type,
                     bool higher_better,
-                    Args &... args)
+                    Args &&... args)
     {
       for (auto &id : ids)
       {
@@ -363,15 +312,30 @@ namespace OpenMS
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
                     bool higher_better, bool keep_decoy)
     {
+      bool old_higher_better = id.isHigherScoreBetter();
       String old_score_type = setScoreType_(id, score_type, higher_better);
 
       if (keep_decoy) //in-place set scores
       {
-        setScores_(scores_to_FDR, id, old_score_type);
+        if (old_higher_better)
+        {
+          setScores_(scores_to_FDR, id, old_score_type);
+        }
+        else
+        {
+          setScoresHigherWorse_(scores_to_FDR, id, old_score_type);
+        }
       }
       else
       {
-        setScoresAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        if (old_higher_better)
+        {
+          setScoresAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        }
+        else
+        {
+          setScoresHigherWorseAndRemoveDecoys_(scores_to_FDR, id, old_score_type);
+        }
       }
     }
 
@@ -383,6 +347,17 @@ namespace OpenMS
       for (auto &hit : hits)
       {
         setScore_(scores_to_FDR, hit, old_score_type);
+      }
+    }
+
+    template<typename IDType>
+    static void setScoresHigherWorse_(const std::map<double, double> &scores_to_FDR, IDType &id,
+                           const String &old_score_type)
+    {
+      std::vector<typename IDType::HitType> &hits = id.getHits();
+      for (auto &hit : hits)
+      {
+        setScoreHigherWorse_(scores_to_FDR, hit, old_score_type);
       }
     }
 
@@ -400,6 +375,20 @@ namespace OpenMS
       hits.swap(new_hits);
     }
 
+    template<typename IDType, class ...Args>
+    static void setScoresHigherWorseAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
+                                          const String &old_score_type, Args ... args)
+    {
+      std::vector<typename IDType::HitType> &hits = id.getHits();
+      std::vector<typename IDType::HitType> new_hits;
+      new_hits.reserve(hits.size());
+      for (auto &hit : hits)
+      {
+        setScoreHigherWorseAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, args...);
+      }
+      hits.swap(new_hits);
+    }
+
     template<typename HitType>
     static void setScore_(const std::map<double, double> &scores_to_FDR, HitType &hit, const std::string &old_score_type)
     {
@@ -407,13 +396,23 @@ namespace OpenMS
       hit.setScore(scores_to_FDR.lower_bound(hit.getScore())->second);
     }
 
-    template<typename IDType>
+    template<typename HitType>
+    static void setScoreHigherWorse_(const std::map<double, double> &scores_to_FDR, HitType &hit, const std::string &old_score_type)
+    {
+      hit.setMetaValue(old_score_type, hit.getScore());
+      auto ub = scores_to_FDR.upper_bound(hit.getScore());
+      if (ub != scores_to_FDR.begin()) ub--;
+      hit.setScore(ub->second);
+    }
+
+    /*template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
                     bool higher_better)
     {
+      bool old_higher_better = id.isHigherScoreBetter();
       String old_score_type = setScoreType_(id, score_type, higher_better);
-      setScores_(scores_to_FDR, id, old_score_type);
-    }
+      setScores_(scores_to_FDR, id, old_score_type, old_higher_better);
+    }*/
 
     static void setScores_(const std::map<double, double> &scores_to_FDR,
                     PeptideIdentification &id,
@@ -425,7 +424,7 @@ namespace OpenMS
       String old_score_type = setScoreType_(id, score_type, higher_better);
       if (keep_decoy) //in-place set scores
       {
-        setScores_(scores_to_FDR, id, old_score_type, charge);
+        setScores_(scores_to_FDR, id, old_score_type, higher_better, charge);
       }
       else
       {
@@ -480,6 +479,26 @@ namespace OpenMS
       }
     }
 
+    template<typename IDType>
+    static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
+                           bool higher_better, int charge)
+    {
+      for (auto& hit : id.getHits())
+      {
+        if (hit.getCharge() == charge)
+        {
+          if (higher_better)
+          {
+            setScore_(scores_to_FDR, hit, score_type);
+          }
+          else
+          {
+            setScoreHigherWorse_(scores_to_FDR, hit, score_type);
+          }
+        }
+      }
+    }
+
     //TODO could also get a keep_decoy flag when we define what a "decoy group" is -> keep all always for now
     static void setScores_(
         const std::map<double, double> &scores_to_FDR,
@@ -511,6 +530,24 @@ namespace OpenMS
         new_hits.push_back(std::move(hit));
       } // else do not move over
     }
+
+    template<typename HitType>
+    static void setScoreHigherWorseAndMoveIfTarget_(const std::map<double, double> &scores_to_FDR,
+                                         HitType &hit,
+                                         const std::string &old_score_type,
+                                         std::vector<HitType> &new_hits)
+    {
+      const String &target_decoy(hit.getMetaValue("target_decoy"));
+      if (target_decoy[0] == 't')
+      {
+        hit.setMetaValue(old_score_type, hit.getScore());
+        auto ub = scores_to_FDR.upper_bound(hit.getScore());
+        if (ub != scores_to_FDR.begin()) ub--;
+        hit.setScore(ub->second);
+        new_hits.push_back(std::move(hit));
+      } // else do not move over
+    }
+
 
     /**
     * @brief Used when keep_decoy_peptides is false and charge states are considered
@@ -551,67 +588,21 @@ namespace OpenMS
      * @param higher_better usually false
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
-     */
-    // GCC-OPT 4.8 -- the following functions can be replaced by a
-    // single one with a variadic template, see #4273 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
+    */
+    template<class ...Args>
     static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
                                  ConsensusMap &cmap,
                                  bool include_unassigned_peptides,
                                  const std::string &score_type,
                                  bool higher_better,
-                                 bool keep_decoy)
+                                 bool keep_decoy,
+                                 Args&&... args)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
       auto f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
-              higher_better, keep_decoy); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                        ConsensusMap &cmap,
-                                        bool include_unassigned_peptides,
-                                        const std::string &score_type,
-                                        bool higher_better,
-                                        bool keep_decoy,
-                                        int charge)
-    {
-      //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      auto f =
-          [&](PeptideIdentification &id) -> void
-          { setScores_(scores_to_FDR, id, score_type,
-                       higher_better, keep_decoy, charge); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                        ConsensusMap &cmap,
-                                        bool include_unassigned_peptides,
-                                        const std::string &score_type,
-                                        bool higher_better,
-                                        bool keep_decoy,
-                                        const String& run_identifier)
-    {
-      //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      auto f =
-          [&](PeptideIdentification &id) -> void
-          { setScores_(scores_to_FDR, id, score_type,
-                       higher_better, keep_decoy, run_identifier); };
-      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
-    }
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                        ConsensusMap &cmap,
-                                        bool include_unassigned_peptides,
-                                        const std::string &score_type,
-                                        bool higher_better,
-                                        bool keep_decoy,
-                                        int charge,
-                                        const String& run_identifier)
-    {
-      //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      auto f =
-          [&](PeptideIdentification &id) -> void
-          { setScores_(scores_to_FDR, id, score_type,
-                       higher_better, keep_decoy, charge, run_identifier); };
+                       higher_better, keep_decoy, std::forward<Args>(args)...); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 

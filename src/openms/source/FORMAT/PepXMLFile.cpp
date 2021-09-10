@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -545,16 +545,16 @@ namespace OpenMS
     // Scan index and scan number will be reconstructed if no spectrum lookup is possible to retrieve the values.
     // The scan index is generally zero-based and the scan number generally one-based.
     Int count(0);
-    for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
-         it != peptide_ids.end(); ++it, ++count)
+    for (const PeptideIdentification& pep : peptide_ids)
     {
-      if (it->getHits().empty())
+      if (pep.getHits().empty())
       {
+        ++count;
         continue;
       }
-      for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+      for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = *hit;
+        PeptideHit h = hit;
         const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
@@ -563,21 +563,21 @@ namespace OpenMS
 
         if (lookup.empty())
         {
-          if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
+          if (pep.metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
-            scan_index = it->getMetaValue("RT_index");
+            scan_index = pep.getMetaValue("RT_index");
           }
           scan_nr = scan_index + 1;
         }
         else
         {
-          if (it->metaValueExists("spectrum_reference"))
+          if (pep.metaValueExists("spectrum_reference"))
           {
-            scan_index = lookup.findByNativeID(it->getMetaValue("spectrum_reference"));
+            scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
           }
           else
           {
-            scan_index = lookup.findByRT(it->getRT());
+            scan_index = lookup.findByRT(pep.getRT());
           }
 
           SpectrumMetaDataLookup::SpectrumMetaData meta;
@@ -595,9 +595,9 @@ namespace OpenMS
         //    - experiment_label
 
         String spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
-        if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_)
+        if (pep.metaValueExists("pepxml_spectrum_name") && keep_native_name_)
         {
-          spectrum_name = it->getMetaValue("pepxml_spectrum_name");
+          spectrum_name = pep.getMetaValue("pepxml_spectrum_name");
         }
 
         f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""
@@ -606,14 +606,14 @@ namespace OpenMS
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
           << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << scan_index << "\"";
 
-        if (it->hasRT())
+        if (pep.hasRT())
         {
-          f << " retention_time_sec=\"" << it->getRT() << "\" ";
+          f << " retention_time_sec=\"" << pep.getRT() << "\" ";
         }
 
-        if (!it->getExperimentLabel().empty())
+        if (!pep.getExperimentLabel().empty())
         {
-          f << " experiment_label=\"" << it->getExperimentLabel() << "\" ";
+          f << " experiment_label=\"" << pep.getExperimentLabel() << "\" ";
         }
 
         // "swath_assay" is an optional parameter used for SWATH-MS mostly and
@@ -621,14 +621,14 @@ namespace OpenMS
         //   note that according to the parsing rules of TPP, this needs to be
         //   "xxx:yyy" where xxx is any string and yyy is probably an integer
         //   indicating the Swath window
-        if (it->metaValueExists("swath_assay"))
+        if (pep.metaValueExists("swath_assay"))
         {
-          f << " swath_assay=\"" << it->getMetaValue("swath_assay") << "\" ";
+          f << " swath_assay=\"" << pep.getMetaValue("swath_assay") << "\" ";
         }
         // "status" is an attribute that may be target or decoy
-        if (it->metaValueExists("status"))
+        if (pep.metaValueExists("status"))
         {
-          f << " status=\"" << it->getMetaValue("status") << "\" ";
+          f << " status=\"" << pep.getMetaValue("status") << "\" ";
         }
 
         f << ">\n";
@@ -731,38 +731,37 @@ namespace OpenMS
           //   </peptideprophet_result>
           // </analysis_result>
 
-          for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
-              ar_it != h.getAnalysisResults().end(); ++ar_it)
+          for (const PeptideHit::PepXMLAnalysisResult& ar_it : h.getAnalysisResults())
           {
-            f << "\t\t\t<analysis_result analysis=\"" << ar_it->score_type << "\">" << "\n";
+            f << "\t\t\t<analysis_result analysis=\"" << ar_it.score_type << "\">" << "\n";
 
             // get name of next tag
             String tagname = "peptideprophet_result";
-            if (ar_it->score_type == "peptideprophet")
+            if (ar_it.score_type == "peptideprophet")
             {
               peptideprophet_written = true; // remember that we have now already written peptide prophet results
               tagname = "peptideprophet_result";
             }
-            else if (ar_it->score_type == "interprophet")
+            else if (ar_it.score_type == "interprophet")
             {
               tagname = "interprophet_result";
             }
             else
             {
               peptideprophet_written = true; // remember that we have now already written peptide prophet results
-              warning(STORE, "Analysis type " + ar_it->score_type + " not supported, will use peptideprophet_result.");
+              warning(STORE, "Analysis type " + ar_it.score_type + " not supported, will use peptideprophet_result.");
             }
 
-            f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it->main_score;
+            f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it.main_score;
             // TODO
-            f << "\" all_ntt_prob=\"(" << ar_it->main_score << "," << ar_it->main_score
-            << "," << ar_it->main_score << ")\">" << "\n";
+            f << "\" all_ntt_prob=\"(" << ar_it.main_score << "," << ar_it.main_score
+            << "," << ar_it.main_score << ")\">" << "\n";
 
-            if (!ar_it->sub_scores.empty())
+            if (!ar_it.sub_scores.empty())
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
-              for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                  subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+              for (std::map<String, double>::const_iterator subscore_it = ar_it.sub_scores.begin();
+                  subscore_it != ar_it.sub_scores.end(); ++subscore_it)
               {
                 f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
               }
@@ -790,12 +789,12 @@ namespace OpenMS
         }
         else
         {
-          bool haspep = it->getScoreType() == "Posterior Error Probability" || it->getScoreType() == "pep";
+          bool haspep = pep.getScoreType() == "Posterior Error Probability" || pep.getScoreType() == "pep";
           bool percolator = false;
           if (search_engine_name == "X! Tandem")
           {
             // check if score type is XTandem or qvalue/fdr
-            if (it->getScoreType() == "XTandem")
+            if (pep.getScoreType() == "XTandem")
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
@@ -898,13 +897,13 @@ namespace OpenMS
           } // Anything else
           else
           {
-            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << pep.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
           // Any search engine with a PEP (e.g. also our IDPEP) except Percolator which has
           // written that part already
           if (haspep && !percolator)
           {
-            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << pep.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
@@ -916,6 +915,7 @@ namespace OpenMS
         f << "\t</search_result>" << "\n";
         f << "\t</spectrum_query>" << "\n";
       }
+      ++count;
     }
     f << "</msms_run_summary>" << "\n";
     f << "</msms_pipeline_analysis>" << "\n";
@@ -1004,14 +1004,13 @@ namespace OpenMS
     }
     // clean up duplicate ProteinHits in each ProteinIdentification separately:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
+    for (ProteinIdentification& prot_it : proteins)
     {
       set<String> accessions;
       // modeled after "remove_if" in STL header "algorithm":
-      vector<ProteinHit>::iterator first = prot_it->getHits().begin();
+      vector<ProteinHit>::iterator first = prot_it.getHits().begin();
       vector<ProteinHit>::iterator result = first;
-      for (; first != prot_it->getHits().end(); ++first)
+      for (; first != prot_it.getHits().end(); ++first)
       {
         String accession = first->getAccession();
         bool new_element = accessions.insert(accession).second;
@@ -1020,7 +1019,7 @@ namespace OpenMS
           *result++ = *first;
         }
       }
-      prot_it->getHits().erase(result, first);
+      prot_it.getHits().erase(result, first);
     }
 
     // reset members
@@ -1132,7 +1131,7 @@ namespace OpenMS
       double value;
 
       // TODO: deal with different scores
-      if (name == "expect") // X!Tandem or Mascot E-value
+      if (name == "expect") // X!Tandem, Mascot or MSFragger E-value
       {
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
@@ -1192,6 +1191,16 @@ namespace OpenMS
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
         peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
+      }
+      else if (name == "hyperscore")
+      {
+        value = attributeAsDouble_(attributes, "value");
+        peptide_hit_.setMetaValue("hyperscore", value);
+      }
+      else if (name == "nextscore")
+      {
+        value = attributeAsDouble_(attributes, "value");
+        peptide_hit_.setMetaValue("nextscore", value);
       }
       else
       {
@@ -1449,11 +1458,11 @@ namespace OpenMS
       {
         // look up the modification in the search_summary by mass
         bool found = false;
-        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
+        for (const AminoAcidModification& it : variable_modifications_)
         {
-          if ((fabs(mod_nterm_mass - it->getMass()) < mod_tol_) && it->getTerminus() == "n")
+          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
           {
-            current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
@@ -1491,11 +1500,11 @@ namespace OpenMS
       {
         // look up the modification in the search_summary by mass
         bool found = false;
-        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
+        for (const AminoAcidModification& amino : variable_modifications_)
         {
-          if ((fabs(mod_cterm_mass - it->getMass()) < mod_tol_) && it->getTerminus() == "c")
+          if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
           {
-            current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(amino.getRegisteredMod(), 42); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }

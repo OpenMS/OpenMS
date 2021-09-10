@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>" namespace "Op
         #  DefaultParamHandler
         #  ProgressLogger
         BaseGroupFinder() nogil except +
-        BaseGroupFinder(BaseGroupFinder) nogil except + #wrap-ignore
+        BaseGroupFinder(BaseGroupFinder &) nogil except + # compiler
         # void run(libcpp_vector[ ConsensusMap ] & input_, ConsensusMap & result) nogil except +
-        void registerChildren() nogil except +
+        void registerChildren() nogil except + # wrap-doc:Register all derived classes here
 

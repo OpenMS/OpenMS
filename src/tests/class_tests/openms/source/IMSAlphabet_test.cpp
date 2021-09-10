@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -304,7 +304,8 @@ START_SECTION((virtual void load(const std::string &fname, IMSAlphabetParser<> *
   of << "nitrogen\t14.0" << std::endl;
   of.close();
 
-  load_copy.load(filename, new IMSAlphabetTextParser);
+  IMSAlphabetTextParser parser;
+  load_copy.load(filename, parser);
 
   TEST_EQUAL(load_copy.size(), 3)
   TEST_EQUAL(load_copy.hasName("hydrogen"), true)

@@ -6,9 +6,15 @@ from SVMWrapper cimport *
 cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS":
     
     cdef cppclass LibSVMEncoder "OpenMS::LibSVMEncoder":
-        LibSVMEncoder() nogil except +
-        LibSVMEncoder(LibSVMEncoder) nogil except + #wrap-ignore
+        # wrap-doc:
+                #   Serves for encoding sequences into feature vectors
+                #   -----
+                #   The class can be used to construct composition vectors for
+                #   sequences. Additionally the vectors can be encoded into
+                #   the libsvm format
 
+        LibSVMEncoder() nogil except +
+        LibSVMEncoder(LibSVMEncoder &) nogil except + # compiler
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS::LibSVMEncoder":

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,10 +127,11 @@ namespace OpenMS
       }
     };
 
-
-    /// @brief Struct with some static methods to get infos on the build configuration
+    /// @brief Struct with some static methods to get informations on the build configuration
     struct OpenMSBuildInfo
+
     {
+    public:
 
       /// @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
       static bool isOpenMPEnabled()

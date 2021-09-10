@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -609,15 +609,15 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence & sequence)
   {
     String seq;
-    for (AASequence::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
+    for (const Residue& res : sequence)
     {
-      if (residue_to_name_.has(&*it))
+      if (residue_to_name_.has(&res))
       {
-        seq += residue_to_name_[&*it];
+        seq += residue_to_name_[&res];
       }
       else
       {
-        seq += it->getOneLetterCode();
+        seq += res.getOneLetterCode();
       }
     }
     return seq;

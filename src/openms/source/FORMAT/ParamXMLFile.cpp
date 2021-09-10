@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,16 +96,16 @@ namespace OpenMS
     {
       //write opened/closed nodes
       const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      for (const Param::ParamIterator::TraceInfo& it2 : trace)
       {
-        if (it2->opened) //opened node
+        if (it2.opened) //opened node
         {
-          String d = it2->description;
+          String d = it2.description;
           //d.substitute('"','\'');
           d.substitute("\n", "#br#");
           //d.substitute("<","&lt;");
           //d.substitute(">","&gt;");
-          os << indentation  << "<NODE name=\"" << writeXMLEscape(it2->name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
+          os << indentation  << "<NODE name=\"" << writeXMLEscape(it2.name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
           indentation += "  ";
         }
         else //closed node

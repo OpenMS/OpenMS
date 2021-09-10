@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
         #   SignalToNoiseEstimatorMeanIterative := SignalToNoiseEstimatorMeanIterative[ MSSpectrum ]
 
         SignalToNoiseEstimatorMeanIterative() nogil except +
-        SignalToNoiseEstimatorMeanIterative(SignalToNoiseEstimatorMeanIterative) nogil except +
+        SignalToNoiseEstimatorMeanIterative(SignalToNoiseEstimatorMeanIterative &) nogil except + # compiler
         void init(Container & c) nogil except +
         double getSignalToNoise(Size index) nogil except +
 
