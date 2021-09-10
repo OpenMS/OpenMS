@@ -86,7 +86,10 @@ namespace OpenMS
     for (int i = 0; i != columnCount(); ++i)
     {
       QTableWidgetItem* ti = horizontalHeaderItem(i);
-      if (ti == nullptr) continue;
+      if (ti == nullptr)
+      {
+        continue;
+      }
       QAction* action = context_menu.addAction(ti->text(), [=]() {
         // invert visibility upon clicking the item
         setColumnHidden(i, !isColumnHidden(i));
@@ -169,7 +172,10 @@ namespace OpenMS
     for (int i = 0; i != columnCount(); ++i)
     {
       QTableWidgetItem* ti = horizontalHeaderItem(i);
-      if (ti == nullptr) continue;
+      if (ti == nullptr)
+      {
+        continue;
+      }
       if (hset.contains(ti->text()))
       {
         setColumnHidden(i, true);
@@ -227,7 +233,10 @@ namespace OpenMS
   QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
     item->setBackgroundColor(background);
-    if (foreground.isValid()) item->setForeground(QBrush(foreground));
+    if (foreground.isValid())
+    {
+      item->setForeground(QBrush(foreground));
+    }
     setItem(rowCount() - 1, (int)column_index, item);
     return item;
   }
@@ -259,8 +268,14 @@ namespace OpenMS
       {
         continue;
       }
-      if (use_export_name) header_labels << getHeaderExportName(i);
-      else header_labels << getHeaderName(i);
+      if (use_export_name)
+      {
+        header_labels << getHeaderExportName(i);
+      }
+      else 
+      {
+        header_labels << getHeaderName(i);
+      }
     }
     return header_labels;
   }
@@ -268,8 +283,10 @@ namespace OpenMS
   void TableView::setHeaderExportName(const int header_column, const QString& export_name)
   {
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
-    if (ti == nullptr) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
-
+    if (ti == nullptr)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+    }
     ti->setData(Qt::UserRole, export_name);
   }
 
@@ -277,8 +294,10 @@ namespace OpenMS
   QString TableView::getHeaderExportName(const int header_column)
   {
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
-    if (ti == nullptr) throw  Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
-
+    if (ti == nullptr)
+    {
+      throw  Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+    }
     // prefer user role over display role
     if (ti->data(Qt::UserRole).isValid())
     {
@@ -295,8 +314,10 @@ namespace OpenMS
   QString TableView::getHeaderName(const int header_column)
   {
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
-    if (ti == nullptr) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
-
+    if (ti == nullptr)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+    }
     if (ti->data(Qt::DisplayRole).isValid())
     {
       return ti->data(Qt::DisplayRole).toString();

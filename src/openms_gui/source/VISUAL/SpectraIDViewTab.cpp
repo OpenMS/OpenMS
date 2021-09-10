@@ -141,8 +141,10 @@ namespace OpenMS
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
-    if (row < 0 || column < 0) return;
-
+    if (row < 0 || column < 0)
+    {
+      return;
+    }
     if (row >= table_widget_->rowCount()
         ||  column >= table_widget_->columnCount())
     {
@@ -381,11 +383,16 @@ namespace OpenMS
       const vector<Precursor> & precursors = spectrum.getPrecursors();
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
-      if (ms_level != 2 && id_count == 0) { continue; }
+      if (ms_level != 2 && id_count == 0)
+      { 
+        continue;
+      }
 
       // skip
-      if (hide_no_identification_->isChecked() && id_count == 0)  { continue; }
-
+      if (hide_no_identification_->isChecked() && id_count == 0) 
+      { 
+        continue;
+      }
       // set row background color
       QColor bg_color = (id_count == 0 ? Qt::white : Qt::green);
 
@@ -416,7 +423,10 @@ namespace OpenMS
 
             // sequence
             String seq = ph.getSequence().toString();
-            if (seq.empty()) seq = ph.getMetaValue("label");
+            if (seq.empty())
+            {
+              seq = ph.getMetaValue("label");
+            }
             table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
             // accession
@@ -429,7 +439,7 @@ namespace OpenMS
             bool selected(false);
             if (ph.metaValueExists("selected"))
             {
-               selected = ph.getMetaValue("selected").toString() == "true";
+              selected = ph.getMetaValue("selected").toString() == "true";
             }
             table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
 
