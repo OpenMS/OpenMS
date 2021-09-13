@@ -309,10 +309,11 @@ namespace OpenMS
           if (debug_lvl_ > 2)
           {
             std::ofstream ofs;
-            ofs.open ("failed_cc_a"+ (std::string)param_.getValue("model_parameters:pep_emission") +
-                "_b" + (std::string)param_.getValue("model_parameters:pep_spurious_emission") + "_g" +
-                (std::string)param_.getValue("model_parameters:prot_prior") + "_c" +
-                (std::string)param_.getValue("model_parameters:pep_prior") + "_p" + String(pnorm) + "_"
+            ofs.open (std::string("failed_cc_a") + 
+                param_.getValue("model_parameters:pep_emission").toString() + "_b" + 
+                param_.getValue("model_parameters:pep_spurious_emission").toString() + "_g" +
+                param_.getValue("model_parameters:prot_prior").toString() + "_c" +
+                param_.getValue("model_parameters:pep_prior").toString() + "_p" + String(pnorm) + "_"
                 + String(idx) + ".dot"
                 , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
