@@ -12,16 +12,18 @@ but are not placed in the vocabulary yet.
 
 Replacing the word will automatically put the replacement in the vocabulary.
 Replace the _-underscore and check the box in the last replacing option to use a custom word.
-When you are done, create another comment containing only the word "process". 
+When you are done, create another comment containing only the word "process".
 This will trigger the processing and resolve any potential issues.
 """
 
 
-def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
+def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository, branch: str) -> list:
     """
     Convert unknown words to github issue body
 
     :param unknown_words: All unknown, unprocessed words
+    :param repo: The GitHub repository
+    :param branch: Current branch of repository
     :return: Issue body
     """
 
@@ -31,11 +33,21 @@ def words_to_comments(unknown_words: Union[dict, defaultdict]) -> list:
         word_block = f'[{i_word+1}] "**{word}**" in file(s):\n'
         if len(comments[-1]) >= 50000:
             comments.append('')
-        for i_files, (file, lines) in enumerate(list(files.items())):
-            if i_files >= 5:
+        for i_path, (path, lines) in enumerate(list(files.items())):
+            if i_path >= 5:
                 word_block += '`...`\n'
                 break
-            word_block += f'`{file}: {str(lines)[1:-1]}`\n'
+            word_block += f' <details>\n<summary>{path}</summary>\n\n'
+            content_file = repo.get_contents(str(path), branch)
+            file = open(path)
+            file_lines = file.readlines()
+            for i_line, line in enumerate(str(lines)[1:-1].split(', ')):
+                if i_line >= 5:
+                    word_block += '`...`\n'
+                    break
+                word_block += f'({line}) [`{file_lines[int(line)-1][:-1]}`]({content_file.html_url}#L{line})\n'
+        word_block += '</details>\n'
+
         if error != '':
             word_block += f'{error}\n'
 
@@ -65,15 +77,15 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
             # Word block begin
             if lines[i].startswith('['):
                 word = lines[i].split('**')[1]
-                i += 1
-                while lines[i].startswith('`'):
-                    file, file_lines = lines[i][1:-1].split(':')
-                    unknown_words[word]['files'][file] = [int(l) for l in
-                                                          file_lines.strip(' ').strip('`').split(',')]
-                    i += 1
 
-                # Skip error section
+                path = ''
                 while not lines[i].startswith('-'):
+
+                    if lines[i].startswith('<summary>'):
+                        path = lines[i][9:-11]
+
+                    if lines[i].startswith('(') and path != '':
+                        unknown_words[word]['files'][path].append(int(lines[i][1:].split(')')[0]))
                     i += 1
 
                 # Vocabulary
@@ -156,7 +168,7 @@ def process_actions_github(unknown_words: Union[dict, defaultdict], repo: Reposi
             # Build files from all replacements
             for path, lines in files.items():
                 if path not in edited_files:
-                    edited_files[path]['content_file'] = repo.get_contents(str(path))
+                    edited_files[path]['content_file'] = repo.get_contents(str(path), branch)
                     edited_files[path]['content'] = edited_files[path]['content_file'].decoded_content.decode()
                 content = edited_files[path]['content']
                 new_content = ''

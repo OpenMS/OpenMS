@@ -23,7 +23,7 @@ def main():
     repo = g.get_repo(args.repository)
 
     branch = args.branch.split('/')[-1]
-    title = f'Spell-Check Results - {args.repository.split("/")[0]}/{branch}'
+    title = f'Spellcheck Results - {args.repository.split("/")[0]}/{branch}'
 
     # Find out if issue already exists
     issue = [issue for issue in repo.get_issues() if issue.title == title]
@@ -57,7 +57,7 @@ def main():
             # Create new issue
             issue = repo.create_issue(title, ' ', labels=['spellcheck'])
 
-        comments = words_to_comments(unknown_words)
+        comments = words_to_comments(unknown_words, repo, branch)
         update_issue(issue, title, comments, len(unknown_words))
 
 

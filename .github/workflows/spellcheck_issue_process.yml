@@ -4,7 +4,7 @@ on:
     types: [created]
 jobs:
   process-unknown-words:
-    if: startsWith(github.event.issue.title, format('Spell-Check Results - {0}', github.actor)) && github.event.comment.body == 'Process'
+    if: startsWith(github.event.issue.title, format('Spellcheck Results - {0}', github.actor)) && github.event.comment.body == 'Process'
     env:
       working_directory: '.github/spellcheck/'
     runs-on: ubuntu-latest
