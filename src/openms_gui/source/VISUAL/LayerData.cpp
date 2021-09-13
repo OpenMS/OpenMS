@@ -359,7 +359,10 @@ namespace OpenMS
     {
       // only store peak annotations (skip general lables and distance annotations)
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
-      if (pa == nullptr) { continue; }
+      if (pa == nullptr)
+      { 
+        continue;
+      }
 
       // add new fragment annotation
       QString peak_anno = pa->getText().trimmed();
@@ -440,17 +443,26 @@ namespace OpenMS
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK)
+    { 
+      return;
+    }
 
     // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+    if (peptide_id_index == -1 || peptide_hit_index == -1)
+    { 
+      return;
+    }
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
-    if (ms_level < 2) { return; }
+    if (ms_level < 2)
+    { 
+      return;
+    }
 
     // extract PeptideIdentification and PeptideHit if possible.
     // that this function returns prematurely is unlikely,
@@ -503,7 +515,10 @@ namespace OpenMS
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
-    if (annotations_changed) { hit.setPeakAnnotations(fas); }
+    if (annotations_changed)
+    { 
+      hit.setPeakAnnotations(fas);
+    }
   }
 
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock)

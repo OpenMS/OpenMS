@@ -90,11 +90,20 @@ namespace OpenMS
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
-    if (index != SPECTRA_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
+    if (index != SPECTRA_IDX)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
+    }
     index = addTab(id_view_widget_, id_view_widget_->objectName());
-    if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
+    if (index != IDENT_IDX)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
+    }
     index = addTab(dia_widget_, dia_widget_->objectName());
-    if (index != DIAOSW_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
+    if (index != DIAOSW_IDX)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
+    }
     // make sure initialization was correct
     assert(tabBar()->count() == (int)tab_ptrs_.size());
 
@@ -106,8 +115,14 @@ namespace OpenMS
   LayerData* getCurrentLayerData(TOPPViewBase* tv)
   {
     PlotCanvas* cc = tv->getActiveCanvas();
-    if (cc == nullptr) return nullptr;
-    if (cc->getCurrentLayerIndex() == Size(-1)) return nullptr;
+    if (cc == nullptr)
+    {
+      return nullptr;
+    }
+    if (cc->getCurrentLayerIndex() == Size(-1))
+    {
+      return nullptr;
+    }
     return &(cc->getCurrentLayer());
   }
 
@@ -227,8 +242,10 @@ namespace OpenMS
 
   void DataSelectionTabs::tabBarDoubleClicked(int tab_index)
   {
-    if (!tv_->getActivePlotWidget()) return;
-
+    if (!tv_->getActivePlotWidget())
+    {
+      return;
+    }
     switch (tab_index)
     {
     case IDENT_IDX:

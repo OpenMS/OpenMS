@@ -54,8 +54,9 @@ namespace OpenMS
     grid.clear();
 
     if (boost::math::isnan(x1) || boost::math::isnan(x2))
+    {
       return;
-
+    }
     if (x1 > -0.0001 && x1 < 0.0001)
     {
       x1 = 0.0001;

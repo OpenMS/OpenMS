@@ -250,17 +250,17 @@ public:
 
     /** @brief Write out a targeted experiment (TraML structure) into a PQP file
      *
-     * @param filename The output file
-     * @param targeted_exp The targeted experiment
+      @param filename The output file
+      @param targeted_exp The targeted experiment
      *
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
-     * @param filename The input file
-     * @param targeted_exp The output targeted experiment
-     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
+      @param filename The input file
+      @param targeted_exp The output targeted experiment
+      @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id = false);

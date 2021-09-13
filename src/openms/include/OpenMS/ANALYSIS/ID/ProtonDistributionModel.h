@@ -54,7 +54,7 @@ namespace OpenMS
 
       Details and the proton affinities can be found in
       Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
-  Anal. Chem., 76 (14), 3908 - 3922, 2004
+      Anal. Chem., 76 (14), 3908 - 3922, 2004
 
       A proton distribution can be calculated using the getProtonDistribution method. The backbone
       probabilities are reported in the first parameter (index 0 for the N-terminus, index 1 for the

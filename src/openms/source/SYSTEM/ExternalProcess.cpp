@@ -168,4 +168,4 @@ namespace OpenMS
     callbackStdErr_(s);
   }
 
-} // ns OpenMS
+} // namespace OpenMS

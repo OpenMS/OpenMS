@@ -10,4 +10,4 @@ cdef extern from "<OpenMS/FORMAT/XMLFile.h>" namespace "OpenMS::Internal":
 
         XMLFile(const String & schema_location, const String & version) nogil except +
         # NAMESPACE # bool isValid(const String & filename, std::ostream & os) nogil except +
-        String getVersion() nogil except +
+        String getVersion() nogil except + # wrap-doc:Return the version of the schema

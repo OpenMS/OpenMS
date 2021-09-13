@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
             # wrap-doc: 
             #   Method for the assembly of mass traces belonging to the same isotope
             #   pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
-            #   and isotope abundances.
+            #   and isotope abundances
 
         FeatureFindingMetabo(FeatureFindingMetabo &) nogil except + # compiler
 

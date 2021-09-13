@@ -232,7 +232,7 @@ namespace OpenMS
 
         if (target_scores.empty() || decoy_scores.empty())
         {
-          // no remove the the relevant entries, or put 'pseudo-scores' in
+          // now remove the relevant entries, or put 'pseudo-scores' in
           for (auto it = ids.begin(); it != ids.end(); ++it)
           {
             // if runs should be treated separately, the identifiers must be the same
@@ -259,7 +259,7 @@ namespace OpenMS
               String target_decoy(hits[i].getMetaValue("target_decoy"));
               if (target_decoy == "target" || target_decoy == "target+decoy")
               {
-                // if it is a target hit, there are now decoys, fdr/q-value should be zero then
+                // if it is a target hit, there are no decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
                 String score_type = it->getScoreType() + "_score";
                 new_hits.back().setMetaValue(score_type, new_hits.back().getScore());
@@ -1046,14 +1046,7 @@ namespace OpenMS
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
     {
-      if (!add_decoy_proteins)
-      {
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
-      }
-      else
-      {
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false);
-      }
+      IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
     }
     else
     {
@@ -1071,6 +1064,8 @@ namespace OpenMS
     const string& score_type = q_value ? "q-value" : "FDR";
 
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 
     //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
@@ -1098,7 +1093,7 @@ namespace OpenMS
         }
         calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
         if (!scores_labels.empty())
-          IDScoreGetterSetter::setScores_(scores_to_FDR, ids, score_type, false);
+          IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
         scores_to_FDR.clear();
       }
     }
@@ -1111,6 +1106,8 @@ namespace OpenMS
     //Note: this is actually unused because I think with that approach you will always get q-values.
     //bool q_value = !param_.getValue("no_qvalues").toBool();
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
 
     //TODO not yet supported (if ever)
     //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
@@ -1131,7 +1128,7 @@ namespace OpenMS
     IDScoreGetterSetter::getScores_(scores_labels, ids[0]);
     calculateEstimatedQVal_(scores_to_FDR, scores_labels, higher_score_better);
     if (!scores_labels.empty())
-      IDScoreGetterSetter::setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false);
+      IDScoreGetterSetter::setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false, add_decoy_proteins);
   }
 
 
@@ -1184,6 +1181,28 @@ namespace OpenMS
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
+  }
+
+  void FalseDiscoveryRate::applyPickedProteinFDR(ProteinIdentification & id, const String& decoy_prefix)
+  {
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology?
+    const string& score_type = q_value ? "q-value" : "FDR";
+
+    //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
+    bool higher_score_better(id.isHigherScoreBetter());
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    std::map<double,double> scores_to_FDR;
+    IDScoreGetterSetter::getPickedProteinScores_(scores_labels, id, decoy_prefix);
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR calculation!");
+    }
+    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
+    scores_to_FDR.clear();
   }
 
   //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
@@ -1424,14 +1443,29 @@ namespace OpenMS
     {
       double cummin = 1.0;
 
-      for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
+      if (higher_score_better)
       {
+        for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
+        {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
-        std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
         #endif
-        cummin = std::min(rit->second, cummin);
-        rit->second = cummin;
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
       }
+      else
+      {
+        for (auto&& rit = scores_to_FDR.rbegin(); rit != scores_to_FDR.rend(); ++rit)
+        {
+        #ifdef FALSE_DISCOVERY_RATE_DEBUG
+          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+        #endif
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
     }
   }
 

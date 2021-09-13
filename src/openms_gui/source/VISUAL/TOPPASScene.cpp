@@ -511,14 +511,20 @@ namespace OpenMS
     {
       QVector<TOPPASToolVertex::IOInfo> input_infos;
       tv->getInputParameters(input_infos);
-      if (tv->incomingEdgesCount() >= Size(input_infos.size())) return false;
+      if (tv->incomingEdgesCount() >= Size(input_infos.size()))
+      {
+        return false;
+      }
       // also, no edges from collectors to tools without input file lists:
       // @TODO: what if the input file list is already occupied by an edge?
       TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(u);
       if (mv && !mv->roundBasedMode())
       {      
         bool any_list = TOPPASToolVertex::IOInfo::isAnyList(input_infos);
-        if (!any_list) return false;
+        if (!any_list)
+        {
+          return false;
+        }
       }
     }
     // no edges to splitters from tools without output file lists:
@@ -530,7 +536,10 @@ namespace OpenMS
         QVector<TOPPASToolVertex::IOInfo> output_infos;
         tv->getOutputParameters(output_infos);
         bool any_list = TOPPASToolVertex::IOInfo::isAnyList(output_infos);
-        if (!any_list) return false;
+        if (!any_list)
+        {
+          return false;
+        }
       }
     }
 
@@ -890,7 +899,9 @@ namespace OpenMS
     else if (v_file > v_this_high)
     {
       if (this->gui_ && QMessageBox::warning(nullptr, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with a more recent version of TOPPAS. Shall we will try to open it?\nIf this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+      {
         return;
+      }
     }
 
 
@@ -898,8 +909,10 @@ namespace OpenMS
     Param edges_param = load_param.copy("edges:", true);
 
     bool pre_1_9_toppas = true;
-    if (load_param.exists("info:version")) pre_1_9_toppas = false; // using param names instead of indices for connecting edges
-
+    if (load_param.exists("info:version"))
+    {
+      pre_1_9_toppas = false; // using param names instead of indices for connecting edges
+    }
     if (load_param.exists("info:description"))
     {
       String text = String(load_param.getValue("info:description").toString()).toQString();
@@ -1311,7 +1324,9 @@ namespace OpenMS
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it) // check if all nodes are done
       {
         if (!(*it)->isFinished())
+        {
           return;
+        }
       }
     }
 
@@ -1465,8 +1480,14 @@ namespace OpenMS
     UInt topo_counter {1};
     for (TOPPASVertex* tv : vertices_)
     {
-      if (resort_all) tv->setTopoSortMarked(false);
-      else if (tv->isTopoSortMarked()) ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
+      if (resort_all)
+      {
+        tv->setTopoSortMarked(false);
+      }
+      else if (tv->isTopoSortMarked())
+      {
+        ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
+      }
     }
   
     while (true)
@@ -2333,11 +2354,20 @@ namespace OpenMS
     }
 
     TOPPASScene::RefreshStatus result;
-    if (!change) result = ST_REFRESH_NOCHANGE;
+    if (!change)
+    {
+      result = ST_REFRESH_NOCHANGE;
+    }
     else if (!sanityCheck_(false)) 
     {
-      if (sane_before) result = ST_REFRESH_CHANGEINVALID;
-      else result = ST_REFRESH_REMAINSINVALID;
+      if (sane_before)
+      {
+        result = ST_REFRESH_CHANGEINVALID;
+      }
+      else
+      {
+        result = ST_REFRESH_REMAINSINVALID;
+      }
     }
     else result = ST_REFRESH_CHANGED;
     
@@ -2347,8 +2377,9 @@ namespace OpenMS
   void TOPPASScene::setAllowedThreads(int num_jobs)
   {
     if (num_jobs < 1)
+    {
       return;
-
+    }
     allowed_threads_ = num_jobs;
   }
 

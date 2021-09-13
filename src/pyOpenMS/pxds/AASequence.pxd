@@ -27,13 +27,13 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         Residue operator[](int) nogil except + # wrap-upper-limit:size()
 
         # check if sequence is empty
-        bool empty() nogil except +
+        bool empty() nogil except + # wrap-doc:Check if sequence is empty
 
         # returns the peptide as string with modifications embedded in brackets
-        String toString() nogil except +
+        String toString() nogil except + # wrap-doc:Returns the peptide as string with modifications embedded in brackets
 
         # returns the peptide as string without any modifications
-        String toUnmodifiedString() nogil except +
+        String toUnmodifiedString() nogil except + # wrap-doc:Returns the peptide as string without any modifications
 
         # returns the peptide as string without any modifications
         String toUniModString() nogil except + # wrap-doc:Returns the peptide as string with UniMod-style modifications embedded in brackets
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String toBracketString(bool integer_mass, bool mass_delta, libcpp_vector[String] fixed_modifications) nogil except + # wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation
 
         # set the modification of the residue at position index
-        void setModification(Size index, String modification) nogil except + # wrap-doc:Set the modification of the residue at position index
+        void setModification(Size index, String modification) nogil except + # wrap-doc:Sets the modification of the residue at position index
 
         # sets the N-terminal modification
         void setNTerminalModification(String modification) nogil except + # wrap-doc:Sets the N-terminal modification

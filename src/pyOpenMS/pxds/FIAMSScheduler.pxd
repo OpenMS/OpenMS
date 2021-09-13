@@ -18,4 +18,4 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
         FIAMSScheduler(String filename, String base_dir, bool load_cached_) nogil except +
         void run() nogil except + # wrap-doc:Run the FIA-MS data analysis for the batch defined in the @filename_
         # libcpp_vector[ libcpp_map[ String, String ] ] getSamples() nogil except +
-        String getBaseDir() nogil except + # wrap-doc:Get the base directory for the relevant paths from the csv file
+        String getBaseDir() nogil except + # wrap-doc:Returns the base directory for the relevant paths from the csv file

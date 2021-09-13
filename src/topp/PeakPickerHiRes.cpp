@@ -145,7 +145,10 @@ protected:
     {
       if (ms_levels_.empty()) //auto mode
       {
-        if (s.getType() == SpectrumSettings::CENTROID) return;
+        if (s.getType() == SpectrumSettings::CENTROID)
+        {
+          return;
+        }
       }
       else if (!ListUtils::contains(ms_levels_, s.getMSLevel()))
       {

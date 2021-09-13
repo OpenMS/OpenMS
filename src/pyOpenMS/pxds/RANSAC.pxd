@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
 
     cdef cppclass RANSACParam:
 
-        RANSACParam() nogil except +
+        RANSACParam() nogil except + # wrap-doc:A simple struct to carry all the parameters required for a RANSAC run
         RANSACParam(RANSACParam) nogil except + # wrap-ignore
         RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d) nogil except +
 

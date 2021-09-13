@@ -16,16 +16,16 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         # wrap-inherits:
         #    DefaultParamHandler
         # wrap-doc:
-        #   Perform targeted feature extraction of compounds provided as table and stores them in features.
+        #   Perform targeted feature extraction of compounds provided as table and stores them in features
         #   -----
-        #   The algorithms detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
-        #   Internally, it uses algorithms for targeted data analysis from the OpenSWATH pipeline.
-        #   In the simplest case, only CompoundName, SumFormula, Charge and RetentionTime need to be given, all other values may be zero.
-        #   Every combination of compound (mass), RT and charge defines one target for feature detection.
+        #   The algorithms detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications
+        #   Internally, it uses algorithms for targeted data analysis from the OpenSWATH pipeline
+        #   In the simplest case, only CompoundName, SumFormula, Charge and RetentionTime need to be given, all other values may be zero
+        #   Every combination of compound (mass), RT and charge defines one target for feature detection
         #   Output:
-        #   The main output is a feature map of detected features, with annotations in meta data entries.
+        #   The main output is a feature map of detected features, with annotations in meta data entries
         #   Additional outputs are the extracted chromatograms/peak groups, the assay in TraML compatible format, and transformations 
-        #   that contain the error between provided and observed peaks.
+        #   that contain the error between provided and observed peaks
         #   -----
         #   Usage:
         #       exp = MSExperiment()
@@ -47,18 +47,18 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
 
         FeatureFinderAlgorithmMetaboIdent() nogil except +
 
-        void setMSData(MSExperiment & input) nogil except + #wrap-doc:Set spectra
-        const MSExperiment& getMSData() nogil except + #wrap-doc:Get spectra
+        void setMSData(MSExperiment & input) nogil except + #wrap-doc:Sets spectra
+        const MSExperiment& getMSData() nogil except + #wrap-doc:Returns spectra
 
         void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
 
-        MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
+        MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieves chromatograms (empty if run was not executed)
 
-        const TargetedExperiment& getLibrary () nogil except + #wrap-doc:Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
+        const TargetedExperiment& getLibrary () nogil except + #wrap-doc:Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)
         
-        const TransformationDescription& getTransformations() nogil except + #wrap-doc:Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
+        const TransformationDescription& getTransformations() nogil except + #wrap-doc:Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
 
-        size_t getNShared() nogil except + #wrap-doc:Retrieve number of features with shared identifications
+        size_t getNShared() nogil except + #wrap-doc:Retrieves number of features with shared identifications
 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":

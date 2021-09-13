@@ -131,12 +131,18 @@ protected:
     QString tmp_path = qd.absolutePath();
 
     TOPPASScene ts(nullptr, tmp_path, false);
-    if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
-
-    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want
-
-    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;   // ... thus we use this
-
+    if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit())))
+    {
+      return UNKNOWN_ERROR;
+    }
+    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit())))
+    {
+      return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want
+    }
+    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError())))
+    {
+      return UNKNOWN_ERROR;   // ... thus we use this
+    }
     ts.load(toppas_file);
     ts.setAllowedThreads(num_jobs);
 
