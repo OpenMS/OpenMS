@@ -22,8 +22,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   the derivatization agent (e.g., tBDMS) using correction matrix method and is calculated as follows:
               #   -----
               #   :param  normalized_feature: Feature with normalized values for each component and unlabeled chemical formula for each component group
-              #   :param  correction_matrix:  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent
-              #   :param  correction_matrix_agent: name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
+              #   :param  correction_matrix: Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent
+              #   :param  correction_matrix_agent: Name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
               #   :returns: corrected_feature: Feature with corrected values for each component
 
         void isotopicCorrections(
@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   -----
               #   :param  normalized_featuremap: FeatureMap with normalized values for each component and unlabeled chemical formula for each component group
               #   :param  correction_matrix: Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent
-              #   :param  correction_matrix_agent: name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
+              #   :param  correction_matrix_agent: Name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
               #   :returns corrected_featuremap: FeatureMap with corrected values for each component
 
         void calculateIsotopicPurity(
