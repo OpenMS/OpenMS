@@ -1,10 +1,10 @@
-name: Spellcheck Full-Search
+name: Spellcheck Full Search
 on: [workflow_dispatch]
 jobs:
   update-issue:
     runs-on: ubuntu-latest
     env:
-      working_directory: 'tools/spellcheck/'
+      working_directory: '.github/spellcheck/'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python

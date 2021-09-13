@@ -1,6 +1,6 @@
-from spellcheck import *
+from utils import *
 from github.Repository import Repository
-from github import Github, ContentFile, PaginatedList
+from github import ContentFile, PaginatedList, Issue
 
 
 INFORMATION = """
@@ -113,7 +113,15 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
     return unknown_words
 
 
-def update_issue(issue, title, comments, len_unknown_words):
+def update_issue(issue: Issue, title: str, comments: list, len_unknown_words: int):
+    """
+    Update the GitHub issue including replacing all comments
+
+    :param issue: GitHub issue
+    :param title: GitHub issue title
+    :param comments: New comments
+    :param len_unknown_words: Number of unknown words
+    """
     body = f"---\n{title}\n---\n\n" \
            f"{INFORMATION}\n\n" \
            f"Found {len_unknown_words} unknown words!"
@@ -133,7 +141,7 @@ def process_actions_github(unknown_words: Union[dict, defaultdict], repo: Reposi
     Process actions of unknown words in github
 
     :param unknown_words: All unknown, unprocessed words
-    :param repo: Github repository
+    :param repo: GitHub repository
     :param branch: Current branch of repository
     """
     words = list(unknown_words.keys())
@@ -168,3 +176,16 @@ def process_actions_github(unknown_words: Union[dict, defaultdict], repo: Reposi
     for path, properties in edited_files.items():
         repo.update_file(str(path), f'Replaced words', properties['content'].encode(),
                          properties['content_file'].sha, branch)
+
+
+def update_vocab(repo, branch):
+    """
+    Update the GitHub vocabulary
+    """
+    new_vocabulary = list(vocabulary)
+    new_vocabulary.sort()
+    new_vocabulary_file = json.dumps(new_vocabulary, indent=4)
+
+    vocabulary_file = repo.get_contents('.github/spellcheck/vocabulary.json', branch)
+    repo.update_file('.github/spellcheck/vocabulary.json', 'Update words', new_vocabulary_file, vocabulary_file.sha,
+                     branch)

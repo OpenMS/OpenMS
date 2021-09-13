@@ -1,4 +1,5 @@
 from github_methods import *
+from github import Github
 import argparse
 
 
@@ -33,7 +34,8 @@ def main():
         commit = repo.get_commit(args.commit)
         edited_files = {Path(file.filename) for file in commit.files}
 
-    unknown_words = get_words(edited_files)
+    unknown_words = get_words(files_filter=edited_files)
+    update_vocab(repo, branch)
 
     if len(unknown_words) > 0:
 
@@ -51,7 +53,6 @@ def main():
                         old_unknown_words[word]['files'][file] = lines
                 unknown_words = {key: old_unknown_words[key] for key in
                                  sorted(old_unknown_words.keys(), key=str.casefold)}
-                print(unknown_words)
         else:
             # Create new issue
             issue = repo.create_issue(title, ' ', labels=['spellcheck'])

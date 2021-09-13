@@ -1,4 +1,5 @@
 from github_methods import *
+from github import Github
 import argparse
 
 
@@ -25,13 +26,7 @@ def main():
 
     unknown_words = comments_to_words(issue.get_comments())
     process_actions_github(unknown_words, repo, branch)
-
-    new_vocabulary = list(vocabulary)
-    new_vocabulary.sort()
-    new_vocabulary_file = json.dumps(new_vocabulary, indent=4)
-
-    vocabulary_file = repo.get_contents(PATH_VOCAB, branch)
-    repo.update_file(PATH_VOCAB, 'Update words', new_vocabulary_file, vocabulary_file.sha, branch)
+    update_vocab(repo, branch)
 
     # Update issue comments
     comments = words_to_comments(unknown_words)
