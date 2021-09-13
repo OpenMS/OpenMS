@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>" n
         double getCenter() nogil except + # wrap-doc:Returns the "center" of the model, particular definition (depends on the derived model)
         void setSamples() nogil except + # wrap-doc:Sets sample/supporting points of interpolation wrt params
         void setInterpolationStep(double interpolation_step) nogil except + # wrap-doc:Sets the interpolation step for the linear interpolation of the model
-        void setScalingFactor(double scaling) nogil except + # wrap-doc:Sets the scaling factor of model
+        void setScalingFactor(double scaling) nogil except + # wrap-doc:Sets the scaling factor of the model
 
         LinearInterpolation[double,double] getInterpolation() nogil except + # wrap-doc:Returns the interpolation class
         # void getSamples(SamplesType &cont) nogil except +
