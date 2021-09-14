@@ -14,27 +14,27 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except + # wrap-doc:Adds a column with boundaries to the LP matrix, returns index
         void deleteRow(Int index) nogil except + # wrap-doc:Delete index-th row
         void setColumnName(Int index, const String & name) nogil except + # wrap-doc:Sets name of the index-th column
-        String getColumnName(Int index) nogil except + # wrap-doc:Gets name of the index-th column
+        String getColumnName(Int index) nogil except + # wrap-doc:Returns name of the index-th column
         String getRowName(Int index) nogil except + # wrap-doc:Sets name of the index-th row
-        Int getRowIndex(const String & name) nogil except + # wrap-doc:Gets index of the row with name
-        Int getColumnIndex(const String & name) nogil except + # wrap-doc:Gets index of the column with name
-        double getColumnUpperBound(Int index) nogil except + # wrap-doc:Gets column's upper bound
-        double getColumnLowerBound(Int index) nogil except + # wrap-doc:Gets column's lower bound
-        double getRowUpperBound(Int index) nogil except + # wrap-doc:Gets row's upper bound
-        double getRowLowerBound(Int index) nogil except + # wrap-doc:Gets row's lower bound
+        Int getRowIndex(const String & name) nogil except + # wrap-doc:Returns index of the row with name
+        Int getColumnIndex(const String & name) nogil except + # wrap-doc:Returns index of the column with name
+        double getColumnUpperBound(Int index) nogil except + # wrap-doc:Returns column's upper bound
+        double getColumnLowerBound(Int index) nogil except + # wrap-doc:Returns column's lower bound
+        double getRowUpperBound(Int index) nogil except + # wrap-doc:Returns row's upper bound
+        double getRowLowerBound(Int index) nogil except + # wrap-doc:Returns row's lower bound
         void setRowName(Int index, const String & name) nogil except + # wrap-doc:Sets name of the index-th row
-        void setColumnBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except + # wrap-doc:Set column bounds
-        void setRowBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except + # wrap-doc:Set row bounds
-        void setColumnType(Int index, VariableType type_) nogil except + # wrap-doc:Set column/variable type.
-        VariableType getColumnType(Int index) nogil except + # wrap-doc:Get column/variable type.
-        void setObjective(Int index, double obj_value) nogil except + # wrap-doc:Set objective value for column with index
-        double getObjective(Int index) nogil except + # wrap-doc:Get objective value for column with index
-        void setObjectiveSense(Sense sense) nogil except + # wrap-doc:Set objective direction
-        Sense getObjectiveSense() nogil except +
-        Int getNumberOfColumns() nogil except + # wrap-doc:Get number of columns
-        Int getNumberOfRows() nogil except + # wrap-doc:Get number of rows
-        void setElement(Int row_index, Int column_index, double value) nogil except +# TODO
-        double getElement(Int row_index, Int column_index) nogil except +# TODO
+        void setColumnBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except + # wrap-doc:Sets column bounds
+        void setRowBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except + # wrap-doc:Sets row bounds
+        void setColumnType(Int index, VariableType type_) nogil except + # wrap-doc:Sets column/variable type.
+        VariableType getColumnType(Int index) nogil except + # wrap-doc:Returns column/variable type.
+        void setObjective(Int index, double obj_value) nogil except + # wrap-doc:Sets objective value for column with index
+        double getObjective(Int index) nogil except + # wrap-doc:Returns objective value for column with index
+        void setObjectiveSense(Sense sense) nogil except + # wrap-doc:Sets objective direction
+        Sense getObjectiveSense() nogil except + # wrap-doc:Returns objective sense
+        Int getNumberOfColumns() nogil except + # wrap-doc:Returns number of columns
+        Int getNumberOfRows() nogil except + # wrap-doc:Returns number of rows
+        void setElement(Int row_index, Int column_index, double value) nogil except +  # wrap-doc:Sets the element
+        double getElement(Int row_index, Int column_index) nogil except + # wrap-doc:Returns the element
         void readProblem(String filename, String format_) nogil except +
             # wrap-doc:
                 #   Read LP from file
@@ -61,7 +61,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
 
         SolverStatus getStatus() nogil except +
             # wrap-doc:
-                #   Get solution status
+                #   Returns solution status
                 #   -----
                 #   :returns: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
 
@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         double getColumnValue(Int index) nogil except +
         Int getNumberOfNonZeroEntriesInRow(Int idx) nogil except +
         void getMatrixRow(Int idx, libcpp_vector[ int ] & indexes) nogil except +
-        SOLVER getSolver() nogil except + # wrap-doc:Get currently active solver
+        SOLVER getSolver() nogil except + # wrap-doc:Returns currently active solver
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     
