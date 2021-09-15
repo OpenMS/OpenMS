@@ -75,12 +75,12 @@ def main():
                 # Updated, added words in edited files
                 print('Transferring old words and properties..')
                 for word, properties in unknown_words.items():
+                    old_unknown_words[word]['blob'] = properties['blob']
+                    old_unknown_words[word]['action'] = properties['action']
                     for file, lines in properties['files'].items():
                         old_unknown_words[word]['files'][file] = lines
-                print(old_unknown_words)
                 unknown_words = {key: old_unknown_words[key] for key in
                                  sorted(old_unknown_words.keys(), key=str.casefold)}
-                print(unknown_words)
                 print('Done!')
         else:
             # Create new issue
