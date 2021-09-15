@@ -46,7 +46,7 @@ def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository,
                     word_block += '`...`\n'
                     break
                 word_block += f'({line}) [`{file_lines[int(line)-1][:-1]}`]({content_file.html_url}#L{line})\n'
-            word_block += '</details>\n'
+            word_block += '</details>\n\n'
 
         if error != '':
             word_block += f'{error}\n'
