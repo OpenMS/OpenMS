@@ -36,7 +36,7 @@ def main():
 
     print('Searching words..')
     unknown_words = get_words(files_filter=edited_files)
-    print(f'Search finished, {len(unknown_words)} unknown words are found!')
+    print(f'Search finished, {len(unknown_words)} unknown words were found!')
     update_vocab(repo, branch)
 
     if len(unknown_words) > 0:
