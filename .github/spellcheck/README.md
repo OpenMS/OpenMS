@@ -33,7 +33,6 @@ Example:
     }
 ```
 
-
 ## Command Line Interface (CLI)
 
 ### Steps
