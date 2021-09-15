@@ -168,9 +168,9 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].size() > 0)
+    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].first.size() > 0)
     {
-      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_];
+      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_].first;
     }
     else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
     {
@@ -242,15 +242,15 @@ namespace OpenMS
     {
       return cached_spectrum_;
     }
-    if ((*peak_map_)[spectrum_idx].size() > 0)
+    if ((*peak_map_)[spectrum_idx].first.size() > 0)
     {
-      return (*peak_map_)[spectrum_idx];
+      return (*peak_map_)[spectrum_idx].first;
     }
     else if (!on_disc_peaks->empty())
     {
       return on_disc_peaks->getSpectrum(spectrum_idx);
     }
-    return (*peak_map_)[spectrum_idx];
+    return (*peak_map_)[spectrum_idx].first;
   }
 
   void LayerData::synchronizePeakAnnotations()
@@ -266,7 +266,8 @@ namespace OpenMS
     if (ms_level == 2)
     {
       // store user fragment annotations
-      vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+      //vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+      vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIds(current_spectrum_idx_);
 
       // no ID selected
       if (peptide_id_index == -1 || peptide_hit_index == -1)
@@ -456,7 +457,7 @@ namespace OpenMS
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
-    int ms_level = spectrum.getMSLevel();
+    size_t ms_level = spectrum.getMSLevel();
 
     // wrong MS level
     if (ms_level < 2)
@@ -468,7 +469,8 @@ namespace OpenMS
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+    //vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+    vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIds(current_spectrum_idx_);
     if (pep_ids.empty()) 
     { 
       return;

@@ -599,7 +599,7 @@ public:
     bool hasZeroIntensities(size_t ms_level) const;
 
     /// do any of the spectra have a PeptideID?
-    bool hasPeptideIdentifications() const;
+    //bool hasPeptideIdentifications() const;
 
   protected:
     /// MS levels of the data

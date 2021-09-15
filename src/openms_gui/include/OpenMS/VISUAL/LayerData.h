@@ -41,6 +41,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -153,12 +154,12 @@ public:
     typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
+    typedef AnnotatedMSRawData ExperimentType;
 
     /// SharedPtr on MSExperiment
-    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+    typedef boost::shared_ptr<AnnotatedMSRawData> ExperimentSharedPtrType;
 
-    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+    typedef boost::shared_ptr<const AnnotatedMSRawData> ConstExperimentSharedPtrType;
 
     /// SharedPtr on On-Disc MSExperiment
     typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;

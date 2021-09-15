@@ -3,6 +3,7 @@ set(directory source/KERNEL)
 
 ### list all filenames of the directory here
 set(sources_list
+AnnotatedMSRawData.cpp
 AreaIterator.cpp
 BaseFeature.cpp
 ConsensusFeature.cpp

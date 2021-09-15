@@ -821,6 +821,7 @@ namespace OpenMS
     return false;
   }
 
+  /*
   bool MSExperiment::hasPeptideIdentifications() const
   {
     for (const auto& spec : getSpectra())
@@ -832,6 +833,7 @@ namespace OpenMS
     }
     return false;
   }
+   */
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
