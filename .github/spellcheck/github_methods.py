@@ -51,6 +51,7 @@ def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository,
         if error != '':
             word_block += f'{error}\n'
 
+        print(blob)
         word_block += f'\n- [ ] Add "{word}" to vocabulary *({blob[0][1]}%)*'
         if len(blob) > 1:
             for blob_word, certainty in blob[1:]:

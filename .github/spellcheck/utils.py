@@ -44,11 +44,9 @@ def create_patterns():
         comment_patterns[ext] = pattern[:-1]
     return comment_patterns
 
-print('Rules')
+
 RULES = load_json(Path(SP_DIR + 'rules.json'))
-print('Patterns')
 COMMENT_PATTERNS = create_patterns()
-print('Vocabulary')
 vocabulary = set(load_json(Path(SP_DIR + 'vocabulary.json')))
 
 
