@@ -16,7 +16,6 @@ To work properly, `rules.json` must be set up correctly.
 - `auto_add_matches` <`true`/`false`> Checked words with a 100% certainty to be correct are automatically placed in the
 vocabulary
 
-
 ### Comment Types
 For each file type, where only comments should be searched for words, `line` and `block` comment types must be provided
 in `comment_types.json`.  
