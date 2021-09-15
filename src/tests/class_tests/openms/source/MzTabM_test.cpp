@@ -340,12 +340,16 @@ START_TEST(MzTabM, "$Id$")
         }
     END_SECTION
 
+    // Identificationdata
     START_SECTION(MzTabM::exportIdentificationDataToMzTabM(const IdentificationData& id_data, const String& filename))
         {
           // TODO: Save OMS file from AccurateMassSearch
           // TODO: Load OMS file
           // TODO: Check what information can be derived from the OMS file
-          // TODO: How can the stuff be derived?
+          // TODO: How can the stuff be derived
+
+          // TODO: Can that be done using FileConverter as well?
+          // TODO: Possible to get the OMS from feautreXML? Probably not since no identification Data object is available.
 
         }
     END_SECTION

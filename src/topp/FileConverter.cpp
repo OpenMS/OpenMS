@@ -332,7 +332,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -776,6 +776,13 @@ protected:
       {
         MapConversion::convert(cm, true, fm);
       }
+      else if (in_type == FileTypes::OMS)
+      {
+        FeatureMap fm;
+        OMSFile().load(in, fm);
+        std::cout << fm.size() << std::endl;
+        IdentificationDataConverter::exportFeatureIDs(fm);
+      }
       else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
@@ -883,14 +890,14 @@ protected:
       SqMassFile sqm;
       sqm.store(out, exp);
     }
-    else if (out_type == FileTypes::OMS) // TODO: That only works for featureXML input!
+    else if (out_type == FileTypes::OMS)
     {
       if (in_type != FileTypes::FEATUREXML)
       {
         OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
-
+      IdentificationDataConverter::importFeatureIDs(fm);
       OMSFile().store(out, fm);
     }
     else

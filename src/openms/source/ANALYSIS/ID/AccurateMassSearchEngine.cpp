@@ -37,10 +37,12 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <numeric>
 
@@ -576,6 +578,11 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
+  // TODO: How to open it up to run mztab or mztab-m output? pass boolean?
+  // Then the function does not have to be overloaded? But the scope of the mztabm file would be within the function
+  // that would not be the best way to do it?
+  // overload the run function is bad. pass both and fill the needed one?
+  // will clutter the memory.
   void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTabM& mztabm_out) const
   {
     if (!is_initialized_)
@@ -593,47 +600,63 @@ namespace OpenMS
     {
       StringList ms_run_paths;
       fmap.getPrimaryMSRunPath(ms_run_paths);
+
+      // register input file
       IdentificationData::InputFile file(ms_run_paths[0]);
       file_ref = id.registerInputFile(file);
+      std::vector<IdentificationData::InputFileRef> file_refs;
+      file_refs.emplace_back(file_ref);
 
+      // add previous DataProcessingStep(s) from FeatureMap
+      auto data_processing = fmap.getDataProcessing();
+      for (const auto& it : data_processing)
+      {
+        // software
+        IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
+        auto sw_ref = id.registerProcessingSoftware(sw);
+        // ProcessingStep: software, input_file_refs, data_time, actions
+        IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(),it.getProcessingActions());
+        step_ref = id.registerProcessingStep(step);
+        id.setCurrentProcessingStep(step_ref);
+      }
+
+      // add information about current tool
       // register a score type 
-      IdentificationData::ScoreType score("AccurateMassSearchScore", false); // TODO: which direction
+      IdentificationData::ScoreType score("AccurateMassSearchScore", false);
       IdentificationData::ScoreTypeRef score_ref = id.registerScoreType(score);
 
       // register software (connected to score)
-      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", "1.0"); // TODO: version
-      // TODO: set CV Terms
+      // CVTerm will be set in mztab-m based on the name
+      // if the name is not available in PSI-OBO "analysis software" will be used.
+      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion());
       sw.assigned_scores.push_back(score_ref);
       auto sw_ref = id.registerProcessingSoftware(sw);
 
-      // TODO: is that correct, or needs to be in software?
-      // TODO: probably only needed internally for every id.
       // register additional scores for identification
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
-
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
       mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
       // "HMDB" -> prefix HMDB
-      search_param.database = "AccurateMassSearchDB"; // TODO: How to set it automatically?
-      search_param.database_version = "0"; // TODO: How to set it automatically?
-      // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value"); // TODO: How to set it automatically?
+      search_param.database = database_name_;
+      search_param.database_version = database_version_;
+
+      // TODO: is it possible to not get the default value?
+      // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value");
       // auto ppm = AccurateMassSearchEngine.getValue("mass_error_unit") = ppm ? true : false;
-      // search_param.precursor_tolerance_ppm = ppm; // TODO: is that even possible to not get the default value?
+      // search_param.precursor_tolerance_ppm = ppm;
       search_param.precursor_mass_tolerance = 5.0;
       search_param.precursor_tolerance_ppm = true;
       auto search_param_ref = id.registerDBSearchParam(search_param);
 
       // file has been processed by software
-      // TODO: Data Processing übergeben?
       IdentificationData::ProcessingStep step(sw_ref);
-      step.input_file_refs.push_back(file_ref); // TODO: why does that not work?
+      step.input_file_refs.push_back(file_ref);
       step_ref = id.registerProcessingStep(step, search_param_ref);
-      // all further data comes from this processing step
-      id.setCurrentProcessingStep(step_ref);
+      id.setCurrentProcessingStep(step_ref); // add the new step
     }
     
     String ion_mode_internal(ion_mode_);
@@ -645,7 +668,7 @@ namespace OpenMS
     // map for storing overall results
     QueryResultsTable overall_results;
     Size dummy_count(0);
-    for (Size i = 0; i < fmap.size(); ++i) // TODO: Note: Iterate over features
+    for (Size i = 0; i < fmap.size(); ++i)
     {
       std::vector<AccurateMassSearchResult> query_results;
 
@@ -653,7 +676,6 @@ namespace OpenMS
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
       if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
-
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
 
@@ -675,13 +697,6 @@ namespace OpenMS
         }
       }
 
-      // debug output
-      //        for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
-      //        {
-      //            query_results[hit_idx].outputResults();
-      //        }
-      // String feat_label(fmap[i].getMetaValue(3));
-
       overall_results.push_back(query_results);
       if (legacyID_)
       {
@@ -690,7 +705,7 @@ namespace OpenMS
       else
       {
         addMatchesToID_(id, query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, fmap[i]);
-      }       
+      }
     }
 
     if (legacyID_)
@@ -700,6 +715,15 @@ namespace OpenMS
       fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchEngine");
       fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
       fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
+    }
+    else
+    {
+      // add the identification data to the featureXML
+      // to allow featureXML export (without the use of legacy_ID)
+      // TODO: There is still a difference, it seems MetaValues are not reported correctly?
+      // TODO: Even if set in the addMatchesToID_()
+      // TODO: Have to set the score_type?
+      IdentificationDataConverter::exportFeatureIDs(fmap, false);
     }
 
     if (fmap.empty())
@@ -711,10 +735,15 @@ namespace OpenMS
       OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
 
-    //exportMzTab_(overall_results, 1, mztab_out);
-
-    // TODO: Use FeatureMap for MzTabM export
-    exportMzTabM_(fmap, 1, mztabm_out);
+    bool export_mztab = false; // TODO: set parameter depending on mztab/mztab-m
+    if (export_mztab)
+    {
+      // exportMzTab_(overall_results, 1, mztab_out);
+    }
+    else
+    {
+      exportMzTabM_(fmap, 1, mztabm_out); // TODO: Use FeatureMap for MzTabM export
+    }
 
     return;
   }
@@ -749,17 +778,30 @@ namespace OpenMS
         }
 
         // register compound
-        // TODO: what about applied processing step
-        const String& name = entry->second[0];
+        // TODO: What about applied processing step
+        // TODO: What is the difference to processing step?
+        const String& names = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
         // TODO: or have an additional column for possible database, where is that stored?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
-                                                        name,
+                                                        names,
                                                         smiles,
                                                         inchi_key,
-                                                        IdentificationDataInternal::AppliedProcessingSteps()); // TODO: How/What to add here?
+                                                        IdentificationDataInternal::AppliedProcessingSteps());// TODO: How/What to add here?
+
+        // add additional meta values to fit the legacy featureXML format somewhat
+        // TODO: This should probably be done automatically in the exportFeautreIDs function
+        // TODO: to add all previously available MetaValues again.
+        // TODO: does not work that way - maybe have to set it at another position?
+        // match.setMetaValue("identifier", r.getMatchingHMDBids()[i]);
+        // match.setMetaValue("description", names);
+        // match.setMetaValue("modifications", r.getFoundAdduct());
+        // match.setMetaValue("chemical_formula", r.getFormulaString());
+        // match.setMetaValue("mz_error_ppm", r.getMZErrorPPM());
+        // match.setMetaValue("mz_error_Da", r.getObservedMZ() - r.getCalculatedMZ());
+
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
         // compound-feature match
@@ -778,7 +820,9 @@ namespace OpenMS
 
         // register ObservationMatch
         auto obs_match_ref = id.registerObservationMatch(match);
-        // add to Feature
+        IdentificationData::IdentifiedMolecule molecule(compound_ref);
+        // add to Feature (set PrimaryID to add a reference to a specific molecule)
+        f.setPrimaryID(molecule);
         f.addIDMatch(obs_match_ref);
       }
     }
@@ -856,6 +900,7 @@ namespace OpenMS
     return;
   }
 
+  // FeatureMap with IdentificationData attached!
 void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
 {
     // TODO: Test of MzTabM FeatureMap export function
@@ -1311,6 +1356,7 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
           // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
+          rt_temp.set((*tab_it)[hit_idx].getObservedRT());
           rt_temp.set((*tab_it)[hit_idx].getObservedRT());
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;

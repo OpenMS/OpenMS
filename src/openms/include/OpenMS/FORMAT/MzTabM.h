@@ -35,10 +35,9 @@
 #pragma once
 
 #include <OpenMS/FORMAT/MzTabBase.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <set>
 
 namespace OpenMS
@@ -53,6 +52,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMAssayMetaData
   {
   public:
+    MzTabString name;
     MzTabParameter custom; // mztab-m
     MzTabString external_uri; // mztab-m
     std::vector<int> sample_ref;
@@ -75,6 +75,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMStudyVariableMetaData
   {
   public:
+    MzTabString name;
     std::vector<int> assay_refs;
     MzTabParameter average_function; // mztab-m
     MzTabParameter variation_function; // mztab-m
@@ -92,8 +93,6 @@ namespace OpenMS
   };
 
   /// Metadata for MzTab-M
-  // TODO: Check https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#62-metadata-section
-  // TODO: Check if the Type used here and the Type in the specification are the same
   class OPENMS_DLLAPI MzTabMMetaData
   {
   public:
@@ -103,7 +102,6 @@ namespace OpenMS
     MzTabString mz_tab_id; ///<  MzTab-M file id (e.g. repository-, local identifier)
     MzTabString title; ///< Title
     MzTabString description; ///< Description
-    // TODO: MSIO ?? [MSIO, MSIO:0000146, centrifugation,]
     std::map<Size, MzTabParameterList> sample_processing; ///< List of parameters describing the sample processing/preparation/handling
     std::map<Size, MzTabInstrumentMetaData> instrument; ///< List of parameters describing the instrument
     std::map<Size, MzTabSoftwareMetaData> software; ///< Software used to analyze the data

@@ -32,7 +32,9 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzTabM.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -117,11 +119,10 @@ namespace OpenMS
   }
 
   // FeatureMap with associated identification data
-  // TODO: Do I have to use the identification data in order to access based on the references?
    MzTabM MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map,
                                            const String& filename)
    {
-     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to mzTab: " << std::endl;
+     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
 
      MzTabM mztabm;
      MzTabMMetaData m_meta_data;
@@ -129,49 +130,52 @@ namespace OpenMS
      // extract identification data from FeatureMap
      IdentificationData id_data = feature_map.getIdentificationData();
 
-     // use identification data to construct the meta data section
-     m_meta_data.mz_tab_id.set("local_id"); // TODO: mandatory
+     UInt64 local_id = feature_map.getUniqueId();
+     // mz_tab_id (mandatory)
+     m_meta_data.mz_tab_id.set("local_id: " + String(local_id));
 
      // title (not mandatory)
      // description (not mandatory)
-     // TODO: ProcessingStep - seems to be a problem in AMS or in the pipeline - is not added to the featureXML.
      // sample_processing (not mandatory)
      // instrument-name (not mandatory)
      // instrument-source (not mandatory)
      // instrument-analyzer (not mandatory)
      // instrument-detector (not mandatory)
 
+     // TODO: Remove
+     // TODO: ProcessingsSteps can either be loaded from the IdentificationData::ProcessingSteps, or the FeatureMap
+     //IdentificationDataInternal::ProcessingSteps steps = id_data.getProcessingSteps();
+     //for (const auto& step : steps)
+     //{
+     //  std::cout << step.input_file_refs[0]->name << std::endl;
+       // TODO: That are references which have been added - how do I get to the information?
+       // TODO: What are the actions supposed to do.
+     //}
+
+     // meta_software.setting[0] (not mandatory)
      MzTabSoftwareMetaData meta_software;
-     for (const auto & software : id_data.getProcessingSoftwares())
+     ControlledVocabulary cv;
+     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+     for (const auto& software : id_data.getProcessingSoftwares())
      {
        MzTabParameter p_software;
-       String cv_term = "null";
-
-       // TODO: How to add the CV Term?
-       // TODO: How to add the CV label e.g. MS?
-       // TODO: MTD software[1] [MS, MS:1002879, Progenesis QI, 3.0]
-
-       // TODO: load PSI MOD is there an entry
-       // TODO: MzTabExporter?
-       // TODO: CVMappingFile?
-       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L74
-       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L464
-       // https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L478
-       // getTermByName
-
-       for (const auto& cv : software.getCVTerms())
+       ControlledVocabulary::CVTerm cvterm;
+       // add TOPP - all OpenMS Tools have TOPP attached in the PSI-OBO
+       std::string topp_tool = "TOPP " + software.getName();
+       if (cv.hasTermWithName(topp_tool)) // asses CV-term based on tool name
        {
-         std::cout << cv.first << std::endl;
-         for (const auto& term : cv.second)
-         {
-           std::cout << term.getName() << std::endl;
-           std::cout << term.getAccession() << std::endl;
-         }
-         cv_term = cv_term; // TODO: How to add the CV Term?
+         cvterm = cv.getTermByName(topp_tool);
        }
-       p_software.fromCellString("[, " + cv_term + "," + software.getName() + "," + software.getVersion() + "]");
+       else
+       {
+         // use "analysis software" instead
+         OPENMS_LOG_WARN << "The tool: " << topp_tool << " is currently not registered in the PSI-OBO.\n";
+         OPENMS_LOG_WARN << "'The general term 'analysis software' will be used instead.\n";
+         OPENMS_LOG_WARN << "Please register the tool as soon as possible in the psi-ms.obo (https://github.com/HUPO-PSI/psi-ms-CV)" << std::endl;
+         cvterm = cv.getTermByName("analysis software");
+       }
+       p_software.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", " + software.getVersion() + "]");
        meta_software.software = p_software;
-       // meta_software.setting[0] (not mandatory)
        m_meta_data.software[m_meta_data.software.size() + 1] = meta_software; // starts at 1
      }
 
@@ -182,10 +186,23 @@ namespace OpenMS
      // uri (not mandatory)
      // ext. study uri (not mandatory)
 
-     // TODO: Set quantification method in IdentificationData?
-     // TODO: [MS, MS:1001834, LC-MS label-free quantitation analysis, ]
      // quantification_method (mandatory)
-     // FeatureMap - FeatureFinderMetabo? Processingsteps?
+     MzTabParameter quantification_method;
+     for (const auto& software : id_data.getProcessingSoftwares())
+     {
+       if (software.getName() == "FeatureFinderMetabo")
+       {
+         ControlledVocabulary::CVTerm cvterm;
+         cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+         quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+       }
+       else
+       {
+         OPENMS_LOG_WARN << "If the quantification of your computational analysis is not 'LC-MS label-free quantitation analysis'.\n"
+         << "Please contact a OpenMS Developer to add the appropriate tool and description to MzTab-M." << std::endl;
+       }
+     }
+     m_meta_data.quantification_method = quantification_method;
 
      // sample[1-n] (not mandatory)
      // sample[1-n]-species[1-n] (not mandatory)
@@ -195,13 +212,15 @@ namespace OpenMS
      // sample[1-n]-description (not mandatory)
      // sample[1-n]-custom[1-n] (not mandatory)
 
-     MzTabMMSRunMetaData ms_run;
+     MzTabMMSRunMetaData meta_ms_run;
+     String input_file_name;
      auto input_files = id_data.getInputFiles();
-     for (const auto& input_file : input_files)
+     for (const auto& input_file : input_files) // should only be one in featureXML
      {
-       ms_run.location.set(input_file.name);
-       m_meta_data.ms_run[m_meta_data.ms_run.size() + 1] = ms_run;
+       input_file_name = input_file.name;
+       meta_ms_run.location.set(input_file_name);
      }
+     // meta_ms_run.location.set(input_files[0].name);
 
      // ms_run[1-n]-instrument_ref (not mandatory)
      // ms_run[1-n]-format (not mandatory)
@@ -209,52 +228,88 @@ namespace OpenMS
      // ms_run[1-n]-fragmentation_method[1-n] (not mandatory)
 
      // ms_run[1-n]-scan_polarity[1-n] (mandatory)
-     // TODO: Set based on meta value?
-     Feature feature = feature_map[0];
-     if (feature.metaValueExists("scan_polarity"))
+     // assess scan polarity based on the adducts
+     std::vector<MzTabParameter> polartiy;
+     auto adducts = id_data.getAdducts();
+     if (!adducts.empty())
      {
-       std::cout << feature.getMetaValue("scan_polarity") << std::endl;
-     }
-     else // TODO: based on actual adducts in identification data
-     {
-       auto adducts = id_data.getAdducts();
        for (const auto& adduct : adducts)
        {
-         std::cout << adduct.getName() << std::endl; // TODO: infere from adducts last digit
-         std::cout << adduct.getCharge() << std::endl;
-         std::cout << adduct.getEmpiricalFormula().getNumberOfAtoms() << std::endl;
+         String adduct_suffix = adduct.getName().suffix(';').trim();
+         if (adduct_suffix == "+")
+         {
+           ControlledVocabulary::CVTerm cvterm;
+           cvterm = cv.getTermByName("positive scan");
+           MzTabParameter spol;
+           spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+           polartiy.emplace_back(spol);
+         }
+         else
+         {
+           ControlledVocabulary::CVTerm cvterm;
+           cvterm = cv.getTermByName("negative scan");
+           MzTabParameter spol;
+           spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+           polartiy.emplace_back(spol);
+         }
        }
      }
+     else
+     {
+         // if no adduct information is available warn, but assume positive mode.
+         OPENMS_LOG_WARN << "No adduct information available: scan polarity will be assumed to be positive." << std::endl;
+         ControlledVocabulary::CVTerm cvterm;
+         cvterm = cv.getTermByName("positive scan");
+         MzTabParameter spol;
+         spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+         polartiy.emplace_back(spol);
+     }
+     meta_ms_run.scan_polarity.set(polartiy);
 
      // ms_run[1-n]-hash (not mandatory)
      // ms_run[1-n]-hash_method (not mandatory)
 
+     MzTabMAssayMetaData meta_ms_assay;
      // assay[1-n] (mandatory)
+     meta_ms_assay.name = MzTabString("assay_" + File::basename(input_file_name).prefix('.').trim());
      // assay[1-n]-custom[1-n] (not mandatory)
      // assay[1-n]-external_uri (not mandatory)
      // assay[1-n]-sample_ref (not mandatory)
 
      // assay[1-n]-ms_run_ref (mandatory)
+     std::vector<int> ms_run_ref(1);
+     meta_ms_assay.ms_run_ref = ms_run_ref;
 
+     MzTabMStudyVariableMetaData meta_ms_study_variable;
      // study_variable[1-n] (mandatory)
+     meta_ms_study_variable.name = MzTabString("study_variable_" + File::basename(input_file_name).prefix('.').trim());
+
      // study_variable[1-n]-assay_refs (mandatory)
+     std::vector<int> assay_refs(1);
+     meta_ms_study_variable.assay_refs = assay_refs;
 
      // study_variable[1-n]-average_function (not mandatory)
      // study_variable[1-n]-variation_function (not mandatory)
 
      // study_variable[1-n]-description (mandatory)
+     meta_ms_study_variable.description = MzTabString("study_variable_" + File::basename(input_file_name).prefix('.').trim());
 
      // study_variable[1-n]-factors (not mandatory)
      // custom[1-n] (not mandatory)
 
-     // TODO: Where from?
-     // TODO: save which mapping I have?
+     MzTabCVMetaData meta_cv;
      // cv[1-n]-label (mandatory)
+     meta_cv.label = MzTabString(cv.name());
      // cv[1-n]-full_name (mandatory)
+     meta_cv.full_name = MzTabString(cv.label());
      // cv[1-n]-version (mandatory)
+     meta_cv.version = MzTabString(cv.version());
      // cv[1-n]-uri (mandatory)
+     meta_cv.url = MzTabString(cv.url());
 
      // TODO: DBSearchParam
+     // these have to be added to the identification data
+     // in the actual tool writes the mztam-m
      MzTabMDatabaseMetaData meta_db;
      for (const auto& db : id_data.getDBSearchParams())
      {
@@ -268,23 +323,28 @@ namespace OpenMS
        meta_db.prefix.set(prefix);
        meta_db.version.set(db.database_version);
      }
+     // TODO: ERROR / LOG WARN?
 
      // derivatization_agent[1-n] (not mandatory)
 
+     // TODO: Which tool is used?
      // small_molecule-quantification_unit (mandatory)
      // small_molecule_feature-quantification_unit (mandatory)
      // small_molecule-identification_reliability (not mandatory)
 
      // TODO: Where to get confidence measure
+     // TODO: Which tool is used?
      // id_confidence_measure[1-n] (mandatory)
-
 
      // colunit-small_molecule (not mandatory)
      // colunit-small_molecule_feature (not mandatory)
      // colunit-small_molecule_evidence
 
-     // iterate over features and construct the feature, summary and evidence section
+     m_meta_data.ms_run[1] = meta_ms_run;
+     m_meta_data.assay[1] = meta_ms_assay;
+     m_meta_data.study_variable[1] = meta_ms_study_variable;
 
+     // iterate over features and construct the feature, summary and evidence section
      // TODO: Feature UniqueID evidence
      // TODO: Feature Evidence?
 
@@ -349,7 +409,7 @@ namespace OpenMS
        // MzTabString chemical_name; ///< Possible chemical/common names or general description
        // MzTabString uri; ///< The source entry’s location.
        // MzTabParameter derivatized_form; ///< //TODO: What has to be added here?
-       // MzTabString adduct; ///< Adduct // TODO: Whyin feature and evidence section?
+       // MzTabString adduct; ///< Adduct // TODO: Why in feature and evidence section?
        // MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
        // MzTabInteger charge; ///< Precursor ion’s charge.
        // MzTabDouble calc_mass_to_charge; ///< Precursor ion’s m/z.
@@ -386,11 +446,8 @@ namespace OpenMS
         //  std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
 
      }
-
-
      // TODO: What to do if you have multiple files?
      // TODO: Write it directly in the AMS?
-
 
      return mztabm;
    }

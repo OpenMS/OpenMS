@@ -212,7 +212,6 @@ namespace OpenMS
     return result.first;
   }
 
-
   IdentificationData::ObservationRef
   IdentificationData::registerObservation(const Observation& obs)
   {

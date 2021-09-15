@@ -1478,7 +1478,7 @@ namespace OpenMS
   void OMSFile::OMSFileStore::storeMapMetaData_(const FeatureMap& features)
   {
     createTable_("FEAT_MapMetaData",
-                 "unique_id INTEGER UNIQUE NOT NULL, "          \
+                 "unique_id INTEGER UNIQUE NOT NULL, " \
                  "identifier TEXT, "            \
                  "file_path TEXT, "             \
                  "file_type TEXT");
