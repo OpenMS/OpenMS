@@ -45,10 +45,20 @@ def main():
 
             if not args.full:
                 old_unknown_words = comments_to_words(issue.get_comments())
-                for word, properties in unknown_words.items():
+                print(old_unknown_words)
+
+                # Word got deleted in edited files
+                for word in list(old_unknown_words.keys()):
                     for file in list(old_unknown_words[word]['files'].keys()):
-                        if file in edited_files and file not in unknown_words[word]['files']:
-                            old_unknown_words[word]['files'].pop(file)
+                        if file in edited_files:
+                            if word in unknown_words:
+                                if file not in unknown_words[word]['files']:
+                                    old_unknown_words[word]['files'].pop(file)
+                                if len(old_unknown_words[word]['files']) == 0:
+                                    old_unknown_words.pop(word)
+
+                # Updated, added words in edited files
+                for word, properties in unknown_words.items():
                     for file, lines in properties['files'].items():
                         old_unknown_words[word]['files'][file] = lines
                 unknown_words = {key: old_unknown_words[key] for key in
@@ -56,7 +66,6 @@ def main():
         else:
             # Create new issue
             issue = repo.create_issue(title, ' ', labels=['spellcheck'])
-
         comments = words_to_comments(unknown_words, repo, branch)
         update_issue(issue, title, comments, len(unknown_words))
 

@@ -25,7 +25,6 @@ def main():
     title = f'Spell-Check Results - {args.repository.split("/")[0]}/{branch}'
 
     unknown_words = comments_to_words(issue.get_comments())
-    print(unknown_words)
     process_actions_github(unknown_words, repo, branch)
     update_vocab(repo, branch)
 

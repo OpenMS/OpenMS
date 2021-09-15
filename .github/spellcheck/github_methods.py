@@ -82,7 +82,7 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
                 while not lines[i].startswith('-'):
 
                     if lines[i].startswith('<summary>'):
-                        path = lines[i][9:-11]
+                        path = lines[i][9:-10]
 
                     if lines[i].startswith('(') and path != '':
                         unknown_words[word]['files'][path].append(int(lines[i][1:].split(')')[0]))

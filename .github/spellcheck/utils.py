@@ -28,8 +28,25 @@ def load_json(path: Path):
         return json.load(file)
 
 
+def create_patterns():
+    COMMENT_TYPES = load_json(Path(SP_DIR + 'comment_types.json'))
+    comment_patterns = {}
+    for ext, properties in COMMENT_TYPES.items():
+        neg_lookbehind = '(?<![\'"])'
+        neg_lookahead = '(?![\'"])'
+
+        neg_lc_lbehind = ''.join([f'(?<!{re.escape(lc)})' for lc in properties['line']])
+        line_comments = '(' + '|'.join([f'{re.escape(lc)}' for lc in properties['line']]) + ')'
+        pattern = neg_lookbehind + line_comments + '.*' + neg_lookahead + '|'
+
+        for start, end in properties['block']:
+            pattern += f'{neg_lookbehind}{neg_lc_lbehind}{re.escape(start)}(.|\n)*?{re.escape(end)}{neg_lookahead}|'
+        comment_patterns[ext] = pattern[:-1]
+    return comment_patterns
+
+
 RULES = load_json(Path(SP_DIR + 'rules.json'))
-COMMENT_TYPES = load_json(Path(SP_DIR + 'comment_types.json'))
+COMMENT_PATTERNS = create_patterns()
 vocabulary = set(load_json(Path(SP_DIR + 'vocabulary.json')))
 
 
@@ -88,7 +105,7 @@ def get_words(rel_path: str = '', files_filter: Union[set, bool] = False) -> def
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocabulary': ''},
                                          'blob': [], 'files': defaultdict(list)})
     file_list = build_file_list(rel_path, files_filter)
-    pattern = RULES['include']['pattern']
+    include_pattern = RULES['include']['pattern']
     errors = []
 
     def _search_file():
@@ -96,54 +113,26 @@ def get_words(rel_path: str = '', files_filter: Union[set, bool] = False) -> def
         Search all words within a file.
         """
 
-        def _search_block():
-            """
-            Search all words within a word block.
-            """
-            for word in re.findall(pattern, txt_block):
-                if word not in vocabulary and \
-                        all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
-                    unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
-
         try:
             file = open(path, 'r')
-            txt = file.read()
+            text = file.read()
             file_ext = path.suffix
-            block_comment = ''
-            for i_line, line in enumerate(txt.split('\n')):
-                line_comment = ''
-                for i_block, txt_block in enumerate(line.split()):
-                    if file_ext in COMMENT_TYPES:
-                        # Block comment end
-                        if block_comment != '' and txt_block.endswith(block_comment):
-                            txt_block = txt_block.strip(block_comment)
-                            block_comment = ''
-                            _search_block()
-                        # Line comment option_start
-                        if block_comment == '':
-                            for lc in COMMENT_TYPES[file_ext]['line']:
-                                i_lc = txt_block.find(lc)
-                                if i_lc != -1:
-                                    line_comment = lc
-                                    txt_block = txt_block.strip(lc)
-                                    break
-                        # Block comment option_start
-                        if i_block == 0 and line_comment == '':
-                            for ext in COMMENT_TYPES[file_ext]['block']:
-                                bc_start, bc_end = ext.split()
-                                i_bc = txt_block.find(bc_start)
-                                if 1 >= i_bc > -1:
-                                    block_comment = bc_end
-                                    txt_block = txt_block[i_bc:].strip(bc_start)
-                                    break
-                    if block_comment != '' or line_comment != '' or file_ext not in COMMENT_TYPES:
-                        _search_block()
+            file_pattern = COMMENT_PATTERNS[file_ext]
+
+            for match in re.finditer(file_pattern, text):
+                text_block = text[match.start():match.end()]
+                for word in re.findall(include_pattern, text_block):
+                    if word not in vocabulary and \
+                            all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
+                        i_line = len(text[:match.start()+1].split('\n')) - 1
+                        unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
 
             file.close()
+
         except UnicodeDecodeError:
             errors.append(f'Could not read file: {path}')
 
-    with IncrementalBar('Searching', max=len(file_list)) as bar:
+    with IncrementalBar('Searching files', max=len(file_list)) as bar:
         for path in file_list:
             _search_file()
             bar.next()
@@ -155,7 +144,7 @@ def get_words(rel_path: str = '', files_filter: Union[set, bool] = False) -> def
     # TextBlob unknown words
     if len(unknown_words) > 0:
         os.system('python -m textblob.download_corpora')
-        with IncrementalBar('Spellcheck', max=len(unknown_words)) as bar:
+        with IncrementalBar('Checking words', max=len(unknown_words)) as bar:
             for word in list(unknown_words.keys()):
                 # TextBlob needs regular or lowercase word
                 if word.isupper():
