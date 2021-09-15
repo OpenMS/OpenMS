@@ -35,7 +35,6 @@ Example:
 
 ## Command Line Interface (CLI)
 
-
 ### Steps
 1. Install Python >= 3.8.x
 2. `pip install -r requirements.txt`
