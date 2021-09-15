@@ -69,7 +69,7 @@ def main():
                                     removed_files += 1
                                 if len(old_unknown_words[word]['files']) == 0:
                                     old_unknown_words.pop(word)
-                print(f'{len(old_unknown_words) - len_before_removing} removed words and '
+                print(f'{len(old_unknown_words) - len_before_removing} words and '
                       f'{removed_files} files were removed!')
 
                 # Updated, added words in edited files
