@@ -1,6 +1,8 @@
+print('Before import')
 from github_methods import *
 from github import Github
 import argparse
+print('After import')
 
 
 def parse_args():
@@ -19,8 +21,10 @@ def main():
     print('Starting GitHub Issue update.')
     args = parse_args()
 
+    print('Token')
     g = Github(args.token)
 
+    print('Repo')
     repo = g.get_repo(args.repository)
 
     branch = args.branch.split('/')[-1]
