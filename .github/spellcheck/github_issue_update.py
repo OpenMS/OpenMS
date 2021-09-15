@@ -16,6 +16,7 @@ def parse_args():
 
 
 def main():
+    print('Starting GitHub Issue update.')
     args = parse_args()
 
     g = Github(args.token)
@@ -26,7 +27,12 @@ def main():
     title = f'Spellcheck Results - {args.repository.split("/")[0]}/{branch}'
 
     # Find out if issue already exists
+    print('Find issue..')
     issue = [issue for issue in repo.get_issues() if issue.title == title]
+    if len(issue) > 0:
+        print('Issue found!')
+    else:
+        print('Issue not found, a new Issue will be created!')
 
     # Default: run search only on edited files
     edited_files = False
@@ -51,7 +57,7 @@ def main():
                 print(f'GitHub Issue processed, {len(unknown_words)} words retained!')
 
                 # Word got deleted in edited files
-                print('Removing deleted words and occurences...')
+                print('Removing deleted words and occurences..')
                 len_before_removing = len(unknown_words)
                 removed_files = 0
                 for word in list(old_unknown_words.keys()):
@@ -67,7 +73,7 @@ def main():
                       f'{removed_files} files were removed!')
 
                 # Updated, added words in edited files
-                print('Transferring old words and properties...')
+                print('Transferring old words and properties..')
                 for word, properties in unknown_words.items():
                     for file, lines in properties['files'].items():
                         old_unknown_words[word]['files'][file] = lines
@@ -77,13 +83,15 @@ def main():
         else:
             # Create new issue
             issue = repo.create_issue(title, ' ', labels=['spellcheck'])
-        print('Convert unknown words to commments...')
+        print('Convert unknown words to commments..')
         comments = words_to_comments(unknown_words, repo, branch)
         print('Done!')
 
-        print('Update issue...')
+        print('Update issue..')
         update_issue(issue, title, comments, len(unknown_words))
-    print('All tasks executed successfully')
+        print('Done!')
+
+    print('All tasks executed successfully!')
 
 
 if __name__ == '__main__':
