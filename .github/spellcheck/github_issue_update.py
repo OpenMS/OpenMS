@@ -37,7 +37,6 @@ def main():
     if not args.full:
         commit = repo.get_commit(args.commit)
         edited_files = {Path(file.filename) for file in commit.files}
-    print(edited_files)
 
     print('Searching words..')
     unknown_words = get_words(files_filter=edited_files)
