@@ -28,9 +28,9 @@ TestI'''
 TestJ
 '''
 
-'''TestL''' """TestM""" """TestN""" '''TestO'''
+'''TestK''' """TestL""" """TestM""" '''TestN'''
 
 nottest = '"""' + 'nottest' + '"""'
 
-nottest = '#' + 'nottest' # TestP
+nottest = '#' + 'nottest' # TestO
 
