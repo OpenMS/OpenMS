@@ -17,11 +17,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
             #   CoarseIsotopePatternGenerator for quantized atomic masses which group
             #   isotopes with the same atomic number. Alternatively, the
             #   FineIsotopePatternGenerator can be used that calculates hyperfine isotopic
-            #   distributions. 
+            #   distributions 
             #    -----
             #   This class only describes the container that holds the isotopic
             #   distribution, calculations are done using classes derived from
-            #   IsotopePatternGenerator.        
+            #   IsotopePatternGenerator        
 
         IsotopeDistribution() nogil except +
         IsotopeDistribution(IsotopeDistribution &) nogil except +

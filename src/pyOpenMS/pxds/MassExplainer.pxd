@@ -18,6 +18,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/MassExplainer.h>" namespace "OpenMS":
         ## MassExplainer operator=(MassExplainer &rhs) nogil except +
         void setAdductBase(libcpp_vector[Adduct] adduct_base) nogil except + # wrap-doc:Sets the set of possible adducts
         libcpp_vector[Adduct] getAdductBase() nogil except + # wrap-doc:Returns the set of adducts
-        Compomer getCompomerById(Size id) nogil except + # wrap-doc:Return a compomer by its Id (useful after a query() )
+        Compomer getCompomerById(Size id) nogil except + # wrap-doc:Returns a compomer by its Id (useful after a query() )
         void compute() nogil except + # wrap-doc:Fill map with possible mass-differences along with their explanation
 

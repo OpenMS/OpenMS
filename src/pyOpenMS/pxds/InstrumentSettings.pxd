@@ -16,10 +16,10 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
         ScanMode getScanMode() nogil except + # wrap-doc:Returns the scan mode
         void setScanMode(ScanMode scan_mode) nogil except + # wrap-doc:Sets the scan mode
-        bool getZoomScan() nogil except + # wrap-doc:Return if this scan is a zoom (enhanced resolution) scan
+        bool getZoomScan() nogil except + # wrap-doc:Returns if this scan is a zoom (enhanced resolution) scan
         void setZoomScan(bool zoom_scan) nogil except + # wrap-doc:Sets if this scan is a zoom (enhanced resolution) scan
-        libcpp_vector[ ScanWindow ]  getScanWindows() nogil except + # wrap-doc:Get the m/z scan windows
-        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) nogil except + # wrap-doc:Set the m/z scan windows
+        libcpp_vector[ ScanWindow ]  getScanWindows() nogil except + # wrap-doc:Returns the m/z scan windows
+        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) nogil except + # wrap-doc:Sets the m/z scan windows
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::InstrumentSettings":
 
