@@ -1,8 +1,6 @@
-print('Before import')
 from github_methods import *
 from github import Github
 import argparse
-print('After import')
 
 
 def parse_args():
@@ -21,12 +19,8 @@ def main():
     print('Starting GitHub Issue update.')
     args = parse_args()
 
-    print('Token')
     g = Github(args.token)
-
-    print('Repo')
     repo = g.get_repo(args.repository)
-
     branch = args.branch.split('/')[-1]
     title = f'Spellcheck Results - {args.repository.split("/")[0]}/{branch}'
 
@@ -43,6 +37,7 @@ def main():
     if not args.full:
         commit = repo.get_commit(args.commit)
         edited_files = {Path(file.filename) for file in commit.files}
+    print(edited_files)
 
     print('Searching words..')
     unknown_words = get_words(files_filter=edited_files)
