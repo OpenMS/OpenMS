@@ -19,7 +19,6 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         #     k = []
         #     exp.getKeys(k) # explore available key-value pairs
         #     exp.getMetaValue("someMetaName")
-        #   -----
 
         MetaInfoInterface() nogil except +
         MetaInfoInterface(MetaInfoInterface &) nogil except +

@@ -25,9 +25,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Collects all modifications which have the given name as synonym
                 #   -----
-                #   If `residue` is set, only modifications with matching residue of origin are considered.
-                #   If `term_spec` is set, only modifications with matching term specificity are considered.
-                #       The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
+                #   If `residue` is set, only modifications with matching residue of origin are considered
+                #   If `term_spec` is set, only modifications with matching term specificity are considered
+                #   The resulting set of modifications will be empty if no modification exists that fulfills the criteria
 
         const ResidueModification * getModification(Size index) nogil except + # wrap-doc:Returns the modification with the given index
 
