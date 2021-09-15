@@ -42,6 +42,7 @@ def main():
 
     print('Searching words..')
     unknown_words = get_words(files_filter=edited_files)
+    print(unknown_words)
     print(f'Search finished, {len(unknown_words)} unknown words were found!')
     update_vocab(repo, branch)
 
@@ -54,6 +55,7 @@ def main():
             if not args.full:
                 print('Processing current GitHub Issue..')
                 old_unknown_words = comments_to_words(issue.get_comments())
+                print(old_unknown_words)
                 print(f'GitHub Issue processed, {len(unknown_words)} words retained!')
 
                 # Word got deleted in edited files

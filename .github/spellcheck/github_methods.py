@@ -51,7 +51,6 @@ def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository,
         if error != '':
             word_block += f'{error}\n'
 
-        print(blob)
         word_block += f'\n- [ ] Add "{word}" to vocabulary *({blob[0][1]}%)*'
         if len(blob) > 1:
             for blob_word, certainty in blob[1:]:
@@ -70,7 +69,6 @@ def comments_to_words(comments: PaginatedList) -> defaultdict:
     """
     unknown_words = defaultdict(lambda: {'error': '', 'action': {'replacement': '', 'vocabulary': ''},
                                          'blob': [], 'files': defaultdict(list)})
-
     for comment in comments:
         lines = comment.body.split('\n')
         i = 0
