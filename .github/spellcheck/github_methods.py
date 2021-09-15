@@ -37,7 +37,7 @@ def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository,
             if i_path >= 5:
                 word_block += '`...`\n'
                 break
-            word_block += f' <details>\n<summary>{path}</summary>\n\n'
+            word_block += f'<details>\n<summary>{path}</summary>\n\n'
             content_file = repo.get_contents(str(path), branch)
             file = open(path)
             file_lines = file.readlines()
@@ -46,7 +46,7 @@ def words_to_comments(unknown_words: Union[dict, defaultdict], repo: Repository,
                     word_block += '`...`\n'
                     break
                 word_block += f'({line}) [`{file_lines[int(line)-1][:-1]}`]({content_file.html_url}#L{line})\n'
-        word_block += '</details>\n'
+            word_block += '</details>\n'
 
         if error != '':
             word_block += f'{error}\n'
