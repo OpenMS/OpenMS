@@ -65,7 +65,7 @@ If new words are found, the GitHub bot will open an issue or update an existing 
 To enable this feature, issues need to be activated in the repository before making changes.
 By default, the action only searches edited files. A full search can be initiated manually by clicking on `Actions` and 
 `Spellcheck - Full Search` in the GitHub repository. Additionally, the correct branch needs to be selected.
-The issue is will be locked after each update to ensure, that only users with the correct permission are able to edit and
+The issue will be locked after each update to ensure, that only users with the correct permission are able to edit and
 process the files.
 
 ### Assigning Actions
