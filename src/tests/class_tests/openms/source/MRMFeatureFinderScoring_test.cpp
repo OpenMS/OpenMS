@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -234,8 +234,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   MRMFeatureFinderScoring ff;
   Param ff_param = MRMFeatureFinderScoring().getDefaults();
   Param scores_to_use;
-  scores_to_use.setValue("use_uis_scores", "true", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
-  scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
+  scores_to_use.setValue("use_uis_scores", "true", "Use UIS scores for peptidoform identification ", {"advanced"});
+  scores_to_use.setValidStrings("use_uis_scores", {"true","false"});
   ff_param.insert("Scores:", scores_to_use);
   ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
   ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters

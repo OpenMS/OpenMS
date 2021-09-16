@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,10 +161,7 @@ namespace OpenMS
     return 0;
   }
 
-  EGHTraceFitter::EGHTraceFitter()
-  {
-    //setName("EGHTraceFitter");
-  }
+  EGHTraceFitter::EGHTraceFitter() = default;
 
   EGHTraceFitter::EGHTraceFitter(const EGHTraceFitter& other) :
     TraceFitter(other)
@@ -173,6 +170,7 @@ namespace OpenMS
     this->apex_rt_ = other.apex_rt_;
     this->sigma_ = other.sigma_;
     this->tau_ = other.tau_;
+    this->region_rt_span_ = other.region_rt_span_;
 
     this->sigma_5_bound_ = other.sigma_5_bound_;
 
@@ -187,6 +185,7 @@ namespace OpenMS
     this->apex_rt_ = source.apex_rt_;
     this->sigma_ = source.sigma_;
     this->tau_ = source.tau_;
+    this->region_rt_span_ = source.region_rt_span_;
 
     this->sigma_5_bound_ = source.sigma_5_bound_;
 
@@ -195,9 +194,7 @@ namespace OpenMS
     return *this;
   }
 
-  EGHTraceFitter::~EGHTraceFitter()
-  {
-  }
+  EGHTraceFitter::~EGHTraceFitter() = default;
 
   void EGHTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
@@ -209,7 +206,7 @@ namespace OpenMS
     x_init(2) = sigma_;
     x_init(3) = tau_;
 
-    TraceFitter::ModelData data;
+    TraceFitter::ModelData data{};
     data.traces_ptr = &traces;
     data.weighted = this->weighted_;
     EGHTraceFunctor functor(NUM_PARAMS_, &data);

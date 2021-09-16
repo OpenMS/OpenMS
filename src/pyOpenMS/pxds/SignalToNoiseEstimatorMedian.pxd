@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         #   SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
 
         SignalToNoiseEstimatorMedian() nogil except +
-        SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian) nogil except +
+        SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian &) nogil except + # compiler
 
         void init(MSSpectrum & spectrum) nogil except +
         double getSignalToNoise(Size index) nogil except +

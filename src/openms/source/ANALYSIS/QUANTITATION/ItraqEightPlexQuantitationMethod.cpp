@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
@@ -109,14 +110,14 @@ namespace OpenMS
 //    {0.09, 4.71, 1.88, 0.00},
 //    {0.14, 5.66, 0.87, 0.00},
 //    {0.27, 7.44, 0.18, 0.00}    //121
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.00/0.00/6.89/0.22," //113
-                                                               "0.00/0.94/5.90/0.16,"
-                                                               "0.00/1.88/4.90/0.10,"
-                                                               "0.00/2.82/3.90/0.07,"
-                                                               "0.06/3.77/2.99/0.00,"
-                                                               "0.09/4.71/1.88/0.00,"
-                                                               "0.14/5.66/0.87/0.00,"
-                                                               "0.27/7.44/0.18/0.00"), //121
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.00/0.00/6.89/0.22", //113
+                                                                               "0.00/0.94/5.90/0.16",
+                                                                               "0.00/1.88/4.90/0.10",
+                                                                               "0.00/2.82/3.90/0.07",
+                                                                               "0.06/3.77/2.99/0.00",
+                                                                               "0.09/4.71/1.88/0.00",
+                                                                               "0.14/5.66/0.87/0.00",
+                                                                               "0.27/7.44/0.18/0.00"}, //121
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
@@ -124,14 +125,14 @@ namespace OpenMS
 
   void ItraqEightPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_113_description");
-    channels_[1].description = param_.getValue("channel_114_description");
-    channels_[2].description = param_.getValue("channel_115_description");
-    channels_[3].description = param_.getValue("channel_116_description");
-    channels_[4].description = param_.getValue("channel_117_description");
-    channels_[5].description = param_.getValue("channel_118_description");
-    channels_[6].description = param_.getValue("channel_119_description");
-    channels_[7].description = param_.getValue("channel_121_description");
+    channels_[0].description = param_.getValue("channel_113_description").toString();
+    channels_[1].description = param_.getValue("channel_114_description").toString();
+    channels_[2].description = param_.getValue("channel_115_description").toString();
+    channels_[3].description = param_.getValue("channel_116_description").toString();
+    channels_[4].description = param_.getValue("channel_117_description").toString();
+    channels_[5].description = param_.getValue("channel_118_description").toString();
+    channels_[6].description = param_.getValue("channel_119_description").toString();
+    channels_[7].description = param_.getValue("channel_121_description").toString();
 
     // compute the index of the reference channel
     Int ref_ch = param_.getValue("reference_channel");
@@ -166,7 +167,7 @@ namespace OpenMS
 
   Matrix<double> ItraqEightPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
   }
 

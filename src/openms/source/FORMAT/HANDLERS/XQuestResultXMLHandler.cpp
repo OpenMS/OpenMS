@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,10 +47,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     // Initialize static const members
     std::map< Size, String > XQuestResultXMLHandler::enzymes
     {
@@ -217,7 +216,7 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {
-      String tag = XMLString::transcode(qname);
+      String tag = StringManager::convert(qname);
       if (tag == "xquest_results")
       {
         if (!this->is_openpepxl_)
@@ -237,7 +236,7 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
-      String tag = XMLString::transcode(qname);
+      String tag = StringManager::convert(qname);
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
@@ -266,7 +265,6 @@ namespace OpenMS
           search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]));
         }
 
-        //cout << "Parse shitpile 1" << endl;
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
@@ -901,7 +899,7 @@ namespace OpenMS
       }
       else
       {
-         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
       }
     }
 
@@ -1002,7 +1000,7 @@ namespace OpenMS
         }
         for (PeptideHit ph : pep_hits)
         {
-          // TODO write the specrum_search entry for this ph
+          // TODO write the spectrum_search entry for this ph
 
           double precursor_mz = current_pep_id.getMZ();
           int precursor_charge = ph.getCharge();
@@ -1074,7 +1072,7 @@ namespace OpenMS
 
             // TODO values missing, most of them probably unimportant:
             // mean_ionintensity = mean ion intensity of each MS2 spectrum
-            // ionintensity_stdev = ion inetnsity spectrum_index_heavy
+            // ionintensity_stdev = ion intensity spectrum_index_heavy
             // addedMass = ???
             // iontag_ncandidates = number of candidates extracted per ion tag
             // apriori_pmatch_common, apriori_pmatch_xlink = a priori probs from match-odds probability
@@ -1258,5 +1256,4 @@ namespace OpenMS
       os << "</spectrum_search>" << std::endl;
       os << "</xquest_results>" << std::endl;
     }
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ START_SECTION(ParameterInformation())
 
 	TEST_EQUAL(ptr->name, "")
   TEST_EQUAL(ptr->type, ParameterInformation::NONE)
-  TEST_EQUAL(ptr->default_value, DataValue())
+  TEST_EQUAL(ptr->default_value, ParamValue())
 	TEST_EQUAL(ptr->description, "")
   TEST_EQUAL(ptr->argument, "")
   TEST_EQUAL(ptr->required, true)

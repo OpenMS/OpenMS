@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -249,6 +249,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 
   //initialize the XCorr Matrix
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
   TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
@@ -295,6 +296,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().size(), 3)
   TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix()[0].size(), 2)
@@ -312,6 +314,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().size(), 5)
   TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix()[0].size(), 5)
@@ -328,6 +331,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
 
   //initialize the XCorr Matrix
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getXCorrContrastMatrix().size(), 2)
   TEST_EQUAL(mrmscore.getXCorrContrastMatrix()[0].size(), 2)
@@ -362,6 +366,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 1 + std::sqrt(3.0)) // mean + std deviation
 }
 END_SECTION
@@ -373,6 +378,7 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastCoelutionScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastCoelutionScore()[0], 1.5)
   TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastCoelutionScore()[1], 1.5)
 
@@ -388,6 +394,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionWeightedScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
 
   // xcorr_deltas = [0, 3, 0] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
@@ -402,6 +409,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShapeScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeScore(), (1.0 + 0.3969832 + 1.0)/3.0) // mean + std deviation
 }
 END_SECTION
@@ -413,6 +421,7 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastShapeScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastShapeScore()[0], 0.698492)
   TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastShapeScore()[1], 0.698492)
 }
@@ -427,6 +436,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShapeWeightedScore)
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
 
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
@@ -445,6 +455,7 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastCoelutionScore)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 9.5741984 )
 }
@@ -461,6 +472,7 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedCoelutionScore)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 9.2444789 )
 }
@@ -477,6 +489,7 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastShapeScore)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastShapeScore(), 0.3772868 )
 }
@@ -493,6 +506,7 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedShapeScore)
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedShapeScore(), 0.5079334 )
 }
@@ -666,6 +680,7 @@ mean(m4)
 
   //initialize the MI Matrix
   mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getMIMatrix().size(), 2)
   TEST_EQUAL(mrmscore.getMIMatrix()[0].size(), 2)
@@ -688,6 +703,7 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().size(), 3)
   TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix()[0].size(), 2)
@@ -705,6 +721,7 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorCombinedMatrix)
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().size(), 5)
   TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix()[0].size(), 5)
@@ -721,6 +738,7 @@ BOOST_AUTO_TEST_CASE(initializeMIContrastMatrix)
 
   //initialize the XCorr Matrix
   mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][0], 3.2776)
   TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][1], 3.2776)
@@ -736,6 +754,7 @@ BOOST_AUTO_TEST_CASE(test_calcMIScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcMIScore(), 3.3382) // mean + std deviation
 }
 END_SECTION
@@ -747,6 +766,7 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateMIContrastScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+  delete imrmfeature;
   TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[0], 3.27761)
   TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[1], 3.36852)
 }
@@ -761,6 +781,7 @@ BOOST_AUTO_TEST_CASE(test_calcMIWeightedScore)
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
   mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+  delete imrmfeature;
 
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
@@ -779,6 +800,7 @@ BOOST_AUTO_TEST_CASE(test_calcMIPrecursorContrastScore)
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorContrastScore(), 2.003257 )
 }
@@ -795,6 +817,7 @@ BOOST_AUTO_TEST_CASE(test_calcMIPrecursorCombinedScore)
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+  delete imrmfeature;
 
   TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorCombinedScore(), 1.959490 )
 }

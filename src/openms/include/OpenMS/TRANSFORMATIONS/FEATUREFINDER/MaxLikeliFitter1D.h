@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ public:
 protected:
 
     /// fit an offset on the basis of the Pearson correlation coefficient
-    QualityType fitOffset_(InterpolationModel * model, const RawDataArrayType & set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
+    QualityType fitOffset_(std::unique_ptr<InterpolationModel>& model, const RawDataArrayType & set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step) const
     {
       const CoordinateType offset_min = model->getInterpolation().supportMin() - stdev1;
       const CoordinateType offset_max = model->getInterpolation().supportMin() + stdev2;

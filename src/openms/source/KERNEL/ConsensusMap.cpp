@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,25 +45,6 @@
 
 namespace OpenMS
 {
-
-  ConsensusMap::ColumnHeader::ColumnHeader() :
-    MetaInfoInterface(),
-    filename(),
-    label(),
-    size(0),
-    unique_id(UniqueIdInterface::INVALID)
-  {
-  }
-
-  ConsensusMap::ColumnHeader::ColumnHeader(const ConsensusMap::ColumnHeader& other) :
-    MetaInfoInterface(other),
-    filename(other.filename),
-    label(other.label),
-    size(other.size),
-    unique_id(other.unique_id)
-  {
-  }
-
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),
@@ -189,7 +170,7 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifications
+    // append unassigned PeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());

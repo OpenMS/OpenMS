@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,6 +120,7 @@ protected:
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
                                                 "only represent (protein) inference results? If so, read peptide information only "
                                                 "from second to last runs.", true);
+      registerFlag_("export_all_psms", "Export all PSMs instead of only the best per spectrum", true);
       registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
       setValidStrings_("opt_columns", {"subfeatures"});
     }
@@ -184,9 +185,11 @@ protected:
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
         MzTabFile().store(out,
-	  prot_ids,
+          prot_ids,
           pep_ids,
-          getFlag_("first_run_inference_only"));
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
         return EXECUTION_OK;
       }
 
@@ -201,7 +204,9 @@ protected:
         MzTabFile().store(out,
 	        prot_ids,
           pep_ids,
-          getFlag_("first_run_inference_only"));
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
         return EXECUTION_OK;
       }
 
@@ -216,7 +221,9 @@ protected:
            getFlag_("first_run_inference_only"), 
            true, 
            true, 
-           export_subfeatures); // direct stream to disc
+           export_subfeatures,
+           false,
+           getFlag_("export_all_psms")); // direct stream to disc
         return EXECUTION_OK;
       }
 

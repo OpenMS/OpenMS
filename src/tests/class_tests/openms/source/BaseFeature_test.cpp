@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -410,8 +410,6 @@ END_SECTION
 START_SECTION((AnnotationState getAnnotationState() const))
   BaseFeature tmp;
   vector<PeptideIdentification> vec;
-
-
   vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
 
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
@@ -433,6 +431,32 @@ START_SECTION((AnnotationState getAnnotationState() const))
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
 
 
+END_SECTION
+
+START_SECTION((sortPeptideIdentifications()))
+    BaseFeature tmp;
+    vector<PeptideIdentification> vec;
+    vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
+
+    ids.resize(3);
+
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("ABCDE"));
+    hit.setScore(0.8);
+    ids[0].setHits(std::vector<PeptideHit>(1, hit));
+
+    hit.setScore(0.5);
+    ids[1].getHits().push_back(hit); // same as first hi
+
+    hit.setSequence(AASequence::fromString("KRGH"));
+    hit.setScore(0.9);
+    ids[1].getHits().push_back(hit); // different to first hit
+
+    //ids[2] is empty.
+
+    tmp.sortPeptideIdentifications();
+    TEST_EQUAL(ids[0].getHits()[0].getScore(), 0.9);
+    TEST_EQUAL(ids[2].empty(), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

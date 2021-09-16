@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
     defaults.setMinInt("max_gd_iter", 0);
 
     defaults.setValue("compute_additional_points", "true", "Whether additional points should be added when fitting EMG peak model.");
-    defaults.setValidStrings("compute_additional_points", ListUtils::create<String>("true,false"));
+    defaults.setValidStrings("compute_additional_points", {"true","false"});
   }
 
   void EmgGradientDescent::updateMembers_()

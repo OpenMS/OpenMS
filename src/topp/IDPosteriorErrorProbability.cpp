@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -159,7 +159,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
-    String outlier_handling = fit_algorithm.getValue("outlier_handling");
+    String outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
 
     //-------------------------------------------------------------
     // reading input
@@ -204,7 +204,7 @@ protected:
       if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
     }
 
-    String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
+    String out_plot = String(fit_algorithm.getValue("out_plot").toString()).trim();
 
     for (auto & score : all_scores)
     {

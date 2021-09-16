@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
+from libcpp.string cimport string as libcpp_utf8_string # triggers input conversion provider
 from MRMFeature cimport *
 from ReactionMonitoringTransition cimport *
 from LightTargetedExperiment cimport *
@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         #   MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition]
         #   LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, LightTransition]
 
-        MRMTransitionGroup() nogil except +
+        MRMTransitionGroup() nogil except +# TODO(whole file)
         MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) nogil except +
 
         Size size() nogil except+
@@ -46,7 +46,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         MRMFeature getBestFeature() nogil except +
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
-        MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_string ] tr_ids) nogil except +
+        MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_utf8_string ] tr_ids) nogil except +
 
         bool isInternallyConsistent() nogil except +
 

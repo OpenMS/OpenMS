@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -168,7 +168,7 @@ protected:
       void buildAnalysisCollection_(xercesc::DOMElement* analysisCollectionElements);
       void buildAnalysisProtocolCollection_(xercesc::DOMElement* protocolElements);
       void buildInputDataCollection_(xercesc::DOMElement* inputElements);
-      void buildEnclosedCV_(xercesc::DOMElement* parentElement, String encel, String acc, String name, String cvref);
+      void buildEnclosedCV_(xercesc::DOMElement* parentElement, const String& encel, const String& acc, const String& name, const String& cvref);
       void buildAnalysisDataCollection_(xercesc::DOMElement* analysisElements);
       //@}
 

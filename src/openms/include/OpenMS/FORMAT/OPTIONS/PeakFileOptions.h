@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,8 @@ public:
     PeakFileOptions();
     ///Copy constructor
     PeakFileOptions(const PeakFileOptions &);
+    ///Copy assignment
+    PeakFileOptions& operator=(const PeakFileOptions&) = default;
     ///Destructor
     ~PeakFileOptions();
 
@@ -66,9 +68,9 @@ public:
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
     bool getForceMQCompatability() const;
 
-    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    /// [mzML only!] Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
     void setForceTPPCompatability(bool forceTPP);
-    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    /// [mzML only!] Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
     bool getForceTPPCompatability() const;
     //@}
 

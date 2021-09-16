@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -880,7 +880,7 @@ START_SECTION((String& substitute(const String& from, const String& to)))
   s.substitute("","blblblblbl");
   TEST_EQUAL(s,"xyz!")
 
-  //mutiple occurences
+  //mutiple occurrences
   s = "abcdefgabcdefgabcdefgab";
   s.substitute("ab","x");
   TEST_EQUAL(s,"xcdefgxcdefgxcdefgx")

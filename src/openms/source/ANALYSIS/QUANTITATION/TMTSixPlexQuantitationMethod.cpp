@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -74,12 +75,12 @@ namespace OpenMS
     //    {0.0, 2.0, 5.6, 0.1},
     //    {0.0, 3.0, 4.5, 0.1},
     //    {0.1, 4.0, 3.5, 0.1}    //117
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/0.0/0.0,"
-                                                               "0.0/0.0/0.0/0.0,"
-                                                               "0.0/0.0/0.0/0.0,"
-                                                               "0.0/0.0/0.0/0.0,"
-                                                               "0.0/0.0/0.0/0.0,"
-                                                               "0.0/0.0/0.0/0.0"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/0.0/0.0",
+                                                               "0.0/0.0/0.0/0.0",
+                                                               "0.0/0.0/0.0/0.0",
+                                                               "0.0/0.0/0.0/0.0",
+                                                               "0.0/0.0/0.0/0.0",
+                                                               "0.0/0.0/0.0/0.0"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
@@ -87,12 +88,12 @@ namespace OpenMS
 
   void TMTSixPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_126_description");
-    channels_[1].description = param_.getValue("channel_127_description");
-    channels_[2].description = param_.getValue("channel_128_description");
-    channels_[3].description = param_.getValue("channel_129_description");
-    channels_[4].description = param_.getValue("channel_130_description");
-    channels_[5].description = param_.getValue("channel_131_description");
+    channels_[0].description = param_.getValue("channel_126_description").toString();
+    channels_[1].description = param_.getValue("channel_127_description").toString();
+    channels_[2].description = param_.getValue("channel_128_description").toString();
+    channels_[3].description = param_.getValue("channel_129_description").toString();
+    channels_[4].description = param_.getValue("channel_130_description").toString();
+    channels_[5].description = param_.getValue("channel_131_description").toString();
 
     // compute the index of the reference channel
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 126;
@@ -137,7 +138,7 @@ namespace OpenMS
 
   Matrix<double> TMTSixPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,9 +49,9 @@ namespace OpenMS
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,weighted_mean,sum"));
+    defaults_.setValidStrings("average", {"median","mean","weighted_mean","sum"});
 
-    StringList true_false = ListUtils::create<String>("true,false");
+    std::vector<std::string> true_false = {"true","false"};
 
     defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
     defaults_.setValidStrings("include_all", true_false);
@@ -62,7 +62,8 @@ namespace OpenMS
     defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
-    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'top 0', all peptides that occur in every sample are considered.\nOtherwise ('top N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
+    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'top 0',"
+     "all peptides that occur in every sample are considered.\nOtherwise ('top N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
@@ -137,6 +138,8 @@ namespace OpenMS
   void PeptideAndProteinQuant::quantifyPeptides(
     const vector<PeptideIdentification>& peptides)
   {
+    OPENMS_LOG_INFO << "Quantifying peptides..." << std::endl;
+    
     //////////////////////////////////////////////////////
     // first, use peptide-level results from protein inference:
     // - remove peptides not supported by inference results
@@ -411,7 +414,7 @@ namespace OpenMS
     }
 
     Size top = param_.getValue("top");
-    String average = param_.getValue("average");
+    std::string average = param_.getValue("average");
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
@@ -744,7 +747,6 @@ namespace OpenMS
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
 
-    OPENMS_LOG_DEBUG << "Quantified ind. group with accessions:\n";
     for (const auto& q : protein_quants)
     {
       // accession of quantified protein(group)
@@ -753,7 +755,7 @@ namespace OpenMS
       if (q.second.total_abundances.empty()) 
       {
         //TODO maybe just count the number of unquantifiable proteins and report that?
-        OPENMS_LOG_DEBUG << "Protein: " << acc << " not quantified." << endl;
+        OPENMS_LOG_DEBUG << "Protein " << acc << " not quantified." << endl;
         continue; 
       } // not quantified
  
@@ -773,7 +775,7 @@ namespace OpenMS
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
 
-       // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
+        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         id_group->getFloatDataArrays().resize(3);
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         abundances.setName("abundances");        
@@ -787,35 +789,19 @@ namespace OpenMS
         peptide_counts.setName("distinct_peptides");
         peptide_counts.resize(n_samples);
 
-        OPENMS_LOG_DEBUG << "Abundances:\n";
-        for (auto const& a : id_group->accessions)
-        {
-          OPENMS_LOG_DEBUG << a << "\t";
-        }
-        OPENMS_LOG_DEBUG << "\n";
-
-        OPENMS_LOG_DEBUG << "PSMs:\n";
         for (auto const & s : total_abundances)
         {
           // Note: sample indices are one-based
           abundances[s.first - 1] = s.second;
-          OPENMS_LOG_DEBUG << s.second << "\t";
         }
-        OPENMS_LOG_DEBUG << endl;
-
         for (auto const & s : total_psm_counts)
         {
           psm_counts[s.first - 1] = s.second;
-          OPENMS_LOG_DEBUG << s.second << "\t";
         }
-        OPENMS_LOG_DEBUG << endl;
-
         for (auto const & s : total_distinct_peptides)
         {
           peptide_counts[s.first - 1] = s.second;
-          OPENMS_LOG_DEBUG << s.second << "\t";
         }
-        OPENMS_LOG_DEBUG << endl;
       }
       else
       {

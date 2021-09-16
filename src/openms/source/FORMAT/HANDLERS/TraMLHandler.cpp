@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,10 +40,9 @@
 
 #include <ostream>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
@@ -302,8 +301,7 @@ namespace OpenMS
     {
       if (open_tags_.back() == "Sequence")
       {
-        String protein_sequence = sm_.convert(chars);
-        actual_protein_.sequence = protein_sequence;
+        actual_protein_.sequence = sm_.convert(chars);
         return;
       }
       return;
@@ -726,17 +724,17 @@ namespace OpenMS
           if (it->theoretical_mass > 0.0)
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
-              it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
+            it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
-              it->molecular_formula << "\"/>\n";
+            it->molecular_formula << "\"/>\n";
           }
           if (!it->smiles_string.empty())
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
-              it->smiles_string << "\"/>\n";
+            it->smiles_string << "\"/>\n";
           }
 
           writeCVParams_(os, *it, 3);
@@ -851,15 +849,15 @@ namespace OpenMS
           // NOTE: do not change that, the same default is implicitly assumed in ReactionMonitoringTransition
           if (!it->isDetectingTransition())
           {
-              os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
+            os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
           if (it->isIdentifyingTransition())
           {
-              os << "      <userParam name=\"identifying_transition\" type=\"xsd:boolean\" value=\"true\"/>\n";
+            os << "      <userParam name=\"identifying_transition\" type=\"xsd:boolean\" value=\"true\"/>\n";
           }
           if (!it->isQuantifyingTransition())
           {
-              os << "      <userParam name=\"quantifying_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
+            os << "      <userParam name=\"quantifying_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
 
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
@@ -1765,22 +1763,21 @@ namespace OpenMS
       for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
            it != cv_terms.end(); ++it)
       {
-        for (std::vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
+        for (const CVTerm& cit : it->second)
         {
-          os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
-          if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
+          os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
+          if (cit.hasValue() && !cit.getValue().isEmpty() && !cit.getValue().toString().empty())
           {
-            os << " value=\"" << cit->getValue().toString() << "\"";
+            os << " value=\"" << cit.getValue().toString() << "\"";
           }
 
-          if (cit->hasUnit())
+          if (cit.hasUnit())
           {
-            os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
+            os << " unitCvRef=\"" << cit.getUnit().cv_ref << "\" unitAccession=\"" << cit.getUnit().accession << "\" unitName=\"" << cit.getUnit().name << "\"";
           }
           os << "/>" << "\n";
         }
       }
     }
-  } //namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS //namespace Internal
 

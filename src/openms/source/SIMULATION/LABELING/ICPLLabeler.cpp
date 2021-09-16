@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,12 +53,12 @@ namespace OpenMS
     defaults_.setValue("ICPL_fixed_rtshift", 0.0, "Fixed retention time shift between labeled pairs. If set to 0.0 only the retention times, computed by the RT model step are used.");
     //defaults for protein-labeling
     defaults_.setValue("label_proteins", "true", "Enables protein-labeling. (select 'false' if you only need peptide-labeling)");
-    defaults_.setValidStrings("label_proteins", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("label_proteins", {"true","false"});
 
     // labels
-    defaults_.setValue("ICPL_light_channel_label", "UniMod:365", "UniMod Id of the light channel ICPL label.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ICPL_medium_channel_label", "UniMod:687", "UniMod Id of the medium channel ICPL label.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ICPL_heavy_channel_label", "UniMod:364", "UniMod Id of the heavy channel ICPL label.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("ICPL_light_channel_label", "UniMod:365", "UniMod Id of the light channel ICPL label.", {"advanced"});
+    defaults_.setValue("ICPL_medium_channel_label", "UniMod:687", "UniMod Id of the medium channel ICPL label.", {"advanced"});
+    defaults_.setValue("ICPL_heavy_channel_label", "UniMod:364", "UniMod Id of the heavy channel ICPL label.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -153,7 +153,7 @@ namespace OpenMS
     // merge the generated feature maps and create consensus
     SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
 
-    if (features_to_simulate.size() == 2) // merge_modus for two FeatureMaps
+    if (features_to_simulate.size() == 2) // merge_mode for two FeatureMaps
     {
       // create index of light channel features for easy mapping of medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
@@ -221,7 +221,7 @@ namespace OpenMS
         final_feature_map.push_back(light_labeled_index_iter->second);
       }
     }
-    else if (features_to_simulate.size() == 3) // merge_modus for three Channels
+    else if (features_to_simulate.size() == 3) // merge_mode for three Channels
     {
       // create index of light channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
@@ -289,7 +289,7 @@ namespace OpenMS
         }
         else if (light_labeled_features_index.has(heavy_feature_unmodified_sequence))
         {
-          // 2.Fall -> c0 - c2
+          // 2nd case -> c0 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -313,7 +313,7 @@ namespace OpenMS
         }
         else if (medium_labeled_features_index.has(heavy_feature_unmodified_sequence))
         {
-          // 3.Fall -> c1 - c2
+          // 3rd case -> c1 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -337,7 +337,7 @@ namespace OpenMS
         }
         else
         {
-          // 4.Fall -> alleine
+          // 4th case -> alone
           final_feature_map.push_back(heavy_feature);
         }
       }
@@ -508,9 +508,9 @@ namespace OpenMS
 
   void ICPLLabeler::updateMembers_()
   {
-    light_channel_label_ = param_.getValue("ICPL_light_channel_label");
-    medium_channel_label_ = param_.getValue("ICPL_medium_channel_label");
-    heavy_channel_label_ = param_.getValue("ICPL_heavy_channel_label");
+    light_channel_label_ = param_.getValue("ICPL_light_channel_label").toString();
+    medium_channel_label_ = param_.getValue("ICPL_medium_channel_label").toString();
+    heavy_channel_label_ = param_.getValue("ICPL_heavy_channel_label").toString();
   }
 
   String ICPLLabeler::getUnmodifiedAASequence_(const Feature& feature, const String& label) const

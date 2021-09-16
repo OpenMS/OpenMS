@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "Op
     
     cdef cppclass PSProteinInference "OpenMS::PSProteinInference":
         PSProteinInference() nogil except +
-        PSProteinInference(PSProteinInference) nogil except + #wrap-ignore
+        PSProteinInference(PSProteinInference &) nogil except + # compiler
         Size findMinimalProteinList(libcpp_vector[ PeptideIdentification ] & peptide_ids) nogil except +
         void calculateProteinProbabilities(libcpp_vector[ PeptideIdentification ] & ids) nogil except +
         double getProteinProbability(const String & acc) nogil except +

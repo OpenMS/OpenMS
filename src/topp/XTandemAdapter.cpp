@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -97,20 +97,29 @@ using namespace std;
     @em X!Tandem settings not exposed by this adapter (especially refinement settings) can be directly adjusted using an XML configuration file.
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
     The parameter @p default_config_file can be used to specify such a custom configuration.
-    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X!Tandem installation and in the OpenMS installation
-    under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X!Tandem installation and in the %OpenMS installation
+    under <code>OpenMS/share/CHEMISTRY/XTandem_default_config.xml</code>.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
-    Hint: this adapter supports 15N labeling by specifying
+    @note This adapter supports <b>15N labeling</b> by using the <tt>XTandem_residue_mass.bioml.xml</tt> file (which defines modified AA masses) as provided in
+          <code>OpenMS/share/OpenMS/CHEMISTRY/</code>. To use it, specify the full path (which will depend on your system!) to this bioml.xml file 
+          within the <tt>XTandem_default_config.xml</tt> config file (see above).
+    Within this config file, modify the path in the following line to match your system's configuration.
 @code
-<note type="input" label="protein, modified residue mass file">/path/to/bioml.xml</note>
+<note type="input" label="protein, modified residue mass file">/path/to/XTandem_residue_mass.bioml.xml</note>
 @endcode
-    in a default config file. See https://www.thegpm.org/TANDEM/api/pmrmf.html for details. Warning: if the filename is invalid, @em X!Tandem will simply ignore the setting without feedback!
-    However, the resulting peptide sequences in the idXML file
-    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
+    and pass the config file's filename via the <tt>default_config_file</tt> parameter to XTandemAdapter.
+    For more details, see https://www.thegpm.org/TANDEM/api/pmrmf.html.
+    <br>Warning: If the path to XTandem_residue_mass.bioml.xml is invalid, @em X!Tandem will simply ignore the setting without feedback!
+    <br>Warning: The resulting peptide sequences in the idXML file will not contain any N15 labeling information because 
+                 X!Tandem simply received modified AA masses without further information what they mean. 
+                 Add the 15N modification information by calling the @ref UTILS_StaticModification tool on the idXML file created by this adapter.
+
+    <br>
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_XTandemAdapter.cli
@@ -123,11 +132,11 @@ using namespace std;
 
 
 class TOPPXTandemAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPXTandemAdapter() :
-    TOPPBase("XTandemAdapter", "Annotates MS/MS spectra using X! Tandem.")
+    SearchEngineBase("XTandemAdapter", "Annotates MS/MS spectra using X! Tandem.")
   {
   }
 
@@ -152,7 +161,7 @@ protected:
       "tandem.exe",
 #endif
       "X! Tandem executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, {"skipexists"});
+    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_config.xml'.", false, false, {"skipexists"});
     setValidFormats_("default_config_file", {"xml"});
     registerFlag_("ignore_adapter_param", "Set this to use the configuration given in 'default_config_file' exclusively, ignoring other parameters (apart from 'in', 'out', 'database', 'xtandem_executable') set via this adapter.");
 
@@ -202,7 +211,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
+    String in = getRawfileName();
     String out = getStringOption_("out");
     String xml_out = getStringOption_("xml_out");
     if (xml_out.empty() && out.empty())
@@ -222,21 +231,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    String db_name(getStringOption_("database"));
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
+    String db_name = getDBFilename();
 
     /// check if X!Tandem is available (warn early, since loading/storing of mzML below will delay the error -- which is not user friendly)
     String xtandem_executable = getStringOption_("xtandem_executable");
@@ -247,22 +242,6 @@ protected:
     mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
-
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the 'force' flag.");
-      }
-    }
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
     tax_out << "<?xml version=\"1.0\"?>" << "\n";

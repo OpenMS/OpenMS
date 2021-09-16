@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ namespace OpenMS
       if (n_decoys_ == 0) return; // list is already initialized
       // somewhat inefficient to shuffle the whole list when we only need a random
       // sample, but easy to do...
-      random_shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
+      shuffler_.portable_random_shuffle(decoy_index_.begin(), decoy_index_.end());
     }
 
     // double rmsd_(DoubleList x, DoubleList y)

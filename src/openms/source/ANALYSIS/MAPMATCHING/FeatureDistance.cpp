@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,33 +57,33 @@ namespace OpenMS
   {
     defaults_.setValue("distance_RT:max_difference", 100.0, "Never pair features with a larger RT distance (in seconds).");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
-    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences ([0-1], relative to 'max_difference') are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences ([0-1], relative to 'max_difference') are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", {"advanced"});
     defaults_.setMinFloat("distance_RT:exponent", 0.0);
-    defaults_.setValue("distance_RT:weight", 1.0, "Final RT distances are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_RT:weight", 1.0, "Final RT distances are weighted by this factor", {"advanced"});
     defaults_.setMinFloat("distance_RT:weight", 0.0);
     defaults_.setSectionDescription("distance_RT", "Distance component based on RT differences");
 
     defaults_.setValue("distance_MZ:max_difference", 0.3, "Never pair features with larger m/z distance (unit defined by 'unit')");
     defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
     defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
-    defaults_.setValidStrings("distance_MZ:unit", ListUtils::create<String>("Da,ppm"));
-    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized ([0-1], relative to 'max_difference') m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("distance_MZ:unit", {"Da","ppm"});
+    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized ([0-1], relative to 'max_difference') m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", {"advanced"});
     defaults_.setMinFloat("distance_MZ:exponent", 0.0);
-    defaults_.setValue("distance_MZ:weight", 1.0, "Final m/z distances are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_MZ:weight", 1.0, "Final m/z distances are weighted by this factor", {"advanced"});
     defaults_.setMinFloat("distance_MZ:weight", 0.0);
     defaults_.setSectionDescription("distance_MZ", "Distance component based on m/z differences");
 
-    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", {"advanced"});
     defaults_.setMinFloat("distance_intensity:exponent", 0.0);
-    defaults_.setValue("distance_intensity:weight", 0.0, "Final intensity distances are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_intensity:weight", 0.0, "Final intensity distances are weighted by this factor", {"advanced"});
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
-    defaults_.setValue("distance_intensity:log_transform", "disabled", "Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("distance_intensity:log_transform", ListUtils::create<String>("enabled,disabled"));
+    defaults_.setValue("distance_intensity:log_transform", "disabled", "Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", {"advanced"});
+    defaults_.setValidStrings("distance_intensity:log_transform", {"enabled","disabled"});
     defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)");
     defaults_.setValue("ignore_charge", "false", "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state");
-    defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("ignore_charge", {"true","false"});
     defaults_.setValue("ignore_adduct", "true", "true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts");
-    defaults_.setValidStrings("ignore_adduct", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("ignore_adduct", {"true","false"});
 
 
     defaultsToParam_();
@@ -123,8 +123,8 @@ namespace OpenMS
     params_intensity_ = DistanceParams_("intensity", param_);
     total_weight_reciprocal_ = 1 / (params_rt_.weight + params_mz_.weight +
                                     params_intensity_.weight);
-    ignore_charge_ = String(param_.getValue("ignore_charge")) == "true";
-    ignore_adduct_ = String(param_.getValue("ignore_adduct")) == "true";
+    ignore_charge_ = param_.getValue("ignore_charge").toBool();
+    ignore_adduct_ = param_.getValue("ignore_adduct").toBool();
   }
 
   double FeatureDistance::distance_(double diff, const DistanceParams_ & params) const

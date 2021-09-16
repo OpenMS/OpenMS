@@ -11,7 +11,7 @@ for TOFIX in $(find . -name "pyopenms*.so"); do
     echo
     echo "fix $TOFIX now:"
     echo
-    for LIB in libOpenMS libOpenSwathAlgo libSuperHirn; do
+    for LIB in libOpenMS libOpenSwathAlgo; do
         # find absolute path
         REF=$(otool -L $TOFIX | grep $LIB.dylib | cut -d " " -f 1)
         echo "    found link $REF"
@@ -43,25 +43,6 @@ for TOFIX in $(find . -name libOpenMS.dylib); do
         echo "    $line"
         done
 done
-
-
-for TOFIX in $(find . -name libSuperHirn.dylib); do
-    echo
-    echo "fix $TOFIX now:"
-    echo
-    for LIB in libOpenMS.dylib libOpenSwathAlgo.dylib QtCore QtNetwork libz.1.dylib; do
-        # find absolute path
-        REF=$(otool -L $TOFIX | grep $LIB | cut -d " " -f 1)
-        echo "    found link $REF"
-        install_name_tool -change $REF @loader_path/$LIB $TOFIX
-    done;
-    echo
-    echo "    now otool -L says:"
-    echo
-    otool -L $TOFIX | while read -r line ; do
-        echo "    $line"
-        done
-done;
 
 for TOFIX in $(find . -name QtNetwork); do
     echo

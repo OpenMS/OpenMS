@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -403,6 +403,18 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
+}
+END_SECTION
+
+START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const))
+{
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  
+  // uses getMonoWeight and is thus thoroughly tested
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, AASequence::fromString("DFPIANGER").getMZ(0));
 }
 END_SECTION
 

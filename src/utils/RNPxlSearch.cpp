@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
@@ -47,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -747,7 +747,7 @@ protected:
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
         vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
 
-        // first annotate total loss peaks (these give no information where the actual shift occured)
+        // first annotate total loss peaks (these give no information where the actual shift occurred)
         #ifdef DEBUG_RNPXLSEARCH
           OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
@@ -2674,7 +2674,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
     // we are finished with nucleotides in string if first loss/gain is encountered
     if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
 
-    // count occurence of nucleotide
+    // count occurrence of nucleotide
     if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
     {
       exp_pc_nucleotide_count[*exp_pc_it] = 1;

@@ -9,13 +9,14 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
         # wrap-inherits:
         #   TransformationModel
 
-        TransformationModelInterpolated(TransformationModelInterpolated) nogil except + #wrap-ignore
+        # copy constructor of 'TransformationModelInterpolated' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
+        TransformationModelInterpolated(TransformationModelInterpolated &) nogil except + #wrap-ignore
         TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
 
-        void getDefaultParameters(Param &)
+        void getDefaultParameters(Param &) nogil except +
         double evaluate(double value) nogil except +
 
-cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>" namespace "OpenMS:TransformationModelInterpolated":
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>" namespace "OpenMS::TransformationModelInterpolated":
 
     cdef cppclass Interpolator:
         # wrap-ignore

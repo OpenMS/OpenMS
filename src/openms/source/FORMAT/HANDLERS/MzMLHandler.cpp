@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,10 +44,8 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
@@ -66,14 +64,9 @@ namespace OpenMS
     /// delegated c'tor for the common things
     MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
       : XMLHandler(filename, version),
-        logger_(logger)
+        logger_(logger),
+        cv_(ControlledVocabulary::getPSIMSCV())
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
       CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
 
       // check the version number of the mzML handler
@@ -168,7 +161,7 @@ namespace OpenMS
 
             catch (OpenMS::Exception::BaseException& e)
             {
-#pragma omp critical
+#pragma omp critical(MZMLErrorHandling)
               {
                 ++errCount;
                 error_message = e.what();
@@ -754,7 +747,14 @@ namespace OpenMS
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          spec_.setSourceFile(source_files_[source_file_ref]);
+          if (source_files_.has(source_file_ref))
+          {
+            spec_.setSourceFile(source_files_[source_file_ref]);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Error: unregistered source file reference " << source_file_ref << "." << std::endl;
+          }
         }
         //native id
         spec_.setNativeID(attributeAsString_(attributes, s_id));
@@ -810,8 +810,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         scan_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, scan_count_total_, "loading spectra list");
         in_spectrum_list_ = true;
@@ -834,8 +835,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         chrom_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, chrom_count_total_, "loading chromatogram list");
         in_spectrum_list_ = false;
@@ -843,7 +845,10 @@ namespace OpenMS
         // we only want total scan count and chrom count
         if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
         { // in case spectra came before chroms, we have all information --> end parsing
-          if (scan_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          if (scan_count_total_ != -1)
+          {
+            throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          }
           // or skip the remaining chroms until </chromatogramList>
           skip_chromatogram_ = true;
         }
@@ -911,13 +916,25 @@ namespace OpenMS
         {
           path_to_file = File::path(name_of_file);
           name_of_file = File::basename(name_of_file);
-          if (path_to_file == ".") path_to_file = "file://./";
+          if (path_to_file == ".")
+          {
+            path_to_file = "file://./";
+          }
         }
 
         // format URI prefix as in mzML spec.
-        if (path_to_file.hasPrefix("File://")) path_to_file.substitute("File://", "file://");
-        if (path_to_file.hasPrefix("FILE://")) path_to_file.substitute("FILE://", "file://");
-        if (path_to_file.hasPrefix("file:///.")) path_to_file.substitute("file:///.", "file://./");
+        if (path_to_file.hasPrefix("File://"))
+        {
+          path_to_file.substitute("File://", "file://");
+        }
+        if (path_to_file.hasPrefix("FILE://"))
+        {
+          path_to_file.substitute("FILE://", "file://");
+        }
+        if (path_to_file.hasPrefix("file:///."))
+        {
+          path_to_file.substitute("file:///.", "file://./");
+        }
 
         bool is_relative_path = path_to_file.hasPrefix("file://./") || path_to_file.hasPrefix("file://../");
 
@@ -1288,7 +1305,7 @@ namespace OpenMS
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // dont skip the next chrom
+            skip_chromatogram_ = false; // don't skip the next chrom
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
@@ -1590,8 +1607,12 @@ namespace OpenMS
           }
 
         }
-        else if (accession == "MS:1000497") //zoom scan
+        else if (accession == "MS:1000497") // deprecated: zoom scan is now a scan attribute
         {
+          OPENMS_LOG_DEBUG << "MS:1000497 - zoom scan is now a scan attribute. Reading it for backwards compatibility reasons as spectrum attribute." 
+                           << " You can make this warning go away by converting this file using FileConverter to a newer version of the PSI ontology."
+                           << " Or by using a recent converter that supports the newest PSI ontology."
+                           << std::endl;
           spec_.getInstrumentSettings().setZoomScan(true);
         }
         else if (accession == "MS:1000285") //total ion current
@@ -1650,7 +1671,7 @@ namespace OpenMS
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
           spec_.setDriftTime(value.toDouble());
-          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+          spec_.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
@@ -1693,8 +1714,9 @@ namespace OpenMS
       {
         //parse only the first selected ion
         if (selected_ion_count_ > 1)
+        {
           return;
-
+        }
         if (accession == "MS:1000744") //selected ion m/z
         {
           double this_mz = value.toDouble();
@@ -1763,18 +1785,18 @@ namespace OpenMS
           //
           // Note that only milliseconds and VSSC are valid units
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+            unit = DriftTimeUnit::VSSC;          
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -2105,18 +2127,18 @@ namespace OpenMS
           //
           // Note: this is where pwiz stores the ion mobility for a spectrum
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = DriftTimeUnit::VSSC;
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -2183,7 +2205,7 @@ namespace OpenMS
         else if (accession == "MS:1000803") //analyzer scan offset
         {
           //No member => meta data
-          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIdentificationViewWidget()
+          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIDViewTab()
         }
         else if (accession == "MS:1000616") //preset scan configuration
         {
@@ -2226,6 +2248,10 @@ namespace OpenMS
         {
           //No member => meta data
           spec_.setMetaValue("scan law", String("quadratic"));
+        }
+        else if (accession == "MS:1000497") // zoom scan
+        {
+          spec_.getInstrumentSettings().setZoomScan(true);
         }
         else
         {
@@ -3522,7 +3548,7 @@ namespace OpenMS
               // retrieving the identifier and looking up the term within the
               // correct ontology in our cv_ object.
               char s[8];
-              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit identifiers padded with zeros
               String unitstring = String(s);
               if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
               {
@@ -3762,7 +3788,7 @@ namespace OpenMS
         //data processing attribute
         if (dps[i]->getCompletionTime().isValid())
         {
-          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
+          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm") << "\" />\n";
         }
 
         writeUserParam_(os, *(dps[i].get()), 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
@@ -3819,7 +3845,7 @@ namespace OpenMS
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
+          precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
           precursor.getPossibleChargeStates().size() > 0 ||
           precursor.getMZ() > 0.0)
       {
@@ -3842,25 +3868,23 @@ namespace OpenMS
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
 
-        if (precursor.getDriftTime() >= 0.0)
+        if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
         {
-            if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-            else if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::VSSC)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-            }
-            else
-            {
+          switch (precursor.getDriftTimeUnit())
+          {
+            default:
               // assume milliseconds, but warn
               warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+              [[fallthrough]];
+            case DriftTimeUnit::MILLISECOND:
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
+                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+              break;
+            case DriftTimeUnit::VSSC:
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+              break;
+          }
         }
         //userParam: no extra object for it => no user parameters
         os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -3966,6 +3990,8 @@ namespace OpenMS
       const MapType& exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
+      UInt stored_spectra = 0;
+      UInt stored_chromatograms = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
       std::vector<std::vector< ConstDataProcessingPtr > > dps;
@@ -4008,6 +4034,7 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const SpectrumType& spec = exp[s_idx];
           writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
+          ++stored_spectra;
         }
         os << "\t\t</spectrumList>\n";
       }
@@ -4027,11 +4054,15 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
           writeChromatogram_(os, chromatogram, c_idx, validator);
+          ++stored_chromatograms;
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
+
+      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+
       logger_.endProgress();
     }
 
@@ -5030,10 +5061,6 @@ namespace OpenMS
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\" />\n";
       }
-      if (spec.getInstrumentSettings().getZoomScan())
-      {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
-      }
 
       //spectrum type
       if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
@@ -5140,19 +5167,19 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
-          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
                 << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
           }          
-          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
+          else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
           {
-            if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+            if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
             }
-            else if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+            else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
@@ -5167,6 +5194,12 @@ namespace OpenMS
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
+
         //scan windows
         if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
         {
@@ -5188,6 +5221,11 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
         //scan windows
         if (spec.getInstrumentSettings().getScanWindows().size() != 0)
         {
@@ -5682,5 +5720,4 @@ namespace OpenMS
       os << "\t\t\t</chromatogram>" << "\n";
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

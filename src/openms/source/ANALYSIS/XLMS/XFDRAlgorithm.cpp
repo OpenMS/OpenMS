@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ using namespace OpenMS;
     defaults_.setValue(param_minionsmatched_, 0, "Filter for minimum matched ions per peptide.");
     defaults_.setMinInt(param_minionsmatched_, 0);
 
-    StringList bool_strings = ListUtils::create<String>("true,false");
+    std::vector<std::string> bool_strings = {"true","false"};
 
     defaults_.setValue(param_uniquexl_, "false", "Calculate statistics based only on unique IDs. For a set of IDs from equal candidates (same pair of peptides, modifications and cross-linked positions), only the highest scoring hit will be considered. By default the score distribution will be estimated using all 1st ranked candidates.");
     defaults_.setValidStrings(param_uniquexl_, bool_strings);
@@ -74,7 +74,7 @@ using namespace OpenMS;
 
   void XFDRAlgorithm::updateMembers_()
   {
-    decoy_string_ = static_cast<String>(param_.getValue(param_decoy_string_));
+    decoy_string_ = static_cast<String>(param_.getValue(param_decoy_string_).toString());
     arg_mindeltas_ = static_cast<double>(param_.getValue(param_mindeltas_));
     arg_minborder_ = static_cast<double>(param_.getValue(param_minborder_));
     arg_maxborder_ = static_cast<double>(param_.getValue(param_maxborder_));
@@ -320,7 +320,7 @@ using namespace OpenMS;
 
       for (PeptideHit& ph : pep_hits)
       {
-        // Set the minScore and MaxScore attribute depending on the input data
+        // Set the minScore and maxScore attribute depending on the input data
         const double score = ph.getScore();
 
         // Set score boundaries

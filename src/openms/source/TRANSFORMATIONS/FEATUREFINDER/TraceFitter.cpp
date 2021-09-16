@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,16 +54,14 @@ namespace OpenMS
   {
   }
 
-  TraceFitter::GenericFunctor::~GenericFunctor()
-  {
-  }
+  TraceFitter::GenericFunctor::~GenericFunctor() = default;
 
   TraceFitter::TraceFitter() :
     DefaultParamHandler("TraceFitter")
   {
-    defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("weighted", ListUtils::create<String>("true,false"));
+    defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", {"advanced"});
+    defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", {"advanced"});
+    defaults_.setValidStrings("weighted", {"true","false"});
     defaultsToParam_();
   }
 
@@ -85,11 +83,9 @@ namespace OpenMS
     return *this;
   }
 
-  TraceFitter::~TraceFitter()
-  {
-  }
+  TraceFitter::~TraceFitter() = default;
 
-  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)
+  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const
   {
     double rt = trace.peaks[k].first;
 

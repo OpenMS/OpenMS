@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
       XMLHandler(filename, version),
@@ -74,7 +73,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        StringList tags = ListUtils::create<String>(tags_string);
+        std::vector<std::string> tags = ListUtils::create<std::string>(tags_string);
 
         //advanced
         String advanced_string;
@@ -161,13 +160,15 @@ namespace OpenMS
             else if (type == "string")
             {
               val.split(',', parts);
-              param_.setValidStrings(name, parts);
+              param_.setValidStrings(name, ListUtils::create<std::string>(parts));
             }
             else if (type == "float" || type == "double")
             {
               val.split(':', parts);
               if (parts.size() != 2)
+              {
                 val.split('-', parts); //for downward compatibility
+              }
               if (parts.size() == 2)
               {
                 if (parts[0] != "")
@@ -198,7 +199,7 @@ namespace OpenMS
             std::vector<String> parts;
 
             val.split(',', parts);
-            param_.setValidStrings(name, parts);
+            param_.setValidStrings(name, ListUtils::create<std::string>(parts));
           }
         }
 
@@ -223,7 +224,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        list_.tags = ListUtils::create<String>(tags_string);
+        list_.tags = ListUtils::create<std::string>(tags_string);
         
         
         //parse name/type
@@ -303,8 +304,10 @@ namespace OpenMS
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "") file_version = "1.0";
-
+        if (file_version == "")
+        {
+          file_version = "1.0";
+        }
         VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
         VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
 
@@ -338,7 +341,7 @@ namespace OpenMS
           if (list_.restrictions_index != -1)
           {
             list_.restrictions.split(',', parts);
-            param_.setValidStrings(list_.name, parts);
+            param_.setValidStrings(list_.name, ListUtils::create<std::string>(parts));
           }
         }
         else if (list_.type == "int")
@@ -348,7 +351,9 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -373,7 +378,9 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -401,5 +408,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

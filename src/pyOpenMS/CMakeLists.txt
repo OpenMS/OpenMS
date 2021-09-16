@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ if(WIN32)
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" ))
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" OR ${PY_VERSION} STREQUAL "3.9" ))
         message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
@@ -292,11 +292,6 @@ file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
-# SuperHirn
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirnd.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirn.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
 
 #------------------------------------------------------------------------------
 # copy/configure files
@@ -371,13 +366,13 @@ endif()
 # If we only could get rid of distutils in general and do everything with CMake..
 if(NOT WIN32)
   find_boost(regex) ## variables are not global -> find again
-  
+  find_package(XercesC)
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
   
   # the logic for static vs dynamic is in setup.py
-  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
+  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
@@ -392,8 +387,7 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
-#  for now -- note that you need change __init__.py if you change the number of
-#  modules...
+#  for now
 if(NOT PY_NUM_THREADS)
   set(PY_NUM_THREADS 1)
 endif()
@@ -441,7 +435,6 @@ exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABL
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
-  ${SuperHirn_INCLUDE_DIRECTORIES}
   ${QT_INCLUDE_DIR}
 )
 
@@ -452,13 +445,13 @@ set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 add_custom_target(
   prepare_pyopenms_libs
-  DEPENDS OpenMS SuperHirn
+  DEPENDS OpenMS
 )
 
 # assemble the libraries
 
 # copy the direct dependencies
-set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo SuperHirn)
+set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
 
 foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
 	add_custom_command(
@@ -564,7 +557,7 @@ ENDIF()
 ###########################################################################
 
 # Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we dont see which tests
+# => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests
@@ -599,6 +592,7 @@ set(pyopenms_unittest_testfiles
   test_TraML.py
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
+  test_AcquisitionInfo.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder

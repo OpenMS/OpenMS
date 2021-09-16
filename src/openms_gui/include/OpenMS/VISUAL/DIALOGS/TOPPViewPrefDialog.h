@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,6 @@ public:
 
 protected slots:
       void browseDefaultPath_();
-      void browseTempPath_();
 private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
       mutable Param param_; ///< is updated in getParam()

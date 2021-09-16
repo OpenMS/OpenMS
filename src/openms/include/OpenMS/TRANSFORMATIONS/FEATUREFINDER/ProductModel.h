@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -269,7 +269,7 @@ protected:
         if (this->param_.exists(name))
         {
           delete distributions_[dim];
-          distributions_[dim] = Factory<BaseModel<1> >::create(this->param_.getValue(name));
+          distributions_[dim] = Factory<BaseModel<1> >::create(this->param_.getValue(name).toString());
           Param copy = this->param_.copy(name + ":", true);
           distributions_[dim]->setParameters(copy);
           if (distributions_[dim]->getName().hasSubstring("IsotopeModel"))

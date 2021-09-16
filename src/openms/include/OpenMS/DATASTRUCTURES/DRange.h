@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ public:
     /// Convenient constructor for DRange<2>
     DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy)
     {
-      OPENMS_PRECONDITION(D == 2, "DRange<D>:DRange(minx, miny, maxx, maxy): index overflow!");
+      static_assert(D == 2);
       min_[0] = minx;
       min_[1] = miny;
       max_[0] = maxx;
@@ -331,6 +331,14 @@ public:
       }
     }
 
+    /// swaps dimensions for 2D data (i.e. x and y coordinates)
+    DRange<D>& swapDimensions()
+    {
+      static_assert(D==2);
+      std::swap(min_[0], min_[1]);
+      std::swap(max_[0], max_[1]);
+      return *this;
+    }
 
     //@}
   };

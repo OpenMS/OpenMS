@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
@@ -80,13 +80,13 @@ namespace OpenMS
     defaults_.setValue("max_iters", 100, "The maximum number of iterations to find an optimal set of calibration curve points and parameters.");
 
     defaults_.setValue("outlier_detection_method", "iter_jackknife", "Outlier detection method to find and remove bad calibration points.");
-    defaults_.setValidStrings("outlier_detection_method", ListUtils::create<String>("iter_jackknife,iter_residual"));
+    defaults_.setValidStrings("outlier_detection_method", {"iter_jackknife","iter_residual"});
 
     defaults_.setValue("use_chauvenet", "true", "Whether to only remove outliers that fulfill Chauvenet's criterion for outliers (otherwise it will remove any outlier candidate regardless of the criterion).");
-    defaults_.setValidStrings("use_chauvenet", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_chauvenet", {"true","false"});
 
     defaults_.setValue("optimization_method", "iterative", "Calibrator optimization method to find the best set of calibration points for each method.");
-    defaults_.setValidStrings("optimization_method", ListUtils::create<String>("iterative"));
+    defaults_.setValidStrings("optimization_method", {"iterative"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -99,9 +99,9 @@ namespace OpenMS
     max_bias_ = (double)param_.getValue("max_bias");
     min_correlation_coefficient_ = (double)param_.getValue("min_correlation_coefficient");
     max_iters_ = (size_t)param_.getValue("max_iters");
-    outlier_detection_method_ = param_.getValue("outlier_detection_method");
+    outlier_detection_method_ = param_.getValue("outlier_detection_method").toString();
     use_chauvenet_ = (bool)param_.getValue("use_chauvenet").toBool();
-    optimization_method_ = param_.getValue("optimization_method");
+    optimization_method_ = param_.getValue("optimization_method").toString();
   }
 
   AbsoluteQuantitation::~AbsoluteQuantitation()
@@ -193,9 +193,9 @@ namespace OpenMS
     TransformationModel::DataPoint point;
     for (size_t i = 0; i < component_concentrations.size(); i++)
     {
-      point.first = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      point.first = component_concentrations[i].actual_concentration / component_concentrations[i].IS_actual_concentration / component_concentrations[i].dilution_factor; // adjust based on the dilution factor
       double ratio = calculateRatio(component_concentrations[i].feature, component_concentrations[i].IS_feature,feature_name);
-      point.second = ratio/component_concentrations[i].dilution_factor; // adjust based on the dilution factor
+      point.second = ratio;
       data.push_back(point);
     }
 
@@ -237,13 +237,13 @@ namespace OpenMS
         transformation_model_params);
 
       double actual_concentration_ratio = component_concentrations[i].actual_concentration/
-        component_concentrations[i].IS_actual_concentration;
+        component_concentrations[i].IS_actual_concentration / component_concentrations[i].dilution_factor;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
 
       // extract out the feature amount ratios
       double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
-        feature_name)/component_concentrations[i].dilution_factor;
+        feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
 
       // calculate the bias

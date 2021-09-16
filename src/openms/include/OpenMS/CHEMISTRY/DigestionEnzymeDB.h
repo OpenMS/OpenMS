@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -188,7 +188,7 @@ namespace OpenMS
       if (param.empty()) return;
 
       std::vector<String> split;
-      param.begin().getName().split(':', split);
+      String(param.begin().getName()).split(':', split);
       if (split[0] != "Enzymes")
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, split[0], "name 'Enzymes' expected");
@@ -201,7 +201,7 @@ namespace OpenMS
         // this iterates over all the "ITEM" elements in the XML file:
         for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
         {
-          it.getName().split(':', split);
+          String(it.getName()).split(':', split);
           if (split[0] != "Enzymes") break; // unexpected content in the XML file
           if (split[1] != previous_enzyme)
           {
@@ -210,7 +210,7 @@ namespace OpenMS
             previous_enzyme = split[1];
             values.clear();
           }
-          values[it.getName()] = it->value;
+          values[it.getName()] = String(it->value.toString());
         }
         // add last enzyme
         addEnzyme_(parseEnzyme_(values));

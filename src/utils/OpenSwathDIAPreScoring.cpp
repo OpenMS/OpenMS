@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,7 +101,7 @@ protected:
     setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
     registerOutputFileList_("output_files", "<files>", StringList(),
                            "Output files. One per Swath input file.",
-                           false);
+                           true);
     setValidFormats_("output_files", ListUtils::create<String>("tsv"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
@@ -127,7 +127,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 

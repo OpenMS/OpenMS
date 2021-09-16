@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,8 +60,21 @@ namespace OpenMS
 
     /// Destructor
     virtual ~TIC() = default;
-    void clear();
 
+    // stores TIC values calculated by compute function
+    struct OPENMS_DLLAPI Result
+    {
+      std::vector<UInt> intensities;  // TIC intensities
+      std::vector<float> relative_intensities;
+      std::vector<float> retention_times; // TIC RTs in seconds
+      UInt area = 0;  // Area under TIC
+      UInt fall = 0;  // MS1 signal fall (10x) count
+      UInt jump = 0;  // MS1 signal jump (10x) count
+
+      bool operator==(const Result& rhs) const;
+    };
+
+    
     /**
     @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
 
@@ -69,9 +82,11 @@ namespace OpenMS
 
     @param exp Peak map to compute the MS1 tick from
     @param bin_size RT bin size in seconds
-    @return TIC Chromatogram
+    @param ms_level MS level of spectra for calculation
+    @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
+
     **/
-    void compute(const MSExperiment &exp, float bin_size=0);
+    Result compute(const MSExperiment& exp, float bin_size = 0, UInt ms_level = 1);
 
     const String& getName() const override;
 
@@ -80,10 +95,9 @@ namespace OpenMS
     QCBase::Status requires() const override;
 
     /// append QC data for given metrics to mzTab's MTD section
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
 
   private:
     const String name_ = "TIC";
-    std::vector<MSChromatogram> results_;
   };
 }

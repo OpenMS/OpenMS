@@ -60,6 +60,7 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzQCFile.h
 MzTab.h
 MzTabFile.h
 MzXMLFile.h
@@ -86,6 +87,7 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
+TriqlerFile.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h

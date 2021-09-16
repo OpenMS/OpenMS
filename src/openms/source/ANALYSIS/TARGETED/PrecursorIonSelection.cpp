@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS
     solver_(LPWrapper::SOLVER_GLPK)
   {
     defaults_.setValue("type", "IPS", "Strategy for precursor ion selection.");
-    defaults_.setValidStrings("type", ListUtils::create<String>("ILP_IPS,IPS,SPS,Upshift,Downshift,DEX"));
+    defaults_.setValidStrings("type", {"ILP_IPS","IPS","SPS","Upshift","Downshift","DEX"});
     // defaults_.setValue("min_pep_ids",2,"Minimal number of identified peptides required for a protein identification.");
     // defaults_.setMinInt("min_pep_ids",1);
     defaults_.setValue("max_iteration", 100, "Maximal number of iterations.");
@@ -63,7 +63,7 @@ namespace OpenMS
     defaults_.setValue("peptide_min_prob", 0.2, "Minimal peptide probability.");
 
     defaults_.setValue("sequential_spectrum_order", "false", "If true, precursors are selected sequentially with respect to their RT.");
-    defaults_.setValidStrings("sequential_spectrum_order", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("sequential_spectrum_order", {"true","false"});
 
     defaults_.insert("MIPFormulation:", PSLPFormulation().getDefaults());
     defaults_.remove("MIPFormulation:mz_tolerance");
@@ -703,7 +703,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(param_pep_ids);
 
     // annotate map with ids
-    // TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
+    // TODO: really with deltas, or better with convex hulls? Chris: IDMapper uses CH's + Deltas if CH is present
     IDMapper mapper;
     Param p = mapper.getParameters();
     p.setValue("rt_tolerance", 30.);
@@ -1347,7 +1347,7 @@ namespace OpenMS
     else
       type_ = DEX;
     min_pep_ids_ = (UInt)param_.getValue("MIPFormulation:thresholds:min_peptide_ids");
-    mz_tolerance_unit_ = (String)param_.getValue("Preprocessing:precursor_mass_tolerance_unit");
+    mz_tolerance_unit_ = param_.getValue("Preprocessing:precursor_mass_tolerance_unit").toString();
     mz_tolerance_ = (double)param_.getValue("Preprocessing:precursor_mass_tolerance");
     max_iteration_ = (UInt) param_.getValue("max_iteration");
   }
