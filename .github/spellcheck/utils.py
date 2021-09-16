@@ -113,19 +113,28 @@ def get_words(rel_path: str = '', files_filter: Union[set, bool] = False) -> def
         Search all words within a file.
         """
 
+        def _search_block(text_block):
+            """
+            Search all words within a text block.
+            """
+            for word in re.findall(include_pattern, text_block):
+                if word not in vocabulary and \
+                        all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
+                    i_line = len(text[:match.start() + 1].split('\n')) - 1
+                    unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
+
         try:
             file = open(path, 'r')
             text = file.read()
             file_ext = path.suffix
-            file_pattern = COMMENT_PATTERNS[file_ext]
 
-            for match in re.finditer(file_pattern, text):
-                text_block = text[match.start():match.end()]
-                for word in re.findall(include_pattern, text_block):
-                    if word not in vocabulary and \
-                            all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
-                        i_line = len(text[:match.start()+1].split('\n')) - 1
-                        unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
+            if file_ext in COMMENT_PATTERNS:
+                file_pattern = COMMENT_PATTERNS[file_ext]
+                for match in re.finditer(file_pattern, text):
+                    block = text[match.start():match.end()]
+                    _search_block(block)
+            else:
+                _search_block(text)
 
             file.close()
 
