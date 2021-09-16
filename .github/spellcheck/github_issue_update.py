@@ -20,7 +20,9 @@ def main():
     args = parse_args()
 
     g = Github(args.token)
+
     repo = g.get_repo(args.repository)
+
     branch = args.branch.split('/')[-1]
     title = f'Spellcheck Results - {args.repository.split("/")[0]}/{branch}'
 
@@ -67,7 +69,7 @@ def main():
                                     removed_files += 1
                                 if len(old_unknown_words[word]['files']) == 0:
                                     old_unknown_words.pop(word)
-                print(f'{len(old_unknown_words) - len_before_removing} words and '
+                print(f'{len_before_removing - len(old_unknown_words)} words and '
                       f'{removed_files} files were removed!')
 
                 # Updated, added words in edited files

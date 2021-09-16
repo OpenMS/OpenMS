@@ -18,20 +18,21 @@ vocabulary
 
 ### Comment Types
 For each file type, where only comments should be searched for words, `line` and `block` comment types must be provided
-in `comment_types.json`.  
+in `comment_types.json`. Both, start and stop of block comments must be provided as well, even if they are identical.  
 Example: 
 ```
 ".py": {
-        "line":  
-        [
-            "#"
-        ],
-        "block": [
-            "''' '''",
-            "\"\"\" \"\"\""
-        ]
-    }
+    "line":
+    [
+        "#"
+    ],
+    "block": [
+        ["'''", "'''"],
+        ["\"\"\"", "\"\"\""]
+    ]
+}
 ```
+
 
 ## Command Line Interface (CLI)
 
@@ -56,15 +57,16 @@ No decision is executed directly, instead all actions are stored until `Process 
 - `Exit` will close the program, progress will not be saved automatically!
 
 
-
-
 ## GitHub
 
 ### General
 Unknown words are searched automatically by using GitHub actions workflows, every time a new commit is pushed. 
 If new words are found, the GitHub bot will open an issue or update an existing one on the respective fork or repository.
+To enable this feature, issues need to be activated in the repository before making changes.
 By default, the action only searches edited files. A full search can be initiated manually by clicking on `Actions` and 
 `Spellcheck - Full Search` in the GitHub repository. Additionally, the correct branch needs to be selected.
+The issue is will be locked after each update to ensure, that only users with the correct permission are able to edit and
+process the files.
 
 ### Assigning Actions
 The open issue allows to directly assign actions to identified words. Using the checkboxes, words can be either replaced
