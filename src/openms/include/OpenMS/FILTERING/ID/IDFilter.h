@@ -771,12 +771,24 @@ public:
     /**
        @brief Removes references to missing proteins
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
 
        If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
     */
     static void updateProteinReferences(
         ConsensusMap& cmap,
+        bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+        ConsensusMap& cmap,
+        const ProteinIdentification& ref_run,
         bool remove_peptides_without_reference = false);
 
     /**

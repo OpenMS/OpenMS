@@ -328,6 +328,7 @@ namespace OpenMS
     }
   }
 
+  //TODO write version where you look up in a specific run (e.g. first inference run
   void IDFilter::updateProteinReferences(
       ConsensusMap& cmap,
       bool remove_peptides_without_reference)
@@ -371,6 +372,49 @@ namespace OpenMS
 
     cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
+
+  void IDFilter::updateProteinReferences(
+      ConsensusMap& cmap,
+      const ProteinIdentification& ref_run,
+      bool remove_peptides_without_reference)
+  {
+    vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
+    // collect valid protein accessions for each ID run:
+    unordered_set<String> accessions_avail;
+
+    for (const ProteinHit& hit : ref_run.getHits())
+    {
+      accessions_avail.insert(hit.getAccession());
+    }
+
+    // TODO could be refactored and pulled out
+    auto check_prots_avail = [&accessions_avail, &remove_peptides_without_reference]
+        (PeptideIdentification& pep_it) -> void
+      {
+          const String& run_id = pep_it.getIdentifier();
+          const unordered_set<String>& accessions = accessions_avail;
+          struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
+          // check protein accessions of each peptide hit
+          for (PeptideHit& hit_it : pep_it.getHits())
+          {
+            // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
+            // can't use "keepMatchingItems":
+            vector<PeptideEvidence> evidences;
+            remove_copy_if(hit_it.getPeptideEvidences().begin(),
+                           hit_it.getPeptideEvidences().end(),
+                           back_inserter(evidences),
+                           not1(acc_filter));
+            hit_it.setPeptideEvidences(evidences);
+          }
+
+          if (remove_peptides_without_reference)
+          {
+            removeMatchingItems(pep_it.getHits(), HasNoEvidence());
+          }
+      };
+
+    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
+}
 
   void IDFilter::updateProteinReferences(
     vector<PeptideIdentification>& peptides,

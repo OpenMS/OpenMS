@@ -37,9 +37,11 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
+
   /** \brief Algorithm class that implements simple protein inference by aggregation of peptide scores.
    * It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
    * and if you want to use shared peptides ("use_shared_peptides").
@@ -68,7 +70,7 @@ namespace OpenMS
     {
       PROD, ///< aggregate by product (ignore zeroes)
       SUM, ///< aggregate by summing
-      MAXIMUM ///< aggregate by maximum
+      BEST ///< aggregate by maximum/minimum
     };
 
     /// Default constructor
@@ -77,8 +79,9 @@ namespace OpenMS
     /// main method of BasicProteinInferenceAlgorithm
     /// inputs are not const, since it will get annotated with results
     /// annotation of protein groups is currently only possible for a single protein ID run
-    void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids) const;
-    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id) const;
+    void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids, bool group) const;
+    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id, bool group) const;
+    void run(ConsensusMap & cmap, bool group) const;
 
   private:
 
@@ -96,6 +99,29 @@ namespace OpenMS
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
       std::vector<PeptideIdentification>& pep_ids,
-      Size min_peptides_per_protein) const;
+      Size min_peptides_per_protein,
+      bool group) const;
+
+    void aggregatePeptideScores_(
+        std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+        std::vector<PeptideIdentification>& pep_ids,
+        const String& overall_score_type,
+        bool higher_better,
+        const std::string& run_id) const;
+
+    void updateProteinScores_(
+        std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
+        std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+        bool pep_scores,
+        bool higher_better) const;
+
+    AggregationMethod aggFromString_(const std::string& method_string) const;
+
+    void checkCompat_(
+        const String& overall_score_type,
+        const AggregationMethod& aggregation_method
+        ) const;
+
+    double getInitScoreForAggMethod_(AggregationMethod aggregation_method, bool higher_better) const;
   };
 } //namespace OpenMS
