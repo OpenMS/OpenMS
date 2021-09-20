@@ -65,7 +65,7 @@
         self.setValue(key, value, desc, tags)
         
     def __str__(self):
-        return str(list(zip([k.decode() for k in self.keys()], self.values(), self.descriptions()))
+        return str(list(zip([k.decode() for k in self.keys()], self.values(), self.descriptions())))
 
 
 
