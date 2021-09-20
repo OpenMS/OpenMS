@@ -66,4 +66,3 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS::MassTrace":
         MT_QUANT_AREA,
         MT_QUANT_MEDIAN,
         SIZE_OF_MT_QUANTMETHOD
-

@@ -22,4 +22,3 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "Open
         String getProductName() nogil except + # wrap-doc:Returns the product name
 
         void insertmarker(PeakMarker * peak_marker) nogil except + # wrap-doc:Insert new Marker (violates the DefaultParamHandler interface)
-

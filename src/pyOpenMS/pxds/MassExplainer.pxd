@@ -20,4 +20,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/MassExplainer.h>" namespace "OpenMS":
         libcpp_vector[Adduct] getAdductBase() nogil except + # wrap-doc:Returns the set of adducts
         Compomer getCompomerById(Size id) nogil except + # wrap-doc:Returns a compomer by its Id (useful after a query() )
         void compute() nogil except + # wrap-doc:Fill map with possible mass-differences along with their explanation
-

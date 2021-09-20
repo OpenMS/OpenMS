@@ -35,4 +35,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
     
         bool isActive() nogil except + # wrap-doc:Is this pair realized?
         void setActive( bool active) nogil except +
-

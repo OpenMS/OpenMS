@@ -41,4 +41,3 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::Ins
       EMISSION,               #< Emission scan
       ABSORPTION,             #< Absorption scan
       SIZE_OF_SCANMODE
-

@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
         # wrap-doc:
         #   Description of a MS instrument
 
-        Instrument() nogil except +
+        Instrument() nogil except + # wrap-doc:Description of a MS instrument
         Instrument(Instrument &) nogil except +
 
         String getName() nogil except + # wrap-doc:Returns the name of the instrument
@@ -61,4 +61,3 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument"
         KINETIC_ENERGY_ANALYZER,          #< kinetic energy analyzer
         STATIC_FIELD,                     #< static field
         SIZE_OF_IONOPTICSTYPE
-

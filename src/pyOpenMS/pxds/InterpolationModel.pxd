@@ -27,4 +27,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>" n
         # void getSamples(SamplesType &cont) nogil except +
         # typedef typename DPeak<D>::Type PeakType;
         # typedef std::vector<PeakType> SamplesType;
-

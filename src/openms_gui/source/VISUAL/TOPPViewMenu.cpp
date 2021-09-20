@@ -90,7 +90,17 @@ namespace OpenMS
     m_file->addMenu(recent_files->getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
 
     m_file->addSeparator();
-    m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
+    
+    //Specifically set the role of the Preferences item. Additionally we have to avoid adding other action items that are
+    // called preferences/config/options and have the default TextHeuristicRole because otherwise they will overwrite the macOS specific
+    // menu entry under Application -> Preferences...
+    //m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
+    auto pref = new QAction("&Preferences", parent);
+    pref->setMenuRole(QAction::PreferencesRole);
+    pref->setEnabled(true);
+    m_file->addAction(pref);
+    connect(pref, &QAction::triggered, parent, &TOPPViewBase::preferencesDialog);
+      
     m_file->addAction("&Quit", qApp, SLOT(quit()));
 
     // Tools menu
@@ -149,7 +159,8 @@ namespace OpenMS
       TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
     m_layer->addSeparator();
-    addAction_(m_layer->addAction("Preferences", parent, &TOPPViewBase::showPreferences),
+    // Do not call it preferences without disabling text heuristics role.
+    addAction_(m_layer->addAction("Layer preferences", parent, &TOPPViewBase::showPreferences),
       TV_STATUS::HAS_LAYER);
 
     // Windows menu
@@ -171,11 +182,11 @@ namespace OpenMS
     parent->menuBar()->addMenu(m_help);
     m_help->addAction(QWhatsThis::createAction(m_help));
     m_help->addSeparator();
-    m_help->addAction("OpenMS website", [&]() { GUIHelpers::openURL("http://www.OpenMS.de"); });
-    m_help->addAction("Tutorials and documentation", [&]() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
+    m_help->addAction("OpenMS website", []() { GUIHelpers::openURL("http://www.OpenMS.de"); });
+    m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
 
     m_help->addSeparator();
-    m_help->addAction("&About", [&]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
+    m_help->addAction("&About", [parent]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
   }
 
   void TOPPViewMenu::update(const FS_TV status, const LayerData::DataType layer_type)

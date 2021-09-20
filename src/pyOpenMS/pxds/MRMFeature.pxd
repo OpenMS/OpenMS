@@ -28,4 +28,3 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
 
         bool operator==(MRMFeature) nogil except +
         bool operator!=(MRMFeature) nogil except +
-
