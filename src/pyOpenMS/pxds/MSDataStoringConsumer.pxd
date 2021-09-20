@@ -22,4 +22,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
         void consumeChromatogram(MSChromatogram & ) nogil except +
 
         MSExperiment getData() nogil except +
-

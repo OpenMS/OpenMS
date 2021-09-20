@@ -141,4 +141,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
         OPTIMAL
         FEASIBLE
         NO_FEASIBLE_SOL
-

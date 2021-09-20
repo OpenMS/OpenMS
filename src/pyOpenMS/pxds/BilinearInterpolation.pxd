@@ -52,4 +52,3 @@ cdef extern from "<OpenMS/MATH/MISC/BilinearInterpolation.h>" namespace "OpenMS:
         KeyType supportMax_1() nogil except + # wrap-doc:Upper boundary of the support, in "outside" coordinates
 
         # BilinearInterpolation(KeyType scale, KeyType offset) nogil except +
-
