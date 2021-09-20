@@ -15,10 +15,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
         OptimizePick() nogil except +
         OptimizePick(OptimizePick &) nogil except + # compiler
         OptimizePick(OptimizationFunctions_PenaltyFactors penalties_, int max_iteration_) nogil except +
-        OptimizationFunctions_PenaltyFactors getPenalties() nogil except + # wrap-doc:Get the penalty factors
-        void setPenalties(OptimizationFunctions_PenaltyFactors penalties) nogil except + # wrap-doc:Set the penalty factors
-        unsigned int  getNumberIterations() nogil except + # wrap-doc:Get the number of iterations
-        void setNumberIterations(int max_iteration) nogil except + # wrap-doc:Set the number of iterations
+        OptimizationFunctions_PenaltyFactors getPenalties() nogil except + # wrap-doc:Returns the penalty factors
+        void setPenalties(OptimizationFunctions_PenaltyFactors penalties) nogil except + # wrap-doc:Sets the penalty factors
+        unsigned int  getNumberIterations() nogil except + # wrap-doc:Returns the number of iterations
+        void setNumberIterations(int max_iteration) nogil except + # wrap-doc:Sets the number of iterations
         # void optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePick_Data & data) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizationFunctions":
