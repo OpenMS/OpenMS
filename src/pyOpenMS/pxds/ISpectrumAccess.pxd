@@ -26,4 +26,3 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>" namespace
       shared_ptr[OSChromatogram] getChromatogramById(int id_) nogil except + # wrap-doc:Returns a pointer to a chromatogram at the given id
       size_t getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms available
       libcpp_utf8_output_string getChromatogramNativeID(int id_) nogil except +
-

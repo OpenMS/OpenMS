@@ -22,5 +22,5 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         libcpp_vector[Precursor] getPrecursors() nogil except +
 
         bool isCompatible(BinnedSpectrum & a, BinnedSpectrum & b) nogil except +
+       
         float getOffset() nogil except + # wrap-doc:Returns offset
-

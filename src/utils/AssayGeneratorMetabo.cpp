@@ -128,7 +128,14 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+        registerInputFile_("executable", "<executable>",
+      // choose the default value according to the platform where it will be executed
+#ifdef OPENMS_WINDOWSPLATFORM
+      "sirius.bat",
+#else
+      "sirius",
+#endif
+      "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, {"is_executable"});
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -139,7 +146,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
+    registerStringOption_("fragment_annotation", "<choice>", "sirius", "Fragment annotation method",false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
