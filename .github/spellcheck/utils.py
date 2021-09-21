@@ -120,7 +120,7 @@ def get_words(rel_path: str = '', files_filter: Union[set, bool] = False) -> def
             for word in re.findall(include_pattern, text_block):
                 if word not in vocabulary and \
                         all([re.search(p, word) is None for p in RULES['exclude']['patterns']]):
-                    i_line = len(text[:match.start() + 1].split('\n')) - 1
+                    i_line = len(text[:match.start() + 1].splitlines()) - 1
                     unknown_words[word]['files'][str(os.path.relpath(path, 'Spellcheck'))[3:]].append(i_line + 1)
 
         try:
