@@ -32,6 +32,7 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/Exception.h"
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -958,9 +959,15 @@ namespace OpenMS
     }
   }
 
+  void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
+  {
+    this->parse_unknown_scores_ = parse_unknown_scores_;
+  }
+
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
-                        const String& experiment_name)
+                        const String& experiment_name
+                        )
   {
     SpectrumMetaDataLookup lookup;
     load(filename, proteins, peptides, experiment_name, lookup);
@@ -1202,30 +1209,48 @@ namespace OpenMS
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setMetaValue("nextscore", value);
       }
-      else
+      else if (search_engine_ == "Comet")
       {
-        if (search_engine_ == "Comet")
+        if (name == "deltacn")
         {
-          if (name == "deltacn")
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+        }
+        else if (name == "spscore")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+        }
+        else if (name == "sprank")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+        }
+        else if (name == "deltacnstar")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
+        }
+      }
+      else if (parse_unknown_scores_)
+      {
+        String strvval = attributeAsString_(attributes, "value");
+        if(name.hasSuffix("_ions")) //TODO create a dictionary of which known scores are which type?
+        {
+          peptide_hit_.setMetaValue(name, attributeAsInt_(attributes, "value")); // e.g. name: Comet:matched_b1_ions
+        }
+        else
+        {
+          try
           {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+            peptide_hit_.setMetaValue(name, attributeAsDouble_(attributes, "value")); // Any other generic score
           }
-          else if (name == "spscore")
+          catch (Exception::ConversionError&)
           {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+            //TODO warn about non-numeric score? Or even do not catch the conversion error?
+            peptide_hit_.setMetaValue(name, attributeAsString_(attributes, "value")); // Any other generic score (fallback String)
           }
-          else if (name == "sprank")
-          {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
-          }
-          else if (name == "deltacnstar")
-          {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
-          }
+          
         }
       }
     }
@@ -1320,11 +1345,9 @@ namespace OpenMS
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
-      if (search_engine_ == "Comet")
-      {
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
-        //TODO: we really need something uniform here, like scan number - and not in metainfointerface
-      }
+      //TODO: we really need something uniform here, like scan number - and not in metainfointerface
+      current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
+        
       if (!experiment_label_.empty())
       {
         current_peptide_.setExperimentLabel(experiment_label_);
@@ -1353,7 +1376,7 @@ namespace OpenMS
       experiment_label_ = "";
       swath_assay_ = "";
       status_ = "";
-      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum"); //TODO store separately? Do we ever need the pepXML internal ref?
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
@@ -1467,7 +1490,15 @@ namespace OpenMS
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        //TODO why only look in variable mods?
+        for (const AminoAcidModification& it : fixed_modifications_)
+        {
+          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+          {
+            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
+            found = true;
+            break; // only one modification should match, so we can stop the loop here
+          }
+        }
 
         if (!found)
         {

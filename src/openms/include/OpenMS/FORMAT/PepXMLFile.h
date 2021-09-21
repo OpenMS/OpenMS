@@ -128,6 +128,9 @@ public:
     /// sets the preferred variable modifications
     void setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods);
 
+    /// sets if during load, unknown scores should be parsed
+    void setParseUnknownScores(bool parse_unknown_scores);
+
 protected:
 
     /// Docu in base class
@@ -258,6 +261,9 @@ private:
 
     /// Does the file have decoys (e.g. from Comet's internal decoy search)
     bool has_decoys_{};
+
+    /// Also parse unknown scores as metavalues?
+    bool parse_unknown_scores_{};
 
     /// In case it has decoys, what is the prefix?
     String decoy_prefix_;
