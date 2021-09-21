@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 namespace OpenMS
 {
@@ -242,8 +243,8 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateLogMzPeaks_(const MSSpectrum *spec)
   {
     std::vector<LogMzPeak>().swap(log_mz_peaks_);
-    log_mz_peaks_.reserve(spec->size());
 
+    log_mz_peaks_.reserve(spec->size());
 
     double min_intensity = -1;
     for (auto &peak : *spec)
@@ -324,7 +325,6 @@ namespace OpenMS
       mz_bins_for_edge_effect_.set(bi);
 
       mz_bin_intensities[bi] += p.intensity;
-
     }
     for (auto &p : log_mz_peaks_)
     {
@@ -502,14 +502,14 @@ namespace OpenMS
           {
             pass_first_check = true;
             //harmonic check
-            for (int hc : harmonic_charges_)
+            /*for (int hc : harmonic_charges_)
             {
               double hdiff = Constants::ISOTOPE_MASSDIFF_55K_U / hc / abs_charge / mz;
               for (int off = 0; off <= 0; off++)
               {
                 Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_width) + off;
-                if (next_harmonic_iso_bin < mz_bins_.size() &&
-                    mz_bins_[next_harmonic_iso_bin])
+                if (next_harmonic_iso_bin < mz_bins_for_edge_effect_.size() &&
+                mz_bins_for_edge_effect_[next_harmonic_iso_bin])
                 {
                   mass_intensitites[mass_bin_index] -= intensity;
                   pass_first_check = false;
@@ -520,7 +520,7 @@ namespace OpenMS
               {
                 break;
               }
-            }
+            }*/
           }
         }
 
@@ -547,7 +547,7 @@ namespace OpenMS
             bool is_harmonic = false;
             for (int k = 0; k < h_charge_size; k++)//
             {
-              for (int off = -1; off <= 1; off++)
+              for (int off = 0; off <= 0; off++)
               {
                 int hmz_bin_index = off + mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j);
                 if (hmz_bin_index > 0 && hmz_bin_index < mz_bins_for_edge_effect_.size() &&

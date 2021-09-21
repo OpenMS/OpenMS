@@ -72,7 +72,7 @@ namespace OpenMS
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
                                                      const String &file_name,
                                                      const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                                     const bool write_detail)
+                                                     const bool write_detail, DoubleList iso_intensities)
   {
     if (empty())
     {
@@ -203,12 +203,23 @@ namespace OpenMS
         }
       }
 
+      if (spec_.getMSLevel() > 1)
+      {
+        for (double iso_int: iso_intensities)
+        {
+          fs << "\t" << iso_int;
+        }
+      }
+
       fs << "\n";
     }
   }
 
 
-  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)
+  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs,
+                                                           const int ms_level,
+                                                           const bool detail,
+                                                           const DoubleList iso_mzs)
   {
     if (detail)
     {
@@ -227,7 +238,13 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity";
+
+        for (int i = 0; i < iso_mzs.size(); ++i)
+        {
+          fs << "\tch" << (i + 1);
+        }
+        fs << "\n";
       }
     }
     else
@@ -249,7 +266,13 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity";
+        for (int i = 0; i < iso_mzs.size(); ++i)
+        {
+          fs << "\tch" << (i + 1);
+        }
+        fs << "\n";
+
       }
     }
   }
@@ -373,6 +396,11 @@ namespace OpenMS
     }
 
     fs << "END IONS\n\n";
+  }
+
+  std::string DeconvolutedSpectrum::getActivation_method()
+  {
+    return activation_method_;
   }
 
 

@@ -186,6 +186,22 @@ protected:
     setMinInt_("use_ensemble_spectrum", 0);
     setMaxInt_("use_ensemble_spectrum", 1);
 
+
+    registerIntOption_("isobaric_labeling_option",
+                       "",
+                       -1,
+                       "-1: none (default), 0: manual reporter ions m/zs with -isobaric_mz option, 1: IodoTMT6",
+                       false,
+                       false);
+
+    registerDoubleList_("isobaric_mz",
+                        "",
+                        DoubleList{},
+                        "isobaric reporter ion m/zs. If -isobaric_labeling_option 0 is used ,these m/zs intensities will be reported.",
+                        false,
+                        false);
+
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
     setMinInt_("use_RNA_averagine", 0);
     setMaxInt_("use_RNA_averagine", 1);
@@ -205,7 +221,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{4, 3});
+    fd_defaults.setValue("min_peaks", IntList{3, 2});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
@@ -414,6 +430,15 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
+    DoubleList iso_mzs = getDoubleList_("isobaric_mz");
+
+    int iso_option = getIntOption_("isobaric_labeling_option");
+    if (iso_option == 1)// fix later..
+    {
+      iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
+      //iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
+    }
+
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -462,7 +487,7 @@ protected:
       for (int i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail, iso_mzs);
       }
     }
 
@@ -551,7 +576,7 @@ protected:
     current_max_ms_level = 0;
 
     // read input dataset once to count spectra and generate ensemble spectrum if necessary
-    for (auto &it : map)
+    for (auto &it: map)
     {
       if (it.empty())
       {
@@ -576,7 +601,7 @@ protected:
       if (ensemble)
       {
         auto &espec = ensemble_map[it.getMSLevel() - 1];
-        for (auto &p : it)
+        for (auto &p: it)
         {
           espec.push_back(p);
         }
@@ -634,6 +659,7 @@ protected:
 
     auto fd = FLASHDeconvAlgorithm();
     Param fd_param = getParam_().copy("Algorithm:", true);
+    DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
     if (ensemble)
     {
@@ -708,7 +734,25 @@ protected:
         precursor_peak_groups[scan_number] = deconvoluted_spectrum.getPrecursorPeakGroup();
       }
 
-
+      /*
+            for (auto &pg: deconvoluted_spectrum)
+            {
+              if(pg.getIsotopeCosine()<0.99) continue;
+              if(std::get<0>(pg.getAbsChargeRange()) <=10 &&  std::get<1>(pg.getAbsChargeRange()) >=40 ){
+                for (int c = std::get<0>(pg.getAbsChargeRange()) ; c <= std::get<1>(pg.getAbsChargeRange())  ; ++c)
+                {
+                  auto mzr = pg.getMzRange(c);
+                  auto itr = it->MZBegin(std::get<0>(mzr));
+                  std::cout<<"iso"<<c<<"=[";
+                  while(itr->getMZ() < std::get<1>(mzr)){
+                    cout<<itr->getMZ() * c << "," <<itr->getIntensity()<<";";
+                    itr++;
+                  }
+                  std::cout<<"];\n";
+                }
+              }
+            }
+      */
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
           && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
@@ -754,10 +798,48 @@ protected:
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
+
+      DoubleList iso_intensities;
+
+      if (!iso_mzs.empty())
+      {
+        if (iso_option == 1) // TODO fix later ..
+        {
+          if (deconvoluted_spectrum.getActivation_method() == "ETD")
+          {
+            iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
+          }
+          else
+          {
+            iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
+          }
+        }
+
+        int current_ch = 0;
+        iso_intensities = DoubleList(iso_mzs.size(), 0.0);
+        for (auto &peak: *it)
+        {
+          if (current_ch >= iso_mzs.size())
+          {
+            break;
+          }
+          if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
+          {
+            continue;
+          }
+          if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
+          {
+            current_ch++;
+            continue;
+          }
+          iso_intensities[current_ch] += peak.getIntensity();
+        }
+      }
+
       if (out_spec_streams.size() > ms_level - 1)
       {
         deconvoluted_spectrum
-            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail, iso_intensities);
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
@@ -849,7 +931,7 @@ protected:
     }
     if (!out_topfd_feature_file.empty())
     {
-      for (auto &out_topfd_feature_stream : out_topfd_feature_streams)
+      for (auto &out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
       }
@@ -858,7 +940,7 @@ protected:
 
     if (!out_topfd_file.empty())
     {
-      for (auto &out_topfd_stream : out_topfd_streams)
+      for (auto &out_topfd_stream: out_topfd_streams)
       {
         out_topfd_stream.close();
       }
@@ -866,7 +948,7 @@ protected:
     if (!out_spec_file.empty())
     {
       int j = 0;
-      for (auto &out_spec_stream : out_spec_streams)
+      for (auto &out_spec_stream: out_spec_streams)
       {
         out_spec_stream.close();
         if (spec_cntr[j] <= 0)

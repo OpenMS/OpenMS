@@ -88,8 +88,12 @@ namespace OpenMS
         @param fs file stream to the output file
         @param ms_level ms level of the spectrum
         @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
+        @param iso_mzs isobaric reporter ion m/zs
    */
-    static void writeDeconvolutedMassesHeader(std::fstream &fs, const int ms_level, const bool detail);
+    static void writeDeconvolutedMassesHeader(std::fstream &fs,
+                                              const int ms_level,
+                                              const bool detail,
+                                              const DoubleList iso_mzs);
 
     /**
       @brief write the deconvoluted masses in the output file (spectrum level)
@@ -97,11 +101,12 @@ namespace OpenMS
       @param file_name FLASHDeconv paramter
       @param avg averagine information to calculate monoisotope and average mass difference. Both monoisotopic and average masses are reported and PeakGroup retains only monoisotopic masses
       @param write_detail if this is set, more detailed information on each mass will be written in the output file
+      @param iso_intensities isobaric reporter ion intensities
     */
     void writeDeconvolutedMasses(std::fstream &fs,
                                  const String &file_name,
                                  const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                 const bool write_detail);
+                                 const bool write_detail, const DoubleList iso_intensities);
 
     /**
       @brief write the deconvoluted masses TopFD output (*.msalign)
@@ -165,6 +170,9 @@ namespace OpenMS
 
     /// get precursor scan number - only if it is registered. Otherwise return 0
     int getPrecursorScanNumber() const;
+
+    /// get activation method
+    std::string getActivation_method();
 
   private:
     /// the original raw spectrum (not deconvoluted)
