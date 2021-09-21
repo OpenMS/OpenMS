@@ -961,7 +961,7 @@ namespace OpenMS
 
   void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
   {
-    this->parse_unknown_scores_ = parse_unknown_scores_;
+    this->parse_unknown_scores_ = parse_unknown_scores;
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
