@@ -1156,6 +1156,11 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
+      if (debug_level_ > 670)
+      {
+        MzMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms());
+      }
+
       ++fraction_group;
     }
 

@@ -36,7 +36,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingTerm.h>" namespace "OpenMS":
 
         String getCVIdentifierRef() nogil except + # wrap-doc:Returns the CV identifier reference string
 
-
         # equality operator
         bool operator==(CVMappingTerm rhs) nogil except +
 
