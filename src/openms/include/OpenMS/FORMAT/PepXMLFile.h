@@ -293,8 +293,11 @@ private:
     /// Sequence of the current peptide hit
     String current_sequence_;
 
-    /// RT and m/z of current PeptideIdentification
+    /// RT and m/z of current PeptideIdentification (=spectrum)  
     double rt_{}, mz_{};
+
+    /// 1-based scan nr. of current PeptideIdentification (=spectrum). Scannr is usually from the start_scan attribute
+    Size scannr_{};
 
     /// Precursor ion charge
     Int charge_{};

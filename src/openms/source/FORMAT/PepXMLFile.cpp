@@ -574,6 +574,7 @@ namespace OpenMS
         {
           if (pep.metaValueExists("spectrum_reference"))
           {
+            //TODO this will just crash. Shouldn't we fall back to RT? In case of PeptideProphet references, couldnt we lookup by spectrum number?
             scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
           }
           else
@@ -930,6 +931,14 @@ namespace OpenMS
     charge_ = attributeAsInt_(attributes, "assumed_charge");
     mz_ = (mass + hydrogen_mass_ * charge_) / charge_;
     rt_ = 0;
+    // assume only one scan, i.e. ignore "end_scan":
+    // "start and end_scan" are 1-based. "index" is 0-based
+    scannr_ = attributeAsInt_(attributes, "start_scan");
+    Size endscan = attributeAsInt_(attributes, "start_scan");
+    if (scannr_ != endscan)
+    {
+      error(LOAD, "endscan not equal to startscan. Merged spectrum queries not supported. Parsing start scan nr. only.");
+    }
 
     bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
 
@@ -942,9 +951,7 @@ namespace OpenMS
         return;
       }
 
-      // assume only one scan, i.e. ignore "end_scan":
-      Size scan = attributeAsInt_(attributes, "start_scan");
-      Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
+      Size index = (scannr_ != 0) ? lookup_->findByScanNumber(scannr_) :
         lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
       SpectrumMetaDataLookup::SpectrumMetaData meta;
       lookup_->getSpectrumMetaData(index, meta);
@@ -1346,7 +1353,16 @@ namespace OpenMS
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
       //TODO: we really need something uniform here, like scan number - and not in metainfointerface
-      current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
+      if (SpectrumLookup::isNativeID(native_spectrum_name_))
+      {
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); 
+      }
+      else if (scannr_ != 0)
+      {
+        current_peptide_.setMetaValue("spectrum_reference", String("scan=") + String(scannr_));
+      }
+      //TODO else error?
+      
         
       if (!experiment_label_.empty())
       {
@@ -1809,7 +1825,8 @@ namespace OpenMS
       //TODO why do we not store versions?
       if (search_engine_ == "X! Tandem")
       {
-        String ver = attributeAsString_(attributes, "search_engine_version");
+        String ver;
+        optionalAttributeAsString_(ver, attributes, "search_engine_version");
         if (ver.hasPrefix("MSFragger"))
         {
           search_engine_ = "MSFragger";
