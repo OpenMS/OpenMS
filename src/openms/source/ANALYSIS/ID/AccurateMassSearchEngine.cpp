@@ -1459,7 +1459,6 @@ namespace OpenMS
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
         }
-
       }
     }
 
