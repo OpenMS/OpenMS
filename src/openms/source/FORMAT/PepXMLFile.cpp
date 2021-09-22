@@ -1148,7 +1148,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
         }
-        else if (search_engine_ == "X! Tandem")
+        else if (search_engine_ == "X! Tandem" || search_engine_ == "MSFragger") // TODO check if there are separate CVs?
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
@@ -1805,6 +1805,16 @@ namespace OpenMS
       }
 
       search_engine_ = attributeAsString_(attributes, "search_engine");
+
+      //TODO why do we not store versions?
+      if (search_engine_ == "X! Tandem")
+      {
+        String ver = attributeAsString_(attributes, "search_engine_version");
+        if (ver.hasPrefix("MSFragger"))
+        {
+          search_engine_ = "MSFragger";
+        }
+      }
 
       // generate a unique identifier for every search engine run.
       prot_id_ = search_engine_ + "_" + date_.getDate() + "_" + date_.getTime();
