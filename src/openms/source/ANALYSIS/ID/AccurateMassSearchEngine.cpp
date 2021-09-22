@@ -876,7 +876,7 @@ namespace OpenMS
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
-    for (const auto& result : amr)
+    for (const AccurateMassSearchResult& result : amr)
     {
       PeptideHit hit;
       hit.setMetaValue("identifier", result.getMatchingHMDBids());
@@ -923,9 +923,9 @@ namespace OpenMS
 
     // corresponding file locations
     std::vector<String> file_locations;
-    for (Size i = 0; i < fd_map.size(); ++i)
+    for (const auto& fd : fd_map)
     {
-      file_locations.emplace_back(fd_map[i].filename);
+      file_locations.emplace_back(fd.second.filename);
     }
 
     // map for storing overall results
