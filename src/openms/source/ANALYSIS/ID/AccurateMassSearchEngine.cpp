@@ -965,9 +965,9 @@ namespace OpenMS
 
     md.description.fromCellString("Result summary from accurate mass search.");
 
-    // Set mandatory meta data. This is required so we fill in a pseudo score for accurate mass search
+    // Set meta data
     MzTabParameter search_engine_score;
-    search_engine_score.fromCellString("[,,AccurateMassSearchScore,]");
+    search_engine_score.fromCellString("[,,MassErrorPPMScore,]");
 
     md.smallmolecule_search_engine_score[1] = search_engine_score;
 
@@ -1002,6 +1002,7 @@ namespace OpenMS
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
+
       // std::cout << tab_it->first << std::endl;
 
       for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
@@ -1011,7 +1012,6 @@ namespace OpenMS
         std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
 
         // iterate over multiple IDs, generate a new row for each one
-
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
@@ -1099,11 +1099,15 @@ namespace OpenMS
           search_engines.fromCellString("[,,AccurateMassSearch,]");
           mztab_row_record.search_engine = search_engines;
 
+          // same score for all files since it used the mass-to-charge of the ConsensusFeature
+          // for identification -> set as best_search_engine_score
+          mztab_row_record.best_search_engine_score[1] = MzTabDouble((*tab_it)[hit_idx].getMZErrorPPM());
+
+          // set search_engine_score per hit -> null
           MzTabDouble null_score;
-          mztab_row_record.best_search_engine_score[1] = null_score; // set null
-          for (size_t i = 0; i != number_of_maps; ++i)
+          for (size_t i = 0; i != number_of_maps; ++i) // start from one since it is already filled.
           {
-            mztab_row_record.search_engine_score_ms_run[1][i] = null_score; // set null
+            mztab_row_record.search_engine_score_ms_run[1][i] = null_score;
           }
 
           // check if we deal with a feature or consensus feature
