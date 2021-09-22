@@ -74,6 +74,6 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setForceMQCompatability(bool forceMQ) nogil except + # wrap-doc:[mzXML only!]Returns Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
         bool getForceMQCompatability() nogil except + # wrap-doc:[mzXML only!]Returns Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
 
-        void setForceTPPCompatability(bool forceTPP) nogil except +[ mzML only!]Returns Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
+        void setForceTPPCompatability(bool forceTPP) nogil except + # wrap-doc:[ mzML only!]Returns Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
         bool getForceTPPCompatability() nogil except + # wrap-doc:[mzML only!]Returns Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
         
