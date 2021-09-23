@@ -342,16 +342,17 @@ namespace OpenMS
       // if executable was not provided
       if (executable.empty())
       {
-        const std::string& qsiriuspathenv(std::getenv("SIRIUS_PATH"));
-        if (qsiriuspathenv.empty())
+        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr of not found
+        if (sirius_env_var == nullptr)
         {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__,
-                                        OPENMS_PRETTY_FUNCTION,
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                        "");
+            throw Exception::InvalidValue(__FILE__,
+                                __LINE__,
+                                OPENMS_PRETTY_FUNCTION,
+                                "FATAL: Executable of SIRIUS could not be found. Please either use SIRIUS_PATH env variable, add the Sirius directory to our PATH or provide the executable with -sirius_executable",
+                                "");
         }
-        executable = qsiriuspathenv;
+        const std::string sirius_path(sirius_env_var);
+        executable = sirius_path;
       }
       const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
