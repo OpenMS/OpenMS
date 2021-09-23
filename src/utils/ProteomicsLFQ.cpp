@@ -1658,12 +1658,6 @@ protected:
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
-    vector<String> in_basename_vector;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      in_basename_vector.push_back(File::basename(in[i]));
-    }
-
     for (auto & [fraction, ms_files] : frac2ms)
     {
       for (auto & s : ms_files)
@@ -1671,12 +1665,12 @@ protected:
         // if basename in experimental design matches to basename in input file
         // overwrite experimental design to point to existing file (and only if they were different)
         if (auto it = std::find_if(in.begin(), in.end(), 
-              [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); 
-                 it != in_basename_vector.end() && s != *it)
+              [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
+                 it != in.end() && s != *it) // and differ?
         {
           OPENMS_LOG_INFO << "Path of spectra files differ between experimental design (1) and input (2). Using the path of the input file as "
                           << "we know this file exists on the file system: '" << *it << "' vs. '" << s << endl;
-          s = *it;
+          s = *it; // overwrite filename in design with filename in input files
         }
       }
       
