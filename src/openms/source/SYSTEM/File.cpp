@@ -62,6 +62,8 @@
 #include <mach-o/dyld.h>
 #endif
 
+#include <atomic>
+
 using namespace std;
 
 namespace OpenMS
