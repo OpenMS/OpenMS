@@ -574,7 +574,7 @@ namespace OpenMS
         {
           if (pep.metaValueExists("spectrum_reference"))
           {
-            //TODO this will just crash. Shouldn't we fall back to RT? In case of PeptideProphet references, couldnt we lookup by spectrum number?
+            //findByNativeID will fall back to RT lookup if none of the regexes registered in lookup can extract a meaningful ID or scan nr
             scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
           }
           else
@@ -1501,7 +1501,7 @@ namespace OpenMS
         {
           if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
@@ -1510,7 +1510,7 @@ namespace OpenMS
         {
           if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
@@ -1531,7 +1531,7 @@ namespace OpenMS
 
           if (!mods.empty())
           {
-            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
           }
           else
           {
@@ -1551,7 +1551,7 @@ namespace OpenMS
         {
           if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
           {
-            current_modifications_.emplace_back(amino.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
@@ -1573,7 +1573,7 @@ namespace OpenMS
 
           if (!mods.empty())
           {
-            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
           }
           else
           {
