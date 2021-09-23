@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <numeric>
+
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
