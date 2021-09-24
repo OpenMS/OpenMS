@@ -331,7 +331,7 @@ protected:
     // Modifications
     registerDoubleList_(TOPPMSFraggerAdapter::varmod_masses, "<varmod1_mass .. varmod7_mass>", emptyDoubles , "Masses for variable modifications", false, false);
     registerStringList_(TOPPMSFraggerAdapter::varmod_syntax, "<varmod1_syntax .. varmod7_syntax>", emptyStrings, "Syntax Strings for variable modifications", false, false);
-    registerStringList_(TOPPMSFraggerAdapter::variable_modifications_unimod, "<varmod1_unimod .. varmod7_unimod>", emptyStrings, "Variable modifications in unimod syntax", false, false);
+    registerStringList_(TOPPMSFraggerAdapter::variable_modifications_unimod, "<varmod1_unimod .. varmod7_unimod>", emptyStrings, "Variable modifications in unimod syntax, is added to mass+syntax varmod list", false, false);
     registerFlag_(TOPPMSFraggerAdapter::varmod_enable_common, "Enable common variable modifications (15.9949 M and 42.0106 [^)", false);
 
     // allow_multiple_variable_mods_on_residue
@@ -401,7 +401,7 @@ protected:
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_R_arginine,      "<add_R_arginine>",      0.0, "Statically add mass to arginine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_Y_tyrosine,      "<add_Y_tyrosine>",      0.0, "Statically add mass to tyrosine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_W_tryptophan,    "<add_W_tryptophan>",    0.0, "Statically add mass to tryptophan",    false, true);
-    registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax", false, false);
+    registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority.", false, false);
   }
 
 
@@ -539,26 +539,26 @@ protected:
       double arg_add_nterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_peptide);
       double arg_add_cterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_protein);
       double arg_add_nterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_protein);
-      double arg_add_G_glycine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_G_glycine);
-      double arg_add_A_alanine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_A_alanine);
-      double arg_add_S_serine      = this->getDoubleOption_(TOPPMSFraggerAdapter::add_S_serine);
-      double arg_add_P_proline     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_P_proline);
-      double arg_add_V_valine      = this->getDoubleOption_(TOPPMSFraggerAdapter::add_V_valine);
-      double arg_add_T_threonine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_T_threonine);
-      double arg_add_C_cysteine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_C_cysteine);
-      double arg_add_L_leucine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_L_leucine);
-      double arg_add_I_isoleucine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_I_isoleucine);
-      double arg_add_N_asparagine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_N_asparagine);
-      double arg_add_D_aspartic_acid     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_D_aspartic_acid);
-      double arg_add_Q_glutamine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Q_glutamine);
-      double arg_add_K_lysine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_K_lysine);
-      double arg_add_E_glutamic_acid     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_E_glutamic_acid);
-      double arg_add_M_methionine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_M_methionine);
-      double arg_add_H_histidine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_H_histidine);
-      double arg_add_F_phenylalanine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_F_phenylalanine);
-      double arg_add_R_arginine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_R_arginine);
-      double arg_add_Y_tyrosine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Y_tyrosine);
-      double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
+      double arg_add_G_glycine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_G_glycine);
+      double arg_add_A_alanine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_A_alanine);
+      double arg_add_S_serine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_S_serine);
+      double arg_add_P_proline = this->getDoubleOption_(TOPPMSFraggerAdapter::add_P_proline);
+      double arg_add_V_valine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_V_valine);
+      double arg_add_T_threonine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_T_threonine);
+      double arg_add_C_cysteine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_C_cysteine);
+      double arg_add_L_leucine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_L_leucine);
+      double arg_add_I_isoleucine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_I_isoleucine);
+      double arg_add_N_asparagine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_N_asparagine);
+      double arg_add_D_aspartic_acid = this->getDoubleOption_(TOPPMSFraggerAdapter::add_D_aspartic_acid);
+      double arg_add_Q_glutamine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Q_glutamine);
+      double arg_add_K_lysine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_K_lysine);
+      double arg_add_E_glutamic_acid = this->getDoubleOption_(TOPPMSFraggerAdapter::add_E_glutamic_acid);
+      double arg_add_M_methionine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_M_methionine);
+      double arg_add_H_histidine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_H_histidine);
+      double arg_add_F_phenylalanine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_F_phenylalanine);
+      double arg_add_R_arginine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_R_arginine);
+      double arg_add_Y_tyrosine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Y_tyrosine);
+      double arg_add_W_tryptophan = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
       std::vector< String > arg_fixmod_unimod = this->getStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
