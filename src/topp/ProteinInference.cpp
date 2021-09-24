@@ -111,8 +111,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
 
     //TODO add function to merge based on replicates only. Needs additional exp. design file then.
-    registerStringOption_("merge_runs", "<choice>", "no",
-                          "If your idXML contains multiple runs, merge them beforehand?", false);
+    registerStringOption_("merge_runs", "<choice>", "all",
+                          "If your idXML contains multiple runs, merge them beforehand? Otherwise performs inference separately per run.", false);
     setValidStrings_("merge_runs", ListUtils::create<String>("no,all"));
 
     registerStringOption_("annotate_indist_groups", "<choice>", "true",
@@ -134,7 +134,6 @@ protected:
     Param algo_with_subsection;
     algo_with_subsection.insert("Algorithm:", BasicProteinInferenceAlgorithm().getDefaults());
     registerFullParam_(algo_with_subsection);
-
   }
 
 

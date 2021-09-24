@@ -116,7 +116,6 @@ namespace OpenMS
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
-    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
 
     String agg_method_string(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
@@ -209,9 +208,9 @@ namespace OpenMS
     if (group)
     {
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
-      // but it is quite fast right now.
-      IDBoostGraph ibg{cmap, prot_run, 1
-                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, false};
+      // but it is quite fast as it is right now.
+      IDBoostGraph ibg{prot_run, cmap, 1
+                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, true, false};
 
       ibg.computeConnectedComponents();
       ibg.calculateAndAnnotateIndistProteins(true);
@@ -414,12 +413,9 @@ namespace OpenMS
   {
     //TODO do something smart about the scores, e.g. let the user specify a general score type
     // he wants to use and then switch all of them
-    // At least use the new ScoreType class to check for the many names in a unified way.
-    if (overall_score_type != "Posterior Error Probability" // from IDPEP
-    && overall_score_type != "Posterior Probability"
-    && overall_score_type != "pep" // from Percolator
-    && overall_score_type != "MS:1001493" // from Percolator
-    && aggregation_method == AggregationMethod::PROD)
+    if (!IDScoreSwitcherAlgorithm().isScoreType(overall_score_type, IDScoreSwitcherAlgorithm::ScoreType::PEP) &&
+        !IDScoreSwitcherAlgorithm().isScoreType(overall_score_type, IDScoreSwitcherAlgorithm::ScoreType::PP) &&
+        aggregation_method == AggregationMethod::PROD)
     {
       OPENMS_LOG_WARN << "ProteinInference with multiplicative aggregation "
                          " should probably use Posterior (Error) Probabilities in the Peptide Hits."
