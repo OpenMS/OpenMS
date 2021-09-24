@@ -43,9 +43,10 @@
 namespace OpenMS
 {
   class PeptideIdentification;
+
   class MSSpectrum;
 
-  class OPENMS_DLLAPI AnnotatedMSRawData : public MSExperiment
+  class OPENMS_DLLAPI AnnotatedMSRawData
   {
   public:
     typedef std::pair<MSSpectrum&, std::vector<PeptideIdentification>&> Mapping;
@@ -53,49 +54,73 @@ namespace OpenMS
 
     /// Default constructor
     AnnotatedMSRawData() = default;
+
     /// Move constructor for efficiently loading a MSExperiment without a deep copy.
-    explicit AnnotatedMSRawData(MSExperiment&& experiment) : MSExperiment(std::move(experiment)) {};
+    explicit AnnotatedMSRawData(MSExperiment&& experiment) : data(std::move(experiment))
+    {};
+
     AnnotatedMSRawData(AnnotatedMSRawData&&) = default;
+
     ~AnnotatedMSRawData() = default;
 
     /// Get the peptide identifications for a single spectrum.
-    std::vector<PeptideIdentification>& getPeptideIds();
+    std::vector<PeptideIdentification>& getPeptideIdentifications(size_t index) const;
+
     /// Get all peptide identifications for all spectra.
-    std::vector<std::vector<PeptideIdentification>>& getAllPeptideIds();
+    std::vector<std::vector<PeptideIdentification>>& getAllPeptideIdentifications() const;
 
     /// Set a single spectrum's peptide identification annotation
-    void setPeptideIds(std::vector<PeptideIdentification>&& ids, size_t index);
+    void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids, size_t index);
+
     /// Set all peptide identifications for all spectra
-    void setAllPeptideIds(std::vector<std::vector<PeptideIdentification>>&& ids);
+    void setAllPeptideIdentifications(std::vector<std::vector<PeptideIdentification>>&& ids);
+
+    void clearAllPeptideIdentifications()
+    {
+      std::vector<std::vector<PeptideIdentification>> empty_ids;
+      peptide_ids.swap(empty_ids);
+    }
+
+    MSExperiment& getMSExperiment() const;
 
     inline auto cbegin() const
     {
-      return PairIterator(spectra_.cbegin(), peptide_ids.cbegin());
+      return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
     }
 
     inline auto begin()
     {
-      return PairIterator(spectra_.begin(), peptide_ids.begin());
+      return PairIterator(data.getSpectra().begin(), peptide_ids.begin());
+    }
+
+    inline auto begin() const
+    {
+      return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
     }
 
     inline auto end()
     {
-      return PairIterator(spectra_.end(), peptide_ids.end());
+      return PairIterator(data.getSpectra().end(), peptide_ids.end());
+    }
+
+    inline auto end() const
+    {
+      return PairIterator(data.getSpectra().end(), peptide_ids.end());
     }
 
     inline auto cend() const
     {
-      return PairIterator(spectra_.cend(), peptide_ids.cend());
+      return PairIterator(data.getSpectra().cend(), peptide_ids.cend());
     }
 
     inline Mapping operator[](size_t idx)
     {
-      return { spectra_[idx], peptide_ids[idx] };
+      return {data.getSpectra()[idx], peptide_ids[idx]};
     }
 
     inline ConstMapping operator[](size_t idx) const
     {
-      return { spectra_[idx], peptide_ids[idx] };
+      return {data.getSpectra()[idx], peptide_ids[idx]};
     }
 
     template<typename T1, typename T2>
@@ -104,11 +129,12 @@ namespace OpenMS
       // TODO add check that both vectors are of the same length
       using iterator_category = std::forward_iterator_tag;
       using difference_type = std::ptrdiff_t;
-      using value_type = std::pair<T1, T2>;
+      //using value_type = std::pair<T1, T2>;
       //using pointer = value_type*;
       //using reference = value_type&;
 
-      PairIterator(T1 ptr1, T2 ptr2) : m_ptr1(ptr1), m_ptr2(ptr2) {}
+      PairIterator(T1 ptr1, T2 ptr2) : m_ptr1(ptr1), m_ptr2(ptr2)
+      {}
 
       PairIterator& operator++()
       {
@@ -126,15 +152,15 @@ namespace OpenMS
 
       auto operator*()
       {
-        return std::pair(*m_ptr1, *m_ptr2);
+        return std::make_pair(std::ref(*m_ptr1), std::ref(*m_ptr2));
       }
 
-      inline friend bool operator== (const PairIterator& a, const PairIterator& b)
+      inline friend bool operator==(const PairIterator& a, const PairIterator& b)
       {
         return a.m_ptr1 == b.m_ptr1 && a.m_ptr2 == b.m_ptr2;
       }
 
-      inline friend bool operator!= (const PairIterator& a, const PairIterator& b)
+      inline friend bool operator!=(const PairIterator& a, const PairIterator& b)
       {
         return !(a == b);
       }
@@ -142,12 +168,13 @@ namespace OpenMS
     private:
       T1 m_ptr1;
       T2 m_ptr2;
-  };
+    };
 
-  typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::iterator , std::vector<std::vector<PeptideIdentification>>::iterator> Iterator;
-  typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::const_iterator , std::vector<std::vector<PeptideIdentification>>::const_iterator> ConstIterator;
+    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<std::vector<PeptideIdentification>>::iterator> Iterator;
+    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<std::vector<PeptideIdentification>>::const_iterator> ConstIterator;
 
   private:
     std::vector<std::vector<PeptideIdentification>> peptide_ids;
+    MSExperiment data;
   };
 }

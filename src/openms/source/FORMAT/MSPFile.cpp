@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -368,7 +369,7 @@ namespace OpenMS
   }
 
   //TODO adapt store to write new? format
-  void MSPFile::store(const String & filename, const PeakMap & exp) const
+  void MSPFile::store(const String & filename, const AnnotatedMSRawData & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
@@ -383,11 +384,11 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (const MSSpectrum& it : exp)
+    for (auto [spectrum, peptide_ids] : exp)
     {
-      if (it.getPeptideIdentifications().size() > 0 && it.getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!peptide_ids.empty() && !peptide_ids.begin()->getHits().empty())
       {
-        PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
+        PeptideHit hit = *peptide_ids.begin()->getHits().begin();
         String peptide;
         for (const Residue& pit : hit.getSequence())
         {
@@ -444,10 +445,10 @@ namespace OpenMS
           out << " Mods=0";
         }
         out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
-        out << "Num peaks: " << it.size() << "\n";
+        out << "Num peaks: " << spectrum.size() << "\n";
 
         // normalize to 10,000
-        PeakSpectrum rich_spec = it;
+        PeakSpectrum rich_spec = spectrum;
         double max_int(0);
         for (const Peak1D& sit : rich_spec)
         {

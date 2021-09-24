@@ -42,6 +42,7 @@
 
 namespace OpenMS
 {
+  class AnnotatedMSRawData;
   /**
       @brief File adapter for MSP files (NIST spectra library)
 
@@ -89,7 +90,7 @@ public:
 
         @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void store(const String & filename, const PeakMap & exp) const;
+    void store(const String & filename, const AnnotatedMSRawData & exp) const;
 
 protected:
 

@@ -152,7 +152,7 @@ public:
     /// returns a const reference to the PeptideIdentification vector
     //const std::vector<PeptideIdentification> & getPeptideIdentifications() const;
     /// returns a mutable reference to the PeptideIdentification vector
-    //std::vector<PeptideIdentification> & getPeptideIdentifications();
+    std::vector<PeptideIdentification> & getPeptideIdentifications();
     /// sets the PeptideIdentification vector
     //void setPeptideIdentifications(const std::vector<PeptideIdentification> & identifications);
 

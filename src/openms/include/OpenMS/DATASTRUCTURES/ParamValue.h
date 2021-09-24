@@ -375,7 +375,7 @@ protected:
     /// Space to store the data
     union
     {
-      ptrdiff_t ssize_;
+      std::ptrdiff_t ssize_;
       double dou_;
       std::string* str_;
       std::vector<std::string>* str_list_;

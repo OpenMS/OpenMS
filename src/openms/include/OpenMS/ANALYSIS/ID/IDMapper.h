@@ -48,6 +48,7 @@
 
 namespace OpenMS
 {
+  class AnnotatedMSRawData;
   /**
     @brief Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
 
@@ -91,7 +92,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
+    void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for peak maps
@@ -108,7 +109,7 @@ public:
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
     */
-    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool map_ms1 = false);
+    void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for feature maps

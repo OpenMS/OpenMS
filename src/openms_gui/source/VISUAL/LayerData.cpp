@@ -61,7 +61,7 @@ namespace OpenMS
     os << "--LayerData BEGIN--" << std::endl;
     os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
-    os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
+    os << "number of peaks: " << rhs.getPeakData()->getMSExperiment().getSize() << std::endl;
     os << "--LayerData END--" << std::endl;
     return os;
   }
@@ -105,11 +105,11 @@ namespace OpenMS
 
   void LayerData::updateRanges()
   {
-    peak_map_->updateRanges();
+    peak_map_->getMSExperiment().updateRanges();
     features_->updateRanges();
     consensus_map_->updateRanges();
     // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
-    chromatogram_map_->updateRanges();
+    chromatogram_map_->getMSExperiment().updateRanges();
     cached_spectrum_.updateRanges();
   }
 
@@ -119,7 +119,7 @@ namespace OpenMS
   {
     if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
     {
-      return getPeakData()->getMinInt();
+      return getPeakData()->getMSExperiment().getMinInt();
     }
     else if (type == LayerData::DT_FEATURE)
     {
@@ -137,7 +137,7 @@ namespace OpenMS
   {
     if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
     {
-      return getPeakData()->getMaxInt();
+      return getPeakData()->getMSExperiment().getMaxInt();
     }
     else if (type == LayerData::DT_FEATURE)
     {
@@ -168,7 +168,7 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].first.size() > 0)
+    if (peak_map_->getMSExperiment().getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].first.empty())
     {
       cached_spectrum_ = (*peak_map_)[current_spectrum_idx_].first;
     }
@@ -229,20 +229,20 @@ namespace OpenMS
     return true;
   }
 
-  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
+  const MSSpectrum& LayerData::getCurrentSpectrum() const
   {
     return cached_spectrum_;
   }
 
   /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
 
-  const LayerData::ExperimentType::SpectrumType LayerData::getSpectrum(Size spectrum_idx) const
+  const MSSpectrum LayerData::getSpectrum(Size spectrum_idx) const
   {
     if (spectrum_idx == current_spectrum_idx_)
     {
       return cached_spectrum_;
     }
-    if ((*peak_map_)[spectrum_idx].first.size() > 0)
+    if (!(*peak_map_)[spectrum_idx].first.empty())
     {
       return (*peak_map_)[spectrum_idx].first;
     }
@@ -256,10 +256,10 @@ namespace OpenMS
   void LayerData::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerData::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
-    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
+    MSSpectrum & spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_spectrum_idx_);
 
     int ms_level = spectrum.getMSLevel();
 
@@ -267,7 +267,7 @@ namespace OpenMS
     {
       // store user fragment annotations
       //vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-      vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIds(current_spectrum_idx_);
+      vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIdentifications(current_spectrum_idx_);
 
       // no ID selected
       if (peptide_id_index == -1 || peptide_hit_index == -1)
@@ -316,7 +316,7 @@ namespace OpenMS
         pep_id.setIdentifier("Unknown");
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getMSExperiment().getProteinIdentifications();
         if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
@@ -444,7 +444,7 @@ namespace OpenMS
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK)
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerData::DT_PEAK)
     { 
       return;
     }
@@ -456,7 +456,7 @@ namespace OpenMS
     }
 
     // get mutable access to the spectrum
-    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
+    MSSpectrum & spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_spectrum_idx_);
     size_t ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -470,7 +470,7 @@ namespace OpenMS
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
     //vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-    vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIds(current_spectrum_idx_);
+    vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIdentifications(current_spectrum_idx_);
     if (pep_ids.empty()) 
     { 
       return;

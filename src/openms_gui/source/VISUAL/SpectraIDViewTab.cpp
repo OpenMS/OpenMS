@@ -157,8 +157,9 @@ namespace OpenMS
 
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-    const auto& exp = *layer_->getPeakData();
-    const auto& spec2 = exp[current_spectrum_index].first;
+    const auto& annotated_exp = *layer_->getPeakData();
+    const auto& exp = annotated_exp.getMSExperiment();
+    const auto& spec2 = exp[current_spectrum_index];
 
     //
     // Signal for a new spectrum to be shown
@@ -207,7 +208,7 @@ namespace OpenMS
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
-        const vector<PeptideIdentification>& peptide_ids = exp[current_spectrum_index].second;
+        const vector<PeptideIdentification>& peptide_ids = annotated_exp.getPeptideIdentifications(current_spectrum_index);
         const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
         const PeptideHit& hit = phits[current_peptide_hit_index];
 
@@ -267,8 +268,8 @@ namespace OpenMS
     // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
     bool no_data = (layer == nullptr
-                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->getMSExperiment().empty())
+                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->getMSExperiment().empty()));
     return !no_data;
   }
 
@@ -326,12 +327,11 @@ namespace OpenMS
     {
       std::vector<std::reference_wrapper<const PeptideHit>> all_hits;
 
-      for (auto [spectra, peptide_ids] : *layer_->getPeakData())
+      for (auto [spectrum, peptide_ids] : *layer_->getPeakData())
       {
-        UInt ms_level = spectra.getMSLevel();
-        //const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+        UInt ms_level = spectrum.getMSLevel();
 
-        if (ms_level != 2 || peptide_ids.size() == 0) // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2 || peptide_ids.empty()) // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
@@ -374,7 +374,7 @@ namespace OpenMS
     // generate flat list
     int selected_row(-1);
     // index i is needed, so iterate the old way...
-    for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
+    for (Size i = 0; i < layer_->getPeakData()->getMSExperiment().size(); ++i)
     {
       auto [spectrum, peptide_ids] = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
@@ -536,7 +536,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->getMSExperiment().size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -546,7 +546,7 @@ namespace OpenMS
 
     QString selectedFilter;
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
-    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getMSExperiment().getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
