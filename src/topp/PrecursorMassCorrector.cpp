@@ -153,11 +153,11 @@ protected:
 
     PeakMap exp2 = exp;
     exp2.clear(false);
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+    for (const MSSpectrum& ms : exp)
     {
-      if (it->size() != 0)
+      if (ms.size() != 0)
       {
-        exp2.addSpectrum(*it);
+        exp2.addSpectrum(ms);
       }
     }
 

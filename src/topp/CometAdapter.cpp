@@ -443,14 +443,20 @@ protected:
     {
       OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite low for low-res instruments (Comet recommends 1.005 Da bin size & 0.4 Da offset). "
                        << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol/2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
-      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      if (!getFlag_("force"))
+      {
+        return ExitCodes::ILLEGAL_PARAMETERS;
+      }
       OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
     else if (instrument == "high_res" && (bin_tol > 0.1 || bin_offset > 0.1))
     {
       OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite high for high-res instruments (Comet recommends 0.02 Da bin size & 0.0 Da offset). "
                        << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol / 2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
-      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      if (!getFlag_("force"))
+      {
+        return ExitCodes::ILLEGAL_PARAMETERS;
+      }
       OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
 

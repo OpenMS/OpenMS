@@ -24,8 +24,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
         bool addPoint(DPosition2 point) nogil except + # wrap-doc:Adds a point to the hull if it is not already contained. Returns if the point was added. This will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)
         void addPoints(libcpp_vector[DPosition2] points) nogil except + # wrap-doc:Adds points to the hull if it is not already contained. This will trigger recomputation of the outer hull points (thus points set with setHullPoints() will be lost)
 
-        bool encloses(DPosition2) nogil except + # wrap-doc:Returns if the @param point lies in the feature hull
+        bool encloses(DPosition2) nogil except + # wrap-doc:Returns if the `point` lies in the feature hull
         libcpp_vector[DPosition2] getHullPoints() nogil except + # wrap-doc:Accessor for the outer points
         void setHullPoints(libcpp_vector[DPosition2] ) nogil except + # wrap-doc:Accessor for the outer(!) points (no checking is performed if this is actually a convex hull) 
         DBoundingBox2 getBoundingBox() nogil except + # wrap-doc:Returns the bounding box of the feature hull points
-

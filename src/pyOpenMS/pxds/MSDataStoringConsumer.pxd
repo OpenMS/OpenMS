@@ -15,11 +15,10 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
         MSDataStoringConsumer() nogil except +
         MSDataStoringConsumer(MSDataStoringConsumer &) nogil except + # compiler
 
-        void setExperimentalSettings(ExperimentalSettings & exp) nogil except +# TODO
-        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
+        void setExperimentalSettings(ExperimentalSettings & exp) nogil except + # wrap-doc:Sets experimental settings
+        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except + # wrap-doc:Sets expected size
 
         void consumeSpectrum(MSSpectrum & s) nogil except +
         void consumeChromatogram(MSChromatogram & ) nogil except +
 
         MSExperiment getData() nogil except +
-

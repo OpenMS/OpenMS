@@ -6,14 +6,14 @@
   ]>
 <qcML xmlns="https://github.com/qcML/qcml" >
 	<runQuality ID="QCCalculator_input">
-				<qualityParameter name="mzML file" ID="QCCalculator_input_msaq" cvRef="QC" accession="QC:0000004"/>
+				<qualityParameter name="MS acquisition result details" ID="QCCalculator_input_msaq" cvRef="QC" accession="QC:0000004"/>
 				<qualityParameter name="mzML file" ID="QCCalculator_input_run_name" cvRef="MS" accession="MS:1000577" value="QCCalculator_input"/>
 				<qualityParameter name="instrument model" ID="QCCalculator_input_instrument_name" cvRef="MS" accession="MS:1000031" value="LCQ Deca"/>
 				<qualityParameter name="completion time" ID="QCCalculator_input_date" cvRef="MS" accession="MS:1000747" value="2007-06-27"/>
-				<qualityParameter name="number of ms1 spectra" ID="QCCalculator_input_ms1aquisition" cvRef="QC" accession="QC:0000006" value="3"/>
-				<qualityParameter name="number of ms2 spectra" ID="QCCalculator_input_ms2aquisition" cvRef="QC" accession="QC:0000007" value="1"/>
-				<qualityParameter name="number of chromatograms" ID="QCCalculator_input_Chromaquisition" cvRef="QC" accession="QC:0000008" value="2"/>
-				<qualityParameter name="percentage of tic slumps" ID="QCCalculator_input_ticslump" cvRef="QC" accession="QC:0000023" value="375"/>
+				<qualityParameter name="MS1 spectra count" ID="QCCalculator_input_ms1aquisition" cvRef="QC" accession="QC:0000006" value="3"/>
+				<qualityParameter name="MS2 spectra count" ID="QCCalculator_input_ms2aquisition" cvRef="QC" accession="QC:0000007" value="1"/>
+				<qualityParameter name="Chromatogram count" ID="QCCalculator_input_Chromaquisition" cvRef="QC" accession="QC:0000008" value="2"/>
+				<qualityParameter name="TIC slump" ID="QCCalculator_input_ticslump" cvRef="QC" accession="QC:0000023" value="375"/>
 				<qualityParameter name="percentage of ric slumps" ID="QCCalculator_input_ricslump" cvRef="QC" accession="QC:0000057" value="75"/>
 				<qualityParameter name="IS-1A" ID="QCCalculator_input_ricjump" cvRef="QC" accession="QC:0000059" value="0"/>
 				<qualityParameter name="IS-1B" ID="QCCalculator_input_ricdump" cvRef="QC" accession="QC:0000060" value="1"/>
@@ -21,15 +21,15 @@
 <table>					<tableColumnTypes>MS:1000894_[sec] MS:1000040 MS:1000041 S/N peak_count</tableColumnTypes>
 					<tableRowValues>359.430000000000007 445.339999999999975 2 2.666667 10</tableRowValues>
 </table>				</attachment>
-				<attachment  name="MS MZ aquisition ranges" ID="QCCalculator_input_mzrange" cvRef="QC" accession="QC:0000009" qualityParameterRef="QCCalculator_input_msaq">
+				<attachment  name="MS MZ acquisition ranges" ID="QCCalculator_input_mzrange" cvRef="QC" accession="QC:0000009" qualityParameterRef="QCCalculator_input_msaq">
 <table>					<tableColumnTypes>QC:0000010 QC:0000011</tableColumnTypes>
 					<tableRowValues>445 445</tableRowValues>
 </table>				</attachment>
-				<attachment  name="MS RT aquisition ranges" ID="QCCalculator_input_rtrange" cvRef="QC" accession="QC:0000012" qualityParameterRef="QCCalculator_input_msaq">
+				<attachment  name="MS RT acquisition ranges" ID="QCCalculator_input_rtrange" cvRef="QC" accession="QC:0000012" qualityParameterRef="QCCalculator_input_msaq">
 <table>					<tableColumnTypes>QC:0000013 QC:0000014</tableColumnTypes>
 					<tableRowValues>-1.0 359.430000000000007</tableRowValues>
 </table>				</attachment>
-				<attachment  name="MS TICs" ID="QCCalculator_input_tics" cvRef="QC" accession="QC:0000022" qualityParameterRef="QCCalculator_input_msaq">
+				<attachment  name="TICs" ID="QCCalculator_input_tics" cvRef="QC" accession="QC:0000022" qualityParameterRef="QCCalculator_input_msaq">
 <table>					<tableColumnTypes>MS:1000894_[sec] MS:1000285</tableColumnTypes>
 					<tableRowValues>0.0 15.0</tableRowValues>
 					<tableRowValues>60.0 14.0</tableRowValues>

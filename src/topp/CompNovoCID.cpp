@@ -166,10 +166,10 @@ protected:
     String date_string = now.get();
     String identifier("CompNovoCID_" + date_string);
 
-    for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    for (PeptideIdentification& pep : pep_ids)
     {
-      it->assignRanks();
-      it->setIdentifier(identifier);
+      pep.assignRanks();
+      pep.setIdentifier(identifier);
     }
 
     vector<ProteinIdentification> prot_ids;

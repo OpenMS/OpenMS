@@ -12,7 +12,6 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
         #   File adapter for mzQC files used to load and store mzQC files
         #   -----
         #   This class collects the data for the mzQC File
-        #   -----
 
         MzQCFile() nogil except +
         
