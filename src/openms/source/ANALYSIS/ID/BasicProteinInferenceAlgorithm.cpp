@@ -101,17 +101,12 @@ namespace OpenMS
     }
   }
 
-  void BasicProteinInferenceAlgorithm::run(ConsensusMap & cmap, bool group) const
+  void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run,  bool group) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
 
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
-
-    // TODO actually clearing the scores should be enough, since this algorithm does not change the grouping
-    auto& all_prot_runs = cmap.getProteinIdentifications();
-    all_prot_runs.insert(all_prot_runs.begin(), ProteinIdentification());
-    auto& prot_run = all_prot_runs[0];
 
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
@@ -154,6 +149,7 @@ namespace OpenMS
 
     // build union of prothits
     //TODO use ConsensusXMLMergerAlgorithm (it checks settings and merged files etc.)
+    /*
     for (const auto& run : cmap.getProteinIdentifications())
     {
       for (const auto& prothit : run.getHits())
@@ -165,6 +161,12 @@ namespace OpenMS
           acc_to_protein_hitP_and_count[prothit.getAccession()] = std::make_pair(&prot_hits.back(),0);
         }
       }
+    }
+    */
+    for (auto& prothit : prot_hits)
+    {
+      prothit.setScore(initScore);
+      acc_to_protein_hitP_and_count[prothit.getAccession()] = std::make_pair<ProteinHit*, Size>(&prothit, 0);
     }
 
     checkCompat_(overall_score_type, aggregation_method);

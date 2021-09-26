@@ -79,9 +79,9 @@ namespace OpenMS
     /// main method of BasicProteinInferenceAlgorithm
     /// inputs are not const, since it will get annotated with results
     /// annotation of protein groups is currently only possible for a single protein ID run
-    void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids, bool group) const;
-    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id, bool group) const;
-    void run(ConsensusMap & cmap, bool group) const;
+    void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids, bool group) const;
+    void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id, bool group) const;
+    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool group) const;
 
   private:
 

@@ -1886,6 +1886,9 @@ add_test("TOPP_ProteinInference_1" ${TOPP_BIN_PATH}/ProteinInference -test -in $
 add_test("TOPP_ProteinInference_1_out1" ${DIFF} -whitelist "InferenceEngineVersion" -in1 ProteinInference_1_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_1_output.idXML)
 set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_1")
 
+add_test("TOPP_ProteinInference_2" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -out ProteinInference_2_output.tmp -Algorithm:use_shared_peptides false -out_type consensusXML)
+add_test("TOPP_ProteinInference_2_out1" ${DIFF} -whitelist "InferenceEngineVersion" -in1 ProteinInference_2_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_2_output.consensusXML)
+set_tests_properties("TOPP_ProteinInference_2_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_2")
 
 #------------------------------------------------------------------------------
 # Resampler tests

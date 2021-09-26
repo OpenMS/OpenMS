@@ -42,6 +42,7 @@
 #include <algorithm>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 
 
 using namespace OpenMS;
@@ -109,6 +110,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
+    registerStringOption_("out_type", "<file>", "", "output file type", false);
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,consensusXML"));
 
     //TODO add function to merge based on replicates only. Needs additional exp. design file then.
     registerStringOption_("merge_runs", "<choice>", "all",
@@ -146,16 +149,15 @@ protected:
     // and use multiple files, use a loop
     bool merge_runs = getStringOption_("merge_runs") == "all" || in.size() > 1;
     String out = getStringOption_("out");
-
+    String out_type = getStringOption_("out_type");
     // load identifications
     OPENMS_LOG_INFO << "Loading input..." << std::endl;
 
     FileTypes::Type in_type = FileHandler::getType(in[0]);
-    FileTypes::Type out_type = FileHandler::getType(out);
 
     bool annotate_indist_groups = getStringOption_("annotate_indist_groups") == "true";
 
-    if (in_type == FileTypes::CONSENSUSXML)
+    if (!in.empty() && in_type == FileTypes::CONSENSUSXML)
     {
       if (FileHandler::getTypeByFileName(out) != FileTypes::CONSENSUSXML &&
       FileTypes::nameToType(out_type) != FileTypes::CONSENSUSXML)
@@ -170,14 +172,16 @@ protected:
         OPENMS_LOG_FATAL_ERROR << "Error: Multiple inputs only supported for idXML\n";
       }
 
+      ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
       cxmlf.load(in[0], cmap);
+      cmerge.mergeAllIDRuns(cmap);
 
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;
       pi.setParameters(getParam_().copy("Algorithm:", true));
-      pi.run(cmap, annotate_indist_groups);
+      pi.run(cmap, cmap.getProteinIdentifications()[0], annotate_indist_groups);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 

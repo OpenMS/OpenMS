@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,7 +53,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       Param p = bpia.getParameters();
       p.setValue("min_peptides_per_protein", 0);
       bpia.setParameters(p);
-      bpia.run(peps, prots);
+      bpia.run(peps, prots, false);
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
@@ -80,7 +81,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("use_shared_peptides","false");
       p.setValue("min_peptides_per_protein", 0);
       bpia.setParameters(p);
-      bpia.run(peps, prots);
+      bpia.run(peps, prots, false);
       TEST_EQUAL(prots[0].getHits()[0].getScore(), -std::numeric_limits<double>::infinity())
       TEST_EQUAL(prots[0].getHits()[1].getScore(), -std::numeric_limits<double>::infinity())
       TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
