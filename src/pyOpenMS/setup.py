@@ -217,6 +217,7 @@ if not iswin:
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
         extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
+            extra_link_args.append("-isysroot" + SYSROOT_OSX_PATH)
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
