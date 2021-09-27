@@ -235,6 +235,21 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Add options for link time optimizations (LTO) aka interprocedural optimization
+#------------------------------------------------------------------------------
+option(ENABLE_IPO
+	"Enable interprocedural optimizations (LTO)" OFF)
+if(ENABLE_IPO)
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT result OUTPUT output)
+	if(result)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+	else()
+		message(SEND_ERROR "IPO/LTO is not supported: ${output}")
+	endif()
+endif()
+
+#------------------------------------------------------------------------------
 # Enable clang compile time profiling
 #------------------------------------------------------------------------------
 option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
