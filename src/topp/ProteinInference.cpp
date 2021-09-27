@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -123,6 +124,33 @@ protected:
         " either for reporting or for group based quant. later.", false);
     setValidStrings_("annotate_indist_groups", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("protein_fdr",
+                          "<option>",
+                          "false",
+                          "Additionally calculate the target-decoy FDR on protein-level after inference", false, false);
+    setValidStrings_("protein_fdr", {"true","false"});
+
+    registerStringOption_("conservative_fdr",
+                          "<option>",
+                          "true",
+                          "Use (D+1)/(T) instead of (D+1)/(T+D) for reporting protein FDRs.", false, true);
+    setValidStrings_("conservative_fdr", {"true","false"});
+
+    registerStringOption_("picked_fdr",
+                          "<option>",
+                          "true",
+                          "Use picked protein FDRs.", false, true);
+    setValidStrings_("picked_fdr", {"true","false"});
+    registerStringOption_("picked_decoy_string",
+                          "<decoy_string>",
+                          "",
+                          "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
+    registerStringOption_("picked_decoy_prefix",
+                          "<option>",
+                          "prefix",
+                          "If using picked protein FDRs, was the decoy string a prefix or suffix? Ignored during auto-detection.", false, true);
+    setValidStrings_("picked_decoy_prefix", {"prefix","suffix"});
+
     // If we support more psms per spectrum, it should be done in the Algorithm class first
     /*registerIntOption_("nr_psms_per_spectrum", "<choice>", 1,
                           "The number of top scoring PSMs per spectrum to consider. 0 means all.", false);
@@ -185,6 +213,25 @@ protected:
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 
+      bool calc_protFDR = getStringOption_("protein_fdr") == "true";
+      if (calc_protFDR)
+      {
+        OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+        FalseDiscoveryRate fdr;
+        Param fdrparam = fdr.getParameters();
+        fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+        fdrparam.setValue("add_decoy_proteins","true");
+        fdr.setParameters(fdrparam);
+        if (getStringOption_("picked_fdr") == "true")
+        {
+          fdr.applyPickedProteinFDR(cmap.getProteinIdentifications()[0], getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+        }
+        else
+        {
+          fdr.applyBasic(cmap.getProteinIdentifications()[0], true);
+        }
+      }
+
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
@@ -233,6 +280,25 @@ protected:
       pi.run(inferred_peptide_ids, inferred_protein_ids, annotate_indist_groups);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
+
+      bool calc_protFDR = getStringOption_("protein_fdr") == "true";
+      if (calc_protFDR)
+      {
+        OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+        FalseDiscoveryRate fdr;
+        Param fdrparam = fdr.getParameters();
+        fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+        fdrparam.setValue("add_decoy_proteins","true");
+        fdr.setParameters(fdrparam);
+        if (getStringOption_("picked_fdr") == "true")
+        {
+          fdr.applyPickedProteinFDR(inferred_protein_ids[0]);
+        }
+        else
+        {
+          fdr.applyBasic(inferred_protein_ids[0], true);
+        }
+      }
 
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();

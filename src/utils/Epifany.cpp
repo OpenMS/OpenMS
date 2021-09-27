@@ -336,7 +336,14 @@ protected:
         fdr.setParameters(fdrparam);
         for (auto& run : cmap.getProteinIdentifications())
         {
-          fdr.applyBasic(run, true);
+          if (getStringOption_("picked_fdr") == "false")
+          {
+            fdr.applyBasic(run, true);
+          }
+          else
+          {
+            fdr.applyPickedProteinFDR(run, true);
+          }
         }
       }
 

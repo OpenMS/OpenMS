@@ -138,8 +138,9 @@ public:
     /// simpler reimplementation of the apply function above for proteins.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
-    /// applies a picked protein FDR (TODO explain/ref)
-    void applyPickedProteinFDR(ProteinIdentification& id, String const& decoy_prefix);
+    /// applies a picked protein FDR (TODO explain/ref).
+    /// If @p decoy_string is empty, we try to guess it.
+    void applyPickedProteinFDR(ProteinIdentification& id, String decoy_string = "", bool prefix = true);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
@@ -176,7 +177,18 @@ public:
     */
     IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
+    class DecoyStringHelper
+    {
+    public:
+      struct Result
+          {
+        bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
+        String name; ///< on success, what was the decoy string?
+        bool is_prefix; ///< on success, was it a prefix or suffix
+          };
 
+      static Result findDecoyString(const ProteinIdentification& proteins);
+    };
 private:
 
     /// Not implemented
