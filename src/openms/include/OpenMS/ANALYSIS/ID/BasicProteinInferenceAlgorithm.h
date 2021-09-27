@@ -76,12 +76,19 @@ namespace OpenMS
     /// Default constructor
     BasicProteinInferenceAlgorithm();
 
-    /// main method of BasicProteinInferenceAlgorithm
-    /// inputs are not const, since it will get annotated with results
-    /// annotation of protein groups is currently only possible for a single protein ID run
+    /** @defgroup bpi_run Main methods of BasicProteinInferenceAlgorithm
+     *   Inputs are not const, since in @p pep_ids hits will get sorted and @p prot_ids annotated with results.
+     *   Annotation of protein groups is currently only possible for a single protein ID run (i.e. use merge).
+     *   Merging of runs on vector<ProteinIdentification> depends on algorithm settings.
+     *   Running on a ConsensusMap @p cmap will always merge all runs into one and put it as first run.
+     *  @{
+     */
     void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids, bool group) const;
     void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id, bool group) const;
     void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool group) const;
+    /*
+     *  @}
+     */
 
   private:
 
@@ -102,6 +109,7 @@ namespace OpenMS
       Size min_peptides_per_protein,
       bool group) const;
 
+    /// fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
     void aggregatePeptideScores_(
         std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
         std::vector<PeptideIdentification>& pep_ids,
@@ -109,19 +117,23 @@ namespace OpenMS
         bool higher_better,
         const std::string& run_id) const;
 
+    /// aggregates and updates protein scores based on aggregation settings
     void updateProteinScores_(
         std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
         std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
         bool pep_scores,
         bool higher_better) const;
 
+    /// get the AggregationMethod enum from a @p method_string
     AggregationMethod aggFromString_(const std::string& method_string) const;
 
+    /// check if a @p score_type is compatible to the chosen @p aggreagation_method
     void checkCompat_(
-        const String& overall_score_type,
+        const String& score_type,
         const AggregationMethod& aggregation_method
         ) const;
 
-    double getInitScoreForAggMethod_(AggregationMethod aggregation_method, bool higher_better) const;
+    /// get the initial score value based on the chosen @p aggregation_method, @p higher_better is needed for "best" score
+    double getInitScoreForAggMethod_(const AggregationMethod& aggregation_method, bool higher_better) const;
   };
 } //namespace OpenMS

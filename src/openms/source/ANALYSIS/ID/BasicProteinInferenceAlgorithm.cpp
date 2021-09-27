@@ -445,7 +445,7 @@ namespace OpenMS
     }
   }
 
-  double BasicProteinInferenceAlgorithm::getInitScoreForAggMethod_(AggregationMethod aggregation_method, bool higher_better) const
+  double BasicProteinInferenceAlgorithm::getInitScoreForAggMethod_(const AggregationMethod& aggregation_method, bool higher_better) const
   {
     switch (aggregation_method)
     {
