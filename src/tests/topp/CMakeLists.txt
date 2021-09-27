@@ -1890,7 +1890,7 @@ add_test("TOPP_ProteinInference_2" ${TOPP_BIN_PATH}/ProteinInference -test -in $
 add_test("TOPP_ProteinInference_2_out1" ${DIFF} -whitelist "InferenceEngineVersion" -in1 ProteinInference_2_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_2_output.consensusXML)
 set_tests_properties("TOPP_ProteinInference_2_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_2")
 
-add_test("TOPP_ProteinInference_3" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/MSstatsConverter_3_in.consensusXML -out ProteinInference_3_output.tmp -debug 10 -Algorithm:use_shared_peptides true -picked_decoy_string "_rev" -protein_fdr true -out_type consensusXML)
+add_test("TOPP_ProteinInference_3" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/MSstatsConverter_3_in.consensusXML -out ProteinInference_3_output.tmp -Algorithm:use_shared_peptides true -picked_decoy_string "_rev" -protein_fdr true -out_type consensusXML)
 add_test("TOPP_ProteinInference_3_out1" ${DIFF} -whitelist "InferenceEngineVersion" -in1 ProteinInference_3_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_3_output.consensusXML)
 set_tests_properties("TOPP_ProteinInference_3_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_2")
 
