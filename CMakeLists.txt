@@ -175,6 +175,11 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
+# Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
+#------------------------------------------------------------------------------
+include(cmake/setup_lib_find_paths.cmake)
+
+#------------------------------------------------------------------------------
 # All the multi-threading stuff (OpenMP)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
@@ -407,11 +412,6 @@ if (MSVC)
 		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
 	endif()
 endif()
-
-#------------------------------------------------------------------------------
-# setup path for external libs (contrib or system)
-include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
-
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
