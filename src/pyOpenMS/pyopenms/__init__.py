@@ -28,7 +28,9 @@ from .version import version as __version__
 
 import os
 here = os.path.abspath(os.path.dirname(__file__))
-os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
+
+if not os.environ.get("OPENMS_DATA_PATH"):
+    os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
 
 import sys
 if sys.platform.startswith("linux"):
