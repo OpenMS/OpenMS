@@ -613,6 +613,15 @@ namespace OpenMS
       {
         // software
         IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
+        // TODO: If that works the same might have to be done for the "features"
+        // to have the same metadata as in the featureXMl?
+        // Would that be the "ObservationMatch"?
+        // TODO: is it correct to add that to ProcessingSoftware
+        // instead of ProcessingStep?
+        // TODO: Works!
+        // TODO: Metadata is not in all cases automatically transferred
+        // to identification data
+        sw.addMetaValues(it);
         auto sw_ref = id.registerProcessingSoftware(sw);
         // ProcessingStep: software, input_file_refs, data_time, actions
         IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(),it.getProcessingActions());
@@ -621,26 +630,22 @@ namespace OpenMS
       }
 
       // add information about current tool
-      // register a score type 
-      IdentificationData::ScoreType score("AccurateMassSearchScore", false);
-      IdentificationData::ScoreTypeRef score_ref = id.registerScoreType(score);
-
-      // register software (connected to score)
-      // CVTerm will be set in mztab-m based on the name
-      // if the name is not available in PSI-OBO "analysis software" will be used.
-      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion());
-      sw.assigned_scores.push_back(score_ref);
-      auto sw_ref = id.registerProcessingSoftware(sw);
-
-      // register additional scores for identification
+      // register a score type
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
       mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
 
+      // register software (connected to score)
+      // CVTerm will be set in mztab-m based on the name
+      // if the name is not available in PSI-OBO "analysis software" will be used.
+      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion());
+      sw.assigned_scores.emplace_back(mass_error_ppm_score_ref);
+      sw.assigned_scores.emplace_back(mass_error_Da_score_ref);
+      auto sw_ref = id.registerProcessingSoftware(sw);
+
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
-      // "HMDB" -> prefix HMDB
       search_param.database = database_name_;
       search_param.database_version = database_version_;
 

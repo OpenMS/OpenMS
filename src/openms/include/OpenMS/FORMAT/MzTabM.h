@@ -116,7 +116,6 @@ namespace OpenMS
     std::map<Size, MzTabMStudyVariableMetaData> study_variable; ///< Study Variable details
     std::map<Size, MzTabParameter> custom; ///< Custom parameters
     std::map<Size, MzTabCVMetaData> cv; ///< Controlled Vocabulary details
-    // TODO: MIRIAM ?? [MIRIAM, MIR:00100079, HMDB, ]
     std::map<Size, MzTabMDatabaseMetaData> database; ///< Database details
     std::map<Size, MzTabParameter> derivatization_agent; ///<
     MzTabParameter small_molecule_quantification_unit; ///< Description of the unit type used
@@ -169,7 +168,7 @@ namespace OpenMS
     MzTabStringList sme_id_refs; ///< Reference to the identification evidence.
     MzTabInteger sme_id_ref_ambiguity_code; ///< Ambiguity in identifications.
     MzTabString adduct; ///< Adduct
-    MzTabParameter isotopomer; ///< //TODO? - usually used monoisotopic trace for quantification - always de-isotoped?
+    MzTabParameter isotopomer; ///< If de-isotoping has not been performed, then the isotopomer quantified MUST be reported here.
     MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
     MzTabInteger charge; ///< Precursor ion’s charge.
     MzTabDouble retention_time; ///< Time point in seconds.
@@ -274,6 +273,8 @@ namespace OpenMS
     std::vector<String> sml_optional_column_names_;
     std::vector<String> smf_optional_column_names_;
     std::vector<String> sme_optional_column_names_;
+
+    static String getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref);
   };
 
 } // namespace OpenMS
