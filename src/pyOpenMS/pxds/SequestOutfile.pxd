@@ -11,6 +11,9 @@ from DateTime cimport *
 cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
     
     cdef cppclass SequestOutfile "OpenMS::SequestOutfile":
+        # wrap-doc:
+        #   Representation of a Sequest output file
+        
         SequestOutfile() nogil except + # wrap-doc:Representation of a Sequest output file
         SequestOutfile(SequestOutfile &) nogil except +
 
@@ -33,13 +36,13 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
                 #   :param database: The database used for the search
                 #   :param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
 
-        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + # wrap-doc:Retrieve columns from a Sequest outfile line
+        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + # wrap-doc:Retrieves columns from a Sequest outfile line
         void getSequences(const String &database_filename,
                           libcpp_map[ String, size_t ] &ac_position_map,
                           libcpp_vector[ String ] &sequences,
                           libcpp_vector[ libcpp_pair[ String, size_t ] ] &found,
                           libcpp_map[ String, size_t ] &not_found) nogil except + # wrap-ignore
-        void getACAndACType(String line, String &accession, String &accession_type) nogil except + # wrap-doc:Retrieve the accession type and accession number from a protein description line
+        void getACAndACType(String line, String &accession, String &accession_type) nogil except + # wrap-doc:Retrieves the accession type and accession number from a protein description line
 
         # TODO immutable types by reference
         # 

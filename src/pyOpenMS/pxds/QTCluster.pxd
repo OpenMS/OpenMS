@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
         # POINTER # void getElements(libcpp_map[ Size, GridFeature * ] & elements) nogil except +
         # POINTER # bool update(libcpp_map[ Size, GridFeature * ] & removed) nogil except +
         double getQuality() nogil except + # wrap-doc:Returns the cluster quality and recomputes if necessary
-        libcpp_set[ AASequence ]  getAnnotations() nogil except + # wrap-doc:Return the set of peptide sequences annotated to the cluster center
+        libcpp_set[ AASequence ]  getAnnotations() nogil except + # wrap-doc:Returns the set of peptide sequences annotated to the cluster center
         void setInvalid() nogil except + # wrap-doc:Sets current cluster as invalid (also frees some memory)
         bool isInvalid() nogil except + # wrap-doc:Whether current cluster is invalid
         void initializeCluster() nogil except + # wrap-doc:Has to be called before adding elements (calling QTCluster::add)
