@@ -342,7 +342,7 @@ namespace OpenMS
       // if executable was not provided
       if (executable.empty())
       {
-        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr of not found
+        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr if not found
         if (sirius_env_var == nullptr)
         {
             throw Exception::InvalidValue(__FILE__,
