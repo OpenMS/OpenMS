@@ -617,9 +617,7 @@ namespace OpenMS
         sw.addMetaValues(it);
         IdentificationDataInternal::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
         // ProcessingStep: software, input_file_refs, data_time, actions
-        std::set<DataProcessing::ProcessingAction> actions = it.getProcessingActions();
-        actions.insert(DataProcessing::IDENTIFICATION);
-        IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(),it.getProcessingActions());
+        IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
         step_ref = id.registerProcessingStep(step);
         id.setCurrentProcessingStep(step_ref);
       }
@@ -628,6 +626,7 @@ namespace OpenMS
       // register a score type
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
+      std::cout << "first_register_mass_error_ppm_score_ref: " <<  mass_error_ppm_score_ref << std::endl;
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
       mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
 
@@ -637,7 +636,7 @@ namespace OpenMS
       IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion());
       sw.assigned_scores.emplace_back(mass_error_ppm_score_ref);
       sw.assigned_scores.emplace_back(mass_error_Da_score_ref);
-      auto sw_ref = id.registerProcessingSoftware(sw);
+      IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
@@ -650,11 +649,12 @@ namespace OpenMS
       // search_param.precursor_tolerance_ppm = ppm;
       search_param.precursor_mass_tolerance = 5.0;
       search_param.precursor_tolerance_ppm = true;
-      auto search_param_ref = id.registerDBSearchParam(search_param);
+      IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
 
-      // file has been processed by software
-      IdentificationData::ProcessingStep step(sw_ref);
-      step.input_file_refs.push_back(file_ref);
+      // file has been processed by software performing a specific processing action.      
+      std::set<DataProcessing::ProcessingAction> actions;
+      actions.insert(DataProcessing::IDENTIFICATION);
+      IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
       step_ref = id.registerProcessingStep(step, search_param_ref);
       id.setCurrentProcessingStep(step_ref); // add the new step
     }
@@ -781,8 +781,6 @@ namespace OpenMS
         }
 
         // register compound
-        // TODO: What about applied processing step
-        // TODO: What is the difference to processing step?
         const String& names = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
@@ -811,6 +809,7 @@ namespace OpenMS
         IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge()); // match of compound to feature
         match.addScore(mass_error_Da_score_ref, r.getObservedMZ() - r.getCalculatedMZ(), step_ref);
         match.addScore(mass_error_ppm_score_ref, r.getMZErrorPPM(), step_ref);
+        std::cout << "mass_error_ppm_score_ref: " << mass_error_ppm_score_ref << std::endl;
 
         // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+

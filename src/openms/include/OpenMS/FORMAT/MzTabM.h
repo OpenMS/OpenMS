@@ -198,7 +198,7 @@ namespace OpenMS
     MzTabStringList spectra_ref; ///< Reference to a spectrum
     MzTabParameter identification_method; ///< Database search, search engine or process that was used to identify this small molecule
     MzTabParameter ms_level; ///< The highest MS level used to inform identification
-    MzTabDouble id_confidence_measure; ///< Statistical value or score for the identification
+    std::map<Size, MzTabDouble> id_confidence_measure; ///< Statistical value or score for the identification
     MzTabInteger rank; ///< Rank of the identification (1 = best)
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
   };

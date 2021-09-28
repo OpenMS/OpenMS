@@ -59,7 +59,8 @@ namespace OpenMS
     "Conversion to mzData format",
     "Conversion to mzML format",
     "Conversion to mzXML format",
-    "Conversion to DTA format"
+    "Conversion to DTA format",
+    "Identification"
   };
 
   DataProcessing::~DataProcessing()

@@ -179,28 +179,25 @@ namespace OpenMS
 
      MzTabParameter quantification_method;
      quantification_method.setNull(true);
-
-     // TODO: Check processing action
-     // TODO: add map using ProcessingAction and Tool!
-     std::map<String, std::vector<String>> action_softwaren_ame;
+     std::map<String, std::vector<String>> action_software_name;
+     // TODO: are the actions decoupled or is that the other way round?!
      for (const auto& step : id_data.getProcessingSteps())
      {
        IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
        std::cout << "Software: " << s_ref->getName() << std::endl;
-
        for (const auto& action : step.actions)
        {
          std::cout << "ProcessingAction: " << DataProcessing::NamesOfProcessingAction[action] << std::endl;
-         action_softwaren_ame[action].emplace_back(s_ref->getName());
+         action_software_name[action].emplace_back(s_ref->getName());
        }
      };
-
-     // TODO: use map instead -> check for Quantification Tools
-     // set quantification method based on OpenMS Tool
+     
+     // set quantification method based on OpenMS Tool(s)
      // current only FeatureFinderMetabo is used
-     for (const auto& software : id_data.getProcessingSoftwares())
+     for (const auto& quantification_software : action_software_name[DataProcessing::QUANTITATION])
      {
-       if (software.getName() == "FeatureFinderMetabo")
+       std::cout << quantification_software << quantification_software << std::endl;
+       if (quantification_software == "FeatureFinderMetabo")
        {
          ControlledVocabulary::CVTerm cvterm;
          cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
@@ -392,15 +389,26 @@ namespace OpenMS
      // small_molecule-identification_reliability (not mandatory)
 
      // TODO: How to use actual registered CV-terms?
+     // TODO: use it below to set the confidence scores ?!
      int score_counter = 1;
+     std::vector<String> identification_tools = action_software_name[DataProcessing::IDENTIFICATION];
+     std::vector<IdentificationDataInternal::ScoreTypeRef> id_score_refs;
      for (const auto& software : id_data.getProcessingSoftwares())
      {
-       std::vector<IdentificationDataInternal::ScoreTypeRef> score_type_refs = software.assigned_scores;
-       for (const auto& score_type_ref : score_type_refs)
-       {
-         m_meta_data.id_confidence_measure[score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName()+ ", ]");
-         score_counter += 1;
-       }
+       std::cout << "iterate over software " << software.getName() << std::endl;
+       // check if in "Identification Vector"
+       // if (std::find(begin(identification_tools), end(identification_tools), software.getName()))
+       // {
+         std::vector<IdentificationDataInternal::ScoreTypeRef> score_type_refs = software.assigned_scores;
+         for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : score_type_refs)
+         {
+           m_meta_data.id_confidence_measure[score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
+           score_counter += 1;
+           std::cout << "[,, " + score_type_ref->cv_term.getName()+ ", ]" << std::endl;
+           id_score_refs.emplace_back(score_type_ref); // used for evidence level information
+           std::cout << "score_type_ref: " << score_type_ref << std::endl;
+         }
+       //}
      }
      // colunit-small_molecule (not mandatory)
      // colunit-small_molecule_feature (not mandatory)
@@ -421,6 +429,47 @@ namespace OpenMS
      int feature_section_entry_counter = 1;
      int evidence_section_entry_counter = 1;
 
+     // set identification method based on OpenMS Tool(s)
+     // TODO: Will only use last tool?!
+     // TODO: This maybe has to be set per Identification? Add to IdentifiedCompound?
+     MzTabParameter identification_method;
+     identification_method.setNull(true);
+     MzTabParameter ms_level;
+     ms_level.setNull(true);
+     for (const auto& identification_software : action_software_name[DataProcessing::IDENTIFICATION])
+     {
+       std::cout << "identification_software:" << identification_software << std::endl;
+       int id_mslevel = 0;
+       if (identification_software == "AccurateMassSearch")
+       {
+          ControlledVocabulary::CVTerm cvterm;
+          cvterm = cv.getTermByName("accurate mass");
+          identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          id_mslevel = 1;
+       }
+       if (identification_software == "SiriusAdapter")
+       {
+          ControlledVocabulary::CVTerm cvterm;
+          cvterm = cv.getTermByName("de novo search");
+          identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          id_mslevel = 2;
+       }
+       if (identification_software == "MetaboliteSpectralMatcher")
+       {
+          ControlledVocabulary::CVTerm cvterm;
+          cvterm = cv.getTermByName("TOPP SpecLibSearcher"); // TODO: add correct term! spectral library matching
+          identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          id_mslevel = 2;
+       }
+       ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
+       ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", " + String(id_mslevel) + "]");
+     }
+     if (identification_method.isNull())
+     {
+       OPENMS_LOG_WARN << "The identification method of your computational analysis can not be assessed'.\n"
+                       << "Please check if the ProcessingActions are set correctly!" << std::endl;
+     }
+     
      // iterate over features and fill all sections
      for (auto& f : feature_map)
      {
@@ -475,20 +524,15 @@ namespace OpenMS
          // TODO: ISSUE: IdentificationData only one ref per identifiedmolecule?
          // TODO: ISSUE: What about e.g. SIRIUS using multiple MS2 spectra for one identification?
          sme.spectra_ref.fromCellString(match_ref->observation_ref->data_id); // MzTabStringList
-         // based on tool used for identification (CV-Term)
-         // TODO: Would actually have to be set per ID
-         // TODO: Since there is a possibility to more that on identification
-         // TODO: Get that from the tools used?
-         // TODO: How to add that information here?
-         // TODO: Should that be added upstream of the pipeline?
-         // use processing action identification
-         // to get the correct tool? And then use the Tool Name?
-         // MzTabParameter identification_method;
-         // TODO: not sure what to do here!
-         // TODO: depends on the methods seen above!
-         // MzTabParameter ms_level; ///< The highest MS level used to inform identification
-         // TODO: Score of the identification?!
-         // MzTabDouble id_confidence_measure; ///< Statistical value or score for the identification
+         // TODO: ISSUE: Would make sense to have the identification method per ID
+         sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
+         sme.ms_level = ms_level;
+         //for (size_t i = 0; i != id_score_refs.size(); ++i)
+         //{
+         //  match_ref->getScore(id_score_refs[i]);
+         //  std::cout << match_ref->getScore(id_score_refs[i]).first << " " << match_ref->getScore(id_score_refs[i]).second  << std::endl;
+           //sme.id_confidence_measure[i + 1] = (match_ref->getScore(id_score_refs[i])).first;
+         //}
          sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
          // TODO: How to add opt_ columns
 
