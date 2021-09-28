@@ -216,6 +216,8 @@ namespace OpenMS
 
       ibg.computeConnectedComponents();
       ibg.calculateAndAnnotateIndistProteins(true);
+      auto & ipg = prot_run.getIndistinguishableProteins();
+      std::sort(std::begin(ipg), std::end(ipg));
     }
   }
 
@@ -546,6 +548,8 @@ namespace OpenMS
 
       ibg.computeConnectedComponents();
       ibg.calculateAndAnnotateIndistProteins(true);
+      auto & ipg = prot_run.getIndistinguishableProteins();
+      std::sort(std::begin(ipg), std::end(ipg));
     }
   }
 } //namespace OpenMS

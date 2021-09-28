@@ -363,7 +363,7 @@ namespace OpenMS
 
     template<typename IDType, class ...Args>
     static void setScoresAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                                   const String &old_score_type, Args ... args)
+                                   const String &old_score_type, Args&& ... args)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       std::vector<typename IDType::HitType> new_hits;
@@ -377,7 +377,7 @@ namespace OpenMS
 
     template<typename IDType, class ...Args>
     static void setScoresHigherWorseAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                                          const String &old_score_type, Args ... args)
+                                          const String &old_score_type, Args&& ... args)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       std::vector<typename IDType::HitType> new_hits;

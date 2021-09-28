@@ -9,7 +9,7 @@
 			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-09-24"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-09-27"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="0"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -33,8 +33,8 @@
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f2r1.mzML,file:///C:\c1f1r2.mzML,file:///C:\c1f2r2.mzML,file:///C:\c2f1r1.mzML,file:///C:\c2f2r1.mzML,file:///C:\c2f1r2.mzML,file:///C:\c2f2r2.mzML]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="1.0,PH_2"/>
-			<UserParam type="string" name="indistinguishable_proteins_1" value="1.0,PH_0"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="1.0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="1.0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="1.0,PH_0"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="611.327697753906" RT="3002.38033267983" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >

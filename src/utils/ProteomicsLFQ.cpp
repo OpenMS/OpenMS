@@ -1355,16 +1355,7 @@ protected:
     if (!bayesian) // simple aggregation
     {
       BasicProteinInferenceAlgorithm bpia;
-      bpia.run(inferred_peptide_ids, inferred_protein_ids);
-
-      if (groups)
-      {
-        IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 0, false, false};
-        ibg.computeConnectedComponents();
-        ibg.calculateAndAnnotateIndistProteins(true);
-        auto & ipg = inferred_protein_ids[0].getIndistinguishableProteins();
-        std::sort(std::begin(ipg), std::end(ipg));
-      }
+      bpia.run(inferred_peptide_ids, inferred_protein_ids, groups);
     }
     else // if (bayesian)
     {
@@ -1379,7 +1370,8 @@ protected:
       }
       // Important Note: BayesianProteinInference by default keeps only the best
       // PSM per peptide!
-      // TODO maybe allow otherwise!
+      // TODO maybe allow otherwise by exposing the corresponding parameter. But I think it does not matter much here,
+      //  since we basically discard peptide+PSM information from inference and use the info in the cMaps.
       BayesianProteinInferenceAlgorithm bayes;
       //bayesian inference automatically annotates groups
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
