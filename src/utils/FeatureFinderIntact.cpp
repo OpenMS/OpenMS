@@ -151,7 +151,6 @@ public:
     p_mtd.setValue("noise_threshold_int" , 0.0);
     p_mtd.setValue("chrom_peak_snr" , 0.0);
     p_mtd.setValue("mass_error_ppm", 5.0);
-//    p_mtd.setValue("reestimate_mt_sd", "false");
 //    p_mtd.setValue("trace_termination_criterion", "sample_rate");
 //    p_mtd.setValue("min_sample_rate", 0.2);
 
@@ -172,10 +171,13 @@ public:
     epdet.setParameters(p_epd);
     // fill mass traces with smoothed data as well .. bad design..
     epdet.detectPeaks(m_traces, m_traces_final);
-    for (auto &m : m_traces)
-    {
-      m.estimateFWHM(false);
-    }
+
+//    std::vector<MassTrace> m_traces_final;
+//    m_traces_final = m_traces;
+//    for (auto &m : m_traces_final)
+//    {
+//      m.estimateFWHM(false);
+//    }
     OPENMS_LOG_INFO << "# final input mass traces : " << m_traces_final.size() << endl;
 
     // for test output TODO: remove

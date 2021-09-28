@@ -42,7 +42,9 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include "boost/dynamic_bitset.hpp"
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 
 using namespace std;
 namespace OpenMS
@@ -54,7 +56,7 @@ namespace OpenMS
   {
   public:
     /// default constructor
-    LogMassTrace():
+    LogMassTrace() :
         mass_trace_(),
         log_centroid_mz_(),
         centroid_mz_(),
@@ -65,14 +67,16 @@ namespace OpenMS
         isotope_index_(),
         mass_(),
         trace_index_()
-    {}
+    {
+    }
 
     /// default destructor
     ~LogMassTrace()
-    {}
+    {
+    }
 
     /// copy constructor
-    LogMassTrace(const LogMassTrace& lmt)
+    LogMassTrace(const LogMassTrace &lmt)
     {
       mass_trace_ = lmt.mass_trace_;
       log_centroid_mz_ = lmt.log_centroid_mz_;
@@ -87,7 +91,7 @@ namespace OpenMS
     }
 
     /// assignment operator
-    LogMassTrace& operator=(const LogMassTrace& lmt)
+    LogMassTrace &operator=(const LogMassTrace &lmt)
     {
       if (this == &lmt)
         return *this;
@@ -107,7 +111,7 @@ namespace OpenMS
     }
 
     /// constructor with mass trace
-    LogMassTrace(MassTrace& mt)
+    LogMassTrace(MassTrace &mt)
     {
       mass_trace_ = &mt;
       log_centroid_mz_ = std::log(mt.getCentroidMZ() - Constants::PROTON_MASS_U);
@@ -127,13 +131,13 @@ namespace OpenMS
     }
 
     /// comparison operator (ascending order)
-    bool operator < (const LogMassTrace &fh) const
+    bool operator<(const LogMassTrace &fh) const
     {
       return (log_centroid_mz_ < fh.log_centroid_mz_);
     }
 
     /// getter & setter
-    MassTrace* getMassTrace() const
+    MassTrace *getMassTrace() const
     {
       return mass_trace_;
     }
@@ -183,12 +187,12 @@ namespace OpenMS
       mass_trace_ = mt;
     }
 
-    void setLogCentroidMz(double& mz)
+    void setLogCentroidMz(double &mz)
     {
       log_centroid_mz_ = mz;
     }
 
-    void setCentroidMz(double& mz)
+    void setCentroidMz(double &mz)
     {
       centroid_mz_ = mz;
     }
@@ -237,7 +241,7 @@ namespace OpenMS
     }
 
   private:
-    MassTrace* mass_trace_;
+    MassTrace *mass_trace_;
 
     // log transformed centroid mz
     double log_centroid_mz_;
@@ -254,7 +258,7 @@ namespace OpenMS
 
   // vector class for mass traces from same molecule, different charges and isotope indices
   class OPENMS_DLLAPI FeatureGroup :
-    private std::vector<LogMassTrace>
+      private std::vector<LogMassTrace>
   {
   public :
     using std::vector<LogMassTrace>::push_back;
@@ -275,23 +279,25 @@ namespace OpenMS
     ~FeatureGroup() = default;
 
     /// comparison operators
-    bool operator<(const FeatureGroup& a) const
+    bool operator<(const FeatureGroup &a) const
     {
-      if(this->monoisotopic_mass_ == a.monoisotopic_mass_){
+      if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
+      {
         return this->intensity_ < a.intensity_;
       }
       return this->monoisotopic_mass_ < a.monoisotopic_mass_;
     }
 
-    bool operator>(const FeatureGroup& a) const
+    bool operator>(const FeatureGroup &a) const
     {
-      if(this->monoisotopic_mass_ == a.monoisotopic_mass_){
+      if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
+      {
         return this->intensity_ > a.intensity_;
       }
       return this->monoisotopic_mass_ > a.monoisotopic_mass_;
     }
 
-    bool operator==(const FeatureGroup& a) const
+    bool operator==(const FeatureGroup &a) const
     {
       return
           this->monoisotopic_mass_ == a.monoisotopic_mass_
@@ -299,28 +305,29 @@ namespace OpenMS
     }
 
     /// assignment operator
-    FeatureGroup& operator = (const FeatureGroup& t) = default;
+    FeatureGroup &operator=(const FeatureGroup &t) = default;
 
     /// copy constructor
-    FeatureGroup(const FeatureGroup& ) = default;
+    FeatureGroup(const FeatureGroup &) = default;
 
     /// move constructor
-    FeatureGroup(FeatureGroup&& other) = default;
+    FeatureGroup(FeatureGroup &&other) = default;
 
 
-    FeatureGroup(const int &min_cs, const int &max_cs):
-      min_abs_charge_(min_cs),
-      max_abs_charge_(max_cs)
-    {}
+    FeatureGroup(const int &min_cs, const int &max_cs) :
+        min_abs_charge_(min_cs),
+        max_abs_charge_(max_cs)
+    {
+    }
 
     // for lower_bound / upper_bound
-    FeatureGroup(const double mass):
-      monoisotopic_mass_(mass)
+    FeatureGroup(const double mass) :
+        monoisotopic_mass_(mass)
     {
       intensity_ = 0;
     }
 
-    void updateMassesAndIntensity(const int offset=0, const int max_isotope_index=0)
+    void updateMassesAndIntensity(const int offset = 0, const int max_isotope_index = 0)
     {
       if (offset != 0)
       {
@@ -328,9 +335,9 @@ namespace OpenMS
         tmpPeaks.swap(*this);
         reserve(tmpPeaks.size());
 
-        for (auto& p : tmpPeaks)
+        for (auto &p: tmpPeaks)
         {
-          p.setIsotopeIndex(p.getIsotopeIndex()-offset);
+          p.setIsotopeIndex(p.getIsotopeIndex() - offset);
           if (p.getIsotopeIndex() < 0 || p.getIsotopeIndex() >= max_isotope_index)
           {
             continue;
@@ -342,7 +349,7 @@ namespace OpenMS
       intensity_ = .0;
       double nominator = .0;
 
-      for (auto& p : *this)
+      for (auto &p: *this)
       {
         double pi = p.getIntensity() + 1;
         intensity_ += pi;
@@ -353,9 +360,9 @@ namespace OpenMS
 
     void updateIntensity()
     {
-//      intensity_ = .0;
+      //      intensity_ = .0;
       double tmp_inty = .0;
-      for (auto& p : *this)
+      for (auto &p: *this)
       {
         tmp_inty += p.getIntensity();
       }
@@ -367,39 +374,53 @@ namespace OpenMS
       return monoisotopic_mass_;
     }
 
-    std::tuple<int, int> getChargeRange() const {
+    std::tuple<int, int> getChargeRange() const
+    {
       return std::tuple<int, int>{min_abs_charge_, max_abs_charge_};
     }
 
-    double getIntensity() const {
+    double getIntensity() const
+    {
       return intensity_;
     }
 
-    float getIsotopeCosine() const {
+    float getIsotopeCosine() const
+    {
       return isotope_cosine_score_;
     }
 
-    float getChargeScore() const {
+    float getChargeScore() const
+    {
       return charge_score_;
     }
 
-    double getFeatureGroupScore() const {
+    double getFeatureGroupScore() const
+    {
       return total_score_;
     }
 
-    std::tuple<double, double> getMzRange(int abs_charge) const {
+    std::tuple<double, double> getMzRange(int abs_charge) const
+    {
       double mz_start = -1;
       double mz_end = -10;
-      if (abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_) {
+      if (abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_)
+      {
 
-      } else {
-        for (auto &tmp_p:*this) {
-          if (tmp_p.getCharge() != abs_charge) {
+      }
+      else
+      {
+        for (auto &tmp_p: *this)
+        {
+          if (tmp_p.getCharge() != abs_charge)
+          {
             continue;
           }
-          if (mz_start < 0) {
+          if (mz_start < 0)
+          {
             mz_start = tmp_p.getCentroidMz();
-          } else {
+          }
+          else
+          {
             mz_start = mz_start < tmp_p.getCentroidMz() ? mz_start : tmp_p.getCentroidMz();
           }
           mz_end = mz_end > tmp_p.getCentroidMz() ? mz_end : tmp_p.getCentroidMz();
@@ -439,13 +460,29 @@ namespace OpenMS
       return *std::max_element(per_charge_int_.begin(), per_charge_int_.end());
     }
 
+    LogMassTrace* getApexLMTofCharge(int charge) const
+    {
+      LogMassTrace* apex_lmt = nullptr;
+      double max_intensity = 0.0;
+
+      for (auto lmt_iter = this->begin(); lmt_iter != this->end(); ++lmt_iter)
+      {
+        if (lmt_iter->getCharge() == charge && lmt_iter->getIntensity() > max_intensity)
+        {
+          max_intensity = lmt_iter->getIntensity();
+          apex_lmt = (LogMassTrace*) &(*lmt_iter);
+        }
+      }
+      return apex_lmt;
+    }
+
     double getSummedIntensityOfMostAbundantMTperCS() const
     {
       auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
 
-      for(auto lmt : *this)
+      for (auto lmt: *this)
       {
-        if (per_cs_max_inty[lmt.getCharge()] < lmt.getIntensity() )
+        if (per_cs_max_inty[lmt.getCharge()] < lmt.getIntensity())
         {
           per_cs_max_inty[lmt.getCharge()] = lmt.getIntensity();
         }
@@ -460,28 +497,30 @@ namespace OpenMS
 
     double getAvgFwhmLength() const
     {
-      double avg_fwhm_len(0.0);
       std::vector<double> fwhm_len_arr;
       fwhm_len_arr.reserve(this->size());
 
-      for (auto& l_trace : *this)
+      for (auto &l_trace: *this)
       {
         double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
         fwhm_len_arr.push_back(tmp_fwhm_len);
       }
-      return accumulate( fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0)/(this->size());
+      return accumulate(fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0) / (this->size());
     }
 
-    void setChargeRange(const int min_c, const int max_c) {
+    void setChargeRange(const int min_c, const int max_c)
+    {
       min_abs_charge_ = min_c;
       max_abs_charge_ = max_c;
     }
 
-    void setChargeScore(const float score) {
+    void setChargeScore(const float score)
+    {
       charge_score_ = score;
     }
 
-    void setIsotopeCosine(const float cos) {
+    void setIsotopeCosine(const float cos)
+    {
       isotope_cosine_score_ = cos;
     }
 
@@ -490,27 +529,34 @@ namespace OpenMS
       total_score_ = score;
     }
 
-    void setChargeIsotopeCosine(const int abs_charge, const float cos) {
-      if (max_abs_charge_ < abs_charge) {
+    void setChargeIsotopeCosine(const int abs_charge, const float cos)
+    {
+      if (max_abs_charge_ < abs_charge)
+      {
         return;
       }
-      if (per_charge_cos_.empty()) {
+      if (per_charge_cos_.empty())
+      {
         per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
       }
       per_charge_cos_[abs_charge] = cos;
     }
 
-    void setChargeIntensity(const int abs_charge, const float intensity) {
-      if (max_abs_charge_ < abs_charge) {
+    void setChargeIntensity(const int abs_charge, const float intensity)
+    {
+      if (max_abs_charge_ < abs_charge)
+      {
         return;
       }
-      if (per_charge_int_.empty()) {
+      if (per_charge_int_.empty())
+      {
         per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
       }
       per_charge_int_[abs_charge] = intensity;
     }
 
-    void setAvgPPMError(const float error) {
+    void setAvgPPMError(const float error)
+    {
       avg_ppm_error_ = error;
     }
 
@@ -519,7 +565,7 @@ namespace OpenMS
       double min_fwhm(numeric_limits<double>::max());
       double max_fwhm(0.0);
 
-      for (auto& l_trace : *this)
+      for (auto &l_trace: *this)
       {
         std::pair<double, double> tmp_fwhm(l_trace.getFwhmStart(), l_trace.getFwhmEnd());
 
@@ -539,24 +585,11 @@ namespace OpenMS
       per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
 
-    bool doesThisIsotopeInChargeExist(const int& in_cs, const int& in_iso_idx) const
-    {
-      bool exist = false;
-      for (auto& l_trace : *this)
-      {
-        if (l_trace.getCharge()==in_cs && l_trace.getIsotopeIndex()==in_iso_idx)
-        {
-          exist = true;
-        }
-      }
-      return exist;
-    }
-
     void setTraceIndices()
     {
       ltrace_indices_.clear();
       ltrace_indices_.reserve(this->size());
-      for (auto& l_trace : *this)
+      for (auto &l_trace: *this)
       {
         ltrace_indices_.push_back(l_trace.getTraceIndex());
       }
@@ -580,7 +613,7 @@ namespace OpenMS
     {
       // get maximum intensity
       double max_intensity = .0;
-      for (const auto& lmt : *this)
+      for (const auto &lmt: *this)
       {
         if (lmt.getIntensity() > max_intensity)
         {
@@ -594,7 +627,7 @@ namespace OpenMS
       tmpPeaks.swap(*this);
       reserve(tmpPeaks.size());
 
-      for (const auto& p : tmpPeaks)
+      for (const auto &p: tmpPeaks)
       {
         if (p.getIntensity() >= threshold)
         {
@@ -607,7 +640,7 @@ namespace OpenMS
     {
       // get maximum intensity per charge
       std::vector<double> max_inty_per_charge(1 + max_abs_charge_, .0);
-      for (const auto& lmt : *this)
+      for (const auto &lmt: *this)
       {
         if (lmt.getIntensity() > max_inty_per_charge[lmt.getCharge()])
         {
@@ -616,14 +649,15 @@ namespace OpenMS
       }
 
       // filter out mass traces with intensity lower than threshold
-//      double threshold = max_intensity * 0.2;
-      for (auto& i : max_inty_per_charge) i *= .2;
+      //      double threshold = max_intensity * 0.2;
+      for (auto &i: max_inty_per_charge)
+        i *= .2;
 
       std::vector<LogMassTrace> tmpPeaks;
       tmpPeaks.swap(*this);
       reserve(tmpPeaks.size());
 
-      for (const auto& p : tmpPeaks)
+      for (const auto &p: tmpPeaks)
       {
         if (p.getIntensity() >= max_inty_per_charge[p.getCharge()])
         {
@@ -638,9 +672,9 @@ namespace OpenMS
       double max_inty = .0;
       double apex_rt = .0;
 
-      for(const auto& lmt : *this)
+      for (const auto &lmt: *this)
       {
-        Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(true);
+        Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(false);
         auto tmp_max_peak = (*lmt.getMassTrace())[max_idx];
         tmp_rt += tmp_max_peak.getRT();
         if (max_inty < tmp_max_peak.getIntensity())
@@ -659,7 +693,7 @@ namespace OpenMS
     /// information on the deconvouted mass
     double monoisotopic_mass_;
     /// charge range
-    int min_abs_charge_, max_abs_charge_; // absolute charge states. (for indexing, min_charge starts 0)
+    int min_abs_charge_, max_abs_charge_; // absolute charge states.
     double intensity_;
     double charge_score_;
     double isotope_cosine_score_;
@@ -675,10 +709,10 @@ namespace OpenMS
     double centroid_rt_of_apices;
     double rt_of_apex; // Apex : apex of most abundant mass traces
 
-//    int most_intense_charge_;
-//    double most_intense_mt_intensity;
-//    std::vector<int> most_intense_charges;
-//    int most_intense_iso_of_most_intense_charge_;
+    //    int most_intense_charge_;
+    //    double most_intense_mt_intensity;
+    //    std::vector<int> most_intense_charges;
+    //    int most_intense_iso_of_most_intense_charge_;
   };
 
   class OPENMS_DLLAPI CmpLogMassTraceByRT
@@ -699,23 +733,33 @@ namespace OpenMS
     }
   };
 
+  class OPENMS_DLLAPI CmpLogMassTraceByIntensity
+  {
+  public:
+    bool operator()(const LogMassTrace* x, const LogMassTrace* y) const
+    {
+      // descending order
+      return x->getIntensity() > y->getIntensity();
+    }
+  };
+
   class OPENMS_DLLAPI CmpFeatureGroupByScore
   {
   public:
     bool operator()(const FeatureGroup& x, const FeatureGroup& y) const
     {
-      // descending order
-//      if(x.getIsotopeCosine() == y.getIsotopeCosine()){
-//        return x.getIntensity() < y.getIntensity();
-//      }
-//
-//      return x.getIsotopeCosine() < y.getIsotopeCosine();
-
-      if(x.getFeatureGroupScore() == y.getFeatureGroupScore()){
+      // intensity
+      if(x.getIntensity() == y.getIntensity()){
         return x.getIsotopeCosine() < y.getIsotopeCosine();
       }
 
-      return x.getFeatureGroupScore() < y.getFeatureGroupScore();
+      return x.getIntensity() < y.getIntensity();
+
+//      if(x.getIsotopeCosine() == y.getIsotopeCosine()){
+//        return x.getIntensity() < x.getIntensity();
+//      }
+//
+//      return x.getIsotopeCosine() < y.getIsotopeCosine();
     }
 
 //    bool operator()(const FeatureGroup* x, const FeatureGroup* y) const
@@ -899,6 +943,30 @@ namespace OpenMS
     }
   };
 
+  struct OPENMS_DLLAPI FeatureElement
+  {
+  public:
+    std::vector<LogMassTrace*> mass_traces;
+    std::vector<Size> mass_trace_indices; // index to input shared_m_traces_indices
+    std::vector<double> isotope_probabilities;
+//    LogMassTrace* most_abundant_mt_in_fg = nullptr;
+
+    int charge;
+    Size feature_group_index;
+
+    /// default constructor
+    FeatureElement() = default;
+
+    Size getPeakSizes() const
+    {
+      Size total_peaks_size = 0;
+      for (auto &lmt : mass_traces)
+      {
+        total_peaks_size += lmt->getMassTrace()->getSize();
+      }
+      return total_peaks_size;
+    }
+   };
 
   class OPENMS_DLLAPI FLASHDeconvQuant :
       public ProgressLogger,
@@ -926,9 +994,9 @@ namespace OpenMS
 
     void setAveragineModel_();
 
-    double getBinValue_(const Size &bin, const double &min_value, const double &bin_width) const;
+    double getBinValue_(const Size &bin, const double &min_value) const;
 
-    Size getBinNumber_(const double &value, const double &min_value, const double &bin_width) const;
+    Size getBinNumber_(const double &value, const double &min_value) const;
 
     void updateMzBins_(std::vector<LogMassTrace*> &local_traces, const Size &bin_number,
                        const double& mz_bin_min, std::vector<float> &mz_bin_intensities);
@@ -964,8 +1032,7 @@ namespace OpenMS
 
     double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                     const std::vector<double> &per_isotope_intensities,
-                                                    int &offset,
-                                                    const PrecalculatedAveragine &avg) const;
+                                                    int &offset) const;
 
     double getCosine_(const std::vector<double> &a,
                       const int &a_start,
@@ -982,11 +1049,9 @@ namespace OpenMS
                                            const int max_b_index,
                                            const int offset) const;
 
-    float getAvgPPMError_(FeatureGroup pg) const;
+    float getAvgPPMError_(FeatureGroup &pg) const;
 
-    void removeOverlappingPeakGroups_(std::vector<FeatureGroup> &local_fgroup,
-                                                        const double tol,
-                                                        const int iso_length) const;
+    void removeOverlappingPeakGroups_(std::vector<FeatureGroup> &local_fgroup) const;
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
@@ -996,7 +1061,7 @@ namespace OpenMS
 
     bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2) const;
 
-    void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
+    void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups,
                                std::vector<MassTrace>& input_mtraces) const;
 
     void resolveSharedMassTraces(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
@@ -1005,36 +1070,48 @@ namespace OpenMS
     void resolveSharedMassTraces_simple(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
                                         std::vector<MassTrace>& input_mtraces) const;
 
-    void resolveConflictInCluster_(const std::vector<FeatureGroup>& feat_hypo,
-                                                     const std::vector<std::vector<Size> >& shared_m_traces_indices,
-                                                     const std::set<Size>& hypo_indices,
-                                                     std::vector<FeatureGroup>& out_features,
-                                                     std::vector<Size>& out_feature_idx,
-                                                     ofstream& out,
-                                                     String& cluster_name) const;
+    void resolveConflictInCluster_(std::vector<FeatureGroup>& feature_groups,
+                                   const std::vector<MassTrace> & input_masstraces,
+                                   const std::vector<std::vector<Size> >& shared_m_traces_indices,
+                                   const std::set<Size>& hypo_indices,
+                                   std::vector<FeatureGroup>& out_features,
+                                   ofstream& out,
+                                   String& cluster_name) const;
 
-    void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& feat,
+    void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
                                        const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                        ofstream& out) const;
 
-    void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat);
+    void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces);
+
+    void resolveConflictRegion_(std::vector<FeatureElement> &feat,
+                                const std::vector<Size> &feature_idx_in_current_conflict_region,
+                                const std::vector<const MassTrace*> &conflicting_mts) const;
+
+    void runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces, EGHTraceFitter* fitter) const;
+
+    void getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
+                                                  const int &ignore_this_charge,
+                                                  LogMassTrace* &most_abundant_mt_ptr,
+                                                  const std::vector<std::vector<Size>>& shared_m_traces) const;
 
     /// parameter stuff
     double local_rt_range_;
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    int charge_range_;
+    Size charge_range_;
     double min_mass_;
     double max_mass_;
     double mz_tolerance_; // ppm
 
     double total_intensity_;
 
-    const double mass_tolerance_ = 3; // Da, for feature mass collection
+    const double mass_tolerance_da_ = 3; // Da, for feature mass collection
+//    const double mass_tolerance_ppm_ = 20;
 
     // advanced parameter?
-    Size min_nr_mtraces_ = 3; // minimum number of mass traces to support feature
+    Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
     bool use_smoothed_intensities_;
     double rt_window_ = 1; // TODO : remove?
 
@@ -1046,6 +1123,9 @@ namespace OpenMS
     double mz_bin_width_;
     double mass_bin_min_value_;
     double mz_bin_min_value_;
+
+    /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
+    const int low_charge_ = 8; // inclusive
 
     /// cosine threshold between observed and theoretical isotope patterns for MS1
     double min_isotope_cosine_ = 0.90;
@@ -1070,13 +1150,9 @@ namespace OpenMS
     /// The data structures for spectra overlapping.
     // TODO: need to study this, if it can be removed?
     std::vector<std::vector<Size>> prev_mass_bin_vector_;
-    std::vector<double> prev_rt_vector_;
-    std::vector<Size> target_mass_bins_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5};
 
-    /// for test purpose : remove this
-    std::vector<bool> feature_with_shared_;
   };
 }

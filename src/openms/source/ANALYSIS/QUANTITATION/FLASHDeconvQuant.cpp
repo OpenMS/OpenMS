@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/FLASHDeconvQuant.h>
 #include <queue>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
 // test purpose
 #include <iostream>
@@ -82,8 +85,30 @@ namespace OpenMS
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
   }
 
-  void FLASHDeconvQuant::writeFeatureGroupsInFile(std::vector<FeatureGroup>& features)
+  void FLASHDeconvQuant::writeFeatureGroupsInFile(std::vector<FeatureGroup>& fgroups, std::vector<MassTrace>& input_mtraces)
   {
+    // to get "shared" information
+    std::vector<std::vector<Size>> shared_m_traces(input_mtraces.size(), std::vector<Size>());
+    for (Size fg_index = 0; fg_index<fgroups.size(); ++fg_index)
+    {
+      for (auto& mt_i : fgroups[fg_index].getTraceIndices())
+      {
+        shared_m_traces[mt_i].push_back(fg_index);
+      }
+    }
+
+    std::vector<bool> fg_with_shared(fgroups.size(), false);
+    for (auto &sharing_fgs : shared_m_traces)
+    {
+      if(sharing_fgs.size() < 2)
+        continue;
+
+      for (auto &fg_idx : sharing_fgs)
+      {
+        fg_with_shared[fg_idx] = true;
+      }
+    }
+
     ofstream out;
     OPENMS_LOG_INFO << "writing output..." << outfile_path << endl;
     out.open(outfile_path, ios::out);
@@ -92,10 +117,10 @@ namespace OpenMS
     out << "mono_mass\tmin_charge\tmax_charge\tquant_value\tsummed_inty\tmost_abundant_charge\t"
            "quant_of_most_abundant_charge\tquant_of_apices_of_cs\tcharge_score\tiso_cosine\tweighted_iso_score\t"
            "fwhm_start\tfwhm_end\tfwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
-           "iso_length\tperIsotopeIntensity\tis_shared\n";
+           "iso_length\tperIsotopeIntensity\tis_shared\n"; //
 
     int counter = -1;
-    for (auto& fg : features)
+    for (auto& fg : fgroups)
     {
       counter++;
       double quant_value = fg.getIntensity();
@@ -162,10 +187,19 @@ namespace OpenMS
           << std::to_string(fg.getRtOfApex()) << "\t"
           << (iso_end - iso_start) << "\t"
           << iso_ss_str << "\t"
-          << feature_with_shared_[counter] << "\n";
+          << fg_with_shared[counter] << "\n";
     }
 
     out.close();
+
+    /// only for writing purpose belowe here :
+    // writing mass traces (when no resolution is done)
+    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    ofstream groups_out;
+    groups_out.open(out_path, ios::out);
+    groups_out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
+    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces, groups_out);
+    groups_out.close();
   }
 
   void printSharedMassTraces(std::vector<std::vector<Size>>& shared_m_traces,
@@ -265,49 +299,18 @@ namespace OpenMS
 //      f.setCentroidRtOfApices();
 //      features.push_back(f);
 //    }
+    OPENMS_LOG_INFO << "total #feature groups : " << features.size() << endl;
 
     // *********************************************************** //
     // Step 3 clustering features
     // *********************************************************** //
-    std::vector<std::vector<Size>> shared_m_traces(input_mtraces.size(), std::vector<Size>());
-    for (Size fg_index = 0; fg_index<features.size(); ++fg_index)
-    {
-      for (auto& mt_i : features[fg_index].getTraceIndices())
-      {
-        shared_m_traces[mt_i].push_back(fg_index);
-      }
-    }
+    // TODO : move this to cluster method later
 
-    feature_with_shared_.reserve(features.size());
-    feature_with_shared_.assign(features.size(), false);
-    for (Size mt_idx = 0; mt_idx < shared_m_traces.size(); ++mt_idx)
-    {
-      if (shared_m_traces[mt_idx].size() < 2) // this mass trace is not shared
-      {
-        continue;
-      }
-      for (auto& f_idx : shared_m_traces[mt_idx])
-      {
-        feature_with_shared_[f_idx] = true;
-      }
-    }
-
-    auto count = std::count(feature_with_shared_.begin(), feature_with_shared_.end(), true);
-    OPENMS_LOG_INFO << "total #feature - #features_with_shared : " << features.size() << "\t" << count << endl;
-    OPENMS_LOG_INFO << "percentage : " << (count/features.size()) << endl;
 
 //    resolveSharedMassTraces_simple(features, shared_m_traces, input_mtraces);
 //    resolveSharedMassTraces(features, shared_m_traces, input_mtraces);
-    writeFeatureGroupsInFile(features);
-    //    clusterFeatureGroups_(features, shared_m_traces, input_mtraces);
-
-    // writing mass traces (when no resolution is done)
-    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
-    ofstream out;
-    out.open(out_path, ios::out);
-    out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
-    writeMassTracesOfFeatureGroup(features, shared_m_traces, out);
-    out.close();
+    clusterFeatureGroups_(features, input_mtraces);
+    writeFeatureGroupsInFile(features, input_mtraces);
   }
 
   void FLASHDeconvQuant::logTransformMassTraces_(std::vector<MassTrace> &input_mtraces, std::vector<LogMassTrace> &log_mtraces)
@@ -349,7 +352,6 @@ namespace OpenMS
   }
 
 
-
   // TODO: replace this with FLASHDeconv's
   void FLASHDeconvQuant::setFilters_()
   {
@@ -369,7 +371,7 @@ namespace OpenMS
 
       for (int i = 0; i < charge_range_; i++)
       {
-        harmonic_filter_matrix_.setValue(k, i, log(1.0 / (1.0 * n / hc + (i + charge_lower_bound_))));
+        harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + charge_lower_bound_))));
       }
     }
   }
@@ -387,18 +389,18 @@ namespace OpenMS
     max_nr_traces_ = iso_model_.getMaxIsotopeIndex();
   }
 
-  double FLASHDeconvQuant::getBinValue_(const Size &bin, const double &min_value, const double &bin_width) const
+  double FLASHDeconvQuant::getBinValue_(const Size &bin, const double &min_value) const
   {
-    return min_value + bin / bin_width;
+    return min_value + bin / mz_bin_width_;
   }
 
-  Size FLASHDeconvQuant::getBinNumber_(const double &value, const double &min_value, const double &bin_width) const
+  Size FLASHDeconvQuant::getBinNumber_(const double &value, const double &min_value) const
   {
     if (value < min_value)
     {
       return 0;
     }
-    return (Size) (((value - min_value) * bin_width) + .5);
+    return (Size) (((value - min_value) * mz_bin_width_) + .5);
   }
 
   // From log mz to mz bins. To reduce edge effect, its adjacent bin is set when a bin is set.
@@ -407,10 +409,9 @@ namespace OpenMS
   {
     mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
-    //std::fill(mz_bin_intensities.begin(), mz_bin_intensities.end(), .0);
     for (auto &trace : local_traces)
     {
-      Size bi = getBinNumber_(trace->getLogCentroidMz(), mz_bin_min, mz_bin_width_);
+      Size bi = getBinNumber_(trace->getLogCentroidMz(), mz_bin_min);
       if (bi >= bin_number)
       {
         continue;
@@ -421,8 +422,8 @@ namespace OpenMS
     }
     for (auto &trace : local_traces)
     {
-      Size bi = getBinNumber_(trace->getLogCentroidMz(), mz_bin_min, mz_bin_width_);
-      double delta = (trace->getLogCentroidMz() - getBinValue_(bi, mz_bin_min, mz_bin_width_));
+      Size bi = getBinNumber_(trace->getLogCentroidMz(), mz_bin_min);
+      double delta = (trace->getLogCentroidMz() - getBinValue_(bi, mz_bin_min));
 
       if (delta > 0)
       {
@@ -459,7 +460,6 @@ namespace OpenMS
     for (Size i = 0; i < prev_mass_bin_vector_.size(); i++)
     {
       auto &pmb = prev_mass_bin_vector_[i];
-      //getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width_[ms_level_ - 1]);
       if (pmb.empty())
       {
         continue;
@@ -472,7 +472,6 @@ namespace OpenMS
         {
           continue;
         }
-        //std::cout << index << " " << shift << " " << j << " " << mass_bins_.size() << std::endl;
         if ((Size) j >= mass_bins_.size()-1)
         {
           break;
@@ -481,18 +480,6 @@ namespace OpenMS
         mass_bins_[j] = true;
         mass_bins_[j+1] = true;
       }
-    }
-    for (Size &index : target_mass_bins_) {
-      long j = (long) index - shift;
-      if (j < 1) {
-        continue;
-      }
-      if ((Size) j >= mass_bins_.size()-1) {
-        break;
-      }
-      mass_bins_[j-1] = true;
-      mass_bins_[j] = true;
-      mass_bins_[j+1] = true;
     }
   }
 
@@ -511,27 +498,30 @@ namespace OpenMS
                                                  const Matrix<int> &per_mass_abs_charge_ranges,
                                                  std::vector<FeatureGroup> &fgroup)
   {
-    //const int max_missing_isotope = 3;
     Size mass_bin_size = mass_bins_.size();
     int log_mz_peak_size = (int) log_mtraces.size();
+    // this stores which peak is now being considered per charge. Per charge, peak is considered from left (lowest m/z) to right (highest m/z).
     auto current_peak_index = std::vector<int>(charge_range_, 0);
     fgroup.reserve(mass_bins_.count());
     Size mass_bin_index = mass_bins_.find_first();
-    auto peak_bin_numbers = std::vector<int>(log_mz_peak_size);
+    auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
 
-    for (int i = 0; i < log_mz_peak_size; i++)
+    // per peak, store the m/z bin number for fast processing
+    for (int i = 0; i < log_mz_peak_size; ++i)
     {
-      peak_bin_numbers[i] = getBinNumber_(log_mtraces[i]->getLogCentroidMz(), mz_bin_min_value_, mz_bin_width_);
+      peak_bin_numbers[i] = getBinNumber_(log_mtraces[i]->getLogCentroidMz(), mz_bin_min_value_);
     }
 
+    // main iteration. per_mass_abs_charge_ranges gives the range of charges for each mass bin
     while (mass_bin_index != mass_bins_.npos)
     {
-      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, mz_bin_width_);
+      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_);
       double mass = exp(log_m);
       FeatureGroup fg(charge_lower_bound_,
-                   per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + lower_bound_mz_);
+                   per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + charge_lower_bound_);
+      auto test = per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
 
-      fg.reserve(charge_range_ * 30);
+      fg.reserve(charge_range_ * max_nr_traces_);
       Size right_index = iso_model_.getLeftCountFromApex(mass);
       Size left_index = iso_model_.getRightCountFromApex(mass);
 
@@ -547,12 +537,14 @@ namespace OpenMS
         int &cpi = current_peak_index[j];
         int max_peak_index = -1;
 
-        while (cpi < log_mz_peak_size - 1)
+        while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
         {
-          if (peak_bin_numbers[cpi] == b_index)
+          if (peak_bin_numbers[cpi] ==
+              b_index) // if the peak of consideration matches to this mass with charge abs_charge
           {
             double intensity = log_mtraces[cpi]->getIntensity();
-            if (intensity > max_intensity)
+            if (intensity >
+                max_intensity) // compare with other matching peaks and select the most intense peak (in max_peak_index)
             {
               max_intensity = intensity;
               max_peak_index = cpi;
@@ -570,34 +562,38 @@ namespace OpenMS
           continue;
         }
 
+        // now we have a mathcing peak for this mass of charge  abs_charge. From here, istope peaks are collected
         const double mz = log_mtraces[max_peak_index]->getCentroidMz();
         const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / (abs_charge);
-        double mz_delta = mz_tolerance_ * mz * 2; //
+        double mz_delta = mz_tolerance_ * mz; //
 
-        double charge_snr = .0;
+        // double peak_pwr = .0;
 
-        int candidate_i = 0;
-        // int peakcntr = 0;
+        double max_mz = mz;
+        double max_peak_intensity = log_mtraces[max_peak_index]->getIntensity();
         for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
         {
           const double observed_mz = log_mtraces[peak_index]->getCentroidMz();
+
           const double intensity = log_mtraces[peak_index]->getIntensity();
-          //observedMz = mz + isof * i * d - d * mzDelta;
           double mz_diff = observed_mz - mz;
 
           int tmp_i = (int) (.5 + mz_diff / iso_delta);
 
-          if (tmp_i > (int) right_index)
+          if (max_peak_intensity < intensity)
+          {
+            max_peak_intensity = intensity;
+            max_mz = observed_mz;
+          }
+
+          int tmp_i_for_stop = (int) (.5 + (observed_mz - max_mz) / iso_delta);;
+          if (tmp_i_for_stop > (int) right_index)
           {
             break;
           }
 
-          if (abs(mz_diff - tmp_i * iso_delta) >= mz_delta) // noise   max_intensity  vs   intensity
-          {
-            charge_snr += intensity * intensity;
-            //peakcntr++;
-          }
-          else
+          // peak_pwr += intensity * intensity;
+          if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // noise   max_intensity  vs   intensity
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
             if (bin < mass_bin_size)
@@ -607,11 +603,8 @@ namespace OpenMS
               p.setIsotopeIndex(tmp_i);
               fg.push_back(p);
             }
-            candidate_i = tmp_i;
           }
         }
-
-        candidate_i = 0;
 
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
@@ -622,21 +615,19 @@ namespace OpenMS
           double mz_diff = mz - observed_mz;
           int tmp_i = (int) (.5 + mz_diff / iso_delta);
 
-          if (tmp_i > (int) left_index)
+          if (max_peak_intensity < intensity)
+          {
+            max_peak_intensity = intensity;
+            max_mz = observed_mz;
+          }
+          int tmp_i_for_stop = (int) (.5 + (max_mz - observed_mz) / iso_delta);;
+          if (tmp_i_for_stop > (int) left_index)
           {
             break;
           }
 
-          //if (tmp_i - candidate_i > max_missing_isotope)
-          //{
-          //  break;
-          //}
-
+          // peak_pwr += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) >= mz_delta)
-          {
-            charge_snr += intensity * intensity;
-          }
-          else
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
             if (bin < mass_bin_size)
@@ -646,14 +637,10 @@ namespace OpenMS
               p.setIsotopeIndex(tmp_i);
               fg.push_back(p);
             }
-            candidate_i = tmp_i;
           }
         }
         // TODO : revive charge snr?
-//        if (charge_snr > 0)
-//        {
-//          pg.setChargeSNR(abs_charge, charge_snr);
-//        }
+        // pg.setChargePower(abs_charge, peak_pwr);
       }
 
       if (!fg.empty())
@@ -665,12 +652,8 @@ namespace OpenMS
         auto new_peaks = std::vector<LogMassTrace>();
         new_peaks.reserve(fg.size());
 
-        //std::unordered_map<int, double> isotope_intensity;
-
-        for (auto &p : fg)
+        for (auto &p: fg)
         {
-          //sum_intensity += p.intensity;
-          // t_mass += p.intensity * (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
           if (max_intensity < p.getIntensity())
           {
             max_intensity = p.getIntensity();
@@ -680,38 +663,35 @@ namespace OpenMS
 
         double iso_tolerance = mz_tolerance_ * t_mass;
         int min_off = 10000;
-        std::vector<double> noise_power(charge_upper_bound_ + 1, .0);
-        for (auto &p : fg)
+        int max_off = -1;
+        int max_charge = -1;
+        //        std::vector<double> noise_power(charge_upper_bound_ + 1, .0);
+        for (auto &p: fg)
         {
           p.setIsotopeIndex(round((p.getUnchargedMass() - t_mass) / Constants::ISOTOPE_MASSDIFF_55K_U));
           if (abs(t_mass - p.getUnchargedMass() + Constants::ISOTOPE_MASSDIFF_55K_U * p.getIsotopeIndex()) >
               iso_tolerance)
           {
-            noise_power[p.getCharge()] += p.getIntensity() * p.getIntensity();
             continue;
           }
           new_peaks.push_back(p);
           min_off = min_off > p.getIsotopeIndex() ? p.getIsotopeIndex() : min_off;
+          max_off = max_off < p.getIsotopeIndex() ? p.getIsotopeIndex() : max_off;
+          max_charge = max_charge < p.getCharge() ? p.getCharge() : max_charge;
+          //          signal_power[p.abs_charge] += p.intensity * p.intensity;
         }
-        for (int abs_charge = 0; abs_charge < noise_power.size(); abs_charge++)
+        if (max_charge < low_charge_ && min_off == max_off)
         {
-          double np = noise_power[abs_charge];
-          if (np <= 0)
-          {
-            continue;
-          }
-          // TODO : revive charge snr?
-//          pg.setChargeSNR(abs_charge, fg.getChargeSNR(abs_charge) + np);
+          continue;
         }
 
         fg.swap(new_peaks);
 
-        for (auto &p : fg)
+        for (auto &p: fg)
         {
-          p.setIsotopeIndex(p.getIsotopeIndex()-min_off);
+          p.setIsotopeIndex(p.getIsotopeIndex() - min_off);
         }
         fg.updateMassesAndIntensity();
-
         fgroup.push_back(fg); //
       }
       mass_bin_index = mass_bins_.find_next(mass_bin_index);
@@ -722,7 +702,6 @@ namespace OpenMS
   void FLASHDeconvQuant::updateCandidateMassBins_(std::vector<float> &mass_intensitites,
                                                   const std::vector<float> &mz_intensities)
   {
-    int charge_range = charge_upper_bound_ - charge_lower_bound_ + 1;
     int h_charge_size = (int) harmonic_charges_.size();
     int min_peak_cntr = min_nr_mtraces_;
     long bin_end = (long) mass_bins_.size();
@@ -730,28 +709,36 @@ namespace OpenMS
     auto support_peak_count = std::vector<int>(mass_bins_.size(), 0);
 
     Size mz_bin_index = mz_bins_.find_first();
+    auto mz_bin_index_reverse = std::vector<Size>();
+    mz_bin_index_reverse.reserve(mz_bins_.count());
+
+    // invert mz bins so charges are counted from small to large given a mass
+    while (mz_bin_index != mz_bins_.npos)
+    {
+      mz_bin_index_reverse.push_back(mz_bin_index);
+      mz_bin_index = mz_bins_.find_next(mz_bin_index);
+    }
 
     // to calculate continuous charges, the previous charge value per mass should be stored
-    auto prev_charges = std::vector<int>(mass_bins_.size(), charge_range + 2);
+    auto prev_charges = std::vector<int>(mass_bins_.size(), charge_range_ + 2);
 
     // not just charges but intensities are stored to see the intensity fold change
     auto prev_intensities = std::vector<float>(mass_bins_.size(), 1.0f);
 
-    double bin_width = mz_bin_width_;
-
     // intensity change ratio should not exceed the factor.
     const float factor = 5.0;
-    const float hfactor = 1.1;
-    const int low_charge = 6;
-    while (mz_bin_index != mz_bins_.npos)
+    // intensity ratio between consecutive charges for possible harmonic should be within this factor
+    const float hfactor = 2.0;
+    for (int i = mz_bin_index_reverse.size() - 1; i >= 0; i--)
     {
+      mz_bin_index = mz_bin_index_reverse[i];
       float intensity = mz_intensities[mz_bin_index];
       double mz = -1.0, log_mz = 0;
-      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_width);
+      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_);
       mz = exp(log_mz);
 
       // scan through charges
-      for (int j = 0; j < charge_range; j++) //  increasing.
+      for (int j = 0; j < charge_range_; j++) //  increasing.
       {
         // mass is given by shifting by bin_offsets_[j]
         long mass_bin_index = mz_bin_index + bin_offsets_[j];
@@ -769,116 +756,122 @@ namespace OpenMS
         int abs_charge = (j + charge_lower_bound_);
         float &prev_intensity = prev_intensities[mass_bin_index];
         int &prev_charge = prev_charges[mass_bin_index];
-
+        bool charge_not_continous = prev_charge - j != -1 && (prev_charge <= charge_range_);
         bool pass_first_check = false;
-        if (abs_charge <= low_charge)
-        { // for low charges
-          double diff = Constants::C13C12_MASSDIFF_U / abs_charge / mz;
-          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
 
-          if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
-          {
-            if (mz_intensities[next_iso_bin] < intensity)
-            {
-              pass_first_check = true;
-            }
-          }
+        // intensity of previous charge
+        // intensity ratio between current and previous charges
+        float intensity_ratio = intensity / prev_intensity;
+        intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
+        float support_peak_intensity = 0;
+        // check if peaks of continuous charges are present
+
+        // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
+        if (charge_not_continous || intensity_ratio > factor)
+        {
+          spc = 0;
         }
         else
         {
-          // intensity of previous charge
-          // intensity ratio between current and previous charges
-          float intensity_ratio = intensity / prev_intensity;
-          intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
-
-          // check if peaks of continuous charges are present
-          bool charge_not_continous = prev_charge - j != 1;
-          // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
-          if (charge_not_continous || intensity_ratio > factor)
+          pass_first_check = true;
+          if (spc == 0)
           {
-            spc = 0;
-            //mass_intensitites[mass_bin_index] -= intensity; //
+            support_peak_intensity = prev_intensity;
           }
-          else
+        }
+
+        // for low charges, check isotope peak presence.
+        if (!pass_first_check && abs_charge <= low_charge_)
+        { // for low charges
+          double diff = Constants::ISOTOPE_MASSDIFF_55K_U / abs_charge / mz;
+          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_);
+
+          if (next_iso_bin < mz_bins_.size() && mz_bins_[next_iso_bin])
           {
             pass_first_check = true;
           }
         }
-        if (pass_first_check)
-        { // check harmonic artifacts
-          float max_intensity = intensity;
-          float min_intensity = prev_intensity;
-          if (abs_charge <= low_charge && prev_intensity <= 1.0)
-          {
-            max_intensity = intensity * factor; // no consecutive intensity. Thus, allow factor
-            min_intensity = intensity / factor;
-          }
-          else if (min_intensity > max_intensity)
-          {
-            float tmpi = min_intensity;
-            min_intensity = max_intensity;
-            max_intensity = tmpi;
-          }
 
-          float high_threshold = max_intensity * hfactor;
-          float low_threshold = min_intensity / hfactor;// / factor;
-          bool is_harmonic = false;
-          for (int k = 0; k < h_charge_size; k++)//
+        if (pass_first_check)
+        {
+          if (prev_charge - j == -1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
           {
-            for (int off = -1; off <= 1; off++)
+            float max_intensity = intensity;
+            float min_intensity = prev_intensity;
+            if (prev_intensity <= 1.0)
             {
-              int hmz_bin_index = off + mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j);
-              if (hmz_bin_index > 0 && hmz_bin_index < mz_bins_for_edge_effect_.size() &&
-                  mz_bins_for_edge_effect_[hmz_bin_index])
+              max_intensity = intensity; //
+              min_intensity = intensity;
+            }
+            else if (min_intensity > max_intensity)
+            {
+              float tmpi = min_intensity;
+              min_intensity = max_intensity;
+              max_intensity = tmpi;
+            }
+
+            float high_threshold = max_intensity * hfactor;
+            float low_threshold = min_intensity / hfactor;
+            bool is_harmonic = false;
+            for (int k = 0; k < h_charge_size; k++)//
+            {
+              for (int off = 0; off <= 0; off++)
               {
-                float hintensity = mz_intensities[hmz_bin_index];
-                if (hintensity > low_threshold
-                    &&
-                    hintensity < high_threshold
-                    )
+                int hmz_bin_index = off + mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j);
+                if (hmz_bin_index > 0 && hmz_bin_index < mz_bins_for_edge_effect_.size() &&
+                    mz_bins_for_edge_effect_[hmz_bin_index])
                 {
-                  is_harmonic = true;
-                  break;//
-                  //maxHcharge = k;
+                  float hintensity = mz_intensities[hmz_bin_index];
+                  if (hintensity > low_threshold
+                      &&
+                      hintensity < high_threshold
+                      )
+                  {
+                    is_harmonic = true;
+                    break;
+                  }
                 }
               }
+              if (is_harmonic)
+              {
+                break;
+              }
             }
-            if (is_harmonic)
+            if (!is_harmonic) // if it is not harmonic
             {
-              break;
+              mass_intensitites[mass_bin_index] += intensity + support_peak_intensity;
+              spc++;
+              if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
+              {
+                mass_bins_[mass_bin_index] = true;
+              }
+            }
+            else // if harmonic
+            {
+              mass_intensitites[mass_bin_index] -= intensity;
             }
           }
-          if (!is_harmonic)
+          else // for low charge, include the mass if isotope is present
           {
-            if (spc == 0 && abs_charge > low_charge)
-            {
-              mass_intensitites[mass_bin_index] += prev_intensity;
-            }
             mass_intensitites[mass_bin_index] += intensity;
-            if (++spc >= min_peak_cntr || abs_charge <= low_charge) //
+            spc++;
+            //if (spc >= min_peak_cntr || spc >= abs_charge * .75) //
             {
               mass_bins_[mass_bin_index] = true;
             }
           }
-          else
-          {
-            mass_intensitites[mass_bin_index] -= intensity;
-          }
         }
-
         prev_intensity = intensity;
         prev_charge = j;
       }
-      mz_bin_index = mz_bins_.find_next(mz_bin_index);
     }
   }
 
-  // Subfunction of updateMassBins_. If a peak corresponds to multiple masses, only one mass is selected based on intensities..
+  // Subfunction of updateMassBins_. If a peak corresponds to multiple masses, only one mass is selected for the peak based on intensities..
+  // mass level harmonic check is also performed in this function
+  // it also outputs the charge range of each mass bin
   Matrix<int> FLASHDeconvQuant::filterMassBins_(const std::vector<float> &mass_intensities)
   {
-    //int chargeRange = param.currentChargeRange;
-    int charge_range = charge_upper_bound_ - charge_lower_bound_ + 1;
-    double bin_width = mz_bin_width_;
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (int i = 0; i < mass_bins_.size(); i++)
     {
@@ -886,8 +879,6 @@ namespace OpenMS
     }
     Size mz_bin_index = mz_bins_.find_first();
     long bin_size = (long) mass_bins_.size();
-
-    //massBinsForThisSpectrum = boost::dynamic_bitset<>(mass_bins_.size());
 
     auto to_skip = mass_bins_.flip();
     mass_bins_.reset();
@@ -898,7 +889,7 @@ namespace OpenMS
       float max_intensity = -1e11;
       int max_intensity_abs_charge = 0;
 
-      for (int j = 0; j < charge_range; j++)
+      for (int j = 0; j < charge_range_; j++)
       {
         long mass_bin_index = mz_bin_index + bin_offsets_[j];
 
@@ -927,39 +918,36 @@ namespace OpenMS
         {
           bool artifact = false;
 
-          double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+          int abs_charge = (j + charge_lower_bound_);
+
+          double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_);
           double mass = exp(original_log_mass);
-          double diff = Constants::C13C12_MASSDIFF_U / mass;
           for (int iso_off = -2; iso_off <= 2 && !artifact; ++iso_off)
           {
-            double log_mass = original_log_mass + diff * iso_off;
+            double log_mass = log(mass + iso_off * Constants::ISOTOPE_MASSDIFF_55K_U);   //original_log_mass + diff * iso_off;
             if (log_mass < 1)
             {
               continue;
             }
-            for (int h = 2; h <= 6 && !artifact; h++)
+            for (int h = 2; h <= 3 && !artifact; h++)
             {
               for (int f = -1; f <= 1 && !artifact; f += 2) //
               {
                 double hmass = log_mass - log(h) * f;
-                Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_);
                 if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                 {
-                  //for (int off = 0; off <= 0 && !artifact; off++)
-                  //{
                   if (mass_intensities[hmass_index] >= t)
                   {
-                    artifact = true;
+                    artifact = true; //
                     break;
                   }
-                  //}
                 }
               }
             }
             //   max_intensity_abs_charge off by one here
             if (!artifact)
             {
-              int abs_charge = (j + charge_lower_bound_);
               for (int coff = 1; coff <= 2 && !artifact; coff++)
               {
                 for (int f = -1; f <= 1 && !artifact; f += 2)
@@ -969,7 +957,7 @@ namespace OpenMS
                     continue;
                   }
                   double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_);
                   if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
                     if (mass_intensities[hmass_index] >= t)
@@ -1013,13 +1001,13 @@ namespace OpenMS
 
   bool FLASHDeconvQuant::checkChargeDistribution_(const std::vector<double> &per_charge_intensity) const {
 
-    double max_per_charge_intensity = *std::max_element(per_charge_intensity.begin(), per_charge_intensity.end());
-    double sum_charge_intensity = .0;
+//    double max_per_charge_intensity = *std::max_element(per_charge_intensity.begin(), per_charge_intensity.end());
+//    double sum_charge_intensity = .0;
     int cntr = 0;
     int non_zero_start = -1, non_zero_end = 0;
     for (int i = 0; i < charge_range_; i++) {
       if (per_charge_intensity[i] > 0) {
-        sum_charge_intensity += per_charge_intensity[i];
+//        sum_charge_intensity += per_charge_intensity[i];
         cntr++;
 //        max_per_charge_intensity = std::max(max_per_charge_intensity, per_charge_intensity[i]);
         if (non_zero_start < 0) {
@@ -1034,7 +1022,7 @@ namespace OpenMS
 
     int prev_charge = non_zero_start;
     int n_r = 0;
-    float factor = 1;
+//    float factor = 1;
 //    double int_threshold = (sum_charge_intensity / cntr) * factor;
     for (int k = prev_charge + 1; k <= non_zero_end; k++) {
       if (per_charge_intensity[k] <= 0) {
@@ -1061,10 +1049,6 @@ namespace OpenMS
                                                               FeatureGroup &fg) const {
     int min_pg_charge = INT_MAX;
     int max_pg_charge = INT_MIN;
-    //    double maxIntensity = -1;
-    int max_intensity_charge_index = -1;
-    //    double maxIntensity2 = -1;
-    int max_intensity_iso_index = -1;
 
     for (auto &p : fg) {
       if (p.getIsotopeIndex() < 0 || p.getIsotopeIndex() >= max_isotope_count) {
@@ -1109,8 +1093,8 @@ namespace OpenMS
     double p = .0;
     for (int i = max_index; i < last_index - 1; i++) {
       double diff = per_charge_intensity[i + 1] - per_charge_intensity[i];
-      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
-      if (diff <= 0 && ratio < 5.0) {
+//      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
+      if (diff <= 0) {
         continue;
       }
       p += abs(diff);
@@ -1136,128 +1120,64 @@ namespace OpenMS
                                           const int offset) const {
     double n = .0, a_norm = .0;
     //int c = 0;
-    for (int j = a_start; j <= a_end; j++) {
+    for (int j = a_start; j <= a_end; j++)
+    {
       int i = j - offset;
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
+      a_norm += a[j] * a[j];
+
+      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
+      {
         continue;
       }
-      a_norm += a[j] * a[j];
       n += a[j] * b[i].getIntensity(); //
     }
-    if (a_norm <= 0) {
+    if (a_norm <= 0)
+    {
       return 0;
     }
     return n / sqrt(a_norm);
   }
 
-  double FLASHDeconvQuant::getShapeDiff_(const std::vector<double> &a,
-                                             const int &a_start,
-                                             const int &a_end,
-                                             const IsotopeDistribution &b,
-                                             const int &b_size,
-                                             const int max_b_index,
-                                             const int offset) const{
-    double a_norm = .0, b_norm = .0;
-    double diff = 0;
-
-    for (int j = a_start; j <= a_end; j++) {
-      int i = j - offset;
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
-        continue;
-      }
-
-      if (i < max_b_index - 2 || i > max_b_index + 2) {
-        continue;
-      }
-      a_norm += a[j] * a[j];
-      b_norm += b[i].getIntensity() * b[i].getIntensity();
-    }
-
-    if (a_norm <= 0 || b_norm <= 0) {
-      return -1;
-    }
-    a_norm = sqrt(a_norm);
-    b_norm = sqrt(b_norm);
-
-    for (int j = a_start; j <= a_end; j++) {
-      int i = j - offset;
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
-        continue;
-      }
-      double t_diff = (a[j] / a_norm - b[i].getIntensity() / b_norm);
-      diff += (t_diff * t_diff);
-    }
-
-    return diff;
-  }
-
   double FLASHDeconvQuant::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
-                                                                        const std::vector<double> &per_isotope_intensities,
-                                                                        int &offset,
-                                                                        const PrecalculatedAveragine &avg) const {
-    auto iso = avg.get(mono_mass);
-    //double iso_norm = avg.getNorm(mono_mass);
+                                                                    const std::vector<double> &per_isotope_intensities,
+                                                                    int &offset) const
+  {
+    auto iso = iso_model_.get(mono_mass);
 
     int iso_size = (int) iso.size();
-    int apex_index = avg.getApexIndex(mono_mass);
-    int iso_range = avg.getRightCountFromApex(mono_mass) + avg.getLeftCountFromApex(mono_mass);
+    int apex_index = iso_model_.getApexIndex(mono_mass);
+    int iso_range = iso_model_.getRightCountFromApex(mono_mass) + iso_model_.getLeftCountFromApex(mono_mass);
 
     offset = 0;
-    double min_diff = -1;
-    //int isotope_length = 0;
+    double min_diff = -1000;
     int max_isotope_index = 0, min_isotope_index = -1;
 
-    for (int i = 0; i < avg.getMaxIsotopeIndex(); i++) {
-      if (per_isotope_intensities[i] <= 0) {
+    for (int i = 0; i < iso_model_.getMaxIsotopeIndex(); i++)
+    {
+      if (per_isotope_intensities[i] <= 0)
+      {
         continue;
       }
       //isotope_length++;
       max_isotope_index = i;
-      if (min_isotope_index < 0) {
+      if (min_isotope_index < 0)
+      {
         min_isotope_index = i;
       }
     }
 
-    //        double norm = .0;
-    //       for (int j = min_isotope_index; j <= max_isotope_index; j++) {
-    //           norm += per_isotope_intensities[j] * per_isotope_intensities[j];
-    //       }
+    for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++)
+    {
+      double tmp_cos = getCosine_(per_isotope_intensities,
+                                  min_isotope_index,
+                                  max_isotope_index,
+                                  iso,
+                                  iso_size, //apex_index,
+                                  tmp_offset);
 
-    for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++) {
-      double tmp_diff = getCosine_(per_isotope_intensities,
-                                   min_isotope_index,
-                                   max_isotope_index,
-                                   iso,
-                                   iso_size, //apex_index,
-                                   tmp_offset);
-      //if (tmp_diff < 0) {
-      //    continue;
-      //}
-
-      if (min_diff < tmp_diff) {//min_diff < 0 ||
-        min_diff = tmp_diff;
+      if (min_diff < tmp_cos) {
+        min_diff = tmp_cos;
         offset = tmp_offset;
-      }
-    }
-
-    min_diff = -1;
-    int final_offset = offset;
-    if (iso_range / 4 > 0) {
-      for (int tmp_offset = offset - iso_range / 4; tmp_offset <= offset + iso_range / 4; tmp_offset++) {
-        double tmp_diff = getShapeDiff_(per_isotope_intensities,
-                                        min_isotope_index,
-                                        max_isotope_index,
-                                        iso,
-                                        iso_size, apex_index,
-                                        tmp_offset);
-        if (tmp_diff < 0) {
-          continue;
-        }
-
-        if (min_diff < 0 || min_diff > tmp_diff) {//||
-          min_diff = tmp_diff;
-          final_offset = tmp_offset;
-        }
       }
     }
 
@@ -1266,10 +1186,10 @@ namespace OpenMS
                       max_isotope_index,
                       iso,
                       iso_size,
-                      final_offset);
+                      offset);
   }
 
-  float FLASHDeconvQuant::getAvgPPMError_(FeatureGroup pg) const{
+  float FLASHDeconvQuant::getAvgPPMError_(FeatureGroup &pg) const{
     std::vector<float> diffs;
     std::vector<std::vector<float>> per_isotope_masses;
     int isotope_end_index = 0;
@@ -1319,9 +1239,9 @@ namespace OpenMS
 //    filterPeakGroupsByIsotopeCosine_(max_c);
   }
 
-  void FLASHDeconvQuant::removeOverlappingPeakGroups_(std::vector<FeatureGroup> &local_fgroup,
-                                                      const double tol,
-                                                      const int iso_length) const{
+  void FLASHDeconvQuant::removeOverlappingPeakGroups_(std::vector<FeatureGroup> &local_fgroup) const{
+    int iso_length = 1;
+
     std::vector<FeatureGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(local_fgroup.size());
     sort(local_fgroup.begin(), local_fgroup.end());
@@ -1344,17 +1264,10 @@ namespace OpenMS
       bool select = true;
       auto &pg = (local_fgroup)[i];
 
-      bool pass = false;
-
-      if (pass) {
-        filtered_pg_vec.push_back(pg);
-        continue;
-      }
-
       if (pg.getMonoisotopicMass() <= 0) {
         continue;
       }
-      double mass_tolerance = pg.getMonoisotopicMass() * tol * 2;
+      double mass_tolerance = pg.getMonoisotopicMass() * mz_tolerance_ * 2;
 
       int j = i + 1;
       for (int l = 0; l <= iso_length; l++) {
@@ -1386,7 +1299,8 @@ namespace OpenMS
       j = i - 1;
       for (int l = 0; l <= iso_length; l++) {
         double off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
-        for (; j >= 0; j--) {
+        for (; j >= 0; j--)
+        {
           auto &pgo = (local_fgroup)[j];
 
           if (l != 0 && pg.getMonoisotopicMass() - pgo.getMonoisotopicMass() < off - mass_tolerance) {
@@ -1426,7 +1340,7 @@ namespace OpenMS
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
     mass_bin_min_value_ = log(std::max(1.0, min_mass_ - iso_model_.getAverageMassDelta(min_mass_)));
     mz_bin_min_value_ = local_traces[0]->getLogCentroidMz();
-    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mz_bin_min_value_, mz_bin_width_) + 1;
+    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mz_bin_min_value_) + 1;
 
     // build bin offsets
     bin_offsets_.clear();
@@ -1451,7 +1365,7 @@ namespace OpenMS
       }
     }
 
-    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_, mz_bin_width_) + 1;
+    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_) + 1;
     auto mz_bin_intensities = std::vector<float>(mz_bin_number, .0f);
 
     // From log mz to mz bins.
@@ -1470,7 +1384,7 @@ namespace OpenMS
     }
     if (local_fgroup.size() > 1)
     {
-      removeOverlappingPeakGroups_(local_fgroup, mz_tolerance_, 1);
+      removeOverlappingPeakGroups_(local_fgroup);
     }
 
     // TODO : revive rt binning?
@@ -1505,8 +1419,8 @@ namespace OpenMS
       return false;
 
     const double overlap_length = std::min(border1.second, border2.second)-std::max(border1.first, border2.first);
-    if ( (overlap_length/(border1.second-border1.first) < 0.7) &&
-         (overlap_length/(border2.second-border2.first) < 0.7) ) return false;
+    if ( (overlap_length/(border1.second-border1.first) < 0.5) &&
+         (overlap_length/(border2.second-border2.first) < 0.5) ) return false;
 
     return true;
   }
@@ -1519,7 +1433,7 @@ namespace OpenMS
 
     if(min_overlapping_charge > max_overlapping_charge) // no overlapping charge
     {
-      return false;
+      return true;
     }
 
     // collect possible overlapping mass_traces based on charges
@@ -1553,7 +1467,7 @@ namespace OpenMS
 //    double overlap_p = inters_vec.size() / min_vec_size;
     double overlap_percentage = static_cast<double>(inters_vec.size()) / static_cast<double>(min_vec_size);
     // TODO : change this to overlapping only major cs?
-    if(overlap_percentage <= 0)
+    if(inters_vec.size() < 1)
     {
       return false;
     }
@@ -1586,14 +1500,20 @@ namespace OpenMS
     auto per_isotope_intensities = std::vector<double>(iso_model_.getMaxIsotopeIndex(), 0);
     auto per_charge_intensities = std::vector<double>(charge_range_, 0);
 
+    calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_charge_intensities,
+                                        iso_model_.getMaxIsotopeIndex(), fg);
+
+    // if the number of charges are not enough
+    if (std::get<1>(fg.getChargeRange()) - std::get<0>(fg.getChargeRange()) < min_nr_mtraces_ )
+    {
+      return false;
+    }
+
     /// isotope cosine calculation
     int offset = 0;
-
-    calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_charge_intensities, iso_model_.getMaxIsotopeIndex(), fg);
-
     double isotope_score = getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
                                                                     per_isotope_intensities,
-                                                                    offset, iso_model_);
+                                                                    offset);
     fg.setIsotopeCosine(isotope_score);
     if (fg.empty() || isotope_score < given_iso_score) // min_isotope_cosine_
     {
@@ -1604,7 +1524,7 @@ namespace OpenMS
     double cs = getChargeFitScore_(per_charge_intensities);
     fg.setChargeScore(cs);
 
-//    // NOTE : if not using cs dist, too many harmonics
+    // NOTE : if not using cs dist, too many harmonics
     bool is_charge_well_distributed = checkChargeDistribution_(per_charge_intensities);
 //    //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
     if (!is_charge_well_distributed) {
@@ -1612,7 +1532,7 @@ namespace OpenMS
     }
     /// TODO_ends_here
 
-    /// update monoisotope mass of this FeatureGroup
+    /// update monoisotopic mass of this FeatureGroup
     fg.updateMassesAndIntensity(offset, iso_model_.getMaxIsotopeIndex());
     if (fg.getMonoisotopicMass() < min_mass_ || fg.getMonoisotopicMass() > max_mass_) {
       return false;
@@ -1656,18 +1576,13 @@ namespace OpenMS
         min_isotope_index = min_isotope_index < peak.getIsotopeIndex() ? min_isotope_index : peak.getIsotopeIndex();
         max_isotope_index = max_isotope_index < peak.getIsotopeIndex() ? peak.getIsotopeIndex() : max_isotope_index;
 
-        if (max_intensity < peak.getIntensity()) {
+        if (max_intensity < peak.getIntensity())
+        {
           max_intensity = peak.getIntensity();
         }
       }
       if (max_intensity <= 0) {
         continue;
-      }
-
-      for (int k = min_isotope_index; k <= max_isotope_index; ++k) {
-        if (k > iso_size) {
-          break;
-        }
       }
 
       double cos_score = getCosine_(current_per_isotope_intensities,
@@ -1724,8 +1639,20 @@ namespace OpenMS
 
       // get all features within mass_tol from candidate FeatureGroup
       std::vector<FeatureGroup>::iterator low_it, up_it;
-      FeatureGroup lower_fg(candidate_fg->getMonoisotopicMass() - mass_tolerance_);
-      FeatureGroup upper_fg(candidate_fg->getMonoisotopicMass() + mass_tolerance_);
+//      double mass_tolerance = .0;
+//      if (candidate_fg->getMonoisotopicMass() > 10000)
+//      {
+//        mass_tolerance = mass_tolerance_da_;
+//      }
+//      else{
+//        mass_tolerance = candidate_fg->getMonoisotopicMass() * mass_tolerance_ppm_ * 1e-6;
+//      }
+
+//      if (candidate_fg->getMonoisotopicMass() < 13475  && candidate_fg->getMonoisotopicMass() > 13470)
+//        auto& here = candidate_fg;
+
+      FeatureGroup lower_fg(candidate_fg->getMonoisotopicMass() - mass_tolerance_da_);
+      FeatureGroup upper_fg(candidate_fg->getMonoisotopicMass() + mass_tolerance_da_);
 
       low_it = std::lower_bound(in_features.begin(), in_features.end(), lower_fg);
       up_it = std::upper_bound(in_features.begin(), in_features.end(), upper_fg);
@@ -1744,12 +1671,12 @@ namespace OpenMS
       // check if found features are overlapping with the candidate feature
       std::vector<int> v_indices_to_remove;
       v_indices_to_remove.reserve(up_it-low_it);
-      std::vector<Size> mt_indices_to_add;
-      mt_indices_to_add.reserve( (up_it-low_it) * candidate_fg->size() );
+      std::set<Size> mt_indices_to_add;
+//      mt_indices_to_add.reserve( (up_it-low_it) * candidate_fg->size() );
       std::vector<LogMassTrace *> mts_to_add;
       mts_to_add.reserve( (up_it-low_it) * candidate_fg->size() );
-      std::vector<FeatureGroup *> mts_origin_fg;
-      mts_origin_fg.reserve( (up_it-low_it) * candidate_fg->size() );
+//      std::vector<FeatureGroup *> mts_origin_fg;
+//      mts_origin_fg.reserve( (up_it-low_it) * candidate_fg->size() );
 
       for (; low_it != up_it; ++low_it)
       {
@@ -1776,60 +1703,113 @@ namespace OpenMS
         auto trace_indices = candidate_fg->getTraceIndices();
         for (auto& new_mt : *low_it)
         {
+          // if this mass trace is not used in candidate_fg
           if ( std::find( trace_indices.begin(), trace_indices.end(), new_mt.getTraceIndex() ) == trace_indices.end())
           {
-            auto mt_already_added_idx = std::find(mt_indices_to_add.begin(), mt_indices_to_add.end(), new_mt.getTraceIndex());
+//            auto mt_already_added_idx = std::find(mt_indices_to_add.begin(), mt_indices_to_add.end(), new_mt.getTraceIndex());
+//
+//            // if this mass trace is already added to candidate_fg by other merged fg
+//            if (mt_already_added_idx != mt_indices_to_add.end())
+//            {
+//              int found_index = mt_already_added_idx-mt_indices_to_add.begin();
+//              auto& mt_already_added = mts_to_add[found_index];
+//
+//              // check if charge and isotope_index are same
+//              if (mt_already_added->getCharge() == new_mt.getCharge() && mt_already_added->getIsotopeIndex() == new_mt.getIsotopeIndex())
+//              {
+//                continue;
+//              }
+//
+//              // check if cs & iso position is already taken in candidate_feature
+//              if (candidate_fg->doesThisIsotopeInChargeExist(new_mt.getCharge(), new_mt.getIsotopeIndex())!= nullptr)
+//              {
+//                continue;
+//              }
+//
+//              // TODO: how should i address this? this doesn't make sense...
+//              auto &origin_fg = mts_origin_fg[found_index];
+//              if (mt_already_added->getCharge() == new_mt.getCharge() && mt_already_added->getIsotopeIndex() != new_mt.getIsotopeIndex())
+//              {
+//                if (origin_fg->getIsotopeCosine() < low_it->getIsotopeCosine())
+//                {
+//                  mts_to_add[found_index] = &new_mt;
+//                  mts_origin_fg[found_index] = &(in_features[ low_it - in_features.begin() ]);
+//                }
+//                continue;
+//              }
+//            }
+//
+//            // check if cs & iso position is already taken in candidate_feature
+//            const LogMassTrace* existing_mt = candidate_fg->doesThisIsotopeInChargeExist(new_mt.getCharge(), new_mt.getIsotopeIndex());
+//            if (existing_mt != nullptr)
+//            {
+//              // checking if this mt could replace the cs & iso position
+//
+//              // does new mt have higher intensity?
+//              if (existing_mt->getIntensity() > new_mt.getIntensity())
+//                continue;
+//
+//              // does fwhm overlap with candidate_fg?
+//              auto border = candidate_fg->getFwhmRange();
+//              if ( (border.first > new_mt.getFwhmEnd()) || (border.second < new_mt.getFwhmStart()))
+//                continue;
+//
+//              // replace cs & iso position with current one (remove existing_mt)
+//              for (auto lmt_iter = candidate_fg->begin(); lmt_iter != candidate_fg->end(); ++lmt_iter)
+//              {
+//                if (existing_mt->getTraceIndex() != lmt_iter->getTraceIndex()) continue;
+//                candidate_fg->erase(lmt_iter);
+//                break;
+//              }
+//            }
 
-            if (mt_already_added_idx != mt_indices_to_add.end()) // found already added logmasstrace
-            {
-              int found_index = mt_already_added_idx-mt_indices_to_add.begin();
-              auto& mt_already_added = mts_to_add[found_index];
-
-              // check if charge and isotope_index_ is same
-              if (mt_already_added->getCharge() == new_mt.getCharge() && mt_already_added->getIsotopeIndex() == new_mt.getIsotopeIndex())
-              {
-                continue;
-              }
-
-              // check if cs & iso position is already taken in candidate_feature
-              if (candidate_fg->doesThisIsotopeInChargeExist(new_mt.getCharge(), new_mt.getIsotopeIndex()))
-              {
-                continue;
-              }
-
-              // TODO: how should i address this? this doesn't make sense...
-              auto &origin_fg = mts_origin_fg[found_index];
-              if (mt_already_added->getCharge() == new_mt.getCharge() && mt_already_added->getIsotopeIndex() != new_mt.getIsotopeIndex())
-              {
-                if (origin_fg->getIsotopeCosine() < low_it->getIsotopeCosine())
-                {
-                  mts_to_add[found_index] = &new_mt;
-                  mts_origin_fg[found_index] = &(in_features[ low_it - in_features.begin() ]);
-                }
-                continue;
-              }
-
-              auto m = mt_already_added;
-            }
-
-            // check if cs & iso position is already taken in candidate_feature
-            if (candidate_fg->doesThisIsotopeInChargeExist(new_mt.getCharge(), new_mt.getIsotopeIndex()))
-            {
-              continue;
-            }
-
-            mt_indices_to_add.push_back(new_mt.getTraceIndex());
+            mt_indices_to_add.insert(new_mt.getTraceIndex());
             mts_to_add.push_back(&new_mt);
-            mts_origin_fg.push_back(&(in_features[low_it-in_features.begin()]));
+//            mts_origin_fg.push_back(&(in_features[low_it-in_features.begin()]));
           }
         }
         // add index of found feature to "to_be_removed_vector"
         v_indices_to_remove.push_back(low_it - in_features.begin());
       }
+
+      // sort mts_to_add by abundance
+      std::sort(mts_to_add.begin(), mts_to_add.end(), CmpLogMassTraceByIntensity());
+
       // add extra masstraces to candidate_feature
       FeatureGroup final_candidate_fg = *candidate_fg; // copy of candidate_feature
       for(auto &new_mt : mts_to_add)
       {
+        // check if this mt of this lmt was already added to candidate_fg
+        if (mt_indices_to_add.find(new_mt->getTraceIndex()) == mt_indices_to_add.end())
+        {
+          continue;
+        }
+        mt_indices_to_add.erase(new_mt->getTraceIndex());
+
+        LogMassTrace* apex_lmt_in_this_cs = final_candidate_fg.getApexLMTofCharge(new_mt->getCharge());
+        // if this mt is introducing new charge
+        if (apex_lmt_in_this_cs == nullptr)
+        {
+          final_candidate_fg.push_back(*new_mt);
+          continue;
+        }
+
+        /// re-calculate isotope index
+        double apex_lmt_mass = apex_lmt_in_this_cs->getUnchargedMass();
+        double new_lmt_mass = new_mt->getUnchargedMass();
+
+        int tmp_iso_idx = round((new_lmt_mass - apex_lmt_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
+        if (abs(apex_lmt_mass - new_lmt_mass + Constants::ISOTOPE_MASSDIFF_55K_U * tmp_iso_idx) >
+            apex_lmt_mass * mz_tolerance_)
+        {
+          continue;
+        }
+        if (apex_lmt_in_this_cs->getIsotopeIndex() + tmp_iso_idx < 0)
+        {
+          continue;
+        }
+        new_mt->setIsotopeIndex(apex_lmt_in_this_cs->getIsotopeIndex() + tmp_iso_idx);
+
         final_candidate_fg.push_back(*new_mt);
       }
 
@@ -2188,31 +2168,13 @@ namespace OpenMS
 
   }
 
-  void FLASHDeconvQuant::clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
-                                               std::vector<MassTrace>& input_mtraces) const
+  /// cluster FeatureGroups with shared mass traces. If not, report as output
+  void FLASHDeconvQuant::clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups, std::vector<MassTrace>& input_mtraces) const
   {
-    // print per feature info
-    /// test writing
-    for (Size i =0; i< fgroups.size(); ++i)
-    {
-      auto& f = fgroups[i];
-      String mass = int(f.getMonoisotopicMass());
-      String path_for_f = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_" + mass + "_" + i + "_mts.tsv";
-      printQuantValuesPerFeature(f, path_for_f);
-    }
-
-    // test writing
-    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
-    ofstream out;
-    out.open(out_path, ios::out);
-
-    // header
-//    out << "feature_label\tcs\tscore\tquant\tbounding_box_pos\tbounding_box_width\tbounding_box_height\t"
-//           "iso_position\tmasstrace_centroid_rts\tmasstrace_centroid_mzs\tclustername\n";
-    out << "mono_mass\tclustername\tshared\tcentroid_mzs\trts\tmzs\tintys\n";
-
-
-    // generate array with indices of shared mass traces
+    // *********************************************************** //
+    // Step 1 preparation for hypergraph : collect feature idx with shared mass traces
+    // *********************************************************** //
+    std::vector<std::vector<Size>> shared_m_traces(input_mtraces.size(), std::vector<Size>());
     for (Size fg_index = 0; fg_index<fgroups.size(); ++fg_index)
     {
       for (auto& mt_i : fgroups[fg_index].getTraceIndices())
@@ -2221,13 +2183,35 @@ namespace OpenMS
       }
     }
 
-    String s_out = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_sharedMTs.tsv";
-    printSharedMassTraces(shared_m_traces, s_out, fgroups, input_mtraces);
+    // print per feature info
+//    /// test writing
+//    for (Size i =0; i< fgroups.size(); ++i)
+//    {
+//      auto& f = fgroups[i];
+//      String mass = int(f.getMonoisotopicMass());
+//      String path_for_f = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_" + mass + "_" + i + "_mts.tsv";
+//      printQuantValuesPerFeature(f, path_for_f);
+//    }
+//
+    //// test writing
+//    String out_path = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    ofstream out;
+//    out.open(out_path, ios::out);
+//
+//    // header
+////    out << "feature_label\tcs\tscore\tquant\tbounding_box_pos\tbounding_box_width\tbounding_box_height\t"
+////           "iso_position\tmasstrace_centroid_rts\tmasstrace_centroid_mzs\tclustername\n";
+//    out << "mono_mass\tclustername\tshared\tcentroid_mzs\trts\tmzs\tintys\n";
+//
+//    String s_out = outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "_sharedMTs.tsv";
+//    printSharedMassTraces(shared_m_traces, s_out, fgroups, input_mtraces);
+
+    /// test writing ends here
 
     // *********************************************************** //
-    // Step 1 constructing hypergraph from featurehypotheses
+    // Step 1 constructing hypergraph from featuregroups
     //        node = mass traces
-    //        hyperedge = hypotheses
+    //        hyperedge = feature groups
     // *********************************************************** //
     Size num_nodes = shared_m_traces.size();
     std::vector<bool> bfs_visited;
@@ -2237,24 +2221,30 @@ namespace OpenMS
 
     std::vector<FeatureGroup> out_features;
     out_features.reserve(fgroups.size());
-    std::vector<Size> out_feature_idx;
-    out_feature_idx.reserve(fgroups.size());
+//    std::vector<Size> out_feature_idx;
+//    out_feature_idx.reserve(fgroups.size());
 
-    // BFS
-    // TODO : progress logger
-    this->startProgress(0, shared_m_traces.size(), "clustering features based on the shared mass traces");
-    Size progress = 0;
+//    this->startProgress(0, shared_m_traces.size(), "clustering features based on the shared mass traces");
+//    Size progress = 0;
     Size cluster_counter = 0;
+    // BFS
     while (true)
     {
-      this->setProgress(progress);
-      ++progress;
+//      this->setProgress(progress);
+//      ++progress;
       // finding a seed 'shared_mass_trace' to start with (for constructing a cluster)
       bool finished = true;
       for (Size i = search_pos; i < num_nodes; ++i)
       {
         if (!bfs_visited[i])
         {
+          // check if this mass_trace is used to any FeatureGroup
+          if (shared_m_traces[i].size()==0)
+          {
+            bfs_visited[i] = true;
+            continue;
+          }
+
           bfs_queue.push(i);
           bfs_visited[i] = true;
           finished = false;
@@ -2265,19 +2255,25 @@ namespace OpenMS
       if (finished) // if no possible seed is left
         break;
 
-      set<Size> hypo_indices_in_current_cluster;
+      std::set<Size> fg_indices_in_current_cluster;
 
       while (!bfs_queue.empty())
       {
         Size i = bfs_queue.front(); // index of seed
         bfs_queue.pop();
 
-        // get feature indices sharing this seed
+        // get FeatureGroup indices sharing this seed
         for (vector<Size>::const_iterator it = shared_m_traces[i].begin();
              it != shared_m_traces[i].end();
              ++it)
         {
-          hypo_indices_in_current_cluster.insert(*it);
+          // if this FeatureGroup was visited before
+          if (fg_indices_in_current_cluster.find(*it) != fg_indices_in_current_cluster.end())
+          {
+            continue;
+          }
+
+          fg_indices_in_current_cluster.insert(*it);
           FeatureGroup &current_fg = fgroups[*it];
 
           for (const auto &mt_index : current_fg.getTraceIndices())
@@ -2290,57 +2286,27 @@ namespace OpenMS
           }
         }
       }
-      // current cluster
-      if (hypo_indices_in_current_cluster.empty()) continue; // no cluster out of current mt
-      cluster_counter++;
-      if (hypo_indices_in_current_cluster.size() == 1){
-        //         no conflict, but cannot happen.
-        out_features.push_back(fgroups[*(hypo_indices_in_current_cluster.begin())]);
-        out_feature_idx.push_back(*(hypo_indices_in_current_cluster.begin()));
-//        continue;
+
+      // this feature is not sharing any mass traces with others
+      if (fg_indices_in_current_cluster.size() == 1){
+        out_features.push_back(fgroups[*(fg_indices_in_current_cluster.begin())]);
+//        out_feature_idx.push_back(*(fg_indices_in_current_cluster.begin()));
+        continue;
       }
-      String cluster_name = "cluster" + to_string(progress);
-      resolveConflictInCluster_(fgroups, shared_m_traces, hypo_indices_in_current_cluster, out_features, out_feature_idx,
-                                out, cluster_name);
+
+      // resolve the conflict among feature groups
+      cluster_counter++;
+      String cluster_name = "cluster" + to_string(cluster_counter);
+      resolveConflictInCluster_(fgroups, input_mtraces, shared_m_traces, fg_indices_in_current_cluster, out_features, out, cluster_name);
     }
-    this->endProgress();
+//    this->endProgress();
 
     out_features.shrink_to_fit();
-    out_feature_idx.shrink_to_fit();
-    out.close();
-    OPENMS_LOG_INFO << "#cluster :" << cluster_counter << endl;
-
-    // calculating quants with returned out_features
-//    for( auto curr_it = deconv_masses.begin(); curr_it != deconv_masses.end();  )
-//    {
-//      bool does_update_needed = false;
-//      std::set<int> new_cs_set;
-//      auto& f_idx_vec = curr_it->second.feature_idx;
-//      for (auto f_idx_itr = f_idx_vec.begin(); f_idx_itr != f_idx_vec.end(); )
-//      {
-//        auto iter = std::find(out_feature_idx.begin(), out_feature_idx.end(), *f_idx_itr);
-//        if (iter != out_feature_idx.end())
-//        {
-//          FeatureHypothesis& fh = out_features[iter-out_feature_idx.begin()];
-//          curr_it->second.quant_values += fh.computeQuant();
-//          new_cs_set.insert(fh.getCharge());
-//          ++f_idx_itr;
-//        }
-//        else
-//        {
-//          curr_it->second.removeFeatureHypothesis(hypotheses[*f_idx_itr].getFeatureMass(), hypotheses[*f_idx_itr].getScore());
-//          f_idx_itr = f_idx_vec.erase(f_idx_itr);
-//          does_update_needed = true;
-//        }
-//      }
-//      if (does_update_needed)
-//      {
-//        curr_it->second.charges = new_cs_set;
-//      }
-//      filterDeconvMassStruct(deconv_masses, hypotheses, curr_it, does_update_needed);
-//    }
-//
-//    OPENMS_LOG_INFO << "#final masses :" << deconv_masses.size() << endl;
+    std::swap(out_features, fgroups);
+//    out_feature_idx.shrink_to_fit();
+//    out.close();
+    OPENMS_LOG_INFO << "#final feature groups: " << out_features.size() << endl;
+    OPENMS_LOG_INFO << "#cluster (shared) :" << cluster_counter << endl;
   }
 
   void FLASHDeconvQuant::writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup> &feature_groups,
@@ -2392,92 +2358,567 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuant::resolveConflictInCluster_(const std::vector<FeatureGroup>& in_features,
-                                                       const std::vector<std::vector<Size> >& shared_m_traces_indices,
-                                                       const std::set<Size>& hypo_indices,
-                                                       std::vector<FeatureGroup>& out_features,
-                                                       std::vector<Size>& out_feature_idx,
-                                                       ofstream& out,
-                                                       String& cluster_name) const
+  void FLASHDeconvQuant::resolveConflictInCluster_(std::vector<FeatureGroup>& feature_groups,
+                                                   const std::vector<MassTrace> & input_masstraces,
+                                                   const std::vector<std::vector<Size> >& shared_m_traces_indices,
+                                                   const std::set<Size>& fg_indices_in_this_cluster,
+                                                   std::vector<FeatureGroup>& out_featuregroups,
+                                                   ofstream& out,
+                                                   String& cluster_name) const
   {
-    OPENMS_LOG_INFO << "-------- " << cluster_name <<  " -------- \n";
-    for (const auto& feat_idx : hypo_indices)
+    OPENMS_LOG_DEBUG << "-------- " << cluster_name <<  " -------- \n";
+
+    /// conflict resolution is done in feature level (not feature group level)
+
+    // prepare nodes for hypergraph
+    std::vector<std::vector<Size>> mt_and_feature_idx(shared_m_traces_indices.size(), std::vector<Size>());
+//                                                                      std::vector<std::pair<Size, Size>>()); // pair <fg_idx_in_cluster, charge_idx>
+    std::vector<FeatureElement> feature_candidates; // index : (fg_indices_in_this_cluster+1)*charge_idx
+    for (auto& fg_idx : fg_indices_in_this_cluster)
     {
-      OPENMS_LOG_INFO << feat_idx << "\t" << in_features[feat_idx].getMonoisotopicMass() << "\n";
-    }
+      auto &fg = feature_groups[fg_idx];
+      OPENMS_LOG_DEBUG << fg_idx << "\t" << fg.getMonoisotopicMass() << endl;
 
-    for (const auto& f_idx : hypo_indices)
-    {
-//      double mz_upper_limit = 0.0;
-//      double rt_upper_limit  = 0.0;
-//      double mz_lower_limit = std::numeric_limits<double>::max();
-//      double rt_lower_limit = std::numeric_limits<double>::max();
+//      if (fg.getMonoisotopicMass() < 22709 && fg.getMonoisotopicMass() > 22707)
+//      {
+//        auto& k = fg_idx;
+//      }
 
-      auto feat = in_features[f_idx];
-
-      double quant(0.0);
-
-      auto mt_idxs = feat.getTraceIndices();
-
-      for (const auto& mt : feat)
+      auto cs_range = fg.getChargeRange();
+      int min_cs = std::get<0>(cs_range);
+      Size candidate_size = std::get<1>(cs_range) - min_cs + 1;
+      Size feature_idx_starts = feature_candidates.size();
+      for (Size tmp_idx = 0; tmp_idx < candidate_size; ++tmp_idx)
       {
-//        const auto& boundingbox = mt.getMassTrace()->getConvexhull().getBoundingBox();
-//
-//        if (boundingbox.minX() < rt_lower_limit)
-//          rt_lower_limit = boundingbox.minX();
-//        if (boundingbox.maxX() > rt_upper_limit)
-//          rt_upper_limit = boundingbox.maxX();
-//        if (boundingbox.minY() < mz_lower_limit)
-//          mz_lower_limit = boundingbox.minY();
-//        if (boundingbox.maxY() > mz_upper_limit)
-//          mz_upper_limit = boundingbox.maxY();
-
-        // check if current mt is shared with other features
-        bool isShared=false;
-        if (shared_m_traces_indices[mt.getTraceIndex()].size() > 1)
-        {
-          isShared = true;
-        }
-
-        stringstream rts;
-        stringstream mzs;
-        stringstream intys;
-
-        for (const auto& peak : *(mt.getMassTrace()))
-        {
-          mzs << peak.getMZ() << ",";
-          rts << peak.getRT() << ",";
-          intys << peak.getIntensity() << ",";
-        }
-        std::string peaks = rts.str();
-        peaks.pop_back();
-        peaks = peaks + "\t" + mzs.str();
-        peaks.pop_back();
-        peaks = peaks + "\t" + intys.str();
-        peaks.pop_back();
-
-        quant += mt.getMassTrace()->computePeakArea();
-
-        out << std::to_string(feat.getMonoisotopicMass()) << "\t" << cluster_name << "\t"
-            << isShared << "\t" << std::to_string(mt.getCentroidMz()) << "\t"
-            << peaks + "\n";
+        FeatureElement tmp;
+        tmp.mass_traces.reserve(fg.size());
+        tmp.mass_trace_indices.reserve(fg.size());
+        tmp.charge = min_cs + tmp_idx;
+        tmp.feature_group_index = fg_idx;
+        feature_candidates.push_back(tmp);
       }
 
-//      stringstream isos;
-//      for (const auto& pair : feat.getIndicesOfMassTraces())
-//      {
-//        isos << pair.first << ",";
-//      }
-//      std::string iso_str = isos.str();
-//      iso_str.pop_back();
+      for (auto lmt_iter = fg.begin(); lmt_iter != fg.end(); ++lmt_iter)
+      {
+        Size f_idx = feature_idx_starts + (lmt_iter->getCharge()-min_cs);
+        mt_and_feature_idx[lmt_iter->getTraceIndex()].push_back(f_idx);
+        feature_candidates[f_idx].mass_traces.push_back(&(*lmt_iter));
+        feature_candidates[f_idx].mass_trace_indices.push_back(lmt_iter->getTraceIndex());
+      }
 
-//      String label = std::to_string(feat.get) + "\t" + std::to_string(feat.getCharge());
-//      out << label << "\t" << to_string(feat.getScore()) << "\t" << std::to_string(quant) << "\t"
-//          << to_string(rt_lower_limit) << "," << to_string(mz_lower_limit) << "\t"
-//          << to_string((rt_upper_limit-rt_lower_limit)) << "\t" << to_string((mz_upper_limit-mz_lower_limit)) << "\t"
-//          << iso_str << "\t" << centroids
-//          << "\t" << cluster_name << "\n";
     }
+
+    Size num_nodes = shared_m_traces_indices.size();
+    std::vector<bool> bfs_visited;
+    bfs_visited.resize(num_nodes, false);
+    std::queue<Size> bfs_queue;
+    Size search_pos = 0; // keeping track of mass trace index to look for seed
+
+    // BFS
+    while (true)
+    {
+      bool finished = true;
+
+      for (Size i = search_pos; i < num_nodes; ++i)
+      {
+        if (!bfs_visited[i])
+        {
+          // check if this mass trace is used in any feature
+          if (mt_and_feature_idx[i].size() == 0)
+          {
+            bfs_visited[i] = true;
+            continue;
+          }
+
+          bfs_queue.push(i);
+          bfs_visited[i] = true;
+          finished = false;
+          search_pos = i + 1;
+          break;
+        }
+      }
+      if (finished) // if no possible seed is left
+        break;
+
+      std::set<Size> feature_idx_in_current_conflict_region;
+      std::set<Size> conflicting_mt_indices;
+
+      while(!bfs_queue.empty())
+      {
+        Size i = bfs_queue.front(); // index of seed
+        bfs_queue.pop();
+
+        // get feature indices sharing this seed
+        for (std::vector<Size>::const_iterator it = mt_and_feature_idx[i].begin();
+             it != mt_and_feature_idx[i].end();
+             ++it)
+        {
+          // if this feature was visited before
+          if (feature_idx_in_current_conflict_region.find(*it) != feature_idx_in_current_conflict_region.end())
+          {
+            continue;
+          }
+
+          feature_idx_in_current_conflict_region.insert(*it);
+          FeatureElement &selected_feature = feature_candidates[*it];
+
+          for (const auto &mt_index : selected_feature.mass_trace_indices)
+          {
+            if (!bfs_visited[mt_index])
+            {
+              bfs_queue.push(mt_index);
+              bfs_visited[mt_index] = true;
+            }
+            else if (mt_and_feature_idx[mt_index].size() > 1){
+              // check if this visited mass trace is the shared one (because the seed mass trace can end up here as well)
+              conflicting_mt_indices.insert(mt_index);
+            }
+          }
+        }
+      }
+
+//      for (auto &f_idx : feature_idx_in_current_conflict_region)
+//      {
+//        auto &fs = feature_candidates[f_idx];
+//        if (fs.feature_group_index == 53 || fs.feature_group_index == 123)
+//        {
+//          auto s = "where i want";
+//        }
+//      }
+
+      // this feature is not sharing any mass traces with others
+      if (feature_idx_in_current_conflict_region.size() == 1){
+        continue;
+      }
+
+      // collect conflicting mass traces (not LogMassTrace, originals)
+      std::vector<const MassTrace*> conflicting_mts;
+      for (auto &mt_idx : conflicting_mt_indices)
+      {
+        auto i = input_masstraces.begin() + mt_idx;
+        conflicting_mts.push_back(&(*i));
+      }
+
+      // set isotope probabilities for feature_candidates && check if mass traces are only shared ones
+      vector<Size> features_not_for_resolution;
+      for (auto &feat_idx : feature_idx_in_current_conflict_region)
+      {
+        auto &feat = feature_candidates[feat_idx];
+        auto &feat_group = feature_groups[feat.feature_group_index];
+        auto tmp_iso = iso_model_.get(feat_group.getMonoisotopicMass());
+        feat.isotope_probabilities.reserve(feat.mass_traces.size());
+        for (auto &lmt : feat.mass_traces)
+        {
+          // if isotope index of lmt exceed tmp_iso length, give 0
+          auto tmp_iso_idx = lmt->getIsotopeIndex();
+          if (tmp_iso_idx < tmp_iso.size())
+          {
+            feat.isotope_probabilities.push_back(tmp_iso[tmp_iso_idx].getIntensity());
+          }
+          else
+          {
+            feat.isotope_probabilities.push_back(0.0);
+          }
+        }
+
+        // check if this feature has enough mass traces to get a component
+        if (feat.mass_traces.size() > conflicting_mts.size())
+        {
+          continue;
+        }
+
+        // check if this feature is composed of only shared mass traces
+        bool composed_of_only_conflicts = true;
+        for (auto& mt_idx : feat.mass_trace_indices)
+        {
+          if (shared_m_traces_indices[mt_idx].size() == 1)
+          {
+            composed_of_only_conflicts = false;
+            break;
+          }
+        }
+        if (!composed_of_only_conflicts)
+        {
+          continue;
+        }
+
+        // get the most abundant mass trace from FeatureGroup (except recruited ones)
+        LogMassTrace* most_abundant_mt = nullptr;
+        getMostAbundantMassTraceFromFeatureGroup(feat_group, feat.charge, most_abundant_mt, shared_m_traces_indices);
+        if (most_abundant_mt == nullptr)
+        {
+          features_not_for_resolution.push_back(feat_idx);
+          continue;
+        }
+
+        // get the most abundant mass trace from FeatureGroup (except recruited ones)
+        feat.mass_traces.push_back(most_abundant_mt);
+        feat.mass_trace_indices.push_back(most_abundant_mt->getTraceIndex());
+        feat.isotope_probabilities.push_back(0.2);
+      }
+
+      // if any feature is not eligible for resolution
+      if(features_not_for_resolution.size() > 0)
+      {
+        for (Size& idx : features_not_for_resolution)
+        {
+          feature_idx_in_current_conflict_region.erase(idx);
+          for (auto& lmt : feature_candidates[idx].mass_traces)
+          {
+            lmt->setIntensity(0.0);
+          }
+        }
+
+        if (feature_idx_in_current_conflict_region.size() < 2)
+        {
+          continue;
+        }
+
+        // check if any shared mass trace is not shared anymore
+        vector<Size> is_mt_included(conflicting_mts.size(), 0); // element is equal to the size of feature_vec when it's shared
+        for (auto &feat_idx : feature_idx_in_current_conflict_region)
+        {
+          auto &lmts = feature_candidates[feat_idx].mass_traces;
+          for (auto &lmt : lmts)
+          {
+            for (Size mt_i = 0; mt_i < conflicting_mts.size(); ++mt_i)
+            {
+              if(conflicting_mts[mt_i] == lmt->getMassTrace())
+              {
+                is_mt_included[mt_i] += 1;
+                break;
+              }
+            }
+          }
+        }
+        for (int mt_i = conflicting_mts.size()-1; mt_i >= 0; --mt_i)
+        {
+          if (is_mt_included[mt_i] != feature_idx_in_current_conflict_region.size())
+          {
+            conflicting_mts.erase(conflicting_mts.begin() + mt_i);
+          }
+        }
+      }
+
+      // convert feature_idx_in_current_conflict_region from set to vector (for accessing with indices later)
+      std::vector<Size> feature_indices_vec;
+      feature_indices_vec.reserve(feature_idx_in_current_conflict_region.size());
+      for (auto& i : feature_idx_in_current_conflict_region) feature_indices_vec.push_back(i);
+
+      // resolve this conflict region
+      resolveConflictRegion_(feature_candidates, feature_indices_vec, conflicting_mts);
+
+    }
+
+    // update feature group quantities
+    for (auto& idx : fg_indices_in_this_cluster)
+    {
+      auto &fgroup = feature_groups[idx];
+
+      // remove 0 intensity mass traces
+      auto fg_iter = fgroup.begin();
+      while (fg_iter != fgroup.end())
+      {
+        if (fg_iter->getIntensity() == 0)
+        {
+          fg_iter = fgroup.erase(fg_iter);
+        }
+        else {
+          ++fg_iter;
+        }
+      }
+
+      // check if enough number of mass traces are left
+      if (fgroup.size() < min_nr_mtraces_)
+      {
+        continue;
+      }
+
+      // check if the FeatureGroup still contains more than three charges
+      std::set<int> charges;
+      for (auto &lmt : fgroup)
+      {
+        charges.insert(lmt.getCharge());
+      }
+      if (charges.size() < 3)
+      {
+        continue;
+      }
+
+      // update intensity
+      feature_groups[idx].updateIntensity();
+      out_featuregroups.push_back(feature_groups[idx]);
+    }
+
   }
 
+   void FLASHDeconvQuant::resolveConflictRegion_(std::vector<FeatureElement> &features,
+                              const std::vector<Size> &feature_idx_in_current_conflict_region,
+                              const std::vector<const MassTrace*> &conflicting_mts) const
+  {
+    /// Prepare Components per features (excluding conflicting mts)
+    std::vector<std::vector<double>> components;
+    Matrix<int> pointer_to_components; // row : index of conflicting_mts , column : index of feature_idx_in_current_conflict_region
+    pointer_to_components.resize(conflicting_mts.size(), feature_idx_in_current_conflict_region.size(), -1);
+    std::vector<std::vector<int>> conflicting_mt_idx_lookup_vec; // linker between mt_idx in feature & conflicting_mts
+    for (Size i_of_f = 0; i_of_f < feature_idx_in_current_conflict_region.size(); ++i_of_f)
+    {
+      auto &tmp_feat = features[feature_idx_in_current_conflict_region[i_of_f]];
+
+      std::vector<int> lookup_list_for_mt_idx; // to get theoretical intensities (isotope probabilities)
+      lookup_list_for_mt_idx.resize(conflicting_mts.size(), -1);
+      Size mass_traces_size = tmp_feat.mass_traces.size();
+
+      // preparation for ElutionModelFit
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces_for_fitting;
+      traces_for_fitting.reserve(mass_traces_size);
+      traces_for_fitting.max_trace = 0;
+      vector<Peak1D> peaks;
+      // reserve space once, to avoid copying and invalidating pointers:
+      peaks.reserve(tmp_feat.getPeakSizes());
+
+      // get theoretical information from non-shared mass traces
+      for(Size idx = 0; idx < mass_traces_size; ++idx)
+      {
+        // ignore this mt if it's the conflicting one
+        auto tmp_iter = std::find(conflicting_mts.begin(), conflicting_mts.end(), tmp_feat.mass_traces[idx]->getMassTrace());
+        if (tmp_iter != conflicting_mts.end())
+        {
+          lookup_list_for_mt_idx[std::distance(conflicting_mts.begin(), tmp_iter)] = idx;
+          continue;
+        }
+
+        auto mass_trace_ptr = tmp_feat.mass_traces[idx]->getMassTrace();
+
+        // prepare for fitting
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace tmp_mtrace;
+        Size m_trace_size = (*mass_trace_ptr).getSize();
+        tmp_mtrace.peaks.reserve(m_trace_size);
+        for (auto &p_2d : (*mass_trace_ptr))
+        {
+          auto tmp_inty = p_2d.getIntensity();
+          if (tmp_inty > 0.0) // only use non-zero intensities for fitting
+          {
+            Peak1D peak;
+            peak.setMZ(p_2d.getMZ());
+            peak.setIntensity(tmp_inty);
+            peaks.push_back(peak);
+            tmp_mtrace.peaks.emplace_back(p_2d.getRT(), &peaks.back());
+          }
+        }
+        tmp_mtrace.updateMaximum();
+        tmp_mtrace.theoretical_int = tmp_feat.isotope_probabilities[idx];
+        traces_for_fitting.push_back(tmp_mtrace);
+      }
+
+//      // check if enough traces are collected for fitting
+//      if (traces_for_fitting.size() == 0)
+//      {
+//        // TODO : extract method here
+//        FeatureFinderAlgorithmPickedHelperStructs::MassTrace tmp_mtrace;
+//
+//        auto most_abundant_mt = tmp_feat.most_abundant_mt_in_fg->getMassTrace();
+//        Size m_trace_size = (*most_abundant_mt).getSize();
+//        tmp_mtrace.peaks.reserve(m_trace_size);
+//        for (auto &p_2d : (*most_abundant_mt))
+//        {
+//          auto tmp_inty = p_2d.getIntensity();
+//          if (tmp_inty > 0.0) // only use non-zero intensities for fitting
+//          {
+//            Peak1D peak;
+//            peak.setMZ(p_2d.getMZ());
+//            peak.setIntensity(tmp_inty);
+//            peaks.push_back(peak);
+//            tmp_mtrace.peaks.emplace_back(p_2d.getRT(), &peaks.back());
+//          }
+//        }
+//        tmp_mtrace.updateMaximum();
+//        tmp_mtrace.theoretical_int = 1;
+//        traces_for_fitting.push_back(tmp_mtrace);
+//      }
+
+      if (traces_for_fitting.size() == 1 && traces_for_fitting[0].peaks.size() < 4)
+      {
+        while (traces_for_fitting[0].peaks.size() < 4)
+        {
+          auto& tmp_trace = traces_for_fitting[0];
+          Peak1D peak;
+          peak.setMZ(tmp_trace.peaks[0].second->getMZ());
+          peak.setIntensity(0.0);
+          peaks.push_back(peak);
+          double region_start = tmp_trace.peaks.front().second->getPos();
+          double region_end = tmp_trace.peaks.back().second->getPos();
+          double offset = 0.2 * (region_end - region_start);
+          tmp_trace.peaks.emplace_back(region_end + offset, &peaks.back());
+        }
+      }
+
+      // ElutionModelFit
+      EGHTraceFitter* fitter = new EGHTraceFitter();
+      // TODO : is this necessary?
+      Param params = fitter->getDefaults();
+      params.setValue("weighted", "true");
+
+      fitter->setParameters(params);
+      runElutionModelFit_(traces_for_fitting, fitter);
+
+      // store Component information
+      for (Size row = 0; row < conflicting_mts.size(); ++row)
+      {
+        std::vector<double> component;
+
+        int index_in_feature = lookup_list_for_mt_idx[row];
+        // this mt is not included in current feature
+        if (index_in_feature < 0)
+        {
+          continue;
+        }
+
+        double intensity_ratio = tmp_feat.isotope_probabilities[index_in_feature];
+        for (auto &peak : *(conflicting_mts[row]))
+        {
+          double rt = peak.getRT();
+          double theo_intensity = intensity_ratio * fitter->getValue(rt);
+
+          component.push_back(theo_intensity);
+        }
+
+        pointer_to_components.setValue(row, i_of_f, components.size());
+        components.push_back(component);
+      }
+      conflicting_mt_idx_lookup_vec.push_back(lookup_list_for_mt_idx);
+    }
+
+    // reconstruction of observed XICs (per conflicting mt)
+    for (Size row = 0; row < conflicting_mts.size(); ++row)
+    {
+      auto components_indices = pointer_to_components.row(row);
+      Size column_size = components_indices.size() - std::count(components_indices.begin(), components_indices.end(), -1);
+
+      Size mt_size = conflicting_mts[row]->getSize();
+      auto mt_iter = conflicting_mts[row]->begin();
+      Matrix<double> obs;
+      obs.resize(mt_size, 1);
+      for (Size i = 0; i < mt_size; ++i)
+      {
+        obs.setValue(i, 0, mt_iter->getIntensity());
+        mt_iter++;
+      }
+
+      Matrix<double> theo_matrix;
+      theo_matrix.resize(mt_size, column_size);
+      Size col = 0;
+      for (Size comp_idx = 0; comp_idx < components_indices.size(); ++comp_idx)
+      {
+        // skipping no-feature column
+        if (components_indices[comp_idx] == -1) continue;
+
+        auto &temp_comp = components[pointer_to_components.getValue(row, comp_idx)];
+        for (Size tmp_r = 0; tmp_r < temp_comp.size(); ++tmp_r)
+        {
+          theo_matrix.setValue(tmp_r, col, temp_comp[tmp_r]);
+        }
+        col++;
+      }
+
+      Matrix<double> out_quant;
+      out_quant.resize(column_size, 1);
+      NonNegativeLeastSquaresSolver::solve(theo_matrix, obs, out_quant);
+
+      // update lmt & feature intensity
+      col = 0;
+      for (Size i_of_f = 0; i_of_f < components_indices.size(); ++i_of_f)
+      {
+        // skipping no-feature column
+        if (components_indices[i_of_f] == -1)
+          continue;
+
+        auto &feat = features[feature_idx_in_current_conflict_region[i_of_f]];
+        int &lmt_index = conflicting_mt_idx_lookup_vec[i_of_f][row];
+        auto lmt_ptr = feat.mass_traces[lmt_index];
+
+        auto temp_component = components[pointer_to_components.getValue(row, i_of_f)];
+        double theo_intensity = std::accumulate(temp_component.begin(), temp_component.end(), 0.0);
+
+        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * theo_intensity);
+        col++;
+      }
+    }
+    components.clear();
+  }
+
+  // from ElutionModelFitter. TODO : this is test purpose. use the existing method insteaad.
+  void FLASHDeconvQuant::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
+                                             EGHTraceFitter* fitter) const
+  {
+    // find the trace with maximal intensity:
+    Size max_trace = 0;
+    double max_intensity = 0;
+    for (Size i = 0; i < m_traces.size(); ++i)
+    {
+      if (m_traces[i].max_peak->getIntensity() > max_intensity)
+      {
+        max_trace = i;
+        max_intensity = m_traces[i].max_peak->getIntensity();
+      }
+    }
+    m_traces.max_trace = max_trace;
+    m_traces.baseline = 0.0;
+
+    // TODO : add zeros?
+
+
+    // Fitting
+    bool fit_success = true;
+    try
+    {
+      fitter->fit(m_traces);
+    }
+    catch (Exception::UnableToFit& except)
+    {
+      OPENMS_LOG_ERROR << "Error fitting model to feature '"
+                       << except.getName()
+                       << " - " << except.getMessage() << endl;
+      fit_success = false;
+    }
+
+    // record model parameters:
+//    double center = fitter->getCenter(), height = fitter->getHeight();
+//    double sigma = fitter->getSigma();
+//    double tau = fitter->getTau();
+//    double width = sigma * 0.6266571 + abs(tau);
+//    double asymmetry = abs(tau) / sigma;
+//
+//    double lower_rt_bound = fitter->getLowerRTBound();
+//    double upper_rt_bound = fitter->getUpperRTBound();
+  }
+
+  void FLASHDeconvQuant::getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
+                                                                  const int &skip_this_charge,
+                                                                  LogMassTrace* &most_abundant_mt_ptr,
+                                                                  const std::vector<std::vector<Size>>& shared_m_traces) const
+  {
+    // get intensities
+    double max_intensity = .0; // maximum mt intensity in this feature group
+
+    for (auto lmt = fgroup.begin(); lmt != fgroup.end(); ++lmt)
+    {
+      if (skip_this_charge > 0 && lmt->getCharge() == skip_this_charge)
+      {
+        continue;
+      }
+
+      // check if this mt is shared with other FeatureGroup
+      if (shared_m_traces[lmt->getTraceIndex()].size() > 1)
+      {
+        continue;
+      }
+
+      if (lmt->getIntensity() > max_intensity)
+      {
+        max_intensity = lmt->getIntensity();
+        most_abundant_mt_ptr = (LogMassTrace *) &(*lmt);
+      }
+    }
+  }
 }
