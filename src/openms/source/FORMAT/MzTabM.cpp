@@ -195,7 +195,6 @@ namespace OpenMS
        }
      };
 
-
      // TODO: use map instead -> check for Quantification Tools
      // set quantification method based on OpenMS Tool
      // current only FeatureFinderMetabo is used

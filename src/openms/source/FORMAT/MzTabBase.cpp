@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <cassert>
+
 namespace OpenMS
 {
 
