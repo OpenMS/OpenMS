@@ -141,18 +141,8 @@ namespace OpenMS
      // instrument-source (not mandatory)
      // instrument-analyzer (not mandatory)
      // instrument-detector (not mandatory)
-
-     // TODO: Remove
-     // TODO: ProcessingsSteps can either be loaded from the IdentificationData::ProcessingSteps, or the FeatureMap
-     //IdentificationDataInternal::ProcessingSteps steps = id_data.getProcessingSteps();
-     //for (const auto& step : steps)
-     //{
-     //  std::cout << step.input_file_refs[0]->name << std::endl;
-       // TODO: That are references which have been added - how do I get to the information?
-       // TODO: What are the actions supposed to do.
-     //}
-
      // meta_software.setting[0] (not mandatory)
+
      MzTabSoftwareMetaData meta_software;
      ControlledVocabulary cv;
      cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -185,11 +175,28 @@ namespace OpenMS
      // contact mail (not mandatory)
      // uri (not mandatory)
      // ext. study uri (not mandatory)
-
      // quantification_method (mandatory)
+
      MzTabParameter quantification_method;
      quantification_method.setNull(true);
 
+     // TODO: Check processing action
+     // TODO: add map using ProcessingAction and Tool!
+     std::map<String, std::vector<String>> action_softwaren_ame;
+     for (const auto& step : id_data.getProcessingSteps())
+     {
+       IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
+       std::cout << "Software: " << s_ref->getName() << std::endl;
+
+       for (const auto& action : step.actions)
+       {
+         std::cout << "ProcessingAction: " << DataProcessing::NamesOfProcessingAction[action] << std::endl;
+         action_softwaren_ame[action].emplace_back(s_ref->getName());
+       }
+     };
+
+
+     // TODO: use map instead -> check for Quantification Tools
      // set quantification method based on OpenMS Tool
      // current only FeatureFinderMetabo is used
      for (const auto& software : id_data.getProcessingSoftwares())
@@ -340,6 +347,7 @@ namespace OpenMS
 
      // derivatization_agent[1-n] (not mandatory)
 
+     // TODO: use quantification tools map!
      // small_molecule-quantification_unit (mandatory)
      // small_molecule_feature-quantification_unit (mandatory)
      MzTabParameter quantification_unit;
@@ -413,10 +421,10 @@ namespace OpenMS
      int summary_section_counter = 1;
      int feature_section_entry_counter = 1;
      int evidence_section_entry_counter = 1;
+
      // iterate over features and fill all sections
      for (auto& f : feature_map)
      {
-
        // iterate over the identification of the ObservationMatches
        auto match_refs = f.getIDMatches();
 
@@ -465,13 +473,19 @@ namespace OpenMS
          sme.exp_mass_to_charge = MzTabDouble(f.getMZ());
          sme.charge = MzTabInteger(f.getCharge());
          sme.calc_mass_to_charge = MzTabDouble(compound_ref->formula.getMonoWeight());
-         // TODO: IdentificationData only one ref per identifiedmolecule?
-         // TODO: What about e.g. SIRIUS using multiple MS2 spectra for one identification?
+         // TODO: ISSUE: IdentificationData only one ref per identifiedmolecule?
+         // TODO: ISSUE: What about e.g. SIRIUS using multiple MS2 spectra for one identification?
          sme.spectra_ref.fromCellString(match_ref->observation_ref->data_id); // MzTabStringList
          // based on tool used for identification (CV-Term)
          // TODO: Would actually have to be set per ID
          // TODO: Since there is a possibility to more that on identification
-         // MzTabParameter identification_method; TODO: not sure what to do here!
+         // TODO: Get that from the tools used?
+         // TODO: How to add that information here?
+         // TODO: Should that be added upstream of the pipeline?
+         // use processing action identification
+         // to get the correct tool? And then use the Tool Name?
+         // MzTabParameter identification_method;
+         // TODO: not sure what to do here!
          // TODO: depends on the methods seen above!
          // MzTabParameter ms_level; ///< The highest MS level used to inform identification
          // TODO: Score of the identification?!
@@ -526,7 +540,7 @@ namespace OpenMS
          smf.rt_start.setNull(true); // TODO: how to get that information in the future
          smf.rt_end.setNull(true); // TODO: haw to get that information in the future
          smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
-         // how do we add opt_ columns check MzTab
+         // TODO: how do we add opt_ columns check MzTab
 
          smfs.emplace_back(smf);
        }

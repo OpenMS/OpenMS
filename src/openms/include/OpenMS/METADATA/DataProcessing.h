@@ -77,6 +77,7 @@ public:
       CONVERSION_MZML,                        ///< Conversion to mzML format
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
+      IDENTIFICATION,                 ///< Identification
       SIZE_OF_PROCESSINGACTION
     };
     /// Names of inlet types
