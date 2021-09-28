@@ -60,19 +60,19 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
 
         void setNewCode(String code) nogil except + # wrap-doc:Sets the new code
 
-        char getOrigin() nogil except + # wrap-doc:Get the code of the unmodified base (e.g., "A", "C", ...)
+        char getOrigin() nogil except + # wrap-doc:Returns the code of the unmodified base (e.g., "A", "C", ...)
 
         void setOrigin(char origin) nogil except + # wrap-doc:Sets the code of the unmodified base (e.g., "A", "C", ...)
 
         void setHTMLCode(String html_code) nogil except + # wrap-doc:Sets the HTML (RNAMods) code
 
-        String getHTMLCode() nogil except + # wrap-doc:Get the HTML (RNAMods) code
+        String getHTMLCode() nogil except + # wrap-doc:Returns the HTML (RNAMods) code
 
         void setTermSpecificity(TermSpecificityNuc term_spec) nogil except + # wrap-doc:Sets the terminal specificity
 
-        TermSpecificityNuc getTermSpecificity() nogil except + # wrap-doc:Get the terminal specificity
+        TermSpecificityNuc getTermSpecificity() nogil except + # wrap-doc:Returns the terminal specificity
 
-        EmpiricalFormula getBaselossFormula() nogil except + # wrap-doc:Get sum formula after loss of the nucleobase
+        EmpiricalFormula getBaselossFormula() nogil except + # wrap-doc:Returns sum formula after loss of the nucleobase
 
         void setBaselossFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets sum formula after loss of the nucleobase
 
