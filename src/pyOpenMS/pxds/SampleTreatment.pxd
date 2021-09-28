@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/METADATA/SampleTreatment.h>" namespace "OpenMS":
         SampleTreatment(const String & type_) nogil except +
 
         bool operator==(SampleTreatment & rhs) nogil except +
-        String getType() nogil except + # wrap-doc:Return the treatment type
+        String getType() nogil except + # wrap-doc:Returns the treatment type
         String getComment() nogil except + # wrap-doc:Returns the description of the sample treatment
         void setComment(const String & comment) nogil except + # wrap-doc:Sets the description of the sample treatment
         # POINTER # SampleTreatment * clone() nogil except +
