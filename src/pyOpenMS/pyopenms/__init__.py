@@ -31,6 +31,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 if not os.environ.get("OPENMS_DATA_PATH"):
     os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
+else:
+    print("Warning: OPENMS_DATA_PATH environment variable already exists. pyOpenMS will use it (", os.environ.get("OPENMS_DATA_PATH"), ") to locate data in the OpenMS share folder (e.g., the unimod database).", sep="")
 
 import sys
 if sys.platform.startswith("linux"):
