@@ -29,10 +29,18 @@ from .version import version as __version__
 import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-if not os.environ.get("OPENMS_DATA_PATH"):
-    os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
+default_openms_data_path = os.path.join(here, "share/OpenMS")
+env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
+
+if not env_openms_data_path:
+    os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
 else:
-    print("Warning: OPENMS_DATA_PATH environment variable already exists. pyOpenMS will use it (", os.environ.get("OPENMS_DATA_PATH"), ") to locate data in the OpenMS share folder (e.g., the unimod database).", sep="")
+    print(
+        "Warning: OPENMS_DATA_PATH environment variable already exists. "
+        "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
+        "(e.g., the unimod database), instead of the default ({default})."
+        .format(env=env_openms_data_path, default=default_openms_data_path)
+    )
 
 import sys
 if sys.platform.startswith("linux"):
