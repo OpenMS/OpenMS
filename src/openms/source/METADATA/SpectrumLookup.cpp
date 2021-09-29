@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <boost/regex/v4/regex_match.hpp>
 
 using namespace std;
 
@@ -210,7 +211,6 @@ namespace OpenMS
                                         msg);
   }
 
-
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
     for (const boost::regex& reg : reference_formats)
@@ -228,6 +228,12 @@ namespace OpenMS
   }
 
 
+  bool SpectrumLookup::isNativeID(const String& id)
+  {
+    return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=") || id.hasPrefix("spectrum=");
+  }
+  
+
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp, 
                                         bool no_error)
@@ -238,7 +244,7 @@ namespace OpenMS
     matches.insert(matches.end(), current_begin, current_end);
     if (!matches.empty())
     {
-      // always use the last possible matching subgroup 
+      // always use the last possible matching subgroup
       String last_value = String(matches.back());
       try
       {
@@ -276,7 +282,7 @@ namespace OpenMS
     // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
     else if (native_id_type_accession == "MS:1000770") // WIFF nativeID format
     {
-      regexp = std::string(R"(cycle=(?<GROUP>\d+).experiment=(?<GROUP>\d+))");
+      regexp = std::string(R"(cycle=(?<GROUP>\d+)\s+experiment=(?<GROUP>\d+))"); 
       subgroups = {1, 2};
     }
     // "file=NUMBER"
@@ -367,7 +373,6 @@ namespace OpenMS
       scans_[scan_number] = index;
     }
   }
-
 
   void SpectrumLookup::setScanRegExp_(const String& scan_regexp)
   {

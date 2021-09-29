@@ -215,6 +215,12 @@ namespace OpenMS
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
 
+
+    /**
+       @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
+    */
+    static bool isNativeID(const String& id);
+
   protected:
 
     /// Named groups recognized in regular expression
