@@ -67,9 +67,11 @@ namespace OpenMS
         @throws Exception::MissingInformation if @p exp is not FAIMS data
       */
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp) { return splitByFAIMSCV(std::move(exp)); } // PYOPENMS: needed for wrapping the r-value refernce version
-
       
+      #ifdef PYOPENMS
+      static std::vector<PeakMap> splitByFAIMSCV_PY(PeakMap& exp) { return splitByFAIMSCV(std::move(exp)); } // PYOPENMS: needed for wrapping the r-value refernce version
+      #else
+              
       /**
         @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
    
