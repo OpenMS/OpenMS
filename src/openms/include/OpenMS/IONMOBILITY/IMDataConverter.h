@@ -69,8 +69,9 @@ namespace OpenMS
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
       
       #ifdef PYOPENMS
-      static std::vector<PeakMap> splitByFAIMSCV_PY(PeakMap& exp) { return splitByFAIMSCV(std::move(exp)); } // PYOPENMS: needed for wrapping the r-value refernce version
-      #else
+      // PYOPENMS: needed for wrapping the r-value reference version        
+      static std::vector<PeakMap> splitByFAIMSCV_PY(PeakMap& exp) { return splitByFAIMSCV(std::move(exp)); }
+      #endif
               
       /**
         @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
@@ -99,6 +100,11 @@ namespace OpenMS
       */
       static MSExperiment splitByIonMobility(MSExperiment&& in, UInt number_of_bins = -1);
 
+      #ifdef PYOPENMS
+      // PYOPENMS: needed for wrapping the r-value reference version        
+      static std::vector<PeakMap> splitByIonMobility_PY(MSExperiment& in, UInt number_of_bins = -1) { return splitByIonMobility(std::move(in), number_of_bins); }
+      #endif        
+        
       /**
         @brief Collapses multiple MS spectra (each with its own drift time) from the same IM-frame into a single MSSpectrum (with an IM-float data array)
 
