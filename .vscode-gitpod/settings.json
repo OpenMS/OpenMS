@@ -15,7 +15,8 @@
     ],
     "cmake.skipConfigureIfCachePresent": true,
     "cmake.buildDirectory": "${workspaceFolder}/build",
+    "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
-      "--background-index"
+      "-background-index=0"
     ]
 }
