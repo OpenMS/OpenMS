@@ -629,14 +629,28 @@ namespace OpenMS
       std::cout << "first_register_mass_error_ppm_score_ref: " <<  mass_error_ppm_score_ref << std::endl;
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
       mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
+      std::cout << "first_register_mass_error_Da_score_ref: " <<  mass_error_Da_score_ref << std::endl;
+
+      // add the same score_refs to the ProcessingSoftware - to reference the Software with the
+      // ObservationMatch
+      // TODO: Somehow sets another ref?!
+      std::vector<IdentificationDataInternal::ScoreTypeRef> assigned_scores{mass_error_ppm_score_ref, mass_error_Da_score_ref};
 
       // register software (connected to score)
       // CVTerm will be set in mztab-m based on the name
       // if the name is not available in PSI-OBO "analysis software" will be used.
-      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion());
-      sw.assigned_scores.emplace_back(mass_error_ppm_score_ref);
-      sw.assigned_scores.emplace_back(mass_error_Da_score_ref);
+      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
       IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+
+      for (const auto& score : assigned_scores)
+      {
+        std::cout << "as: " << score << std::endl;
+      }
+
+      for (const auto& score : sw.assigned_scores)
+      {
+        std::cout << "sw.as: " << score << std::endl;
+      }
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
@@ -657,6 +671,20 @@ namespace OpenMS
       IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
       step_ref = id.registerProcessingStep(step, search_param_ref);
       id.setCurrentProcessingStep(step_ref); // add the new step
+
+      for (const auto& score : id.getCurrentProcessingStep()->software_ref->assigned_scores)
+      {
+        std::cout << "id-get.as: " << score << std::endl;
+      }
+
+      for (const auto& software : id.getProcessingSoftwares())
+      {
+        for (const auto& score : software.assigned_scores)
+        {
+          std::cout << "id-software.as: " << score << std::endl;
+        }
+      }
+
     }
     
     String ion_mode_internal(ion_mode_);
@@ -745,9 +773,8 @@ namespace OpenMS
     }
     else
     {
-      exportMzTabM_(fmap, 1, mztabm_out); // TODO: Use FeatureMap for MzTabM export
+      exportMzTabM_(fmap, 1, mztabm_out);
     }
-
     return;
   }
 
@@ -780,17 +807,27 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
 
+        double mass_error_Da = r.getObservedMZ() - r.getCalculatedMZ();
+        double mass_error_ppm =  r.getMZErrorPPM();
+
+        std::map<IdentificationDataInternal::ScoreTypeRef, double> scores{{mass_error_Da_score_ref, mass_error_Da},
+                                                                          {mass_error_ppm_score_ref, mass_error_ppm}};
+        IdentificationDataInternal::AppliedProcessingStep applied_processing_step(step_ref, scores);
+        IdentificationDataInternal::AppliedProcessingSteps applied_processing_steps;
+        applied_processing_steps.emplace_back(applied_processing_step);
+
         // register compound
         const String& names = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
         // TODO: or have an additional column for possible database, where is that stored?
+        // TODO: Add Steps and Scores on compound level?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         names,
                                                         smiles,
                                                         inchi_key,
-                                                        IdentificationDataInternal::AppliedProcessingSteps());// TODO: How/What to add here?
+                                                        applied_processing_steps);
 
         // add additional meta values to fit the legacy featureXML format somewhat
         // TODO: This should probably be done automatically in the exportFeautreIDs function
@@ -806,10 +843,12 @@ namespace OpenMS
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
         // compound-feature match
-        IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge()); // match of compound to feature
-        match.addScore(mass_error_Da_score_ref, r.getObservedMZ() - r.getCalculatedMZ(), step_ref);
-        match.addScore(mass_error_ppm_score_ref, r.getMZErrorPPM(), step_ref);
-        std::cout << "mass_error_ppm_score_ref: " << mass_error_ppm_score_ref << std::endl;
+        IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
+        match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
+        match.addScore(mass_error_ppm_score_ref, mass_error_ppm, step_ref);
+
+        std::cout << "mass_error_Da_score: " << mass_error_Da_score_ref << " " << match.getScore(mass_error_Da_score_ref).first << std::endl;
+        std::cout << "mass_error_ppm_score: " << mass_error_ppm_score_ref << " " << match.getScore(mass_error_ppm_score_ref).first << std::endl;
 
         // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+

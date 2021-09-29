@@ -184,10 +184,8 @@ namespace OpenMS
      for (const auto& step : id_data.getProcessingSteps())
      {
        IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
-       std::cout << "Software: " << s_ref->getName() << std::endl;
        for (const auto& action : step.actions)
        {
-         std::cout << "ProcessingAction: " << DataProcessing::NamesOfProcessingAction[action] << std::endl;
          action_software_name[action].emplace_back(s_ref->getName());
        }
      };
@@ -196,7 +194,6 @@ namespace OpenMS
      // current only FeatureFinderMetabo is used
      for (const auto& quantification_software : action_software_name[DataProcessing::QUANTITATION])
      {
-       std::cout << quantification_software << quantification_software << std::endl;
        if (quantification_software == "FeatureFinderMetabo")
        {
          ControlledVocabulary::CVTerm cvterm;
@@ -390,25 +387,24 @@ namespace OpenMS
 
      // TODO: How to use actual registered CV-terms?
      // TODO: use it below to set the confidence scores ?!
+     // TODO: Why are the score_type_refs different
      int score_counter = 1;
      std::vector<String> identification_tools = action_software_name[DataProcessing::IDENTIFICATION];
      std::vector<IdentificationDataInternal::ScoreTypeRef> id_score_refs;
-     for (const auto& software : id_data.getProcessingSoftwares())
+     for (const IdentificationDataInternal::ProcessingSoftware& software : id_data.getProcessingSoftwares())
      {
-       std::cout << "iterate over software " << software.getName() << std::endl;
        // check if in "Identification Vector"
-       // if (std::find(begin(identification_tools), end(identification_tools), software.getName()))
-       // {
-         std::vector<IdentificationDataInternal::ScoreTypeRef> score_type_refs = software.assigned_scores;
-         for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : score_type_refs)
+       if (std::find(identification_tools.begin(), identification_tools.end(), software.getName()) != identification_tools.end())
+       {
+         for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : software.assigned_scores)
          {
+           std::cout << "score_type_ref: " << score_type_ref << std::endl;
            m_meta_data.id_confidence_measure[score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
            score_counter += 1;
            std::cout << "[,, " + score_type_ref->cv_term.getName()+ ", ]" << std::endl;
-           id_score_refs.emplace_back(score_type_ref); // used for evidence level information
-           std::cout << "score_type_ref: " << score_type_ref << std::endl;
+           id_score_refs.emplace_back(score_type_ref); // TODO: ISSUE: score_type_ref from here are not correct - used for evidence level information
          }
-       //}
+       }
      }
      // colunit-small_molecule (not mandatory)
      // colunit-small_molecule_feature (not mandatory)
@@ -527,12 +523,16 @@ namespace OpenMS
          // TODO: ISSUE: Would make sense to have the identification method per ID
          sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
          sme.ms_level = ms_level;
-         //for (size_t i = 0; i != id_score_refs.size(); ++i)
-         //{
-         //  match_ref->getScore(id_score_refs[i]);
-         //  std::cout << match_ref->getScore(id_score_refs[i]).first << " " << match_ref->getScore(id_score_refs[i]).second  << std::endl;
-           //sme.id_confidence_measure[i + 1] = (match_ref->getScore(id_score_refs[i])).first;
-         //}
+         // TODO: ISSUE: Somehow score_ref not set correctly in match/software - Check if that is the correct order as in Software!
+         int score_counter = 0;
+         for (const IdentificationDataInternal::AppliedProcessingStep& step_and_score : match_ref->steps_and_scores)
+         {
+           for (const std::pair<IdentificationDataInternal::ScoreTypeRef, double>& score : step_and_score.getScoresInOrder())
+           {
+             ++score_counter; //starts at 1 anyway
+             sme.id_confidence_measure[score_counter] = MzTabDouble(score.second);
+           }
+         }
          sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
          // TODO: How to add opt_ columns
 
