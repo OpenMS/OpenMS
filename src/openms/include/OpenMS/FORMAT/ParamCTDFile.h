@@ -50,7 +50,7 @@ namespace OpenMS
     std::string docurl_;
     std::string category_;
     std::string description_;
-    std::string openms_doi_;
+    std::string doi_;
     std::vector<std::string> citations_;
   };
 
@@ -62,7 +62,7 @@ namespace OpenMS
   class OPENMS_DLLAPI ParamCTDFile
   {
   public:
-    ParamCTDFile(); ///Constructor
+    ParamCTDFile() = default; ///Constructor
     
     ~ParamCTDFile() = default; ///Destructor
 
@@ -106,8 +106,8 @@ namespace OpenMS
      */
     static void replace(std::string& replace_in, char to_replace, const std::string& replace_with);
 
-    const std::string schema_location_;
-    const std::string schema_version_;
+    const std::string schema_location_ = "/SCHEMAS/Param_1_7_0.xsd";
+    const std::string schema_version_ = "1.7.0";
 
   };
 }

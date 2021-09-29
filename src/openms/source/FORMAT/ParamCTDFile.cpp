@@ -40,12 +40,6 @@
 
 namespace OpenMS
 {
-  ParamCTDFile::ParamCTDFile() :
-    schema_location_("/SCHEMAS/Param_1_7_0.xsd"),
-    schema_version_("1.7.0")
-  {
-  }
-
   void ParamCTDFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
   {
     std::ofstream os;
@@ -81,7 +75,7 @@ namespace OpenMS
     os << "<description><![CDATA[" << tool_info.description_ << "]]></description>\n";
     os << "<manual><![CDATA[" << tool_info.description_ << "]]></manual>\n";
     os << "<citations>\n";
-    os << "  <citation doi=\"" << tool_info.openms_doi_ << "\" url=\"\" />\n";
+    os << "  <citation doi=\"" << tool_info.doi_ << "\" url=\"\" />\n";
 
     for (auto& doi : tool_info.citations_)
     {
