@@ -45,13 +45,13 @@ namespace OpenMS
    */
   struct ToolInfo
   {
-    const std::string& version_;
-    const std::string& name_;
-    const std::string& docurl_;
-    const std::string& category_;
-    const std::string& description_;
-    const std::string& openms_doi_;
-    const std::vector<std::string>& citations_;
+    std::string version_;
+    std::string name_;
+    std::string docurl_;
+    std::string category_;
+    std::string description_;
+    std::string openms_doi_;
+    std::vector<std::string> citations_;
   };
 
   /**
