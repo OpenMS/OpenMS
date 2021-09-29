@@ -209,7 +209,7 @@ protected:
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;
       pi.setParameters(getParam_().copy("Algorithm:", true));
-      pi.run(cmap, cmap.getProteinIdentifications()[0], annotate_indist_groups);
+      pi.run(cmap, cmap.getProteinIdentifications()[0], annotate_indist_groups, true);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 

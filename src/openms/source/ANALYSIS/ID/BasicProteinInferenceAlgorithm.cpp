@@ -101,7 +101,7 @@ namespace OpenMS
     }
   }
 
-  void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run,  bool group) const
+  void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool group, bool include_unassigned) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
 
@@ -176,7 +176,6 @@ namespace OpenMS
       aggregatePeptideScores_(best_pep, cf.getPeptideIdentifications(), overall_score_type, higher_better, "");
     }
 
-    bool include_unassigned = true;
     if (include_unassigned)
     {
       aggregatePeptideScores_(best_pep, cmap.getUnassignedPeptideIdentifications(), overall_score_type, higher_better, "");
@@ -185,9 +184,9 @@ namespace OpenMS
     updateProteinScores_(
         acc_to_protein_hitP_and_count,
         best_pep,
-          pep_scores,
-          higher_better
-        );
+        pep_scores,
+        higher_better
+    );
 
     if (pep_scores)
     {
@@ -338,11 +337,17 @@ namespace OpenMS
   {
     //TODO Allow count as aggregation method -> i.e. set as protein score?
 
+    if (!higher_better && pep_scores)
+    {
+      higher_better = true; // We will convert the scores to PPs for multiplication
+    }
+
     bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
 
     String agg_method_string(param_.getValue("score_aggregation_method").toString());
 
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
+    const auto& aggregation_fun = aggFunFromEnum_(aggregation_method, higher_better);
 
     // update protein scores
     for (const auto &seq_to_map_from_charge_to_pep_hit : best_pep)
@@ -371,23 +376,10 @@ namespace OpenMS
           const PeptideHit& pep_hit = *charge_pep_hit_pair.second;
           double new_score = pep_hit.getScore();
 
-          if (!higher_better && pep_scores) // convert PEP to PP
+          if (pep_scores) // convert PEP to PP
             new_score = 1. - new_score;
 
-          switch (aggregation_method)
-          {
-            //TODO Why are protein scores just floats???
-            case AggregationMethod::PROD :
-              if (new_score > 0.0) //TODO for 0 probability peptides we could also multiply a minimum value
-                protein->setScore(protein->getScore() * new_score);
-              break;
-            case AggregationMethod::SUM :
-              protein->setScore(protein->getScore() + new_score);
-              break;
-            case AggregationMethod::BEST :
-              protein->setScore(std::fmax(double(protein->getScore()), new_score));
-              break;
-          }
+          protein->setScore(aggregation_fun(protein->getScore(), new_score));
         }
       }
     }
@@ -444,6 +436,35 @@ namespace OpenMS
     else
     {
       return AggregationMethod::BEST;
+    }
+  }
+
+  BasicProteinInferenceAlgorithm::fptr BasicProteinInferenceAlgorithm::aggFunFromEnum_(const BasicProteinInferenceAlgorithm::AggregationMethod& agg_method, bool higher_better) const
+  {
+    switch (agg_method)
+    {
+      case AggregationMethod::PROD :
+        return [](float old_score, float new_score){
+          if (new_score > 0.0) //TODO for 0 probability peptides we could also multiply a minimum value
+          {
+            return old_score * new_score;
+          }
+          else
+          {
+            return old_score;
+          }
+        };
+      case AggregationMethod::BEST :
+        if(higher_better)
+        {
+          return [](float old_score, float new_score){return std::fmax(old_score, new_score);};
+        }
+        else
+        {
+          return [](float old_score, float new_score){return std::fmin(old_score, new_score);};
+        }
+      case AggregationMethod::SUM :
+        return [](float old_score, float new_score){return old_score + new_score;};
     }
   }
 
@@ -522,7 +543,7 @@ namespace OpenMS
 
     updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, higher_better);
 
-    if (pep_scores)
+    if (pep_scores) // we converted/ will convert
     {
       prot_run.setScoreType("Posterior Probability");
       prot_run.setHigherScoreBetter(true);

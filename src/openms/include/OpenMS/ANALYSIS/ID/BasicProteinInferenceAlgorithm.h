@@ -85,7 +85,7 @@ namespace OpenMS
      */
     void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids, bool group) const;
     void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id, bool group) const;
-    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool group) const;
+    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool group, bool include_unassigned) const;
     /*
      *  @}
      */
@@ -135,5 +135,9 @@ namespace OpenMS
 
     /// get the initial score value based on the chosen @p aggregation_method, @p higher_better is needed for "best" score
     double getInitScoreForAggMethod_(const AggregationMethod& aggregation_method, bool higher_better) const;
+
+    /// get lambda function to aggregate scores
+    typedef float (*fptr)(float, float);
+    fptr aggFunFromEnum_(const BasicProteinInferenceAlgorithm::AggregationMethod& agg_method, bool higher_better) const;
   };
 } //namespace OpenMS
