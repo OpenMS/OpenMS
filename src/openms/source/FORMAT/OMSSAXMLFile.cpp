@@ -75,18 +75,18 @@ namespace OpenMS
 
     // post-processing
     set<String> accessions;
-    for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
+    for (PeptideIdentification& pep : peptide_identifications)
     {
-      it->setScoreType("OMSSA");
-      it->setHigherScoreBetter(false);
-      it->setIdentifier(identifier);
-      it->assignRanks();
+      pep.setScoreType("OMSSA");
+      pep.setHigherScoreBetter(false);
+      pep.setIdentifier(identifier);
+      pep.assignRanks();
 
       if (load_proteins)
       {
-        for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+        for (const PeptideHit& pit : pep.getHits())
         {
-          set<String> hit_accessions = pit->extractProteinAccessionsSet();
+          set<String> hit_accessions = pit.extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
@@ -285,12 +285,13 @@ namespace OpenMS
         {
           String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
           UInt position(0);
-          for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
+          for (const Residue& ait : seq)
           {
-            if (ait->getOneLetterCode() == origin)
+            if (ait.getOneLetterCode() == origin)
             {
               seq.setModification(position, *it);
             }
+            ++position;
           }
         }
       }

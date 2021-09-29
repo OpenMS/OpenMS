@@ -80,7 +80,10 @@ namespace OpenMS
     }
     for (const auto& id : pep_ids)
     {
-      if (id.getHits().empty()) continue;
+      if (id.getHits().empty())
+      {
+        continue;
+      }
       if (id.getHits()[0].metaValueExists("q-value"))
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
@@ -108,8 +111,10 @@ namespace OpenMS
 
       vector<PeptideHit>& hits = pep_id.getHits();
 
-      if (hits.empty()) continue;
-
+      if (hits.empty())
+      {
+        continue;
+      }
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
@@ -117,11 +122,15 @@ namespace OpenMS
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
-      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
-
+      if (top_hit.getMetaValue("target_decoy") == "decoy")
+      {
+        continue;
+      }
       // skip if top hit is out of FDR
-      if (!passesFDR_(top_hit, FDR)) continue;
-
+      if (!passesFDR_(top_hit, FDR))
+      {
+        continue;
+      }
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
       {
@@ -134,15 +143,21 @@ namespace OpenMS
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
-        if (!passesFDR_(hits[i], FDR)) break;
-
+        if (!passesFDR_(hits[i], FDR))
+        {
+          break;
+        }
         // check if target, also check for "target+decoy" value
         String td_info(hits[i].getMetaValue("target_decoy"));
-        if (td_info.find("target") != 0) continue;
-
+        if (td_info.find("target") != 0)
+        {
+          continue;
+        }
         // check if hit is novo hit
-        if (isNovoHit_(hits[i])) continue;
-
+        if (isNovoHit_(hits[i]))
+        {
+          continue;
+        }
         second_hit = &hits[i];
         break;
       }
@@ -207,7 +222,10 @@ namespace OpenMS
 
     for (const auto& hit : pep_id.getHits())
     {
-      if (curr_hit > 10) break;
+      if (curr_hit > 10)
+      {
+        break;
+      }
       ++curr_hit;
 
       if (!hit.metaValueExists("target_decoy"))
@@ -292,7 +310,10 @@ namespace OpenMS
 
   bool DBSuitability::passesFDR_(const PeptideHit& hit, double FDR)
   {
-    if (hit.getScore() > FDR) return false;
+    if (hit.getScore() > FDR)
+    {
+      return false;
+    }
     return true;
   }
 }

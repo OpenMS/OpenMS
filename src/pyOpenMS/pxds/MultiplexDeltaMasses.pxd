@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
             #   peptide pair of a dimethyl labelled sample with a single lysine
             #   we will see mass shifts of 56 Da and 64 Da.
             #   28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
-            #   for light and heavy partners respectively.
+            #   for light and heavy partners respectively
             #   -----
             #   The data structure stores the mass shifts and corresponding labels
-            #   for a group of matching peptide features. 
+            #   for a group of matching peptide features
 
         MultiplexDeltaMasses() nogil except +
         MultiplexDeltaMasses(MultiplexDeltaMasses &) nogil except +

@@ -156,17 +156,17 @@ namespace OpenMS
     
 
     /*! Resolves connected components based on posterior probabilities and adds them
-     * as additional protein_groups to the output idXML.
-     * Thereby greedily assigns shared peptides in this component uniquely to
-     * the proteins of the current BEST INDISTINGUISHABLE protein group,
-     * ready to be used in ProteinQuantifier then.
-     * This is achieved by removing all other evidence from the input
-     * PeptideIDs and iterating until each peptide is uniquely assigned.
-     * In accordance with Fido only the best hit (PSM) for an ID is considered.
-     * Probability ties resolved by taking protein with largest number of peptides.
-     * @param conn_comp The component to be resolved
-     * @param protein ProteinIdentification object storing IDs and groups
-     * @param peptides vector of ProteinIdentifications with links to the proteins
+      as additional protein_groups to the output idXML.
+      Thereby greedily assigns shared peptides in this component uniquely to
+      the proteins of the current BEST INDISTINGUISHABLE protein group,
+      ready to be used in ProteinQuantifier then.
+      This is achieved by removing all other evidence from the input
+      PeptideIDs and iterating until each peptide is uniquely assigned.
+      In accordance with Fido only the best hit (PSM) for an ID is considered.
+      Probability ties resolved by taking protein with largest number of peptides.
+      @param conn_comp The component to be resolved
+      @param protein ProteinIdentification object storing IDs and groups
+      @param peptides vector of ProteinIdentifications with links to the proteins
      */
     void resolveConnectedComponent(ConnectedComponent& conn_comp,
                                     ProteinIdentification& protein,

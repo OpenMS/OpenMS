@@ -84,18 +84,28 @@ namespace OpenMS
   {
     spectra_.push_back(s);
     s.clear(false);
-    if (full_meta_) peak_meta_.addSpectrum(s);
-
-    if (spectra_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addSpectrum(s);
+    }
+    if (spectra_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
     c.clear(false);
-    if (full_meta_) peak_meta_.addChromatogram(c);
-
-    if (chromatograms_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addChromatogram(c);
+    }
+    if (chromatograms_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}

@@ -61,7 +61,7 @@ public:
       INVALID = 0
     };
 
-    /**@brief Returns true if the unique_id is valid, false otherwise.
+    /** @brief Returns true if the unique_id is valid, false otherwise.
 
      Currently, an invalid unique id is represented by UInt64(0), but please prefer using this method for clarity.
      */

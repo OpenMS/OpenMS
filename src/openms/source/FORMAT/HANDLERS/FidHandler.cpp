@@ -54,37 +54,33 @@ T ByteReverse(const T in)
 
 #endif
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+  FidHandler::FidHandler(const String & filename) :
+    ifstream(filename.c_str(), ios_base::binary | ios_base::in)
   {
-    FidHandler::FidHandler(const String & filename) :
-      ifstream(filename.c_str(), ios_base::binary | ios_base::in)
-    {
-      index_ = 0;
-      seekg(0, ios::beg);
-    }
+    index_ = 0;
+    seekg(0, ios::beg);
+  }
 
-    FidHandler::~FidHandler()
-    {
-    }
+  FidHandler::~FidHandler()
+  {
+  }
 
-    Size FidHandler::getIndex()
-    {
-      return index_;
-    }
+  Size FidHandler::getIndex()
+  {
+    return index_;
+  }
 
-    Size FidHandler::getIntensity()
-    {
-      // intensity is coded in 32 bits little-endian integer format
-      Int32 result = 0;
-      read((char *) &result, 4);
+  Size FidHandler::getIntensity()
+  {
+    // intensity is coded in 32 bits little-endian integer format
+    Int32 result = 0;
+    read((char *) &result, 4);
 #ifdef OPENMS_BIG_ENDIAN
-      result = ByteReverse<Int32>(result);
+    result = ByteReverse<Int32>(result);
 #endif
-      index_++;
-      return (result > 0) ? result : 0;
-    }
-
-  }   // namespace Internal
-} // namespace OpenMS
+    index_++;
+    return (result > 0) ? result : 0;
+  }
+} // namespace OpenMS  // namespace Internal

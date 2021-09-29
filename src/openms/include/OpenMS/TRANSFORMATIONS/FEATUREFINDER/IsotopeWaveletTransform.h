@@ -288,7 +288,7 @@ protected:
 
     /** @brief Computes a linear (intensity) interpolation.
         * @param mz_a The m/z value of the point left to the query.
-        * @param mz_a The intensity value of the point left to the query.
+        * @param intens_a The intensity value of the point left to the query.
         * @param mz_pos The query point.
         * @param mz_b The m/z value of the point right to the query.
         * @param intens_b The intensity value of the point left to the query. */

@@ -126,11 +126,9 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
-    analysis_results_ = nullptr;
+    delete analysis_results_;
     if (source.analysis_results_ != nullptr)
     {
-      // free memory first
-      delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
     rank_ = source.rank_;
@@ -168,13 +166,18 @@ namespace OpenMS
   bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
     bool ar_equal = false;
-    if (analysis_results_ == nullptr && rhs.analysis_results_ == nullptr) ar_equal = true;
+    if (analysis_results_ == nullptr && rhs.analysis_results_ == nullptr)
+    {
+      ar_equal = true;
+    }
     else if (analysis_results_ != nullptr && rhs.analysis_results_ != nullptr)
     {
       ar_equal = (*analysis_results_ == *rhs.analysis_results_);
     }
-    else return false; // one is null the other isn't
-
+    else
+    {
+      return false; // one is null the other isn't
+    }
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_

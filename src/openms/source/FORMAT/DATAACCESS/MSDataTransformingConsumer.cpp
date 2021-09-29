@@ -85,6 +85,9 @@ namespace OpenMS
       void MSDataTransformingConsumer::setExperimentalSettings(const OpenMS::ExperimentalSettings& es)
       { 
         // apply the given function to it (unless nullptr)
-        if (lambda_exp_settings_) lambda_exp_settings_(es);        
+        if (lambda_exp_settings_)
+        {
+          lambda_exp_settings_(es);
+        }        
       }
 } // namespace OpenMS

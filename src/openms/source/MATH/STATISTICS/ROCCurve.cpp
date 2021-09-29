@@ -162,10 +162,10 @@ namespace OpenMS::Math
       std::sort(polygon.begin(), polygon.end());
       DPosition<2> last(0, 0);
       double area(0);
-      for (std::vector<DPosition<2> >::const_iterator it = polygon.begin(); it != polygon.end(); ++it)
+      for (const DPosition<2>& dp : polygon)
       {
-        area += (it->getX() - last.getX()) * (it->getY());
-        last = *it;
+        area += (dp.getX() - last.getX()) * (dp.getY());
+        last = dp;
       }
 
       if (falsePos < N)

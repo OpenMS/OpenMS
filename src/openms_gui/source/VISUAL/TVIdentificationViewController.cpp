@@ -118,7 +118,10 @@ namespace OpenMS
       // Visualisation of ID data
 
       // if no peptide identification or peptide hit index provided we can return now
-      if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+      if (peptide_id_index == -1 || peptide_hit_index == -1)
+      { 
+        return;
+      }
 
       // get peptide identification
       const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
@@ -128,7 +131,11 @@ namespace OpenMS
         switch (ms_level)
         {
           // mass fingerprint annotation of name etc.
-          case 1: { addPeakAnnotations_(pis); break; }
+          case 1:
+          { 
+            addPeakAnnotations_(pis); 
+            break;
+          }
 
           // annotation with stored fragments or synthesized theoretical spectrum
           case 2:
@@ -190,37 +197,50 @@ namespace OpenMS
                                                             it!= ph.end();
                                                             ++it)
     {
-      if (!it->hasMZ()) continue;
+      if (!it->hasMZ())
+      {
+        continue;
+      }
       double mz = it->getMZ();
       Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
 
       // m/z fits ?
-      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
-
+      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm)
+      {
+        continue;
+      }
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
       Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
       map<String, StringList> formula_to_names;
-      for (vector<PeptideHit>::const_iterator ith = it->getHits().begin();
-           ith != it->getHits().end(); ++ith)
+      for (const PeptideHit& pep : it->getHits())
       {
-        if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
+        if (pep.metaValueExists("identifier") && pep.metaValueExists("chemical_formula"))
         {
-          String name = ith->getMetaValue("identifier");
+          String name = pep.getMetaValue("identifier");
           if (name.length() > 20)
           {
             name = name.substr(0, 17) + "...";
           }
-          String cf = ith->getMetaValue("chemical_formula");
-          if (cf.empty()) continue; // skip unannotated "null" peaks
+          String cf = pep.getMetaValue("chemical_formula");
+          if (cf.empty())
+          {
+            continue; // skip unannotated "null" peaks
+          }
           formula_to_names[cf].push_back(name);
         }
         else
         {
           StringList msg;
-          if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
-          if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
+          if (!pep.metaValueExists("identifier"))
+          {
+            msg.push_back("identifier");
+          }
+          if (!pep.metaValueExists("chemical_formula"))
+          {
+            msg.push_back("chemical_formula");
+          }
           OPENMS_LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
         }
       }
@@ -243,9 +263,9 @@ namespace OpenMS
         double int_factor = peak_int / id.begin()->getIntensity();
         Annotation1DCaret::PositionsType points;
         Size itic(0);
-        for (IsotopeDistribution::ConstIterator iti = id.begin(); iti != id.end(); ++iti)
+        for (const Peak1D& iso : id)
         {
-          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iti->getIntensity() * int_factor));
+          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
@@ -255,8 +275,10 @@ namespace OpenMS
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==nullptr) first_dit = ditem; // remember first item (we append the text, when ready)
-
+        if (first_dit==nullptr)
+        {
+          first_dit = ditem; // remember first item (we append the text, when ready)
+        }
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
         {
@@ -287,7 +309,10 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) { return; }
+    if (widget_1D == nullptr)
+    { 
+      return;
+    }
 
     // lambda which returns the current layer
     // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
@@ -311,11 +336,15 @@ namespace OpenMS
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
           for (Size i = spectrum_index + 1; i < current_layer().getPeakData()->size(); ++i)
           {
-            if ((*current_layer().getPeakData())[i].getMSLevel() == 1) break;
-
+            if ((*current_layer().getPeakData())[i].getMSLevel() == 1)
+            {
+              break;
+            }
             // skip MS2 without precursor
-            if ((*current_layer().getPeakData())[i].getPrecursors().empty()) continue;
-
+            if ((*current_layer().getPeakData())[i].getPrecursors().empty())
+            {
+              continue;
+            }
             // there should be only one precursor per MS2 spectrum.
             vector<Precursor> pcs = (*current_layer().getPeakData())[i].getPrecursors();
             copy(pcs.begin(), pcs.end(), back_inserter(precursors));
@@ -343,7 +372,10 @@ namespace OpenMS
               removeTheoreticalSpectrumLayer_();
 
               // return if no active 1D widget is present
-              if (widget_1D == nullptr) { return; }
+              if (widget_1D == nullptr)
+              { 
+                return;
+              }
               // update current PeptideHit with the synchronized one
               widget_1D->canvas()->activateSpectrum(spectrum_index);
               const vector<PeptideIdentification>& pis2 = current_layer().getCurrentSpectrum().getPeptideIdentifications();
@@ -412,7 +444,10 @@ namespace OpenMS
             else if (ph.getPeakAnnotations().empty()) // only write the sequence
             {
               String seq = ph.getSequence().toString();
-              if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              if (seq.empty())
+              {
+                seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              }
               widget_1D->canvas()->setTextBox(seq.toQString());
             }
             else if (widget_1D->canvas()->isIonLadderVisible())
@@ -673,7 +708,10 @@ namespace OpenMS
       // special case for RNA: "a[n]-B", where "[n]" is the ion number
       // -> don't forget to add the "-B" back on if it's there:
       String more_ion = label.substr(split);
-      if (more_ion == "-B") ion += more_ion;
+      if (more_ion == "-B")
+      {
+        ion += more_ion;
+      }
       Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
       #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -824,13 +862,13 @@ namespace OpenMS
     {
       const SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
-      for (vector<Precursor>::const_iterator it = pcs.begin(); it != pcs.end(); ++it)
+      for (const Precursor& pre : pcs)
       {
         // determine start and stop of isolation window
-        double center_mz = it->metaValueExists("isolation window target m/z") ?
-        double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
-        double isolation_window_lower_mz = center_mz - it->getIsolationWindowLowerOffset();
-        double isolation_window_upper_mz = center_mz + it->getIsolationWindowUpperOffset();
+        double center_mz = pre.metaValueExists("isolation window target m/z") ?
+        double(pre.getMetaValue("isolation window target m/z")) : pre.getMZ();
+        double isolation_window_lower_mz = center_mz - pre.getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = center_mz + pre.getIsolationWindowUpperOffset();
 
         // determine maximum peak intensity in isolation window
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
@@ -849,10 +887,10 @@ namespace OpenMS
         DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
-        Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
+        Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(pre.getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
-        ticks.push_back(it->getMZ());
+        ticks.push_back(pre.getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
@@ -1105,12 +1143,17 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // Return if none present
-    if (widget_1D == nullptr) return;
-
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     // Return if no valid peak layer attached
-    if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK) { return; }
+    if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK)
+    { 
+      return;
+    }
 
     MSSpectrum& spectrum = (*current_layer.getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
@@ -1140,7 +1183,10 @@ namespace OpenMS
     String seq = hit.getSequence().toString();
     if (seq.empty())
     { // no sequence information stored? use label
-      if (hit.metaValueExists("label")) seq = hit.getMetaValue("label");
+      if (hit.metaValueExists("label"))
+      {
+        seq = hit.getMetaValue("label");
+      }
     }
 
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
@@ -1283,8 +1329,10 @@ namespace OpenMS
   void TVIdentificationViewController::activateBehavior() 
   {
     Plot1DWidget* w = tv_->getActive1DWidget();
-    if (w == nullptr) return;
-
+    if (w == nullptr)
+    {
+      return;
+    }
     PlotCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
@@ -1314,8 +1362,10 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) return;
-
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
     // clear textbox
     widget_1D->canvas()->setTextBox(QString());
 
@@ -1333,8 +1383,10 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) return;
-
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
     DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     range.setMinX(l);
     range.setMaxX(h);

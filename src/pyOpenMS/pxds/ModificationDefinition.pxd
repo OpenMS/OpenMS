@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
 
         void setFixedModification(bool fixed) nogil except + # wrap-doc:Sets whether this modification definition is fixed or variable (modification must occur vs. can occur)
         bool isFixedModification() nogil except + # wrap-doc:Returns if the modification if fixed true, else false
-        void setMaxOccurrences(UInt num) nogil except + # wrap-doc:Set the maximal number of occurrences per peptide (unbounded if 0)
+        void setMaxOccurrences(UInt num) nogil except + # wrap-doc:Sets the maximal number of occurrences per peptide (unbounded if 0)
         UInt getMaxOccurrences() nogil except + # wrap-doc:Returns the maximal number of occurrences per peptide
         String getModificationName() nogil except + # wrap-doc:Returns the name of the modification
         void setModification(const String &modification) nogil except + # wrap-doc:Sets the modification, allowed are unique names provided by ModificationsDB

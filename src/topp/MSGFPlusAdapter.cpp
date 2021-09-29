@@ -340,13 +340,13 @@ protected:
         primary_ms_run_path_.push_back(exp_name);
       }
 
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (MSSpectrum& ms : exp)
       {
-        String id = it->getNativeID(); // expected format: "... scan=#"
+        String id = ms.getNativeID(); // expected format: "... scan=#"
         if (id != "")
         {
-          rt_mapping[id].push_back(it->getRT());
-          rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
+          rt_mapping[id].push_back(ms.getRT());
+          rt_mapping[id].push_back(ms.getPrecursors()[0].getMZ());
         }
       }
     }
@@ -356,11 +356,23 @@ protected:
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
-    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
+    if (residue == 'X')
+    {
+      residue = '*'; // terminal mod. without residue specificity
+    }
     String position = mod->getTermSpecificityName();
-    if (position == "Protein N-term") position = "Prot-N-term";
-    else if (position == "Protein C-term") position = "Prot-C-term";
-    else if (position == "none") position = "any";
+    if (position == "Protein N-term")
+    {
+      position = "Prot-N-term";
+    }
+    else if (position == "Protein C-term")
+    {
+      position = "Prot-C-term";
+    }
+    else if (position == "none")
+    {
+      position = "any";
+    }
     return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
@@ -409,16 +421,16 @@ protected:
   // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
   void switchScores_(PeptideIdentification& id)
   {
-    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    for (PeptideHit& hit : id.getHits())
     {
       // MS:1002052 == MS-GF spectral E-value
-      if (!hit_it->metaValueExists("MS:1002052"))
+      if (!hit.metaValueExists("MS:1002052"))
       {
-        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
+        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(hit);
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
+      hit.setScore(hit.getMetaValue("MS:1002052"));
     }
     id.setScoreType("SpecEValue");
     id.setHigherScoreBetter(false);
@@ -522,8 +534,10 @@ protected:
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
     String conf = getStringOption_("conf");
-    if (!conf.empty()) process_params << "-conf" << conf.toQString();
-
+    if (!conf.empty())
+    {
+      process_params << "-conf" << conf.toQString();
+    }
 
     if (!mod_file.empty())
     {
@@ -693,13 +707,12 @@ protected:
           if (!pep_ident.getHits().empty()) // previously existing PeptideIdentification
           {
             // do we have a peptide hit with this sequence already?
-            for (vector<PeptideHit>::iterator hit_it = pep_ident.getHits().begin();
-                 hit_it != pep_ident.getHits().end(); ++hit_it)
+            for (PeptideHit& hit : pep_ident.getHits())
             {
-              if (hit_it->getSequence() == seq) // yes!
+              if (hit.getSequence() == seq) // yes!
               {
                 hit_exists = true;
-                hit_it->addPeptideEvidence(evidence);
+                hit.addPeptideEvidence(evidence);
                 break;
               }
             }
@@ -728,7 +741,10 @@ protected:
         vector<ProteinHit> prot_hits;
         for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
         {
-          if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
+          if (it->empty())
+          {
+            continue; // don't write a protein hit without accession (see @BUG above)
+          }
           ProteinHit prot_hit = ProteinHit();
           prot_hit.setAccession(*it);
           prot_hits.push_back(prot_hit);
@@ -757,7 +773,10 @@ protected:
           pid.getSearchParameters().digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
         }
         // set the MS-GF+ spectral e-value as new peptide identification score
-        for (auto& pep : peptide_ids) { switchScores_(pep); }
+        for (auto& pep : peptide_ids)
+        { 
+          switchScores_(pep);
+        }
 
 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         

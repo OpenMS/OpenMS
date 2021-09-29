@@ -44,10 +44,8 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
@@ -812,8 +810,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         scan_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, scan_count_total_, "loading spectra list");
         in_spectrum_list_ = true;
@@ -836,8 +835,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         chrom_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, chrom_count_total_, "loading chromatogram list");
         in_spectrum_list_ = false;
@@ -845,7 +845,10 @@ namespace OpenMS
         // we only want total scan count and chrom count
         if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
         { // in case spectra came before chroms, we have all information --> end parsing
-          if (scan_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          if (scan_count_total_ != -1)
+          {
+            throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          }
           // or skip the remaining chroms until </chromatogramList>
           skip_chromatogram_ = true;
         }
@@ -913,13 +916,25 @@ namespace OpenMS
         {
           path_to_file = File::path(name_of_file);
           name_of_file = File::basename(name_of_file);
-          if (path_to_file == ".") path_to_file = "file://./";
+          if (path_to_file == ".")
+          {
+            path_to_file = "file://./";
+          }
         }
 
         // format URI prefix as in mzML spec.
-        if (path_to_file.hasPrefix("File://")) path_to_file.substitute("File://", "file://");
-        if (path_to_file.hasPrefix("FILE://")) path_to_file.substitute("FILE://", "file://");
-        if (path_to_file.hasPrefix("file:///.")) path_to_file.substitute("file:///.", "file://./");
+        if (path_to_file.hasPrefix("File://"))
+        {
+          path_to_file.substitute("File://", "file://");
+        }
+        if (path_to_file.hasPrefix("FILE://"))
+        {
+          path_to_file.substitute("FILE://", "file://");
+        }
+        if (path_to_file.hasPrefix("file:///."))
+        {
+          path_to_file.substitute("file:///.", "file://./");
+        }
 
         bool is_relative_path = path_to_file.hasPrefix("file://./") || path_to_file.hasPrefix("file://../");
 
@@ -1699,8 +1714,9 @@ namespace OpenMS
       {
         //parse only the first selected ion
         if (selected_ion_count_ > 1)
+        {
           return;
-
+        }
         if (accession == "MS:1000744") //selected ion m/z
         {
           double this_mz = value.toDouble();
@@ -5704,5 +5720,4 @@ namespace OpenMS
       os << "\t\t\t</chromatogram>" << "\n";
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

@@ -819,10 +819,14 @@ protected:
 
     StringList run_paths;
     protein_ids[0].getPrimaryMSRunPath(run_paths);
-    if (run_paths.size() != 1)
+    if (run_paths.size() > 1)
     {
       OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+    if (run_paths.size() == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: " << id_file_abs_path << endl;
     }
     
     return EXECUTION_OK;
@@ -1150,6 +1154,11 @@ protected:
       if (debug_level_ > 666)
       {
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
+      }
+
+      if (debug_level_ > 670)
+      {
+        MzMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms());
       }
 
       ++fraction_group;
@@ -1601,6 +1610,7 @@ protected:
         e.path = s;
         e.sample = count;
         msfs.push_back(e);
+        ++count;
       }      
       design.setMSFileSection(msfs);
     }
@@ -1644,8 +1654,27 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
     }
-
+   
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
+
+    // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
+    for (auto & [fraction, ms_files] : frac2ms)
+    {
+      for (auto & s : ms_files)
+      {
+        // if basename in experimental design matches to basename in input file
+        // overwrite experimental design to point to existing file (and only if they were different)
+        if (auto it = std::find_if(in.begin(), in.end(), 
+              [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
+                 it != in.end() && s != *it) // and differ?
+        {
+          OPENMS_LOG_INFO << "Path of spectra files differ between experimental design (1) and input (2). Using the path of the input file as "
+                          << "we know this file exists on the file system: '" << *it << "' vs. '" << s << endl;
+          s = *it; // overwrite filename in design with filename in input files
+        }
+      }
+      
+    } 
 
     for (auto & f : frac2ms)
     {

@@ -202,7 +202,6 @@ namespace OpenMS
        @brief Read spectra and store their meta data
 
        @param SpectrumContainer Spectrum container class, must support @p size and @p operator[]
-
        @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
        @param get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)

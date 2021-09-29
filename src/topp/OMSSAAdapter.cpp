@@ -173,12 +173,24 @@ protected:
 
     bool operator<(const OMSSAVersion& v) const
     {
-      if (omssa_major > v.omssa_major) return false;
-      else if (omssa_major < v.omssa_major) return true;
+      if (omssa_major > v.omssa_major)
+      {
+        return false;
+      }
+      else if (omssa_major < v.omssa_major)
+      {
+        return true;
+      }
       else // ==
       {
-        if (omssa_minor > v.omssa_minor) return false;
-        else if (omssa_minor < v.omssa_minor) return true;
+        if (omssa_minor > v.omssa_minor)
+        {
+          return false;
+        }
+        else if (omssa_minor < v.omssa_minor)
+        {
+          return true;
+        }
         else
         {
           return omssa_patch < v.omssa_patch;
@@ -193,8 +205,10 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
-
+    if (nums.size() != 3)
+    {
+      return false;
+    }
     omssa_version_i.omssa_major = nums[0];
     omssa_version_i.omssa_minor = nums[1];
     omssa_version_i.omssa_patch = nums[2];
@@ -463,8 +477,14 @@ protected:
     if (!has_pin || !has_phr)
     {
       OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      if (!has_pin)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      }
+      if (!has_phr)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      }
       OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -809,9 +829,14 @@ protected:
         c.setSpectraProcessingFunc(f);
         MzMLFile().transform(inputfile_name, &c, true);
         ofs.close();
-        if (empty) chunk--;
-        if (chunk < 0) throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-
+        if (empty)
+        {
+          chunk--;
+        }
+        if (chunk < 0)
+        {
+          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+        }
         for (Size ch = 0; ch <= Size(chunk); ch++)
         {
             String filename_chunk = unique_input_name + String(ch) + ".mgf";
@@ -895,12 +920,12 @@ protected:
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
-      for (vector<PeptideIdentification>::iterator it = peptide_ids_chunk.begin(); it != peptide_ids_chunk.end(); ++it)
+      for (PeptideIdentification& pep : peptide_ids_chunk)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+        vector<PeptideHit> hits = pep.getHits();
+        for (PeptideHit& ptide : hits)
         {
-          AASequence seq = pit->getSequence();
+          AASequence seq = ptide.getSequence();
           for (vector<String>::const_iterator mit = fixed_nterm_mods.begin(); mit != fixed_nterm_mods.end(); ++mit)
           {
             seq.setNTerminalModification(*mit);
@@ -910,16 +935,17 @@ protected:
             seq.setCTerminalModification(*mit);
           }
           UInt pos = 0;
-          for (AASequence::Iterator mit = seq.begin(); mit != seq.end(); ++mit, ++pos)
+          for (const Residue& mm : seq)
           {
-            if (fixed_residue_mods.has(mit->getOneLetterCode()))
+            if (fixed_residue_mods.has(mm.getOneLetterCode()))
             {
-              seq.setModification(pos, fixed_residue_mods[mit->getOneLetterCode()]);
+              seq.setModification(pos, fixed_residue_mods[mm.getOneLetterCode()]);
             }
+            ++pos;
           }
-          pit->setSequence(seq);
+          ptide.setSequence(seq);
         }
-        it->setHits(hits);
+        pep.setHits(hits);
       }
       std::cout << "nr proteins: " << protein_identification_chunk.getHits().size() << std::endl;
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
@@ -937,23 +963,19 @@ protected:
           protein_identification.setHits(std::vector<ProteinHit>()); // remove hits
         }
         // ... and remove any refs from peptides
-        for (vector<PeptideIdentification>::iterator it_pep = peptide_ids_chunk.begin();
-             it_pep != peptide_ids_chunk.end();
-             ++it_pep)
+        for (PeptideIdentification& pep : peptide_ids_chunk)
         {
-          it_pep->setIdentifier(protein_identification.getIdentifier());
+          pep.setIdentifier(protein_identification.getIdentifier());
 
           // clear peptide evidences
-          vector<PeptideHit> pep_hits = it_pep->getHits();
-          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
-             it_pep_hit != pep_hits.end();
-             ++it_pep_hit)
+          vector<PeptideHit> pep_hits = pep.getHits();
+          for (PeptideHit& pep_hit : pep_hits)
           {
-            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+            pep_hit.setPeptideEvidences(std::vector<PeptideEvidence>());
           }
-          it_pep->setHits(pep_hits);
+          pep.setHits(pep_hits);
 
-          peptide_ids.push_back(*it_pep);
+          peptide_ids.push_back(pep);
         }
       }
 

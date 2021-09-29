@@ -133,13 +133,13 @@ namespace OpenMS
       {
         if (line.hasPrefix(n_id_prefix))
         {
-           String n_id = line.erase(line.find(n_id_prefix), n_id_prefix.size());
-           ext_n_ids.emplace_back(n_id);
+          String n_id = line.erase(line.find(n_id_prefix), n_id_prefix.size());
+          ext_n_ids.emplace_back(n_id);
         }
         else if (spectrum_ms_file.eof())
         {
-           OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
-           break;
+          OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
+          break;
         }
       }
       spectrum_ms_file.close();

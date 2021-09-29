@@ -225,13 +225,13 @@ protected:
       }
     }
 
-    for (vector<ProteinIdentification>::iterator it_prot_ids = prot_ids.begin(); it_prot_ids != prot_ids.end(); ++it_prot_ids)
+    for (ProteinIdentification& prot : prot_ids)
     {
-      ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
+      ProteinIdentification::SearchParameters search_params(prot.getSearchParameters());
       std::copy(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
       StringList spectra_data;
-      it_prot_ids->getPrimaryMSRunPath(spectra_data);
+      prot.getPrimaryMSRunPath(spectra_data);
       std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
     }
     ProteinIdentification::SearchParameters search_params;
@@ -430,9 +430,18 @@ protected:
       new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
       
       const auto& chg_pair = sp.getChargeRange();
-      if (chg_pair.first != 0 && chg_pair.first < min_chg) min_chg = chg_pair.first;
-      if (chg_pair.second != 0 && chg_pair.second > max_chg) max_chg = chg_pair.second;
-      if (sp.missed_cleavages > mc ) mc = sp.missed_cleavages;
+      if (chg_pair.first != 0 && chg_pair.first < min_chg)
+      {
+        min_chg = chg_pair.first;
+      }
+      if (chg_pair.second != 0 && chg_pair.second > max_chg)
+      {
+        max_chg = chg_pair.second;
+      }
+      if (sp.missed_cleavages > mc )
+      {
+        mc = sp.missed_cleavages;
+      }
       if (sp.fragment_mass_tolerance_ppm)
       {
         if (sp.fragment_mass_tolerance > frag_tol_ppm) frag_tol_ppm = sp.fragment_mass_tolerance;
@@ -600,10 +609,9 @@ protected:
     {
       vector<PeptideIdentification>& ids = map_it->getPeptideIdentifications();
       vector<Size> times_seen(number_of_runs);
-      for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
-           pep_it != ids.end(); ++pep_it)
+      for (PeptideIdentification& pep : ids)
       {
-        ++times_seen[id_mapping[pep_it->getIdentifier()]];
+        ++times_seen[id_mapping[pep.getIdentifier()]];
       }
       Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
 
@@ -791,7 +799,10 @@ protected:
           for (const auto& ref_peps : file_ref_peps.second)
           {
             vector<PeptideIdentification> peps = ref_peps.second;
-            if (peps.empty()) continue; //sth went wrong. skip
+            if (peps.empty())
+            {
+              continue; //sth went wrong. skip
+            }
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
@@ -842,27 +853,25 @@ protected:
           }
         }
 
-        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
-             pep_it != pep_ids.end(); ++pep_it)
+        for (PeptideIdentification& pep : pep_ids)
         {
-          String run_id = pep_it->getIdentifier();
-          if (!pep_it->hasRT() || !pep_it->hasMZ())
+          String run_id = pep.getIdentifier();
+          if (!pep.hasRT() || !pep.hasMZ())
           {
             OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
             return INCOMPATIBLE_INPUT_DATA;
           }
 
           Feature feature;
-          feature.setRT(pep_it->getRT());
-          feature.setMZ(pep_it->getMZ());
-          feature.getPeptideIdentifications().push_back(*pep_it);
+          feature.setRT(pep.getRT());
+          feature.setMZ(pep.getMZ());
+          feature.getPeptideIdentifications().push_back(pep);
           maps[id_mapping[run_id]].push_back(feature);
         }
         // precondition for "FeatureGroupingAlgorithmQT::group":
-        for (vector<FeatureMap>::iterator map_it = maps.begin();
-             map_it != maps.end(); ++map_it)
+        for (FeatureMap& map : maps)
         {
-          map_it->updateRanges();
+          map.updateRanges();
         }
 
         FeatureGroupingAlgorithmQT linker;

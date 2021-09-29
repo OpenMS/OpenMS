@@ -196,8 +196,10 @@ protected:
     }
     calib.setML1s(ml1);
     calib.setML2s(ml2);
-    if (!ml3.empty()) calib.setML3s(ml3);
-
+    if (!ml3.empty())
+    {
+      calib.setML3s(ml3);
+    }
     //-------------------------------------------------------------
     // perform calibration
     //-------------------------------------------------------------

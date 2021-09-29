@@ -37,19 +37,17 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+
+  MzQuantMLValidator::MzQuantMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    SemanticValidator(mapping, cv)
   {
-    MzQuantMLValidator::MzQuantMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
-      SemanticValidator(mapping, cv)
-    {
-      setCheckUnits(true);
-    }
+    setCheckUnits(true);
+  }
 
-    MzQuantMLValidator::~MzQuantMLValidator()
-    {
-    }
+  MzQuantMLValidator::~MzQuantMLValidator()
+  {
+  }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal
