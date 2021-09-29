@@ -1506,13 +1506,16 @@ namespace OpenMS
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        for (const AminoAcidModification& it : fixed_modifications_)
+        if (!found)
         {
-          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+          for (const AminoAcidModification& it : fixed_modifications_)
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
+            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+            {
+              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
           }
         }
 
@@ -1556,7 +1559,18 @@ namespace OpenMS
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        //TODO why only look in variable mods?
+        if (!found)
+        {
+          for (const AminoAcidModification& it : fixed_modifications_)
+          {
+            if ((fabs(mod_cterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "c")
+            {
+              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
+          }
+        }
 
         if (!found)
         {
