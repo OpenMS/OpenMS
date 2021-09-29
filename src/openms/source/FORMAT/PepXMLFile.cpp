@@ -1563,7 +1563,7 @@ namespace OpenMS
         {
           for (const AminoAcidModification& it : fixed_modifications_)
           {
-            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "c")
+            if ((fabs(mod_cterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "c")
             {
               current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
               found = true;
