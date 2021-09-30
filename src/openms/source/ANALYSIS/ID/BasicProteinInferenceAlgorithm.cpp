@@ -218,6 +218,7 @@ namespace OpenMS
       auto & ipg = prot_run.getIndistinguishableProteins();
       std::sort(std::begin(ipg), std::end(ipg));
     }
+    prot_run.sort();
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
@@ -444,7 +445,7 @@ namespace OpenMS
     switch (agg_method)
     {
       case AggregationMethod::PROD :
-        return [](float old_score, float new_score){
+        return [](double old_score, double new_score){
           if (new_score > 0.0) //TODO for 0 probability peptides we could also multiply a minimum value
           {
             return old_score * new_score;
@@ -455,16 +456,16 @@ namespace OpenMS
           }
         };
       case AggregationMethod::BEST :
-        if(higher_better)
+        if (higher_better)
         {
-          return [](float old_score, float new_score){return std::fmax(old_score, new_score);};
+          return [](double old_score, double new_score){return std::fmax(old_score, new_score);};
         }
         else
         {
-          return [](float old_score, float new_score){return std::fmin(old_score, new_score);};
+          return [](double old_score, double new_score){return std::fmin(old_score, new_score);};
         }
       case AggregationMethod::SUM :
-        return [](float old_score, float new_score){return old_score + new_score;};
+        return [](double old_score, double new_score){return old_score + new_score;};
     }
   }
 
@@ -498,7 +499,6 @@ namespace OpenMS
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
-    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
 
     String agg_method_string(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
