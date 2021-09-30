@@ -1,3 +1,4 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -41,6 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -156,9 +158,9 @@ protected:
 
     // mzTAB output data structure
     MzTab mztab_output;
-    MzTabFile mztab_outfile;
-
     MzTabM mztabm_output;
+    MzTabFile mztab_outfile;
+    MzTabMFile mztabm_outfile;
 
     AccurateMassSearchEngine ams;
     ams.setParameters(ams_param);
@@ -187,11 +189,8 @@ protected:
         FeatureXMLFile().store(file_ann, ms_feat_map);
       }
       else if (file_ann.hasSuffix("oms"))
-      {      
-        // TODO: support feature data in oms file
-        // TODO: based on the FeatureMap?
-        // TODO: Where is the id_data stored currently
-        OMSFile().store(file_ann, ms_feat_map); // TODO: identification data stored in the basefeature?
+      {
+        OMSFile().store(file_ann, ms_feat_map);
       }
     }
     else if (filetype == FileTypes::CONSENSUSXML)
@@ -217,7 +216,7 @@ protected:
       }
     }
 
-    mztab_outfile.store(out, mztab_output);
+    mztabm_outfile.store(out, mztabm_output);
 
     return EXECUTION_OK;
   }

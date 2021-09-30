@@ -136,15 +136,14 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
   {
   public:
-    MzTabInteger identifier; ///< The small molecule’s identifier.
-    MzTabStringList smf_id_refs; ///< References to all the features on which quantification has been based.
+    MzTabInteger sms_identifier; ///< The small molecule’s identifier.
+    MzTabIntegerList smf_id_refs; ///< References to all the features on which quantification has been based.
     MzTabStringList database_identifier; ///< Names of the used databases.
     MzTabStringList chemical_formula; ///< Potential chemical formula of the reported compound.
     MzTabStringList smiles; ///< Molecular structure in SMILES format.
     MzTabStringList inchi; ///< InChi of the potential compound identifications.
     MzTabStringList chemical_name; ///< Possible chemical/common names or general description
     MzTabStringList uri; ///< The source entry’s location. // TODO: URI List ?
-
     MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
     MzTabStringList adducts; ///< Adducts
     // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
@@ -152,7 +151,6 @@ namespace OpenMS
     // TODO: e.g. use best search_engine score
     MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
     MzTabDouble best_id_confidence_value; ///< The best confidence measure
-
     std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///<
     std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
     std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
@@ -165,7 +163,7 @@ namespace OpenMS
   {
   public:
     MzTabInteger smf_identifier; ///< Within file unique identifier for the small molecule feature.
-    MzTabStringList sme_id_refs; ///< Reference to the identification evidence.
+    MzTabIntegerList sme_id_refs; ///< Reference to the identification evidence.
     MzTabInteger sme_id_ref_ambiguity_code; ///< Ambiguity in identifications.
     MzTabString adduct; ///< Adduct
     MzTabParameter isotopomer; ///< If de-isotoping has not been performed, then the isotopomer quantified MUST be reported here.
@@ -260,7 +258,7 @@ namespace OpenMS
   *
   * @return MzTabM object
   */
-  static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map, const String& filename);
+  static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map);
 
   protected:
 

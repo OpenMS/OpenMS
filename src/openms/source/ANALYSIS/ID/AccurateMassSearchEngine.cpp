@@ -656,7 +656,7 @@ namespace OpenMS
       step_ref = id.registerProcessingStep(step, search_param_ref);
       id.setCurrentProcessingStep(step_ref); // add the new step
     }
-    
+
     String ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
@@ -768,7 +768,7 @@ namespace OpenMS
         if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
-        }        
+        }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(r.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
@@ -909,8 +909,7 @@ namespace OpenMS
   // FeatureMap with IdentificationData attached!
 void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
 {
-    // TODO: Test of MzTabM FeatureMap export function
-    MzTabM::exportFeatureMapToMzTabM(fmap, "/Users/alka/Desktop/AMS_OMS_test/outAMS_mztab_test.mztab");
+  mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);
 }
 
   void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const

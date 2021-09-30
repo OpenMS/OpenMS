@@ -119,11 +119,8 @@ namespace OpenMS
   }
 
   // FeatureMap with associated identification data
-  MzTabM MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map,
-                                          const String& filename)
+  MzTabM MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map)
   {
-    OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
-
     MzTabM mztabm;
     MzTabMMetaData m_meta_data;
 
@@ -417,7 +414,6 @@ namespace OpenMS
     MzTabMSmallMoleculeFeatureSectionRows smfs;
     MzTabMSmallMoleculeEvidenceSectionRows smes;
 
-    int summary_section_counter = 1;
     int feature_section_entry_counter = 1;
     int evidence_section_entry_counter = 1;
 
@@ -553,10 +549,10 @@ namespace OpenMS
       {
         MzTabMSmallMoleculeFeatureSectionRow smf;
         smf.smf_identifier = MzTabInteger(feature_section_entry_counter);
-        std::vector<MzTabString> corresponding_evidences;
+        std::vector<MzTabInteger> corresponding_evidences;
         for (const auto& evidence : epa.second)
         {
-          corresponding_evidences.emplace_back(String(evidence));
+          corresponding_evidences.emplace_back(evidence);
         }
         smf.sme_id_refs.set(corresponding_evidences);
         smf.adduct = MzTabString(epa.first);
@@ -579,37 +575,84 @@ namespace OpenMS
 
         smfs.emplace_back(smf);
       }
+    }
 
-      // small mol section (summary)
-      MzTabMSmallMoleculeSectionRows sms;
 
+    // based summary on available features and evidences
+    // OpenMS does currently not aggregate the information of two features with corresponding adducts
+    // e.g. F1 mz = 181.0712 rt = 10, [M+H]1+; F2 mz = 203.0532, rt = 10 [M+Na]1+ (neutral mass for both: 180.0634)
+    // features will be represented individually here.
+
+    for (const auto& smf : smfs)
+    {
+      MzTabMSmallMoleculeSectionRow sms;
 
       //  MzTabInteger identifier; ///< The small molecule’s identifier.
-      //  MzTabStringList smf_id_refs; ///< References to all the features on which quantification has been based.
+      sms.sms_identifier = smf.smf_identifier;
+      //  MzTabIntegerList smf_id_refs; ///< References to all the features on which quantification has been based.
+      sms.smf_id_refs.set({smf.smf_identifier});
+      std::vector<MzTabString> database_identifier;
+      std::vector<MzTabString> chemical_formula;
+      std::vector<MzTabString> smiles;
+      std::vector<MzTabString> inchi;
+      std::vector<MzTabString> chemical_name;
+      std::vector<MzTabString> uri;
+      std::vector<MzTabDouble> theoretical_neutral_mass;
+      std::vector<MzTabString> adducts;
+      for (const MzTabInteger& evidence : smf.sme_id_refs.get())
+      {
+        const auto& current_row_it = std::find_if(smes.begin(), smes.end(), [&evidence] (const MzTabMSmallMoleculeEvidenceSectionRow& sme) { return sme.sme_identifier.get() == evidence.get(); });
+        database_identifier.emplace_back(current_row_it->database_identifier);
+        chemical_formula.emplace_back(current_row_it->chemical_formula);
+        smiles.emplace_back(current_row_it->smiles);
+        inchi.emplace_back(current_row_it->inchi);
+        chemical_name.emplace_back(current_row_it->chemical_name);
+        uri.emplace_back(current_row_it->uri);
+        MzTabString cm = current_row_it->chemical_formula;
+        theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight()); //TODO: is that correct?
+        adducts.emplace_back(current_row_it->adduct);
+      }
       //  MzTabStringList database_identifier; ///< Names of the used databases.
+      sms.database_identifier.set(database_identifier);
       //  MzTabStringList chemical_formula; ///< Potential chemical formula of the reported compound.
+      sms.chemical_formula.set(chemical_formula);
       //  MzTabStringList smiles; ///< Molecular structure in SMILES format.
+      sms.smiles.set(smiles);
       //  MzTabStringList inchi; ///< InChi of the potential compound identifications.
+      sms.inchi.set(inchi);
       //  MzTabStringList chemical_name; ///< Possible chemical/common names or general description
-      //  MzTabStringList uri; ///< The source entry’s location. // TODO: URI List ?
+      sms.chemical_name.set(chemical_name);
+      //  MzTabStringList uri; ///< The source entry’s location.
+      sms.uri.set(uri);
       //  MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
+      sms.theoretical_neutral_mass.set(theoretical_neutral_mass);
       //  MzTabStringList adducts; ///< Adducts
-      //  // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
-      //  MzTabString reliability; ///< Reliability of the given small molecule identification
-      //  // TODO: e.g. use best search_engine score
+      sms.adducts.set(adducts);
+      // TODO: IdentificationData::ComoundRef store reliablity information
+      // MzTabString reliability; ///< Reliability of the given small molecule identification
+      sms.reliability = MzTabString("2"); // putatively annotated compound
+      //  TODO: e.g. use best search_engine score
       //  MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
+      // TODO: How to decide best id confidence measure
+      sms.best_id_confidence_measure.setNull(true);
       //  MzTabDouble best_id_confidence_value; ///< The best confidence measure
+      sms.best_id_confidence_value.setNull(true);
       //  std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///<
+      sms.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;
       //  std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
+      sms.small_molecule_abundance_study_variable[1].setNull(true);
       //  std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
+      sms.small_molecule_abundance_stdev_study_variable[1].setNull(true);
       //  std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
+      sms.small_molecule_abundance_std_error_study_variable[1].setNull(true);
+      // TODO: How to add opt cols_
 
-
+      smss.emplace_back(sms);
 
     }
-    mztabm.setMSmallMoleculeFeatureSectionRows(smfs);
     mztabm.setMSmallMoleculeEvidenceSectionRows(smes);
-    // mztabm.setMSmallMoleculeSectionRows();
+    mztabm.setMSmallMoleculeFeatureSectionRows(smfs);
+    mztabm.setMSmallMoleculeSectionRows(smss);
     return mztabm;
   }
 

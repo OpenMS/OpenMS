@@ -41,7 +41,6 @@
 
 using namespace std;
 
-// TODO fix all the shadowed "String s"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 
@@ -51,6 +50,11 @@ namespace OpenMS
   MzTabMFile::MzTabMFile(){}
 
   MzTabMFile::~MzTabMFile(){}
+
+  void MzTabMFile::store(const String& filename, const MzTabM& mztab_m) const
+  {
+    OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
+  }
 
 }
 

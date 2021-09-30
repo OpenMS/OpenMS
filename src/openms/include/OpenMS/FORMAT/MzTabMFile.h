@@ -56,11 +56,7 @@ namespace OpenMS
     ~MzTabMFile();
 
     /// store MzTabM file
-    // void store(const String& filename, const MzTabM& mztab_m) const;
-
-    //TODO: Store of featureMap
-    //TODO: Store of consensusMap
-    //TODO: Load Mztab-M into data model (MzTabM.h)
+    void store(const String& filename, const MzTabM& mztab_m) const;
 
   protected:
 
