@@ -128,7 +128,8 @@ namespace OpenMS
      MzTabMMetaData m_meta_data;
 
      // extract identification data from FeatureMap
-     IdentificationData id_data = feature_map.getIdentificationData();
+     // has to be passed as const & if not the references might change!
+     const IdentificationData& id_data = feature_map.getIdentificationData();
 
      UInt64 local_id = feature_map.getUniqueId();
      // mz_tab_id (mandatory)
@@ -385,10 +386,7 @@ namespace OpenMS
 
      // small_molecule-identification_reliability (not mandatory)
 
-     // TODO: How to use actual registered CV-terms?
-     // TODO: use it below to set the confidence scores ?!
-     // TODO: Why are the score_type_refs different
-     int score_counter = 1;
+     int software_score_counter = 0;
      std::vector<String> identification_tools = action_software_name[DataProcessing::IDENTIFICATION];
      std::vector<IdentificationDataInternal::ScoreTypeRef> id_score_refs;
      for (const IdentificationDataInternal::ProcessingSoftware& software : id_data.getProcessingSoftwares())
@@ -398,10 +396,8 @@ namespace OpenMS
        {
          for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : software.assigned_scores)
          {
-           std::cout << "score_type_ref: " << score_type_ref << std::endl;
-           m_meta_data.id_confidence_measure[score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
-           score_counter += 1;
-           std::cout << "[,, " + score_type_ref->cv_term.getName()+ ", ]" << std::endl;
+           ++software_score_counter;
+           m_meta_data.id_confidence_measure[software_score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
            id_score_refs.emplace_back(score_type_ref); // TODO: ISSUE: score_type_ref from here are not correct - used for evidence level information
          }
        }
@@ -434,7 +430,6 @@ namespace OpenMS
      ms_level.setNull(true);
      for (const auto& identification_software : action_software_name[DataProcessing::IDENTIFICATION])
      {
-       std::cout << "identification_software:" << identification_software << std::endl;
        int id_mslevel = 0;
        if (identification_software == "AccurateMassSearch")
        {
@@ -517,21 +512,18 @@ namespace OpenMS
          sme.exp_mass_to_charge = MzTabDouble(f.getMZ());
          sme.charge = MzTabInteger(f.getCharge());
          sme.calc_mass_to_charge = MzTabDouble(compound_ref->formula.getMonoWeight());
-         // TODO: ISSUE: IdentificationData only one ref per identifiedmolecule?
+         // TODO: ISSUE: IdentificationData only one spectra_ref per identifiedmolecule?
          // TODO: ISSUE: What about e.g. SIRIUS using multiple MS2 spectra for one identification?
          sme.spectra_ref.fromCellString(match_ref->observation_ref->data_id); // MzTabStringList
          // TODO: ISSUE: Would make sense to have the identification method per ID
+         // TODO: That does work with the AppliedProcessingSteps per Compound!
          sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
          sme.ms_level = ms_level;
-         // TODO: ISSUE: Somehow score_ref not set correctly in match/software - Check if that is the correct order as in Software!
          int score_counter = 0;
-         for (const IdentificationDataInternal::AppliedProcessingStep& step_and_score : match_ref->steps_and_scores)
+         for (const auto& id_score_ref : id_score_refs)
          {
-           for (const std::pair<IdentificationDataInternal::ScoreTypeRef, double>& score : step_and_score.getScoresInOrder())
-           {
-             ++score_counter; //starts at 1 anyway
-             sme.id_confidence_measure[score_counter] = MzTabDouble(score.second);
-           }
+           ++score_counter; //starts at 1 anyway
+           sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
          }
          sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
          // TODO: How to add opt_ columns
@@ -610,6 +602,8 @@ namespace OpenMS
         //  std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
         //  std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
         //  std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
+
+
 
      }
      mztabm.setMSmallMoleculeFeatureSectionRows(smfs);

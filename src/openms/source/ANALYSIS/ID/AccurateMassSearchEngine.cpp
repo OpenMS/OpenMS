@@ -458,9 +458,6 @@ namespace OpenMS
         ams_result.setMatchingHMDBids(mass_mappings_[i].massIDs);
 
         results.push_back(ams_result);
-
-        // ams_result.outputResults();
-        // std::cout << "****************************************************" << std::endl;
       }
 
     }
@@ -626,14 +623,11 @@ namespace OpenMS
       // register a score type
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
-      std::cout << "first_register_mass_error_ppm_score_ref: " <<  mass_error_ppm_score_ref << std::endl;
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
       mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
-      std::cout << "first_register_mass_error_Da_score_ref: " <<  mass_error_Da_score_ref << std::endl;
 
       // add the same score_refs to the ProcessingSoftware - to reference the Software with the
-      // ObservationMatch
-      // TODO: Somehow sets another ref?!
+      // ObservationMatch - the order is important - the most important score first.
       std::vector<IdentificationDataInternal::ScoreTypeRef> assigned_scores{mass_error_ppm_score_ref, mass_error_Da_score_ref};
 
       // register software (connected to score)
@@ -641,16 +635,6 @@ namespace OpenMS
       // if the name is not available in PSI-OBO "analysis software" will be used.
       IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
       IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
-
-      for (const auto& score : assigned_scores)
-      {
-        std::cout << "as: " << score << std::endl;
-      }
-
-      for (const auto& score : sw.assigned_scores)
-      {
-        std::cout << "sw.as: " << score << std::endl;
-      }
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
@@ -671,20 +655,6 @@ namespace OpenMS
       IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
       step_ref = id.registerProcessingStep(step, search_param_ref);
       id.setCurrentProcessingStep(step_ref); // add the new step
-
-      for (const auto& score : id.getCurrentProcessingStep()->software_ref->assigned_scores)
-      {
-        std::cout << "id-get.as: " << score << std::endl;
-      }
-
-      for (const auto& software : id.getProcessingSoftwares())
-      {
-        for (const auto& score : software.assigned_scores)
-        {
-          std::cout << "id-software.as: " << score << std::endl;
-        }
-      }
-
     }
     
     String ion_mode_internal(ion_mode_);
@@ -700,7 +670,6 @@ namespace OpenMS
     {
       std::vector<AccurateMassSearchResult> query_results;
 
-      // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
       if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
@@ -752,7 +721,7 @@ namespace OpenMS
       // TODO: Even if set in the addMatchesToID_()
       // TODO: Have to set the score_type?
       // TODO: Check if the MetaValues actually have been set or
-      // been transferend from the previous data stored within
+      // been transferred from the previous data stored within
       // the feature.
       IdentificationDataConverter::exportFeatureIDs(fmap, false);
     }
@@ -810,8 +779,9 @@ namespace OpenMS
         double mass_error_Da = r.getObservedMZ() - r.getCalculatedMZ();
         double mass_error_ppm =  r.getMZErrorPPM();
 
-        std::map<IdentificationDataInternal::ScoreTypeRef, double> scores{{mass_error_Da_score_ref, mass_error_Da},
-                                                                          {mass_error_ppm_score_ref, mass_error_ppm}};
+        std::map<IdentificationDataInternal::ScoreTypeRef, double> scores{{mass_error_ppm_score_ref, mass_error_ppm},
+                                                                          {mass_error_Da_score_ref, mass_error_Da}
+                                                                         };
         IdentificationDataInternal::AppliedProcessingStep applied_processing_step(step_ref, scores);
         IdentificationDataInternal::AppliedProcessingSteps applied_processing_steps;
         applied_processing_steps.emplace_back(applied_processing_step);
@@ -821,7 +791,6 @@ namespace OpenMS
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
         // TODO: or have an additional column for possible database, where is that stored?
-        // TODO: Add Steps and Scores on compound level?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         names,
@@ -844,11 +813,8 @@ namespace OpenMS
 
         // compound-feature match
         IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
-        match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
         match.addScore(mass_error_ppm_score_ref, mass_error_ppm, step_ref);
-
-        std::cout << "mass_error_Da_score: " << mass_error_Da_score_ref << " " << match.getScore(mass_error_Da_score_ref).first << std::endl;
-        std::cout << "mass_error_ppm_score: " << mass_error_ppm_score_ref << " " << match.getScore(mass_error_ppm_score_ref).first << std::endl;
+        match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
 
         // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+
@@ -926,7 +892,6 @@ namespace OpenMS
     for (Size i = 0; i < cmap.size(); ++i)
     {
       std::vector<AccurateMassSearchResult> query_results;
-      // std::cout << i << ": " << cmap[i].getMetaValue(3) << " mass: " << cmap[i].getMZ() << " num_traces: " << cmap[i].getMetaValue("num_of_masstraces") << " charge: " << cmap[i].getCharge() << std::endl;
       queryByConsensusFeature(cmap[i], i, num_of_maps, ion_mode_internal, query_results);
       annotate_(query_results, cmap[i]);
       overall_results.push_back(query_results);
@@ -1000,25 +965,16 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
-      // std::cout << tab_it->first << std::endl;
-
       for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
       {
-        // tab_it->second[hit_idx].outputResults();
-
         std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
-
         // iterate over multiple IDs, generate a new row for each one
-
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
-
           // set the identifier field
           String hid_temp = matching_ids[id_idx];
-
           bool db_hit = (hid_temp != "null");
-
           if (db_hit)
           {
             MzTabString hmdb_id;
@@ -1337,7 +1293,6 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
         if (line.empty()) continue;
         ++line_count;
 
-        // std::cout << line << std::endl;
         if (line_count == 1)
         {
           std::vector<String> fields;
@@ -1498,7 +1453,6 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
     std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mass, CompareEntryAndMass_()); // first element equal or larger
     std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mass, CompareEntryAndMass_()); // first element greater than
 
-    //std::cout << *lower_it << " " << *upper_it << "idx: " << lower_it - masskey_table_.begin() << " " << upper_it - masskey_table_.begin() << std::endl;
     Size start_idx = std::distance(mass_mappings_.begin(), lower_it);
     Size end_idx = std::distance(mass_mappings_.begin(), upper_it);
 
