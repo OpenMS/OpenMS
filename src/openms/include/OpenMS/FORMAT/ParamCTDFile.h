@@ -107,6 +107,5 @@ namespace OpenMS
 
     const std::string schema_location_ = "/SCHEMAS/Param_1_7_0.xsd";
     const std::string schema_version_ = "1.7.0";
-
   };
 }
