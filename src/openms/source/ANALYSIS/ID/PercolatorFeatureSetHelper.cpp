@@ -175,7 +175,7 @@ namespace OpenMS
     void PercolatorFeatureSetHelper::addCOMETFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
 
-      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR); // to use
+      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
       feature_set.push_back("COMET:deltCn"); // recalculated deltCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:deltLCn"); // deltLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:lnExpect"); // log(E-value)
