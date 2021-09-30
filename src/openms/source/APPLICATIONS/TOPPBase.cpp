@@ -2281,14 +2281,15 @@ namespace OpenMS
       }
 
       std::vector<std::string> citation_dois;
-      citation_dois.reserve(citations_.size());
+      citation_dois.reserve(citations_.size() + 1);
+      citation_dois.push_back(cite_openms_.doi);
       for (auto& citation : citations_)
       {
         citation_dois.push_back(citation.doi);
       }
 
       paramFile.store(write_ctd_file.toStdString(), default_params,
-                      {version_, tool_name_, docurl, category, tool_description_, cite_openms_.doi, citation_dois});
+                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
     }
 
     return true;

@@ -75,7 +75,6 @@ namespace OpenMS
     os << "<description><![CDATA[" << tool_info.description_ << "]]></description>\n";
     os << "<manual><![CDATA[" << tool_info.description_ << "]]></manual>\n";
     os << "<citations>\n";
-    os << "  <citation doi=\"" << tool_info.doi_ << "\" url=\"\" />\n";
 
     for (auto& doi : tool_info.citations_)
     {

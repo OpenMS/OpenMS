@@ -50,7 +50,6 @@ namespace OpenMS
     std::string docurl_;
     std::string category_;
     std::string description_;
-    std::string doi_;
     std::vector<std::string> citations_;
   };
 

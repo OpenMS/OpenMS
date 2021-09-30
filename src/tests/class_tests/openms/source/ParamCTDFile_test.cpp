@@ -88,7 +88,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 	//exception
 	Param p300;
-	ToolInfo info = {"a", "a", "a", "a", "a", "a", std::vector<std::string>()};
+	ToolInfo info = {"a", "a", "a", "a", "a", std::vector<std::string>()};
 	TEST_EXCEPTION(std::ios::failure, paramFile.store("/does/not/exist/FileDoesNotExist.ctd",p300,info))
 
 	String filename;
@@ -267,8 +267,7 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
                    "http://www.openms.de/doxygen/nightly/html/UTILS_AccurateMassSearch.html",
                    "Utilities",
                    "Match MS signals to molecules from a database by mass.",
-                   "10.1038/nmeth.3959",
-                   std::vector<std::string>()};
+                   {"10.1038/nmeth.3959"}};
   paramFile.writeCTDToStream(&s,p, info);
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamCTDFile_test_writeCTDToStream.ctd"))
 }
@@ -294,7 +293,7 @@ START_SECTION([EXTRA] storing of lists)
 	//store
 	String filename;
 	NEW_TMP_FILE(filename);
-  ToolInfo info = {"a", "b", "c", "d", "e", "f", std::vector<std::string>()};
+  ToolInfo info = {"a", "b", "c", "d", "e", {"f"}};
 	paramFile.store(filename,p,info);
 	//load
 	Param p2;
@@ -373,7 +372,7 @@ START_SECTION(([EXTRA] Escaping of characters))
 
 	String filename;
 	NEW_TMP_FILE(filename)
-  ToolInfo info = {"a", "a", "a", "a", "a", "a", std::vector<std::string>()};
+  ToolInfo info = {"a", "a", "a", "a", "a", {"a"}};
 	paramFile.store(filename,p,info);
 
 	Param p2;
