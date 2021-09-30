@@ -296,6 +296,9 @@ private:
     /// RT and m/z of current PeptideIdentification (=spectrum)  
     double rt_{}, mz_{};
 
+    /// possible isotopes to consider and annotate
+    //std::vector<int> potential_isotopeerrors_;
+
     /// 1-based scan nr. of current PeptideIdentification (=spectrum). Scannr is usually from the start_scan attribute
     Size scannr_{};
 
@@ -341,5 +344,7 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
+
+    //static std::vector<int> getIsotopeErrorsFromIntSetting_(int intSetting);
   };
 } // namespace OpenMS
