@@ -1,5 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from ConsensusMap cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
