@@ -24,11 +24,13 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         #   - Charge states
         #   The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
         #   Possible aggregation methods that can be set via the parameter "aggregation_method" are:
-        #   - "maximum" (default)
+        #   - "best" (default)
         #   - "sum"
         #   - "product" (ignoring zeroes)
         #   Annotation of the number of peptides used for aggregation can be disabled (see parameters).
         #   Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
+        #   Warning: Does not "link" the peptides to the resulting protein run. If you wish to do that you have to do
+        #   it manually.
         #   -----
         #   Usage:
         #     from pyopenms import *
@@ -44,10 +46,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         #     bpia.setParameters(p);
         #     bpia.run(peptides, proteins);
         #     #
-        #     print(proteins[0].getHits()[0].getScore()) # 0.6
-        #     print(proteins[0].getHits()[5].getScore()) # 0.9
-        #     print(proteins[0].getHits()[0].getMetaValue("nr_found_peptides")) # 1
-        #     print(proteins[0].getHits()[3].getMetaValue("nr_found_peptides")) # 2
+        #     hits = proteins[0].getHits()
+        #     print(hits[0].getScore()) # 0.6
+        #     print(hits[5].getScore()) # 0.9
+        #     print(hits[0].getMetaValue("nr_found_peptides")) # 1
+        #     print(hits[3].getMetaValue("nr_found_peptides")) # 2
         #   -----
 
         BasicProteinInferenceAlgorithm() nogil except +
@@ -55,26 +58,42 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         BasicProteinInferenceAlgorithm(BasicProteinInferenceAlgorithm) nogil except + #wrap-ignore
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
-                 libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
+                 libcpp_vector[ ProteinIdentification ] & prot_ids,
+                 bool group) nogil except +
           # wrap-doc:
-          #   Performs inference
+          #   Performs basic aggregation-based inference per ProteinIdentification run. See class help.
           #   -----
-          #   Annotation of protein groups is currently only possible for a single protein ID run
+          #   Optionally adds indistinguishable protein groups with separate scores, too
           #   -----
           #   :param pep_ids: Vector of peptide identifications
-          #   :param prot_ids: Vector of protein identifications
+          #   :param prot_ids: Vector of protein identification runs. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
-                                ProteinIdentification & prot_id) nogil except +
+                                ProteinIdentification & prot_id,
+                                bool group) nogil except +
           # wrap-doc:
-          #   Performs inference
+          #   Performs basic aggregation-based inference on single ProteinIdentification run. See class help.
           #   -----
           #   Optionally adds indistinguishable protein groups with separate scores, too
-          #   Currently only takes first proteinID run and all peptides
           #   -----
           #   :param pep_ids: Vector of peptide identifications
-          #   :param prot_id: Peptide identification
+          #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
+          #   :return: Writes its results into prot_ids
+
+        void run(ConsensusMap & cmap,
+                    ProteinIdentification & prot_id,
+                    bool group,
+                    bool include_unassigned) nogil except +
+          # wrap-doc:
+          #   Performs basic aggregation-based inference on identifications in a ConsensusMap. See class help.
+          #   -----
+          #   prot_id should contain the union of all proteins in the map. E.g. use ConsensusMapMergerAlgorithm and
+          #   then pass the first=merged run.
+          #   Optionally adds indistinguishable protein groups with separate scores, too
+          #   -----
+          #   :param cmap: ConsensusMap = Consensus features with metadata and peptide identifications
+          #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespace "OpenMS::BasicProteinInferenceAlgorithm":
@@ -85,5 +104,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         #     BasicProteinInferenceAlgorithm
         PROD # wrap-doc:Aggregate by product (ignore zeroes)
         SUM # wrap-doc:Aggregate by summing
-        MAXIMUM # wrap-doc:Aggregate by maximum
+        BEST # wrap-doc:Aggregate by maximum/minimum
 

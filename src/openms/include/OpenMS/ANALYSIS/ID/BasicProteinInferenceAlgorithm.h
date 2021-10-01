@@ -93,7 +93,7 @@ namespace OpenMS
   private:
 
     /**
-     * @brief Performs simple inference on one protein run.
+     * @brief Performs simple aggregation-based inference on one protein run.
      * @param acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
      *  and number of peptidoforms encountered @Todo could use member as hash to save strings
      * @param best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
