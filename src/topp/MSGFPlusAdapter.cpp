@@ -788,6 +788,7 @@ protected:
         for (PeptideHit& psm : pid.getHits())
         {
           auto v = psm.getMetaValue("IsotopeError");
+          // TODO cast to Int!
           psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
           psm.removeMetaValue("IsotopeError");
         }
