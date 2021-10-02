@@ -341,5 +341,7 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
+
+    //static std::vector<int> getIsotopeErrorsFromIntSetting_(int intSetting);
   };
 } // namespace OpenMS

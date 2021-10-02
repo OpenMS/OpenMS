@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
-				<UserParam type="string" name="CometAdapter:1:in" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
+	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="CometAdapter:1:in" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
 				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_1_out1.tmp"/>
 				<UserParam type="string" name="CometAdapter:1:database" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
-				<UserParam type="string" name="CometAdapter:1:comet_executable" value="C:/Development/OpenMS/THIRDPARTY/Windows/64bit/Comet/comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/workspace/OpenMS/THIRDPARTY/Linux/64bit/Comet/comet.exe"/>
 				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_1_out2.tmp.tsv"/>
 				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
 				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="3.0"/>
@@ -57,7 +57,7 @@
 				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2020-03-27T19:09:09" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2021-09-30T16:38:22" search_engine="Comet" search_engine_version="# comet_version 2019.01 rev. 5" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 			</ProteinHit>
@@ -70,6 +70,7 @@
 				<UserParam type="string" name="MS:1002258" value="26"/>
 				<UserParam type="string" name="MS:1002259" value="52"/>
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="3.734"/>
 				<UserParam type="float" name="MS:1002253" value="1.0"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
@@ -83,6 +84,7 @@
 				<UserParam type="string" name="MS:1002258" value="34"/>
 				<UserParam type="string" name="MS:1002259" value="88"/>
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1002252" value="5.268"/>
 				<UserParam type="float" name="MS:1002253" value="1.0"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
