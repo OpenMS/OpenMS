@@ -158,11 +158,7 @@ END_SECTION
 
 START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
                                                       double fragment_tolerance,
-                                                      bool fragment_unit_ppm,
-                                                      bool rem_low_intensity = true,
-                                                      int min_charge = 1,
-                                                      int max_charge = 3,
-                                                      bool keep_only_deisotoped = false))
+                                                      bool fragment_unit_ppm))
 {
   // spectrum with one isotopic pattern
   MSSpectrum spec;
@@ -192,7 +188,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   spec.sortByPosition();
   theo = spec;
   MSSpectrum theo1(spec);
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);//keep only deisotoped
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true);//keep only deisotoped
   TEST_REAL_SIMILAR(theo.front().getMZ(), correct_monoiso);
   Deisotoper::deisotopeAndSingleCharge(theo1, 10.0, true, 1, 3, true);
   TEST_NOT_EQUAL(theo1.front().getMZ(), correct_monoiso);// passes -> not equal
@@ -208,7 +204,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   // Additional peaks that only fit m/z - wise should not disturb cluster formation
   spec.back().setIntensity(20);// intensity is a lot too high to fit correct distribution
   theo = spec;
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, false);// do not remove low intensities
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, -1);// do not remove low intensities
   TEST_EQUAL(theo.size(), 3);
   TEST_REAL_SIMILAR(theo.back().getMZ(), add_mz);// last peak is still there
 
@@ -225,7 +221,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   }
   theo = spec;
   theo.sortByPosition();
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);// keep only deisotoped
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true);// keep only deisotoped
   TEST_EQUAL(theo.size(), 2);
   TEST_EQUAL(theo[0].getMZ(), base_mz2);
   TEST_EQUAL(theo[1].getMZ(), base_mz1);
@@ -237,12 +233,12 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   spec.push_back(peak2);
   spec.sortByPosition();
   theo = spec;
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, false);// do not remove low intensities
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, -1);// do not remove low intensities
   TEST_EQUAL(theo.size(), 6);                                      // two spectra, one peak before, one after one spectrum, and two unassignable peaks
 
   // keep only deisotoped
   theo = spec;
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true); // keep only deisotoped
   TEST_EQUAL(theo.size(), 2);
 
   // test with complete theoretical spectrum
@@ -308,13 +304,13 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   theo1.clear(true);
   theo1 = exp.getSpectrum(0);// for next test
   Size ori_size = theo.size();
-  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);// keep only deisotoped
+  Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true);// keep only deisotoped
   TEST_NOT_EQUAL(theo.size(), ori_size);
   file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
   TEST_EQUAL(theo, exp.getSpectrum(0));
 
   // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
-  Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, false, 1, 3, true);// do not remove low intensity peaks beforehand, but keep only deisotoped
+  Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, -1, 1, 3, true);// do not remove low intensity peaks beforehand, but keep only deisotoped
   TEST_EQUAL(theo1.size(), 104);
 }
 END_SECTION

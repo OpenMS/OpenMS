@@ -47,7 +47,7 @@ namespace OpenMS
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
   bool fragment_unit_ppm,
-  bool rem_low_intensity,
+  int number_of_final_peaks,
   int min_charge,
   int max_charge,
   bool keep_only_deisotoped,
@@ -56,8 +56,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   bool make_single_charged,
   bool annotate_charge,
   bool annotate_iso_peak_count,
-  bool add_up_intensity,
-  bool used_for_open_search)
+  bool add_up_intensity)
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
@@ -76,12 +75,10 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   threshold_mower_filter.filterPeakSpectrum(spec);
 
   // discard low-intensity peaks
-  if (rem_low_intensity)
-  { 
-    UInt max_num_peaks = used_for_open_search ? 1000 : 5000;
-
-    // only keep max_num_peaks highest peaks
-    NLargest nlargest_filter = NLargest(max_num_peaks);
+  if (number_of_final_peaks > 0)
+  {
+    // only keep number_of_final_peaks highest peaks
+    NLargest nlargest_filter = NLargest(number_of_final_peaks);
     nlargest_filter.filterPeakSpectrum(spec);
     
     spec.sortByPosition();
@@ -350,7 +347,10 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
   // properly subsets all datapoints (incl. dataArrays)
   spec.select(select_idx);
-  spec.sortByPosition();
+  if (make_single_charged)
+  {
+    spec.sortByPosition();
+  }
   return;
 }
 
