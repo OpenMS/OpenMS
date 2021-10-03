@@ -59,24 +59,18 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
         BasicProteinInferenceAlgorithm(BasicProteinInferenceAlgorithm) nogil except + #wrap-ignore
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
-                 libcpp_vector[ ProteinIdentification ] & prot_ids,
-                 bool group) nogil except +
+                 libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
           # wrap-doc:
           #   Performs basic aggregation-based inference per ProteinIdentification run. See class help.
-          #   -----
-          #   Optionally adds indistinguishable protein groups with separate scores, too
           #   -----
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_ids: Vector of protein identification runs. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids
 
         void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
-                                ProteinIdentification & prot_id,
-                                bool group) nogil except +
+                                ProteinIdentification & prot_id) nogil except +
           # wrap-doc:
           #   Performs basic aggregation-based inference on single ProteinIdentification run. See class help.
-          #   -----
-          #   Optionally adds indistinguishable protein groups with separate scores, too
           #   -----
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
@@ -84,14 +78,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
 
         void run(ConsensusMap & cmap,
                     ProteinIdentification & prot_id,
-                    bool group,
                     bool include_unassigned) nogil except +
           # wrap-doc:
           #   Performs basic aggregation-based inference on identifications in a ConsensusMap. See class help.
           #   -----
           #   prot_id should contain the union of all proteins in the map. E.g. use ConsensusMapMergerAlgorithm and
           #   then pass the first=merged run.
-          #   Optionally adds indistinguishable protein groups with separate scores, too
           #   -----
           #   :param cmap: ConsensusMap = Consensus features with metadata and peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.

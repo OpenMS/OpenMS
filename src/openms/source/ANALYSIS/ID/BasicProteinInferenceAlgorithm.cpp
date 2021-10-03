@@ -53,6 +53,7 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
+    //TODO allow resolution here
     //TODO allow min_unique_peptides_per_protein (not the same as "use_shared = F" if you want to score the shared ones)
     defaults_.setValue("min_peptides_per_protein", 1,
         "Minimal number of peptides needed for a protein identification."
@@ -64,19 +65,32 @@ namespace OpenMS
                        "best",
                        "How to aggregate scores of peptides matching to the same protein?");
     defaults_.setValidStrings("score_aggregation_method", {"best","product","sum"});
-    //TODO set valid strings
+
     defaults_.setValue("treat_charge_variants_separately", "true",
                        "If this is set, different charge variants of the same peptide sequence count as individual evidences.");
+    defaults_.setValidStrings("treat_charge_variants_separately", {"true","false"});
+
     defaults_.setValue("treat_modification_variants_separately", "true",
                        "If this is set, different modification variants of the same peptide sequence count as individual evidences.");
+    defaults_.setValidStrings("treat_modification_variants_separately", {"true","false"});
+
     defaults_.setValue("use_shared_peptides", "true", "If this is set, shared peptides are used as evidences.");
+    defaults_.setValidStrings("use_shared_peptides", {"true","false"});
+
     defaults_.setValue("skip_count_annotation", "false", "If this is true, peptide counts won't be annotated at the proteins.");
+    defaults_.setValidStrings("skip_count_annotation", {"true","false"});
+
+    defaults_.setValue("annotate_indistinguishable_groups", "true", "If this is true, calculates and annotates indistinguishable protein groups.");
+    defaults_.setValidStrings("annotate_indistinguishable_groups", {"true","false"});
+
+    defaults_.setValue("greedy_group_resolution", "false", "If this is true, shared peptides will be associated to best proteins only (i.e. become quantifiable razor peptides).");
+    defaults_.setValidStrings("greedy_group_resolution", {"true","false"});
+
     defaultsToParam_();
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
-                                           ProteinIdentification &prot_id,
-                                           bool group) const
+                                           ProteinIdentification &prot_id) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
 
@@ -87,9 +101,7 @@ namespace OpenMS
         acc_to_protein_hitP_and_count,
         best_pep,
         prot_id,
-        pep_ids,
-        min_peptides_per_protein,
-        group
+        pep_ids
     );
 
     if (min_peptides_per_protein > 0) //potentially sth was filtered
@@ -101,16 +113,17 @@ namespace OpenMS
     }
   }
 
-  void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool group, bool include_unassigned) const
+  void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool include_unassigned) const
   {
+    bool group(param_.getValue("annotate_indistinguishable_groups").toBool());
+    bool resolve(param_.getValue("greedy_group_resolution").toBool());
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
-
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
-    std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
-
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
+
+    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
+    std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     String agg_method_string(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = aggFromString_(agg_method_string);
@@ -128,6 +141,8 @@ namespace OpenMS
     sp.setMetaValue("TOPPProteinInference:treat_modification_variants_separately", treat_modification_variants_separately);
     prot_run.setSearchParameters(sp);
     auto& prot_hits = prot_run.getHits();
+
+    IDFilter::keepNBestPeptideHits(cmap, 1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
 
     String overall_score_type = "";
     bool higher_better = true;
@@ -206,27 +221,56 @@ namespace OpenMS
 
       IDFilter::updateProteinReferences(cmap, prot_run, true);
     }
+
     if (group)
     {
-      //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
-      // but it is quite fast as it is right now.
-      IDBoostGraph ibg{prot_run, cmap, 1
-                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, true, false};
+      //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure.
+      // Groups would be clustered already. Saving some time.
+      // But it is quite fast right now already.
+      IDBoostGraph ibg{prot_run, cmap, 1, false, include_unassigned, false};
 
       ibg.computeConnectedComponents();
-      ibg.calculateAndAnnotateIndistProteins(true);
+      if (resolve)
+      {
+        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+        //Note: the above does not add singleton groups to graph
+        ibg.resolveGraphPeptideCentric(true);
+        ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+        prot_run.fillIndistinguishableGroupsWithSingletons();
+      }
+      else
+      {
+        ibg.calculateAndAnnotateIndistProteins(true);
+      }
+
       auto & ipg = prot_run.getIndistinguishableProteins();
       std::sort(std::begin(ipg), std::end(ipg));
     }
+    else
+    {
+      if (resolve)
+      {
+        IDBoostGraph ibg{prot_run, cmap, 1, false, include_unassigned, false};
+
+        ibg.computeConnectedComponents();
+        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+        //Note: the above does not add singleton groups to graph
+        ibg.resolveGraphPeptideCentric(true);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+      }
+    }
+
     prot_run.sort();
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
-                                           std::vector<ProteinIdentification> &prot_ids,
-                                           bool group) const
+                                           std::vector<ProteinIdentification> &prot_ids) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
-
+    IDFilter::keepNBestHits(pep_ids,1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
@@ -236,9 +280,7 @@ namespace OpenMS
           acc_to_protein_hitP_and_count,
           best_pep,
           prot_run,
-          pep_ids,
-          min_peptides_per_protein,
-          group
+          pep_ids
           );
     }
 
@@ -488,14 +530,15 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids,
-      Size min_peptides_per_protein,
-      bool group) const
+      std::vector<PeptideIdentification>& pep_ids) const
   {
     // TODO actually clearing the scores should be enough, since this algorithm does not change the grouping
     prot_run.getProteinGroups().clear();
     prot_run.getIndistinguishableProteins().clear();
 
+    bool group(param_.getValue("annotate_indistinguishable_groups").toBool());
+    bool resolve(param_.getValue("greedy_group_resolution").toBool());
+    Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
@@ -562,15 +605,43 @@ namespace OpenMS
 
     if (group)
     {
-      //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
-      // but it is quite fast right now.
-      IDBoostGraph ibg{prot_run, pep_ids, 1
-                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, false};
+      //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure.
+      // Groups would be clustered already. Saving some time.
+      // But it is quite fast right now already.
+      IDBoostGraph ibg{prot_run, pep_ids, 1, false, false};
 
       ibg.computeConnectedComponents();
-      ibg.calculateAndAnnotateIndistProteins(true);
+      if (resolve)
+      {
+        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+        //Note: the above does not add singleton groups to graph
+        ibg.resolveGraphPeptideCentric(true);
+        ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
+        prot_run.fillIndistinguishableGroupsWithSingletons();
+      }
+      else
+      {
+        ibg.calculateAndAnnotateIndistProteins(true);
+      }
+
       auto & ipg = prot_run.getIndistinguishableProteins();
       std::sort(std::begin(ipg), std::end(ipg));
+    }
+    else
+    {
+      if (resolve)
+      {
+        IDBoostGraph ibg{prot_run, pep_ids, 1, false, false};
+
+        ibg.computeConnectedComponents();
+        ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+        //Note: the above does not add singleton groups to graph
+        ibg.resolveGraphPeptideCentric(true);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
+      }
     }
   }
 } //namespace OpenMS

@@ -3095,6 +3095,9 @@ set_tests_properties("UTILS_Epifany_2_out" PROPERTIES DEPENDS "UTILS_Epifany_2")
 add_test("UTILS_Epifany_3" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:keep_best_PSM_only false -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_3_out.tmp -out_type consensusXML)
 add_test("UTILS_Epifany_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_3_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML)
 set_tests_properties("UTILS_Epifany_3_out" PROPERTIES DEPENDS "UTILS_Epifany_3")
+add_test("UTILS_Epifany_4" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input_singlerun.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -greedy_group_resolution remove_proteins_wo_evidence -out Epifany_4_out.tmp)
+add_test("UTILS_Epifany_4_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_4_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_4_out_singlerun.idXML)
+set_tests_properties("UTILS_Epifany_4_out" PROPERTIES DEPENDS "UTILS_Epifany_4")
 
 #------------------------------------------------------------------------------
 # QCCalculator:

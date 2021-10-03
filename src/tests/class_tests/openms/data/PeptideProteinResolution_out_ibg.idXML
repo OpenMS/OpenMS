@@ -13,64 +13,58 @@
 	</SearchParameters>
 	<IdentificationRun date="2015-10-29T15:11:47" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="A" score="0.6" sequence="" >
+			<ProteinHit id="PH_0" accession="C" score="0.6" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="C" score="0.6" sequence="" >
+			<ProteinHit id="PH_1" accession="D" score="0.6" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="D" score="0.6" sequence="" >
+			<ProteinHit id="PH_2" accession="E" score="0.7" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="E" score="0.7" sequence="" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</ProteinHit>
-      <UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML]"/>
-      <UserParam type="string" name="indistinguishable_proteins_0" value="0.6,PH_0"/>
-      <UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_1"/>
-      <UserParam type="string" name="indistinguishable_proteins_2" value="0.6,PH_2"/>
-      <UserParam type="string" name="indistinguishable_proteins_3" value="0.7,PH_3"/>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.7,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.6,PH_1"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-      <!-- two proteins with same score but PH_1 has more peptides -> PH_1 (C) wins tie resolution during inference --> 
-      <PeptideHit score="0.5" sequence="AC" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_0 PH_1" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="AC" charge="2" aa_before="[" aa_after="]" start="4" end="25" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-			<PeptideHit score="0.5" sequence="AACC" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_0 PH_1" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="AACC" charge="2" aa_before="[" aa_after="]" start="4" end="25" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-			<PeptideHit score="0.5" sequence="C" charge="2" aa_before="K" aa_after="G" start="227" end="248" protein_refs="PH_1" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="C" charge="2" aa_before="K" aa_after="G" start="227" end="248" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-      <!-- two proteins PH_2 and PH_3 with different scores. PH_3 has better score -> PH_3 wins peptides DE and DDEE of PH_2 --> 
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-			<PeptideHit score="0.99" sequence="D" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_2" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.99" sequence="D" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-      <PeptideHit score="0.5" sequence="DE" charge="2" aa_before="[ K" aa_after="] K" start="0 23" end="20 54" protein_refs="PH_2 PH_3" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="DE" charge="2" aa_before="K" aa_after="K" start="23" end="54" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-      <PeptideHit score="0.5" sequence="DDEE" charge="2" aa_before="[ R" aa_after="] R" start="0 23" end="20 34" protein_refs="PH_2 PH_3" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="DDEE" charge="2" aa_before="R" aa_after="R" start="23" end="34" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
-			<PeptideHit score="0.01" sequence="E" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_3" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.01" sequence="E" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>

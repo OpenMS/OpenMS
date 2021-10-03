@@ -251,7 +251,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   TEST_STRING_EQUAL(pi_4.getDecoyString(), "DECOY_"); //here DECOY_ is the default when finding an affix fails
   TEST_EQUAL(pi_4.isPrefix(), true); // prefix is default too
 
-  // wrong suffix
+  // simple suffix
   PeptideIndexing pi_42;
   Param p_42 = pi_42.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_42 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "Protein2_DECOY");

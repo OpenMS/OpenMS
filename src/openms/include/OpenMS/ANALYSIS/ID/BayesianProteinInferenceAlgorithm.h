@@ -106,6 +106,7 @@ namespace OpenMS
     void inferPosteriorProbabilities(
         std::vector<ProteinIdentification>& proteinIDs,
         std::vector<PeptideIdentification>& peptideIDs,
+        bool greedy_group_resolution,
         boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
 
     /// Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.

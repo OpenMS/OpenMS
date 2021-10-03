@@ -755,6 +755,10 @@ public:
     static void removeUnreferencedProteins(
       std::vector<ProteinIdentification>& proteins,
       const std::vector<PeptideIdentification>& peptides);
+    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
+    static void removeUnreferencedProteins(
+        ProteinIdentification& proteins,
+        const std::vector<PeptideIdentification>& peptides);
 
     /**
        @brief Removes references to missing proteins

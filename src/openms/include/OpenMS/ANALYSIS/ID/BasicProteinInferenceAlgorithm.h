@@ -83,9 +83,9 @@ namespace OpenMS
      *   Running on a ConsensusMap @p cmap will always merge all runs into one and put it as first run.
      *  @{
      */
-    void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids, bool group) const;
-    void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id, bool group) const;
-    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool group, bool include_unassigned) const;
+    void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
+    void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id) const;
+    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
     /*
      *  @}
      */
@@ -105,9 +105,7 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids,
-      Size min_peptides_per_protein,
-      bool group) const;
+      std::vector<PeptideIdentification>& pep_ids) const;
 
     /// fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
     void aggregatePeptideScores_(
@@ -127,7 +125,7 @@ namespace OpenMS
     /// get the AggregationMethod enum from a @p method_string
     AggregationMethod aggFromString_(const std::string& method_string) const;
 
-    /// check if a @p score_type is compatible to the chosen @p aggreagation_method
+    /// check if a @p score_type is compatible to the chosen @p aggregation_method
     void checkCompat_(
         const String& score_type,
         const AggregationMethod& aggregation_method

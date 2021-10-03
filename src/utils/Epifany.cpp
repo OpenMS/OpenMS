@@ -146,6 +146,21 @@ protected:
                           "Use (D+1)/(T) instead of (D+1)/(T+D) for reporting protein FDRs.", false, true);
     setValidStrings_("conservative_fdr", {"true","false"});
 
+    registerStringOption_("picked_fdr",
+                          "<option>",
+                          "true",
+                          "Use picked protein FDRs.", false, true);
+    setValidStrings_("picked_fdr", {"true","false"});
+    registerStringOption_("picked_decoy_string",
+                          "<decoy_string>",
+                          "",
+                          "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
+    registerStringOption_("picked_decoy_prefix",
+                          "<option>",
+                          "prefix",
+                          "If using picked protein FDRs, was the decoy string a prefix or suffix? Ignored during auto-detection.", false, true);
+    setValidStrings_("picked_decoy_prefix", {"prefix","suffix"});
+
     registerStringOption_("greedy_group_resolution",
                        "<option>",
                        "none",
@@ -336,13 +351,13 @@ protected:
         fdr.setParameters(fdrparam);
         for (auto& run : cmap.getProteinIdentifications())
         {
-          if (getStringOption_("picked_fdr") == "false")
+          if (getStringOption_("picked_fdr") == "true")
           {
-            fdr.applyBasic(run, true);
+            fdr.applyPickedProteinFDR(run, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
           }
           else
           {
-            fdr.applyPickedProteinFDR(run, true);
+            fdr.applyBasic(run, true);
           }
         }
       }
@@ -360,7 +375,6 @@ protected:
       {
         for (String& file : files)
         {
-          //TODO this only works for idXML
           vector<ProteinIdentification> prots;
           vector<PeptideIdentification> peps;
           idXMLf.load(file, prots, peps);
@@ -409,7 +423,7 @@ protected:
 
       BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
       bpi1.setParameters(epifany_param);
-      bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
+      bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps, greedy_group_resolution);
       OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
       sw.stop();
 
@@ -419,8 +433,8 @@ protected:
       //  But this would lead to unnecessary computations during inference. So add after.
       //The PeptideProteinResolution class needs it.
       //TODO remove, when resolution in IDBGraph is stable
-      mergedprots[0].fillIndistinguishableGroupsWithSingletons();
 
+      /*
       if (greedy_group_resolution)
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
@@ -433,6 +447,8 @@ protected:
 
         //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
       }
+*/
+
       if (remove_prots_wo_evidence)
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
@@ -450,7 +466,14 @@ protected:
         fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
         fdrparam.setValue("add_decoy_proteins","true");
         fdr.setParameters(fdrparam);
-        fdr.applyBasic(mergedprots[0], true);
+        if (getStringOption_("picked_fdr") == "true")
+        {
+          fdr.applyPickedProteinFDR(mergedprots[0], getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+        }
+        else
+        {
+          fdr.applyBasic(mergedprots[0], true);
+        }
       }
 
       OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<

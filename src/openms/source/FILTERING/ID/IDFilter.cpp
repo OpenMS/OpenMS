@@ -298,6 +298,31 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::removeUnreferencedProteins(
+      ProteinIdentification& proteins,
+      const vector<PeptideIdentification>& peptides)
+  {
+    // collect accessions that are referenced by peptides for each ID run:
+    map<String, unordered_set<String> > run_to_accessions;
+    for (const PeptideIdentification& pep_it : peptides)
+    {
+      const String& run_id = pep_it.getIdentifier();
+      // extract protein accessions of each peptide hit:
+      for (const PeptideHit& hit_it : pep_it.getHits())
+      {
+        const set<String>& current_accessions =
+            hit_it.extractProteinAccessionsSet();
+
+        run_to_accessions[run_id].insert(current_accessions.begin(),
+                                         current_accessions.end());
+      }
+    }
+
+    const String& run_id = proteins.getIdentifier();
+    const unordered_set<String>& accessions = run_to_accessions[run_id];
+    struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+    keepMatchingItems(proteins.getHits(), acc_filter);
+  }
 
   void IDFilter::removeUnreferencedProteins(
     vector<ProteinIdentification>& proteins,

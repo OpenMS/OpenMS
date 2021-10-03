@@ -192,12 +192,12 @@ namespace OpenMS
 
       OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
       {
-        return String("PG");
+        return {"PG"};
       }
 
       OpenMS::String operator()(const PeptideCluster& /*pc*/) const
       {
-        return String("PepClust");
+        return {"PepClust"};
       }
 
       OpenMS::String operator()(const Peptide& peptide) const
@@ -207,12 +207,12 @@ namespace OpenMS
 
       OpenMS::String operator()(const RunIndex& ri) const
       {
-        return String("rep" + String(ri));
+        return {"rep" + String(ri)};
       }
 
       OpenMS::String operator()(const Charge& chg) const
       {
-        return String("chg" + String(chg));
+        return {"chg" + String(chg)};
       }
 
     };
@@ -327,6 +327,34 @@ namespace OpenMS
 
     };
 
+    class GetScoreTgTVisitor:
+    public boost::static_visitor<std::pair<double,bool>>
+        {
+        public:
+
+          std::pair<double,bool> operator()(PeptideHit* pep) const
+          {
+            return {pep->getScore(), pep->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinHit* prot) const
+          {
+            return {prot->getScore(), prot->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinGroup& pg) const
+          {
+            return {pg.score, pg.tgts > 0};
+          }
+
+          // Everything else, do nothing for now
+          template <class T>
+          std::pair<double,bool> operator()(T& /*any node type*/) const
+          {
+            return {-1.0, false};
+          }
+    };
+
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
                 std::vector<PeptideIdentification>& idedSpectra,
@@ -359,6 +387,7 @@ namespace OpenMS
     //TODO create a new class for an extended Graph and try to reuse as much as possible
     // use inheritance or templates
     /// (under development) As above but adds charge, replicate and sequence layer of nodes (untested)
+    /// @todo needs to be finished, updated with latest additions (i.e. check clusterIndistProteinsAndPeptides), and tested
     void clusterIndistProteinsAndPeptidesAndExtendGraph();
 
     /// Annotate indistinguishable proteins by adding the groups to the underlying
