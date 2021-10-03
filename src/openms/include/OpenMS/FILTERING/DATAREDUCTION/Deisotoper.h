@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <vector>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <vector>
 
 namespace OpenMS
 {
