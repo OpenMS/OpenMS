@@ -1081,7 +1081,7 @@ namespace OpenMS
 
         for (const auto& prot : groups_or_singles)
         {
-          if (prot != best_prot) // ERROR!!!!: If best prot is from the other vectorr the matching by pointer will not work!!
+          if (prot != best_prot)
           {
             if (fg[prot].which() == 1) // if the node is a group, find their members first.
             {
@@ -1123,11 +1123,33 @@ namespace OpenMS
                 newev.emplace_back(e);
               }
             }
+            if (newev.empty())
+            {
+
+              std::cout << groups_or_singles.size() << std::endl;
+              //std::cout << "best: " << boost::get<ProteinHit*>(fg[best_prot])->getAccession() << std::endl;
+              std::cout << "before: " << std::endl;
+              for (const auto& evi : ev)
+              {
+                std::cout << evi.getProteinAccession() << " " << std::endl;
+              }
+              std::cout << "toremove: " << std::endl;
+              for (const auto& evi : accs_to_remove)
+              {
+                std::cout << evi << " " << std::endl;
+              }
+              std::cout << "after: "  << std::endl;
+              for (const auto& evi : newev)
+              {
+                std::cout << evi.getProteinAccession() << " " << std::endl;
+              }
+            }
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();
           }
           singles.clear();
         }
+        groups_or_singles.clear();
       }
     }
   }
