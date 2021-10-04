@@ -53,7 +53,6 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
-    //TODO allow resolution here
     //TODO allow min_unique_peptides_per_protein (not the same as "use_shared = F" if you want to score the shared ones)
     defaults_.setValue("min_peptides_per_protein", 1,
         "Minimal number of peptides needed for a protein identification."
@@ -67,23 +66,23 @@ namespace OpenMS
     defaults_.setValidStrings("score_aggregation_method", {"best","product","sum"});
 
     defaults_.setValue("treat_charge_variants_separately", "true",
-                       "If this is set, different charge variants of the same peptide sequence count as individual evidences.");
+                       "If this is true, different charge variants of the same peptide sequence count as individual evidences.");
     defaults_.setValidStrings("treat_charge_variants_separately", {"true","false"});
 
     defaults_.setValue("treat_modification_variants_separately", "true",
-                       "If this is set, different modification variants of the same peptide sequence count as individual evidences.");
+                       "If this is true, different modification variants of the same peptide sequence count as individual evidences.");
     defaults_.setValidStrings("treat_modification_variants_separately", {"true","false"});
 
-    defaults_.setValue("use_shared_peptides", "true", "If this is set, shared peptides are used as evidences.");
+    defaults_.setValue("use_shared_peptides", "true", "If this is true, shared peptides are used as evidences. Note: shared_peptides are not deleted and potentially resolved in postprocessing as well.");
     defaults_.setValidStrings("use_shared_peptides", {"true","false"});
 
-    defaults_.setValue("skip_count_annotation", "false", "If this is true, peptide counts won't be annotated at the proteins.");
+    defaults_.setValue("skip_count_annotation", "false", "If this is set, peptide counts won't be annotated at the proteins.");
     defaults_.setValidStrings("skip_count_annotation", {"true","false"});
 
     defaults_.setValue("annotate_indistinguishable_groups", "true", "If this is true, calculates and annotates indistinguishable protein groups.");
     defaults_.setValidStrings("annotate_indistinguishable_groups", {"true","false"});
 
-    defaults_.setValue("greedy_group_resolution", "false", "If this is true, shared peptides will be associated to best proteins only (i.e. become quantifiable razor peptides).");
+    defaults_.setValue("greedy_group_resolution", "false", "If this is true, shared peptides will be associated to best proteins only (i.e. become potentially quantifiable razor peptides).");
     defaults_.setValidStrings("greedy_group_resolution", {"true","false"});
 
     defaultsToParam_();
@@ -617,8 +616,8 @@ namespace OpenMS
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
         ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
       else
@@ -631,7 +630,7 @@ namespace OpenMS
     }
     else
     {
-      if (resolve)
+      if (resolve) // resolution needs groups anyway, so this is very similar to above, except that we remove them in the end.
       {
         IDBoostGraph ibg{prot_run, pep_ids, 1, false, false};
 
@@ -639,7 +638,7 @@ namespace OpenMS
         ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        prot_run.getIndistinguishableProteins().clear();
         IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
       }
     }

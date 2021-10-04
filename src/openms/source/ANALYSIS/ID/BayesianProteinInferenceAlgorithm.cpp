@@ -917,6 +917,7 @@ namespace OpenMS
     param_.setValue("update_PSM_probabilities","false");
 
     bool annotate_group_posteriors = param_.getValue("annotate_group_probabilities").toBool();
+    // during grid search we evaluate on single protein-level
     param_.setValue("annotate_group_probabilities","false");
 
     //TODO run grid search on reduced graph? Then make sure, untouched protein/peps do not affect evaluation results.

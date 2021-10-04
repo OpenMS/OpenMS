@@ -1017,6 +1017,7 @@ namespace OpenMS
     }
   }
 
+  // TODO allow for higher_score_worse
   void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData = true/*, bool resolveTies*/)
   {
     GetScoreTgTVisitor gpv;
@@ -1056,6 +1057,7 @@ namespace OpenMS
         }
 
         vertex_t best_prot = groups_or_singles[best_indexes[0]]; //cannot be empty
+        // if multiple equally good protein/groups exist, take the one with most identified (unmodified) peptide sequences
         if (best_indexes.size() > 1)
         {
           std::vector<vertex_t> prots_to_resolve(best_indexes.size());
@@ -1077,7 +1079,7 @@ namespace OpenMS
             peps.clear();
           }
         }
-        //TODO what if there are still ties left?
+        //TODO what if there are still ties left? Currently it just takes the first occurrence (due to ">")
 
         for (const auto& prot : groups_or_singles)
         {
@@ -1125,24 +1127,9 @@ namespace OpenMS
             }
             if (newev.empty())
             {
-
-              std::cout << groups_or_singles.size() << std::endl;
-              //std::cout << "best: " << boost::get<ProteinHit*>(fg[best_prot])->getAccession() << std::endl;
-              std::cout << "before: " << std::endl;
-              for (const auto& evi : ev)
-              {
-                std::cout << evi.getProteinAccession() << " " << std::endl;
-              }
-              std::cout << "toremove: " << std::endl;
-              for (const auto& evi : accs_to_remove)
-              {
-                std::cout << evi << " " << std::endl;
-              }
-              std::cout << "after: "  << std::endl;
-              for (const auto& evi : newev)
-              {
-                std::cout << evi.getProteinAccession() << " " << std::endl;
-              }
+              OPENMS_LOG_ERROR << "No evidences left for peptide " <<
+              peptidePtr->getSequence().toString() << " This should not happen. Please report an issue on GitHub."
+              << std::endl;
             }
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();

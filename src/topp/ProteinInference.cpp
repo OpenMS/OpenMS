@@ -119,11 +119,6 @@ protected:
                           "If your idXML contains multiple runs, merge them beforehand? Otherwise performs inference separately per run.", false);
     setValidStrings_("merge_runs", ListUtils::create<String>("no,all"));
 
-    registerStringOption_("annotate_indist_groups", "<choice>", "true",
-        "If you want to annotate indistinguishable protein groups,"
-        " either for reporting or for group based quant. later.", false);
-    setValidStrings_("annotate_indist_groups", ListUtils::create<String>("true,false"));
-
     registerStringOption_("protein_fdr",
                           "<option>",
                           "false",
@@ -183,8 +178,6 @@ protected:
 
     FileTypes::Type in_type = FileHandler::getType(in[0]);
 
-    bool annotate_indist_groups = getStringOption_("annotate_indist_groups") == "true";
-
     if (!in.empty() && in_type == FileTypes::CONSENSUSXML)
     {
       if (FileHandler::getTypeByFileName(out) != FileTypes::CONSENSUSXML &&
@@ -209,7 +202,7 @@ protected:
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;
       pi.setParameters(getParam_().copy("Algorithm:", true));
-      pi.run(cmap, cmap.getProteinIdentifications()[0], annotate_indist_groups, true);
+      pi.run(cmap, cmap.getProteinIdentifications()[0], true);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 
@@ -277,7 +270,7 @@ protected:
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;
       pi.setParameters(getParam_().copy("Algorithm:", true));
-      pi.run(inferred_peptide_ids, inferred_protein_ids, annotate_indist_groups);
+      pi.run(inferred_peptide_ids, inferred_protein_ids);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 

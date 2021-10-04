@@ -427,28 +427,6 @@ protected:
       OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
       sw.stop();
 
-      // Let's always add all the proteins to the protein group section, easier in postprocessing.
-      // PeptideProteinResolution needs it anyway.
-      //Note: this might be possible with the addSingleton option when clustering the graph
-      //  But this would lead to unnecessary computations during inference. So add after.
-      //The PeptideProteinResolution class needs it.
-      //TODO remove, when resolution in IDBGraph is stable
-
-      /*
-      if (greedy_group_resolution)
-      {
-        OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
-        //TODO add group resolution to the IDBoostGraph class so we do not
-        // unnecessarily build a second (old) data structure
-
-        PeptideProteinResolution ppr;
-        ppr.buildGraph(mergedprots[0], mergedpeps);
-        ppr.resolveGraph(mergedprots[0], mergedpeps);
-
-        //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
-      }
-*/
-
       if (remove_prots_wo_evidence)
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;

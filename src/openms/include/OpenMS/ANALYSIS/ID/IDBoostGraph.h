@@ -173,8 +173,8 @@ namespace OpenMS
       std::map<vertex_t, vertex_t> m;
     };
 
-    //TODO group visitors by templates
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    ///@brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    /// e.g. for printing to dot format
     class LabelVisitor:
         public boost::static_visitor<OpenMS::String>
     {
@@ -192,12 +192,12 @@ namespace OpenMS
 
       OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
       {
-        return {"PG"};
+        return "PG";
       }
 
       OpenMS::String operator()(const PeptideCluster& /*pc*/) const
       {
-        return {"PepClust"};
+        return "PepClust";
       }
 
       OpenMS::String operator()(const Peptide& peptide) const
@@ -207,17 +207,17 @@ namespace OpenMS
 
       OpenMS::String operator()(const RunIndex& ri) const
       {
-        return {"rep" + String(ri)};
+        return "rep" + String(ri);
       }
 
       OpenMS::String operator()(const Charge& chg) const
       {
-        return {"chg" + String(chg)};
+        return "chg" + String(chg);
       }
 
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
+    /// @brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
     /// For debugging purposes only
     template<class CharT>
     class PrintAddressVisitor:
@@ -267,7 +267,8 @@ namespace OpenMS
       std::basic_ostream<CharT> stream_;
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type sets the posterior
     /// Don't forget to set higherScoreBetter and score names in the parent ID objects.
     class SetPosteriorVisitor:
         public boost::static_visitor<>
@@ -298,6 +299,8 @@ namespace OpenMS
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior)
     class GetPosteriorVisitor:
         public boost::static_visitor<double>
     {
@@ -327,6 +330,9 @@ namespace OpenMS
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
+    /// If not known or not defined, returns (-1.0, false)
     class GetScoreTgTVisitor:
     public boost::static_visitor<std::pair<double,bool>>
         {
