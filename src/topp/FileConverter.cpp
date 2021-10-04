@@ -775,8 +775,7 @@ protected:
       else if (in_type == FileTypes::OMS)
       {
         OMSFile().load(in, fm);
-        std::cout << fm.size() << std::endl;
-        IdentificationDataConverter::exportFeatureIDs(fm, true); // clear_original
+        IdentificationDataConverter::exportFeatureIDs(fm);
       }
       else // not loaded as feature map or consensus map
       {
