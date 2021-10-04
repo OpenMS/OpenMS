@@ -431,14 +431,10 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    typedef PeakMap MSExperimentType;
-    MSExperimentType exp;
+    typedef MSExperiment::SpectrumType SpectrumType;
 
-    typedef MSExperimentType::SpectrumType SpectrumType;
-
-    typedef FeatureMap FeatureMapType;
-
-    FeatureMapType fm;
+    MSExperiment exp;
+    FeatureMap fm;
     ConsensusMap cm;
 
     writeDebug_(String("Loading input file"), 1);
@@ -713,7 +709,7 @@ protected:
                                                  CONVERSION_MZDATA));
       MzDataFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::MZXML)
@@ -725,7 +721,7 @@ protected:
       f.setLogType(log_type_);
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      //ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      //ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
@@ -735,7 +731,7 @@ protected:
                                                  FORMAT_CONVERSION));
       DTA2DFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       if (TIC_DTA2D)
       {
         // store the total ion chromatogram (TIC)
@@ -778,10 +774,9 @@ protected:
       }
       else if (in_type == FileTypes::OMS)
       {
-        FeatureMap fm;
         OMSFile().load(in, fm);
         std::cout << fm.size() << std::endl;
-        IdentificationDataConverter::exportFeatureIDs(fm);
+        IdentificationDataConverter::exportFeatureIDs(fm, true); // clear_original
       }
       else // not loaded as feature map or consensus map
       {
@@ -793,7 +788,7 @@ protected:
         feature.setQuality(0, 1); // override default
         feature.setQuality(1, 1); // override default
         feature.setOverallQuality(1); // override default
-        for (MSExperimentType::ConstIterator spec_iter = exp.begin();
+        for (MSExperiment::ConstIterator spec_iter = exp.begin();
              spec_iter != exp.end();
              ++spec_iter
              )

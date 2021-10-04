@@ -126,7 +126,16 @@ namespace OpenMS
 
     // extract identification data from FeatureMap
     // has to be passed as const & if not the references might change!
+    // const IdentificationData& id_data = feature_map.getIdentificationData();
     const IdentificationData& id_data = feature_map.getIdentificationData();
+
+    for (const auto& software : id_data.getProcessingSoftwares())
+    {
+      for (const auto& score : software.assigned_scores)
+      {
+        std::cout << "mztabm-id-software.as: " << score << std::endl;
+      }
+    }
 
     UInt64 local_id = feature_map.getUniqueId();
     // mz_tab_id (mandatory)
@@ -516,10 +525,16 @@ namespace OpenMS
         sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
         sme.ms_level = ms_level;
         int score_counter = 0;
-        for (const auto& id_score_ref : id_score_refs)
+        for (const auto& id_score_ref : id_score_refs) // vector of references based on the ProcessingStep
         {
+          std::cout << "use-id-score-ref-from-software: " << id_score_ref << " " << match_ref->getScore(id_score_ref).first << " " << match_ref->getScore(id_score_ref).second << std::endl;
           ++score_counter; //starts at 1 anyway
           sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
+        }
+        for (const auto& steps_and_scores : match_ref->steps_and_scores)
+        {
+          for (const auto& s_and_s : steps_and_scores.scores)
+          std::cout << "ObservationMatch - steps and scores: " << s_and_s.first << " " << s_and_s.second << " " << std::endl;
         }
         sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
         // TODO: How to add opt_ columns

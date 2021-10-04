@@ -1314,7 +1314,9 @@ namespace OpenMS
     query_feat.bindValue(":overall_quality", feature.getOverallQuality());
     query_feat.bindValue(":rt_quality", feature.getQuality(0));
     query_feat.bindValue(":mz_quality", feature.getQuality(1));
-    query_feat.bindValue(":unique_id", quint64(feature.getUniqueId()));
+    UInt64 uint64_featureID = feature.getUniqueId();
+    int64_t f_unique_id = *(int64_t*)&uint64_featureID;
+    query_feat.bindValue(":unique_id", f_unique_id);
     if (feature.hasPrimaryID())
     {
       query_feat.bindValue(":primary_molecule_id", getAddress_(feature.getPrimaryID()));
@@ -1489,7 +1491,9 @@ namespace OpenMS
                   ":identifier, "                         \
                   ":file_path, "                          \
                   ":file_type)");
-    query.bindValue(":unique_id",  quint64(features.getUniqueId())); // qint64 (-4317911969993237730) seems to change Uint64 (14128832103716313886) > quint64 (14128832103716313886)
+    UInt64 uint64_featureID = features.getUniqueId();
+    int64_t feature_id = *(int64_t*)&uint64_featureID;
+    query.bindValue(":unique_id",  feature_id); // qint64 (-4317911969993237730) seems to change Uint64 (14128832103716313886) > quint64 (14128832103716313886)
     query.bindValue(":identifier", features.getIdentifier().toQString());
     query.bindValue(":file_path", features.getLoadedFilePath().toQString());
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
@@ -1503,7 +1507,9 @@ namespace OpenMS
     {
       createTableMetaInfo_("FEAT_MapMetaData", "unique_id");
       QSqlQuery query_meta = getQueryMetaInfo_("FEAT_MapMetaData");
-      storeMetaInfo_(features, quint64(features.getUniqueId()), query_meta);
+      UInt64 uint64_featureID = features.getUniqueId();
+      int64_t feature_id = *(int64_t*)&uint64_featureID;
+      storeMetaInfo_(features, feature_id, query_meta);
     }
   }
 

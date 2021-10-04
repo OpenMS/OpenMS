@@ -120,6 +120,7 @@ public:
       for (Size index = 0; index < getBase_().size(); ++index)
       {
         UInt64 unique_id = getBase_()[index].getUniqueId();
+        std::cout << "unique_id: " << unique_id;
         if (UniqueIdInterface::isValid(unique_id))
         {
           uniqueid_to_index_[unique_id] = index;

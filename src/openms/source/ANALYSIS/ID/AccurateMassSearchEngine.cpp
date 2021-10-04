@@ -621,6 +621,8 @@ namespace OpenMS
 
       // add information about current tool
       // register a score type
+
+      // TODO: check error
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
@@ -635,6 +637,11 @@ namespace OpenMS
       // if the name is not available in PSI-OBO "analysis software" will be used.
       IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
       IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+
+      for (const auto& processing_software_score : sw_ref->assigned_scores)
+      {
+        std::cout << "added_processing_software_scores: " << processing_software_score << std::endl;
+      }
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
@@ -717,10 +724,6 @@ namespace OpenMS
     {
       // add the identification data to the featureXML
       // to allow featureXML export (without the use of legacy_ID)
-      // TODO: There is still a difference, it seems MetaValues are not reported correctly?
-      // TODO: Even if set in the addMatchesToID_()
-      // TODO: Have to set the score_type?
-      // TODO: Check if the MetaValues actually have been set or
       // been transferred from the previous data stored within
       // the feature.
       IdentificationDataConverter::exportFeatureIDs(fmap, false);
@@ -787,27 +790,18 @@ namespace OpenMS
         applied_processing_steps.emplace_back(applied_processing_step);
 
         // register compound
-        const String& names = entry->second[0];
+        const String& name = entry->second[0];
         const String& smiles = entry->second[1];
         const String& inchi_key = entry->second[2];
+        std::vector<String> names = {name}; // to fit legacy format - MetaValue
+        std::vector<String> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
         // TODO: or have an additional column for possible database, where is that stored?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
-                                                        names,
+                                                        name,
                                                         smiles,
                                                         inchi_key,
                                                         applied_processing_steps);
-
-        // add additional meta values to fit the legacy featureXML format somewhat
-        // TODO: This should probably be done automatically in the exportFeautreIDs function
-        // TODO: to add all previously available MetaValues again.
-        // TODO: does not work that way - maybe have to set it at another position?
-        // match.setMetaValue("identifier", r.getMatchingHMDBids()[i]);
-        // match.setMetaValue("description", names);
-        // match.setMetaValue("modifications", r.getFoundAdduct());
-        // match.setMetaValue("chemical_formula", r.getFormulaString());
-        // match.setMetaValue("mz_error_ppm", r.getMZErrorPPM());
-        // match.setMetaValue("mz_error_Da", r.getObservedMZ() - r.getCalculatedMZ());
 
         auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
 
@@ -815,6 +809,12 @@ namespace OpenMS
         IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
         match.addScore(mass_error_ppm_score_ref, mass_error_ppm, step_ref);
         match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
+        match.setMetaValue("identifier", identifiers);
+        match.setMetaValue("description", names);
+        match.setMetaValue("modifications", r.getFoundAdduct());
+        match.setMetaValue("chemical_formula", r.getFormulaString());
+        match.setMetaValue("mz_error_ppm", mass_error_ppm);
+        match.setMetaValue("mz_error_Da", mass_error_Da);
 
         // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+
@@ -831,6 +831,20 @@ namespace OpenMS
         // add to Feature (set PrimaryID to add a reference to a specific molecule)
         f.setPrimaryID(molecule);
         f.addIDMatch(obs_match_ref);
+
+        for (const auto& score : id.getCurrentProcessingStep()->software_ref->assigned_scores)
+        {
+          std::cout << "AMS-id-get.as: " << score << std::endl;
+        }
+
+        for (const auto& software : id.getProcessingSoftwares())
+        {
+          for (const auto& score : software.assigned_scores)
+          {
+            std::cout << "AMS-id-software.as: " << score << std::endl;
+          }
+        }
+
       }
     }
   }
@@ -1407,7 +1421,6 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
         }
-
       }
     }
 

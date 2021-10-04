@@ -1147,6 +1147,7 @@ namespace OpenMS
       {
         feat.clearPrimaryID();
         feat.getIDMatches().clear();
+        std::cout << "exportIDs: " << feat.getUniqueId() << std::endl;
       }
     }
   }

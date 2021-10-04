@@ -69,7 +69,7 @@ START_TEST(MzTabM, "$Id$")
           // SML Small molecule section row
           MzTabMSmallMoleculeSectionRows sml_rows;
           MzTabMSmallMoleculeSectionRow sml_row;
-          sml_row.identifier.fromCellString(1);
+          sml_row.sms_identifier.fromCellString(1);
           sml_row.smf_id_refs.fromCellString("[1|2]");
           sml_row.database_identifier.fromCellString("[HMDB:HMDB0001847]");
           sml_row.chemical_formula.fromCellString("[C17H20N4O2]");
@@ -347,11 +347,8 @@ START_TEST(MzTabM, "$Id$")
         {
           // TODO: Save OMS file from AccurateMassSearch
           // TODO: Load OMS file
-          // TODO: Check what information can be derived from the OMS file
-          // TODO: How can the stuff be derived
-
-          // TODO: Can that be done using FileConverter as well?
-          // TODO: Possible to get the OMS from feautreXML? Probably not since no identification Data object is available.
+          // TODO: fill mztab data strucutre wiht oms file
+          // TODO: Test some of the fields!
 
         }
     END_SECTION
