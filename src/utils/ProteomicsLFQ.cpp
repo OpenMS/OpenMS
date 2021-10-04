@@ -192,7 +192,8 @@ protected:
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);
 
-    registerStringOption_("picked_proteinFDR", "<choice>", "true", "Use a picked protein FDR?", false);
+    //TODO test rigorously
+    registerStringOption_("picked_proteinFDR", "<choice>", "false", "Use a picked protein FDR?", false);
 
     registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
@@ -202,7 +203,7 @@ protected:
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
       "Infer proteins:\n" 
-      "aggregation  = aggregates all peptide scores across a protein (by calculating the maximum) \n"
+      "aggregation  = aggregates all peptide scores across a protein (using the best score) \n"
       "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
       "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
       false, true);
