@@ -621,8 +621,6 @@ namespace OpenMS
 
       // add information about current tool
       // register a score type
-
-      // TODO: check error
       IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
       mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
       IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
@@ -637,11 +635,6 @@ namespace OpenMS
       // if the name is not available in PSI-OBO "analysis software" will be used.
       IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
       IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
-
-      for (const auto& processing_software_score : sw_ref->assigned_scores)
-      {
-        std::cout << "added_processing_software_scores: " << processing_software_score << std::endl;
-      }
 
       // all supported search settings
       IdentificationData::DBSearchParam search_param;
@@ -831,20 +824,6 @@ namespace OpenMS
         // add to Feature (set PrimaryID to add a reference to a specific molecule)
         f.setPrimaryID(molecule);
         f.addIDMatch(obs_match_ref);
-
-        for (const auto& score : id.getCurrentProcessingStep()->software_ref->assigned_scores)
-        {
-          std::cout << "AMS-id-get.as: " << score << std::endl;
-        }
-
-        for (const auto& software : id.getProcessingSoftwares())
-        {
-          for (const auto& score : software.assigned_scores)
-          {
-            std::cout << "AMS-id-software.as: " << score << std::endl;
-          }
-        }
-
       }
     }
   }
