@@ -246,13 +246,13 @@ namespace OpenMS
     if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
 
     // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
-    if (id.hasPrefix("index=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+    if (id.hasPrefix("scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
 
     // "spectrum=NUMBER"
     if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
 
     // "file=NUMBER" Bruker FID or single peak list 
-    if (id.hasPrefix("index=")) return std::string(R"(file=(?<GROUP>\d+))");
+    if (id.hasPrefix("file=")) return std::string(R"(file=(?<GROUP>\d+))");
 
     // NUMBER 
     return std::string(R"((?<GROUP>\d+))");        
