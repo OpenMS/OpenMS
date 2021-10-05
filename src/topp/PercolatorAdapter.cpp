@@ -692,7 +692,7 @@ protected:
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
     {
-      // Copy input OSW to output OSW, because we want to retain all information
+      // Copy input OSW to output OSW, becsrc/openms/include/OpenMS/METADATA/SpectrumLookup.hause we want to retain all information
       remove(out.c_str());
       if (!out.empty())
       {

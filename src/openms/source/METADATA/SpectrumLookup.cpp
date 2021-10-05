@@ -233,6 +233,30 @@ namespace OpenMS
     return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=") || id.hasPrefix("spectrum=");
   }
   
+  std::string SpectrumLookup::getRegExFromNativeID(const String& id)
+  {
+    // "scan=NUMBER" e.g. Bruker/Agilent
+    // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
+    // "function= process= scan=NUMBER" for Waters
+    if (id.hasPrefix("scan=") 
+     || id.hasPrefix("controllerType=")
+     || id.hasPrefix("function=")) return std::string(R"(scan=(?<GROUP>\d+))");
+
+    // "index=NUMBER" 
+    if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
+
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    if (id.hasPrefix("index=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+
+    // "spectrum=NUMBER"
+    if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
+
+    // "file=NUMBER" Bruker FID or single peak list 
+    if (id.hasPrefix("index=")) return std::string(R"(file=(?<GROUP>\d+))");
+
+    // NUMBER 
+    return std::string(R"((?<GROUP>\d+))");        
+  }
 
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp, 

@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 namespace OpenMS
 {
@@ -85,13 +86,24 @@ namespace OpenMS
   {
     TextFile txt;  
     txt.addLine(ListUtils::concatenate(feature_set, '\t'));
+    if (peptide_ids.empty()) 
+    {
+      OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
+      return txt;
+    }
+
+    // extract native id (usually in spectrum_reference)
+    const String sid = getScanIdentifier(peptide_ids[0], 0);
+
+    // determine RegEx to extract scan/index number
+    boost::regex scan_regex = boost::regex(SpectrumLookup::getRegExFromNativeID(sid));
 
     size_t index = 0;
     for (const PeptideIdentification& pep_id : peptide_ids)
     {
       index++;
       String scan_identifier = getScanIdentifier(pep_id, index);
-      Int scan_number = getScanNumber_(scan_identifier);
+      Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
       
       double exp_mass = pep_id.getMZ();
       double retention_time = pep_id.getRT();
@@ -224,32 +236,6 @@ namespace OpenMS
     return txt;
   }
 
-  Int PercolatorInfile::getScanNumber_(const String& scan_identifier)
-  {
-    Int scan_number = 0;
-    StringList fields = ListUtils::create<String>(scan_identifier);
-    for (const String& str : fields)
-    {
-      // if scan number is not available, use the scan index
-      Size idx = 0;
-      if ((idx = str.find("scan=")) != string::npos)
-      {
-        scan_number = str.substr(idx + 5).toInt();
-        break;
-      }
-      else if ((idx = str.find("index=")) != string::npos)
-      {
-        scan_number = str.substr(idx + 6).toInt();
-        break;
-      } 
-      else if ((idx = str.find("spectrum=")) != string::npos)
-      {
-        scan_number = str.substr(idx + 9).toInt();
-        break;
-      }
-    }
-    return scan_number;
-  }
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
