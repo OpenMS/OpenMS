@@ -60,7 +60,7 @@ namespace OpenMS
 
   protected:
 
-    //void generateMzTabMMetaDataSection_(const MzTabMMetaData& map, StringList& sl) const;
+    void generateMzTabMMetaDataSection_(const MzTabMMetaData& map, StringList& sl) const;
 
     //String generateMzTabSmallMoleculeFeatureHeader_() const;
 

@@ -53,10 +53,10 @@ namespace OpenMS
   {
   public:
     MzTabString name;
-    MzTabParameter custom; // mztab-m
+    std::map<Size,MzTabParameter> custom; // mztab-m
     MzTabString external_uri; // mztab-m
-    std::vector<int> sample_ref;
-    std::vector<int> ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
+    MzTabInteger sample_ref;
+    MzTabInteger ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
   };
 
   class OPENMS_DLLAPI MzTabMMSRunMetaData
@@ -66,8 +66,8 @@ namespace OpenMS
     MzTabInteger instrument_ref; // mztab-m
     MzTabParameter format;
     MzTabParameter id_format;
-    MzTabParameterList fragmentation_method;
-    MzTabParameterList scan_polarity; // mztab-m
+    std::map<Size, MzTabParameter> fragmentation_method;
+    std::map<Size, MzTabParameter> scan_polarity; // mztab-m
     MzTabString hash; // mztab-m
     MzTabParameter hash_method; // mztab-m
   };

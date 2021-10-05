@@ -126,16 +126,7 @@ namespace OpenMS
 
     // extract identification data from FeatureMap
     // has to be passed as const & if not the references might change!
-    // const IdentificationData& id_data = feature_map.getIdentificationData();
     const IdentificationData& id_data = feature_map.getIdentificationData();
-
-    for (const auto& software : id_data.getProcessingSoftwares())
-    {
-      for (const auto& score : software.assigned_scores)
-      {
-        std::cout << "mztabm-id-software.as: " << score << std::endl;
-      }
-    }
 
     UInt64 local_id = feature_map.getUniqueId();
     // mz_tab_id (mandatory)
@@ -239,30 +230,33 @@ namespace OpenMS
     // ms_run[1-n]-fragmentation_method[1-n] (not mandatory)
 
     // ms_run[1-n]-scan_polarity[1-n] (mandatory)
-    // assess scan polarity based on the adducts
-    std::vector<MzTabParameter> polartiy;
+    // assess scan polarity based on the first adduct
+    // TODO: Probably not correctly added
+    // TODO: Check what [1-n] is here
     auto adducts = id_data.getAdducts();
     if (!adducts.empty())
     {
+      std::string_view first_adduct;
       for (const auto& adduct : adducts)
       {
-        String adduct_suffix = adduct.getName().suffix(';').trim();
-        if (adduct_suffix == "+")
-        {
-          ControlledVocabulary::CVTerm cvterm;
-          cvterm = cv.getTermByName("positive scan");
-          MzTabParameter spol;
-          spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-          polartiy.emplace_back(spol);
-        }
-        else
-        {
-          ControlledVocabulary::CVTerm cvterm;
-          cvterm = cv.getTermByName("negative scan");
-          MzTabParameter spol;
-          spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-          polartiy.emplace_back(spol);
-        }
+        first_adduct = adduct.getName();
+        break;
+      }
+      if (first_adduct.at(first_adduct.size() - 1) == '+')
+      {
+        ControlledVocabulary::CVTerm cvterm;
+        cvterm = cv.getTermByName("positive scan");
+        MzTabParameter spol;
+        spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        meta_ms_run.scan_polarity[1] = spol;
+      }
+      else
+      {
+        ControlledVocabulary::CVTerm cvterm;
+        cvterm = cv.getTermByName("negative scan");
+        MzTabParameter spol;
+        spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        meta_ms_run.scan_polarity[1] = spol;
       }
     }
     else
@@ -273,9 +267,8 @@ namespace OpenMS
       cvterm = cv.getTermByName("positive scan");
       MzTabParameter spol;
       spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
-      polartiy.emplace_back(spol);
+      meta_ms_run.scan_polarity[1] = spol;
     }
-    meta_ms_run.scan_polarity.set(polartiy);
 
     // ms_run[1-n]-hash (not mandatory)
     // ms_run[1-n]-hash_method (not mandatory)
@@ -288,7 +281,7 @@ namespace OpenMS
     // assay[1-n]-sample_ref (not mandatory)
 
     // assay[1-n]-ms_run_ref (mandatory)
-    std::vector<int> ms_run_ref(1);
+    MzTabInteger ms_run_ref(1);
     meta_ms_assay.ms_run_ref = ms_run_ref;
 
     MzTabMStudyVariableMetaData meta_ms_study_variable;
@@ -296,7 +289,8 @@ namespace OpenMS
     meta_ms_study_variable.name = MzTabString("study_variable_" + File::basename(input_file_name).prefix('.').trim());
 
     // study_variable[1-n]-assay_refs (mandatory)
-    std::vector<int> assay_refs(1);
+    std::vector<int> assay_refs;
+    assay_refs.emplace_back(1);
     meta_ms_study_variable.assay_refs = assay_refs;
 
     // study_variable[1-n]-average_function (not mandatory)
@@ -317,6 +311,7 @@ namespace OpenMS
     meta_cv.version = MzTabString(cv.version());
     // cv[1-n]-uri (mandatory)
     meta_cv.url = MzTabString(cv.url());
+    m_meta_data.cv[1] = meta_cv;
 
     // these have to be added to the identification data
     // in the actual tool writes the mztam-m
@@ -325,13 +320,13 @@ namespace OpenMS
     {
       if (db.database == "") // no database
       {
-        meta_db.prefix = MzTabString("null");
+        meta_db.prefix.setNull(true);
         meta_db.version = MzTabString("Unknown");
         meta_db.database.fromCellString("[,, no database , null]");
       }
       else if (db.database.find("custom") != std::string::npos) // custom database
       {
-        meta_db.prefix = MzTabString("null");
+        meta_db.prefix.setNull(true);
         meta_db.version = MzTabString(db.database_version);
         meta_db.database.fromCellString("[,, " + db.database + ", ]");
       }
@@ -341,7 +336,7 @@ namespace OpenMS
         meta_db.version = MzTabString(db.database_version);
         meta_db.database.fromCellString("[,," + db.database + ", ]");
       }
-      meta_db.uri = MzTabString("null"); // URL is not available at this point
+      meta_db.uri.setNull(true); // URL is not available at this point
       m_meta_data.database[m_meta_data.database.size() + 1] = meta_db; // starts at 1
     }
 
@@ -527,14 +522,8 @@ namespace OpenMS
         int score_counter = 0;
         for (const auto& id_score_ref : id_score_refs) // vector of references based on the ProcessingStep
         {
-          std::cout << "use-id-score-ref-from-software: " << id_score_ref << " " << match_ref->getScore(id_score_ref).first << " " << match_ref->getScore(id_score_ref).second << std::endl;
           ++score_counter; //starts at 1 anyway
           sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
-        }
-        for (const auto& steps_and_scores : match_ref->steps_and_scores)
-        {
-          for (const auto& s_and_s : steps_and_scores.scores)
-          std::cout << "ObservationMatch - steps and scores: " << s_and_s.first << " " << s_and_s.second << " " << std::endl;
         }
         sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
         // TODO: How to add opt_ columns
