@@ -62,15 +62,15 @@ namespace OpenMS
 
     void generateMzTabMMetaDataSection_(const MzTabMMetaData& map, StringList& sl) const;
 
-    //String generateMzTabSmallMoleculeFeatureHeader_() const;
+    String generateMzTabSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    //void generateMzTabSmallMoleculeFeatureSection_() const;
+    //String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
+
+    String generateMzTabSmallMoleculeFeatureHeader_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
 
     //String generateMzTabSmallMoleculeFeatureSectionRow_() const;
 
-    //String generateMzTabSmallMoleculeEvidenceHeader_() const;
-
-    //void generateMzTabSmallMoleculeEvidenceSection_() const;
+    String generateMzTabSmallMoleculeEvidenceHeader_(const MzTabMSmallMoleculeEvidenceSectionRow & row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
 
     //String generateMzTabSmallMoleculeEvidenceSectionRow_() const;
 

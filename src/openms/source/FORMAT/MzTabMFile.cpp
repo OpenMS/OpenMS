@@ -377,7 +377,7 @@ namespace OpenMS
 
     for (const auto& id_conf : md.id_confidence_measure)
     {
-      String s = "MTD\tid_confidence_measure[" + String(id_conf.first) + "]-id_confidence_measure\t" + id_conf.second.toCellString(); // mandatory
+      String s = "MTD\tid_confidence_measure[" + String(id_conf.first) + "]\t" + id_conf.second.toCellString(); // mandatory
       sl.push_back(s);
     }
 
@@ -400,6 +400,120 @@ namespace OpenMS
     }
   }
 
+  String MzTabMFile::generateMzTabSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
+  {
+    StringList header;
+    header.emplace_back("SMH");
+    header.emplace_back("SML_ID");
+    header.emplace_back("SMF_ID_REFS");
+    header.emplace_back("database_identifier");
+    header.emplace_back("chemical_formula");
+    header.emplace_back("smiles");
+    header.emplace_back("inchi");
+    header.emplace_back("chemical_name");
+    header.emplace_back("uri");
+    header.emplace_back("theoretical_neutral_mass");
+    header.emplace_back("adduct_ions");
+    header.emplace_back("reliability");
+    header.emplace_back("best_id_confidence_measure");
+    header.emplace_back("best_id_confidence_value");
+
+    for (const auto& a : meta.assay)
+    {
+      header.emplace_back(String("abundance_assay[") + String(a.first) + String("]"));
+    }
+
+    for (const auto& a : meta.study_variable)
+    {
+      header.emplace_back(String("abundance_study_variable[") + String(a.first) + String("]"));
+    }
+
+    for (const auto& a : meta.study_variable)
+    {
+      header.emplace_back(String("abundance_variation_study_variable[") + String(a.first) + String("]"));
+    }
+
+
+    // abundance_assay[1-n]
+    // abundance_study_variable[1-n]
+    // abundance_variation_study_variable [1-n]
+    // opt_{identifier}_*
+
+
+
+    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+    n_columns = header.size();
+    return ListUtils::concatenate(header, "\t");
+  }
+
+//  String MzTabMFile::generateMzTabSmallMoleculeSectionRow_() const
+//  {
+//
+//  }
+
+  String MzTabMFile::generateMzTabSmallMoleculeFeatureHeader_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const
+  {
+   StringList header;
+   header.emplace_back("SFH ");
+   header.emplace_back("SMF_ID ");
+   header.emplace_back("SME_ID_REFS ");
+   header.emplace_back("SME_ID_REF_ambiguity_code ");
+   header.emplace_back("adduct_ion ");
+   header.emplace_back("isotopomer ");
+   header.emplace_back("exp_mass_to_charge ");
+   header.emplace_back("charge ");
+   header.emplace_back("retention_time_in_seconds ");
+   header.emplace_back("retention_time_in_seconds_start ");
+   header.emplace_back("retention_time_in_seconds_end ");
+   // abundance_assay[1-n]
+   // opt_{identifier}_*
+
+
+
+
+   std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+   n_columns = header.size();
+   return ListUtils::concatenate(header, "\t");
+  }
+
+  //String MzTabMFile::generateMzTabSmallMoleculeFeatureSectionRow_() const;
+
+  String MzTabMFile::generateMzTabSmallMoleculeEvidenceHeader_(const MzTabMSmallMoleculeEvidenceSectionRow & row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const
+  {
+    StringList header;
+    header.emplace_back("SEH");
+    header.emplace_back("SME_ID");
+    header.emplace_back("evidence_input_id");
+    header.emplace_back("database_identifier");
+    header.emplace_back("chemical_formula");
+    header.emplace_back("smiles");
+    header.emplace_back("inchi");
+    header.emplace_back("chemical_name");
+    header.emplace_back("uri");
+    header.emplace_back("derivatized_form");
+    header.emplace_back("adduct_ion");
+    header.emplace_back("exp_mass_to_charge");
+
+    header.emplace_back("charge");
+    header.emplace_back("theoretical_mass_to_charge");
+    header.emplace_back("spectra_ref");
+
+    header.emplace_back("identification_method");
+    header.emplace_back("ms_level");
+    // id_confidence_measure[1-n]
+
+    header.emplace_back("rank");
+    // opt_{identifier}_*
+
+
+
+    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+    n_columns = header.size();
+    return ListUtils::concatenate(header, "\t");
+  }
+
+  //String MzTabMFile::generateMzTabSmallMoleculeEvidenceSectionRow_() const;
+
   void MzTabMFile::store(const String& filename, const MzTabM& mztab_m) const
   {
     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
@@ -412,6 +526,12 @@ namespace OpenMS
 
     StringList out;
     generateMzTabMMetaDataSection_(mztab_m.getMetaData(), out);
+
+    const MzTabMSmallMoleculeSectionRows& sm_section = mztab_m.getMSmallMoleculeSectionRows();
+    const MzTabMSmallMoleculeFeatureSectionRows& feature_section = mztab_m.getMSmallMoleculeFeatureSectionRows();
+    const MzTabMSmallMoleculeEvidenceSectionRows& evidence_section = mztab_m.getMSmallMoleculeEvidenceSectionRows();
+
+
 
     // TODO: add to later on - empty rows / comment rows
     TextFile tmp_out;

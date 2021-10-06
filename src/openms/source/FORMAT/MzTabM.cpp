@@ -645,6 +645,8 @@ namespace OpenMS
       sms.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;
       //  std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
       sms.small_molecule_abundance_study_variable[1].setNull(true);
+      // TODO: check if that is correct study_variable[1-n]-variation_function
+      // https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6242-study_variable1-n-variation_function
       //  std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
       sms.small_molecule_abundance_stdev_study_variable[1].setNull(true);
       //  std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
