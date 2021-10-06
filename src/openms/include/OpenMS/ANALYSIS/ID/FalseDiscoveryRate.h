@@ -140,7 +140,7 @@ public:
 
     /// applies a picked protein FDR (TODO explain/ref).
     /// If @p decoy_string is empty, we try to guess it.
-    void applyPickedProteinFDR(ProteinIdentification& id, String decoy_string = "", bool prefix = true);
+    void applyPickedProteinFDR(ProteinIdentification& id, String decoy_string = "", bool prefix = true, bool groups_too = true);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC

@@ -125,7 +125,7 @@ namespace OpenMS
       bool target = getTDLabel_(hit);
       if (!target)
       {
-        if (decoy_prefix)
+        if (decoy_prefix) //TODO double-check hasSuffix/Prefix? Ignore TD Metavalue?
         {
           tgt_accession = tgt_accession.substr(decoy_string.size(),-1);
         }

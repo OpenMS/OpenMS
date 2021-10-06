@@ -73,358 +73,358 @@
 				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
 				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-09-29"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-10-06"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="sp|ALDOA_RABIT|" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_0" accession="sp|ALDOA_RABIT|" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|K22E_HUMAN|" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_1" accession="sp|K22E_HUMAN|" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|O00425|IF2B3_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_2" accession="sp|O00425|IF2B3_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|P04075|ALDOA_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_3" accession="sp|P04075|ALDOA_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|P0DMV8|HS71A_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_4" accession="sp|P0DMV8|HS71A_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|P0DMV9|HS71B_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_5" accession="sp|P0DMV9|HS71B_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|P15311|EZRI_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_6" accession="sp|P15311|EZRI_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|P16949|STMN1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_7" accession="sp|P16949|STMN1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|P21333|FLNA_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_8" accession="sp|P21333|FLNA_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|P26038|MOES_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_9" accession="sp|P26038|MOES_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="sp|P34931|HS71L_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_10" accession="sp|P34931|HS71L_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="sp|P35908|K22E_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_11" accession="sp|P35908|K22E_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="sp|P46199|IF2M_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_12" accession="sp|P46199|IF2M_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="sp|P46199|IF2M_HUMAN_rev" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_13" accession="sp|P46199|IF2M_HUMAN_rev" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="sp|P55010|IF5_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_14" accession="sp|P55010|IF5_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="sp|P55265|DSRAD_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_15" accession="sp|P55265|DSRAD_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_16" accession="sp|P68104|EF1A1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_16" accession="sp|P68104|EF1A1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="sp|Q01995|TAGL_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_17" accession="sp|Q01995|TAGL_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_18" accession="sp|Q14677|EPN4_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_18" accession="sp|Q14677|EPN4_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_19" accession="sp|Q14980|NUMA1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_19" accession="sp|Q14980|NUMA1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_20" accession="sp|Q5VTE0|EF1A3_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_20" accession="sp|Q5VTE0|EF1A3_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_21" accession="sp|Q658Y4|F91A1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_21" accession="sp|Q658Y4|F91A1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_22" accession="sp|Q8N8A2|ANR44_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_22" accession="sp|Q8N8A2|ANR44_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_23" accession="sp|Q8TDZ2|MICA1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_23" accession="sp|Q8TDZ2|MICA1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_24" accession="sp|Q8TEU7|RPGF6_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_24" accession="sp|Q8TEU7|RPGF6_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_25" accession="sp|Q92797|SYMPK_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_25" accession="sp|Q92797|SYMPK_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_26" accession="sp|Q93045|STMN2_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_26" accession="sp|Q93045|STMN2_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="sp|Q96AY3|FKB10_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_27" accession="sp|Q96AY3|FKB10_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_28" accession="sp|Q96J02|ITCH_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_28" accession="sp|Q96J02|ITCH_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_29" accession="sp|Q9H169|STMN4_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_29" accession="sp|Q9H169|STMN4_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_30" accession="sp|Q9NRV9|HEBP1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_30" accession="sp|Q9NRV9|HEBP1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_31" accession="sp|Q9UKV3|ACINU_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_31" accession="sp|Q9UKV3|ACINU_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_32" accession="sp|Q9ULV3|CIZ1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_32" accession="sp|Q9ULV3|CIZ1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_33" accession="sp|Q9Y520|PRC2C_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_33" accession="sp|Q9Y520|PRC2C_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="2.75482093663912e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_34" accession="sp|P19021|AMD_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_34" accession="sp|P19021|AMD_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_35" accession="sp|Q86VX2|COMD7_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_35" accession="sp|Q86VX2|COMD7_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_36" accession="sp|Q86X51|CX067_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_36" accession="sp|Q86X51|CX067_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_37" accession="sp|Q8N163|CCAR2_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_37" accession="sp|Q8N163|CCAR2_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_38" accession="sp|Q96CW1|AP2M1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_38" accession="sp|Q96CW1|AP2M1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_39" accession="sp|Q9Y289|SC5A6_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_39" accession="sp|Q9Y289|SC5A6_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.04776361060514e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_40" accession="sp|Q8WWY3|PRP31_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_40" accession="sp|Q8WWY3|PRP31_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="5.99760095961615e-04"/>
 			</ProteinHit>
-			<ProteinHit id="PH_41" accession="sp|Q8IWZ3|ANKH1_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_41" accession="sp|Q8IWZ3|ANKH1_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="1.10987791342952e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_42" accession="sp|Q9P2G4|MAP10_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_42" accession="sp|Q9P2G4|MAP10_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="1.10987791342952e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_43" accession="sp|Q9Y6K9|NEMO_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_43" accession="sp|Q9Y6K9|NEMO_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="1.31061598951507e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_44" accession="sp|Q9BXP5|SRRT_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_44" accession="sp|Q9BXP5|SRRT_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="1.34816312773846e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_45" accession="sp|P08670|VIME_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_45" accession="sp|P08670|VIME_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="1.60978750804894e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_46" accession="sp|Q9BUQ8|DDX23_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_46" accession="sp|Q9BUQ8|DDX23_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="2.37004266076789e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_47" accession="sp|Q5VYK3|ECM29_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_47" accession="sp|Q5VYK3|ECM29_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="2.49337696743026e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_48" accession="sp|Q8IY18|SMC5_HUMAN" score="0.0408163265306122" sequence="">
+			<ProteinHit id="PH_48" accession="sp|Q8IY18|SMC5_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="2.57690449347721e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_49" accession="sp|P62633|CNBP_HUMAN" score="0.0576923076923077" sequence="">
+			<ProteinHit id="PH_49" accession="sp|P62633|CNBP_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="3.13971742543171e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_50" accession="sp|P62633|CNBP_HUMAN_rev" score="0.0576923076923077" sequence="">
+			<ProteinHit id="PH_50" accession="sp|P62633|CNBP_HUMAN_rev" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="3.13971742543171e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_51" accession="sp|Q02978|M2OM_HUMAN" score="0.0576923076923077" sequence="">
+			<ProteinHit id="PH_51" accession="sp|Q02978|M2OM_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="3.50609756097561e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_52" accession="sp|Q16666|IF16_HUMAN" score="0.0576923076923077" sequence="">
+			<ProteinHit id="PH_52" accession="sp|Q16666|IF16_HUMAN" score="0.0192307692307692" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="4.981884057971009e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_53" accession="sp|P16109|LYAM3_HUMAN_rev" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_53" accession="sp|P16109|LYAM3_HUMAN_rev" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="5.11662904439428e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_54" accession="sp|Q14315|FLNC_HUMAN" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_54" accession="sp|Q14315|FLNC_HUMAN" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="5.11662904439428e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_55" accession="sp|P46087|NOP2_HUMAN" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_55" accession="sp|P46087|NOP2_HUMAN" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="6.10119047619048e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_56" accession="sp|Q9Y2L1|RRP44_HUMAN" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_56" accession="sp|Q9Y2L1|RRP44_HUMAN" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="6.29560738303048e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_57" accession="sp|O15239|NDUA1_HUMAN" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_57" accession="sp|O15239|NDUA1_HUMAN" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="7.962936151730131e-03"/>
 			</ProteinHit>
-			<ProteinHit id="PH_58" accession="sp|P12270|TPR_HUMAN" score="0.0701754385964912" sequence="">
+			<ProteinHit id="PH_58" accession="sp|P12270|TPR_HUMAN" score="0.0350877192982456" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="q-value_score" value="8.72300872300872e-03"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[/Volumes/elements/Ph_analysis/data/Proteomics/5min_pH8/QExactiveHF02_03904.mzML,/Volumes/elements/Ph_analysis/data/Proteomics/5min_pH8/QExactiveHF02_03905.mzML]"/>
-			<UserParam type="string" name="indistinguishable_proteins_0" value="8.72300872300872e-03,PH_58"/>
-			<UserParam type="string" name="indistinguishable_proteins_1" value="7.962936151730131e-03,PH_57"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="6.29560738303048e-03,PH_56"/>
-			<UserParam type="string" name="indistinguishable_proteins_3" value="6.10119047619048e-03,PH_55"/>
-			<UserParam type="string" name="indistinguishable_proteins_4" value="5.11662904439428e-03,PH_53,PH_54"/>
-			<UserParam type="string" name="indistinguishable_proteins_5" value="4.981884057971009e-03,PH_52"/>
-			<UserParam type="string" name="indistinguishable_proteins_6" value="3.50609756097561e-03,PH_51"/>
-			<UserParam type="string" name="indistinguishable_proteins_7" value="3.13971742543171e-03,PH_49,PH_50"/>
-			<UserParam type="string" name="indistinguishable_proteins_8" value="2.57690449347721e-03,PH_48"/>
-			<UserParam type="string" name="indistinguishable_proteins_9" value="2.49337696743026e-03,PH_47"/>
-			<UserParam type="string" name="indistinguishable_proteins_10" value="2.37004266076789e-03,PH_46"/>
-			<UserParam type="string" name="indistinguishable_proteins_11" value="1.60978750804894e-03,PH_45"/>
-			<UserParam type="string" name="indistinguishable_proteins_12" value="1.34816312773846e-03,PH_44"/>
-			<UserParam type="string" name="indistinguishable_proteins_13" value="1.31061598951507e-03,PH_43"/>
-			<UserParam type="string" name="indistinguishable_proteins_14" value="1.10987791342952e-03,PH_41"/>
-			<UserParam type="string" name="indistinguishable_proteins_15" value="1.10987791342952e-03,PH_42"/>
-			<UserParam type="string" name="indistinguishable_proteins_16" value="5.99760095961615e-04,PH_40"/>
-			<UserParam type="string" name="indistinguishable_proteins_17" value="4.04776361060514e-04,PH_34"/>
-			<UserParam type="string" name="indistinguishable_proteins_18" value="4.04776361060514e-04,PH_35"/>
-			<UserParam type="string" name="indistinguishable_proteins_19" value="4.04776361060514e-04,PH_36"/>
-			<UserParam type="string" name="indistinguishable_proteins_20" value="4.04776361060514e-04,PH_37"/>
-			<UserParam type="string" name="indistinguishable_proteins_21" value="4.04776361060514e-04,PH_38"/>
-			<UserParam type="string" name="indistinguishable_proteins_22" value="4.04776361060514e-04,PH_39"/>
-			<UserParam type="string" name="indistinguishable_proteins_23" value="2.75482093663912e-04,PH_33"/>
-			<UserParam type="string" name="indistinguishable_proteins_24" value="0.0,PH_2"/>
-			<UserParam type="string" name="indistinguishable_proteins_25" value="0.0,PH_6"/>
-			<UserParam type="string" name="indistinguishable_proteins_26" value="0.0,PH_8"/>
-			<UserParam type="string" name="indistinguishable_proteins_27" value="0.0,PH_9"/>
-			<UserParam type="string" name="indistinguishable_proteins_28" value="0.0,PH_14"/>
-			<UserParam type="string" name="indistinguishable_proteins_29" value="0.0,PH_15"/>
-			<UserParam type="string" name="indistinguishable_proteins_30" value="0.0,PH_17"/>
-			<UserParam type="string" name="indistinguishable_proteins_31" value="0.0,PH_18"/>
-			<UserParam type="string" name="indistinguishable_proteins_32" value="0.0,PH_19"/>
-			<UserParam type="string" name="indistinguishable_proteins_33" value="0.0,PH_21"/>
-			<UserParam type="string" name="indistinguishable_proteins_34" value="0.0,PH_22"/>
-			<UserParam type="string" name="indistinguishable_proteins_35" value="0.0,PH_23"/>
-			<UserParam type="string" name="indistinguishable_proteins_36" value="0.0,PH_24"/>
-			<UserParam type="string" name="indistinguishable_proteins_37" value="0.0,PH_25"/>
-			<UserParam type="string" name="indistinguishable_proteins_38" value="0.0,PH_27"/>
-			<UserParam type="string" name="indistinguishable_proteins_39" value="0.0,PH_28"/>
-			<UserParam type="string" name="indistinguishable_proteins_40" value="0.0,PH_30"/>
-			<UserParam type="string" name="indistinguishable_proteins_41" value="0.0,PH_31"/>
-			<UserParam type="string" name="indistinguishable_proteins_42" value="0.0,PH_32"/>
-			<UserParam type="string" name="indistinguishable_proteins_43" value="0.0,PH_0,PH_3"/>
-			<UserParam type="string" name="indistinguishable_proteins_44" value="0.0,PH_1,PH_11"/>
-			<UserParam type="string" name="indistinguishable_proteins_45" value="0.0,PH_12,PH_13"/>
-			<UserParam type="string" name="indistinguishable_proteins_46" value="0.0,PH_16,PH_20"/>
-			<UserParam type="string" name="indistinguishable_proteins_47" value="0.0,PH_4,PH_5,PH_10"/>
-			<UserParam type="string" name="indistinguishable_proteins_48" value="0.0,PH_7,PH_26,PH_29"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.04,PH_58"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.04,PH_57"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.04,PH_56"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0.04,PH_55"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0.04,PH_53,PH_54"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0.022222222222222,PH_52"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="0.022222222222222,PH_51"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="0.022222222222222,PH_49,PH_50"/>
+			<UserParam type="string" name="indistinguishable_proteins_8" value="0.022222222222222,PH_48"/>
+			<UserParam type="string" name="indistinguishable_proteins_9" value="0.022222222222222,PH_47"/>
+			<UserParam type="string" name="indistinguishable_proteins_10" value="0.022222222222222,PH_46"/>
+			<UserParam type="string" name="indistinguishable_proteins_11" value="0.022222222222222,PH_45"/>
+			<UserParam type="string" name="indistinguishable_proteins_12" value="0.022222222222222,PH_44"/>
+			<UserParam type="string" name="indistinguishable_proteins_13" value="0.022222222222222,PH_43"/>
+			<UserParam type="string" name="indistinguishable_proteins_14" value="0.022222222222222,PH_41"/>
+			<UserParam type="string" name="indistinguishable_proteins_15" value="0.022222222222222,PH_42"/>
+			<UserParam type="string" name="indistinguishable_proteins_16" value="0.022222222222222,PH_40"/>
+			<UserParam type="string" name="indistinguishable_proteins_17" value="0.022222222222222,PH_34"/>
+			<UserParam type="string" name="indistinguishable_proteins_18" value="0.022222222222222,PH_35"/>
+			<UserParam type="string" name="indistinguishable_proteins_19" value="0.022222222222222,PH_36"/>
+			<UserParam type="string" name="indistinguishable_proteins_20" value="0.022222222222222,PH_37"/>
+			<UserParam type="string" name="indistinguishable_proteins_21" value="0.022222222222222,PH_38"/>
+			<UserParam type="string" name="indistinguishable_proteins_22" value="0.022222222222222,PH_39"/>
+			<UserParam type="string" name="indistinguishable_proteins_23" value="0.022222222222222,PH_33"/>
+			<UserParam type="string" name="indistinguishable_proteins_24" value="0.022222222222222,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_25" value="0.022222222222222,PH_6"/>
+			<UserParam type="string" name="indistinguishable_proteins_26" value="0.022222222222222,PH_8"/>
+			<UserParam type="string" name="indistinguishable_proteins_27" value="0.022222222222222,PH_9"/>
+			<UserParam type="string" name="indistinguishable_proteins_28" value="0.022222222222222,PH_14"/>
+			<UserParam type="string" name="indistinguishable_proteins_29" value="0.022222222222222,PH_15"/>
+			<UserParam type="string" name="indistinguishable_proteins_30" value="0.022222222222222,PH_17"/>
+			<UserParam type="string" name="indistinguishable_proteins_31" value="0.022222222222222,PH_18"/>
+			<UserParam type="string" name="indistinguishable_proteins_32" value="0.022222222222222,PH_19"/>
+			<UserParam type="string" name="indistinguishable_proteins_33" value="0.022222222222222,PH_21"/>
+			<UserParam type="string" name="indistinguishable_proteins_34" value="0.022222222222222,PH_22"/>
+			<UserParam type="string" name="indistinguishable_proteins_35" value="0.022222222222222,PH_23"/>
+			<UserParam type="string" name="indistinguishable_proteins_36" value="0.022222222222222,PH_24"/>
+			<UserParam type="string" name="indistinguishable_proteins_37" value="0.022222222222222,PH_25"/>
+			<UserParam type="string" name="indistinguishable_proteins_38" value="0.022222222222222,PH_27"/>
+			<UserParam type="string" name="indistinguishable_proteins_39" value="0.022222222222222,PH_28"/>
+			<UserParam type="string" name="indistinguishable_proteins_40" value="0.022222222222222,PH_30"/>
+			<UserParam type="string" name="indistinguishable_proteins_41" value="0.022222222222222,PH_31"/>
+			<UserParam type="string" name="indistinguishable_proteins_42" value="0.022222222222222,PH_32"/>
+			<UserParam type="string" name="indistinguishable_proteins_43" value="0.022222222222222,PH_0,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_44" value="0.022222222222222,PH_1,PH_11"/>
+			<UserParam type="string" name="indistinguishable_proteins_45" value="0.022222222222222,PH_12,PH_13"/>
+			<UserParam type="string" name="indistinguishable_proteins_46" value="0.022222222222222,PH_16,PH_20"/>
+			<UserParam type="string" name="indistinguishable_proteins_47" value="0.022222222222222,PH_4,PH_5,PH_10"/>
+			<UserParam type="string" name="indistinguishable_proteins_48" value="0.022222222222222,PH_7,PH_26,PH_29"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="696.8701171875" RT="975.03642" spectrum_reference="controllerType=0 controllerNumber=1 scan=5174" >

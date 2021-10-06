@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
         # simpler reimplementation of the apply function above for proteins.
         void applyBasic(ProteinIdentification & id, bool groups_too) nogil except +
         # applies a picked protein FDR (TODO explain/ref)
-        void applyPickedProteinFDR(ProteinIdentification & id, String & decoy_prefix) nogil except +
+        void applyPickedProteinFDR(ProteinIdentification & id, String & decoy_string, bool decoy_prefix, bool groups_too) nogil except +
 
         # calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
         # if fp_cutoff = 0, it will calculate the full AUC

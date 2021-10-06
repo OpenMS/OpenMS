@@ -285,7 +285,7 @@ protected:
         fdr.setParameters(fdrparam);
         if (getStringOption_("picked_fdr") == "true")
         {
-          fdr.applyPickedProteinFDR(inferred_protein_ids[0]);
+          fdr.applyPickedProteinFDR(inferred_protein_ids[0], getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
         }
         else
         {

@@ -1186,7 +1186,7 @@ namespace OpenMS
 
   //TODO this probably could work on group level, too, but only if peptide-level decoys were used, such that
   // decoys are indistinguishable iff targets are indistinguishable
-  void FalseDiscoveryRate::applyPickedProteinFDR(ProteinIdentification & id, String decoy_string, bool prefix)
+  void FalseDiscoveryRate::applyPickedProteinFDR(ProteinIdentification & id, String decoy_string, bool prefix, bool groups_too)
   {
     bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
     bool q_value = !param_.getValue("no_qvalues").toBool();
@@ -1218,7 +1218,6 @@ namespace OpenMS
     IDScoreGetterSetter::getPickedProteinScores_(picked_scores, id, decoy_string, prefix);
     scores_labels.reserve(picked_scores.size());
 
-    bool groups_too = true;
     if (groups_too)
     {
       IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
