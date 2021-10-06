@@ -46,6 +46,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 using namespace OpenMS;
 using namespace std;
 
@@ -129,6 +130,156 @@ protected:
   };
 
   ExitCodes main_(int, const char **) override
+  {
+    auto infiles = getStringList_("in");
+    auto outfile = getStringOption_("out");
+    double tol = 20.0;
+    fstream outstream;
+    outstream.open(outfile, fstream::out); //
+
+    MSExperiment map;
+    MzMLFile mzml;
+
+    mzml.setLogType(log_type_);
+    mzml.load(infiles[0], map);
+    auto iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
+
+    auto mz2report = std::map<double, std::vector<double>>();
+    auto mz2reportcount = std::map<double, int>();
+    auto msscan2mz = std::map<int, double>();
+
+    for (auto &it: map)
+    {
+      if (it.getMSLevel() == 1)
+      {
+        continue;
+      }
+
+      String am;
+      for (auto &activation_method: it.getPrecursors()[0].getActivationMethods())
+      {
+        am = Precursor::NamesOfActivationMethodShort[activation_method];
+        //std::cout<<am<<" ";
+      }
+      //std::cout<<std::endl;
+
+      int scan = SpectrumLookup::extractScanNumber(it.getNativeID(),
+                                                   map.getSourceFiles()[0].getNativeIDTypeAccession());
+      double pmz = it.getPrecursors()[0].getMZ();
+
+      int current_ch = 0;
+      int nonzero = 0;
+      auto iso_intensities = std::vector<double>(iso_mzs.size(), 0.0);
+      for (auto &peak: it)
+      {
+        if (current_ch >= iso_mzs.size())
+        {
+          break;
+        }
+        if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tol * 1e-6)
+        {
+          continue;
+        }
+        if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tol * 1e-6)
+        {
+          if (iso_intensities[current_ch] > 0)
+          {
+            nonzero++;
+          }
+          current_ch++;
+          continue;
+        }
+        iso_intensities[current_ch] += peak.getIntensity();
+      }
+
+      msscan2mz[scan] = pmz;
+
+      if (mz2reportcount.find(pmz) == mz2reportcount.end())
+      {
+        mz2reportcount[pmz] = 0;
+      }
+      int nonzeromax = mz2reportcount[pmz];
+      if (nonzeromax < nonzero)
+      {
+        mz2reportcount[pmz] = nonzero;
+      }
+      else
+      {
+        continue;
+      }
+
+      double sum = .0;
+      for (auto v: iso_intensities)
+      {
+        sum += v;
+      }
+      if (sum > 0)
+      {
+        for (int i = 0; i < 6; i++)
+        {
+          iso_intensities[i] /= sum;
+        }
+      }
+
+      mz2report[pmz] = iso_intensities;
+    }
+
+    auto in = infiles[1];
+    std::ifstream in_tsv(in);
+    String line;
+    bool start = false;
+    while (std::getline(in_tsv, line))
+    {
+
+      line = line.substr(0, line.length() - 1);
+
+      if (line.hasPrefix("Data"))
+      {
+        start = true;
+        outstream << line << "\tch1\tch2\tch3\tch4\tch5\tch6\n";
+        continue;
+      }
+      if (!start)
+      {
+        continue;
+      }
+
+      if (!line.hasSubstring("[IodoTMTsixplex]"))
+      {
+        continue;
+      }
+      vector<String> tokens;
+      stringstream tmp_stream(line);
+      String str;
+
+      while (getline(tmp_stream, str, '\t'))
+      {
+        tokens.push_back(str);
+      }
+      int scan = stoi(tokens[4]);
+
+      double pmz = msscan2mz[scan];
+
+      if (mz2report.find(pmz) == mz2report.end())
+      {
+        continue;
+      }
+      auto rions = mz2report[pmz];
+      outstream << line;
+      for (int i = 0; i < 6; i++)
+      {
+        outstream << "\t" << rions[i];
+      }
+      outstream << "\n";
+    }
+
+    in_tsv.close();
+    outstream.close();
+    return EXECUTION_OK;
+  }
+
+
+  ExitCodes main_1(int, const char **) //override
   {
     auto infiles = getStringList_("in");
     auto outfile = getStringOption_("out");

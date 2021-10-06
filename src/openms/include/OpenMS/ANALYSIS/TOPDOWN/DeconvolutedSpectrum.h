@@ -88,12 +88,10 @@ namespace OpenMS
         @param fs file stream to the output file
         @param ms_level ms level of the spectrum
         @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
-        @param iso_mzs isobaric reporter ion m/zs
    */
     static void writeDeconvolutedMassesHeader(std::fstream &fs,
                                               const int ms_level,
-                                              const bool detail,
-                                              const DoubleList iso_mzs);
+                                              const bool detail);
 
     /**
       @brief write the deconvoluted masses in the output file (spectrum level)
@@ -101,12 +99,11 @@ namespace OpenMS
       @param file_name FLASHDeconv paramter
       @param avg averagine information to calculate monoisotope and average mass difference. Both monoisotopic and average masses are reported and PeakGroup retains only monoisotopic masses
       @param write_detail if this is set, more detailed information on each mass will be written in the output file
-      @param iso_intensities isobaric reporter ion intensities
     */
     void writeDeconvolutedMasses(std::fstream &fs,
                                  const String &file_name,
                                  const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                 const bool write_detail, const DoubleList iso_intensities);
+                                 const bool write_detail);
 
     /**
       @brief write the deconvoluted masses TopFD output (*.msalign)
@@ -136,7 +133,7 @@ namespace OpenMS
     @param precursor_map_for_real_time_acquisition this contains the deconvoluted mass information from FLASHIda runs.
     */
     bool registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
-                           const bool is_positive,
+                           const bool is_positive, double min_peak_intensity,
                            const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// original spectrum getter
@@ -185,6 +182,8 @@ namespace OpenMS
     std::string activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
+    /// number of minimum peak count in topFD msalign file
+    int topFD_min_peak_count_ = 3;
     /// number of maximum peak count in topFD msalign file
     int topFD_max_peak_count_ = 500;
   };

@@ -72,7 +72,7 @@ namespace OpenMS
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
                                                      const String &file_name,
                                                      const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                                     const bool write_detail, DoubleList iso_intensities)
+                                                     const bool write_detail)
   {
     if (empty())
     {
@@ -203,23 +203,12 @@ namespace OpenMS
         }
       }
 
-      if (spec_.getMSLevel() > 1)
-      {
-        for (double iso_int: iso_intensities)
-        {
-          fs << "\t" << iso_int;
-        }
-      }
-
       fs << "\n";
     }
   }
 
 
-  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs,
-                                                           const int ms_level,
-                                                           const bool detail,
-                                                           const DoubleList iso_mzs)
+  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)
   {
     if (detail)
     {
@@ -238,13 +227,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity";
-
-        for (int i = 0; i < iso_mzs.size(); ++i)
-        {
-          fs << "\tch" << (i + 1);
-        }
-        fs << "\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
@@ -266,13 +249,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity";
-        for (int i = 0; i < iso_mzs.size(); ++i)
-        {
-          fs << "\tch" << (i + 1);
-        }
-        fs << "\n";
-
+               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }
@@ -293,6 +270,11 @@ namespace OpenMS
       {
         return;
       }
+    }
+
+    if (size() < topFD_min_peak_count_)
+    {
+      return;
     }
 
     fs << std::fixed << std::setprecision(2);
@@ -398,14 +380,9 @@ namespace OpenMS
     fs << "END IONS\n\n";
   }
 
-  std::string DeconvolutedSpectrum::getActivation_method()
-  {
-    return activation_method_;
-  }
-
 
   bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
-                                               const bool is_positive,
+                                               const bool is_positive, double min_peak_intensity,
                                                const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
     precursor_peak_.setIntensity(.0);
@@ -491,7 +468,11 @@ namespace OpenMS
                 double total_power = .0;
                 while (spec_iterator->getMZ() < end_mz)
                 {
-                  total_power += spec_iterator->getIntensity() * spec_iterator->getIntensity();
+                  double intensity = spec_iterator->getIntensity();
+                  if (intensity > min_peak_intensity)
+                  {
+                    total_power += intensity * intensity;
+                  }
                   spec_iterator++;
                 }
 
@@ -538,8 +519,8 @@ namespace OpenMS
                   auto precursor_snr = t_cos * t_cos * power
                                        / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
 
-                  auto score = precursor_snr;// pg.getChargeSNR(
-                  //tmp_precursor->abs_charge); // most intense one should determine the mass
+                  auto score = pg.getChargeSNR(tmp_precursor->abs_charge);
+                  // // most intense one should determine the mass
                   if (score < max_score)
                   {
                     continue;
@@ -551,7 +532,7 @@ namespace OpenMS
                   {
                     continue;
                   }
-                  pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
+                  // pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
                   precursor_peak_group_ = pg;
                 }
               }
@@ -630,7 +611,7 @@ namespace OpenMS
         auto precursor_snr = t_cos * t_cos * power
                              / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
 
-        auto score = precursor_snr;//pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
+        auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
         if (score < max_score)
         {
           continue;
@@ -642,7 +623,7 @@ namespace OpenMS
 
         precursor_peak_.setIntensity(tmp_precursor->intensity);
         max_score = score;
-        pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
+        //pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
         precursor_peak_group_ = pg;
         precursor_scan_number_ = precursor_spectrum.scan_number_;
       }

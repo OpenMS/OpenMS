@@ -134,8 +134,8 @@ protected:
 
     registerDoubleOption_("min_precursor_snr",
                           "<SNR value>",
-                          1.0,
-                          "minimum precursor SNR (SNR within the isoliation window) for identification. Now applied only for topFD outputs.",
+                          0.0,
+                          "minimum precursor SNR (SNR within the precursor envelope range) for identification. Now applied only for topFD outputs.",
                           false,
                           false);
 
@@ -186,21 +186,21 @@ protected:
     setMinInt_("use_ensemble_spectrum", 0);
     setMaxInt_("use_ensemble_spectrum", 1);
 
+    /*
+        registerIntOption_("isobaric_labeling_option",
+                           "",
+                           -1,
+                           "-1: none (default), 0: manual reporter ions m/zs with -isobaric_mz option, 1: IodoTMT6",
+                           false,
+                           false);
 
-    registerIntOption_("isobaric_labeling_option",
-                       "",
-                       -1,
-                       "-1: none (default), 0: manual reporter ions m/zs with -isobaric_mz option, 1: IodoTMT6",
-                       false,
-                       false);
-
-    registerDoubleList_("isobaric_mz",
-                        "",
-                        DoubleList{},
-                        "isobaric reporter ion m/zs. If -isobaric_labeling_option 0 is used ,these m/zs intensities will be reported.",
-                        false,
-                        false);
-
+        registerDoubleList_("isobaric_mz",
+                            "",
+                            DoubleList{},
+                            "isobaric reporter ion m/zs. If -isobaric_labeling_option 0 is used ,these m/zs intensities will be reported.",
+                            false,
+                            false);
+    */
 
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
     setMinInt_("use_RNA_averagine", 0);
@@ -221,12 +221,12 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 2});
+    fd_defaults.setValue("min_peaks", IntList{3, 3});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.85, .9},
+                         DoubleList{.85, .85},
                          "cosine similarity thresholds "
                          "between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
@@ -430,14 +430,14 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
-    DoubleList iso_mzs = getDoubleList_("isobaric_mz");
+    //DoubleList iso_mzs = getDoubleList_("isobaric_mz");
 
-    int iso_option = getIntOption_("isobaric_labeling_option");
-    if (iso_option == 1)// fix later..
-    {
-      iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-      //iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-    }
+    // int iso_option = getIntOption_("isobaric_labeling_option");
+    //if (iso_option == 1)// fix later..
+    //{
+    // iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
+    //iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
+    //}
 
 
     #ifdef DEBUG_EXTRA_PARAMTER
@@ -487,7 +487,7 @@ protected:
       for (int i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail, iso_mzs);
+        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail);
       }
     }
 
@@ -723,7 +723,6 @@ protected:
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
 
-
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it,
                                                               precursor_specs,
                                                               scan_number,
@@ -800,46 +799,46 @@ protected:
       mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
 
       DoubleList iso_intensities;
+      /*
+            if (ms_level> 1 && !iso_mzs.empty())
+            {
+              if (iso_option == 1)
+              {
+                if (deconvoluted_spectrum.getActivation_method() == "ETD")
+                {
+                  iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
+                }
+                else
+                {
+                  iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
+                }
+              }
 
-      if (!iso_mzs.empty())
-      {
-        if (iso_option == 1) // TODO fix later ..
-        {
-          if (deconvoluted_spectrum.getActivation_method() == "ETD")
-          {
-            iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-          }
-          else
-          {
-            iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-          }
-        }
-
-        int current_ch = 0;
-        iso_intensities = DoubleList(iso_mzs.size(), 0.0);
-        for (auto &peak: *it)
-        {
-          if (current_ch >= iso_mzs.size())
-          {
-            break;
-          }
-          if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-          {
-            continue;
-          }
-          if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-          {
-            current_ch++;
-            continue;
-          }
-          iso_intensities[current_ch] += peak.getIntensity();
-        }
-      }
+              int current_ch = 0;
+              iso_intensities = DoubleList(iso_mzs.size(), 0.0);
+              for (auto &peak: *it)
+              {
+                if (current_ch >= iso_mzs.size())
+                {
+                  break;
+                }
+                if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
+                {
+                  continue;
+                }
+                if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
+                {
+                  current_ch++;
+                  continue;
+                }
+                iso_intensities[current_ch] += peak.getIntensity();
+              }
+            }*/
 
       if (out_spec_streams.size() > ms_level - 1)
       {
         deconvoluted_spectrum
-            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail, iso_intensities);
+            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {

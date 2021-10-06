@@ -243,7 +243,7 @@ namespace OpenMS
 
   double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
   {
-    return (positive ? Constants::PROTON_MASS_U : Constants::ELECTRON_MASS_U);
+    return (positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
 

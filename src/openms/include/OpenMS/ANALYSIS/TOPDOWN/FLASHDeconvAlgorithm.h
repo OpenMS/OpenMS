@@ -165,8 +165,10 @@ namespace OpenMS
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.
-    std::vector<std::vector<Size>> prev_mass_bins_;
-    std::vector<double> prev_rts_;
+    std::vector<std::vector<Size>> prev_mass_bins_ms1_;
+    std::vector<std::map<int, std::vector<Size>>> prev_mass_bins_ms2_;
+    std::vector<double> prev_rts_ms1_;
+    std::vector<double> prev_rts_ms2_;
 
     /// mass bins that are targeted for FLASHIda global targeting mode
     std::vector<Size> target_mass_bins_;
@@ -203,7 +205,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
-    const int low_charge_ = 8; // inclusive
+    const int low_charge_ = 6; // inclusive
 
     /** @brief static function that converts bin to value
         @param bin bin number
