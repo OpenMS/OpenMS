@@ -48,12 +48,15 @@
 namespace OpenMS
 {
   /// Used to collect data from the ID structures with the original score as first and
-  /// target decoy annotation as second member of the pair. Target = true.
-  /// Target+decoy for peptides = target. Protein groups with at least one target = target.
+  /// target decoy annotation as second member of the pair. Target = 1.0.
+  /// Usually Target+decoy for peptides = target and protein groups with at least one target = target.
+  /// But could also be proportional
+  typedef std::pair<double, double> ScoreToTgtDecLabelPair;
+
   struct ScoreToTgtDecLabelPairs // Not a typedef to allow forward declaration.
-      : public std::vector<std::pair<double, double>>
+      : public std::vector<ScoreToTgtDecLabelPair>
   {
-    typedef std::vector<std::pair<double, double>> Base;
+    typedef std::vector<ScoreToTgtDecLabelPair> Base;
     using Base::Base;
   };
 
@@ -83,14 +86,33 @@ namespace OpenMS
      * @brief  Fills the scores_labels vector from an ProteinIdentification @p id for picked protein FDR.
      *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
      *  removal of the @p decoy_prefix.
-     * @todo  support decoy suffices
-     * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
-     * @param  decoy_prefix The decoy prefix to remove before comparing accesions for pairs.
+     * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
+     * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
+     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
-        ScoreToTgtDecLabelPairs& scores_labels,
+        std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
         const ProteinIdentification& id,
-        const String& decoy_prefix);
+        const String& decoy_string,
+        bool decoy_prefix);
+
+    /**
+     * @brief  Fills the scores_labels vector from a vector of ProteinGroups @p grps for picked protein group FDR.
+     *  @todo describe more
+     * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
+     * @param  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
+     * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
+     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     */
+    static void getPickedProteinGroupScores_(
+        const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
+        ScoreToTgtDecLabelPairs& scores_labels,
+        const std::vector<ProteinIdentification::ProteinGroup>& grps,
+        const String& decoy_string,
+        bool decoy_prefix);
+
+    /// removes the @p decoy_string from @p acc if present. Returns if string was removed and the new string.
+    static std::pair<bool,String> removeDecoyStringIfPresent_(const String& acc, const String& decoy_string, bool decoy_prefix);
 
     /**
      * \defgroup getScoresFunctions Get scores from ID structures for FDR
@@ -294,7 +316,7 @@ namespace OpenMS
     {
       for (auto &id : ids)
       {
-        setScores_(scores_to_FDR, id, score_type, higher_better, &args...);
+        setScores_(scores_to_FDR, id, score_type, higher_better, std::forward<Args>(args)...);
       }
     }
 
@@ -370,7 +392,7 @@ namespace OpenMS
       new_hits.reserve(hits.size());
       for (auto &hit : hits)
       {
-        setScoreAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, args...);
+        setScoreAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, std::forward<Args>(args)...);
       }
       hits.swap(new_hits);
     }
@@ -384,7 +406,7 @@ namespace OpenMS
       new_hits.reserve(hits.size());
       for (auto &hit : hits)
       {
-        setScoreHigherWorseAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, args...);
+        setScoreHigherWorseAndMoveIfTarget_(scores_to_FDR, hit, old_score_type, new_hits, std::forward<Args>(args)...);
       }
       hits.swap(new_hits);
     }

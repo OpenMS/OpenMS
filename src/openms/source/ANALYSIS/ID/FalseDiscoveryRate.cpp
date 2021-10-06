@@ -1214,7 +1214,26 @@ namespace OpenMS
 
     ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
-    IDScoreGetterSetter::getPickedProteinScores_(scores_labels, id, decoy_string);
+    std::unordered_map<String, ScoreToTgtDecLabelPair> picked_scores;
+    IDScoreGetterSetter::getPickedProteinScores_(picked_scores, id, decoy_string, prefix);
+    scores_labels.reserve(picked_scores.size());
+
+    bool groups_too = true;
+    if (groups_too)
+    {
+      IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
+      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+      IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+      scores_to_FDR.clear();
+      scores_labels.clear();
+    }
+
+    // for single proteins just take all scores
+    for (auto& kv : picked_scores)
+    {
+      scores_labels.emplace_back(std::move(kv.second)); // move all. We do not need them anymore
+    }
+
     if (scores_labels.empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR calculation!");
@@ -1222,6 +1241,7 @@ namespace OpenMS
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
     scores_to_FDR.clear();
+    scores_labels.clear();
   }
 
   //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
@@ -1442,10 +1462,14 @@ namespace OpenMS
         last_score = scores_labels[j].first;
       }
 
+      decoys += 1. - scores_labels[j].second;
+
+      /* The following was for the binary interpretation. Now we allow for partial decoy contributions as above
       if (!scores_labels[j].second)
       {
         decoys++;
       }
+      */
     }
 
     // in case there is only one score and generally to include the last score, I guess we need to do this
@@ -1566,11 +1590,11 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
     }
 
-    // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
+    // less than 30% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values
-    if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.4 * static_cast<double>(all_proteins_count))
+    if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.3 * static_cast<double>(all_proteins_count))
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <30%)!" << std::endl;
       return {false, "?", true};
     }
 
@@ -1580,7 +1604,7 @@ namespace OpenMS
       return {false, "?", true};
     }
 
-    // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
+    // Decoy prefix occurred at least 80% of all prefixes + observed in at least 30% of all proteins -> set it as prefix decoy
     for (const auto& pair : decoy_count)
     {
       const std::string & case_insensitive_decoy_string = pair.first;
@@ -1588,7 +1612,7 @@ namespace OpenMS
       double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
       double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
 
-      if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
+      if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.3)
       {
         if (prefix_suffix_counts.first != all_prefix_occur)
         {
@@ -1600,7 +1624,7 @@ namespace OpenMS
       }
     }
 
-    // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
+    // Decoy suffix occurred at least 80% of all suffixes + observed in at least 30% of all proteins -> set it as suffix decoy
     for (const auto& pair : decoy_count)
     {
       const std::string& case_insensitive_decoy_string = pair.first;
@@ -1608,7 +1632,7 @@ namespace OpenMS
       double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
       double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
 
-      if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
+      if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.3)
       {
         if (prefix_suffix_counts.second != all_suffix_occur)
         {
