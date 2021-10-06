@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
 
         String computePrecursorId(const String & transition_group_id, int isotope) nogil except +
             # wrap-doc:
-                #   Compute unique precursor identifier
+                #   Computes unique precursor identifier
                 #   -----
                 #   Uses transition_group_id and isotope number to compute a unique precursor
                 #   id of the form "groupID_Precursor_ix" where x is the isotope number, e.g.

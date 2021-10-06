@@ -11,7 +11,10 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
     cdef cppclass SimpleSVM(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        SimpleSVM() nogil except + # wrap-doc:Simple interface to support vector machines for classification (via LIBSVM)
+        # wrap-doc:
+        #   Simple interface to support vector machines for classification (via LIBSVM)
+        
+        SimpleSVM() nogil except + 
         SimpleSVM(SimpleSVM &) nogil except + # compiler
 
         # Currently nested things inside std::map doesn't work
@@ -25,7 +28,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
 
         void getFeatureWeights(libcpp_map[ String, double ] & feature_weights) nogil except +
             # wrap-doc:
-                #   Get the weights used for features (predictors) in the SVM model
+                #   Returns the weights used for features (predictors) in the SVM model
                 #   -----
                 #   Currently only supported for two-class classification
                 #   If a linear kernel is used, the weights are informative for ranking features

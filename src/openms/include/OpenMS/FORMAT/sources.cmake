@@ -75,6 +75,7 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
 QcMLFile.h

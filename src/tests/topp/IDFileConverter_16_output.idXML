@@ -27,8 +27,9 @@
 			<ProteinHit id="PH_6" accession="sp|P25642|IMG2_YEAST" score="0.0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="436.210339680337484" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="436.210339680337484" RT="0.0" spectrum_reference="scan=6" >
 			<PeptideHit score="0.806668" sequence="HEEIDTK" charge="2" aa_before="K X" aa_after="N X" protein_refs="PH_0 PH_1" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.9208"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.434"/>
@@ -45,8 +46,9 @@
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="360.700329914712484" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="360.700329914712484" RT="0.0" spectrum_reference="scan=2770" >
 			<PeptideHit score="0.0" sequence="GLVC(Carbamidomethyl)GSK" charge="2" aa_before="A" aa_after="F" protein_refs="PH_2" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-3.5466"/>
@@ -63,8 +65,9 @@
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="350.530489419920002" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="350.530489419920002" RT="0.0" spectrum_reference="scan=2999" >
 			<PeptideHit score="0.0223989" sequence="LIWTM(Oxidation)IGIS" charge="3" aa_before="R" aa_after="F" protein_refs="PH_3" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.217"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="0.801"/>
@@ -81,8 +84,9 @@
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="566.770337238929983" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="566.770337238929983" RT="0.0" spectrum_reference="scan=3084" >
 			<PeptideHit score="0.0505509" sequence=".(Glu-&gt;pyro-Glu)EAGIVDELAYA" charge="2" aa_before="K" aa_after="V" protein_refs="PH_4" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.07"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3114"/>
@@ -99,8 +103,9 @@
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="608.957491373046651" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="608.957491373046651" RT="0.0" spectrum_reference="scan=3905" >
 			<PeptideHit score="0.999999" sequence=".(Acetyl)SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="1.0"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
@@ -117,8 +122,9 @@
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.4998"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="681.293347492839985" RT="0.0" >
+		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="681.293347492839985" RT="0.0" spectrum_reference="scan=7319" >
 			<PeptideHit score="2.01282e-05" sequence=".(Ammonia-loss)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="7.0e-04"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>

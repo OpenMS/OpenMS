@@ -61,11 +61,11 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         libcpp_vector[EmpiricalFormula] getNTermLossFormulas() nogil except + # wrap-doc:Returns N-terminal loss formulas
 
-        void setLossNames(libcpp_vector[String] name) nogil except + # wrap-doc:Set the neutral loss molecule name
+        void setLossNames(libcpp_vector[String] name) nogil except + # wrap-doc:Sets the neutral loss molecule name
 
         void setNTermLossNames(libcpp_vector[String] name) nogil except + # wrap-doc:Sets the N-terminal loss names
 
-        void addLossName(String name) nogil except + # wrap-doc:Add neutral loss molecule name
+        void addLossName(String name) nogil except + # wrap-doc:Adds neutral loss molecule name
 
         void addNTermLossName(String name) nogil except + # wrap-doc:Adds a N-terminal loss name
 
@@ -73,7 +73,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         libcpp_vector[String] getNTermLossNames() nogil except + # wrap-doc:Returns the N-terminal loss names
 
-        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Set empirical formula of the residue (must be full, with N and C-terminus)
+        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets empirical formula of the residue (must be full, with N and C-terminus)
 
         EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the empirical formula of the residue
         EmpiricalFormula getFormula(ResidueType res_type) nogil except +

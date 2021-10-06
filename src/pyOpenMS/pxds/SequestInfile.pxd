@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         void setIonCutoffPercentage(float ion_cutoff_percentage) nogil except + # wrap-doc:Sets the ion cutoff of the ratio matching theoretical peaks/theoretical peaks
         Size getPeptideMassUnit() nogil except + # wrap-doc:Returns the peptide mass unit
         void setPeptideMassUnit(Size peptide_mass_unit) nogil except + # wrap-doc:Sets the peptide mass unit
-        Size getOutputLines() nogil except + # wrap-doc:Return the number of peptides to be displayed
+        Size getOutputLines() nogil except + # wrap-doc:Returns the number of peptides to be displayed
         void setOutputLines(Size output_lines) nogil except + # wrap-doc:Sets the number of peptides to be displayed
         Size getEnzymeNumber() nogil except + # wrap-doc:Returns the enzyme used for cleavage (by means of the number from a list of enzymes)
         String getEnzymeName() nogil except + # wrap-doc:Returns the enzyme used for cleavage
@@ -47,9 +47,9 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         Size getMaxAAPerModPerPeptide() nogil except + # wrap-doc:Returns the maximum number of amino acids containing the same modification in a peptide
         void setMaxAAPerModPerPeptide(Size max_aa_per_mod_per_peptide) nogil except + # wrap-doc:Sets the maximum number of amino acids containing the same modification in a peptide
         Size getMaxModsPerPeptide() nogil except + # wrap-doc:Returns the maximum number of modifications that are allowed in a peptide
-        void setMaxModsPerPeptide(Size max_mods_per_peptide) nogil except + # wrap-doc:Set the maximum number of modifications that are allowed in a peptide
+        void setMaxModsPerPeptide(Size max_mods_per_peptide) nogil except + # wrap-doc:Sets the maximum number of modifications that are allowed in a peptide
         Size getNucleotideReadingFrame() nogil except + # wrap-doc:Returns the nucleotide reading frame
-        void setNucleotideReadingFrame(Size nucleotide_reading_frame) nogil except +
+        void setNucleotideReadingFrame(Size nucleotide_reading_frame) nogil except + # wrap-doc:Sets the nucleotide reading frame
         Size getMaxInternalCleavageSites() nogil except + # wrap-doc:Returns the maximum number of internal cleavage sites
         void setMaxInternalCleavageSites(Size max_internal_cleavage_sites) nogil except + # wrap-doc:Sets the maximum number of internal cleavage sites
         Size getMatchPeakCount() nogil except + # wrap-doc:Returns the number of top abundant peaks to match with theoretical ones
@@ -60,11 +60,11 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         void setShowFragmentIons(bool show_fragments) nogil except + # wrap-doc:Sets whether fragment ions shall be displayed
         bool getPrintDuplicateReferences() nogil except + # wrap-doc:Returns whether all proteins containing a found peptide should be displayed
         void setPrintDuplicateReferences(bool print_duplicate_references) nogil except + # wrap-doc:Sets whether all proteins containing a found peptide should be displayed
-        bool getRemovePrecursorNearPeaks() nogil except + # wrap-doc:Return whether peaks near (15 amu) the precursor peak are removed
+        bool getRemovePrecursorNearPeaks() nogil except + # wrap-doc:Returns whether peaks near (15 amu) the precursor peak are removed
         void setRemovePrecursorNearPeaks(bool remove_precursor_near_peaks) nogil except + # wrap-doc:Sets whether peaks near (15 amu) the precursor peak are removed
-        bool getMassTypeParent() nogil except + # wrap-doc:Return the mass type of the parent (0 - monoisotopic, 1 - average mass)
+        bool getMassTypeParent() nogil except + # wrap-doc:Returns the mass type of the parent (0 - monoisotopic, 1 - average mass)
         void setMassTypeParent(bool mass_type_parent) nogil except + # wrap-doc:Sets the mass type of the parent (0 - monoisotopic, 1 - average mass)
-        bool getMassTypeFragment() nogil except + # wrap-doc:Return the mass type of the fragments (0 - monoisotopic, 1 - average mass)
+        bool getMassTypeFragment() nogil except + # wrap-doc:Returns the mass type of the fragments (0 - monoisotopic, 1 - average mass)
         void setMassTypeFragment(bool mass_type_fragment) nogil except + # wrap-doc:Sets the mass type of the fragments (0 - monoisotopic, 1 - average mass)
         bool getNormalizeXcorr() nogil except + # wrap-doc:Returns whether normalized xcorr values are displayed
         void setNormalizeXcorr(bool normalize_xcorr) nogil except + # wrap-doc:Sets whether normalized xcorr values are displayed

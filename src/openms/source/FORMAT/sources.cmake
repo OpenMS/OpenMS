@@ -64,6 +64,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp
