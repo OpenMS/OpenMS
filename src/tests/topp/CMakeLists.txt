@@ -177,23 +177,23 @@ set_tests_properties("UTILS_FuzzyDiff_4" PROPERTIES WILL_FAIL 1) ## needs to fai
 
 #------------------------------------------------------------------------------
 # IDMerger tests
-add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp -annotate_file_origin)
+add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp)
 add_test("TOPP_IDMerger_1_out1" ${DIFF} -in1 IDMerger_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_1_output.idXML)
 set_tests_properties("TOPP_IDMerger_1_out1" PROPERTIES DEPENDS "TOPP_IDMerger_1")
 # merge pepXML and protXML:
-add_test("TOPP_IDMerger_2" ${TOPP_BIN_PATH}/IDMerger -test -pepxml_protxml -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML ${DATA_DIR_TOPP}/IDMerger_2_input2.idXML -out IDMerger_2_output.tmp)
+add_test("TOPP_IDMerger_2" ${TOPP_BIN_PATH}/IDMerger -test -pepxml_protxml -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML ${DATA_DIR_TOPP}/IDMerger_2_input2.idXML -out IDMerger_2_output.tmp -annotate_file_origin "false")
 add_test("TOPP_IDMerger_2_out1" ${DIFF} -in1 IDMerger_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_2_output.idXML )
 set_tests_properties("TOPP_IDMerger_2_out1" PROPERTIES DEPENDS "TOPP_IDMerger_2")
 # conflicting IDs:
-add_test("TOPP_IDMerger_3" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML -out IDMerger_3_output.tmp)
+add_test("TOPP_IDMerger_3" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML -out IDMerger_3_output.tmp -annotate_file_origin "false")
 add_test("TOPP_IDMerger_3_out1" ${DIFF} -in1 IDMerger_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_3_output.idXML )
 set_tests_properties("TOPP_IDMerger_3_out1" PROPERTIES DEPENDS "TOPP_IDMerger_3")
 # empty IDs:
-add_test("TOPP_IDMerger_4" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/degenerated_empty.idXML ${DATA_DIR_TOPP}/degenerated_empty.idXML -out IDMerger_4_output.tmp)
+add_test("TOPP_IDMerger_4" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/degenerated_empty.idXML ${DATA_DIR_TOPP}/degenerated_empty.idXML -out IDMerger_4_output.tmp -annotate_file_origin "false")
 add_test("TOPP_IDMerger_4_out1" ${DIFF} -in1 IDMerger_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_4_output.idXML )
 set_tests_properties("TOPP_IDMerger_4_out1" PROPERTIES DEPENDS "TOPP_IDMerger_4")
 # "add_to" option:
-add_test("TOPP_IDMerger_5" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML -add_to ${DATA_DIR_TOPP}/IDMerger_5_input1.idXML -out IDMerger_5_output.tmp)
+add_test("TOPP_IDMerger_5" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML -add_to ${DATA_DIR_TOPP}/IDMerger_5_input1.idXML -out IDMerger_5_output.tmp -annotate_file_origin "false")
 add_test("TOPP_IDMerger_5_out1" ${DIFF} -in1 IDMerger_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_5_output.idXML )
 set_tests_properties("TOPP_IDMerger_5_out1" PROPERTIES DEPENDS "TOPP_IDMerger_5")
 
