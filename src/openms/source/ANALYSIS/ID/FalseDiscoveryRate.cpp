@@ -1436,14 +1436,14 @@ namespace OpenMS
     }
 
     //uniquify scores and add decoy proportions
-    size_t decoys = 0;
+    double decoys = 0.; // double to account for "partial" decoys
     double last_score = scores_labels[0].first;
 
     size_t j = 0;
     for (; j < scores_labels.size(); ++j)
     {
-      //TODO think about double comparison here, but an equal should actually be fine here.
-      if (scores_labels[j].first != last_score)
+      //Although we do not really care about equality we compare with tolerance to make it (more?) compiler independent.
+      if (std::abs(scores_labels[j].first - last_score) > 1e-12)
       {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
         std::cerr << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << std::endl;
@@ -1451,11 +1451,11 @@ namespace OpenMS
         //we are using the conservative formula (Decoy + 1) / (Tgts)
         if (conservative)
         {
-          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0-decoys);
+          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
         }
         else
         {
-          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0);
+          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
         }
 
         last_score = scores_labels[j].first;
@@ -1474,11 +1474,11 @@ namespace OpenMS
     // in case there is only one score and generally to include the last score, I guess we need to do this
     if (conservative)
     {
-      scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0-decoys);
+      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
     }
     else
     {
-      scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0);
+      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
     }
 
     if (qvalue) //apply a cumulative minimum on the map (from low to high fdrs)
