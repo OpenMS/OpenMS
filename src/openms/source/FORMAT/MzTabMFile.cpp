@@ -32,14 +32,10 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabMFile.h>
-
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <boost/regex.hpp>
-
-using namespace std;
 
 namespace OpenMS
 {
@@ -63,12 +59,6 @@ namespace OpenMS
     if(!md.description.isNull())
     {
       String s = String("MTD\tdescription\t") + md.description.toCellString();
-      sl.push_back(s);
-    }
-
-    for (map<Size, MzTabParameterList>::const_iterator it = md.sample_processing.begin(); it != md.sample_processing.end(); ++it)
-    {
-      String s = "MTD\tsample_processing[" + String(it->first) + "]\t" + it->second.toCellString();
       sl.push_back(s);
     }
 
@@ -256,7 +246,7 @@ namespace OpenMS
     {
       const MzTabMAssayMetaData& amd = assay.second;
 
-      String name = "MTD\tassay[" + String(assay.first) + "]-name\t" + amd.name.toCellString(); // mandatory
+      String name = "MTD\tassay[" + String(assay.first) + "]\t" + amd.name.toCellString(); // mandatory
       sl.push_back(name);
 
       for (const auto& custom : amd.custom)
@@ -285,7 +275,7 @@ namespace OpenMS
     {
       const MzTabMStudyVariableMetaData& svmd = sv.second;
 
-      String name = "MTD\tstudy_variable[" + String(sv.first) + "]-name\t" + svmd.name.toCellString(); // mandatory
+      String name = "MTD\tstudy_variable[" + String(sv.first) + "]\t" + svmd.name.toCellString(); // mandatory
       sl.push_back(name);
 
       std::vector<MzTabString> strings;
@@ -347,7 +337,7 @@ namespace OpenMS
     {
       MzTabMDatabaseMetaData dbmd = db.second;
 
-      String database = "MTD\tdatabase[" + String(db.first) + "]-database\t" + dbmd.database.toCellString();  // mandatory
+      String database = "MTD\tdatabase[" + String(db.first) + "]\t" + dbmd.database.toCellString();  // mandatory
       sl.push_back(database);
 
       String prefix = "MTD\tdatabase[" + String(db.first) + "]-prefix\t" + dbmd.prefix.toCellString();  // mandatory
@@ -366,14 +356,11 @@ namespace OpenMS
       sl.push_back(s);
     }
 
-    sl.push_back(String("MTD\tsmall_molecule_quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
+    sl.push_back(String("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
     // TODO: Have to check if feature section is reported?
-    sl.push_back(String("MTD\tsmall_molecule_feature_quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
+    sl.push_back(String("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
 
-    if (!md.small_molecule_identification_reliability.isNull())
-    {
-      sl.push_back(String("MTD\tsmall_molecule_identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
-    }
+    sl.push_back(String("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
 
     for (const auto& id_conf : md.id_confidence_measure)
     {
@@ -400,7 +387,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabMFile::generateMzTabSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
+  String MzTabMFile::generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
   {
     StringList header;
     header.emplace_back("SMH");
@@ -433,52 +420,106 @@ namespace OpenMS
       header.emplace_back(String("abundance_variation_study_variable[") + String(a.first) + String("]"));
     }
 
-
-    // abundance_assay[1-n]
-    // abundance_study_variable[1-n]
-    // abundance_variation_study_variable [1-n]
-    // opt_{identifier}_*
-
-
+    //TODO: opt_{identifier}_*
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
     n_columns = header.size();
     return ListUtils::concatenate(header, "\t");
   }
 
-//  String MzTabMFile::generateMzTabSmallMoleculeSectionRow_() const
-//  {
-//
-//  }
+  String MzTabMFile::generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  {
+    StringList s;
+    s.emplace_back("SML");
+    s.emplace_back(row.sml_identifier.toCellString());
+    s.emplace_back(row.smf_id_refs.toCellString());
+    s.emplace_back(row.database_identifier.toCellString());
+    s.emplace_back(row.chemical_formula.toCellString());
+    s.emplace_back(row.smiles.toCellString());
+    s.emplace_back(row.inchi.toCellString());
+    s.emplace_back(row.chemical_name.toCellString());
+    s.emplace_back(row.uri.toCellString());
+    s.emplace_back(row.theoretical_neutral_mass.toCellString());
+    s.emplace_back(row.adducts.toCellString());
+    s.emplace_back(row.reliability.toCellString());
+    s.emplace_back(row.best_id_confidence_measure.toCellString());
+    s.emplace_back(row.best_id_confidence_value.toCellString());
 
-  String MzTabMFile::generateMzTabSmallMoleculeFeatureHeader_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const
+    for (const auto& abundance_assay : row.small_molecule_abundance_assay)
+    {
+      s.emplace_back(abundance_assay.second.toCellString());
+    }
+
+    for (const auto& abundance_study_variable : row.small_molecule_abundance_study_variable)
+    {
+      s.emplace_back(abundance_study_variable.second.toCellString());
+    }
+
+    for (const auto& variation_study_variable : row.small_molecule_abundance_variation_study_variable)
+    {
+      s.emplace_back(variation_study_variable.second.toCellString());
+    }
+
+    // TODO: add optional columns
+    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    n_columns = s.size();
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  String MzTabMFile::generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
   {
    StringList header;
-   header.emplace_back("SFH ");
-   header.emplace_back("SMF_ID ");
-   header.emplace_back("SME_ID_REFS ");
-   header.emplace_back("SME_ID_REF_ambiguity_code ");
-   header.emplace_back("adduct_ion ");
-   header.emplace_back("isotopomer ");
-   header.emplace_back("exp_mass_to_charge ");
-   header.emplace_back("charge ");
-   header.emplace_back("retention_time_in_seconds ");
-   header.emplace_back("retention_time_in_seconds_start ");
-   header.emplace_back("retention_time_in_seconds_end ");
-   // abundance_assay[1-n]
-   // opt_{identifier}_*
+   header.emplace_back("SFH");
+   header.emplace_back("SMF_ID");
+   header.emplace_back("SME_ID_REFS");
+   header.emplace_back("SME_ID_REF_ambiguity_code");
+   header.emplace_back("adduct_ion");
+   header.emplace_back("isotopomer");
+   header.emplace_back("exp_mass_to_charge");
+   header.emplace_back("charge");
+   header.emplace_back("retention_time_in_seconds");
+   header.emplace_back("retention_time_in_seconds_start");
+   header.emplace_back("retention_time_in_seconds_end");
 
+   for (const auto& a : meta.assay)
+   {
+     header.emplace_back(String("abundance_assay[") + String(a.first) + String("]"));
+   }
 
-
+   //TODO:  opt_{identifier}_*
 
    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
    n_columns = header.size();
    return ListUtils::concatenate(header, "\t");
   }
 
-  //String MzTabMFile::generateMzTabSmallMoleculeFeatureSectionRow_() const;
+  String MzTabMFile::generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  {
+    StringList s;
+    s.emplace_back("SMF");
+    s.emplace_back(row.smf_identifier.toCellString());
+    s.emplace_back(row.sme_id_refs.toCellString());
+    s.emplace_back(row.sme_id_ref_ambiguity_code.toCellString());
+    s.emplace_back(row.adduct.toCellString());
+    s.emplace_back(row.isotopomer.toCellString());
+    s.emplace_back(row.exp_mass_to_charge.toCellString());
+    s.emplace_back(row.charge.toCellString());
+    s.emplace_back(row.retention_time.toCellString());
+    s.emplace_back(row.rt_start.toCellString());
+    s.emplace_back(row.rt_end.toCellString());
 
-  String MzTabMFile::generateMzTabSmallMoleculeEvidenceHeader_(const MzTabMSmallMoleculeEvidenceSectionRow & row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const
+    for (const auto& feature_abundance : row.small_molecule_feature_abundance_assay)
+    {
+      s.emplace_back(feature_abundance.second.toCellString());
+    }
+
+    // TODO: add optional columns
+    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    n_columns = s.size();
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  String MzTabMFile::generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
   {
     StringList header;
     header.emplace_back("SEH");
@@ -493,26 +534,60 @@ namespace OpenMS
     header.emplace_back("derivatized_form");
     header.emplace_back("adduct_ion");
     header.emplace_back("exp_mass_to_charge");
-
     header.emplace_back("charge");
     header.emplace_back("theoretical_mass_to_charge");
     header.emplace_back("spectra_ref");
-
     header.emplace_back("identification_method");
     header.emplace_back("ms_level");
-    // id_confidence_measure[1-n]
+
+    for (const auto& id_conf : meta.id_confidence_measure)
+    {
+      header.emplace_back(String("id_confidence_measure[") + String(id_conf.first) + String("]"));
+    }
 
     header.emplace_back("rank");
-    // opt_{identifier}_*
-
-
+    // TODO: opt_{identifier}_*
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
     n_columns = header.size();
     return ListUtils::concatenate(header, "\t");
   }
 
-  //String MzTabMFile::generateMzTabSmallMoleculeEvidenceSectionRow_() const;
+  String MzTabMFile::generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  {
+    StringList s;
+    s.emplace_back("SME");
+    s.emplace_back(row.sme_identifier.toCellString());
+    s.emplace_back(row.evidence_input_id.toCellString());
+    s.emplace_back(row.database_identifier.toCellString());
+    s.emplace_back(row.chemical_formula.toCellString());
+    s.emplace_back(row.smiles.toCellString());
+    s.emplace_back(row.inchi.toCellString());
+    s.emplace_back(row.chemical_name.toCellString());
+    s.emplace_back(row.uri.toCellString());
+    s.emplace_back(row.derivatized_form.toCellString());
+    s.emplace_back(row.adduct.toCellString());
+    s.emplace_back(row.exp_mass_to_charge.toCellString());
+    s.emplace_back(row.charge.toCellString());
+    s.emplace_back(row.calc_mass_to_charge.toCellString());
+    s.emplace_back(row.spectra_ref.toCellString());
+    s.emplace_back(row.identification_method.toCellString());
+    s.emplace_back(row.ms_level.toCellString());
+
+    for (const auto& id_conf : row.id_confidence_measure)
+    {
+      s.emplace_back(id_conf.second.toCellString());
+    }
+
+    s.emplace_back(row.rank.toCellString());
+
+    // TODO: opt_{identifier}_*
+
+    // TODO: add optional columns
+    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    n_columns = s.size();
+    return ListUtils::concatenate(s, "\t");
+  }
 
   void MzTabMFile::store(const String& filename, const MzTabM& mztab_m) const
   {
@@ -527,10 +602,63 @@ namespace OpenMS
     StringList out;
     generateMzTabMMetaDataSection_(mztab_m.getMetaData(), out);
 
-    const MzTabMSmallMoleculeSectionRows& sm_section = mztab_m.getMSmallMoleculeSectionRows();
-    const MzTabMSmallMoleculeFeatureSectionRows& feature_section = mztab_m.getMSmallMoleculeFeatureSectionRows();
-    const MzTabMSmallMoleculeEvidenceSectionRows& evidence_section = mztab_m.getMSmallMoleculeEvidenceSectionRows();
+    std::vector<String> optional_columns;
 
+    size_t n_sml_header_columns = 0;
+    out.emplace_back("");
+    out.emplace_back(generateMzTabMSmallMoleculeHeader_(mztab_m.getMetaData(),
+                                                        optional_columns,
+                                                        n_sml_header_columns));
+
+    size_t n_sml_section_columns = 0;
+    const MzTabMSmallMoleculeSectionRows& sm_section = mztab_m.getMSmallMoleculeSectionRows();
+    for (const auto& sms_row: sm_section)
+    {
+      out.emplace_back(generateMzTabMSmallMoleculeSectionRow_(sms_row,
+                                                              optional_columns,
+                                                              n_sml_section_columns));
+
+      OPENMS_POSTCONDITION(n_sml_header_columns == n_sml_section_columns,
+                           "The number of columns of the small molecule header do not assort to the number of columns of the small molecule section row.")
+    }
+
+    size_t n_smf_header_columns = 0;
+    std::vector<String> smf_optional_columns;
+    out.emplace_back("");
+    out.emplace_back(generateMzTabMSmallMoleculeFeatureHeader_(mztab_m.getMetaData(),
+                                                               optional_columns,
+                                                               n_smf_header_columns));
+
+    size_t n_smf_section_columns = 0;
+    const MzTabMSmallMoleculeFeatureSectionRows& feature_section = mztab_m.getMSmallMoleculeFeatureSectionRows();
+    for (const auto& smf_row : feature_section)
+    {
+      out.emplace_back(generateMzTabMSmallMoleculeFeatureSectionRow_(smf_row,
+                                                                     optional_columns,
+                                                                     n_smf_section_columns));
+
+      OPENMS_POSTCONDITION(n_smf_header_columns == n_smf_section_columns,
+                           "The number of columns of the small molecule feature header do not assort to the number of columns of the small molecule feature section row.")
+    }
+
+    size_t n_sme_header_columns = 0;
+    std::vector<String> sme_optional_columns;
+    out.emplace_back("");
+    out.emplace_back(generateMzTabMSmallMoleculeEvidenceHeader_(mztab_m.getMetaData(),
+                                                                sme_optional_columns,
+                                                                n_sme_header_columns));
+
+    size_t n_sme_section_columns = 0;
+    const MzTabMSmallMoleculeEvidenceSectionRows& evidence_section = mztab_m.getMSmallMoleculeEvidenceSectionRows();
+    for (const auto& sme_row : evidence_section)
+    {
+      out.emplace_back(generateMzTabMSmallMoleculeEvidenceSectionRow_(sme_row,
+                                                                      optional_columns,
+                                                                      n_sme_section_columns));
+
+      OPENMS_POSTCONDITION(n_sme_header_columns == n_sme_section_columns,
+                           "The number of columns in the small molecule evidence header do not assort to the number of columns of the small molecule evidence section row.")
+    }
 
 
     // TODO: add to later on - empty rows / comment rows
@@ -540,9 +668,6 @@ namespace OpenMS
       tmp_out.addLine(*it);
     }
     tmp_out.store(filename);
-
   }
 
 }
-
-#pragma clang diagnostic pop

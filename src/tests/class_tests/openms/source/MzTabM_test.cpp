@@ -69,8 +69,8 @@ START_TEST(MzTabM, "$Id$")
           // SML Small molecule section row
           MzTabMSmallMoleculeSectionRows sml_rows;
           MzTabMSmallMoleculeSectionRow sml_row;
-          sml_row.sms_identifier.fromCellString(1);
-          sml_row.smf_id_refs.fromCellString("[1|2]");
+          sml_row.sml_identifier.fromCellString(1);
+          sml_row.smf_id_refs.fromCellString("1,2");
           sml_row.database_identifier.fromCellString("[HMDB:HMDB0001847]");
           sml_row.chemical_formula.fromCellString("[C17H20N4O2]");
           sml_row.smiles.fromCellString("[C1=CC=C(C=C1)CCNC(=O)CCNNC(=O)C2=CC=NC=C2]");
@@ -107,7 +107,7 @@ START_TEST(MzTabM, "$Id$")
           MzTabMSmallMoleculeFeatureSectionRows smf_rows;
           MzTabMSmallMoleculeFeatureSectionRow smf_row;
           smf_row.smf_identifier.fromCellString(1);
-          smf_row.sme_id_refs.fromCellString("[1]");
+          smf_row.sme_id_refs.fromCellString("1");
           smf_row.sme_id_ref_ambiguity_code.fromCellString("null");
           smf_row.adduct.fromCellString("[M+H]1+");
           smf_row.isotopomer.setNull(true);
@@ -134,7 +134,10 @@ START_TEST(MzTabM, "$Id$")
           sme_row.exp_mass_to_charge.set(313.1689);
           sme_row.charge.set(1);
           sme_row.calc_mass_to_charge.set(313.1665);
-          sme_row.spectra_ref.fromCellString("[ms_run[1]:index=5]");
+          MzTabSpectraRef sp_ref;
+          sp_ref.setMSFile(1);
+          sp_ref.setSpecRef("index=5");
+          sme_row.spectra_ref = sp_ref;
           sme_row.identification_method.fromCellString("[MS, MS:1000752, TOPP Software,]");
           sme_row.ms_level.fromCellString("[MS, MS:1000511, ms level, 1]");
           // TODO: FIX -> changed to std::map<Size, MzTabDouble>
@@ -216,11 +219,13 @@ START_TEST(MzTabM, "$Id$")
           MzTabParameter p_id_format;
           p_id_format.fromCellString("[MS, MS:1000584, mzML file, ]");
           meta_msrun.id_format = p_id_format;
-          MzTabParameterList pl_fragmentation_method;
-          pl_fragmentation_method.fromCellString("[MS, MS:1000133, CID, ]|[MS, MS:1000422, HCD, ]");
+          std::map<Size, MzTabParameter> pl_fragmentation_method;
+          pl_fragmentation_method[0].fromCellString("[MS, MS:1000133, CID, ]");
+          pl_fragmentation_method[1].fromCellString("[MS, MS:1000422, HCD, ]");
           meta_msrun.fragmentation_method = pl_fragmentation_method;
-          MzTabParameterList pl_scan_polarity;
-          pl_scan_polarity.fromCellString("[MS, MS:1000130, positive scan, ]");
+          std::map<Size, MzTabParameter> pl_scan_polarity;
+          pl_scan_polarity[0].fromCellString("[MS, MS:1000130, positive scan, ]");
+          pl_scan_polarity[1].fromCellString("[MS, MS:1000130, positive scan, ]");
           meta_msrun.scan_polarity = pl_scan_polarity;
           meta_msrun.hash = MzTabString("de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3");
           MzTabParameter p_hash_method;
@@ -232,12 +237,10 @@ START_TEST(MzTabM, "$Id$")
           MzTabMAssayMetaData meta_assay;
           MzTabParameter p_custom;
           p_custom.fromCellString("[MS, , Assay operator, Blogs]");
-          meta_assay.custom = p_custom;
+          meta_assay.custom[0] = p_custom;
           meta_assay.external_uri = MzTabString("https://www.ebi.ac.uk/metabolights/MTBLS/files/i_Investigation.txt?STUDYASSAY=a_8pos.txt");
-          std::vector<int> sample_ref{1};
-          meta_assay.sample_ref = sample_ref;
-          std::vector<int> ms_run_ref{1};
-          meta_assay.ms_run_ref = ms_run_ref;
+          meta_assay.sample_ref = MzTabInteger(1);
+          meta_assay.ms_run_ref = MzTabInteger(1);
           mztabm_meta.assay[0] = meta_assay;
 
           // study variable
@@ -293,11 +296,10 @@ START_TEST(MzTabM, "$Id$")
           mztabm.setMSmallMoleculeFeatureSectionRows(smf_rows);
           mztabm.setMSmallMoleculeEvidenceSectionRows(sme_rows);
 
-
           // Tests ///////////////////////////////
           MzTabMSmallMoleculeSectionRow sml_test;
           sml_test = mztabm.getMSmallMoleculeSectionRows()[0];
-          TEST_EQUAL(sml_test.smf_id_refs.toCellString(), "[1|2]")
+          TEST_EQUAL(sml_test.smf_id_refs.toCellString(), "1,2")
           TEST_EQUAL(sml_test.adducts.toCellString(), "[[M+H]1+]")
 
           MzTabMSmallMoleculeFeatureSectionRow smf_test;
@@ -349,7 +351,6 @@ START_TEST(MzTabM, "$Id$")
           // TODO: Load OMS file
           // TODO: fill mztab data strucutre wiht oms file
           // TODO: Test some of the fields!
-
         }
     END_SECTION
 

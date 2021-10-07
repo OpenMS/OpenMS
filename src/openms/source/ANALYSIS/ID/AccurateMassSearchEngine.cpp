@@ -640,6 +640,7 @@ namespace OpenMS
       IdentificationData::DBSearchParam search_param;
       search_param.database = database_name_;
       search_param.database_version = database_version_;
+      search_param.setMetaValue("database_location", database_location_);
 
       // TODO: is it possible to not get the default value?
       // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value");
@@ -1258,6 +1259,8 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
   void AccurateMassSearchEngine::parseMappingFile_(const StringList& db_mapping_file)
   {
     mass_mappings_.clear();
+
+    database_location_ = ListUtils::concatenate(db_mapping_file, '|');
 
     // load map_fname mapping file
     for (StringList::const_iterator it_f = db_mapping_file.begin(); it_f != db_mapping_file.end(); ++it_f)

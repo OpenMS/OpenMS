@@ -136,25 +136,23 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
   {
   public:
-    MzTabInteger sms_identifier; ///< The small molecule’s identifier.
+    MzTabInteger sml_identifier; ///< The small molecule’s identifier.
     MzTabIntegerList smf_id_refs; ///< References to all the features on which quantification has been based.
     MzTabStringList database_identifier; ///< Names of the used databases.
     MzTabStringList chemical_formula; ///< Potential chemical formula of the reported compound.
     MzTabStringList smiles; ///< Molecular structure in SMILES format.
     MzTabStringList inchi; ///< InChi of the potential compound identifications.
     MzTabStringList chemical_name; ///< Possible chemical/common names or general description
-    MzTabStringList uri; ///< The source entry’s location. // TODO: URI List ?
+    MzTabStringList uri; ///< The source entry’s location.
     MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
     MzTabStringList adducts; ///< Adducts
     // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
     MzTabString reliability; ///< Reliability of the given small molecule identification
-    // TODO: e.g. use best search_engine score
     MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
     MzTabDouble best_id_confidence_value; ///< The best confidence measure
     std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///<
     std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
-    std::map<Size, MzTabDouble> small_molecule_abundance_stdev_study_variable; ///<
-    std::map<Size, MzTabDouble> small_molecule_abundance_std_error_study_variable; ///<
+    std::map<Size, MzTabDouble> small_molecule_abundance_variation_study_variable; ///<
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
   };
 
@@ -193,7 +191,7 @@ namespace OpenMS
     MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
     MzTabInteger charge; ///< Precursor ion’s charge.
     MzTabDouble calc_mass_to_charge; ///< Precursor ion’s m/z.
-    MzTabStringList spectra_ref; ///< Reference to a spectrum
+    MzTabSpectraRef spectra_ref; ///< Reference to a spectrum
     MzTabParameter identification_method; ///< Database search, search engine or process that was used to identify this small molecule
     MzTabParameter ms_level; ///< The highest MS level used to inform identification
     std::map<Size, MzTabDouble> id_confidence_measure; ///< Statistical value or score for the identification

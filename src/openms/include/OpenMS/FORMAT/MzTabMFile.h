@@ -52,6 +52,7 @@ namespace OpenMS
   public:
     /// Default Constructor
     MzTabMFile();
+
     /// Default Destructor
     ~MzTabMFile();
 
@@ -59,21 +60,19 @@ namespace OpenMS
     void store(const String& filename, const MzTabM& mztab_m) const;
 
   protected:
-
     void generateMzTabMMetaDataSection_(const MzTabMMetaData& map, StringList& sl) const;
 
-    String generateMzTabSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    String generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    //String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
+    String generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSmallMoleculeFeatureHeader_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
+    String generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    //String generateMzTabSmallMoleculeFeatureSectionRow_() const;
+    String generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSmallMoleculeEvidenceHeader_(const MzTabMSmallMoleculeEvidenceSectionRow & row, const std::vector<String>& optional_columns, const MzTabMMetaData& meta, size_t& n_columns) const;
+    String generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    //String generateMzTabSmallMoleculeEvidenceSectionRow_() const;
-
+    String generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
   };
 
 } // namespace OpenMS
