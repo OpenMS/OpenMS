@@ -16,7 +16,7 @@ jobs:
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: './src'
+        source: ${{ github.workspace }}/OpenMS/src
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: chromium
