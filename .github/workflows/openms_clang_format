@@ -1,0 +1,18 @@
+name: openms_clang_format
+
+on:
+  push:
+    branches: [ develop, add/openms_clang_format ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: DoozyX/clang-format-lint-action@v0.12
+      with:
+        source: './src'
+        extensions: 'h,cpp'
+        clangFormatVersion: 12
+        style: chromium
