@@ -5,15 +5,16 @@ on:
     branches: [ develop, add/openms_clang_format ]
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
 
-    - uses: DoozyX/clang-format-lint-action@v0.12
+    - name: Use clang format linting
+      uses: DoozyX/clang-format-lint-action@v0.12
       with:
         source: './src'
         extensions: 'h,cpp'
