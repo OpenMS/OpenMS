@@ -13,17 +13,10 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Test
-      shell: bash
-      run: |
-          pwd
-          echo {{ $GITHUB_WORKSPACE }}
-          find . -name "FeatureDeconvolution.cpp"
-
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: './OpenMS/src/openms/source/ANALYSIS/DECHARGING'
+        source: './OpenMS/src'
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: chromium
