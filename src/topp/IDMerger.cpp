@@ -210,7 +210,6 @@ protected:
     StringList file_names = getStringList_("in");
     String out = getStringOption_("out");
     String add_to = getStringOption_("add_to");
-    //bool annotate_file_origin = getFlag_("annotate_file_origin");
     bool annotate_file_origin = getStringOption_("annotate_file_origin") == "true" ? true : false;
 
     if (file_names.empty())
