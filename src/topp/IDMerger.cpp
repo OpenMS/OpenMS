@@ -196,7 +196,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
     setValidFormats_("add_to", ListUtils::create<String>("idXML"));
-    registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).");
+    registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).", true);
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
     registerFlag_("merge_proteins_add_PSMs", "Merge all identified proteins by accession into one protein identification run but keep all the PSMs with updated links to potential new protein ID#s. Not compatible with 'add_to'.");
   }
