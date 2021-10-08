@@ -63,7 +63,7 @@ namespace OpenMS
     defaults_.setValue("score_aggregation_method",
                        "best",
                        "How to aggregate scores of peptides matching to the same protein?");
-    defaults_.setValidStrings("score_aggregation_method", {"best","product","sum"});
+    defaults_.setValidStrings("score_aggregation_method", {"best","product","sum","maximum"});
 
     defaults_.setValue("treat_charge_variants_separately", "true",
                        "If this is true, different charge variants of the same peptide sequence count as individual evidences.");
@@ -373,7 +373,7 @@ namespace OpenMS
 
   void BasicProteinInferenceAlgorithm::updateProteinScores_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
-      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      const std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       bool pep_scores,
       bool higher_better) const
   {
@@ -474,6 +474,10 @@ namespace OpenMS
     else if (agg_method_string == "sum")
     {
       return AggregationMethod::SUM;
+    }
+    else if (agg_method_string == "maximum")
+    {
+      return AggregationMethod::BEST;
     }
     else
     {
