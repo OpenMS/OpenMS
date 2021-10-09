@@ -16,17 +16,17 @@ jobs:
       with:
         path: OpenMS
 
-# Get files changed in the PR 
+# Step into the OpenMS directory
+    - name: Step into OpenMS
+      shell: bash
+      run: |
+         cd ${{ github.workspace }}/OpenMS
+
+# Get files changed in the PR
     - id: files
       uses: jitterbit/get-changed-files@v1
 
-# Step into the OpenMS directory
-     - name: Step into OpenMS
-       shell: bash
-       run: |
-          cd ${{ github.workspace }}/OpenMS
-
-# Perform linting 
+# Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
