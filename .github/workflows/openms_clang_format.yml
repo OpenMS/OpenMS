@@ -27,12 +27,13 @@ jobs:
             echo $append_path
             files+=${append_path}
           done
+          echo ::set-output name=filestolint::$(echo ${files})
 
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: ${{ files }}
+        source: ${{ steps.vars.outputs.filestolint }}
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: LLVM
