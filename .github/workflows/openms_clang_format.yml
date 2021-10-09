@@ -1,4 +1,4 @@
-# Action to allow clang format linting at the files changed in the PR 
+# Action to allow clang format linting at the files changed in the PR
 
 name: openms_clang_format
 
@@ -21,6 +21,10 @@ jobs:
       shell: bash
       run: |
          cd ${{ github.workspace }}/OpenMS
+         echo "issue nr"
+         echo ${{github.event.issue.number}}
+         echo "pr nr"
+         echo ${{github.event.number}}
 
 # Get files changed in the PR
     - id: files
