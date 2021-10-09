@@ -30,7 +30,7 @@ jobs:
       id: correct_files_to_lint
       run: |
           valid_extensions="h cpp"
-          for changed_file in $fromFiles; do
+          for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
             current_filename=$(basename -- "$changed_file")
             current_extension="${current_filename##*.}"
             if [[ " $valid_extensions " =~ " $current_extension " ]]
