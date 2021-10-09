@@ -39,7 +39,7 @@ jobs:
               files+=${append_path}
             fi	
           done
-          cho ::set-output name=filestolint::$(echo $files)
+          echo ::set-output name=filestolint::$(echo $files)
 
 # Perform linting
     - name: Use clang format linting
