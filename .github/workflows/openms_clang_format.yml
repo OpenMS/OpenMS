@@ -2,9 +2,11 @@
 
 name: openms_clang_format
 
-on:
+on:  
   push:
-    branches: [ develop, add/openms_clang_format ]
+  pull_request:
+    branches:
+      - develop
 
 jobs:
 
@@ -19,6 +21,12 @@ jobs:
 # Get files changed in the PR 
     - id: files
       uses: jitterbit/get-changed-files@v1
+
+# Step into the OpenMS directory
+     - name: Step into OpenMS
+       shell: bash
+       run: |
+          cd ${{ github.workspace }}/OpenMS
 
 # Perform linting 
     - name: Use clang format linting
