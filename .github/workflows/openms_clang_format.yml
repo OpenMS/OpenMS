@@ -4,7 +4,13 @@ name: openms_clang_format
 
 on:
   push:
-    branches: [ develop, add/openms_clang_format ]
+    branches:
+    - develop
+    - add/openms_clang_format
+  pull_request:
+    branches:
+    - develop
+    - add/openms_clang_format
 
 jobs:
 
