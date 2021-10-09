@@ -19,16 +19,12 @@ jobs:
 # Get files changed in the PR 
     - id: files
       uses: jitterbit/get-changed-files@v1
-    - run: |
-        for changed_file in ${{ steps.files.outputs.all }}; do
-          echo "Do something with this ${changed_file}."
-        done
 
 # Perform linting 
-#    - name: Use clang format linting
-#      uses: DoozyX/clang-format-lint-action@v0.12
-#      with:
-#        source: './OpenMS/src'
-#        extensions: 'h,cpp'
-#        clangFormatVersion: 12
-#        style: chromium
+    - name: Use clang format linting
+      uses: DoozyX/clang-format-lint-action@v0.12
+      with:
+        source: ${{ steps.files.outputs.all }}
+        extensions: 'h,cpp'
+        clangFormatVersion: 12
+        style: LLVM
