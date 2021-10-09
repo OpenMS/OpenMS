@@ -22,7 +22,6 @@ jobs:
     - id: files
       uses: jitterbit/get-changed-files@v1
     - run: |
-          files=""
           for changed_file in ${{ steps.files.outputs.all }}; do
             append_path=" ./OpenMS/${changed_file}"
             echo $append_path
@@ -33,7 +32,7 @@ jobs:
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: $files
+        source: ${{ files }}
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: LLVM
