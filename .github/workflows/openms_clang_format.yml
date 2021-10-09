@@ -46,4 +46,3 @@ jobs:
       with:
         source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
         clangFormatVersion: 12
-        style: LLVM
