@@ -6,43 +6,44 @@ on:
 
 name: Automatic clang format linting
 jobs:
-  if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        path: OpenMS
-# Get files changed in the PR
-    - name: Acquire files to lint
-      id: acquire_files_to_lint
-      uses: jitterbit/get-changed-files@v1
-# Correct path information to OpenMS
-# We have to check for the correct extensions here sine the files
-# will be passed directly instead of the source directory
-    - name: Correct files to lint
-      id: correct_files_to_lint
-      run: |
-          valid_extensions="h cpp"
-          for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
-            current_filename=$(basename -- "$changed_file")
-            current_extension="${current_filename##*.}"
-            if [[ " $valid_extensions " =~ " $current_extension " ]]
-            then
-              append_path=" ./OpenMS/${changed_file}"
-              files+=${append_path}
-            fi
-          done
-          echo ::set-output name=filestolint::$(echo $files)
-# Perform linting
-    - name: Use clang format linting
-      uses: DoozyX/clang-format-lint-action@v0.12
-      with:
-        source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
-        clangFormatVersion: 12
-        inplace: True
-    - uses: EndBug/add-and-commit@v4
-      with:
-        message: 'Committing clang-format changes'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  pr_commented:
+    if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
+    build:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          path: OpenMS
+  # Get files changed in the PR
+      - name: Acquire files to lint
+        id: acquire_files_to_lint
+        uses: jitterbit/get-changed-files@v1
+  # Correct path information to OpenMS
+  # We have to check for the correct extensions here sine the files
+  # will be passed directly instead of the source directory
+      - name: Correct files to lint
+        id: correct_files_to_lint
+        run: |
+            valid_extensions="h cpp"
+            for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
+              current_filename=$(basename -- "$changed_file")
+              current_extension="${current_filename##*.}"
+              if [[ " $valid_extensions " =~ " $current_extension " ]]
+              then
+                append_path=" ./OpenMS/${changed_file}"
+                files+=${append_path}
+              fi
+            done
+            echo ::set-output name=filestolint::$(echo $files)
+  # Perform linting
+      - name: Use clang format linting
+        uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
+          clangFormatVersion: 12
+          inplace: True
+      - uses: EndBug/add-and-commit@v4
+        with:
+          message: 'Committing clang-format changes'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
