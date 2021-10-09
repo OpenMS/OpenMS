@@ -24,26 +24,27 @@ jobs:
       uses: jitterbit/get-changed-files@v1
 
 # Correct path information to OpenMS
+# We have to check for the correct extensions here sine the files 
+# will be passed directly instead of the source directory
     - name: Correct files to lint
       id: correct_files_to_lint
       run: |
-          for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
-            append_path=" ./OpenMS/${changed_file}"
-            files+=${append_path}
+          valid_extensions="h cpp"
+          for changed_file in $fromFiles; do
+            current_filename=$(basename -- "$changed_file")
+            current_extension="${current_filename##*.}"
+            if [[ " $valid_extensions " =~ " $current_extension " ]]
+            then
+              append_path=" ./OpenMS/${changed_file}"
+              files+=${append_path}
+            fi	
           done
-          echo $files
-          echo ::set-output name=filestolint::$(echo $files)
-
-# Debug path information
-    - name: Check variables in from step correct_files_to_lint
-      run: |
-          echo ${{ steps.correct_files_to_lint.outputs.filestolint }}
+          cho ::set-output name=filestolint::$(echo $files)
 
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
         source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
-        extensions: 'h,cpp'
         clangFormatVersion: 12
         style: LLVM
