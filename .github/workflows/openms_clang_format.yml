@@ -18,19 +18,16 @@ jobs:
       with:
         path: OpenMS
 
-# Get files changed in the PR
-# and correct path information for linting
+# Get files changed in the PR and correct path information for linting
     - id: files
       uses: jitterbit/get-changed-files@v1
-      - run: |
-            for changed_file in $fromFiles; do
-              echo "Do something with this ${changed_file}"
-              append_path=" ./OpenMS/${changed_file}"
-              echo $append_path
-              files+=${append_path}
-            done
-
-echo $files
+    - run: |
+          files=""
+          for changed_file in ${{ steps.files.outputs.all }}; do
+            append_path=" ./OpenMS/${changed_file}"
+            echo $append_path
+            files+=${append_path}
+          done
 
 # Perform linting
     - name: Use clang format linting
