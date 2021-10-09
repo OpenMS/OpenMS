@@ -1,26 +1,22 @@
 # Action to allow clang format linting at the files changed in the PR
 
-name: openms_clang_format_add_and_commit
-
 on:
   issue_comment:
     types: [created]
 
+name: Automatic clang format linting
 jobs:
-  if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/clang_format')
-
+  if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-
 # Get files changed in the PR
     - name: Acquire files to lint
       id: acquire_files_to_lint
       uses: jitterbit/get-changed-files@v1
-
 # Correct path information to OpenMS
 # We have to check for the correct extensions here sine the files
 # will be passed directly instead of the source directory
@@ -38,7 +34,6 @@ jobs:
             fi
           done
           echo ::set-output name=filestolint::$(echo $files)
-
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12

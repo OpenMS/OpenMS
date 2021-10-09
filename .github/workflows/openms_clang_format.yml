@@ -1,14 +1,12 @@
 # Action to allow clang format linting at the files changed in the PR
 
-name: openms_clang_format
-
 on:
   pull_request:
     branches:
     - develop
 
+name: Clang format linting
 jobs:
-
 # Checkout OpenMS
   build:
     runs-on: ubuntu-latest
@@ -16,12 +14,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-
 # Get files changed in the PR
     - name: Acquire files to lint
       id: acquire_files_to_lint
       uses: jitterbit/get-changed-files@v1
-
 # Correct path information to OpenMS
 # We have to check for the correct extensions here sine the files
 # will be passed directly instead of the source directory
@@ -39,7 +35,6 @@ jobs:
             fi
           done
           echo ::set-output name=filestolint::$(echo $files)
-
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
