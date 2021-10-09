@@ -19,12 +19,11 @@ jobs:
         path: OpenMS
 
 # Get files changed in the PR and correct path information for linting
-    - id: files
+    - id: acquire_files_to_lint
       uses: jitterbit/get-changed-files@v1
     - run: |
-          for changed_file in ${{ steps.files.outputs.all }}; do
+          for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
             append_path=" ./OpenMS/${changed_file}"
-            echo $append_path
             files+=${append_path}
           done
           echo ::set-output name=filestolint::$(echo ${files})
@@ -33,7 +32,7 @@ jobs:
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: ${{ steps.vars.outputs.filestolint }}
+        source: ${{ steps.acquire_files_to_lint.outputs.filestolint }}
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: LLVM
