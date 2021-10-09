@@ -3,10 +3,6 @@
 name: openms_clang_format
 
 on:
-  push:
-    branches:
-    - develop
-    - add/openms_clang_format
   pull_request:
     branches:
     - develop
@@ -22,25 +18,24 @@ jobs:
       with:
         path: OpenMS
 
-# Step into the OpenMS directory
-    - name: Step into OpenMS
-      shell: bash
-      run: |
-         cd ${{ github.workspace }}/OpenMS
-         echo "issue nr"
-         echo ${{github.event.issue.number}}
-         echo "pr nr"
-         echo ${{github.event.number}}
-
 # Get files changed in the PR
+# and correct path information for linting
     - id: files
       uses: jitterbit/get-changed-files@v1
+      - run: |
+            for changed_file in ${{ steps.files.outputs.all }}; do
+              echo "Do something with this ${changed_file}."
+              append_path='./OpenMS/src${changed_file}'
+              echo $append path
+              files+=${changed_file}
+            done
+            echo $files
 
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
-        source: ${{ steps.files.outputs.all }}
+        source: $files
         extensions: 'h,cpp'
         clangFormatVersion: 12
         style: LLVM
