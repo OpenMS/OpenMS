@@ -1,15 +1,14 @@
 # Action to allow clang format linting at the files changed in the PR
 
-name: openms_clang_format
+name: openms_clang_format_add_and_commit
 
 on:
-  pull_request:
-    branches:
-    - develop
+  issue_comment:
+    types: [created]
 
 jobs:
+  if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/clang_format')
 
-# Checkout OpenMS
   build:
     runs-on: ubuntu-latest
     steps:
@@ -47,3 +46,8 @@ jobs:
         source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
         clangFormatVersion: 12
         style: LLVM
+    - uses: EndBug/add-and-commit@v4
+      with:
+        message: 'Committing clang-format changes'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
