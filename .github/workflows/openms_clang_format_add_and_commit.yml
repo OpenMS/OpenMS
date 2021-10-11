@@ -4,13 +4,12 @@ on:
   issue_comment:
     types: [created]
 
-name: Automatic clang format linting
 jobs:
   pr_commented:
+    name: Automatic clang format linting
+    runs-on: ubuntu-latest
     if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
-    build:
-      runs-on: ubuntu-latest
-      steps:
+    steps:
       - uses: actions/checkout@v2
         with:
           path: OpenMS
