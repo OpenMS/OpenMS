@@ -199,7 +199,7 @@ public:
 
 
   TOPPMSFraggerAdapter() :
-    OpenMS::SearchEngineBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
+    SearchEngineBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
                                   "Important note:\n"
                                   "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
                                   "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
