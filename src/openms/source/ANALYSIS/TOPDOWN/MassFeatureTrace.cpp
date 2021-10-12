@@ -143,7 +143,7 @@ namespace OpenMS
       auto per_charge_mz = std::vector<double>(charge_range + 1, .0);
       auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
 
-      int min_scan_num = (int) map.size() + 1000;
+      int min_scan_num = -1;
       int max_scan_num = 0;
 
       int rep_scan = 0, rep_charge = 0;
@@ -163,8 +163,14 @@ namespace OpenMS
             min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(crange);
         max_feature_abs_charge =
             max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(crange);
-
-        min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
+        if (min_scan_num < 0)
+        {
+          min_scan_num = scan_number;
+        }
+        else
+        {
+          min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
+        }
         max_scan_num = max_scan_num > scan_number ? max_scan_num : scan_number;
 
         if (pg.getIntensity() > max_intensity)

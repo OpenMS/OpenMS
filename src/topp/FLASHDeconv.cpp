@@ -533,7 +533,7 @@ protected:
     int feature_cntr = 0;
 
     // feature index written in the output file
-    int feature_index = 1;
+    int feature_index = 0;
 
     MSExperiment ensemble_map;
     // generate ensemble spectrum if param.ensemble is set
