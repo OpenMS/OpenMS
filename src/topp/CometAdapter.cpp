@@ -265,7 +265,6 @@ protected:
     // register peptide indexing parameter (with defaults for this search engine)
     Param param_pi = PeptideIndexing().getParameters();
     // overwrite with search engine specific defaults
-    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set search engine defaults    
     registerPeptideIndexingParameter_(param_pi);  
   }
 

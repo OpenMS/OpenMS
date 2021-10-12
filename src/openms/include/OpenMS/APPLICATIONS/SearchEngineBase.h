@@ -111,7 +111,7 @@ namespace OpenMS
 
       @param peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
     */
-    virtual void registerPeptideIndexingParameter_(const Param& peptide_indexing_parameter);
+    virtual void registerPeptideIndexingParameter_(Param peptide_indexing_parameter);
 
     /**
       @brief Reindex peptide to protein association

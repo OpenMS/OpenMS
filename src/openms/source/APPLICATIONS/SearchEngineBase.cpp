@@ -151,10 +151,20 @@ namespace OpenMS
     return EXECUTION_OK;
   }
 
-  void SearchEngineBase::registerPeptideIndexingParameter_(const Param& peptide_indexing_parameter)
+  void SearchEngineBase::registerPeptideIndexingParameter_(Param peptide_indexing_parameter)
   {
-    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
+    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target-decoy information.", false);
     setValidStrings_("reindex", { "true", "false" });
+  
+    peptide_indexing_parameter.setValue("missing_decoy_action", "warn");
+
+    // hide entries
+    for (const auto& s : {"decoy_string", "decoy_string_position", "missing_decoy_action", "enzyme:name", "enzyme:specificity",
+                          "write_protein_sequence", "write_protein_description", "keep_unreferenced_proteins", "unmatched_action", 
+                          "aaa_max","mismatches_max", "IL_equivalent"})
+    {
+      peptide_indexing_parameter.addTag(s, "advanced");
+    }
     registerFullParam_(peptide_indexing_parameter);
   }
 
