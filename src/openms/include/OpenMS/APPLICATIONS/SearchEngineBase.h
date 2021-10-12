@@ -111,48 +111,13 @@ namespace OpenMS
 
       @param peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
     */
-    virtual void registerPeptideIndexingParameter_(const Param& peptide_indexing_parameter)
-    {
-      registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
-      setValidStrings_("reindex", { "true", "false" });
-      registerFullParam_(peptide_indexing_parameter);
-    }
+    virtual void registerPeptideIndexingParameter_(const Param& peptide_indexing_parameter);
 
     /**
       @brief Reindex peptide to protein association
     */
-    virtual ExitCodes reindex_(std::vector<ProteinIdentification>& protein_identifications, 
-                               std::vector<PeptideIdentification>& peptide_identifications)
-    {
-      PeptideIndexing indexer;
-      const Param& param = getParam_();
-      
-      Param param_pi = indexer.getParameters();
-      // copy search engine specific default parameter for peptide indexing into param_pi
-      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
-      indexer.setParameters(param_pi);
-      indexer.setLogType(this->log_type_);
-      FASTAContainer<TFI_File> proteins(getDBFilename());
-      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
-
-      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
-      {
-        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
-        {
-          return INPUT_FILE_EMPTY;       
-        }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
-        {
-          return UNEXPECTED_RESULT;
-        }
-        else
-        {
-          return UNKNOWN_ERROR;
-        }
-      } 
-      return EXECUTION_OK;
-    }
+    virtual SearchEngineBase::ExitCodes reindex_(std::vector<ProteinIdentification>& protein_identifications, 
+                               std::vector<PeptideIdentification>& peptide_identifications) const;
   }; // end SearchEngineBase
 
 }   // end NS OpenMS

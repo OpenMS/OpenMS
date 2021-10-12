@@ -940,10 +940,8 @@ protected:
       String db_index = this->getStringOption_(TOPPMSFraggerAdapter::database) + ".1.pepindex"; 
       File::remove(db_index);
     }
-   
     return EXECUTION_OK;
   }
-
 
 private:
 
