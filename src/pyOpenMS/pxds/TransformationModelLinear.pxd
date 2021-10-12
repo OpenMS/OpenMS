@@ -26,5 +26,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" namespace "OpenMS::TransformationModelLinear":
         
         # static members
-        void getDefaultParameters(Param &) # wrap-attach:TransformationModelLinear
+        void getDefaultParameters(Param &) nogil except + # wrap-attach:TransformationModelLinear
 
