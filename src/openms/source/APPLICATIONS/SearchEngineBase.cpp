@@ -122,7 +122,9 @@ namespace OpenMS
                                        std::vector<PeptideIdentification>& peptide_identifications) const
   {
     PeptideIndexing indexer;
-    const Param& param = getParam_();
+    
+    // extract parameter subtree
+    Param param = getParam_().copy("PeptideIndexing:", true);
     
     Param param_pi = indexer.getParameters();
     // copy search engine specific default parameter for peptide indexing into param_pi
@@ -165,7 +167,10 @@ namespace OpenMS
     {
       peptide_indexing_parameter.addTag(s, "advanced");
     }
-    registerFullParam_(peptide_indexing_parameter);
+    // move parameter to PeptideIndexing subtree so we don't accidently overwrite duplicate keys in the tool and indexer
+    Param combined;
+    combined.insert("PeptideIndexing:", peptide_indexing_parameter);
+    registerFullParam_(combined);
   }
 
 }

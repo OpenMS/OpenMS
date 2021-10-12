@@ -116,8 +116,9 @@ namespace OpenMS
     /**
       @brief Reindex peptide to protein association
     */
-    virtual SearchEngineBase::ExitCodes reindex_(std::vector<ProteinIdentification>& protein_identifications, 
-                               std::vector<PeptideIdentification>& peptide_identifications) const;
+    virtual SearchEngineBase::ExitCodes reindex_(
+      std::vector<ProteinIdentification>& protein_identifications, 
+      std::vector<PeptideIdentification>& peptide_identifications) const;
   }; // end SearchEngineBase
 
 }   // end NS OpenMS

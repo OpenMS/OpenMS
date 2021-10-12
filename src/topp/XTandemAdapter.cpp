@@ -207,10 +207,7 @@ protected:
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
 
     // register peptide indexing parameter (with defaults for this search engine)
-
     Param param_pi = PeptideIndexing().getParameters();
-    // overwrite with search engine specific defaults
-    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults    
     registerPeptideIndexingParameter_(param_pi);
   }
 
