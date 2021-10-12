@@ -143,19 +143,6 @@ public:
 
 protected:
 
-  // Adds option to reassociate peptides with proteins (and annotate target/decoy information)
-  // May contain search engine specific defaults (e.g., not tryptic by default etc.)
-  void registerPeptideIndexingParameter_()
-  {
-    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
-    setValidStrings_("reindex", { "true", "false" });
-
-    Param param_pi = PeptideIndexing().getParameters();
-    // overwrite with search engine specific defaults
-    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults
-    registerFullParam_(param_pi);
-  }
-
   void registerOptionsAndFlags_() override
   {
 
@@ -220,7 +207,11 @@ protected:
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
 
     // register peptide indexing parameter (with defaults for this search engine)
-    registerPeptideIndexingParameter_();
+
+    Param param_pi = PeptideIndexing().getParameters();
+    // overwrite with search engine specific defaults
+    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults    
+    registerPeptideIndexingParameter_(param_pi);
   }
 
   ExitCodes main_(int, const char**) override
@@ -366,38 +357,6 @@ protected:
       }
     }
 
-    // reindex ids
-    if (getStringOption_("reindex") == "true")
-    {
-      PeptideIndexing indexer;
-      const Param& param = getParam_();
-      
-      Param param_pi = indexer.getParameters();
-      // copy search engine specific default parameter for peptide indexing into param_pi
-      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
-      indexer.setParameters(param_pi);
-      indexer.setLogType(this->log_type_);
-      FASTAContainer<TFI_File> proteins(db_name);
-      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_ids, peptide_ids);
-
-      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
-      {
-        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
-        {
-          return INPUT_FILE_EMPTY;       
-        }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
-        {
-          return UNEXPECTED_RESULT;
-        }
-        else
-        {
-          return UNKNOWN_ERROR;
-        }
-      } 
-    }
-
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -441,6 +400,12 @@ protected:
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_id.getSearchParameters(), this->getToolPrefix());
 
       protein_ids.push_back(protein_id);
+
+      // reindex ids
+      if (getStringOption_("reindex") == "true")
+      {
+        if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
+      }
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
