@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -117,6 +118,18 @@ public:
   }
 
 protected:
+  // Adds option to reassociate peptides with proteins (and annotate target/decoy information)
+  // May contain search engine specific defaults (e.g., not tryptic by default etc.)
+  void registerPeptideIndexingParameter_()
+  {
+    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
+    setValidStrings_("reindex", { "true", "false" });
+
+    Param param_pi = PeptideIndexing().getParameters();
+    // overwrite with search engine specific defaults
+    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults
+    registerFullParam_(param_pi);
+  }
 
   map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
 
@@ -260,6 +273,9 @@ protected:
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
+
+    // register peptide indexing parameter (with defaults for this search engine)
+    registerPeptideIndexingParameter_();
   }
 
   const vector<const ResidueModification*> getModifications_(const StringList& modNames)
@@ -734,6 +750,38 @@ protected:
     if (!protein_identifications.empty())
     {
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
+    // reindex ids
+    if (getStringOption_("reindex") == "true")
+    {
+      PeptideIndexing indexer;
+      const Param& param = getParam_();
+      
+      Param param_pi = indexer.getParameters();
+      // copy search engine specific default parameter for peptide indexing into param_pi
+      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      indexer.setParameters(param_pi);
+      indexer.setLogType(this->log_type_);
+      FASTAContainer<TFI_File> proteins(db_name);
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);

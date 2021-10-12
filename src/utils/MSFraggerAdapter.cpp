@@ -32,6 +32,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -228,6 +229,19 @@ public:
 
 
 protected:
+  // Adds option to reassociate peptides with proteins (and annotate target/decoy information)
+  // May contain search engine specific defaults (e.g., not tryptic by default etc.)
+  void registerPeptideIndexingParameter_()
+  {
+    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
+    setValidStrings_("reindex", { "true", "false" });
+
+    Param param_pi = PeptideIndexing().getParameters();
+    // overwrite with search engine specific defaults
+    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults
+    registerFullParam_(param_pi);
+  }
+
   void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
@@ -402,6 +416,9 @@ protected:
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_Y_tyrosine,      "<add_Y_tyrosine>",      0.0, "Statically add mass to tyrosine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_W_tryptophan,    "<add_W_tryptophan>",    0.0, "Statically add mass to tryptophan",    false, true);
     registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority.", false, false);
+
+    // register peptide indexing parameter (with defaults for this search engine)
+    registerPeptideIndexingParameter_();
   }
 
 
@@ -904,6 +921,38 @@ protected:
     if (!protein_identifications.empty())
     {
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
+    // reindex ids
+    if (getStringOption_("reindex") == "true")
+    {
+      PeptideIndexing indexer;
+      const Param& param = getParam_();
+      
+      Param param_pi = indexer.getParameters();
+      // copy search engine specific default parameter for peptide indexing into param_pi
+      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      indexer.setParameters(param_pi);
+      indexer.setLogType(this->log_type_);
+      FASTAContainer<TFI_File> proteins(database);
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
     }
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);

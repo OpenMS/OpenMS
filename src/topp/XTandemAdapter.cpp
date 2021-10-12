@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -141,6 +142,20 @@ public:
   }
 
 protected:
+
+  // Adds option to reassociate peptides with proteins (and annotate target/decoy information)
+  // May contain search engine specific defaults (e.g., not tryptic by default etc.)
+  void registerPeptideIndexingParameter_()
+  {
+    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target decoy information.", false);
+    setValidStrings_("reindex", { "true", "false" });
+
+    Param param_pi = PeptideIndexing().getParameters();
+    // overwrite with search engine specific defaults
+    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set X!Tandem defaults
+    registerFullParam_(param_pi);
+  }
+
   void registerOptionsAndFlags_() override
   {
 
@@ -174,7 +189,7 @@ protected:
 
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    vector<String> valid_strings = {"ppm", "Da"};
+    const vector<String> valid_strings = {"ppm", "Da"};
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
 
@@ -203,6 +218,9 @@ protected:
     setValidStrings_("output_results", { "all", "valid", "stochastic" });
 
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
+
+    // register peptide indexing parameter (with defaults for this search engine)
+    registerPeptideIndexingParameter_();
   }
 
   ExitCodes main_(int, const char**) override
@@ -346,6 +364,38 @@ protected:
       {
         OPENMS_LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
       }
+    }
+
+    // reindex ids
+    if (getStringOption_("reindex") == "true")
+    {
+      PeptideIndexing indexer;
+      const Param& param = getParam_();
+      
+      Param param_pi = indexer.getParameters();
+      // copy search engine specific default parameter for peptide indexing into param_pi
+      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      indexer.setParameters(param_pi);
+      indexer.setLogType(this->log_type_);
+      FASTAContainer<TFI_File> proteins(db_name);
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_ids, peptide_ids);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
     }
 
     //-------------------------------------------------------------
