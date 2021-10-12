@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -1262,6 +1263,11 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Sulfo")
 
+  AASequence seqWRONG = AASequence::fromString("PEPTTIDEK[+79957.0]");
+  TEST_EQUAL(seqWRONG.isModified(), true);
+  TEST_STRING_EQUAL(seqWRONG[8].getModificationName(), "");  //TODO WRONG. Should be UNKNOWN or the name below
+  TEST_STRING_EQUAL(seqWRONG[8].getModification()->getFullName(), "[+79957.0]"); //TODO WRONG. This is not a terminal mod and should include the K
+
   AASequence seq13 = AASequence::fromString("PEPY[+79.9568]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo")
@@ -1528,6 +1534,7 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
+  OPENMS_LOG_WARN.remove(std::cout);
   // All measurements are best of three (wall time, Linux, 8 threads)
   //
   // Serial execution of code:

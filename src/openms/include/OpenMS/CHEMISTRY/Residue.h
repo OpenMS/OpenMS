@@ -308,6 +308,14 @@ public:
 
     /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
     void setModification(const ResidueModification* mod);
+
+    /// sets the modification by looking for an exact match in the DB first, otherwise creating a
+    /// new entry
+    void setModification(const ResidueModification& mod);
+
+    /// sets a modification by monoisotopic mass difference. Searches in DBs first with a tolerance.
+    /// If not found, creates a new entry with name = String(diffMonoMass) and adds this.
+    void setModificationByDiffMonoMass(double diffMonoMass);
     
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;
