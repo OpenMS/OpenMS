@@ -42,18 +42,6 @@ else:
         .format(env=env_openms_data_path, default=default_openms_data_path)
     )
 
-import sys
-# on conda the libs will be installed to the general conda lib path which is available during load.
-# try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
-# TODO check if this can be completely removed by now or e.g. by baking in an RPATH into the pyopenms*.so's
-if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOpenMS.so")):
-    # load local shared libraries before we import pyopenms*.so, else
-    # those are not found. setting LD_LIBRARY_PATH does not work,
-    # see: http://stackoverflow.com/questions/1178094
-    import ctypes
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
-
 try:
     from .all_modules import *
     from .python_extras import *
