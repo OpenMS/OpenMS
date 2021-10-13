@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -804,7 +805,7 @@ protected:
       }
 
       // if "reindex" parameter is set to true will perform reindexing
-      if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+      if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
