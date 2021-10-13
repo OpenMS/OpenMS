@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
@@ -102,6 +103,21 @@ namespace OpenMS
       @throws OpenMS::Exception::FileNotFound if database name could not be resolved
     */
     String getDBFilename(String db = "") const;
+
+
+    /**
+      @brief Adds option to reassociate peptides with proteins (and annotate target/decoy information)
+
+      @param peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
+    */
+    virtual void registerPeptideIndexingParameter_(Param peptide_indexing_parameter);
+
+    /**
+      @brief Reindex peptide to protein association
+    */
+    virtual SearchEngineBase::ExitCodes reindex_(
+      std::vector<ProteinIdentification>& protein_identifications, 
+      std::vector<PeptideIdentification>& peptide_identifications) const;
   }; // end SearchEngineBase
 
 }   // end NS OpenMS

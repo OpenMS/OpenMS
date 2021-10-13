@@ -32,6 +32,8 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -98,7 +100,7 @@ using namespace std;
 
 
 class TOPPMSFraggerAdapter final :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
 
@@ -197,7 +199,7 @@ public:
 
 
   TOPPMSFraggerAdapter() :
-    TOPPBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
+    SearchEngineBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
                                   "Important note:\n"
                                   "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
                                   "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
@@ -228,6 +230,7 @@ public:
 
 
 protected:
+
   void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
@@ -402,8 +405,10 @@ protected:
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_Y_tyrosine,      "<add_Y_tyrosine>",      0.0, "Statically add mass to tyrosine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_W_tryptophan,    "<add_W_tryptophan>",    0.0, "Statically add mass to tryptophan",    false, true);
     registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority.", false, false);
-  }
 
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());  
+  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -906,6 +911,9 @@ protected:
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
+    // if "reindex" parameter is set to true will perform reindexing
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
     // remove the msfragger pepXML output from the user location
@@ -926,13 +934,10 @@ protected:
       String db_index = this->getStringOption_(TOPPMSFraggerAdapter::database) + ".1.pepindex"; 
       File::remove(db_index);
     }
-   
     return EXECUTION_OK;
   }
 
-
 private:
-
   String java_exe;
   String exe;
 
