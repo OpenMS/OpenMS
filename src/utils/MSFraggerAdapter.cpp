@@ -944,7 +944,6 @@ protected:
   }
 
 private:
-
   String java_exe;
   String exe;
 
