@@ -304,9 +304,6 @@ jobs:
     - name: Build on manylinux2014
       shell: bash
       run: |
-            ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
-            patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
-
             # build an array based the python versions in /opt/python
             py_paths=()
             for PYBIN in /opt/python/cp*
