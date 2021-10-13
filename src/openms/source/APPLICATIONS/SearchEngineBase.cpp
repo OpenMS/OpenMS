@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -121,35 +122,38 @@ namespace OpenMS
   SearchEngineBase::ExitCodes SearchEngineBase::reindex_(std::vector<ProteinIdentification>& protein_identifications, 
                                        std::vector<PeptideIdentification>& peptide_identifications) const
   {
-    PeptideIndexing indexer;
-    
-    // extract parameter subtree
-    Param param = getParam_().copy("PeptideIndexing:", true);
-    
-    Param param_pi = indexer.getParameters();
-    // copy search engine specific default parameter for peptide indexing into param_pi
-    param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
-    indexer.setParameters(param_pi);
-    indexer.setLogType(this->log_type_);
-    FASTAContainer<TFI_File> proteins(getDBFilename());
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
-
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if (getStringOption_("reindex") == "true")
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      PeptideIndexing indexer;
+      
+      // extract parameter subtree
+      Param param = getParam_().copy("PeptideIndexing:", true);
+      
+      Param param_pi = indexer.getParameters();
+      // copy search engine specific default parameter for peptide indexing into param_pi
+      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      indexer.setParameters(param_pi);
+      indexer.setLogType(this->log_type_);
+      FASTAContainer<TFI_File> proteins(getDBFilename());
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
       {
-        return INPUT_FILE_EMPTY;       
-      }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
-      {
-        return UNEXPECTED_RESULT;
-      }
-      else
-      {
-        return UNKNOWN_ERROR;
-      }
-    } 
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
+    }
     return EXECUTION_OK;
   }
 

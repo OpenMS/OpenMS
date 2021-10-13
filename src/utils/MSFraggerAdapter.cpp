@@ -406,11 +406,8 @@ protected:
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_W_tryptophan,    "<add_W_tryptophan>",    0.0, "Statically add mass to tryptophan",    false, true);
     registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority.", false, false);
 
-    // register peptide indexing parameter (with defaults for this search engine)
-    Param param_pi = PeptideIndexing().getParameters();
-    // overwrite with search engine specific defaults
-    //param_pi.setValue(const std::string &key, const ParamValue &value) TODO: set search engine defaults    
-    registerPeptideIndexingParameter_(param_pi);  
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());  
   }
 
   ExitCodes main_(int, const char**) override
@@ -914,11 +911,8 @@ protected:
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
-    // reindex ids
-    if (getStringOption_("reindex") == "true")
-    {
-      if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
-    }
+    // if "reindex" parameter is set to true will perform reindexing
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 

@@ -36,7 +36,6 @@
 
 #include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 
 namespace OpenMS

@@ -206,9 +206,8 @@ protected:
 
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
 
-    // register peptide indexing parameter (with defaults for this search engine)
-    Param param_pi = PeptideIndexing().getParameters();
-    registerPeptideIndexingParameter_(param_pi);
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   ExitCodes main_(int, const char**) override
@@ -398,11 +397,8 @@ protected:
 
       protein_ids.push_back(protein_id);
 
-      // reindex ids
-      if (getStringOption_("reindex") == "true")
-      {
-        if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
-      }
+    // if "reindex" parameter is set to true will perform reindexing
+      if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
