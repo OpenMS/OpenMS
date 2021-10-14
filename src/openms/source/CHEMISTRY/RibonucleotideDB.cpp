@@ -216,11 +216,11 @@ namespace OpenMS
       {
         if (parts[1].back() == 'm')
         {
-          ribo->setBaselossFormula(EmpiricalFormula("C6H12O4");
+          ribo->setBaselossFormula(EmpiricalFormula("C6H12O4"));
         }
         else
         {
-          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4");
+          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
         }
       }
     }
