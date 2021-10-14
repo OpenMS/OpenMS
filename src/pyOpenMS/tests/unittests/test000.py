@@ -3116,7 +3116,7 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[1][0] == 8.0
 
     spec = pyopenms.MSSpectrum()
-    data = np.array( [5, 8, 42] ).astype(np.float32)
+    data = np.array( [5, 8, 42] ).astype(np.float64)
     f_da = [ pyopenms.FloatDataArray() ]
     f_da[0].set_data(data)
     spec.setFloatDataArrays( f_da )
@@ -3203,7 +3203,7 @@ def testFloatDataArray():
     assert da.size() == 3
 
     q = da.get_data()
-    q = np.append(q, 4.0).astype(np.float32)
+    q = np.append(q, 4.0).astype(np.float64)
     da.set_data(q)
     assert da.size() == 4
 
@@ -3323,6 +3323,16 @@ def testMSChromatogram():
     assert mz[1] == 8.0
     assert ii[0] == 50.0
     assert ii[1] == 80.0
+
+    chrom = pyopenms.MSChromatogram()
+    data = np.array( [5, 8, 42] ).astype(np.float64)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    chrom.setFloatDataArrays( f_da )
+    assert len(chrom.getFloatDataArrays()) == 1
+    assert chrom.getFloatDataArrays()[0][0] == 5.0
+    assert chrom.getFloatDataArrays()[0][2] == 42.0
+    assert len(f_da[0].get_data() ) == 3
 
 @report
 def testMRMFeature():
