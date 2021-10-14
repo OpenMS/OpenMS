@@ -571,9 +571,7 @@ namespace OpenMS
   {
     return id_.empty() && !full_id_.empty();
   }
-
-  // TODO one could argue that since the method is called createUnknown, that it was already checked if the
-  //  mod was available..
+  
   const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,

@@ -627,12 +627,26 @@ START_SECTION(String toBracketString(const std::vector<String> & fixed_modificat
 END_SECTION
 
 START_SECTION(void setModification(Size index, const String &modification))
-  AASequence seq1 = AASequence::fromString("ACDEFNK");
+  AASequence seq1 = AASequence::fromString("ACDEFNEK");
   seq1.setModification(5, "Deamidated");
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
   // remove modification
   seq1.setModification(5, "");
-  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNK")
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNEK")
+
+  seq1.setModificationByDiffMonoMass(5, 0.984);
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFN(Deamidated)EK")
+
+  seq1.setModificationByDiffMonoMass(3, -1.234);
+  TEST_STRING_EQUAL(seq1.toString(), "ACDE[-1.234]FN(Deamidated)EK")
+
+  TEST_PRECONDITION_VIOLATED(seq1.setModification(1, seq1[3].getModification()))
+
+  seq1.setModificationByDiffMonoMass(1, seq1[3].getModification()->getDiffMonoMass());
+  TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)EK")
+
+  seq1.setModification(6, seq1[3].getModification()); // now the AA origin fits
+  TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -1263,10 +1277,12 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Sulfo")
 
-  AASequence seqWRONG = AASequence::fromString("PEPTTIDEK[+79957.0]");
-  TEST_EQUAL(seqWRONG.isModified(), true);
-  TEST_STRING_EQUAL(seqWRONG[8].getModificationName(), "");  //TODO WRONG. Should be UNKNOWN or the name below
-  TEST_STRING_EQUAL(seqWRONG[8].getModification()->getFullName(), "[+79957.0]"); //TODO WRONG. This is not a terminal mod and should include the K
+  AASequence seqUnk = AASequence::fromString("PEPTTIDEK[+79957.0]");
+  TEST_EQUAL(seqUnk.isModified(), true);
+  TEST_STRING_EQUAL(seqUnk[8].getModificationName(), "");  //this is how "user-defined" mods are defined
+  TEST_EQUAL(seqUnk[8].getModification()->isUserDefined(), true);
+  TEST_STRING_EQUAL(seqUnk[8].getModification()->getFullName(), "[+79957.0]");
+  TEST_STRING_EQUAL(seqUnk[8].getModification()->getFullId(), "K[+79957.0]");
 
   AASequence seq13 = AASequence::fromString("PEPY[+79.9568]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);

@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include "OpenMS/CHEMISTRY/AASequence.h"
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -86,7 +87,9 @@ public:
     static bool isInstantiated();
 
     friend class CrossLinksDB;
+    // for access to addNewModification_ (without checking presence)
     friend class Residue;
+    friend class AASequence;
 
     /// Returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;

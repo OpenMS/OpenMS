@@ -314,7 +314,7 @@ public:
     void setModification(const ResidueModification& mod);
 
     /// sets a modification by monoisotopic mass difference. Searches in DBs first with a tolerance.
-    /// If not found, creates a new entry with name = String(diffMonoMass) and adds this.
+    /// If not found, creates a new entry with name = OneLetterResidueCode[+/-diffMonoMass] and adds this as user-defined mod.
     void setModificationByDiffMonoMass(double diffMonoMass);
     
     /// returns the name (ID) of the modification, or an empty string if none is set
