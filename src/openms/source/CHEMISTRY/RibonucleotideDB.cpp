@@ -190,7 +190,7 @@ namespace OpenMS
     }
     else // default specificity is "ANYWHERE"; now set formula after base loss:
     {
-      if (parts[1].back() == 'm') // mod. attached to the ribose, not base
+      if (parts[1].back() == 'm' || parts[1].front() != 'd') // mod. attached to the ribose, not base, and not deoxy
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }
@@ -211,6 +211,17 @@ namespace OpenMS
       else if ((parts[1] == "Ar(p)") || (parts[1] == "Gr(p)"))
       {
         ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
+      }
+      else if (parts[1].front() == 'd') // handle deoxyribose, possibly with methyl mod
+      {
+        if (parts[1].back() == 'm')
+        {
+          ribo->setBaselossFormula(EmpiricalFormula("C6H12O4");
+        }
+        else
+        {
+          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4");
+        }
       }
     }
 
