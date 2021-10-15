@@ -34,8 +34,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
-#include <sqlite3.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteHelper.h>
+
+#include <sqlite3.h>
 
 #include <sstream>
 
