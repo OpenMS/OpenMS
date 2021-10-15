@@ -1,4 +1,5 @@
 set(OpenMS_FORMAT_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+set(OpenMS_ANALYSIS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
@@ -123,3 +124,4 @@ list(APPEND OpenMS_FORMAT_sources ${OpenMS_sources_h} ${OpenMS_configured_header
 # Macro problem?
 list(REMOVE_DUPLICATES OpenMS_sources)
 list(REMOVE_DUPLICATES OpenMS_FORMAT_sources)
+list(REMOVE_DUPLICATES OpenMS_ANALYSIS_sources)

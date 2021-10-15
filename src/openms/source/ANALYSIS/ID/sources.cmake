@@ -49,7 +49,8 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${sources})
+# set(OpenMS_sources ${OpenMS_sources} ${sources})
+set(OpenMS_ANALYSIS_sources ${OpenMS_ANALYSIS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\ANALYSIS\\ID" FILES ${sources})
