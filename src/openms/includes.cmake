@@ -1,3 +1,5 @@
+set(OpenMS_FORMAT_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
@@ -115,7 +117,9 @@ include(include/OpenMS/APPLICATIONS/sources.cmake)
 source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})
 ## merge all headers to sources (for source group view in VS)
 list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
+list(APPEND OpenMS_FORMAT_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?
 list(REMOVE_DUPLICATES OpenMS_sources)
+list(REMOVE_DUPLICATES OpenMS_FORMAT_sources)

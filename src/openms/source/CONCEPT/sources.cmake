@@ -32,6 +32,9 @@ endforeach(i)
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
+### special case: initialize parser (otherwise we run into a segfault)
+set(OpenMS_FORMAT_sources ${OpenMS_FORMAT_sources} ${directory}/Init.cpp)
+
 ### source group definition
 source_group("Source Files\\CONCEPT" FILES ${sources})
 

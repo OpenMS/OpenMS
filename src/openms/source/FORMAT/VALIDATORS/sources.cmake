@@ -19,7 +19,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${sources})
+set(OpenMS_FORMAT_sources ${OpenMS_FORMAT_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\VALIDATORS" FILES ${sources})
