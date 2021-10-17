@@ -116,9 +116,9 @@ namespace OpenMS
 
   void SwathMapMassCorrection::correctIM(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
-    TransformationDescription& im_trafo,
-    const OpenSwath::LightTargetedExperiment& targeted_exp)
+    TransformationDescription& im_trafo)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
@@ -161,7 +161,7 @@ namespace OpenMS
     std::vector<double> exp_im;
     std::vector<double> theo_im;
 #ifdef _OPENMP
-#pragma omp parallel for 
+#pragma omp parallel for
 #endif
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
     {
@@ -327,8 +327,8 @@ namespace OpenMS
 
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
-    std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenSwath::LightTargetedExperiment& targeted_exp)
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
