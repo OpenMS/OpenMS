@@ -89,8 +89,19 @@ protected:
     std::ifstream instream(infile);
     outstream << "v=[";
     String line;
+    int pcharge = 0;
+    double pmass = 0;
     while (std::getline(instream, line))
     {
+      if (line.hasPrefix("PRECURSOR_CHARGE"))
+      {
+        pcharge = stoi(line.substr(17));
+      }
+
+      if (line.hasPrefix("PRECURSOR_MASS"))
+      {
+        pmass = stod(line.substr(15));
+      }
       if (!isdigit(line[0]))
       {
         continue;
@@ -105,6 +116,10 @@ protected:
       }
       double mass = stod(tokens[0]);
       int charge = stoi(tokens[2]);
+      if (mass > pmass || charge > pcharge)
+      {
+        continue;
+      }
       outstream << mass << "," << charge << "\n";
     }
     outstream << "];\n";

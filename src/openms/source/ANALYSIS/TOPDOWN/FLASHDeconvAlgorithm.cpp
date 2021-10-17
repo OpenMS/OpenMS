@@ -479,9 +479,9 @@ namespace OpenMS
     double bin_width = bin_width_[ms_level_ - 1];
 
     // intensity ratio between consecutive charges should not exceed the factor.
-    const float factor = 5.0;
+    const float factor = ms_level_ == 1 ? 5.0 : 10.0;
     // intensity ratio between consecutive charges for possible harmonic should be within this factor
-    const float hfactor = 2.0;
+    const float hfactor = ms_level_ == 1 ? 2.0 : 1.2;
     for (int i = mz_bin_index_reverse.size() - 1; i >= 0; i--)
     {
       mz_bin_index = mz_bin_index_reverse[i];
@@ -567,7 +567,8 @@ namespace OpenMS
 
         if (pass_first_check)
         {
-          if (prev_charge - j == -1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
+          if (prev_charge - j == -1 &&
+              ms_level_ == 1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
           {
             float max_intensity = intensity;
             float min_intensity = prev_intensity;
