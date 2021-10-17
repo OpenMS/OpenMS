@@ -187,8 +187,8 @@ namespace OpenMS
       // calibrating transitions (fragment m/z values) from the spectrum
       // Note that we are not using light clones of the underlying data here,
       // so access to the data needs to be in a critical section.
-      OpenSwath::SpectrumPtr sp;
       OpenSwath::SpectrumPtr sp_ms1;
+      OpenSwath::SpectrumPtr sp_ms2;
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -199,7 +199,7 @@ namespace OpenMS
         }
         else
         {
-          sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
         }
       }
 
@@ -216,7 +216,7 @@ namespace OpenMS
         DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
 
         // Check that the spectrum really has a drift time array
-        if (sp->getDriftTimeArray() == nullptr)
+        if (sp_ms2->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
           for (const auto& m : used_maps)
@@ -227,7 +227,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateDriftSpectrum(sp_ms2, left, right, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
