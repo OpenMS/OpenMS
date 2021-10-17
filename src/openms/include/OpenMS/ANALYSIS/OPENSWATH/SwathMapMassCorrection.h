@@ -93,7 +93,7 @@ public:
      * calibrant peptides and fits a linear regression curve to correct for a
      * possible ion mobility (drift time) shift of the empirical drift time vs
      * the theoretically expected drift time. The resulting linear
-     * transformation is stored usin ga TransformationDescription object.
+     * transformation is stored using a TransformationDescription object.
      *
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
