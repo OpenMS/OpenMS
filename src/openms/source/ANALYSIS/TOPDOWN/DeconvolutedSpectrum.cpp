@@ -465,14 +465,9 @@ namespace OpenMS
 
                 auto o_spec = precursor_spectrum.getOriginalSpectrum();
                 auto spec_iterator = o_spec.PosBegin(start_mz);
-                double total_power = .0;
                 while (spec_iterator->getMZ() < end_mz)
                 {
                   double intensity = spec_iterator->getIntensity();
-                  if (intensity > min_peak_intensity)
-                  {
-                    total_power += intensity * intensity;
-                  }
                   spec_iterator++;
                 }
 
@@ -489,7 +484,7 @@ namespace OpenMS
                   }
                   double max_intensity = .0;
                   const LogMzPeak *tmp_precursor = nullptr;
-                  double power = .0;
+                 // double power = .0;
                   for (auto &tmp_peak:pg)
                   {
                     if (tmp_peak.mz < start_mz)
@@ -500,7 +495,7 @@ namespace OpenMS
                     {
                       break;
                     }
-                    power += tmp_peak.intensity * tmp_peak.intensity;
+                    //power += tmp_peak.intensity * tmp_peak.intensity;
 
                     if (tmp_peak.intensity < max_intensity)
                     {
@@ -515,9 +510,9 @@ namespace OpenMS
                   {
                     continue;
                   }
-                  double t_cos = pg.getIsotopeCosine();
-                  auto precursor_snr = t_cos * t_cos * power
-                                       / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
+                  //double t_cos = pg.getIsotopeCosine();
+                  //auto precursor_snr = pg.getChargeSNR(tmp_precursor->abs_charge);//t_cos * t_cos * power
+                  //                    // / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
 
                   auto score = pg.getChargeSNR(tmp_precursor->abs_charge);
                   // // most intense one should determine the mass
@@ -528,10 +523,10 @@ namespace OpenMS
 
                   max_score = score;
 
-                  if (pg.getQScore() < .25)
-                  {
-                    continue;
-                  }
+                  //if (pg.getQScore() < .25)
+                  //{
+                  //  continue;
+                  //}
                   // pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
                   precursor_peak_group_ = pg;
                 }
@@ -557,10 +552,10 @@ namespace OpenMS
 
       auto o_spec = precursor_spectrum.getOriginalSpectrum();
       auto spec_iterator = o_spec.PosBegin(start_mz);
-      double total_power = .0;
+      // double total_power = .0;
       while (spec_iterator->getMZ() < end_mz)
       {
-        total_power += spec_iterator->getIntensity() * spec_iterator->getIntensity();
+        //total_power += spec_iterator->getIntensity() * spec_iterator->getIntensity();
         spec_iterator++;
       }
 
@@ -578,7 +573,7 @@ namespace OpenMS
 
         int c = int(.5 + pg.getMonoMass() / start_mz);
         //bool contained = true;
-        double power = 0;
+        //double power = 0;
         //double i_sum = 0;
         for (auto &tmp_peak:pg)
         {
@@ -592,7 +587,7 @@ namespace OpenMS
           {
             continue;
           }
-          power += tmp_peak.intensity * tmp_peak.intensity;
+          // power += tmp_peak.intensity * tmp_peak.intensity;
 
           if (tmp_peak.intensity < max_intensity)
           {
@@ -607,9 +602,9 @@ namespace OpenMS
           continue;
         }
         //cos2θ ||V||2/(N1+sin2θ ||V||2).
-        auto t_cos = pg.getIsotopeCosine();
-        auto precursor_snr = t_cos * t_cos * power
-                             / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
+        //auto t_cos = pg.getIsotopeCosine();
+        //auto precursor_snr = t_cos * t_cos * power
+        //                     / (total_power - power + (1 - t_cos) * (1 - t_cos) * power);
 
         auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
         if (score < max_score)

@@ -134,7 +134,7 @@ protected:
 
     registerDoubleOption_("min_precursor_snr",
                           "<SNR value>",
-                          0.0,
+                          1.0,
                           "minimum precursor SNR (SNR within the precursor envelope range) for identification. Now applied only for topFD outputs.",
                           false,
                           false);
