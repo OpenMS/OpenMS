@@ -235,8 +235,7 @@ START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& pa
   TEST_EQUAL(data.getParentSequences().size(), 1);
   TEST_EQUAL(*protein_ref == protein, true);
 
-  ID::ParentSequence rna("rna_1",
-                                         ID::MoleculeType::RNA);
+  ID::ParentSequence rna("rna_1", ID::MoleculeType::RNA);
   rna_ref = data.registerParentSequence(rna);
   TEST_EQUAL(data.getParentSequences().size(), 2);
   TEST_EQUAL(*rna_ref == rna, true);
@@ -565,6 +564,56 @@ START_SECTION((IdentificationData(const IdentificationData& other)))
   TEST_EQUAL(copy.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(copy.getIdentifiedOligos().size(), 1);
   TEST_EQUAL(copy.getParentSequences().size(), 2);
+  TEST_EQUAL(copy.getObservationMatches().size(), 3);
+  // focus on processing steps and scores for observation matches:
+  IdentificationData data2;
+  ID::InputFile file("test.mzML");
+  auto file_ref = data2.registerInputFile(file);
+  ID::ProcessingSoftware sw("Tool", "1.0");
+  auto sw_ref = data2.registerProcessingSoftware(sw);
+  ID::ProcessingStep step(sw_ref, {file_ref});
+  auto step_ref = data2.registerProcessingStep(step);
+  data2.setCurrentProcessingStep(step_ref);
+  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
+  auto obs_ref = data2.registerObservation(obs);
+  ID::IdentifiedPeptide peptide(AASequence::fromString("PEPTIDE"));
+  auto pep_ref = data2.registerIdentifiedPeptide(peptide);
+  ID::ObservationMatch match(pep_ref, obs_ref, 2);
+  ID::ScoreType score("score1", true);
+  auto score_ref1 = data2.registerScoreType(score);
+  score = ID::ScoreType("score2", false);
+  auto score_ref2 = data2.registerScoreType(score);
+  // add first score, not connected to a processing step:
+  match.addScore(score_ref1, 1.0);
+  auto match_ref = data2.registerObservationMatch(match);
+  // add second score, automatically connected to last processing step:
+  data2.addScore(match_ref, score_ref2, 2.0);
+  TEST_EQUAL(data2.getObservationMatches().begin()->steps_and_scores.size(), 2);
+  TEST_EQUAL(data2.getObservationMatches().begin()->getNumberOfScores(), 2);
+  // look up scores by score type:
+  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref1).first, 1.0);
+  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref2).first, 2.0);
+  // look up score by score type and (wrong) processing step -> fails:
+  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref1, step_ref).second, false);
+  // look up score by score type and (correct) processing step -> succeeds:
+  TEST_EQUAL(data2.getObservationMatches().begin()->getScore(score_ref2, step_ref).first, 2.0);
+  auto triple = data2.getObservationMatches().begin()->getMostRecentScore();
+  TEST_EQUAL(std::get<0>(triple), 2.0);
+  TEST_EQUAL(std::get<1>(triple) == score_ref2, true);
+  // after copying:
+  IdentificationData copy2(data2);
+  TEST_EQUAL(copy2.getObservationMatches().begin()->steps_and_scores.size(), 2);
+  TEST_EQUAL(copy2.getObservationMatches().begin()->getNumberOfScores(), 2);
+  score_ref1 = copy2.findScoreType("score1");
+  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref1).first, 1.0);
+  score_ref2 = copy2.findScoreType("score2");
+  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref2).first, 2.0);
+  step_ref = copy2.getCurrentProcessingStep();
+  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref1, step_ref).second, false);
+  TEST_EQUAL(copy2.getObservationMatches().begin()->getScore(score_ref2, step_ref).first, 2.0);
+  triple = copy2.getObservationMatches().begin()->getMostRecentScore();
+  TEST_EQUAL(std::get<0>(triple), 2.0);
+  TEST_EQUAL(std::get<1>(triple) == score_ref2, true);
 }
 END_SECTION
 
