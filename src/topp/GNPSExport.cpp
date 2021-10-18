@@ -91,8 +91,8 @@ Requirements:
 	without MS2 scans (peptide annotation).
 
 Parameters:
-	- Binning (ms2_bin_size): Defines the binning width of fragment ions during the merging of eligible MS/MS spectra (use default).
-	- Cosine Score Threshold (merged_spectra:cos_similarity): Defines the necessary pairwise cosine similarity with the highest precursor intensity MS/MS scan (use default).
+	- Binning (ms2_bin_size): Defines the binning width of fragment ions during the merging of eligible MS/MS spectra.
+	- Cosine Score Threshold (merged_spectra:cos_similarity): Defines the necessary pairwise cosine similarity with the highest precursor intensity MS/MS scan.
 
   - Output Type (output_type):
 Options for outputting GNPSExport spectral processing are:
@@ -111,10 +111,10 @@ A representative OpenMS-GNPS workflow would sequentially use these OpenMS TOPP t
   1. Input mzML files
   2. Run the @ref TOPP_FeatureFinderMetabo tool on the mzML files.
   3. Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
-  	MapAlignerPoseClustering MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML
+  	MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML
   4. Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
-  	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML  -spectra:in MapAlignerPoseClustering_inputFile0.mzML -out IDMapper_inputFile0.featureXML
-	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML  -spectra:in MapAlignerPoseClustering_inputFile1.mzML -out IDMapper_inputFile1.featureXML
+  	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapAlignerPoseClustering_inputFile0.mzML -out IDMapper_inputFile0.featureXML
+	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapAlignerPoseClustering_inputFile1.mzML -out IDMapper_inputFile1.featureXML
   5. Run the @ref TOPP_MetaboliteAdductDecharger on the featureXML files.
   6. Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
   	FeatureLinkerUnlabeledKD -in IDMapper_inputFile0.featureXML IDMapper_inputFile1.featureXML -out FeatureLinkerUnlabeledKD.consensusXML
