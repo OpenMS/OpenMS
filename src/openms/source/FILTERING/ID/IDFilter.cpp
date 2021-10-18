@@ -400,7 +400,7 @@ namespace OpenMS
 
   void IDFilter::updateProteinReferences(
       ConsensusMap& cmap,
-      [[maybe_unused]] const ProteinIdentification& ref_run,
+      const ProteinIdentification& ref_run,
       bool remove_peptides_without_reference)
   {
     // collect valid protein accessions for each ID run:
