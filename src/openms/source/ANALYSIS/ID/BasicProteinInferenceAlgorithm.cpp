@@ -511,6 +511,8 @@ namespace OpenMS
         }
       case AggregationMethod::SUM :
         return [](double old_score, double new_score){return old_score + new_score;};
+      default:
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -525,6 +527,8 @@ namespace OpenMS
         return higher_better ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
       case AggregationMethod::SUM :
         return 0.0;
+      default:
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
   }
 
