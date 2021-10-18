@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <iomanip>
 #include <cctype>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -107,7 +108,7 @@ protected:
         continue;
       }
       vector<String> tokens;
-      stringstream tmp_stream(line);
+      std::stringstream tmp_stream(line);
       String str;
 
       while (getline(tmp_stream, str, delim))
