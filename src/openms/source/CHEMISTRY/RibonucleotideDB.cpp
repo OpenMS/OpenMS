@@ -223,9 +223,7 @@ namespace OpenMS
       {
         ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
       }
-
     }
-
     return ribo;
   }
 
