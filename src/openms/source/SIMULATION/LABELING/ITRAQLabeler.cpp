@@ -35,6 +35,7 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 #include <Eigen/Dense>
 

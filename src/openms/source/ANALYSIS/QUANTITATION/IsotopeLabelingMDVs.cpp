@@ -34,6 +34,21 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
+
+//Standard library
+#include <cstddef> // for size_t & ptrdiff_t
+#include <vector>
+#include <string>
+#include <cmath>
+#include <numeric>
+//#include <unordered_map>
+#include <algorithm>
+#include <Eigen/Dense>
+
 namespace OpenMS
 {
   const std::string IsotopeLabelingMDVs::NamesOfDerivatizationAgent[] = {"NOT_SELECTED", "TBDMS"};
