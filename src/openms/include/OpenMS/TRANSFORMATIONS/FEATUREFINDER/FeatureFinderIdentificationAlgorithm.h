@@ -87,9 +87,11 @@ public:
   PeakMap& getChromatograms();
   const PeakMap& getChromatograms() const;
 
-  // @TODO: how does this work if the library is cleared between chunks?
-  TargetedExperiment& getLibrary() { return combined_library_; }
-  const TargetedExperiment& getLibrary() const { return combined_library_; }
+  ProgressLogger& getProgressLogger();
+  const ProgressLogger& getProgressLogger() const;
+
+  TargetedExperiment& getLibrary();
+  const TargetedExperiment& getLibrary() const;
 
 protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;

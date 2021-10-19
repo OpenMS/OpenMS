@@ -1162,7 +1162,6 @@ namespace OpenMS
           feature.setMetaValue("rt_delta", min(rt_delta1, rt_delta2));
         }
       }
-      ++i;
     }
 
     // if internal IDs matched to feature candidates, select the best candidate:
