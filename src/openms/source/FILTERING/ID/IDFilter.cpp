@@ -231,7 +231,7 @@ namespace OpenMS
   map<String,vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
   {
     // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String> > run_to_accessions;
+    map<String, unordered_set<String>> run_to_accessions;
 
     for (const auto& f : cmap)
     {
@@ -266,7 +266,7 @@ namespace OpenMS
   void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
   {
     // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String> > run_to_accessions;
+    map<String, unordered_set<String>> run_to_accessions;
 
     auto add_references_to_map =
         [&run_to_accessions](const PeptideIdentification& pepid)
@@ -395,7 +395,6 @@ namespace OpenMS
       const ProteinIdentification& ref_run,
       bool remove_peptides_without_reference)
   {
-    vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
     // collect valid protein accessions for each ID run:
     unordered_set<String> accessions_avail;
 
@@ -408,7 +407,6 @@ namespace OpenMS
     auto check_prots_avail = [&accessions_avail, &remove_peptides_without_reference]
         (PeptideIdentification& pep) -> void
       {
-          const String& run_id = pep.getIdentifier();
           const unordered_set<String>& accessions = accessions_avail;
           struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
           // check protein accessions of each peptide hit
@@ -451,7 +449,7 @@ namespace OpenMS
 
     for (PeptideIdentification& pep : peptides)
     {
-      const String& run_id = pep_it.getIdentifier();
+      const String& run_id = pep.getIdentifier();
       const unordered_set<String>& accessions = run_to_accessions[run_id];
       struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
       // check protein accessions of each peptide hit
