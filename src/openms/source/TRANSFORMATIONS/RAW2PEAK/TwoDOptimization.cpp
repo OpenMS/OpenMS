@@ -37,7 +37,6 @@
 
 using Eigen::VectorXd;
 
-
 namespace OpenMS
 {
 

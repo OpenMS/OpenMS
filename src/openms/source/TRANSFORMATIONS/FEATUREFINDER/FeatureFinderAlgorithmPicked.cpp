@@ -52,6 +52,7 @@
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 
 #ifdef _OPENMP
+#include <omp.h>
 #endif
 
 namespace OpenMS

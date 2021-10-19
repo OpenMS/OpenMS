@@ -42,6 +42,7 @@
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
+#include <Eigen/Core>
 #include <Eigen/LU>
 
 // #define ISOBARIC_QUANT_DEBUG
