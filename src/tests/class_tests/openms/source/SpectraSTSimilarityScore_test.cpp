@@ -46,6 +46,10 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+/// typedef for the index into the sparse vector
+#include <Eigen/Sparse>
+using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
+
 ///////////////////////////
 
 START_TEST(SpectraSTSimilarityScore, "$Id$")
@@ -305,7 +309,7 @@ START_SECTION(BinnedSpectrum transform(const PeakSpectrum& spec))
   s1.push_back(peak);
   BinnedSpectrum bin = ptr->transform(s1);
   
-  BinnedSpectrum::SparseVectorIteratorType iter(bin.getBins());
+  SparseVectorIteratorType iter(*bin.getBins());
   TEST_REAL_SIMILAR(iter.value(), 0.1205);
   ++iter;
   TEST_REAL_SIMILAR(iter.value(), 0.3614);
