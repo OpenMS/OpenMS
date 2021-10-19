@@ -200,8 +200,8 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", formats);
     registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
-    setValidFormats_("add_to", formats);
-    registerStringOption_("annotate_file_origin", "<annotate>", "true", "Store the original filename in each protein/peptide identification (meta value: file_origin).", false);
+    setValidFormats_("add_to", {"idXML"}); // .oms input currently not supported
+    registerStringOption_("annotate_file_origin", "<annotate>", "true", "Store the original filename in each protein/peptide identification (meta value: 'file_origin') - idXML input/output only", false);
     setValidStrings_("annotate_file_origin", {"true","false"});
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
     registerFlag_("merge_proteins_add_PSMs", "Merge all identified proteins by accession into one protein identification run but keep all the PSMs with updated links to potential new protein ID#s. Not compatible with 'add_to'.");
@@ -291,9 +291,9 @@ protected:
 
     if (type == FileTypes::OMS)
     {
-      if (!add_to.empty() || annotate_file_origin || pepxml_protxml ||
-          merge_proteins_add_PSMs)
+      if (!add_to.empty() || pepxml_protxml || merge_proteins_add_PSMs)
       {
+        // 'annotate_file_origin' is on by default - just ignore it
         writeLog_("Options are currently not supported when merging .oms files. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
@@ -357,9 +357,9 @@ protected:
 
   void mergeIds_(StringList file_names,
                  bool annotate_file_origin,
-                 const String &add_to,
-                 vector<ProteinIdentification> & proteins,
-                 vector<PeptideIdentification> & peptides)
+                 const String& add_to,
+                 vector<ProteinIdentification>& proteins,
+                 vector<PeptideIdentification>& peptides)
   {
     map<String, ProteinIdentification> proteins_by_id;
     vector<vector<PeptideIdentification> > peptides_by_file;
