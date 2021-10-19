@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-// #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -42,6 +41,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
