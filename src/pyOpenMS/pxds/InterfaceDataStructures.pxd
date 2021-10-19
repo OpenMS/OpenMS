@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # wrap-instances:
         #   _Interfaces_BinaryDataArray := BinaryDataArray
         BinaryDataArray() nogil except +
-        BinaryDataArray(BinaryDataArray) nogil except +
+        BinaryDataArray(BinaryDataArray &) nogil except +
         libcpp_vector[double] data
 
   ctypedef shared_ptr[BinaryDataArray] BinaryDataArrayPtr
@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # wrap-instances:
         #   _Interfaces_Spectrum := Spectrum
         Spectrum() nogil except +
-        Spectrum(Spectrum) nogil except +
+        Spectrum(Spectrum &) nogil except +
         BinaryDataArrayPtr getMZArray() nogil except + #wrap-ignore
         BinaryDataArrayPtr getIntensityArray() nogil except + #wrap-ignore
         void setMZArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # wrap-instances:
         #   _Interfaces_Chromatogram := Chromatogram
         Chromatogram() nogil except +
-        Chromatogram(Chromatogram) nogil except +
+        Chromatogram(Chromatogram &) nogil except +
         BinaryDataArrayPtr getTimeArray() nogil except + #wrap-ignore
         BinaryDataArrayPtr getIntensityArray() nogil except + #wrap-ignore
         void setTimeArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore

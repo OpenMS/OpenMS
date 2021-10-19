@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,7 +169,7 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifications
+    // append unassigned PeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());
@@ -404,8 +404,14 @@ namespace OpenMS
       const bool has_b = b.metaValueExists("map_index");
 
       // moves IDs without meta value to end
-      if (has_a && !has_b) { return true; }
-      if (!has_a && has_b) { return false; }
+      if (has_a && !has_b)
+      { 
+        return true;
+      }
+      if (!has_a && has_b)
+      { 
+        return false;
+      }
 
       // both have map index annotated
       if (has_a && has_b)

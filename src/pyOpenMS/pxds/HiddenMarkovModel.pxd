@@ -7,13 +7,15 @@ from String cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
     
     cdef cppclass HiddenMarkovModel "OpenMS::HiddenMarkovModel":
+
         HiddenMarkovModel() nogil except + # wrap-doc:Hidden Markov Model implementation of PILIS
-        HiddenMarkovModel(HiddenMarkovModel) nogil except + # wrap-ignore
+        HiddenMarkovModel(HiddenMarkovModel &) nogil except +
         void writeGraphMLFile(const String & filename) nogil except + # wrap-doc:Writes the HMM into a file in GraphML format
+
         # NAMESPACE # void write(std::ostream & out) nogil except +
         double getTransitionProbability(const String & s1, const String & s2) nogil except + # wrap-doc:Returns the transition probability of the given state names
         void setTransitionProbability(const String & s1, const String & s2, double prob) nogil except + # wrap-doc:Sets the transition probability of the given state names to prob
-        Size getNumberOfStates() nogil except + # wrap-doc:Return the number of states
+        Size getNumberOfStates() nogil except + # wrap-doc:Returns the number of states
         void addNewState(HMMState * state) nogil except + # wrap-doc:Registers a new state to the HMM
         void addNewState(const String & name) nogil except + # wrap-doc:Registers a new state to the HMM
         void addSynonymTransition(const String & name1, const String & name2, const String & synonym1, const String & synonym2) nogil except + # wrap-doc:Add a new synonym transition to the given state names
@@ -40,10 +42,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
     
     cdef cppclass HMMState "OpenMS::HMMState":
         HMMState() nogil except +
-        HMMState(HMMState) nogil except +
+        HMMState(HMMState &) nogil except +
         HMMState(const String & name, bool hidden) nogil except +
 
-        # They dont exist ...
+        # They don't exist ...
         # bool operator==(HMMState) nogil except +
         # bool operator!=(HMMState) nogil except +
 
@@ -56,5 +58,4 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         void addSuccessorState(HMMState * state) nogil except + # wrap-doc:Add the given successor state to the list
         void deleteSuccessorState(HMMState * state) nogil except + # wrap-doc:Deletes the given successor state from the list
         libcpp_set[ HMMState * ]  getPredecessorStates() nogil except + # wrap-doc:Returns the predecessor states of the state
-        libcpp_set[ HMMState * ]  getSuccessorStates() nogil except + # wrap-doc:Return the successor states of the state
-
+        libcpp_set[ HMMState * ]  getSuccessorStates() nogil except + # wrap-doc:Returns the successor states of the state

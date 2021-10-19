@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1036,7 +1036,7 @@ namespace OpenMS
 
             if (max_element_z3 < 0)
             {
-                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isopattern
+                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isotope pattern
                 max_element_z3 = *max_element(precursor_ints_3_z2.begin(), precursor_ints_3_z2.end()) / 100;
             }
             else
@@ -1050,7 +1050,7 @@ namespace OpenMS
             max_element_z2 = *max_element(iso_scores_2_z1.begin(), iso_scores_2_z1.end());
             if (max_element_z2 < 0)
             {
-                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isopattern
+                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isotope pattern
                 max_element_z2 = *max_element(precursor_ints_2_z1.begin(), precursor_ints_2_z1.end()) / 100;
             }
             else

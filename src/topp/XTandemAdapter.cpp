@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -141,6 +142,7 @@ public:
   }
 
 protected:
+
   void registerOptionsAndFlags_() override
   {
 
@@ -174,7 +176,7 @@ protected:
 
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    vector<String> valid_strings = {"ppm", "Da"};
+    const vector<String> valid_strings = {"ppm", "Da"};
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
 
@@ -203,6 +205,9 @@ protected:
     setValidStrings_("output_results", { "all", "valid", "stochastic" });
 
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   ExitCodes main_(int, const char**) override
@@ -330,16 +335,16 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp);
 
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    for (PeptideIdentification& pep : peptide_ids)
     {
-      String ref = it->getMetaValue("spectrum_reference");
+      String ref = pep.getMetaValue("spectrum_reference");
       Size index = lookup.findByNativeID(ref);
       if (index < exp.size())
       {
-        it->setRT(exp[index].getRT());
+        pep.setRT(exp[index].getRT());
         if (!exp[index].getPrecursors().empty())
         {
-          it->setMZ(exp[index].getPrecursors()[0].getMZ());
+          pep.setMZ(exp[index].getPrecursors()[0].getMZ());
         }
       }
       else
@@ -392,6 +397,9 @@ protected:
 
       protein_ids.push_back(protein_id);
 
+    // if "reindex" parameter is set to true will perform reindexing
+      if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
+
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
@@ -409,9 +417,7 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
-
 
 int main(int argc, const char** argv)
 {

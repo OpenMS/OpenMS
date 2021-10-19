@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,7 +163,7 @@ namespace OpenMS
 
     map<unsigned int, double> bor_abundance = {{10u, 0.19899999999999998}, {11u, 0.8009999999999999}};
     map<unsigned int, double> bor_mass = {{10u, 10.012937000000001}, {11u, 11.009304999999999}};
-    buildElement_("Bor", "B", 5u, bor_abundance, bor_mass);
+    buildElement_("Boron", "B", 5u, bor_abundance, bor_mass);
 
 
     map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}};
@@ -190,7 +190,7 @@ namespace OpenMS
     map<unsigned int, double> neon_mass = {{20u,  19.99244018}, {21u, 20.9938467}, {22u, 21.9913851}};
     buildElement_("Neon", "Ne", 10u, neon_abundance, neon_mass);
 
-
+    
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
     map<unsigned int, double> sodium_mass = {{23u, 22.989769280899999}};
     buildElement_("Sodium", "Na", 11u, sodium_abundance, sodium_mass);
@@ -336,8 +336,8 @@ namespace OpenMS
     buildElement_("Yttrium", "Y", 39u, yttrium_abundance, yttrium_mass);
 
 
-    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}};
-    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}};
+    map<unsigned int, double> zirconium_abundance = {{90u, 0.5145000000000001}, {91u, 0.11220000000000001}, {92u, 0.17149999999999999}, {94u, 0.17379999999999998}, {96u, 0.0280}};
+    map<unsigned int, double> zirconium_mass = {{90u, 89.9047044}, {91u, 90.905645800000002}, {92u, 91.905040799999995}, {94u, 93.906315199999995}, {96u, 95.9082776}};
     buildElement_("Zirconium", "Zr", 40u, zirconium_abundance, zirconium_mass);
 
 
@@ -545,7 +545,7 @@ namespace OpenMS
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
-
+    
     map<unsigned int, double> protactinium_abundance = {{231u, 1.0}};
     map<unsigned int, double> protactinium_mass = {{231u, 231.03588}};
     buildElement_("Protactinium", "Pa", 91u, protactinium_abundance, protactinium_mass);
@@ -554,7 +554,6 @@ namespace OpenMS
     map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
-
 
   }
 
@@ -617,8 +616,7 @@ namespace OpenMS
   void ElementDB::clear_()
   {
     // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
-    map<string, const Element*>::iterator it = names_.begin();
-    for (; it != names_.end(); ++it)
+    for (auto it = names_.begin(); it != names_.end(); ++it)
     {
       delete it->second;
     }

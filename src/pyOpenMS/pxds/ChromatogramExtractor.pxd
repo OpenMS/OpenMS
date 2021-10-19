@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
         # wrap-inherits:
         #    ProgressLogger
 
-        ChromatogramExtractor()                  nogil except +
-        ChromatogramExtractor(ChromatogramExtractor)   nogil except + 
+        ChromatogramExtractor() nogil except + # compiler
+        ChromatogramExtractor(ChromatogramExtractor &) nogil except + # compiler
 
         void extractChromatograms(MSExperiment & input,
                                   MSExperiment & output, 
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
                                   bool ppm,
                                   TransformationDescription trafo,
                                   double rt_extraction_window,
-                                  String filter) nogil except +
+                                  String filter) nogil except + # wrap-doc:Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates
 
         # TODO immutable types by reference
         # void extract_value_tophat(MSSpectrum input, double mz,

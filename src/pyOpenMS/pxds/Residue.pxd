@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         #   getName().c_str()
 
         Residue() nogil except +
-        Residue(Residue) nogil except + # wrap-ignore
+        Residue(Residue &) nogil except +
 
         # detailed constructor
         Residue(String name,
@@ -29,121 +29,89 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         EmpiricalFormula getInternalToYIon() nogil except +
         EmpiricalFormula getInternalToZIon() nogil except +
 
-        # returns the ion name given as a residue type
-        String getResidueTypeName(ResidueType res_type) nogil except +
+        String getResidueTypeName(ResidueType res_type) nogil except + # wrap-doc:Returns the ion name given as a residue type
 
-        # sets the name of the residue
-        void setName(String name) nogil except +
+        void setName(String name) nogil except + # wrap-doc:Sets the name of the residue
 
-        # returns the name of the residue
-        String getName() nogil except +
+        String getName() nogil except + # wrap-doc:Returns the name of the residue
 
-        # sets the synonyms
-        void setSynonyms(libcpp_set[String] synonyms) nogil except +
+        void setSynonyms(libcpp_set[String] synonyms) nogil except + # wrap-doc:Sets the synonyms
 
-        # adds a synonym
-        void addSynonym(String synonym) nogil except +
+        void addSynonym(String synonym) nogil except + # wrap-doc:Adds a synonym
 
-        # returns the sysnonyms
-        libcpp_set[String] getSynonyms() nogil except +
+        libcpp_set[String] getSynonyms() nogil except + # wrap-doc:Returns the sysnonyms
 
-        # sets the name of the residue as three letter code
-        void setThreeLetterCode(String three_letter_code) nogil except +
+        void setThreeLetterCode(String three_letter_code) nogil except + # wrap-doc:Sets the name of the residue as three letter code
 
-        # returns the name of the residue as three letter code
-        String getThreeLetterCode() nogil except +
+        String getThreeLetterCode() nogil except + # wrap-doc:Returns the name of the residue as three letter code
 
-        # sets the name as one letter code
-        void setOneLetterCode(String one_letter_code) nogil except +
+        void setOneLetterCode(String one_letter_code) nogil except + # wrap-doc:Sets the name as one letter code
 
-        # returns the name as one letter code
-        String getOneLetterCode() nogil except +
+        String getOneLetterCode() nogil except + # wrap-doc:Returns the name as one letter code
 
-        # adds a neutral loss formula
-        void addLossFormula(EmpiricalFormula) nogil except +
+        void addLossFormula(EmpiricalFormula) nogil except + # wrap-doc:Adds a neutral loss formula
 
-        # sets the neutral loss formulas
-        void setLossFormulas(libcpp_vector[EmpiricalFormula]) nogil except +
+        void setLossFormulas(libcpp_vector[EmpiricalFormula]) nogil except + # wrap-doc:Sets the neutral loss formulas
 
-        # adds N-terminal losses
-        void addNTermLossFormula(EmpiricalFormula) nogil except +
+        void addNTermLossFormula(EmpiricalFormula) nogil except + # wrap-doc:Adds N-terminal losses
 
-        # sets the N-terminal losses
-        void setNTermLossFormulas(libcpp_vector[EmpiricalFormula]) nogil except +
+        void setNTermLossFormulas(libcpp_vector[EmpiricalFormula]) nogil except + # wrap-doc:Sets the N-terminal losses
 
-        # returns the neutral loss formulas
-        libcpp_vector[EmpiricalFormula] getLossFormulas() nogil except +
+        libcpp_vector[EmpiricalFormula] getLossFormulas() nogil except + # wrap-doc:Returns the neutral loss formulas
 
-        # returns N-terminal loss formulas
-        libcpp_vector[EmpiricalFormula] getNTermLossFormulas() nogil except +
+        libcpp_vector[EmpiricalFormula] getNTermLossFormulas() nogil except + # wrap-doc:Returns N-terminal loss formulas
 
-        # set the neutral loss molecule name
-        void setLossNames(libcpp_vector[String] name) nogil except +
+        void setLossNames(libcpp_vector[String] name) nogil except + # wrap-doc:Sets the neutral loss molecule name
 
-        # sets the N-terminal loss names
-        void setNTermLossNames(libcpp_vector[String] name) nogil except +
+        void setNTermLossNames(libcpp_vector[String] name) nogil except + # wrap-doc:Sets the N-terminal loss names
 
-        # add neutral loss molecule name
-        void addLossName(String name) nogil except +
+        void addLossName(String name) nogil except + # wrap-doc:Adds neutral loss molecule name
 
-        # adds a N-terminal loss name
-        void addNTermLossName(String name) nogil except +
+        void addNTermLossName(String name) nogil except + # wrap-doc:Adds a N-terminal loss name
 
-        # gets neutral loss name (if there is one, else returns an empty string)
-        libcpp_vector[String] getLossNames() nogil except +
+        libcpp_vector[String] getLossNames() nogil except + # wrap-doc:Gets neutral loss name (if there is one, else returns an empty string)
 
-        # returns the N-terminal loss names
-        libcpp_vector[String] getNTermLossNames() nogil except +
+        libcpp_vector[String] getNTermLossNames() nogil except + # wrap-doc:Returns the N-terminal loss names
 
-        # set empirical formula of the residue (must be full, with N and C-terminus)
-        void setFormula(EmpiricalFormula formula) nogil except +
+        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets empirical formula of the residue (must be full, with N and C-terminus)
 
-        # returns the empirical formula of the residue
-        EmpiricalFormula getFormula() nogil except +
+        EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the empirical formula of the residue
         EmpiricalFormula getFormula(ResidueType res_type) nogil except +
 
-        # sets average weight of the residue (must be full, with N and C-terminus)
-        void setAverageWeight(double weight) nogil except +
+        void setAverageWeight(double weight) nogil except + # wrap-doc:Sets average weight of the residue (must be full, with N and C-terminus)
 
-        # returns average weight of the residue
-        double getAverageWeight() nogil except +
+        double getAverageWeight() nogil except + # wrap-doc:Returns average weight of the residue
         double getAverageWeight(ResidueType res_type) nogil except +
 
-        # sets monoisotopic weight of the residue (must be full, with N and C-terminus)
-        void setMonoWeight(double weight) nogil except +
+        void setMonoWeight(double weight) nogil except + # wrap-doc:Sets monoisotopic weight of the residue (must be full, with N and C-terminus)
 
-        # returns monoisotopic weight of the residue
-        double getMonoWeight() nogil except +
+        double getMonoWeight() nogil except + # wrap-doc:Returns monoisotopic weight of the residue
         double getMonoWeight(ResidueType res_type) nogil except +
 
         const ResidueModification * getModification() nogil except +
 
-        # sets the modification by name; the mod should be present in ModificationsDB
-        void setModification(String name) nogil except +
+        # setModification by pointer is not here since a copy would be made whose memory is not handled by the ModificationDB
+        void setModification(String name) nogil except + # wrap-doc:Sets the modification by name; the mod should be present in ModificationsDB
 
-        # returns the name of the modification to the modification
-        String getModificationName() nogil except +
+        void setModification(const ResidueModification& mod) nogil except + # wrap-doc:Sets the modification by a ResidueModification object; checks if present in ModificationsDB and adds if not.
 
-        # sets the low mass marker ions as a vector of formulas
-        void setLowMassIons(libcpp_vector[EmpiricalFormula] low_mass_ions) nogil except +
+        void setModificationByDiffMonoMass(double diffMonoMass) nogil except + # wrap-doc:Sets the modification by monoisotopic mass difference in Da; checks if present in ModificationsDB with tolerance and adds a "user-defined" modification if not (for later lookups).
 
-        # returns a vector of formulas with the low mass markers of the residue
-        libcpp_vector[EmpiricalFormula] getLowMassIons() nogil except +
+        String getModificationName() nogil except + # wrap-doc:Returns the name of the modification to the modification
 
-        # sets the residue sets the amino acid is contained in
-        void setResidueSets(libcpp_set[String] residues_sets) nogil except +
+        void setLowMassIons(libcpp_vector[EmpiricalFormula] low_mass_ions) nogil except + # wrap-doc:Sets the low mass marker ions as a vector of formulas
 
-        # adds a residue set to the residue sets
-        void addResidueSet(String residue_sets) nogil except +
+        libcpp_vector[EmpiricalFormula] getLowMassIons() nogil except + # wrap-doc:Returns a vector of formulas with the low mass markers of the residue
 
-        # returns the residue sets this residue is contained in
-        libcpp_set[String] getResidueSets() nogil except +
+        void setResidueSets(libcpp_set[String] residues_sets) nogil except + # wrap-doc:Sets the residue sets the amino acid is contained in
 
-        # true if the residue has neutral loss
-        bool hasNeutralLoss() nogil except +
+        void addResidueSet(String residue_sets) nogil except + # wrap-doc:Adds a residue set to the residue sets
 
-        # true if N-terminal neutral losses are set
-        bool hasNTermNeutralLosses() nogil except +
+        libcpp_set[String] getResidueSets() nogil except + # wrap-doc:Returns the residue sets this residue is contained in
+
+        bool hasNeutralLoss() nogil except + # wrap-doc:True if the residue has neutral loss
+
+        bool hasNTermNeutralLosses() nogil except + # wrap-doc:True if N-terminal neutral losses are set
 
         # equality operator
         bool operator==(Residue & residue) nogil except +
@@ -157,53 +125,37 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # equality operator for one letter code
         bool operator!=(char one_letter_code) nogil except +
 
-        # returns the pka of the residue
-        double getPka() nogil except +
+        double getPka() nogil except + # wrap-doc:Returns the pka of the residue
 
-        # returns the pkb of the residue
-        double getPkb() nogil except +
+        double getPkb() nogil except + # wrap-doc:Returns the pkb of the residue
 
-        # returns the pkc of the residue if it exists otherwise -1
-        double getPkc() nogil except +
+        double getPkc() nogil except + # wrap-doc:Returns the pkc of the residue if it exists otherwise -1
 
-        # calculates the isoelectric point using the pk* values
-        double getPiValue() nogil except +
+        double getPiValue() nogil except + # wrap-doc:Calculates the isoelectric point using the pk values
 
-        # sets the pka of the residue
-        void setPka(double value) nogil except +
+        void setPka(double value) nogil except + # wrap-doc:Sets the pka of the residue
 
-        # sets the pkb of the residue
-        void setPkb(double value) nogil except +
+        void setPkb(double value) nogil except + # wrap-doc:Sets the pkb of the residue
 
-        # sets the pkc of the residue
-        void setPkc(double value) nogil except +
+        void setPkc(double value) nogil except + # wrap-doc:Sets the pkc of the residue
 
-        # returns the side chain basicity
-        double getSideChainBasicity() nogil except +
+        double getSideChainBasicity() nogil except + # wrap-doc:Returns the side chain basicity
 
-        # sets the side chain basicity
-        void setSideChainBasicity(double gb_sc) nogil except +
+        void setSideChainBasicity(double gb_sc) nogil except + # wrap-doc:Sets the side chain basicity
 
-        # returns the backbone basicitiy if located in N-terminal direction
-        double getBackboneBasicityLeft() nogil except +
+        double getBackboneBasicityLeft() nogil except + # wrap-doc:Returns the backbone basicitiy if located in N-terminal direction
 
-        # sets the N-terminal direction backbone basicitiy
-        void setBackboneBasicityLeft(double gb_bb_l) nogil except +
+        void setBackboneBasicityLeft(double gb_bb_l) nogil except + # wrap-doc:Sets the N-terminal direction backbone basicitiy
 
-        # returns the C-terminal direction backbone basicitiy
-        double getBackboneBasicityRight() nogil except +
+        double getBackboneBasicityRight() nogil except + # wrap-doc:Returns the C-terminal direction backbone basicitiy
 
-        # sets the C-terminal direction backbone basicity
-        void setBackboneBasicityRight(double gb_bb_r) nogil except +
+        void setBackboneBasicityRight(double gb_bb_r) nogil except + # wrap-doc:Sets the C-terminal direction backbone basicity
 
-        # true if the residue is a modified one
-        bool isModified() nogil except +
+        bool isModified() nogil except + # wrap-doc:True if the residue is a modified one
 
-        # true if the residue is contained in the set
-        bool isInResidueSet(String residue_set) nogil except +
+        bool isInResidueSet(String residue_set) nogil except + # wrap-doc:True if the residue is contained in the set
 
-        # helper for mapping residue types to letters for Text annotations and labels
-        char residueTypeToIonLetter(ResidueType res_type) nogil except +
+        char residueTypeToIonLetter(ResidueType res_type) nogil except + # wrap-doc:Helper for mapping residue types to letters for Text annotations and labels
 
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -267,8 +267,6 @@ protected:
     typedef PeakMap MSExperimentType;
     MSExperimentType exp;
 
-    typedef MSExperimentType::SpectrumType SpectrumType;
-
     typedef FeatureMap FeatureMapType;
 
     FeatureMapType fm;
@@ -316,7 +314,10 @@ protected:
                 << ("--output_file=" + out).c_str()
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
-      if (no_peak_picking) arguments << "--noPeakPicking";
+      if (no_peak_picking)
+      {
+        arguments << "--noPeakPicking";
+      }
       return runExternalProcess_(net_executable.toQString(), arguments);
     }
     else if (in_type == FileTypes::EDTA)
@@ -350,8 +351,10 @@ protected:
     {
       // Determine location of meta information (empty mzML)
       String in_meta = extractCachedMetaFilename(in);
-      if (in_meta.empty()) return ILLEGAL_PARAMETERS;
-
+      if (in_meta.empty())
+      {
+        return ILLEGAL_PARAMETERS;
+      }
       MzMLFile f;
       f.setLogType(log_type_);
       Internal::CachedMzMLHandler cacher;
@@ -435,8 +438,10 @@ protected:
       {
         // Determine output path for meta information (empty mzML)
         String out_meta = extractCachedMetaFilename(out);
-        if (out_meta.empty()) return ILLEGAL_PARAMETERS;
-
+        if (out_meta.empty())
+        {
+          return ILLEGAL_PARAMETERS;
+        }
         Internal::CachedMzMLHandler cacher;
         cacher.setLogType(log_type_);
         PeakMap exp_meta;
@@ -603,19 +608,13 @@ protected:
         feature.setQuality(0, 1); // override default
         feature.setQuality(1, 1); // override default
         feature.setOverallQuality(1); // override default
-        for (MSExperimentType::ConstIterator spec_iter = exp.begin();
-             spec_iter != exp.end();
-             ++spec_iter
-             )
+        for (const MSSpectrum& spec : exp)
         {
-          feature.setRT(spec_iter->getRT());
-          for (SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
-               peak1_iter != spec_iter->end();
-               ++peak1_iter
-               )
+          feature.setRT(spec.getRT());
+          for (const Peak1D& peak : spec)
           {
-            feature.setMZ(peak1_iter->getMZ());
-            feature.setIntensity(peak1_iter->getIntensity());
+            feature.setMZ(peak.getMZ());
+            feature.setIntensity(peak.getIntensity());
             feature.setUniqueId();
             fm.push_back(feature);
           }
@@ -666,15 +665,23 @@ protected:
         OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
-      if (fm.size() > 0) EDTAFile().store(out, fm);
-      else if (cm.size() > 0) EDTAFile().store(out, cm);
+      if (fm.size() > 0)
+      {
+        EDTAFile().store(out, fm);
+      }
+      else if (cm.size() > 0)
+      {
+        EDTAFile().store(out, cm);
+      }
     }
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
       String out_meta = extractCachedMetaFilename(out);
-      if (out_meta.empty()) return ILLEGAL_PARAMETERS;
-
+      if (out_meta.empty())
+      {
+        return ILLEGAL_PARAMETERS;
+      }
       Internal::CachedMzMLHandler().writeMetadata(exp, out_meta);
       Internal::CachedMzMLHandler().writeMemdump(exp, out);
     }

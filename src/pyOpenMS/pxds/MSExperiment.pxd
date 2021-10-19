@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   -----
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment &)  nogil except +
+        MSExperiment(MSExperiment &) nogil except +
 
         ExperimentalSettings getExperimentalSettings() nogil except +
         
@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
         libcpp_vector[MSSpectrum].iterator end() nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
-        MSChromatogram calculateTIC() nogil except + # wrap-doc:Return the total ion chromatogram
+        MSChromatogram calculateTIC() nogil except + # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clear all spectra data and meta data (if called with True)
 
         void updateRanges() nogil except + # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
@@ -85,13 +85,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        Size getNrSpectra() nogil except + # wrap-doc:Return the number of MS spectra
+        Size getNrSpectra() nogil except + # wrap-doc:Returns the number of MS spectra
         Size getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms
         libcpp_vector[unsigned int] getMSLevels() nogil except +  # wrap-ignore
 
-        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sort spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
+        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
         void sortSpectra() nogil except + 
-        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sort chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
+        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
         void sortChromatograms() nogil except +
 
         bool isSorted(bool check_mz) nogil except + # wrap-doc:Checks if all spectra are sorted with respect to ascending RT

@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -500,7 +500,10 @@ namespace OpenMS
           {
             new_transition = Sql::extractInt(stmt, I_TRID);
             new_line.setFeature(stmt);
-            if (check_add_feat()) break; // new feature just started?--> check if new PC started as well.
+            if (check_add_feat())
+            {
+              break; // new feature just started?--> check if new PC started as well.
+            }
             rc = Sql::nextRow(stmt, rc); // next row
           }
           if (rc != Sql::SqlState::SQL_ROW) {
@@ -511,7 +514,10 @@ namespace OpenMS
             return false; // this was the last protein
           }
           new_line.setPC(stmt);
-          if (check_add_pc()) break; // new PC just started?--> check if if new protein started as well.
+          if (check_add_pc())
+          {
+            break; // new PC just started?--> check if if new protein started as well.
+          }
         }
         new_line.setProt(stmt);
         if (check_add_protein())
@@ -543,7 +549,7 @@ namespace OpenMS
       String MS2_select = (has_SCOREMS2_ ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
       String MS2_join = (has_SCOREMS2_ ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
 
-      // assemble the protein-PeptidePrecursor-Feature hierachy
+      // assemble the protein-PeptidePrecursor-Feature hierarchy
       // note: when changing the query, make sure to keep the indices in ColProteinSelect in sync!!!
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, "
                           "       PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,"

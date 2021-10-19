@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,7 +116,7 @@ namespace OpenMS
     // 5. Mascot 2.4: read result, check for redirect (function "readResponse")
     // 6. Mascot 2.4: request redirected (caching) page (function "getResults")
     // (5. and 6. can happen multiple times - keep following redirects)
-    // 7. Mascot 2.4: read result, check if caching's done (function "readResponse")
+    // 7. Mascot 2.4: read result, check if caching is done (function "readResponse")
     // 8. Mascot 2.4: request results again (function "getResults")
     // 9. read results, which should now contain the XML (function "readResponse")
     //
@@ -537,7 +537,7 @@ namespace OpenMS
     }
 
     // Successful login? fire off the search
-    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
+    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfully', but that might change...
     {
       OPENMS_LOG_INFO << "Login successful!" << std::endl;
       execQuery();
@@ -720,8 +720,9 @@ namespace OpenMS
     server_path_ = param_.getValue("server_path").toString();
     //MascotRemoteQuery_test
     if (server_path_ != "")
+    {
       server_path_ = "/" + server_path_;
-
+    }
     host_name_ = param_.getValue("hostname").toString();
     
     use_ssl_ = param_.getValue("use_ssl").toBool();
@@ -800,9 +801,14 @@ namespace OpenMS
   QUrl MascotRemoteQuery::buildUrl_(std::string path)
   {
     String protocol;
-    if (use_ssl_) protocol = "https";
-    else protocol = "http";
-
+    if (use_ssl_)
+    {
+      protocol = "https";
+    }
+    else
+    {
+      protocol = "http";
+    }
     return QUrl(String(protocol + "://" + host_name_ + path).c_str());
   }
 

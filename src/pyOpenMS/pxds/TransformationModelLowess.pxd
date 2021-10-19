@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" nam
         # wrap-inherits:
         #  TransformationModel
 
-        TransformationModelLowess() nogil except + #wrap-ignore
-        TransformationModelLowess(TransformationModelLowess) nogil except + #wrap-ignore
+        # copy constructor of 'TransformationModelLowess' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
+        TransformationModelLowess(TransformationModelLowess &) nogil except + # wrap-ignore
         TransformationModelLowess(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
         void getDefaultParameters(Param &) nogil except +
         double evaluate(double value) nogil except +

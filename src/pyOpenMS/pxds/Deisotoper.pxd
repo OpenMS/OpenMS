@@ -4,8 +4,8 @@ from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS":
     cdef cppclass Deisotoper:
-        Deisotoper() nogil except +
-        Deisotoper(Deisotoper) nogil except + # wrap-ignore
+        Deisotoper() nogil except + # compiler
+        Deisotoper(Deisotoper &) nogil except + # compiler
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS::Deisotoper":

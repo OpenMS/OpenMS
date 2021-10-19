@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ namespace OpenMS
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
-     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectrums are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
+     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
@@ -99,7 +99,7 @@ namespace OpenMS
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
-     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectrums are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
+     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
     void compute(std::vector<PeptideIdentification> & pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);

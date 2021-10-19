@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -177,28 +177,31 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+    for (MSSpectrum& spec : exp)
     {
       // check for MS-level
-      if (std::find(levels.begin(), levels.end(), it->getMSLevel()) == levels.end())
+      if (std::find(levels.begin(), levels.end(), spec.getMSLevel()) == levels.end())
       {
         continue;
       }
 
       // store spectra
-      if (it->getMSLevel() > 1)
+      if (spec.getMSLevel() > 1)
       {
         double mz_value = 0.0;
-        if (!it->getPrecursors().empty()) mz_value = it->getPrecursors()[0].getMZ();
+        if (!spec.getPrecursors().empty())
+        {
+          mz_value = spec.getPrecursors()[0].getMZ();
+        }
         if (mz_value < mz_l || mz_value > mz_u)
         {
           continue;
         }
-        dta.store(out + "_RT" + String(it->getRT()) + "_MZ" + String(mz_value) + ".dta", *it);
+        dta.store(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", spec);
       }
       else
       {
-        dta.store(out + "_RT" + String(it->getRT()) + ".dta", *it);
+        dta.store(out + "_RT" + String(spec.getRT()) + ".dta", spec);
       }
     }
 

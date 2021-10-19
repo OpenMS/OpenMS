@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,6 +98,16 @@ public:
        @throw Exception::InvalidValue if no matching modification was found (via ModificationsDB::getModification)
     */
     const Residue* getModifiedResidue(const Residue* residue, const String& name);
+
+    /**
+       @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the @class ModificationsDB
+
+       The modified residue is added to the database if it doesn't exist yet. The origin of the modification has to match the residue and
+       the term has to be @enum ResidueModification::Anywhere.
+
+       @throw Exception::IllegalArgument if the residue was not found
+    */
+    const Residue* getModifiedResidue(const Residue* residue, const ResidueModification* mod);
 
     /**
        @brief returns a set of all residues stored in this residue db

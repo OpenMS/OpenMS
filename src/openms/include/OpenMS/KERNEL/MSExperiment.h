@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -561,7 +561,7 @@ public:
     /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a peptideID?
+    /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
 
   protected:

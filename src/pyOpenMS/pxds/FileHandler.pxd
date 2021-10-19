@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 
     cdef cppclass FileHandler:  # wrap=True
         FileHandler() nogil except +
-        FileHandler(FileHandler) nogil except +
+        FileHandler(FileHandler) nogil except + # wrap-ignore
 
         bool loadExperiment(String, MSExperiment &) nogil except+
             # wrap-doc:
@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #     Exception: ParseError is thrown if an error occurs during parsing
 
         PeakFileOptions  getOptions() nogil except + # wrap-doc:Access to the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Set options for loading/storing
+        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Sets options for loading/storing
 
 #
 # wrap static method:

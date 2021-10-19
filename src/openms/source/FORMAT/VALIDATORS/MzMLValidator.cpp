@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MzMLValidator::MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
       SemanticValidator(mapping, cv),
       binary_data_array_(),
@@ -63,7 +62,9 @@ namespace OpenMS
       String tag = sm_.convert(qname);
       String parent_tag;
       if (open_tags_.size() > 0)
+      {
         parent_tag = open_tags_.back();
+      }
       String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
       open_tags_.push_back(tag);
 
@@ -138,11 +139,13 @@ namespace OpenMS
     {
       //some CVs cannot be validated because they use 'part_of' which spoils the inheritance
       if (parsed_term.accession.hasPrefix("GO:"))
+      {
         return;
-
+      }
       if (parsed_term.accession.hasPrefix("BTO:"))
+      {
         return;
-
+      }
       //check binary data array terms
       if (path.hasSuffix("/binaryDataArray/cvParam/@accession"))
       {
@@ -169,5 +172,4 @@ namespace OpenMS
       SemanticValidator::handleTerm_(path, parsed_term);
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

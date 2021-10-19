@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -152,9 +152,13 @@ namespace OpenMS
               [](PeptideIdentification& p1, PeptideIdentification& p2)
               {p1.sort();p2.sort();
               if (p1.empty())
+              {
                 return true;
+              }
               if (p2.empty())
+              {
                 return false;
+              }
               if (p1.isHigherScoreBetter())
               {
                 return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
@@ -167,9 +171,14 @@ namespace OpenMS
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
-    if (peptides_.size() == 0) return FEATURE_ID_NONE;
+    if (peptides_.size() == 0)
+    {
+      return FEATURE_ID_NONE;
+    }
     else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+    {
       return FEATURE_ID_SINGLE;
+    }
     else
     {
       std::set<String> seqs;
@@ -182,10 +191,18 @@ namespace OpenMS
           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
         }
       }
-      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      if (seqs.size() == 1)
+      {
+        return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      }
       else if (seqs.size() > 1)
+      {
         return FEATURE_ID_MULTIPLE_DIVERGENT;                        // multiple different annotations ... probably bad mapping
-      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+      }
+      else /*if (seqs.size()==0)*/
+      {
+        return FEATURE_ID_NONE;   // very rare case of empty hits
+      }
     }
   }
 

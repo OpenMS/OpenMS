@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -850,9 +850,10 @@ namespace OpenMS
     {
       os.precision(3);
     }
-    if (std::abs(value) >= 10000.0 ||
-        std::abs(value) < 0.001 ||
-        (full_precision && std::abs(value) < 0.01))
+    if (value != 0 &&
+        (std::abs(value) >= 10000.0 ||
+         std::abs(value) < 0.001 ||
+         (full_precision && std::abs(value) < 0.01)))
     {
       os << std::scientific << value;
       s = os.str();

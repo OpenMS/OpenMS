@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
       XMLHandler(filename, version),
@@ -167,7 +166,9 @@ namespace OpenMS
             {
               val.split(':', parts);
               if (parts.size() != 2)
+              {
                 val.split('-', parts); //for downward compatibility
+              }
               if (parts.size() == 2)
               {
                 if (parts[0] != "")
@@ -303,8 +304,10 @@ namespace OpenMS
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "") file_version = "1.0";
-
+        if (file_version == "")
+        {
+          file_version = "1.0";
+        }
         VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
         VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
 
@@ -348,7 +351,9 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -373,7 +378,9 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -401,5 +408,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

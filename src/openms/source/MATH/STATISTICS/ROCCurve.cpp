@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -162,10 +162,10 @@ namespace OpenMS::Math
       std::sort(polygon.begin(), polygon.end());
       DPosition<2> last(0, 0);
       double area(0);
-      for (std::vector<DPosition<2> >::const_iterator it = polygon.begin(); it != polygon.end(); ++it)
+      for (const DPosition<2>& dp : polygon)
       {
-        area += (it->getX() - last.getX()) * (it->getY());
-        last = *it;
+        area += (dp.getX() - last.getX()) * (dp.getY());
+        last = dp;
       }
 
       if (falsePos < N)
