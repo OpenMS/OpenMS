@@ -67,7 +67,7 @@ namespace OpenMS
     ion = make_pair(unannotated, -1);
     double closest_delta = std::numeric_limits<double>::max();
 
-    for (boost::unordered_map<String, double>::const_iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
+    for (std::unordered_map<String, double>::const_iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
     {
       if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
       {
@@ -471,9 +471,9 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence, size_t precursor_charge, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
+  std::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence, size_t precursor_charge, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
   {
-    boost::unordered_map<String, double> ionseries;
+    std::unordered_map<String, double> ionseries;
 
     for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
     {

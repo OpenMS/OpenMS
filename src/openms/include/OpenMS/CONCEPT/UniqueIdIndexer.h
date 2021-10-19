@@ -43,7 +43,7 @@
 #   pragma warning( disable : 4396 )
 #endif
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #ifdef _MSC_VER
 #   pragma warning( pop )  // restore old warning state
@@ -64,7 +64,7 @@ namespace OpenMS
   {
 public:
 
-    typedef boost::unordered_map<UInt64, Size> UniqueIdMap;
+    typedef std::unordered_map<UInt64, Size> UniqueIdMap;
 
     /**
      @brief Returns the index of the feature with the given unique id, or Size(-1) if none exists in this random access container.

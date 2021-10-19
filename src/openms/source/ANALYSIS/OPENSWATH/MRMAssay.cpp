@@ -419,7 +419,7 @@ namespace OpenMS
   }
 
   void MRMAssay::generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                         boost::unordered_map<String, String>& DecoySequenceMap, int shuffle_seed)
+                                         std::unordered_map<String, String>& DecoySequenceMap, int shuffle_seed)
   {
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
     if (shuffle_seed == -1)
@@ -493,7 +493,7 @@ namespace OpenMS
                                            int round_decPow,
                                            TargetDecoyMapT& TargetDecoyMap,
                                            PeptideMapT& TargetPeptideMap,
-                                           boost::unordered_map<String, String>& DecoySequenceMap,
+                                           std::unordered_map<String, String>& DecoySequenceMap,
                                            IonMapT & DecoyIonMap,
                                            PeptideMapT& DecoyPeptideMap)
   {
@@ -643,7 +643,7 @@ namespace OpenMS
                                      const std::vector<std::pair<double, double> >& swathes,
                                      int round_decPow,
                                      const PeptideMapT& DecoyPeptideMap,
-                                     boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
+                                     std::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
                                      const IonMapT& DecoyIonMap,
                                      const IonMapT& TargetIonMap)
   {
@@ -1014,8 +1014,8 @@ namespace OpenMS
     PeptideMapT TargetPeptideMap, DecoyPeptideMap;
     // TargetSequenceMap, DecoySequenceMap & TargetDecoyMap: Link targets and UIS decoys
     SequenceMapT TargetSequenceMap;
-    boost::unordered_map<String, String> DecoySequenceMap;
-    boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMap;
+    std::unordered_map<String, String> DecoySequenceMap;
+    std::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMap;
 
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);

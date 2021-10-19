@@ -57,7 +57,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #ifdef _OPENMP
 #include <omp.h>
