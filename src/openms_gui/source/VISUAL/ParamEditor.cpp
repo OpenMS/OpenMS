@@ -171,8 +171,10 @@ namespace OpenMS
       QString str = index.data(Qt::DisplayRole).toString();
 
       // only set editor data for first column (value column)
-      if (index.column() != 1) return;
-
+      if (index.column() != 1)
+      {
+        return;
+      }
 
       if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
@@ -212,7 +214,10 @@ namespace OpenMS
       {
         String list = str.mid(1, str.length() - 2);
         StringList rlist = ListUtils::create<String>(list);
-        for (auto& item : rlist) item.trim(); // remove '\n'
+        for (auto& item : rlist)
+        {
+          item.trim(); // remove '\n'
+        }
         String restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
         if (qobject_cast<ListEditor*>(editor))
         {
@@ -250,8 +255,10 @@ namespace OpenMS
     void ParamEditorDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
     {
       // only set model data for first column (value column)
-      if (index.column() != 1) return;
-
+      if (index.column() != 1)
+      {
+        return;
+      }
       QVariant present_value = index.data(Qt::DisplayRole);
       QVariant new_value;
       //extract new value
@@ -271,9 +278,13 @@ namespace OpenMS
         else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
         {
           if (dtype == "int")
+          {
             new_value = QVariant("0");
+          }
           else if (dtype == "float")
+          {
             new_value = QVariant("nan");
+          }
         }
         else
         {
@@ -369,8 +380,10 @@ namespace OpenMS
     bool ParamEditorDelegate::eventFilter(QObject* editor, QEvent* event)
     {
       // NEVER EVER commit data (which calls setModelData()), without explicit calls to commit() for non-embedded Dialogs ;
-      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor)) return false;
-
+      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor))
+      {
+        return false;
+      }
       // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
       return QItemDelegate::eventFilter(editor, event);
     }
@@ -500,17 +513,17 @@ namespace OpenMS
     {
       //********handle opened/closed nodes********
       const std::vector<Param::ParamIterator::TraceInfo> & trace = it.getTrace();
-      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      for (const Param::ParamIterator::TraceInfo& par : trace)
       {
-        if (it2->opened)         //opened node
+        if (par.opened)         //opened node
         {
           item = new QTreeWidgetItem(parent);
           //name
-          item->setText(0, String(it2->name).toQString());
+          item->setText(0, String(par.name).toQString());
           item->setTextColor(0, Qt::darkGray);  // color of nodes with children
 
           //description
-          item->setData(1, Qt::UserRole, String(it2->description).toQString());
+          item->setData(1, Qt::UserRole, String(par.description).toQString());
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
@@ -528,7 +541,9 @@ namespace OpenMS
         {
           parent = parent->parent();
           if (parent == nullptr)
+          {
             parent = tree_->invisibleRootItem();
+          }
         }
       }
 

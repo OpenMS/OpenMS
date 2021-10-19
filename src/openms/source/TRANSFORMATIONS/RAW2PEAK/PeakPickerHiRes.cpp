@@ -129,8 +129,10 @@ namespace OpenMS
     }
 
     // don't pick a spectrum with less than 5 data points
-    if (input.size() < 5) return;
-
+    if (input.size() < 5)
+    {
+      return;
+    }
     // if both spacing constraints are disabled, don't check spacings at all:
     if ((spacing_difference_ == std::numeric_limits<double>::infinity()) &&
       (spacing_difference_gap_ == std::numeric_limits<double>::infinity()))
@@ -155,9 +157,14 @@ namespace OpenMS
       double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
       // do not interpolate when the left or right support is a zero-data-point
-      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-
+      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
+      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
       // MZ spacing sanity checks
       double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
       if (check_spacings)
@@ -303,8 +310,10 @@ namespace OpenMS
         }
 
         // skip if the minimal number of 3 points for fitting is not reached
-        if (peak_raw_data.size() < 3) continue;
-
+        if (peak_raw_data.size() < 3)
+        {
+          continue;
+        }
         CubicSpline2d peak_spline (peak_raw_data);
 
         // calculate maximum by evaluating the spline's 1st derivative
@@ -568,9 +577,15 @@ namespace OpenMS
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
     spacing_difference_gap_ = param_.getValue("spacing_difference_gap");
-    if (spacing_difference_gap_ == 0.0) spacing_difference_gap_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_gap_ == 0.0)
+    {
+      spacing_difference_gap_ = std::numeric_limits<double>::infinity();
+    }
     spacing_difference_ = param_.getValue("spacing_difference");
-    if (spacing_difference_ == 0.0) spacing_difference_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_ == 0.0)
+    {
+      spacing_difference_ = std::numeric_limits<double>::infinity();
+    }
     missing_ = param_.getValue("missing");
 
     ms_levels_ = getParameters().getValue("ms_levels");

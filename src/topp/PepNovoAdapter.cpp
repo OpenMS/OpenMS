@@ -269,23 +269,23 @@ class TOPPPepNovoAdapter :
           return INPUT_FILE_NOT_FOUND;
         }
 
-        for (QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+        for (const QString& file : pepnovo_files)
         {
-          if (qdir_models_source.cd(*file_it))
+          if (qdir_models_source.cd(file))
           {
-            qdir_temp.mkdir(*file_it);
-            qdir_temp.cd(*file_it);
+            qdir_temp.mkdir(file);
+            qdir_temp.cd(file);
             QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
-            for (QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+            for (const QString& subdir_file : subdir_files)
             {
-              QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
+              QFile::copy(qdir_models_source.filePath(subdir_file), qdir_temp.filePath(subdir_file));
             }
             qdir_temp.cdUp();
             qdir_models_source.cdUp();
           }
           else
           {
-            QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
+            QFile::copy(qdir_models_source.filePath(file), qdir_temp.filePath(file));
           }
         }
 
@@ -317,16 +317,40 @@ class TOPPPepNovoAdapter :
 
         arguments << "-file" << mgf_file.toQString();
         arguments << "-model" << model_name.toQString();
-        if (pm_tolerance != -1 ) arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
-        if (fragment_tolerance != -1 ) arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
-        if (!ptm_command.empty()) arguments <<"-PTMs" <<ptm_command.toQString();
-        if (getFlag_("correct_pm")) arguments << "-correct_pm";
-        if (getFlag_("use_spectrum_charge")) arguments << "-use_spectrum_charge";
-        if (getFlag_("use_spectrum_mz")) arguments << "-use_spectrum_mz";
-        if (getFlag_("no_quality_filter")) arguments << "-no_quality_filter";
+        if (pm_tolerance != -1 )
+        {
+          arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
+        }
+        if (fragment_tolerance != -1 )
+        {
+          arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
+        }
+        if (!ptm_command.empty())
+        {
+          arguments <<"-PTMs" <<ptm_command.toQString();
+        }
+        if (getFlag_("correct_pm"))
+        {
+          arguments << "-correct_pm";
+        }
+        if (getFlag_("use_spectrum_charge"))
+        {
+          arguments << "-use_spectrum_charge";
+        }
+        if (getFlag_("use_spectrum_mz"))
+        {
+          arguments << "-use_spectrum_mz";
+        }
+        if (getFlag_("no_quality_filter"))
+        {
+          arguments << "-no_quality_filter";
+        }
         arguments << "-digest" << digest.toQString();
         arguments << "-num_solutions" << String(num_solutions).toQString();
-        if (tag_length!=-1) arguments<<"-tag_length" << String(tag_length).toQString();
+        if (tag_length!=-1)
+        {
+          arguments<<"-tag_length" << String(tag_length).toQString();
+        }
         arguments<<"-model_dir" << tmp_models_dir.toQString();
         //arguments<<">" << temp_pepnovo_outfile.toQString();
 
@@ -352,7 +376,10 @@ class TOPPPepNovoAdapter :
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }
 
-        if (process.exitStatus() != 0)  error = true;
+        if (process.exitStatus() != 0)
+        {
+          error = true;
+        }
        
       }
       catch(Exception::BaseException &exc)

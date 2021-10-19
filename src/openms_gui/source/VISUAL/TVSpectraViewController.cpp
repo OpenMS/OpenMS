@@ -219,9 +219,14 @@ namespace OpenMS
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
-
+    if (widget_1d == nullptr)
+    {
+      return;
+    }
+    if (widget_1d->canvas()->getLayerCount() == 0)
+    {
+      return;
+    }
     const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the

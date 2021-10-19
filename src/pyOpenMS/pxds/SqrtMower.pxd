@@ -10,8 +10,10 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>" namespace "OpenMS
     cdef cppclass SqrtMower(DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
+        # wrap-doc:
+        #   Scales the intensity of peaks to the sqrt
 
-        SqrtMower() nogil except +
+        SqrtMower() nogil except + 
         SqrtMower(SqrtMower &) nogil except +
 
         void filterSpectrum(MSSpectrum & spec) nogil except +

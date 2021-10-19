@@ -181,8 +181,10 @@ private:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------

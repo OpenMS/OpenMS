@@ -413,7 +413,10 @@ protected:
         prot_id.insertHit(pr_hit);
 
         // proper MS2?
-        if (query[j].empty() || query[j].getMSLevel() != 2) {continue; }
+        if (query[j].empty() || query[j].getMSLevel() != 2)
+        {
+          continue;
+        }
 
         if (query[j].getPrecursors().empty())
         {
@@ -451,13 +454,19 @@ protected:
           filtered_query.sortByPosition();
         }
 
-        if (filtered_query.size() < min_peaks) { continue; }
+        if (filtered_query.size() < min_peaks)
+        { 
+          continue;
+        }
 
         const double& query_rt = query[j].getRT();
         const int& query_charge = query[j].getPrecursors()[0].getCharge();
         const double query_mz = query[j].getPrecursors()[0].getMZ();
         
-        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
+        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge))
+        { 
+          continue;
+        } 
 
         for (auto const & iso : isotopes)
         {
@@ -468,11 +477,17 @@ protected:
           const double precursor_mass_tolerance_mz = precursor_mass_tolerance_unit_ppm ? ic_query_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
 
           // skip matching of isotopic misassignments if charge not annotated
-          if (iso != 0 && query_charge == 0) { continue; }
+          if (iso != 0 && query_charge == 0)
+          {
+            continue;
+          }
 
           // skip matching of isotopic misassignments if search windows around isotopic peaks would overlap (resulting in more than one report of the same hit)
           const double isotopic_peak_distance_mz = Constants::C13C12_MASSDIFF_U / query_charge;
-          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz) { continue; }
+          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz)
+          { 
+            continue;
+          }
 
           /* TODO: remove old code for charge estimation?
           bool charge_one = false;
@@ -499,7 +514,10 @@ protected:
           up_it = mslib.upper_bound(ic_query_mz + 0.5 * precursor_mass_tolerance_mz);
         
           // no matching precursor in data
-          if (low_it == up_it) { continue; }
+          if (low_it == up_it)
+          { 
+            continue;
+          }
        
           for (; low_it != up_it; ++low_it)
           {
@@ -508,7 +526,10 @@ protected:
             const int& lib_charge = hit.getCharge();  
 
             // check if charge state between library and experimental spectrum match
-            if (query_charge > 0 && lib_charge != query_charge) { continue; }
+            if (query_charge > 0 && lib_charge != query_charge)
+            {
+              continue;
+            }
 
             // Special treatment for SpectraST score as it computes a score based on the whole library
             if (compare_function == "SpectraSTSimilarityScore")

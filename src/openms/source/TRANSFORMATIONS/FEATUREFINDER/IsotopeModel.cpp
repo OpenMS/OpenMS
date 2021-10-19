@@ -83,8 +83,9 @@ namespace OpenMS
   IsotopeModel & IsotopeModel::operator=(const IsotopeModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -104,16 +105,25 @@ namespace OpenMS
 
     String form;
     if (C_num)
+    {
       form.append("C").append(String(C_num));
+    }
     if (H_num)
+    {
       form.append("H").append(String(H_num));
+    }
     if (N_num)
+    {
       form.append("N").append(String(N_num));
+    }
     if (O_num)
+    {
       form.append("O").append(String(O_num));
+    }
     if (S_num)
+    {
       form.append("S").append(String(S_num));
-
+    }
     return EmpiricalFormula(form);
   }
 
@@ -136,11 +146,11 @@ namespace OpenMS
     CoordinateType isotopes_mean = 0;
     {
       Int cnt = 0;
-      for (IsotopeDistribution::iterator iter = isotope_distribution_.begin();
-           iter != isotope_distribution_.end(); ++iter, ++cnt)
+      for (Peak1D& peak : isotope_distribution_)
       {
-        isotopes_exact.push_back(iter->getIntensity());
-        isotopes_mean += iter->getIntensity() * cnt;
+        isotopes_exact.push_back(peak.getIntensity());
+        isotopes_mean += peak.getIntensity() * cnt;
+        ++cnt;
       }
       isotopes_mean *= isotope_distance_ / charge_;
     }
@@ -212,7 +222,9 @@ namespace OpenMS
     for (SignedSize i = left.size() - 1; i >= 0; --i)
     {
       if (left[i] == 0)
+      {
         continue;
+      }
       for (SignedSize j = std::min(r_max - i, SignedSize(right.size())) - 1; j >= 0; --j)
       {
         result[i + j] += left[i] * right[j];

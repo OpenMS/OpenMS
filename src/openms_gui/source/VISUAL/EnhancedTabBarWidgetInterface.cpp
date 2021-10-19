@@ -58,7 +58,10 @@ namespace OpenMS
     // use signal/slot to communicate, since directly storing the parent pointer for later access is dangerous (it may already be destroyed during program exit)
     QObject::connect(&this->sp_, &SignalProvider::aboutToBeDestroyed, parent, &EnhancedTabBar::removeId);
     parent->addTab(caption.toQString(), window_id_);
-    if (make_active_tab) parent->show(window_id_);
+    if (make_active_tab)
+    {
+      parent->show(window_id_);
+    }
   }
 
   Int EnhancedTabBarWidgetInterface::getWindowId()

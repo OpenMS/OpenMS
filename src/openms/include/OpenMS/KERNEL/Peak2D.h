@@ -168,7 +168,7 @@ public:
       return intensity_;
     }
 
-    /// Non-mutable access to the data point intensity (height)
+    /// Sets data point intensity (height)
     void setIntensity(IntensityType intensity)
     {
       intensity_ = intensity;

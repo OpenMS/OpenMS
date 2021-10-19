@@ -95,13 +95,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
 
         void runOnCandidates(FeatureMap & features) nogil except + # wrap-doc:Run feature detection on identified features (e.g. loaded from an IdXML file)
 
-        void setMSData(const MSExperiment&) nogil except + # wrap-doc:Set ms data
+        void setMSData(const MSExperiment&) nogil except + # wrap-doc:Sets ms data
 
-        MSExperiment getMSData() nogil except + # wrap-doc:Return ms data as MSExperiment
+        MSExperiment getMSData() nogil except + # wrap-doc:Returns ms data as MSExperiment
 
-        MSExperiment getChromatograms() nogil except + # wrap-doc:Return chromatogram data as MSExperiment 
+        MSExperiment getChromatograms() nogil except + # wrap-doc:Returns chromatogram data as MSExperiment 
 
         ProgressLogger getProgressLogger() nogil except + # wrap-ignore
 
-        TargetedExperiment getLibrary() nogil except + # wrap-doc:Return constructed assay library
+        TargetedExperiment getLibrary() nogil except + # wrap-doc:Returns constructed assay library
 

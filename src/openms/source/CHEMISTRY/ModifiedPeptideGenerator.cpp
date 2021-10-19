@@ -64,8 +64,7 @@ namespace OpenMS
     for (auto const & r : mods)
     {
       String name = r->getFullId();
-      bool is_terminal = r->getTermSpecificity() == ResidueModification::N_TERM || r->getTermSpecificity() == ResidueModification::C_TERM;
-
+      bool is_terminal = r->getTermSpecificity() == ResidueModification::N_TERM || r->getTermSpecificity() == ResidueModification::C_TERM || r->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM || r->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM;
       if (!is_terminal)
       {
         auto residue = ResidueDB::getInstance()->getResidue(r->getOrigin());

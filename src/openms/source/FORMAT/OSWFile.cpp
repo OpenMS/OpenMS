@@ -500,7 +500,10 @@ namespace OpenMS
           {
             new_transition = Sql::extractInt(stmt, I_TRID);
             new_line.setFeature(stmt);
-            if (check_add_feat()) break; // new feature just started?--> check if new PC started as well.
+            if (check_add_feat())
+            {
+              break; // new feature just started?--> check if new PC started as well.
+            }
             rc = Sql::nextRow(stmt, rc); // next row
           }
           if (rc != Sql::SqlState::SQL_ROW) {
@@ -511,7 +514,10 @@ namespace OpenMS
             return false; // this was the last protein
           }
           new_line.setPC(stmt);
-          if (check_add_pc()) break; // new PC just started?--> check if if new protein started as well.
+          if (check_add_pc())
+          {
+            break; // new PC just started?--> check if if new protein started as well.
+          }
         }
         new_line.setProt(stmt);
         if (check_add_protein())

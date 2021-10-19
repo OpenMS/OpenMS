@@ -128,7 +128,7 @@ public:
     double delta_D(double top_hit, double runner_up);
 
     /**
-        @brief: computes the overall all score
+        @brief computes the overall all score
         @param dot_product of a match
         @param delta_D should be calculated after all dot products for a unidentified spectrum are computed
         @param dot_bias

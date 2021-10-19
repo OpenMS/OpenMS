@@ -56,7 +56,7 @@ using namespace std;
 namespace OpenMS
 {
   DBSuitability::DBSuitability()
-    : DefaultParamHandler("DBSuitability"), results_{}, decoy_pattern_(string(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex()))
+    : DefaultParamHandler("DBSuitability"), results_{}, decoy_pattern_(string(DecoyHelper::regexstr_prefix + "|" + DecoyHelper::regexstr_suffix))
   {
     defaults_.setValue("no_rerank", "false", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.");
     defaults_.setValidStrings("no_rerank", { "true", "false" });
@@ -656,16 +656,16 @@ namespace OpenMS
 
   Size DBSuitability::getIndexWithMedianNovoHits_(const vector<SuitabilityData>& data) const
   {
-    if (data.size() == 0)
+    if (data.empty())
     {
       throw(Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No suitability data given!"));
     }
 
     vector<Size> novo_data;
     map<Size, Size> novo_hits_to_data;
-    for (int i = 0; i < data.size(); ++i)
+    for (size_t i = 0; i < data.size(); ++i)
     {
-      Size num_top_novo = data[i].num_top_novo;
+      const Size num_top_novo = data[i].num_top_novo;
       novo_data.push_back(num_top_novo);
       novo_hits_to_data[num_top_novo] = i;
     }

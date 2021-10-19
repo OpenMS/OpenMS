@@ -43,7 +43,7 @@
 
 #include <functional>
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -350,24 +350,12 @@ public:
     bool is_prefix; ///< on success, was it a prefix or suffix
   };
 
-  /// common decoy strings in FASTA files
-  /// note: decoy prefixes/suffices must be provided in lower case
-  static std::vector<std::string> getAffixes()
-  {
-    return { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy__", "xxx", "shuffled", "shuffle", "pseudo", "random" };
-  }
+  // decoy strings
+  inline static const std::vector<std::string> affixes = { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
-  /// returns a regex string to find decoy prefixes
-  static std::string getPrefixRegex()
-  {
-    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "|") +  ")_?";
-  }
-
-  /// returns regex string to find decoy suffixes
-  static std::string getSuffixRegex()
-  {
-    return std::string("_?(") + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")$";
-  }
+  // setup prefix- and suffix regex strings
+  inline static const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
+  inline static const std::string regexstr_suffix = std::string("(_") + ListUtils::concatenate<std::string>(affixes, "*|_") + ")$";
 
   /**
     @brief Heuristic to determine the decoy string given a set of protein names
@@ -379,16 +367,19 @@ public:
   template<typename T>
   static Result findDecoyString(FASTAContainer<T>& proteins)
   {
+    // common decoy strings in FASTA files
+    // note: decoy prefixes/suffices must be provided in lower case
+
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
     // map case insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
 
     // setup regexes
-    const boost::regex pattern_prefix(getPrefixRegex());
-    const boost::regex pattern_suffix(getSuffixRegex());
+    const boost::regex pattern_prefix(regexstr_prefix);
+    const boost::regex pattern_suffix(regexstr_suffix);
 
-    int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
+    Size all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
 
     constexpr size_t PROTEIN_CACHE_SIZE = 4e5;
 
@@ -448,7 +439,7 @@ public:
 
     // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values
-    if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count)
+    if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.4 * static_cast<double>(all_proteins_count))
     {
       OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
       return {false, "?", true};
@@ -464,7 +455,7 @@ public:
     for (const auto& pair : decoy_count)
     {
       const std::string & case_insensitive_decoy_string = pair.first;
-      const std::pair<int, int>& prefix_suffix_counts = pair.second;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
       double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
       double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
 
@@ -484,7 +475,7 @@ public:
     for (const auto& pair : decoy_count)
     {
       const std::string& case_insensitive_decoy_string = pair.first;
-      const std::pair<int, int>& prefix_suffix_counts = pair.second;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
       double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
       double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
 
@@ -505,8 +496,8 @@ public:
   }
   
 private:
-  using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
-  using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
+  using DecoyStringToAffixCount = std::unordered_map<std::string, std::pair<Size, Size>>;
+  using CaseInsensitiveToCaseSensitiveDecoy = std::unordered_map<std::string, std::string>;
 };
 
 } // namespace OpenMS
