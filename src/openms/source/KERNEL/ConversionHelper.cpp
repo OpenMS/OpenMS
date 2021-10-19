@@ -61,7 +61,7 @@ namespace OpenMS
     std::partial_sort(tmp.begin(),
                       tmp.begin() + n,
                       tmp.end(),
-                      reverseComparator(Peak2D::IntensityLess()));
+                      [](auto &left, auto &right) {Peak2D::IntensityLess cmp; return cmp(right, left);});
 
     for (Size element_index = 0; element_index < n; ++element_index)
     {

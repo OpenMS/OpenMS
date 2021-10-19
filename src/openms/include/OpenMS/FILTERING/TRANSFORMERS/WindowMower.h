@@ -162,12 +162,12 @@ public:
           // copy N highest peaks to out
           if (peaks_in_window.size() > peakcount_)
           {
-            std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+            std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), [](auto &left, auto &right) {typename SpectrumType::PeakType::IntensityLess cmp; return cmp(right, left);});
             copy(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, back_inserter(out));
           }
           else
           {
-            std::sort(peaks_in_window.begin(), peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+            std::sort(peaks_in_window.begin(), peaks_in_window.end(), [](auto &left, auto &right) {typename SpectrumType::PeakType::IntensityLess cmp; return cmp(right, left);});
             copy(peaks_in_window.begin(), peaks_in_window.end(), back_inserter(out));
           }
 
@@ -189,7 +189,7 @@ public:
         if (peaks_in_window.size() > last_window_peakcount)
         { // sort for last_window_peakcount highest peaks
           std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), 
-                            reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+                            [](auto &left, auto &right) {typename SpectrumType::PeakType::IntensityLess cmp; return cmp(right, left);});
           std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
         }
         else

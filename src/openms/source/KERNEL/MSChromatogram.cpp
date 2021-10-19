@@ -136,7 +136,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
   {
     if (reverse)
     {
-      std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
+      std::sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -155,11 +155,12 @@ void MSChromatogram::sortByIntensity(bool reverse) {
 
     if (reverse)
     {
-      std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
+      auto pairFirstElemCmp = [](auto& left, auto& right){return left.first < right.first;};
+      std::sort(sorted_indices.begin(), sorted_indices.end(), [&](auto &left, auto &right) {return pairFirstElemCmp(right, left);});
     }
     else
     {
-      std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
+      std::sort(sorted_indices.begin(), sorted_indices.end(), [](auto& left, auto& right){return left.first < right.first;});
     }
 
     //apply sorting to ContainerType and to meta data arrays
@@ -217,7 +218,7 @@ void MSChromatogram::sortByPosition()
     {
       sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
     }
-    std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
+    std::sort(sorted_indices.begin(), sorted_indices.end(), [](auto& left, auto& right){return left.first < right.first;});
 
     //apply sorting to ContainerType and to metadataarrays
     ContainerType tmp;

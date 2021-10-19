@@ -108,6 +108,16 @@ public:
 
 private:
 
+    template <typename PairType>
+    struct PairComparatorSecondElement
+    {
+      bool operator()(const PairType & left, const PairType & right) const
+      {
+        return left.second < right.second;
+      }
+
+    };
+
     typedef std::map<std::pair<double, double>, int, PairComparatorSecondElement<std::pair<double, double> > > ExclusionListType_;
 
     /**

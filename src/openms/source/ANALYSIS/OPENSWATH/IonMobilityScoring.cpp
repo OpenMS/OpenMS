@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
