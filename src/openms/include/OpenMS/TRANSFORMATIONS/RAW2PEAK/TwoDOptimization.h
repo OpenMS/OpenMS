@@ -64,7 +64,7 @@
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 #endif
 
-#include <boost/math/special_functions/acosh.hpp>
+#include <boost/math/special_functions/acosh.hpp> // TODO replace with std::acosh
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 

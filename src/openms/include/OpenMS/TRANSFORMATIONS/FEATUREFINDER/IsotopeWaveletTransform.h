@@ -45,7 +45,6 @@
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
 #include <cmath>
-#include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
 #include <sstream>
@@ -1875,7 +1874,7 @@ protected:
       if (intenstype_ == "corrected")
       {
         double lambda = IsotopeWavelet::getLambdaL(av_mz * c_charge);
-        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0, 2 * lambda);
+        av_intens /= exp(-2 * lambda) * std::cyl_bessel_i(0, 2 * lambda);
       }
       if (intenstype_ == "ref")
       {
