@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ EnzymaticDigestionLogModel* e_nullPointer = nullptr;
 START_SECTION((EnzymaticDigestionLogModel()))
 e_ptr = new EnzymaticDigestionLogModel;
 TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+delete e_ptr;
 END_SECTION
 
 START_SECTION((EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel &rhs)))

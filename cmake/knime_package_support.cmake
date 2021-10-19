@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -134,8 +134,6 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # PercolatorAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-   # SiriusAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=SiriusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
@@ -208,7 +206,7 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
 elseif(WIN32)
   ## Assemble common required libraries for win and lnx
   ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
-  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 	  add_custom_command(
 		TARGET prepare_knime_payload_libs POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_TOOLS_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
@@ -222,11 +220,13 @@ elseif(WIN32)
 	)
   endforeach()
 else()
-    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
-        add_custom_command(
-            TARGET prepare_knime_payload_libs POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
-        )
+    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo)
+		## copy the libs themselves, then their dependencies. At some point CMake just stopped doing it.
+		add_custom_command(
+			TARGET prepare_knime_payload_libs POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+			COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
+			)
     endforeach()
 endif()
 

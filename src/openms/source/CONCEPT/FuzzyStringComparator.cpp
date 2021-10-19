@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -300,8 +300,10 @@ namespace OpenMS
   bool FuzzyStringComparator::compareLines_(std::string const& line_str_1, std::string const& line_str_2)
   {
     // in most cases, results will be identical. If not, do the expensive fuzzy compare
-    if (line_str_1 == line_str_2) return true;
-    
+    if (line_str_1 == line_str_2)
+    {
+      return true;
+    }
     for (StringList::const_iterator slit = whitelist_.begin();
          slit != whitelist_.end(); ++slit)
     {
@@ -350,8 +352,10 @@ namespace OpenMS
 #ifdef DEBUG_FUZZY
             std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << std::endl;
 #endif
-            if (element_1_.number == element_2_.number) continue;
-
+            if (element_1_.number == element_2_.number)
+            {
+              continue;
+            }
             // check if absolute difference is small
             double absdiff = element_1_.number - element_2_.number;
             if (absdiff < 0)
@@ -666,7 +670,9 @@ namespace OpenMS
            wlcit != whitelist_cases_.end(); ++wlcit)
       {
         if (wlcit->first.size() > length)
+        {
           length = wlcit->first.size();
+        }
       }
       for (std::map<String, UInt>::const_iterator wlcit = whitelist_cases_.begin();
            wlcit != whitelist_cases_.end(); ++wlcit)

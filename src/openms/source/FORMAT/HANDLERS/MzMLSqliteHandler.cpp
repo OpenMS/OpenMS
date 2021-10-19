@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,11 +54,8 @@
 
 #include <cmath>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-
-  namespace Internal
-  {
 
     namespace Sql = Internal::SqliteHelper;
 
@@ -183,7 +180,10 @@ namespace OpenMS
         if (data_type == 1)
         {
           // intensity
-          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
+          if (containers[curr_id].empty())
+          {
+            containers[curr_id].resize(data.size());
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
@@ -200,7 +200,10 @@ namespace OpenMS
                 "Found m/z data type for chromatogram (instead of retention time)");
           }
 
-          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
+          if (containers[curr_id].empty())
+          {
+            containers[curr_id].resize(data.size());
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
@@ -629,24 +632,53 @@ namespace OpenMS
         OpenMS::Precursor& precursor = chrom.getPrecursor();
         OpenMS::Product& product = chrom.getProduct();
 
-        if (Sql::extractValue(&tmp, stmt, 1)) chrom.setNativeID(tmp);
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
-        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
-        if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
-        if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
+        if (Sql::extractValue(&tmp, stmt, 1))
+        {
+          chrom.setNativeID(tmp);
+        }
+        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL)
+        {
+          precursor.setCharge(sqlite3_column_int(stmt, 2));
+        }
+        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+        {
+          precursor.setDriftTime(sqlite3_column_double(stmt, 3));
+        }
+        if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) 
+        {
+          precursor.setMZ(sqlite3_column_double(stmt, 4));
+        }
+        if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) 
+        {
+          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
+        }
+        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
+        {
+          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
+        }
         if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
-        if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
-        if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
+        if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
+        {
+          product.setMZ(sqlite3_column_double(stmt, 9));
+        }
+        if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
+        {
+          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
+        }
+        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        {
+          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
+        }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
             && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
         }
-        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL) precursor.setActivationEnergy(sqlite3_column_double(stmt, 13));
-
+        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
+        {
+          precursor.setActivationEnergy(sqlite3_column_double(stmt, 13));
+        }
         sqlite3_step( stmt );
       }
 
@@ -704,35 +736,84 @@ namespace OpenMS
         MSSpectrum& spec = spectra.back();
         OpenMS::Precursor precursor;
         OpenMS::Product product;
-        if (Sql::extractValue(&tmp, stmt, 1)) spec.setNativeID(tmp);
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
-        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
-        if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
-        if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 5));
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 6));
-        if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
-        if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
-        if (Sql::extractValue(&tmp, stmt, 9)) precursor.setMetaValue("peptide_sequence", tmp);
+        if (Sql::extractValue(&tmp, stmt, 1))
+        {
+          spec.setNativeID(tmp);
+        }
+        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL)
+        {
+          spec.setMSLevel(sqlite3_column_int(stmt, 2));
+        }
+        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+        {
+          spec.setRT(sqlite3_column_double(stmt, 3));
+        }
+        if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+        {
+          precursor.setCharge(sqlite3_column_int(stmt, 4));
+        }
+        if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
+        {
+          precursor.setDriftTime(sqlite3_column_double(stmt, 5));
+        }
+        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
+        {
+          precursor.setMZ(sqlite3_column_double(stmt, 6));
+        }
+        if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
+        {
+          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
+        }
+        if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
+        {
+          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
+        }
+        if (Sql::extractValue(&tmp, stmt, 9))
+        {
+          precursor.setMetaValue("peptide_sequence", tmp);
+        }
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));
-        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL) product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 13));
+        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        {
+          product.setMZ(sqlite3_column_double(stmt, 11));
+        }
+        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
+        {
+          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));
+        }
+        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
+        {
+          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 13));
+        }
         if (sqlite3_column_type(stmt, 14) != SQLITE_NULL) 
         {
           int pol = sqlite3_column_int(stmt, 14);
-          if (pol == 0) spec.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
-          else spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+          if (pol == 0)
+          {
+            spec.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+          }
+          else 
+          {
+            spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+          }
         }
         if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
             && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
         }
-        if (sqlite3_column_type(stmt, 16) != SQLITE_NULL) precursor.setActivationEnergy(sqlite3_column_double(stmt, 16));
-
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) spec.getPrecursors().push_back(std::move(precursor));
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) spec.getProducts().push_back(std::move(product));
-
+        if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
+        {
+          precursor.setActivationEnergy(sqlite3_column_double(stmt, 16));
+        }
+        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
+        {
+          spec.getPrecursors().push_back(std::move(precursor));
+        }
+        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        {
+          spec.getProducts().push_back(std::move(product));
+        }
         sqlite3_step( stmt );
       }
 
@@ -912,8 +993,10 @@ namespace OpenMS
     void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum>& spectra)
     {
       // prevent writing of empty data which would throw an SQL exception
-      if (spectra.empty()) return;
-
+      if (spectra.empty())
+      {
+        return;
+      }
       SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
@@ -1127,16 +1210,24 @@ namespace OpenMS
 
       conn.executeStatement("BEGIN TRANSACTION");
       conn.executeStatement(insert_spectra_sql.str());
-      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql.str());
-      if (nr_products > 0) conn.executeStatement(insert_product_sql.str());
+      if (nr_precursors > 0)
+      {
+        conn.executeStatement(insert_precursor_sql.str());
+      }
+      if (nr_products > 0)
+      {
+        conn.executeStatement(insert_product_sql.str());
+      }
       conn.executeStatement("END TRANSACTION");
     }
 
     void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram >& chroms)
     {
       // prevent writing of empty data which would throw an SQL exception
-      if (chroms.empty()) return;
-
+      if (chroms.empty())
+      {
+        return;
+      }
       SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
@@ -1325,6 +1416,5 @@ namespace OpenMS
       conn.executeStatement("END TRANSACTION");
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS  // namespace Internal
 

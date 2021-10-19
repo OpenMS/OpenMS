@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,8 +87,10 @@ namespace OpenMS
       qp_->setWorkingDirectory(working_dir);
     }
 
-    if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
-
+    if (verbose)
+    {
+      callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
+    }
     // Map IO_MODE enum value to QIODevice value
     QIODevice::OpenModeFlag mode;
     switch (io_mode)
@@ -110,13 +112,16 @@ namespace OpenMS
     if (!(qp_->waitForStarted()))
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::FAILED_TO_START;
     }
     while (qp_->state() == QProcess::Running)
     {
       QCoreApplication::processEvents();
-      if (qp_->waitForReadyRead(50)) // wait 50msecs. Small enough to have the GUI repaint when switching windows
+      if (qp_->waitForReadyRead(50)) // wait 50ms. Small enough to have the GUI repaint when switching windows
       {
         processStdOut_();
         processStdErr_();
@@ -126,17 +131,26 @@ namespace OpenMS
     if (qp_->exitStatus() != QProcess::NormalExit)
     {
       error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::CRASH;
     }
     else if (qp_->exitCode() != 0)
     {
       error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::NONZERO_EXIT;
     }
     
-    if (verbose) callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    if (verbose)
+    {
+      callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    }
     return RETURNSTATE::SUCCESS;
   }
 
@@ -154,4 +168,4 @@ namespace OpenMS
     callbackStdErr_(s);
   }
 
-} // ns OpenMS
+} // namespace OpenMS

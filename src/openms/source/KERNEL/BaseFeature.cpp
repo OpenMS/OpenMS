@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,9 +154,13 @@ namespace OpenMS
               [](PeptideIdentification& p1, PeptideIdentification& p2)
               {p1.sort();p2.sort();
               if (p1.empty())
+              {
                 return true;
+              }
               if (p2.empty())
+              {
                 return false;
+              }
               if (p1.isHigherScoreBetter())
               {
                 return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();

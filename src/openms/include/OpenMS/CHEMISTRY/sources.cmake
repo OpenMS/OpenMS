@@ -20,6 +20,7 @@ DigestionEnzymeDB.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
+ModifiedPeptideGenerator.h
 ModificationsDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h

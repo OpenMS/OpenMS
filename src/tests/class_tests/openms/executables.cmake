@@ -23,6 +23,7 @@ set(qc_executables_list
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
+  MQEvidenceExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
@@ -232,6 +233,7 @@ set(format_executables_list
   OMSSAXMLFile_test
   OSWFile_test
   PTMXMLFile_test
+  ParamCTDFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -529,6 +531,7 @@ set(analysis_executables_list
   MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
+  NeedlemanWunsch_test
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
@@ -637,7 +640,8 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(ionmobility_executables_list
   FAIMSHelper_test
-  MSRunIMSplitter_test
+  IMDataConverter_test
+  IMTypes_test
 )
 
 set(simulation_executables_list

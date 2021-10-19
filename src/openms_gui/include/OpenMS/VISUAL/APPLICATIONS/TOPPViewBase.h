@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -541,7 +541,7 @@ protected:
     String current_path_;
 
     /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni();
+    void addToolParamsToIni_();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

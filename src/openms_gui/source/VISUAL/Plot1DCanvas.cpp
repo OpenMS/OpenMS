@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -178,6 +178,9 @@ namespace OpenMS
     {
       return false;
     }
+    
+    // fix legend
+    spectrum_widget_->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
     setIntensityMode(Plot1DCanvas::IM_NONE);
@@ -603,12 +606,14 @@ namespace OpenMS
   {
     //no layers => return invalid peak index
     if (layers_.empty())
+    {
       return PeakIndex();
-
+    }
     // mirror mode and p not on same half as active layer => return invalid peak index
     if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height() / 2)))
+    {
       return PeakIndex();
-
+    }
     //reference to the current data
     const SpectrumType& spectrum = getCurrentLayer().getCurrentSpectrum();
     Size spectrum_index = getCurrentLayer().getCurrentSpectrumIndex();
@@ -715,8 +720,9 @@ namespace OpenMS
   {
     //no layers
     if (layers_.empty())
+    {
       return;
-
+    }
     if (draw_modes_[getCurrentLayerIndex()] != mode)
     {
       draw_modes_[getCurrentLayerIndex()] = mode;
@@ -728,8 +734,9 @@ namespace OpenMS
   {
     //no layers
     if (layers_.empty())
+    {
       return DM_PEAKS;
-
+    }
     return draw_modes_[getCurrentLayerIndex()];
   }
 
@@ -782,10 +789,9 @@ namespace OpenMS
       SpectrumConstIteratorType vend = getLayer(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
 
       // draw dashed elongations for pairs of peaks annotated with a distance
-      for (auto it = layer.getCurrentAnnotations().begin();
-            it != layer.getCurrentAnnotations().end(); ++it)
+      for (auto& it : layer.getCurrentAnnotations())
       {
-        Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
+        Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
         if (distance_item)
         {
           QPoint from, to;
@@ -1083,13 +1089,19 @@ namespace OpenMS
     auto vbegin = current_spectrum.MZBegin(visible_area_.minX());
     auto vend = current_spectrum.MZEnd(visible_area_.maxX());
 
-    if (vbegin == vend) { return; }
+    if (vbegin == vend)
+    { 
+      return;
+    }
 
     // find interesting peaks
 
     // copy visible peaks into spec
     MSSpectrum spec;
-    for (auto it(vbegin); it != vend; ++it) { spec.push_back(*it); }
+    for (auto it(vbegin); it != vend; ++it)
+    { 
+      spec.push_back(*it);
+    }
 
     // calculate distance between first and last peak
     --vend;
@@ -1162,10 +1174,15 @@ namespace OpenMS
     }
 
     // store old zoom state
-    if (add_to_stack) { zoomAdd_(new_area); }
-
+    if (add_to_stack)
+    { 
+      zoomAdd_(new_area);
+    }
     // repaint
-    if (repaint) { update_(OPENMS_PRETTY_FUNCTION); }
+    if (repaint)
+    { 
+      update_(OPENMS_PRETTY_FUNCTION);
+    }
   }
 
   bool Plot1DCanvas::finishAdding_()
@@ -1270,18 +1287,16 @@ namespace OpenMS
     {
       return;
     }              
-
-    //determine coordinates;
-    double mz = 0.0;
-    float it = 0.0;
     // only peak data is supported here
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-    mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
-    it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
+
+    //determine coordinates;
+    double mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
+    double it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
 
     //draw text
     QStringList lines;
@@ -1306,8 +1321,9 @@ namespace OpenMS
   void Plot1DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
   {
     if (!start.isValid())
+    {
       return;
-
+    }
     //determine coordinates;
     double mz;
     float it;
@@ -1437,7 +1453,6 @@ namespace OpenMS
     if (layers_.empty()) { return; }
 
     QMenu* context_menu = new QMenu(this);
-    QAction* result = nullptr;
 
     Annotations1DContainer& annots_1d = getCurrentLayer().getCurrentAnnotations();
     Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
@@ -1447,24 +1462,18 @@ namespace OpenMS
       annots_1d.selectItemAt(e->pos());
       update_(OPENMS_PRETTY_FUNCTION);
 
-      context_menu->addAction("Edit");
-      context_menu->addAction("Delete");
-      if ((result = context_menu->exec(mapToGlobal(e->pos()))))
-      {
-        if (result->text() == "Delete")
-        {
-          vector<Annotation1DItem*> as;
-          as.push_back(annot_item);
-          getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
-          annots_1d.removeSelectedItems();
-        }
-        else if (result->text() == "Edit")
-        {
+      context_menu->addAction("Edit", [&]() {
           annot_item->editText();
           getCurrentLayer().synchronizePeakAnnotations();
-        }
+          update_(OPENMS_PRETTY_FUNCTION);
+      });
+      context_menu->addAction("Delete", [&]() {
+        vector<Annotation1DItem*> as;
+        as.push_back(annot_item);
+        getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
+        annots_1d.removeSelectedItems();
         update_(OPENMS_PRETTY_FUNCTION);
-      }
+      });
     }
     else // !annot_item
     {
@@ -1475,47 +1484,94 @@ namespace OpenMS
         layer_name += " (invisible)";
       }
       context_menu->addAction(layer_name.toQString())->setEnabled(false);
+
       context_menu->addSeparator();
-      QAction* new_action = context_menu->addAction("Add label");
-      if (mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2)))
-      {
-        new_action->setEnabled(false);
-      }
-      new_action = context_menu->addAction("Add peak annotation");
+      
+      context_menu->addAction("Add label", [&]() {
+        addUserLabelAnnotation_(e->pos());
+      })->setEnabled(!(mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2))));
+
       PeakIndex near_peak = findPeakAtPosition_(e->pos());
-      if (!near_peak.isValid())
-      {
-        new_action->setEnabled(false);
-      }
-      new_action = context_menu->addAction("Add peak annotation mz");
-      if (!near_peak.isValid())
-      {
-        new_action->setEnabled(false);
-      }
+      context_menu->addAction("Add peak annotation", [&]() {
+        addUserPeakAnnotation_(near_peak);
+      })->setEnabled(near_peak.isValid());
+      
+      context_menu->addAction("Add peak annotation mz", [&]() {
+        QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
+        addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+      })->setEnabled(near_peak.isValid());
+      
       context_menu->addSeparator();
-      new_action = context_menu->addAction("Reset alignment");
-      if (!show_alignment_)
-      {
-        new_action->setEnabled(false);
-      }
+      
+      context_menu->addAction("Reset alignment", [&]() { 
+        resetAlignment();
+      })->setEnabled(show_alignment_);
+
       context_menu->addSeparator();
 
-      context_menu->addAction("Layer meta data");
+      context_menu->addAction("Layer meta data", [&]() {
+        showMetaData(true);
+      });
 
       QMenu* save_menu = new QMenu("Save");
-      save_menu->addAction("Layer");
-      save_menu->addAction("Visible layer data");
-      save_menu->addAction("As image");
+      
+      save_menu->addAction("Layer", [&]() {
+        saveCurrentLayer(false);
+      });
+
+      save_menu->addAction("Visible layer data", [&]() {
+        saveCurrentLayer(true);
+      });
+      
+      save_menu->addAction("As image", [&]() {
+        spectrum_widget_->saveAsImage();
+      });
 
       QMenu* settings_menu = new QMenu("Settings");
-      settings_menu->addAction("Show/hide grid lines");
-      settings_menu->addAction("Show/hide axis legends");
-      settings_menu->addAction("Style: Stick <--> Area");
-      settings_menu->addAction("Intensity: Absolute <--> Percent");
-      settings_menu->addAction("Show/hide ion ladder in ID view");
-      settings_menu->addAction("Show/hide automated m/z annotations");
+      
+      settings_menu->addAction("Show/hide grid lines", [&]() { 
+        showGridLines(!gridLinesShown()); 
+      });
+      
+      settings_menu->addAction("Show/hide axis legends", [&]() {
+        emit changeLegendVisibility();
+      });
+      
+      settings_menu->addAction("Style: Stick <--> Area", [&]() {
+        if (getDrawMode() != DM_PEAKS)
+        {
+          setDrawMode(DM_PEAKS);
+        }
+        else
+        {
+          setDrawMode(DM_CONNECTEDLINES);
+        }
+       });
+
+      settings_menu->addAction("Intensity: Absolute <--> Percent", [&]() {
+        if (getIntensityMode() != IM_PERCENTAGE)
+        {
+          setIntensityMode(IM_PERCENTAGE);
+        }
+        else
+        {
+          setIntensityMode(IM_SNAP);
+        } 
+      });
+
+      settings_menu->addAction("Show/hide ion ladder in ID view", [&]() {
+        setIonLadderVisible(!isIonLadderVisible());
+      });
+
+      settings_menu->addAction("Show/hide automated m/z annotations", [&]() {
+        setDrawInterestingMZs(!draw_interesting_MZs_);
+      });
+
       settings_menu->addSeparator();
-      settings_menu->addAction("Preferences");
+
+      settings_menu->addAction("Preferences", [&]() {
+        showCurrentLayerPreferences();
+      });
 
       context_menu->addMenu(save_menu);
       context_menu->addMenu(settings_menu);
@@ -1523,120 +1579,39 @@ namespace OpenMS
       // only add to context menu if there is a MS1 map
       if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
       {
-        context_menu->addAction("Switch to 2D view");
-        context_menu->addAction("Switch to 3D view");
+        context_menu->addAction("Switch to 2D view", [&]() {
+          emit showCurrentPeaksAs2D();
+        });
+        context_menu->addAction("Switch to 3D view", [&]() {
+          emit showCurrentPeaksAs3D();
+        });
       }
 
       if (getCurrentLayer().getCurrentSpectrum().containsIMData())
       {
-        context_menu->addAction("Switch to ion mobility view");
+        context_menu->addAction("Switch to ion mobility view", [&]() {
+          emit showCurrentPeaksAsIonMobility();
+        });
       }
 
       if (getCurrentLayer().isDIAData())
       {
-        context_menu->addAction("Switch to DIA-MS view");
+        context_menu->addAction("Switch to DIA-MS view", [&]() {
+          emit showCurrentPeaksAsDIA();
+        });
       }
 
-      //add external context menu
+      // add external context menu
       if (context_add_)
       {
         context_menu->addSeparator();
         context_menu->addMenu(context_add_);
       }
-
-      //evaluate menu
-      if ((result = context_menu->exec(mapToGlobal(e->pos()))))
-      {
-        if (result->text() == "Preferences")
-        {
-          showCurrentLayerPreferences();
-        }
-        else if (result->text() == "Show/hide grid lines")
-        {
-          showGridLines(!gridLinesShown());
-        }
-        else if (result->text() == "Show/hide axis legends")
-        {
-          emit changeLegendVisibility();
-        }
-        else if (result->text() == "Show/hide automated m/z annotations")
-        {
-          setDrawInterestingMZs(!draw_interesting_MZs_);
-        }
-        else if (result->text() == "Layer" || result->text() == "Visible layer data")
-        {
-          saveCurrentLayer(result->text() == "Visible layer data");
-        }
-        else if (result->text() == "As image")
-        {
-          spectrum_widget_->saveAsImage();
-        }
-        else if (result->text() == "Style: Stick <--> Area")
-        {
-          if (getDrawMode() != DM_PEAKS)
-          {
-            setDrawMode(DM_PEAKS);
-          }
-          else
-          {
-            setDrawMode(DM_CONNECTEDLINES);
-          }
-        }
-        else if (result->text() == "Intensity: Absolute <--> Percent")
-        {
-          if (getIntensityMode() != IM_PERCENTAGE)
-          {
-            setIntensityMode(IM_PERCENTAGE);
-          }
-          else
-          {
-            setIntensityMode(IM_SNAP);
-          }
-        }
-        else if (result->text() == "Layer meta data")
-        {
-          showMetaData(true);
-        }
-        else if (result->text() == "Add label")
-        {
-          addUserLabelAnnotation_(e->pos());
-        }
-        else if (result->text() == "Add peak annotation")
-        {
-          addUserPeakAnnotation_(near_peak);
-        }
-        else if (result->text() == "Add peak annotation mz")
-        {
-          QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
-          addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
-        }
-        else if (result->text() == "Reset alignment")
-        {
-          resetAlignment();
-        }
-        else if (result->text() == "Switch to 2D view")
-        {
-          emit showCurrentPeaksAs2D();
-        }
-        else if (result->text() == "Switch to 3D view")
-        {
-          emit showCurrentPeaksAs3D();
-        }
-        else if (result->text() == "Switch to ion mobility view")
-        {
-          emit showCurrentPeaksAsIonMobility();
-        }
-        else if (result->text() == "Switch to DIA-MS view")
-        {
-          emit showCurrentPeaksAsDIA();
-        }
-        else if (result->text() == "Show/hide ion ladder in ID view")
-        {
-          // toggle visibility of ion ladder
-          setIonLadderVisible(!isIonLadderVisible());
-        }
-      }
     }
+
+    // evaluate menu
+    context_menu->exec(mapToGlobal(e->pos()));
+
     e->accept();
   }
 
@@ -1846,8 +1821,14 @@ namespace OpenMS
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
       PeakType p_temp(visible_area_.minX(), 0);
       SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
-      if (it_next != spec.begin()) --it_next; // move one peak left
-      if (it_next == spec.end()) return;
+      if (it_next != spec.begin())
+      {
+        --it_next; // move one peak left
+      }
+      if (it_next == spec.end())
+      {
+        return;
+      }
       newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
       newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
@@ -1877,7 +1858,10 @@ namespace OpenMS
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
       PeakType p_temp(visible_area_.maxX(), 0);
       SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
-      if (it_next == spec.end()) return;
+      if (it_next == spec.end())
+      {
+        return;
+      }
       newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
       newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
@@ -1909,8 +1893,9 @@ namespace OpenMS
   void Plot1DCanvas::paintGridLines_(QPainter& painter)
   {
     if (!show_grid_ || !spectrum_widget_)
+    {
       return;
-
+    }
     QPen p1(QColor(130, 130, 130));
     p1.setStyle(Qt::DashLine);
     QPen p2(QColor(170, 170, 170));

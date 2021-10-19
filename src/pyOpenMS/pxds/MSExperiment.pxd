@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   -----
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment &)  nogil except +
+        MSExperiment(MSExperiment &) nogil except +
 
         ExperimentalSettings getExperimentalSettings() nogil except +
         
@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
         libcpp_vector[MSSpectrum].iterator end() nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
-        MSChromatogram getTIC() nogil except + # wrap-doc:Return the total ion chromatogram
+        MSChromatogram calculateTIC() nogil except + # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clear all spectra data and meta data (if called with True)
 
         void updateRanges() nogil except + # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
@@ -74,27 +74,27 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +
 
-        double getMinMZ() nogil except +
-        double getMaxMZ() nogil except +
-        double getMinRT() nogil except +
-        double getMaxRT() nogil except +
+        double getMinMZ() nogil except + # wrap-doc:Returns the minimal m/z value
+        double getMaxMZ() nogil except + # wrap-doc:Returns the maximal m/z value
+        double getMinRT() nogil except + # wrap-doc:Returns the minimal retention time value
+        double getMaxRT() nogil except + # wrap-doc:Returns the maximal retention time value
 
         # Size of experiment
-        UInt64 getSize() nogil except +
+        UInt64 getSize() nogil except + # wrap-doc:Returns the total number of peaks
         int size() nogil except +
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        Size getNrSpectra() nogil except + # wrap-doc:return the number of MS spectra
-        Size getNrChromatograms() nogil except + # wrap-doc:returns the number of chromatograms
+        Size getNrSpectra() nogil except + # wrap-doc:Returns the number of MS spectra
+        Size getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms
         libcpp_vector[unsigned int] getMSLevels() nogil except +  # wrap-ignore
 
-        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sort spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
-        void sortSpectra() nogil except +
-        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sort chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
+        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
+        void sortSpectra() nogil except + 
+        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
         void sortChromatograms() nogil except +
 
-        bool isSorted(bool check_mz) nogil except +
+        bool isSorted(bool check_mz) nogil except + # wrap-doc:Checks if all spectra are sorted with respect to ascending RT
         bool isSorted() nogil except +
 
         void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:References to the first MS file(s) after conversions. Used to trace results back to original data.

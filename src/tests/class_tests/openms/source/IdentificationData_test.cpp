@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,11 +53,15 @@ using namespace std;
 
 using ID = IdentificationData;
 
-IdentificationData* ptr = 0;
-IdentificationData* null = 0;
+IdentificationData* ptr = nullptr;
+IdentificationData* null = nullptr;
 START_SECTION((IdentificationData()))
   ptr = new IdentificationData();
   TEST_NOT_EQUAL(ptr, null);
+END_SECTION
+
+START_SECTION((~IdentificationData()))
+  delete ptr;
 END_SECTION
 
 IdentificationData data;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,9 @@ namespace OpenMS
     // parse possible ESI adducts
     StringList esi_charge_impurity = ListUtils::toStringList<std::string>(param_.getValue("esi:charge_impurity"));
     if (esi_charge_impurity.empty())
+    {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    }
     StringList components;
     max_adduct_charge_ = 0;
     // reset internal state:
@@ -214,7 +216,9 @@ namespace OpenMS
     {
       esi_charge_impurity[i].split(':', components);
       if (components.size() != 2)
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
+      }
       // determine charge of adduct (by # of '+')
       Size l_charge = components[0].size(); //FIXME only works for + charge
       l_charge -= components[0].remove('+').size();
@@ -269,8 +273,9 @@ public:
                    std::back_inserter(weights),
                    boost::bind(std::multiplies<double>(), _1, 10));
     for (size_t i = 0; i < weights.size(); ++i)
+    {
       std::cout << "weights[" << i << "]: " << weights[i] << std::endl;
-
+    }
     // map for charged features
     SimTypes::FeatureMapSim copy_map = features;
     // but leave meta information & other stuff intact
@@ -347,7 +352,7 @@ public:
         }
 
 
-        // precompute random numbers:
+        // pre-compute random numbers:
         prec_rndbin.resize(abundance);
         {
           boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
@@ -374,7 +379,7 @@ public:
           // currently we might also loose some molecules here (which is ok?)
           // sample charge state from binomial
 
-          charge = prec_rndbin[j]; // get precomputed rnd
+          charge = prec_rndbin[j]; // get pre-computed rnd
 
           if (charge == 0)
           {
@@ -483,8 +488,14 @@ public:
       // merge thread results
 #pragma omp critical (OPENMS_IONSIM_ESI_FINAL)
       {
-        for (auto& e : t_features) copy_map.push_back(e);
-        for (auto& e : t_charge_consensus) charge_consensus.push_back(e);
+        for (auto& e : t_features)
+        {
+          copy_map.push_back(e);
+        }
+        for (auto& e : t_charge_consensus)
+        {
+          charge_consensus.push_back(e);
+        }
       }
           
 
@@ -651,11 +662,11 @@ public:
       // adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
       StringList keys;
       f.getKeys(keys);
-      for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
+      for (const String& key : keys)
       {
-        if (it_key->hasPrefix("intensity"))
+        if (key.hasPrefix("intensity"))
         {
-          f.setMetaValue(*it_key, SimTypes::SimIntensityType(f.getMetaValue(*it_key)) * factor);
+          f.setMetaValue(key, SimTypes::SimIntensityType(f.getMetaValue(key)) * factor);
         }
       }
     } // ! pragma

@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          __setitem__(bytes key, value) # wrap-ignore
 
          Param() nogil except +
-         Param(Param) nogil except +
+         Param(Param &) nogil except +
          bool operator==(Param) nogil except +
 
          void setValue(libcpp_utf8_string key, ParamValue val, libcpp_utf8_string desc, libcpp_vector[libcpp_utf8_string] tags) nogil except +

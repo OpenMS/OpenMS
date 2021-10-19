@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,8 +129,7 @@ START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, Consen
 
 	// need an instance of FeatureGroupingAlgorithm:
 	String algo_name = Factory<FeatureGroupingAlgorithm>::registeredProducts()[0];
-	FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(
-		algo_name);
+	FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(algo_name);
 
 	algo->transferSubelements(maps, out);
 
@@ -148,6 +147,7 @@ START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, Consen
 	TEST_EQUAL(*it++ == handle2, true);
 	TEST_EQUAL(*it++ == handle3, true);
 	TEST_EQUAL(*it++ == handle4, true);
+	delete algo;
 }
 END_SECTION
 

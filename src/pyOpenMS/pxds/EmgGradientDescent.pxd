@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/MATH/MISC/EmgGradientDescent.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
 
-        EmgGradientDescent() nogil except +
-        EmgGradientDescent(EmgGradientDescent) nogil except +
+        EmgGradientDescent() nogil except + # wrap-doc:Compute the area, background and shape metrics of a peak
+        EmgGradientDescent(EmgGradientDescent &) nogil except + # compiler
 
         void getDefaultParameters(Param&) nogil except +
 

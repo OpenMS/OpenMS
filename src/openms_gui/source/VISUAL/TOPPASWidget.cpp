@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::RubberBandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
     else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
@@ -187,7 +190,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::ScrollHandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
   }

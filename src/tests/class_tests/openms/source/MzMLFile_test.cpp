@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -387,7 +387,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.1)
     TEST_REAL_SIMILAR(spec.getDriftTime(),7.1)
-    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
@@ -439,7 +439,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
     // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience
     TEST_REAL_SIMILAR(spec.getDriftTime(),8.1)
-    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),3)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,100.0)
@@ -470,7 +470,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getCharge(),2)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
-    TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
@@ -483,7 +483,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),15.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getDriftTime(),-1) // none set
-    TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE) // none set
+    TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit() == DriftTimeUnit::NONE, true) // none set
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,14 +79,13 @@ public:
 
   // void runOnCandidates(FeatureMap& features);
 
-  PeakMap& getMSData() { return ms_data_; }
-  const PeakMap& getMSData() const { return ms_data_; }
+  PeakMap& getMSData();
+  const PeakMap& getMSData() const;
 
-  PeakMap& getChromatograms() { return chrom_data_; }
-  const PeakMap& getChromatograms() const { return chrom_data_; }
+  void setMSData(const PeakMap& ms_data);
 
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  PeakMap& getChromatograms();
+  const PeakMap& getChromatograms() const;
 
   // @TODO: how does this work if the library is cleared between chunks?
   TargetedExperiment& getLibrary() { return combined_library_; }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -195,10 +195,9 @@ namespace OpenMS
 
   void RTSimulation::noRTColumn_(SimTypes::FeatureMapSim& features)
   {
-    for (SimTypes::FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
-         ++it_f)
+    for (Feature& it_f : features)
     {
-      (*it_f).setRT(-1);
+      it_f.setRT(-1);
     }
   }
 
@@ -336,9 +335,13 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
+      {
         OPENMS_LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+      }
       else
+      {
         OPENMS_LOG_WARN << "  (List is too big to show)" << std::endl;
+      }
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -419,19 +422,26 @@ namespace OpenMS
       double charge = 0;
       // C&N term charge contribution
       if (q_nterm.has(seq[0]))
+      {
         charge +=  q_nterm[seq[0]];
+      }
       if (q_cterm.has(seq.suffix(1)))
+      {
         charge +=  q_cterm[seq.suffix(1)];
-
+      }
       // sidechains ...
       Map<String, Size> frequency_table;
       features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
       for (Map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
       {
         if (q_aa_basic.has(it->first))
+        {
           charge +=  q_aa_basic[it->first] * it->second;
+        }
         if (q_aa_acidic.has(it->first))
+        {
           charge +=  q_aa_acidic[it->first] * it->second;
+        }
       }
 
       // ** determine mass of peptide
@@ -605,18 +615,16 @@ namespace OpenMS
 
       double current_scan_rt = gradient_min_;
       Size id = 1;
-      for (SimTypes::MSSimExperiment::iterator exp_it = experiment.begin();
-           exp_it != experiment.end();
-           ++exp_it)
+      for (MSSpectrum& spec : experiment)
       {
-        (*exp_it).setRT(current_scan_rt);
+        spec.setRT(current_scan_rt);
 
         String spec_id = String("spectrum=") + id;
         ++id;
-        (*exp_it).setNativeID(spec_id);
+        spec.setNativeID(spec_id);
 
         // dice & store distortion
-        (*exp_it).setMetaValue("distortion", 1);
+        spec.setMetaValue("distortion", 1);
 
         // TODO (for CE) store peak broadening parameter
         current_scan_rt += rt_sampling_rate_;

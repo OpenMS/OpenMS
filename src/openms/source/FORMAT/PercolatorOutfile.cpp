@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,8 +161,14 @@ namespace OpenMS
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:
     size_t len = peptide.size(), start = 0, count = std::string::npos;
-    if (peptide[1] == '.') start = 2;
-    if (peptide[len - 2] == '.') count = len - start - 2;
+    if (peptide[1] == '.')
+    {
+      start = 2;
+    }
+    if (peptide[len - 2] == '.')
+    {
+      count = len - start - 2;
+    }
     peptide = peptide.substr(start, count);
 
     // re-format modifications:

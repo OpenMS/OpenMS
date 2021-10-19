@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -587,7 +587,10 @@ namespace OpenMS
         {
           ParentData pd;
           pd.length = AASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this
@@ -613,7 +616,10 @@ namespace OpenMS
         {
           ParentData pd;
           pd.length = NASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this

@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm
         # wrap-inherits:
         #  DefaultParamHandler
         MassDecompositionAlgorithm() nogil except +
+        # private
         MassDecompositionAlgorithm(MassDecompositionAlgorithm) nogil except + #wrap-ignore
-        void getDecompositions(libcpp_vector[ MassDecomposition ] & decomps, double weight) nogil except +
+        void getDecompositions(libcpp_vector[ MassDecomposition ] & decomps, double weight) nogil except + # wrap-doc:Returns the possible decompositions given the weight
 

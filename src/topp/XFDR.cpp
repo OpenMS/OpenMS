@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,11 +238,11 @@ private:
     }
     else if (in_type == FileTypes::MZIDENTML)
     {
-       MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
+      MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
      }
      else if (in_type == FileTypes::IDXML)
      {
-       IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
+      IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
      }
      else
      {
@@ -258,15 +258,15 @@ private:
      // Terminate if no hits could be found
      if (n_pep_ids == 0)
      {
-       logFatal("Input file does not contain any identifications.");
-       return INPUT_FILE_EMPTY;
+      logFatal("Input file does not contain any identifications.");
+      return INPUT_FILE_EMPTY;
      }
 
      // Terminate if do not exactly encounter one protein id
      if (n_prot_ids != 1)
      {
-       logFatal("There is not exactly one protein identification in the input file. This is unsupported!");
-       return INPUT_FILE_CORRUPT;
+      logFatal("There is not exactly one protein identification in the input file. This is unsupported!");
+      return INPUT_FILE_CORRUPT;
      }
      protein_id = protein_ids[0];
 

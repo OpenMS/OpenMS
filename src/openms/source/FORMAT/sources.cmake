@@ -57,6 +57,7 @@ OMSFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+ParamCTDFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
@@ -64,6 +65,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp

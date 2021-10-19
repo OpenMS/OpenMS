@@ -4,15 +4,19 @@
     "cmake.parallelJobs": 0,
     "cmake.clearOutputBeforeBuild": false,
     "cmake.ignoreKitEnv": true,
-    "cmake.configureOnOpen": false,
+    "cmake.configureOnOpen": true,
     "cmake.configureArgs": [
       "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "-DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local'",
-      "-DBOOST_USE_STATIC=OFF"
+      "-DBOOST_USE_STATIC=OFF",
+      "-DHAS_XSERVER=OFF",
+      "-DENABLE_DOCS=OFF",
+      "-DWITH_GUI=OFF"
     ],
     "cmake.skipConfigureIfCachePresent": true,
     "cmake.buildDirectory": "${workspaceFolder}/build",
+    "clangd.path": "/opt/clangd/bin/clangd",
     "clangd.arguments": [
-      "--background-index"
+      "-background-index=0"
     ]
 }

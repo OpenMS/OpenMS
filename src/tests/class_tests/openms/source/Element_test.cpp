@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,13 +65,13 @@ START_SECTION(~Element())
 END_SECTION
 
 IsotopeDistribution dist;
-String name("Name"), symbol("Symbol");
-UInt atomic_number(43);
+string name("Name"), symbol("Symbol");
+unsigned int atomic_number(43);
 double average_weight(0.12345);
 double mono_weight(0.123456789);
 
 e_ptr = nullptr;
-START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, double average_weight, double mono_weight, const IsotopeDistribution& isotopes)))
+START_SECTION((Element(const string& name, const string& symbol, unsigned int atomic_number, double average_weight, double mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
@@ -84,7 +84,7 @@ END_SECTION
 delete e_ptr;
 e_ptr = new Element;
 
-START_SECTION(void setAtomicNumber(UInt atomic_number))
+START_SECTION(void setAtomicNumber(unsigned int atomic_number))
 	e_ptr->setAtomicNumber(atomic_number);
 	NOT_TESTABLE
 END_SECTION
@@ -93,21 +93,21 @@ START_SECTION(UInt getAtomicNumber() const)
 	TEST_EQUAL(e_ptr->getAtomicNumber(), atomic_number)
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION(void setName(const string& name))
 	e_ptr->setName(name);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const string& getName() const)
 	TEST_EQUAL(e_ptr->getName(), name)
 END_SECTION
 
-START_SECTION(void setSymbol(const String& symbol))
+START_SECTION(void setSymbol(const string& symbol))
 	e_ptr->setSymbol(symbol);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(const String& getSymbol() const)
+START_SECTION(const string& getSymbol() const)
 	TEST_EQUAL(e_ptr->getSymbol(), symbol)
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,6 @@ namespace OpenMS
        @brief Read spectra and store their meta data
 
        @param SpectrumContainer Spectrum container class, must support @p size and @p operator[]
-
        @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
        @param get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)

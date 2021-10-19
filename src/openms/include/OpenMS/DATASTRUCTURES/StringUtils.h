@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
         static unsigned precision(T /*n*/) 
         {
             /* The following would be the only way for a lossless double-string-double
-            * rountrip but:
+            * roundtrip but:
             * a) We only care about speed
             * b) Many tests have to be changed
             * c) In the end boost::karma is bugged and hard limits the fractional digits

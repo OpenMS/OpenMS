@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,24 +165,23 @@ protected:
   {
     ofstream graph_out(out_path.c_str());
     bool warned_once = false;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
-      if ((!identifier.empty() && (pep_it->getIdentifier() != identifier)) ||
-          (pep_it->getHits().empty()))
+      if ((!identifier.empty() && (pep.getIdentifier() != identifier)) ||
+          (pep.getHits().empty()))
       {
         continue;
       }
-      pep_it->sort();
-      const PeptideHit& hit = pep_it->getHits()[0];
+      pep.sort();
+      const PeptideHit& hit = pep.getHits()[0];
       if (hit.getSequence().empty() || hit.extractProteinAccessionsSet().empty())
       {
         continue;
       }
 
       double score = hit.getScore();
-      String score_type = pep_it->getScoreType();
-      bool higher_better = pep_it->isHigherScoreBetter();
+      String score_type = pep.getScoreType();
+      bool higher_better = pep.isHigherScoreBetter();
 
       // workaround for posterior error probabilities (PEPs):
       if (score_type.hasSuffix("_score"))
@@ -234,7 +233,10 @@ protected:
       for (set<String>::const_iterator acc_it = accessions.begin();
            acc_it != accessions.end(); ++acc_it)
       {
-        if (acc_it->empty()) continue;
+        if (acc_it->empty())
+        {
+          continue;
+        }
         graph_out << "r " << sanitized_accessions_.left.find(*acc_it)->second
                   << endl;
       }
@@ -250,11 +252,10 @@ protected:
   {
     // gather protein target/decoy data:
     set<String> targets, decoys;
-    for (vector<ProteinHit>::const_iterator hit_it = protein.getHits().begin();
-         hit_it != protein.getHits().end(); ++hit_it)
+    for (const ProteinHit& hit : protein.getHits())
     {
-      String target_decoy = hit_it->getMetaValue("target_decoy").toString();
-      String accession = hit_it->getAccession();
+      String target_decoy = hit.getMetaValue("target_decoy").toString();
+      String accession = hit.getAccession();
       String sanitized = sanitized_accessions_.left.find(accession)->second;
       if (target_decoy == "target")
       {
@@ -297,13 +298,19 @@ protected:
     proteins_out << "{ ";
     for (set<String>::iterator it = targets.begin(); it != targets.end(); ++it)
     {
-      if (it != targets.begin()) proteins_out << " , ";
+      if (it != targets.begin())
+      {
+        proteins_out << " , ";
+      }
       proteins_out << *it;
     }
     proteins_out << " }\n{ ";
     for (set<String>::iterator it = decoys.begin(); it != decoys.end(); ++it)
     {
-      if (it != decoys.begin()) proteins_out << " , ";
+      if (it != decoys.begin())
+      {
+        proteins_out << " , ";
+      }
       proteins_out << *it;
     }
     proteins_out << " }" << endl;
@@ -428,7 +435,10 @@ protected:
           if (group.probability == 0.0)
           {
             ++zero_proteins;
-            if (!keep_zero_group) continue;
+            if (!keep_zero_group)
+            {
+              continue;
+            }
           }
 
           // de-sanitize:
@@ -527,13 +537,11 @@ protected:
 
     // sanitize protein accessions:
     set<String> accessions;
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
+    for (ProteinIdentification& prot : proteins)
     {
-      for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
-           hit_it != prot_it->getHits().end(); ++hit_it)
+      for (ProteinHit& hit : prot.getHits())
       {
-        accessions.insert(hit_it->getAccession());
+        accessions.insert(hit.getAccession());
       }
     }
     Size acc_counter = 1;
@@ -561,21 +569,42 @@ protected:
     Int log2_states = getIntOption_("log2_states");
     if (choose_params)
     {
-      if (getFlag_("no_cleanup")) fido_params << "-p";
-      if (getFlag_("all_PSMs")) fido_params << "-a";
-      if (getFlag_("group_level")) fido_params << "-g";
+      if (getFlag_("no_cleanup"))
+      {
+        fido_params << "-p";
+      }
+      if (getFlag_("all_PSMs"))
+      {
+        fido_params << "-a";
+      }
+      if (getFlag_("group_level"))
+      {
+        fido_params << "-g";
+      }
       String accuracy = getStringOption_("accuracy");
       if (!accuracy.empty())
       {
-        if (accuracy == "best") fido_params << "-c 1";
-        else if (accuracy == "relaxed") fido_params << "-c 2";
-        else if (accuracy == "sloppy") fido_params << "-c 3";
+        if (accuracy == "best")
+        {
+          fido_params << "-c 1";
+        }
+        else if (accuracy == "relaxed")
+        {
+          fido_params << "-c 2";
+        }
+        else if (accuracy == "sloppy")
+        {
+          fido_params << "-c 3";
+        }
       }
       fido_params << "INPUT_GRAPH" << "INPUT_PROTEINS";
       Int log2_states_precalc = getIntOption_("log2_states_precalc");
       if (log2_states_precalc)
       {
-        if (!log2_states) log2_states = 18; // actual default value
+        if (!log2_states)
+        {
+          log2_states = 18; // actual default value
+        }
         fido_params << QString::number(log2_states_precalc);
       }
     }
@@ -595,18 +624,18 @@ protected:
     {
       // treat multiple protein ID runs separately or process the only run:
       Size counter = 1;
-      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-           prot_it != proteins.end(); ++prot_it, ++counter)
+      for (ProteinIdentification& prot : proteins)
       {
         OPENMS_LOG_INFO << "Protein identification run " << counter << ":" << endl;
-        fido_success = runFido_(*prot_it, peptides, choose_params, executable,
+        fido_success = runFido_(prot, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
                                 greedy_flag, counter);
         if (fido_success)
         {
-          prot_it->setInferenceEngine("Fido");
+          prot.setInferenceEngine("Fido");
         }
+        ++counter;
       }
     }
     else // merge multiple protein ID runs
@@ -618,10 +647,9 @@ protected:
 
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");
-      for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-           pep_it != peptides.end(); ++pep_it)
+      for (PeptideIdentification& pep : peptides)
       {
-        pep_it->setIdentifier("");
+        pep.setIdentifier("");
       }
 
       // for every protein (accession), save the first occurrence:

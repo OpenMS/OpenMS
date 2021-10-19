@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,8 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
@@ -43,7 +45,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
@@ -178,6 +179,50 @@ namespace OpenMS
     defaultsToParam_();
   }
 
+  PeakMap& FeatureFinderIdentificationAlgorithm::getMSData()
+  {
+    return ms_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getMSData() const
+  {
+    return ms_data_;
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
+  {
+    ms_data_ = ms_data;
+  }
+
+  PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
+  {
+    return chrom_data_;
+  }
+
+  const PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms() const
+  {
+    return chrom_data_;
+  }
+
+  ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger()
+  {
+    return prog_log_;
+  }
+
+  const ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger() const
+  {
+    return prog_log_;
+  }
+
+  TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary()
+  {
+    return library_;
+  }
+
+  const TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary() const
+  {
+    return library_;
+  }
 
   void FeatureFinderIdentificationAlgorithm::run(
     FeatureMap& features,
@@ -213,7 +258,10 @@ namespace OpenMS
     {
       params.setValue("write_convex_hull", "true");
     }
-    if (min_peak_width_ < 1.0) min_peak_width_ *= peak_width_;
+    if (min_peak_width_ < 1.0)
+    {
+      min_peak_width_ *= peak_width_;
+    }
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width_);
     params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width_);
@@ -265,7 +313,10 @@ namespace OpenMS
     {
       // calculate RT window based on other parameters and alignment quality:
       double map_tol = mapping_tolerance_;
-      if (map_tol < 1.0) map_tol *= (2 * peak_width_); // relative tolerance
+      if (map_tol < 1.0)
+      {
+        map_tol *= (2 * peak_width_); // relative tolerance
+      }
       rt_window_ = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
       OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds." << endl;
     }
@@ -362,10 +413,16 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
-      if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
+      if (debug_level_ < 1)
+      {
+        OpenMS_Log_info.remove(cout);
+      }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
-      if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
+      if (debug_level_ < 1)
+      {
+        OpenMS_Log_info.insert(cout); // revert logging change
+      }
       chrom_data_.clear(true);
       combined_library_ += library_;
       library_.clear(true);
@@ -512,8 +569,10 @@ namespace OpenMS
                                                           bool with_external_ids)
   {
     // don't do SVM stuff unless we have external data to apply the model to:
-    if (with_external_ids) classifyFeatures_(features);
-
+    if (with_external_ids)
+    {
+      classifyFeatures_(features);
+    }
     // make sure proper unique ids get assigned to all features
     features.ensureUniqueId();
 
@@ -587,23 +646,22 @@ namespace OpenMS
     // extract ID information for statistics:
     molecule_map_.clear();
     set<AASequence> internal_seqs;
-    for (vector<PeptideIdentification>::iterator pep_it =
-           features.getUnassignedPeptideIdentifications().begin(); pep_it !=
-           features.getUnassignedPeptideIdentifications().end(); ++pep_it)
+    for (PeptideIdentification& pep : features.getUnassignedPeptideIdentifications())
     {
-      const AASequence& seq = pep_it->getHits()[0].getSequence();
-      if (pep_it->getMetaValue("FFId_category") == "internal")
+      const AASequence& seq = pep.getHits()[0].getSequence();
+      if (pep.getMetaValue("FFId_category") == "internal")
       {
         internal_seqs.insert(seq);
       }
       molecule_map_[seq];
     }
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (const Feature& feat : features)
     {
-      if (feat_it->getPeptideIdentifications().empty()) continue;
-      const PeptideIdentification& pep_id =
-        feat_it->getPeptideIdentifications()[0];
+      if (feat.getPeptideIdentifications().empty())
+      {
+        continue;
+      }
+      const PeptideIdentification& pep_id = feat.getPeptideIdentifications()[0];
       const AASequence& seq = pep_id.getHits()[0].getSequence();
       if (pep_id.getMetaValue("FFId_category") == "internal")
       {
@@ -1104,6 +1162,7 @@ namespace OpenMS
           feature.setMetaValue("rt_delta", min(rt_delta1, rt_delta2));
         }
       }
+      ++i;
     }
 
     // if internal IDs matched to feature candidates, select the best candidate:
@@ -1126,19 +1185,18 @@ namespace OpenMS
     {
       double rt_min = feature.getMetaValue("leftWidth");
       double rt_max = feature.getMetaValue("rightWidth");
-      for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
-           sub_it != feature.getSubordinates().end(); ++sub_it)
+      for (Feature& sub : feature.getSubordinates())
       {
         double abs_mz_tol = mz_window_ / 2.0;
         if (mz_window_ppm_)
         {
-          abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+          abs_mz_tol = sub.getMZ() * abs_mz_tol * 1.0e-6;
         }
         ConvexHull2D hull;
-        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub.getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub.getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub.getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub.getMZ() + abs_mz_tol));
         feature.getConvexHulls().push_back(hull);
       }
     }
@@ -1350,7 +1408,10 @@ namespace OpenMS
           swap(selection[i], selection[n_obs[label]]);
           ++n_obs[label];
         }
-        if (n_obs[label] == svm_n_parts_) break;
+        if (n_obs[label] == svm_n_parts_)
+        {
+          break;
+        }
       }
     }
     selection.resize(svm_n_samples_);
@@ -1367,8 +1428,10 @@ namespace OpenMS
 
   void FeatureFinderIdentificationAlgorithm::classifyFeatures_(FeatureMap& features)
   {
-    if (features.empty()) return;
-
+    if (features.empty())
+    {
+      return;
+    }
     if (features[0].metaValueExists("rt_delta")) // include RT feature
     {
       if (find(svm_predictor_names_.begin(), svm_predictor_names_.end(), "rt_delta") ==
@@ -1380,21 +1443,19 @@ namespace OpenMS
     // values for all features per predictor (this way around to simplify scaling
     // of predictors):
     SimpleSVM::PredictorMap predictors;
-    for (vector<String>::iterator pred_it = svm_predictor_names_.begin();
-         pred_it != svm_predictor_names_.end(); ++pred_it)
+    for (const String& pred : svm_predictor_names_)
     {
-      predictors[*pred_it].reserve(features.size());
-      for (FeatureMap::Iterator feat_it = features.begin();
-           feat_it < features.end(); ++feat_it)
+      predictors[pred].reserve(features.size());
+      for (Feature& feat : features)
       {
-        if (!feat_it->metaValueExists(*pred_it))
+        if (!feat.metaValueExists(pred))
         {
-          OPENMS_LOG_ERROR << "Meta value '" << *pred_it << "' missing for feature '"
-                    << feat_it->getUniqueId() << "'" << endl;
-          predictors.erase(*pred_it);
+          OPENMS_LOG_ERROR << "Meta value '" << pred << "' missing for feature '"
+                    << feat.getUniqueId() << "'" << endl;
+          predictors.erase(pred);
           break;
         }
-        predictors[*pred_it].push_back(feat_it->getMetaValue(*pred_it));
+        predictors[pred].push_back(feat.getMetaValue(pred));
       }
     }
 
@@ -1408,9 +1469,14 @@ namespace OpenMS
     {
       String feature_class = features[feat_index].getMetaValue("feature_class");
       Int label = -1;
-      if (feature_class == "positive") label = 1;
-      else if (feature_class == "negative") label = 0;
-
+      if (feature_class == "positive")
+      {
+        label = 1;
+      }
+      else if (feature_class == "negative")
+      {
+        label = 0;
+      }
       if (label != -1)
       {
         ++n_obs[label];
@@ -1428,8 +1494,10 @@ namespace OpenMS
     }
     checkNumObservations_(n_obs[1], n_obs[0]);
 
-    if (!no_selection) getUnbiasedSample_(valid_obs, training_labels);
-
+    if (!no_selection)
+    {
+      getUnbiasedSample_(valid_obs, training_labels);
+    }
     if (svm_n_samples_ > 0) // limited number of samples for training
     {
       if (training_labels.size() < svm_n_samples_)
@@ -1450,7 +1518,10 @@ namespace OpenMS
     svm_params.update(param_.copy("svm:", true), false, no_log);
     svm.setParameters(svm_params);
     svm.setup(predictors, training_labels);
-    if (!svm_xval_out_.empty()) svm.writeXvalResults(svm_xval_out_);
+    if (!svm_xval_out_.empty())
+    {
+      svm.writeXvalResults(svm_xval_out_);
+    }
     if ((debug_level_ > 0) && svm_params.getValue("kernel") == "linear")
     {
       map<String, double> feature_weights;
@@ -1507,8 +1578,10 @@ namespace OpenMS
 
   void FeatureFinderIdentificationAlgorithm::filterFeatures_(FeatureMap& features, bool classified)
   {
-    if (features.empty()) return;
-
+    if (features.empty())
+    {
+      return;
+    }
     if (classified)
     {
       // Remove features with class "negative" or "ambiguous", keep "positive".
@@ -1604,7 +1677,10 @@ namespace OpenMS
     {
       double fdr = double(prob_it->second.second) / (prob_it->second.first +
                                                      prob_it->second.second);
-      if (fdr < min_fdr) min_fdr = fdr;
+      if (fdr < min_fdr)
+      {
+        min_fdr = fdr;
+      }
       qvalues.push_back(min_fdr);
     }
     // record only probabilities where q-value changes:
@@ -1644,22 +1720,24 @@ namespace OpenMS
 
     // @TODO: should we use "1 - qvalue" as overall quality for features?
     // assign q-values to features:
-    for (FeatureMap::iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (Feature& feat : features)
     {
-      if (feat_it->getMetaValue("feature_class") == "positive")
+      if (feat.getMetaValue("feature_class") == "positive")
       {
-        feat_it->setMetaValue("q-value", 0.0);
+        feat.setMetaValue("q-value", 0.0);
       }
       else
       {
-        double prob = feat_it->getOverallQuality();
+        double prob = feat.getOverallQuality();
         // find highest FDR prob. that is less-or-equal to the feature prob.:
         vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
                                                    fdr_probs.end(), prob);
-        if (pos != fdr_probs.begin()) --pos;
+        if (pos != fdr_probs.begin())
+        {
+          --pos;
+        }
         Size dist = distance(fdr_probs.begin(), pos);
-        feat_it->setMetaValue("q-value", fdr_qvalues[dist]);
+        feat.setMetaValue("q-value", fdr_qvalues[dist]);
       }
     }
   }

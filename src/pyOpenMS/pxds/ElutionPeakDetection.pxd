@@ -18,25 +18,26 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
         #    ProgressLogger
         #    DefaultParamHandler
 
-        ElutionPeakDetection()      nogil except +
+        ElutionPeakDetection() nogil except +
+        ElutionPeakDetection(ElutionPeakDetection &) nogil except + # compiler
 
         void detectPeaks(Kernel_MassTrace & in_,
                          libcpp_vector[Kernel_MassTrace] & out
-                         ) nogil except +
+                         ) nogil except + # TODO
 
         void detectPeaks(libcpp_vector[Kernel_MassTrace] & in_,
                          libcpp_vector[Kernel_MassTrace] & out
-                        ) nogil except +
+                        ) nogil except + # TODO
 
         void filterByPeakWidth(libcpp_vector[Kernel_MassTrace] & in_,
                                libcpp_vector[Kernel_MassTrace] & out
-                              ) nogil except +
+                              ) nogil except + # TODO
 
-        double computeMassTraceNoise(Kernel_MassTrace &) nogil except +
-        double computeMassTraceSNR(Kernel_MassTrace &) nogil except +
-        double computeApexSNR(Kernel_MassTrace &) nogil except +
+        double computeMassTraceNoise(Kernel_MassTrace &) nogil except + # wrap-doc:Compute noise level (as RMSE of the actual signal and the smoothed signal)
+        double computeMassTraceSNR(Kernel_MassTrace &) nogil except + # wrap-doc:Compute the signal to noise ratio (estimated by computeMassTraceNoise)
+        double computeApexSNR(Kernel_MassTrace &) nogil except + # wrap-doc:Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)
 
-        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) nogil except +
+        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) nogil except + # TODO
 
-        void smoothData(Kernel_MassTrace & mt, int win_size) nogil except +
+        void smoothData(Kernel_MassTrace & mt, int win_size) nogil except + # TODO
 

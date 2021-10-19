@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <algorithm>
 
@@ -43,8 +46,8 @@ namespace OpenMS
     std::set<double> CVs;
 
     // is this FAIMS data?
-    if ((exp.getSpectra().size() == 0) ||
-        (exp.getSpectra()[0].getDriftTimeUnit() != MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
+    if ((exp.getSpectra().empty()) ||
+        (exp.getSpectra()[0].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
     {
       return CVs;
     }
@@ -52,6 +55,11 @@ namespace OpenMS
     for (auto it = exp.begin(); it != exp.end(); ++it)
     {
       CVs.insert(it->getDriftTime());
+    }
+
+    if (CVs.find(IMTypes::DRIFTTIME_NOT_SET) != CVs.end())
+    {
+      OPENMS_LOG_WARN << "Warning: FAIMS compensation voltage is missing for at least one spectrum!" << std::endl;
     }
   
     return CVs;

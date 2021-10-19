@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,7 +208,10 @@ namespace OpenMS
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
     // show the first selected item
-    if (selected.size() > 0) itemSelectionChange_(selected.first(), selected.first());
+    if (selected.size() > 0)
+    {
+      itemSelectionChange_(selected.first(), selected.first());
+    }
   }
 
   void SpectraTreeTab::itemDoubleClicked_(QTreeWidgetItem* current)
@@ -287,8 +290,10 @@ namespace OpenMS
 
   bool SpectraTreeTab::hasData(const LayerData* layer)
   {
-    if (layer == nullptr) return false;
-
+    if (layer == nullptr)
+    {
+      return false;
+    }
     bool is_peak = layer->type == LayerData::DT_PEAK && !(layer->chromatogram_flag_set());
     bool is_chrom = layer->type == LayerData::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
     return is_peak || is_chrom;
@@ -596,7 +601,10 @@ namespace OpenMS
   {
     exp.clear(true);
     QTreeWidgetItem* item = spectra_treewidget_->currentItem();
-    if (item == nullptr) return false;
+    if (item == nullptr)
+    {
+      return false;
+    }
     // getting the index works for PEAK and CHROM data
     int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
     if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
