@@ -270,8 +270,6 @@ protected:
     typedef PeakMap MSExperimentType;
     MSExperimentType exp;
 
-    typedef MSExperimentType::SpectrumType SpectrumType;
-
     typedef FeatureMap FeatureMapType;
 
     FeatureMapType fm;

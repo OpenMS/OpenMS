@@ -347,7 +347,7 @@ namespace OpenMS
 
     if (param.begin() != param.end())
     {
-      for (auto& trace : param_it.getTrace())
+      for ([[maybe_unused]] auto& trace : param_it.getTrace())
       {
         indentations -= 2;
         os << std::string(indentations, ' ') << "</NODE>\n";

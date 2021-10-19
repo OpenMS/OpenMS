@@ -80,7 +80,7 @@ namespace OpenMS
       for (const auto& acc : grp.accessions)
       {
         auto [isDecoy, tgt_accession] = removeDecoyStringIfPresent_(acc, decoy_string, decoy_prefix);
-        auto& [score, tgt_proportion] = picked_scores.at(tgt_accession);
+        const double tgt_proportion = picked_scores.at(tgt_accession).second;
         if (!isDecoy && tgt_proportion > 0.) // target was picked on single protein level
         {
           scores_labels.emplace_back(grp.probability, 1.0);
