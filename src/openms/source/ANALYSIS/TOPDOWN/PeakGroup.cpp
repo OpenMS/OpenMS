@@ -310,7 +310,7 @@ namespace OpenMS
       auto denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
                    + (1 - charge_cos_squred) * per_charge_signal_pwr_[c] + 1;
 
-      per_charge_snr_[c] = nom / denom;
+      per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
 
       signal += per_charge_signal_pwr_[c];
       noise += per_charge_pwr_[c] - per_charge_signal_pwr_[c];
@@ -319,7 +319,7 @@ namespace OpenMS
     auto t_nom = charge_cos_squred * signal;
     auto t_denom = noise
                    + (1 - charge_cos_squred) * signal + 1;
-    snr_ = t_nom / t_denom;
+    snr_ = t_denom <= 0 ? .0 : t_nom / t_denom;
   }
 
   float PeakGroup::getSNR() const

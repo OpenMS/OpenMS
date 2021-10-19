@@ -128,7 +128,7 @@ namespace OpenMS
     if (ms_level_ > 1 && (!survey_scans.empty() || !precursor_map_for_FLASHIda.empty()))
     {
       deconvoluted_spectrum_
-          .registerPrecursor(survey_scans, is_positive_, intensity_threshold_, precursor_map_for_FLASHIda);
+          .registerPrecursor(survey_scans, is_positive_, 0, precursor_map_for_FLASHIda);
     }
     //rt range of analysis
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
@@ -247,34 +247,40 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateLogMzPeaks_(const MSSpectrum *spec)
   {
     std::vector<LogMzPeak>().swap(log_mz_peaks_);
+    double threshold = intensity_threshold_;
+
+    if (spec->size() > max_peak_count_)
+    {
+      std::vector<double> intensities;
+      intensities.reserve(spec->size());
+      for (auto &peak: *spec)
+      {
+        if (min_mz_ > 0 && peak.getMZ() < min_mz_)
+        {
+          continue;
+        }
+        if (max_mz_ > 0 && peak.getMZ() > max_mz_)
+        {
+          break;
+        }
+        if (peak.getIntensity() <= threshold)//
+        {
+          continue;
+        }
+        intensities.push_back(peak.getIntensity());
+      }
+
+      if (intensities.size() > max_peak_count_)
+      {
+        std::sort(intensities.begin(), intensities.end());
+        threshold = intensities[intensities.size() - 1 - max_peak_count_];
+      }
+    }
 
     log_mz_peaks_.reserve(spec->size());
 
-    //double min_intensity = -1;
-    for (auto &peak : *spec)
-    {
-      if (min_mz_ > 0 && peak.getMZ() < min_mz_)
-      {
-        continue;
-      }
-      if (max_mz_ > 0 && peak.getMZ() > max_mz_)
-      {
-        break;
-      }
-      if (peak.getIntensity() <= 0)//
-      {
-        continue;
-      }
-      //if (min_intensity < 0)
-      //{
-      //  min_intensity = peak.getIntensity();
-      //}
-      //min_intensity = min_intensity > peak.getIntensity() ? peak.getIntensity() : min_intensity;
-    }
-
-    double threshold = intensity_threshold_;
-
-    for (auto &peak : *spec)
+    //threshold = threshold < min_intensity * 2 ? min_intensity * 2 : threshold;
+    for (auto &peak: *spec)
     {
       if (min_mz_ > 0 && peak.getMZ() < min_mz_)
       {
@@ -479,9 +485,9 @@ namespace OpenMS
     double bin_width = bin_width_[ms_level_ - 1];
 
     // intensity ratio between consecutive charges should not exceed the factor.
-    const float factor = ms_level_ == 1 ? 5.0 : 10.0;
+    const float factor = 5.0;
     // intensity ratio between consecutive charges for possible harmonic should be within this factor
-    const float hfactor = ms_level_ == 1 ? 2.0 : 1.2;
+    const float hfactor = 2.0;
     for (int i = mz_bin_index_reverse.size() - 1; i >= 0; i--)
     {
       mz_bin_index = mz_bin_index_reverse[i];
@@ -567,8 +573,7 @@ namespace OpenMS
 
         if (pass_first_check)
         {
-          if (prev_charge - j == -1 &&
-              ms_level_ == 1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
+          if (prev_charge - j == -1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
           {
             float max_intensity = intensity;
             float min_intensity = prev_intensity;
@@ -870,7 +875,7 @@ namespace OpenMS
         double mz_delta = tol * mz; //
 
         double peak_pwr = .0;
-
+        double prev_sub_pwr_sum = .0;
         double max_mz = mz;
         double max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
         for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
@@ -892,7 +897,7 @@ namespace OpenMS
             break;
           }
 
-          peak_pwr += intensity * intensity;
+          prev_sub_pwr_sum += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // noise   max_intensity  vs   intensity
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
@@ -902,10 +907,13 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
+              peak_pwr += prev_sub_pwr_sum;
+              prev_sub_pwr_sum = 0;
             }
           }
         }
 
+        prev_sub_pwr_sum = 0;
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
           const double observed_mz = log_mz_peaks_[peak_index].mz;
@@ -926,7 +934,7 @@ namespace OpenMS
             break;
           }
 
-          peak_pwr += intensity * intensity;
+          prev_sub_pwr_sum += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta)
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
@@ -936,6 +944,8 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
+              peak_pwr += prev_sub_pwr_sum;
+              prev_sub_pwr_sum = 0;
             }
           }
         }

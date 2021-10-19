@@ -71,7 +71,7 @@ namespace OpenMS
                        0.0,
                        "PPM mass tolerance for precursor mass. If set, MSn (n>2) spectra of precursor masses within the tolerance are averaged.");
     defaults_.setValue("average_gaussian:precursor_max_charge",
-                       0,
+                       1,
                        "Possible maximum precursor ion charge. Effective only when average_gaussian:precursor_mass_tol option is active.");
     defaults_.setMinFloat("average_gaussian:precursor_mass_tol", 0.0);
     defaults_.setMinInt("average_gaussian:precursor_max_charge", 1);

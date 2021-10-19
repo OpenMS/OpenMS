@@ -44,7 +44,6 @@
 
 #include <QFile>
 #include <iomanip>
-#include <sstream>
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 using namespace OpenMS;

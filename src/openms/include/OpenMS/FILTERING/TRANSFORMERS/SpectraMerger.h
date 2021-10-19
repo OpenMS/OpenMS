@@ -307,27 +307,38 @@ namespace OpenMS
      */
     bool areMassMatch(double mz1, double mz2, double tol_ppm, int max_c)
     {
-      if (tol_ppm <= 0)
+      if (mz1 == mz2 || tol_ppm <= 0)
       {
         return true;
       }
 
       const int min_c = 1;
-      const int max_iso_diff = 20;
-
+      const int max_iso_diff = 5;
+      const double max_charge_diff_ratio = 3.0;
       for (int c1 = min_c; c1 <= max_c; ++c1)
       {
         double mass1 = (mz1 - Constants::PROTON_MASS_U) * c1;
+
         for (int c2 = min_c; c2 <= max_c; ++c2)
         {
+          if (c1 / c2 > max_charge_diff_ratio)
+          {
+            continue;
+          }
+          if (c2 / c1 > max_charge_diff_ratio)
+          {
+            break;
+          }
+
           double mass2 = (mz2 - Constants::PROTON_MASS_U) * c2;
+
           if (fabs(mass1 - mass2) > max_iso_diff)
           {
             continue;
           }
           for (int i = -max_iso_diff; i <= max_iso_diff; ++i)
           {
-            if (fabs(mass1 - mass2 + i * Constants::ISOTOPE_MASSDIFF_55K_U) < mass1 * 2 * tol_ppm * 1e-6)
+            if (fabs(mass1 - mass2 + i * Constants::ISOTOPE_MASSDIFF_55K_U) < mass1 * tol_ppm * 1e-6)
             {
               return true;
             }
@@ -404,7 +415,6 @@ namespace OpenMS
               bool add = true;
               if (ms_level >= 2 && it_rt->getPrecursors().size() > 0 && it_rt_2->getPrecursors().size() > 0)
               {
-                add = false;
                 double mz1 = it_rt->getPrecursors()[0].getMZ();
                 double mz2 = it_rt_2->getPrecursors()[0].getMZ();
                 add = areMassMatch(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
@@ -452,7 +462,6 @@ namespace OpenMS
               bool add = true;
               if (ms_level >= 2 && it_rt->getPrecursors().size() > 0 && it_rt_2->getPrecursors().size() > 0)
               {
-                add = false;
                 double mz1 = it_rt->getPrecursors()[0].getMZ();
                 double mz2 = it_rt_2->getPrecursors()[0].getMZ();
                 add = areMassMatch(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
