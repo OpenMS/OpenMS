@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #define DEBUG_EGHFITTER
 
 namespace OpenMS
