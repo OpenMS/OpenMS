@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <unordered_map>
-#include <boost/assign.hpp>
 
 // #define DEBUG_MRMIONSERIES
 

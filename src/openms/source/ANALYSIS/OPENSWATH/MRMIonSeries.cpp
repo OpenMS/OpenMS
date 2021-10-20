@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
+#include <boost/assign.hpp>
 #include <boost/lexical_cast.hpp>
 
 namespace OpenMS

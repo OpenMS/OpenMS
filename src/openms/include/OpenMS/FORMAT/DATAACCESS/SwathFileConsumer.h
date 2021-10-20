@@ -34,8 +34,6 @@
 
 #pragma once
 
-#include <boost/cast.hpp>
-
 // Datastructures
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
