@@ -34,6 +34,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

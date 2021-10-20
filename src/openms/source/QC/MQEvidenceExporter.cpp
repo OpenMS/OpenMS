@@ -32,13 +32,15 @@
 // $Authors: Valentin Noske, Vincent Musch$
 // --------------------------------------------------------------------------
 
+#include <OpenMS/QC/MQEvidenceExporter.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QDir>
 
+#include <QtCore/QDir>
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 #include <fstream>
 

@@ -34,6 +34,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>

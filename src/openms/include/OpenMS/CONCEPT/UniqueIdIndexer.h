@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
@@ -44,6 +43,7 @@
 #endif
 
 #include <unordered_map>
+#include <sstream>
 
 #ifdef _MSC_VER
 #   pragma warning( pop )  // restore old warning state

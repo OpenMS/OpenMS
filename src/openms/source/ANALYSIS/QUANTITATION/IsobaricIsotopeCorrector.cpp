@@ -38,6 +38,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>

@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MSstatsFile.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <tuple>
 
 using namespace std;

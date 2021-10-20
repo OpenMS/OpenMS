@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iosfwd>
 #include <vector>

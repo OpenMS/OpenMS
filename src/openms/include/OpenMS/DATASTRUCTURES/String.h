@@ -402,13 +402,13 @@ public:
 
     ///returns a string for @p d with exactly @p n decimal places
     OPENMS_DLLAPI static String number(double d, UInt n);
+
     /**
         @brief Returns a string with at maximum @p n characters for @p d
 
         If @p d is larger, scientific notation is used.
     */
     OPENMS_DLLAPI static String numberLength(double d, UInt n);
-
 
     /**
         @brief Splits a string into @p substrings using @p splitter as delimiter

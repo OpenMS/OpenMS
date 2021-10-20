@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+
 // calculate pearson distance
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 // create binary tree
@@ -44,6 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;

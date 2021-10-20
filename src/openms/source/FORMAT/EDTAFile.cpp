@@ -32,8 +32,10 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;

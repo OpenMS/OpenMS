@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t

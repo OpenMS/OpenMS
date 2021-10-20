@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/MSSim.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>

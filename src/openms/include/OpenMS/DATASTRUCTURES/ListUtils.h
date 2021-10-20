@@ -39,7 +39,6 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <vector>

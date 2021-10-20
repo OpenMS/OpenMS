@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <boost/lexical_cast.hpp>
 #include <regex>
 

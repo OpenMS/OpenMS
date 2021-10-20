@@ -48,7 +48,6 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

@@ -35,6 +35,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
