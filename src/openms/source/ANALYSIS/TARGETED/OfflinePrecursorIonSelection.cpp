@@ -315,7 +315,7 @@ namespace OpenMS
 
     for (Size s = 0; s < xics.size(); ++s)
     {
-      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, double> >());
+      sort(xics[s].begin(), xics[s].end(), [](auto& left, auto& right){return left.second < right.second;});
     }
   }
 
