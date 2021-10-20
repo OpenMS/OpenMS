@@ -35,11 +35,10 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 #include <cmath>
 #include <string>
 #include <map>
-#include <algorithm>
+// #include <algorithm>
 #include <limits>
 
 #include <OpenMS/CONCEPT/Types.h>

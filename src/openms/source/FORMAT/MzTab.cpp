@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/MzTab.h>
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
@@ -41,7 +43,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
