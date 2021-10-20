@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
@@ -40,6 +41,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
+
+#include <boost/lexical_cast.hpp>
 
 namespace OpenMS
 {

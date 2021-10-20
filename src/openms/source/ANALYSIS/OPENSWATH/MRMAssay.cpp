@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+
+#include <boost/lexical_cast.hpp>
 #include <regex>
 
 using namespace std;

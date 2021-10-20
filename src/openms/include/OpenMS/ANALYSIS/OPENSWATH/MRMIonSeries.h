@@ -38,7 +38,6 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <unordered_map>
 #include <boost/assign.hpp>
-#include <boost/lexical_cast.hpp>
 
 // #define DEBUG_MRMIONSERIES
 

@@ -50,8 +50,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <boost/lexical_cast.hpp>
-
 namespace OpenMS
 {
     /**
