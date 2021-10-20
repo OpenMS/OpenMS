@@ -40,9 +40,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <iostream>
-
+#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+
+#include <iostream>
+#include <algorithm>
+#include <iterator>
 
 namespace OpenMS
 {

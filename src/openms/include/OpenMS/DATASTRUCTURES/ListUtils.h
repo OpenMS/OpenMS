@@ -42,6 +42,7 @@
 #include <cmath>
 #include <iterator>
 #include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {

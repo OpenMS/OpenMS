@@ -40,7 +40,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
+
 #include <boost/regex.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
