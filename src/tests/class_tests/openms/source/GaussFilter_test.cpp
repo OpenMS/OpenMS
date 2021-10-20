@@ -36,11 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/KERNEL/Peak2D.h>
-
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 START_TEST(GaussFilter<D>, "$Id$")
 
