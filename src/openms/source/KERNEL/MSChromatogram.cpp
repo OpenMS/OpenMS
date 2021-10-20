@@ -158,12 +158,11 @@ void MSChromatogram::sortByIntensity(bool reverse) {
 
     if (reverse)
     {
-      auto pairFirstElemCmp = [](auto& left, auto& right){return left.first < right.first;};
-      std::sort(sorted_indices.begin(), sorted_indices.end(), [&](auto &left, auto &right) {return pairFirstElemCmp(right, left);});
+      std::sort(sorted_indices.begin(), sorted_indices.end(),  [](auto& left, auto& right){return left > right;});
     }
     else
     {
-      std::sort(sorted_indices.begin(), sorted_indices.end(), [](auto& left, auto& right){return left.first < right.first;});
+      std::sort(sorted_indices.begin(), sorted_indices.end());
     }
 
     //apply sorting to ContainerType and to meta data arrays
@@ -221,7 +220,7 @@ void MSChromatogram::sortByPosition()
     {
       sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
     }
-    std::sort(sorted_indices.begin(), sorted_indices.end(), [](auto& left, auto& right){return left.first < right.first;});
+    std::sort(sorted_indices.begin(), sorted_indices.end());
 
     //apply sorting to ContainerType and to metadataarrays
     ContainerType tmp;
