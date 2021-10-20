@@ -131,28 +131,8 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override
-      {
-        if (options.count("bin_size"))
-        {
-          bin_size_ = options.at("bin_size");
-        }
-        if (options.count("peak_spread"))
-        {
-          peak_spread_ = options.at("peak_spread");
-        }
-        if (options.count("bin_offset"))
-        {
-          bin_offset_ = options.at("bin_offset");
-        }
-        library_ = library;
-        bs_library_.clear();
-        for (const MSSpectrum& s : library_)
-        {
-          bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
-        }
-        OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
-      }
+      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override;
+
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
