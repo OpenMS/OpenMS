@@ -378,7 +378,7 @@ public:
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
-        rt.emplace_back(t);
+        rt.emplace_back(it.getRT());
         mz.emplace_back(it->getMZ());
         intensity.emplace_back(it->getIntensity());
       }
