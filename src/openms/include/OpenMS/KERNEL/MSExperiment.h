@@ -372,23 +372,15 @@ public:
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
     void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
-      std::vector<std::vector<float>>& rt, 
-      std::vector<std::vector<float>>& mz, 
-      std::vector<std::vector<float>>& intensity) const
+      std::vector<float>& rt, 
+      std::vector<float>& mz, 
+      std::vector<float>& intensity) const
     {
-      float t = -1.0;
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
-        if (it.getRT() != t) 
-        {
-          t = it.getRT();
-          rt.resize(rt.size() + 1);
-          mz.resize(mz.size() + 1); 
-          intensity.resize(intensity.size() + 1);
-        }
-        rt.back().emplace_back(t);
-        mz.back().emplace_back(it->getMZ());
-        intensity.back().emplace_back(it->getIntensity());
+        rt.emplace_back(t);
+        mz.emplace_back(it->getMZ());
+        intensity.emplace_back(it->getIntensity());
       }
     }
 
