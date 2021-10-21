@@ -57,7 +57,7 @@ namespace OpenMS
           DefaultParamHandler("MapAlignmentAlgorithmTreeGuided"),
           ProgressLogger()
   {
-    defaults_.insert("model:", TOPPMapAlignerBase::getModelDefaults("b_spline"));
+    defaults_.insert("model:", MapAlignerBase::getModelDefaults("b_spline"));
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");
     defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());

@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/FORMAT/IdXMLFile.h>" namespace "OpenMS":
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
+                  libcpp_vector[PeptideIdentification] & peptide_ids
                   ) nogil except +

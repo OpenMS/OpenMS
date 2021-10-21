@@ -1185,14 +1185,14 @@ namespace OpenMS
 
         IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                                                         d.iso_map_iter->second.peaks.end(),
-                                                                        pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                        pair, [](auto& left, auto& right){return left.first < right.first;});
 
 
         // find the last entry with this rt-value
         ++pair.first;
         IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                                                          d.iso_map_iter->second.peaks.end(),
-                                                                         pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                         pair, [](auto& left, auto& right){return left.first < right.first;});
 
         while (set_iter != set_iter2)
         {
@@ -1236,7 +1236,7 @@ namespace OpenMS
 
         set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                d.iso_map_iter->second.peaks.end(),
-                               pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                               pair, [](auto& left, auto& right){return left.first < right.first;});
         Size p = 0;
         while (p < peak_shapes.size())
         {
@@ -1323,7 +1323,7 @@ namespace OpenMS
       // get iterator in peaks-set that points to the first peak in the current scan
       IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                       iso_map_iter->second.peaks.end(),
-                                                                      pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                      pair, [](auto& left, auto& right){return left.first < right.first;});
 
       // consider a bit more of the signal to the left
       first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
@@ -1332,7 +1332,7 @@ namespace OpenMS
       ++pair.first;
       IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                        iso_map_iter->second.peaks.end(),
-                                                                       pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                       pair, [](auto& left, auto& right){return left.first < right.first;});
 
       if (i == iso_map_iter->second.scans.size() - 1)
       {
@@ -1398,3 +1398,4 @@ namespace OpenMS
 
 
 }
+
