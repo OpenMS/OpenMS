@@ -40,6 +40,7 @@
 
 #include <map>
 #include <set>
+#include <array>
 
 namespace OpenMS
 {
