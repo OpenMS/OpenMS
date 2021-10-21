@@ -262,7 +262,10 @@ namespace OpenMS
       {
         OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
         success = false;
-        if (stop_on_error) break;
+        if (stop_on_error)
+        {
+          break;
+        }
       }
     }
 

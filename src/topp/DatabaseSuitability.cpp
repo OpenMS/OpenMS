@@ -196,7 +196,9 @@ protected:
         return INPUT_FILE_CORRUPT;
       }
       if (pep_id.getHits().empty())
+      {
         continue;
+      }
       unique_novo.insert(pep_id.getHits()[0].getSequence());
     }
 

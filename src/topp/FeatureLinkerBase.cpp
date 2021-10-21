@@ -222,21 +222,20 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         // to save memory, remove convex hulls, subordinates:
-        for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
-             ++it)
+        for (Feature& ft : tmp)
         {
           String adduct;
           //exception: addduct information
-          if (it->metaValueExists("dc_charge_adducts"))
+          if (ft.metaValueExists("dc_charge_adducts"))
           {
-            adduct = it->getMetaValue("dc_charge_adducts");
+            adduct = ft.getMetaValue("dc_charge_adducts");
           }
-          it->getSubordinates().clear();
-          it->getConvexHulls().clear();
-          it->clearMetaInfo();
+          ft.getSubordinates().clear();
+          ft.getConvexHulls().clear();
+          ft.clearMetaInfo();
           if (!adduct.empty())
           {
-            it->setMetaValue("dc_charge_adducts", adduct);
+            ft.setMetaValue("dc_charge_adducts", adduct);
           }
 
         }
@@ -351,10 +350,9 @@ protected:
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;
-    for (ConsensusMap::const_iterator cmit = out_map.begin();
-         cmit != out_map.end(); ++cmit)
+    for (const ConsensusFeature& cf : out_map)
     {
-      ++num_consfeat_of_size[cmit->size()];
+      ++num_consfeat_of_size[cf.size()];
     }
 
     OPENMS_LOG_INFO << "Number of consensus features:" << endl;

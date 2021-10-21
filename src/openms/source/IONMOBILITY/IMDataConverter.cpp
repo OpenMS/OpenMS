@@ -70,15 +70,15 @@ namespace OpenMS
 
     // make as many PeakMaps as there are different CVs and fill their Meta Data
     split_peakmap.resize(CVs.size());
-    for (auto it = split_peakmap.begin(); it != split_peakmap.end(); ++it)
+    for (auto& spec : split_peakmap)
     {
-      it->getExperimentalSettings() = exp.getExperimentalSettings();
+      spec.getExperimentalSettings() = exp.getExperimentalSettings();
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (const MSSpectrum& it : exp)
     {
-      split_peakmap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
+      split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
 
     return split_peakmap;

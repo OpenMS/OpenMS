@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="SwissProtHuman554TD_20080526.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" peak_mass_tolerance="0.5" >
+		<VariableModification name="Oxidation (M)" />
+		<VariableModification name="Carbamidomethyl (C)" />
+	</SearchParameters>
+	<IdentificationRun date="2009-12-01T10:00:11" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="P01903|2DRA_HUMAN" score="1" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="decoy_P01903|2DRA_HUMAN" score="2" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="P20848|A1ATR_HUMAN" score="3" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="P01009|A1AT_HUMAN" score="4" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="decoy_Q5TYW2|A20A1_HUMAN" score="5" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="Q5TYW2|A20A1_HUMAN" score="6" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="Q5VUR7|A20A3_HUMAN" score="7" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="decoy_Q4UJ75|A20A4_HUMAN" score="8" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="decoy_P01009|A1AT_HUMAN" score="9" sequence="" >
+			    <UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+            <ProteinHit id="PH_9" accession="decoy_P20848|A1ATR_HUMAN" score="10" sequence="" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
+            </ProteinHit>
+	    </ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="429.66" RT="2664" >
+			<PeptideHit score="1" sequence="LLIAHPAGSSVVK" charge="3" aa_before="K" aa_after="V" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="321.43" RT="2664" >
+			<PeptideHit score="2" sequence="ENISSKGDEGEK" charge="4" aa_before="K" aa_after="K" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="413.22" RT="2670" >
+			<PeptideHit score="3" sequence="M(Oxidation)HVSEMNIPPAHM(Oxidation)K" charge="4" aa_before="K" aa_after="T" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="338.35" RT="2670" >
+			<PeptideHit score="4" sequence="SHVAIKTVR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="520.34" RT="2676" >
+			<PeptideHit score="5" sequence="LPCLDQETTENLDKGQLR" charge="4" aa_before="K" aa_after="T" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="323.17" RT="2682" >
+			<PeptideHit score="6" sequence="LARLCSQM(Oxidation)EAR" charge="4" aa_before="R" aa_after="Q" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="570.64" RT="2682" >
+			<PeptideHit score="7" sequence="SLIGQGAATLQEYQPK" charge="3" aa_before="R" aa_after="R" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="443.79" RT="2688" >
+			<PeptideHit score="8" sequence="DHDVMLFLKM(Oxidation)YDPK" charge="4" aa_before="K" aa_after="T" protein_refs="PH_7" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="526.79" RT="2688" >
+			<PeptideHit score="9" sequence="DPNCSCEAGGSCAC(Carbamidomethyl)AGSCKC(Carbamidomethyl)K" charge="4" aa_before="M" aa_after="K" protein_refs="PH_8" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="536.37" RT="2688" >
+			<PeptideHit score="10" sequence="EINALAEHGDLELDERGDR" charge="4" aa_before="K" aa_after="E" protein_refs="PH_9" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		</IdentificationRun>
+</IdXML>

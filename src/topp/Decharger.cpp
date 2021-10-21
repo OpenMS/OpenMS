@@ -182,9 +182,14 @@ protected:
     ConsensusXMLFile f;
     f.store(outfile_cm, cm);
 
-    if (!outfile_p.empty()) f.store(outfile_p, cm2);
-    if (!outfile_fm.empty()) FeatureXMLFile().store(outfile_fm, map_out);
-
+    if (!outfile_p.empty())
+    {
+      f.store(outfile_p, cm2);
+    }
+    if (!outfile_fm.empty())
+    {
+      FeatureXMLFile().store(outfile_fm, map_out);
+    }
     return EXECUTION_OK;
   }
 

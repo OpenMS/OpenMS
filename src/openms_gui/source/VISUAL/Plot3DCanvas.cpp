@@ -236,8 +236,9 @@ namespace OpenMS
   {
     //Abort of there are no layers
     if (layers_.empty())
+    {
       return;
-
+    }
     QMenu * context_menu = new QMenu(this);
     QAction * result = nullptr;
 

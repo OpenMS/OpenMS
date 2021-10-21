@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
         bool exists(String id) nogil except + # wrap-doc:Returns true if the term is in the CV. Returns false otherwise.
 
         # Returns true if a term with the given name is in the CV. Returns false otherwise.
-        bool hasTermWithName(String name) nogil except + # wrap-doc:Returns true if a term with the given name is in the CV. Returns false otherwise.
+        bool hasTermWithName(String name) nogil except + # wrap-doc:Returns true if a term with the given name is in the CV. Returns false otherwise
 
         CVTerm_ControlledVocabulary getTerm(String id) nogil except + # wrap-doc:Returns a term specified by ID
 
@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
 
         void getAllChildTerms(libcpp_set[String] terms, String parent) nogil except + # wrap-doc:Writes all child terms recursively into terms
 
-        bool isChildOf(String child, String parent) nogil except + # wrap-doc:Returns True if @param child is a child of @param parent
+        bool isChildOf(String child, String parent) nogil except + # wrap-doc:Returns True if `child` is a child of `parent`
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary":
 

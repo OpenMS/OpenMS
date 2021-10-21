@@ -17,7 +17,7 @@
 				<UserParam type="string" name="Comet:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="Comet:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
+				<UserParam type="string" name="extra_features" value="isotope_error,COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-03-25T18:21:07" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -70,6 +70,7 @@
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="1233.9196160319" RT="974.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=334" >
 			<PeptideHit score="15.1" sequence="HYSEEEYDSEFDDADDDEEQ" charge="2" aa_before="L" aa_after="S" start="733" end="752" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="38"/>
 				<UserParam type="string" name="num_matched_peptides" value="80"/>
@@ -88,6 +89,7 @@
 			</PeptideHit>
 			<PeptideHit score="19.7" sequence="PSGNGADEDEDEGSGDDEDEEAGNG" charge="2" aa_before="S" aa_after="K" start="245" end="269" protein_refs="PH_12" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="3"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
 				<UserParam type="string" name="num_matched_peptides" value="80"/>
@@ -106,6 +108,7 @@
 			</PeptideHit>
 			<PeptideHit score="28" sequence="FCCRCCCNCGCCRRRCCCCRI" charge="2" aa_before="C" aa_after="T" start="102" end="122" protein_refs="PH_11" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="80"/>
@@ -124,6 +127,7 @@
 			</PeptideHit>
 			<PeptideHit score="223" sequence="SDDDEDEDDEEDHDIMEADLD" charge="2" aa_before="E" aa_after="K" start="581" end="601" protein_refs="PH_7" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="80"/>
@@ -142,6 +146,7 @@
 			</PeptideHit>
 			<PeptideHit score="244" sequence="DLDAEMIDHDEEDDEDEDDDS" charge="2" aa_before="K" aa_after="E" start="215" end="235" protein_refs="PH_8" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="80"/>
@@ -162,6 +167,7 @@
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="434.918547698567" RT="983.5" spectrum_reference="controllerType=0 controllerNumber=1 scan=344" >
 			<PeptideHit score="4.59" sequence="TPLIDRVVVAGY" charge="3" aa_before="L" aa_after="S" start="1051" end="1062" protein_refs="PH_4" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="44"/>
 				<UserParam type="string" name="num_matched_peptides" value="20394"/>
@@ -180,6 +186,7 @@
 			</PeptideHit>
 			<PeptideHit score="10.4" sequence="PTLLERSLNFI" charge="3" aa_before="Q" aa_after="A" start="2449" end="2459" protein_refs="PH_10" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="20394"/>
@@ -198,6 +205,7 @@
 			</PeptideHit>
 			<PeptideHit score="13.4" sequence="PLTVEKKQTMK" charge="3" aa_before="F" aa_after="V" start="547" end="557" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="12"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="20394"/>
@@ -216,6 +224,7 @@
 			</PeptideHit>
 			<PeptideHit score="16.9" sequence="ASVEKARKALTE" charge="3" aa_before="Y" aa_after="R" start="333" end="344" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="11"/>
 				<UserParam type="string" name="MS:1002259" value="44"/>
 				<UserParam type="string" name="num_matched_peptides" value="20394"/>
@@ -234,6 +243,7 @@
 			</PeptideHit>
 			<PeptideHit score="19.2" sequence="PTISRPLICRF" charge="3" aa_before="Y" aa_after="G" start="104" end="114" protein_refs="PH_13" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="40"/>
 				<UserParam type="string" name="num_matched_peptides" value="20394"/>
@@ -254,6 +264,7 @@
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="547.9460440319" RT="986.9" spectrum_reference="controllerType=0 controllerNumber=1 scan=348" >
 			<PeptideHit score="0.328" sequence="PSGASIDLDGKEKIPD" charge="3" aa_before="Q" aa_after="T" start="6" end="21" protein_refs="PH_6" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="60"/>
 				<UserParam type="string" name="num_matched_peptides" value="39994"/>
@@ -272,6 +283,7 @@
 			</PeptideHit>
 			<PeptideHit score="0.786" sequence="M(Oxidation)EEMKQKVQAYLK" charge="3" aa_before="Q" aa_after="H" start="112" end="124" protein_refs="PH_14" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="15"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
 				<UserParam type="string" name="num_matched_peptides" value="39994"/>
@@ -290,6 +302,7 @@
 			</PeptideHit>
 			<PeptideHit score="3.23" sequence="QLSAVIECADSAHGLK" charge="3" aa_before="P" aa_after="G" start="197" end="212" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="17"/>
 				<UserParam type="string" name="MS:1002259" value="60"/>
 				<UserParam type="string" name="num_matched_peptides" value="39994"/>
@@ -308,6 +321,7 @@
 			</PeptideHit>
 			<PeptideHit score="3.76" sequence="ALGSSVPGAQVSGGAQGAQ" charge="3" aa_before="L" aa_after="V" start="257" end="275" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="23"/>
 				<UserParam type="string" name="MS:1002259" value="72"/>
 				<UserParam type="string" name="num_matched_peptides" value="39994"/>
@@ -326,6 +340,7 @@
 			</PeptideHit>
 			<PeptideHit score="7.65" sequence="QQPQPPQPQQQPLQ" charge="3" aa_before="Q" aa_after="S" start="255" end="268" protein_refs="PH_9" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS:1002258" value="16"/>
 				<UserParam type="string" name="MS:1002259" value="52"/>
 				<UserParam type="string" name="num_matched_peptides" value="39994"/>

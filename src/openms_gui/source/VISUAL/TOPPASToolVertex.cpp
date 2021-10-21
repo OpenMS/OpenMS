@@ -134,8 +134,14 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-        else OPENMS_LOG_ERROR << msg << std::endl;
+        if (getScene_() && getScene_()->isGUIMode())
+        {
+          QMessageBox::critical(nullptr, "Error", msg.c_str());
+        }
+        else
+        {
+          OPENMS_LOG_ERROR << msg << std::endl;
+        }
         tool_ready_ = false;
         return false;
       }
@@ -151,16 +157,28 @@ namespace OpenMS
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
-      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else OPENMS_LOG_ERROR << msg << std::endl;
+      if (getScene_() && getScene_()->isGUIMode())
+      {
+        QMessageBox::critical(nullptr, "Error", msg.c_str());
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << msg << std::endl;
+      }
       tool_ready_ = false;
       return false;
     }
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else OPENMS_LOG_ERROR << msg << std::endl;
+      if (getScene_() && getScene_()->isGUIMode())
+      {
+        QMessageBox::critical(nullptr, "Error", msg.c_str());
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << msg << std::endl;
+      }
       tool_ready_ = false;
       return false;
     }
@@ -449,7 +467,10 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     //check if everything ready (there might be more than one upstream node - ALL need to be ready)
-    if (!isUpstreamFinished()) return;
+    if (!isUpstreamFinished())
+    {
+      return;
+    }
 
     if (finished_)
     {
@@ -464,7 +485,9 @@ namespace OpenMS
                        + QDir::separator()
                        + name_.toQString();
     if (type_ != "")
+    {
       ini_file += "_" + type_.toQString();
+    }
     // do not write the ini yet - we might need to alter it
 
     RoundPackages pkg;
@@ -494,8 +517,9 @@ namespace OpenMS
 
     QStringList shared_args;
     if (type_ != "")
+    {
       shared_args << "-type" << type_.toQString();
-
+    }
     // get *all* input|output file parameters (regardless if edge exists)
     QVector<IOInfo> in_params, out_params;
     getInputParameters(in_params);
@@ -599,7 +623,10 @@ namespace OpenMS
           }
           else
           {
-            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1)
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            }
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
@@ -944,9 +971,15 @@ namespace OpenMS
       }
       else if (param_.exists(p_out_format))
       { // 'out_type' or alike is specified
-        if (!param_.getValue(p_out_format).toString().empty()) file_suffix = "." + param_.getValue(p_out_format).toString();
-        else OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
+        if (!param_.getValue(p_out_format).toString().empty())
+        {
+          file_suffix = "." + param_.getValue(p_out_format).toString();
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
                              << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+        }
       }
       if (file_suffix.empty())
       { // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
@@ -1009,7 +1042,10 @@ namespace OpenMS
           }
           output_files_[r][param_index].filenames.push_back(fn);
           filename_output_set.insert(fn);
-          if (list_to_single) break; // only one iteration required
+          if (list_to_single)
+          {
+            break; // only one iteration required
+          }
         }
       }
           
@@ -1050,11 +1086,17 @@ namespace OpenMS
       for (Size i = 0; i < filenames.size(); ++i)
       {
         QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
-        if (p.isEmpty()) continue;
+        if (p.isEmpty())
+        {
+          continue;
+        }
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
+        if (tmp.size() <= 2 || tmp.has(':'))
+        {
+          continue; // too small to be reliable; might even be 'c:'
+        }
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }
