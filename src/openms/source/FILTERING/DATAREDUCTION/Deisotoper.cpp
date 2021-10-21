@@ -115,6 +115,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   int feature_number = 0;
 
   std::vector<size_t> extensions;
+
   std::vector< std::vector<size_t> > clusters;
   std::vector<int> charges_of_extensions;
   const float averagine_check_threshold[7] = {0.0f, 0.0f, 0.05f, 0.1f, 0.2f, 0.4f, 0.6f};
@@ -129,7 +130,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     // values of lambda ^ k
     double curr_power = 1.0;
 
-    // lambda, value taken from Bellew et al
+    // value taken from Bellew et al
     double lambda = 1.0 / 1800.0;
     
     for (UInt i = 1; i < max_isopeaks; ++i)
@@ -193,8 +194,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
       // Save frequently used values for performance reasons
       std::vector<double> extensions_intensities = {current_intensity};
-      // This is essentially extensions.size() (which is needed a lot)
-      Int num_considered_peaks = 1;
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
       std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, precalculated);
@@ -228,13 +227,11 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
         // update sums of intensities
         spec_total_intensity += extensions_intensities.back();
-        dist_total_intensity += distr[num_considered_peaks];
-
-        num_considered_peaks++;
+        dist_total_intensity += distr[extensions.size()];
 
         // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
         float KL = 0;
-        for (unsigned int peak = 0; peak != num_considered_peaks; ++peak)
+        for (unsigned int peak = 0; peak != extensions.size() + 1; ++peak)
         {
           // normalize spectrum intensities and averagine distribution intensities as this is a density measure and 
           // thresholds were probably determined for distributions adding up to 1
@@ -243,7 +240,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
         }
 
         // choose threshold corresponding to cluster size
-        float curr_threshold = (num_considered_peaks >= 6) ? averagine_check_threshold[6] : averagine_check_threshold[num_considered_peaks];
+        float curr_threshold = (extensions.size() + 1 >= 6) ? averagine_check_threshold[6] : averagine_check_threshold[extensions.size() + 1];
           
         // compare to threshold and stop extension if distribution does not fit well enough
         if (KL > curr_threshold)
