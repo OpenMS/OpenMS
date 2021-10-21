@@ -309,8 +309,10 @@ public:
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
-    /// If it doesn't exist, fallback to @param s.
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e. 
+    /// If it doesn't exist, fallback to @p s.
+    /// @param s Fallback if @p e does not have a primary MS runpath
+    /// @param e Use primary MS runpath from this mzML file
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)

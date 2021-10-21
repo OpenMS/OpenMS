@@ -328,7 +328,7 @@ namespace OpenMS
     }
 
     /**
-       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @p x
     */
     template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
