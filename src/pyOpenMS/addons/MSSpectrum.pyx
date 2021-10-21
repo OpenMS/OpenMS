@@ -1,6 +1,8 @@
 cimport numpy as np
 import numpy as np
 
+
+
     def get_peaks(self):
         """Cython signature: numpy_vector, numpy_vector get_peaks()
         
