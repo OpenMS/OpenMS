@@ -71,14 +71,17 @@ namespace OpenMS
 
   BinnedSpectrum& BinnedSpectrum::operator=(const BinnedSpectrum& rhs)
   {
-    bin_spread_ = rhs.bin_spread_;
-    bin_size_ = rhs.bin_size_;
-    unit_ppm_ = rhs.unit_ppm_;
-    offset_ = rhs.offset_;
-    precursors_ = rhs.precursors_;
+    if (this != &rhs)
+    {
+      bin_spread_ = rhs.bin_spread_;
+      bin_size_ = rhs.bin_size_;
+      unit_ppm_ = rhs.unit_ppm_;
+      offset_ = rhs.offset_;
+      precursors_ = rhs.precursors_;
 
-    delete bins_;
-    bins_ = new SparseVectorType(*rhs.bins_);
+      delete bins_;
+      bins_ = new SparseVectorType(*rhs.bins_);
+    }
 
     return *this;
   }
