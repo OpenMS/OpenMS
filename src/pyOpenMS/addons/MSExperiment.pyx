@@ -1,8 +1,20 @@
 
+    def get2DPeakDataLong(self, min_rt, max_rt, min_mz, max_mz):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakDataLong(float min_rt, float max_rt, float min_mz, float max_mz)"""
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef libcpp_vector[float] rt
+        cdef libcpp_vector[float] mz
+        cdef libcpp_vector[float] inty
+        exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, rt, mz, inty)
+        cdef float[::1] mzarr = <float [:mz.size()]>mz.data()
+        cdef float[::1] rtarr = <float [:rt.size()]>rt.data()
+        cdef float[::1] intyarr = <float [:inty.size()]>inty.data()
 
+        # arr is of type Memoryview. To cast into Numpy:
+        return (np.asarray(rtarr), np.asarray(mzarr),  np.asarray(intyarr))
 
     def getMSLevels(self):
-
+        """Cython signature: list[int] getMSLevels()"""
         cdef libcpp_vector[unsigned int] _r = self.inst.get().getMSLevels()
         cdef libcpp_vector[unsigned int].iterator it__r = _r.begin()
         cdef list result = []
