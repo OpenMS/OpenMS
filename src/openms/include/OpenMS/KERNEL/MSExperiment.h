@@ -384,7 +384,6 @@ public:
           t = it.getRT();
           rt.resize(rt.size() + 1);
           mz.resize(mz.size() + 1); 
-          rt.resize(rt.size() + 1);
           intensity.resize(intensity.size() + 1);
         }
         rt.back().emplace_back(t);
