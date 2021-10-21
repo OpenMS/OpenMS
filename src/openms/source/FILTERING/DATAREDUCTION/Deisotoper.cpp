@@ -43,6 +43,26 @@
 
 namespace OpenMS
 {
+
+// static
+std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType mass,
+                                                                          UInt number_of_isotopes,
+                                                                          std::vector<double>& precalculated)
+{
+  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
+
+  double _weight_pow = 1.0;
+
+  // start at 1 as first entry is 1.0 anyway
+  for (UInt k = 1; k < number_of_isotopes; ++k)
+  {
+    _weight_pow *= mass;
+    _distr[k] = precalculated[k] * _weight_pow;
+  }
+
+  return _distr;
+}
+
 // static
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
@@ -359,25 +379,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     spec.sortByPosition();
   }
   return;
-}
-
-// static
-std::vector<MSSpectrum::PeakType::IntensityType> Deisotoper::_approximateDistribution(MSSpectrum::PeakType::CoordinateType mass, 
-  UInt number_of_isotopes, 
-  std::vector<double>& precalculated)
-{
-  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
-
-  double _weight_pow = 1.0;
-
-  // start at 1 as first entry is 1.0 anyway
-  for (UInt k = 1; k < number_of_isotopes; ++k)
-  {
-    _weight_pow *= mass;
-    _distr[k] = precalculated[k] * _weight_pow;
-  }
-
-  return _distr;
 }
 
 // static
