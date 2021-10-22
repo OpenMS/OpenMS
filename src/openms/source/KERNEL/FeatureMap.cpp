@@ -40,7 +40,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
 {
@@ -217,7 +216,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::IntensityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -244,7 +243,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::OverallQualityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::OverallQualityLess cmp; return cmp(right, left);});
     }
     else
     {

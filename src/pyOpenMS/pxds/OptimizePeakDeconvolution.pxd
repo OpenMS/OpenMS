@@ -10,12 +10,21 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
     cdef cppclass OptimizePeakDeconvolution(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
+        # wrap-doc:
+        #   This class provides the deconvolution of peak regions using non-linear optimization
+        #   -----
+        #   Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
+        #   For the non-linear optimization we use the Levenberg-Marquardt algorithm.
+        #   There are a few constraints for the parameters: the positions are equidistant according to the peptide
+        #   mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
+        #   peaks have all the same left and right width, respectively
+
         OptimizePeakDeconvolution() nogil except +
         OptimizePeakDeconvolution(OptimizePeakDeconvolution &) nogil except +
-        PenaltyFactorsIntensity  getPenalties() nogil except + # wrap-doc:Return the penalty parameter
-        void setPenalties(PenaltyFactorsIntensity & penalties) nogil except + # wrap-doc:Set the penalty parameter
-        Int getCharge() nogil except + # wrap-doc:Return the charge
-        void setCharge(Int charge) nogil except + # wrap-doc:Set the charge
+        PenaltyFactorsIntensity  getPenalties() nogil except + # wrap-doc:Returns the penalty parameter
+        void setPenalties(PenaltyFactorsIntensity & penalties) nogil except + # wrap-doc:Sets the penalty parameter
+        Int getCharge() nogil except + # wrap-doc:Returns the charge
+        void setCharge(Int charge) nogil except + # wrap-doc:Sets the charge
         bool optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePeakDeconvolution_Data & data) nogil except + # wrap-doc:Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
         Size getNumberOfPeaks_(Int charge, libcpp_vector[ PeakShape ] & temp_shapes, OptimizePeakDeconvolution_Data & data) nogil except +
 

@@ -90,7 +90,12 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         const ResidueModification * getModification() nogil except +
 
+        # setModification by pointer is not here since a copy would be made whose memory is not handled by the ModificationDB
         void setModification(String name) nogil except + # wrap-doc:Sets the modification by name; the mod should be present in ModificationsDB
+
+        void setModification(const ResidueModification& mod) nogil except + # wrap-doc:Sets the modification by a ResidueModification object; checks if present in ModificationsDB and adds if not.
+
+        void setModificationByDiffMonoMass(double diffMonoMass) nogil except + # wrap-doc:Sets the modification by monoisotopic mass difference in Da; checks if present in ModificationsDB with tolerance and adds a "user-defined" modification if not (for later lookups).
 
         String getModificationName() nogil except + # wrap-doc:Returns the name of the modification to the modification
 

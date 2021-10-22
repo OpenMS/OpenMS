@@ -35,8 +35,10 @@
 
 #include <OpenMS/OpenMSConfig.h>
 
+#include <cstddef> // for ptrdiff_t
 #include <string>
 #include <vector>
+
 
 namespace OpenMS
 {

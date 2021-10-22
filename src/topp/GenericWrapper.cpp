@@ -43,7 +43,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QFileInfo>
@@ -237,7 +236,7 @@ protected:
       param_names.push_back(it->name);
     }
     // sort by length
-    std::sort(param_names.begin(), param_names.end(), reverseComparator(StringSizeLess()));
+    std::sort(param_names.begin(), param_names.end(), [](auto &left, auto &right) {StringSizeLess cmp; return cmp(right, left);});
 
     // iterate through all input params and replace with values:
     SignedSize allowed_percent(0); // filenames might contain '%', which are allowed to remain there (and even must remain)

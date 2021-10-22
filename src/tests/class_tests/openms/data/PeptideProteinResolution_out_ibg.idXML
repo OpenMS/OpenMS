@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Acetyl (N-term)" />
+				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-resolve-ties-2021-03-02"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
+	</SearchParameters>
+	<IdentificationRun date="2015-10-29T15:11:47" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="C" score="0.6" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="D" score="0.6" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="E" score="0.7" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.7,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.6,PH_1"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="AC" charge="2" aa_before="[" aa_after="]" start="4" end="25" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="AACC" charge="2" aa_before="[" aa_after="]" start="4" end="25" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="C" charge="2" aa_before="K" aa_after="G" start="227" end="248" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.99" sequence="D" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="DE" charge="2" aa_before="K" aa_after="K" start="23" end="54" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.5" sequence="DDEE" charge="2" aa_before="R" aa_after="R" start="23" end="34" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.800000000000001" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.01" sequence="E" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

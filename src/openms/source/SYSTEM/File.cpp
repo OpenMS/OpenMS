@@ -48,6 +48,8 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
+#include <atomic>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif

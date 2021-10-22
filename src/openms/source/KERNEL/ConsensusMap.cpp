@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -351,7 +350,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
+      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -361,7 +360,7 @@ namespace OpenMS
 
   void ConsensusMap::sortByRT()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
+    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
   }
 
   void ConsensusMap::sortByMZ()
@@ -378,7 +377,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
+      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::QualityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -388,7 +387,7 @@ namespace OpenMS
 
   void ConsensusMap::sortBySize()
   {
-    std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
+    std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::SizeLess cmp; return cmp(right, left);});
   }
 
   void ConsensusMap::sortByMaps()

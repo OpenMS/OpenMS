@@ -571,7 +571,7 @@ namespace OpenMS
   {
     return id_.empty() && !full_id_.empty();
   }
-
+  
   const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,

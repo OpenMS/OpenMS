@@ -32,6 +32,9 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CHEMISTRY/AASequence.h"
+#include "OpenMS/CHEMISTRY/Residue.h"
+#include "OpenMS/CONCEPT/Constants.h"
 #include "OpenMS/CONCEPT/Exception.h"
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
@@ -195,7 +198,7 @@ namespace OpenMS
 
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
     // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
-    // Unfortunately there is an overlap for the letter "n". We will try to handle both based on the case:
+    // Unfortunately there is an overlap for the letter "n". We will try to handle both based on upper/lower case:
     String protein_terminus_lower = protein_terminus;
     protein_terminus_lower = protein_terminus_lower.toLower();
 
@@ -239,6 +242,24 @@ namespace OpenMS
       else
       {
         term_spec_ = ResidueModification::C_TERM;
+      }
+    }
+
+    if (mass_ == massdiff_)
+    {
+      errors_.emplace_back("Warning: For modification with mass " + mass + ", mass == massdiff. This is wrong. "
+       "Please report it to the maintainer of the tool that wrote the pepXML. OpenMS will try to calculate it manually, assuming massdiff is correct.");
+      if (term_spec_ == ResidueModification::N_TERM || term_spec_ == ResidueModification::PROTEIN_N_TERM)
+      {
+        mass_ = massdiff_ + Residue::getInternalToNTerm().getMonoWeight();
+      }
+      else if (term_spec_ == ResidueModification::C_TERM || term_spec_ == ResidueModification::PROTEIN_C_TERM)
+      {
+        mass_ = massdiff_ + Residue::getInternalToCTerm().getMonoWeight();
+      }
+      else
+      {
+        mass_ = massdiff_ + ResidueDB::getInstance()->getResidue(aminoacid_)->getMonoWeight(Residue::ResidueType::Internal);
       }
     }
 
@@ -1296,6 +1317,10 @@ namespace OpenMS
           peptide_hit_.setMetaValue("num_matched_peptides", value);
         }
       }
+
+      double pepmassdiff = attributeAsDouble_(attributes, "massdiff");
+      peptide_hit_.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, std::lrint(pepmassdiff/Constants::C13C12_MASSDIFF_U));
+
       String protein = attributeAsString_(attributes, "protein");
       protein.trim();
       pe.setProteinAccession(protein);
@@ -1506,27 +1531,30 @@ namespace OpenMS
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        for (const AminoAcidModification& it : fixed_modifications_)
+        if (!found)
         {
-          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+          for (const AminoAcidModification& it : fixed_modifications_)
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
+            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+            {
+              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
           }
         }
 
         if (!found)
         {
-          // It was not registered in the pepXML header. Search it in DB.
+          // It was not registered in the pepXML header. Search it in DB by massdiff = mod_nterm_mass - orig_nterm_mass.
           std::vector<const ResidueModification*> mods;
           try
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
           }
           catch(...)
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
           }
 
           if (!mods.empty())
@@ -1556,7 +1584,18 @@ namespace OpenMS
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        //TODO why only look in variable mods?
+        if (!found)
+        {
+          for (const AminoAcidModification& amino : fixed_modifications_)
+          {
+            if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
+            {
+              current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
+          }
+        }
 
         if (!found)
         {
@@ -1564,11 +1603,11 @@ namespace OpenMS
           std::vector<const ResidueModification*> mods;
           try
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
           }
           catch(...)
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
           }
 
           if (!mods.empty())
@@ -1631,7 +1670,6 @@ namespace OpenMS
       // the modification position is 1-based
       String origin = String(current_sequence_[modification_position - 1]);
       String temp_description = "";
-
 
       //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
       // Only in some cases probably, since it is an optional attribute
@@ -1733,6 +1771,8 @@ namespace OpenMS
 
         optionalAttributeAsString_(aminoacid, attributes, "aminoacid");
         terminus = attributeAsString_(attributes, "terminus");
+        // WARNING: Many search engines annotate this wrong! This is supposed to be empty or "n" or "c".
+        // But many SEs annotate it as "Y" and "N" for Yes and No. We handle this in the AAMod ctor
         protein_terminus_entry = attributeAsString_(attributes, "protein_terminus");
       }
 
@@ -1987,6 +2027,7 @@ namespace OpenMS
       //Note: using our AASequence::fromString on the modified_sequence of
       // the modification_info element is probably not possible since modifications may have special
       // symbols that we would need to save and lookup additionally
+      //TODO one might argue that mods from XML attributes are better specified and should be preferred
 
       // Modifications explicitly annotated at the current search_hit take preference over
       // implicit fixed mods
@@ -2117,5 +2158,12 @@ namespace OpenMS
   {
     preferred_variable_modifications_ = mods;
   }
+
+  /*std::vector<int> PepXMLFile::getIsotopeErrorsFromIntSetting_(int intSetting)
+  {
+    static std::vector<std::vector<int>> cometIsoLists_{{},{1},{1,2},{1,2,3},{-8,-4,4,8},{-1,1,2,3}};
+    return cometIsoLists_[intSetting];
+  }
+  */
 
 } // namespace OpenMS

@@ -100,6 +100,16 @@ public:
     const Residue* getModifiedResidue(const Residue* residue, const String& name);
 
     /**
+       @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the @class ModificationsDB
+
+       The modified residue is added to the database if it doesn't exist yet. The origin of the modification has to match the residue and
+       the term has to be @enum ResidueModification::Anywhere.
+
+       @throw Exception::IllegalArgument if the residue was not found
+    */
+    const Residue* getModifiedResidue(const Residue* residue, const ResidueModification* mod);
+
+    /**
        @brief returns a set of all residues stored in this residue db
 
        Following sets are available:
