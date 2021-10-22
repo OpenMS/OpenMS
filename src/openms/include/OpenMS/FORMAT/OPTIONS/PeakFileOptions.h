@@ -142,7 +142,7 @@ public:
     //@{
     //Sets if data should be compressed when writing
     void setCompression(bool compress);
-    //returns @c true, if data should be compressed when writing
+    /// returns @c true, if data should be compressed when writing
     bool getCompression() const;
     //@}
 

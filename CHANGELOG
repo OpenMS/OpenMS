@@ -20,6 +20,7 @@ General:
 - OpenMS now expects a compiler that supports C17
 - Config storage path on linux changed to ~/.config/
 - Some documentation improvements to pyOpenMS https://pyopenms.readthedocs.io/en/latest/
+- PyOpenMS checks if `OPENMS_DATA_PATH` environment variable is set, before setting to default value
 
 Adapters/Third-party support:
 - Added support for SIRIUS 4.9.0

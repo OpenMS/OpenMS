@@ -41,7 +41,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 
-#include <boost/math/special_functions/erf.hpp>
 #include <cmath>
 
 namespace OpenMS

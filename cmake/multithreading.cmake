@@ -43,7 +43,7 @@
 message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
 
 if (MT_ENABLE_OPENMP)
-  find_package(OpenMP)
+  find_package(OpenMP COMPONENTS CXX)
 endif()
 
 if (OPENMP_FOUND)

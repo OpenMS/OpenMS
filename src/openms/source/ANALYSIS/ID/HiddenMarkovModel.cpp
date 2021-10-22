@@ -39,6 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <fstream>
+#include <iostream>
 
 // #define SIMPLE_DEBUG2
 // #undef  SIMPLE_DEBUG2

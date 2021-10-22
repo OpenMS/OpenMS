@@ -355,7 +355,7 @@ public:
     /// @param delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
     /// @param specificity To which site can this mod be applied?
     /// @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
-    /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning
+    /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning (FullId is e.g. M[+1234.1] and FullName [+1234.1]. Id and Name are empty as defined for a "user-defined" mod.
     static const ResidueModification* createUnknownFromMassString(const String& mod,
                                                                   const double mass,
                                                                   const bool delta_mass,

@@ -49,6 +49,8 @@
 
 #include <QtCore/QDir>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 #ifdef _OPENMP
 #endif
 
@@ -686,7 +688,7 @@ namespace OpenMS
 
         // choose fitter
         double egh_tau = 0.0;
-        TraceFitter* fitter = chooseTraceFitter_(egh_tau);
+        std::shared_ptr<TraceFitter> fitter = chooseTraceFitter_(egh_tau);
 
         fitter->setParameters(trace_fitter_params);
         fitter->fit(traces);
@@ -764,10 +766,10 @@ namespace OpenMS
         // Extract some of the model parameters.
         if (egh_tau != 0.0)
         {
-          egh_tau = (static_cast<EGHTraceFitter*>(fitter))->getTau();
+          egh_tau = (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getTau();
           f.setMetaValue("EGH_tau", egh_tau);
-          f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter*>(fitter))->getHeight());
-          f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter*>(fitter))->getSigma());
+          f.setMetaValue("EGH_height", (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getHeight());
+          f.setMetaValue("EGH_sigma", (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getSigma());
         }
 
         // Calculate the mass of the feature: maximum, average, monoisotopic
@@ -801,9 +803,6 @@ namespace OpenMS
         // - the model does not include the baseline, so we ignore it here
         // - as we scaled the isotope distribution to
         f.setIntensity(fitter->getArea() / getIsotopeDistribution_(f.getMZ()).max);
-
-        // we do not need the fitter anymore
-        delete fitter;
 
         //add convex hulls of mass traces
         for (Size j = 0; j < traces.size(); ++j)
@@ -1841,19 +1840,19 @@ namespace OpenMS
     return final;
   }
 
-  TraceFitter* FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
+  std::unique_ptr<TraceFitter> FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
   {
     // choose fitter
     if (param_.getValue("feature:rt_shape") == "asymmetric")
     {
       OPENMS_LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
       tau = -1.0;
-      return new EGHTraceFitter();
+      return std::make_unique<EGHTraceFitter>();
     }
     else // if (param_.getValue("feature:rt_shape") == "symmetric")
     {
       OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
-      return new GaussTraceFitter();
+      return std::make_unique<GaussTraceFitter>();
     }
   }
 
@@ -1896,7 +1895,7 @@ namespace OpenMS
     return final;
   }
 
-  void FeatureFinderAlgorithmPicked::cropFeature_(TraceFitter* fitter,
+  void FeatureFinderAlgorithmPicked::cropFeature_(std::shared_ptr<TraceFitter> fitter,
                                                   const MassTraces& traces,
                                                   MassTraces& new_traces)
   {
@@ -1992,7 +1991,7 @@ namespace OpenMS
     new_traces.baseline = traces.baseline;
   }
 
-  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(TraceFitter* fitter,
+  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(std::shared_ptr<TraceFitter> fitter,
                                                           MassTraces& feature_traces,
                                                           const double& seed_mz, const double& min_feature_score,
                                                           String& error_msg, double& fit_score, double& correlation, double& final_score)
@@ -2074,7 +2073,7 @@ namespace OpenMS
     return true;
   }
 
-  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(TraceFitter* fitter,
+  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(std::shared_ptr<TraceFitter> fitter,
                                                             const MassTraces& traces,
                                                             const MassTraces& new_traces,
                                                             bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,

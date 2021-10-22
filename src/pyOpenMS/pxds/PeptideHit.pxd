@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         libcpp_vector[PeptideHit_AnalysisResult] getAnalysisResults() nogil except + # wrap-doc:Returns information on (search engine) sub scores associated with this PSM
 
         void setPeakAnnotations(libcpp_vector[PeptideHit_PeakAnnotation]) nogil except + # wrap-doc:Sets the fragment annotations
-        libcpp_vector[PeptideHit_PeakAnnotation] getPeakAnnotations() nogil except +
+        libcpp_vector[PeptideHit_PeakAnnotation] getPeakAnnotations() nogil except + # wrap-doc:Returns the fragment annotations
 
         void setScore(double) nogil except + # wrap-doc:Sets the PSM score
         void setRank(UInt) nogil except + # wrap-doc:Sets the PSM rank
