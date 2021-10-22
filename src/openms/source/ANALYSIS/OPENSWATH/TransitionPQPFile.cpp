@@ -41,6 +41,7 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 
 #include <sstream>
+#include <unordered_map>
 #include <iostream>
 
 namespace OpenMS
@@ -384,14 +385,16 @@ namespace OpenMS
 
     // Index maps
     std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
-    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map, gene_map;
-    std::map<int,double> precursor_mz_map;
-    std::map<int,bool> precursor_decoy_map;
+    std::unordered_map<std::string, int > group_map, peptide_map, compound_map, protein_map, gene_map;
+    std::unordered_map<int,double> precursor_mz_map;
+    std::unordered_map<int,bool> precursor_decoy_map;
 
     std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
     insert_transition_sql.precision(11);
 
     // OpenSWATH: Loop through TargetedExperiment to generate index maps for peptides
+    peptide_vec.reserve(targeted_exp.getPeptides().size());
+    group_vec.reserve(targeted_exp.getPeptides().size()  + targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
     {
       OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
@@ -401,6 +404,7 @@ namespace OpenMS
     }
 
     // OpenSWATH: Loop through TargetedExperiment to generate index maps for compounds
+    compound_vec.reserve(targeted_exp.getCompounds().size()); 
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
       OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
@@ -415,6 +419,7 @@ namespace OpenMS
 
     // IPF: Loop through all transitions and generate peptidoform data structures
     std::vector<TransitionPQPFile::TSVTransition > transitions;
+    transitions.reserve(targeted_exp.getTransitions().size());
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
@@ -691,25 +696,31 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Your input file contains invalid references, cannot process file.");
     }
+    startProgress(0, 1, "Writing out PQP file");
     writePQPOutput_(filename, targeted_exp);
+    endProgress();
   }
 
   void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
                                                          OpenMS::TargetedExperiment& targeted_exp,
                                                          bool legacy_traml_id)
   {
+    startProgress(0, 1, "Reading PQP file");
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
+    endProgress();
   }
 
   void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
                                                          OpenSwath::LightTargetedExperiment& targeted_exp,
                                                          bool legacy_traml_id)
   {
+    startProgress(0, 1, "Reading PQP file");
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
+    endProgress();
   }
 
 }
