@@ -2813,15 +2813,21 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
-    assert rt.shape == (10,)
-    assert mz.shape == (10,)
-    assert inty.shape == (10,)
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
 
-    mse.addSpectrum(pyopenms.MSSpectrum())
+    mse.addSpectrum(spec)
     assert mse.size() == 1
 
     assert mse[0] is not None
+
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape[0] == 2
+    assert mz.shape[0] == 2
+    assert inty.shape[0] == 2
+
 
     assert isinstance(list(mse), list)
 
