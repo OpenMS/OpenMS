@@ -46,9 +46,7 @@ namespace OpenMS
   /**
     @brief Helper class for peptide and protein quantification based on feature data annotated with IDs
 
-    This class is used by @ref TOPP_ProteinResolver. See there for further documentation.
-
-    @htmlinclude OpenMS_ProteinResolver.parameters
+    This class is used by @ref TOPP_ProteinResolver . See there for further documentation.
 
     @ingroup Analysis_QUANTITATION
 

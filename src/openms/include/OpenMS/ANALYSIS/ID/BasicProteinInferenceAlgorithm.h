@@ -79,23 +79,23 @@ namespace OpenMS
     BasicProteinInferenceAlgorithm();
 
     /**
-     * Performs the actual inference based on best psm per peptide in @pep_ids per run in @p prot_ids.
+     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_ids.
      * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
      * Associations (via getIdentifier) for peptides to protein runs need to be correct.
      */
     void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
 
     /**
-     * Performs the actual inference based on best psm per peptide in @pep_ids per run in @p prot_ids.
-     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
+     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_id.
+     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
      * Associations (via getIdentifier) for peptides to protein runs need to be correct.
      */
     void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id) const;
 
     /**
-     * Performs the actual inference based on best psm per peptide in @p cmap for proteins from @p prot_ids.
-     * Ideally @p prot_ids is the union of proteins in all runs of @p cmap.
-     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
+     * Performs the actual inference based on best psm per peptide in @p cmap for proteins from @p prot_id.
+     * Ideally @p prot_id is the union of proteins in all runs of @p cmap.
+     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
      * Associations (via getIdentifier) for peptides to protein runs ARE IGNORED and all pep_ids used.
      * @todo allow checking matching IDs
      */
@@ -106,7 +106,7 @@ namespace OpenMS
     /**
      * @brief Performs simple aggregation-based inference on one protein run.
      * @param acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
-     *  and number of peptidoforms encountered @Todo could use member as hash to save strings
+     *  and number of peptidoforms encountered
      * @param best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
      *  best PeptideHit pointer
      * @param prot_run The current run to process

@@ -64,7 +64,6 @@ namespace OpenMS
       @param name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
       @param adduct Formula of the adduct, e.g. '2K-H'
       @param charge The charge (must not be 0; can be negative), e.g. 1
-      @param is_intrinsic True for a molecule without an explicit adduct, e.g. 'M;-1'
       @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
 
     **/

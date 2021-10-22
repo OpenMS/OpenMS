@@ -74,7 +74,7 @@ namespace OpenMS
       @param args A list of extra arguments (can be empty)
       @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
       @param verbose Report the call command and errors via the callbacks (default: false)
-      @param[out] error_string Message to display to the user or log somewhere if something went wrong (if return != SUCCESS)
+      @param[out] error_msg Message to display to the user or log somewhere if something went wrong (if return != SUCCESS)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
     ExternalProcess::RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg);
