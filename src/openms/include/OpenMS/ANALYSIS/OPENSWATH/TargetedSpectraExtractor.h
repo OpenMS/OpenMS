@@ -85,7 +85,7 @@ public:
       double score = 0.0;
     };
 
-    class Comparator
+    class OPENMS_DLLAPI Comparator
     {
     public:
       virtual ~Comparator() = default;
@@ -109,7 +109,7 @@ public:
       std::vector<MSSpectrum> library_;
     };
 
-    class BinnedSpectrumComparator : public Comparator
+    class OPENMS_DLLAPI BinnedSpectrumComparator : public Comparator
     {
     public:
       ~BinnedSpectrumComparator() override = default;
