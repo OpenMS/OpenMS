@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
 
 using namespace std;
 using namespace OpenMS;

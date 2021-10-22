@@ -50,6 +50,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QtCore/QDateTime>
+#include <QtCore/QTimer>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 

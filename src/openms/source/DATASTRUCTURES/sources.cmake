@@ -42,6 +42,8 @@ QTCluster.cpp
 String.cpp
 StringListUtils.cpp
 StringUtils.cpp
+StringUtilsSimple.cpp
+StringConversions.cpp
 ToolDescription.cpp
 )
 
