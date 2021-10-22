@@ -84,7 +84,7 @@ namespace OpenMS
           The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
 
           <table>
-          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <caption> MSSpectrum </caption>
           <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
           <tr><td> mz <td> intensity <td> exact_mass <td> explanation
           <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
@@ -109,7 +109,7 @@ namespace OpenMS
           The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass),a StringDataArray (explanation), and a StringDataArray (ionization).
 
           <table>
-          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <caption> MSSpectrum </caption>
           <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
           <tr><td> mz <td> intensity <td> exact_mass <td> explanation
           <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N

@@ -42,6 +42,7 @@
 #if OPENMS_BOOST_VERSION_MINOR >= 64
 #include <boost/serialization/array_wrapper.hpp>
 #endif
+#include <boost/function/function_base.hpp>
 #include <boost/lambda/casts.hpp>
 #include <boost/lambda/lambda.hpp>
 

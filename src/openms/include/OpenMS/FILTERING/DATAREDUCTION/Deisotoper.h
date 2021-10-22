@@ -66,7 +66,7 @@ class OPENMS_DLLAPI Deisotoper
     Existing DataArrays are kept and shrunken to the peaks which
     remain in the spectrum.
 
-   * @param [spectra] Input spectra (sorted by m/z)
+   * @param [spectrum] Input spectrum (sorted by m/z)
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
    * @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
    * @param [min_charge] The minimum charge considered

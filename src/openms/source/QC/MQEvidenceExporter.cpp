@@ -44,6 +44,9 @@
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 #include <fstream>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+#include <fstream>
+
 using namespace OpenMS;
 
 MQEvidence::MQEvidence(const String& path)
