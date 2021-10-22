@@ -201,7 +201,7 @@ public:
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_key) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs
