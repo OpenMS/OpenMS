@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>

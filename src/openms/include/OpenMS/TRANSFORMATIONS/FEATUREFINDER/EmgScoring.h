@@ -42,6 +42,7 @@
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
