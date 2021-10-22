@@ -37,7 +37,11 @@
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
+#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <sstream>
+#include <iostream>
 
 namespace OpenMS
 {

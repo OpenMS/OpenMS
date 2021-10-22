@@ -44,6 +44,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <map>
+#include <iostream>
 
 using namespace OpenMS;
 using namespace std;

@@ -39,8 +39,6 @@
 #include <vector>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
-#include <boost/lambda/casts.hpp>
-#include <boost/lambda/lambda.hpp>
 
 namespace OpenSwath
 {
