@@ -1,37 +1,5 @@
 
 
-    # define ArrayWrapper as holding in a vector
-    cdef class ArrayWrapper:
-        cdef libcpp_vector[float] vec
-        cdef Py_ssize_t shape[1]
-        cdef Py_ssize_t strides[1]
-
-        # constructor and destructor are fairly unimportant now since
-        # vec will be destroyed automatically.
-
-        cdef set_data(self, libcpp_vector[float]& data):
-           self.vec.swap(data)
-
-        # now implement the buffer protocol for the class
-        # which makes it generally useful to anything that expects an array
-        def __getbuffer__(self, Py_buffer *buffer, int flags):
-            # relevant documentation http://cython.readthedocs.io/en/latest/src/userguide/buffer.html#a-matrix-class
-            cdef Py_ssize_t itemsize = sizeof(self.vec[0])
-
-            self.shape[0] = self.vec.size()
-            self.strides[0] = sizeof(int)
-            buffer.buf = <char *>&(self.vec[0])
-            buffer.format = 'f'
-            buffer.internal = NULL
-            buffer.itemsize = itemsize
-            buffer.len = self.vec.size() * itemsize   # product(shape) * itemsize
-            buffer.ndim = 1
-            buffer.obj = self
-            buffer.readonly = 0
-            buffer.shape = self.shape
-            buffer.strides = self.strides
-            buffer.suboffsets = NULL
-
 
     def get2DPeakDataLong(self, min_rt, max_rt, min_mz, max_mz):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakDataLong(float min_rt, float max_rt, float min_mz, float max_mz)"""
@@ -41,14 +9,14 @@
         cdef libcpp_vector[float] inty
         exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, rt, mz, inty)
        
-        cdef ArrayWrapper rt_wrap
-        cdef ArrayWrapper mz_wrap
-        cdef ArrayWrapper inty_wrap
+        cdef ArrayWrapperFloat rt_wrap
+        cdef ArrayWrapperFloat mz_wrap
+        cdef ArrayWrapperFloat inty_wrap
         rt_wrap.set_data(rt)
         mz_wrap.set_data(mz)
         inty_wrap.set_data(inty)
 
-        return (np.asarray(rt_wrap), np.asarray(mz_wrap),  np.asarray(inty_wrap))
+        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
 
     def getMSLevels(self):
         """Cython signature: list[int] getMSLevels()"""
