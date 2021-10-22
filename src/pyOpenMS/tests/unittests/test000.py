@@ -2781,6 +2781,7 @@ def testMSExperiment():
      MSExperiment.removeMetaValue
      MSExperiment.getSize
      MSExperiment.isSorted
+     MSExperiment.get2DPeakDataLong
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2811,6 +2812,11 @@ def testMSExperiment():
     mse.getIdentifier()
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
+
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape == (10,)
+    assert mz.shape == (10,)
+    assert inty.shape == (10,)
 
     mse.addSpectrum(pyopenms.MSSpectrum())
     assert mse.size() == 1

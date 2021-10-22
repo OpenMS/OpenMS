@@ -9,9 +9,9 @@
         cdef libcpp_vector[float] inty
         exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, rt, mz, inty)
        
-        cdef ArrayWrapperFloat rt_wrap
-        cdef ArrayWrapperFloat mz_wrap
-        cdef ArrayWrapperFloat inty_wrap
+        cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
         rt_wrap.set_data(rt)
         mz_wrap.set_data(mz)
         inty_wrap.set_data(inty)
