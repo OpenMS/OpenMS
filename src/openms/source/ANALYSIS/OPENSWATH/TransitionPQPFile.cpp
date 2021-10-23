@@ -696,31 +696,25 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Your input file contains invalid references, cannot process file.");
     }
-    startProgress(0, 1, "Writing out PQP file");
     writePQPOutput_(filename, targeted_exp);
-    endProgress();
   }
 
   void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
                                                          OpenMS::TargetedExperiment& targeted_exp,
                                                          bool legacy_traml_id)
   {
-    startProgress(0, 1, "Reading PQP file");
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
-    endProgress();
   }
 
   void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
                                                          OpenSwath::LightTargetedExperiment& targeted_exp,
                                                          bool legacy_traml_id)
   {
-    startProgress(0, 1, "Reading PQP file");
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
-    endProgress();
   }
 
 }
