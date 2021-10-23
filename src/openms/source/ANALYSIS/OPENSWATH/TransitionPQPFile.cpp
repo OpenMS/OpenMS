@@ -412,42 +412,6 @@ namespace OpenMS
       group_vec.push_back(compound.id);
     }
 
-    // OpenSWATH: Group set must be unique
-    boost::erase(group_vec, boost::unique<boost::return_found_end>(boost::sort(group_vec)));
-    int group_map_idx = 0;
-    for (auto const & x : group_vec) { group_map[x] = group_map_idx; group_map_idx++; }
-
-    // IPF: Loop through all transitions and generate peptidoform data structures
-    std::vector<TransitionPQPFile::TSVTransition > transitions;
-    transitions.reserve(targeted_exp.getTransitions().size());
-    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
-    {
-      TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
-      transitions.push_back(transition);
-
-      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(),
-          std::inserter( peptide_vec, peptide_vec.end() ) );
-
-      int group_set_index = group_map[transition.group_id];
-
-      if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
-      {
-        precursor_mz_map[group_set_index] = transition.precursor;
-      }
-      if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
-      {
-        if (transition.detecting_transition == 1)
-        {
-          precursor_decoy_map[group_set_index] = transition.decoy;
-        }
-      }
-    }
-
-    // OpenSWATH: Peptide and compound sets must be unique
-    boost::erase(peptide_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_vec)));
-    int peptide_map_idx = 0;
-    for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
-
     boost::erase(compound_vec, boost::unique<boost::return_found_end>(boost::sort(compound_vec)));
     int compound_map_idx = 0;
     for (auto const & x : compound_vec) { compound_map[x] = compound_map_idx; compound_map_idx++; }
@@ -464,10 +428,41 @@ namespace OpenMS
     int protein_map_idx = 0;
     for (auto const & x : protein_vec) { protein_map[x] = protein_map_idx; protein_map_idx++; }
 
-    // OpenSWATH: Prepare transition inserts
-    for (Size i = 0; i < transitions.size(); i++)
+    // OpenSWATH: Group set must be unique
+    boost::erase(group_vec, boost::unique<boost::return_found_end>(boost::sort(group_vec)));
+    int group_map_idx = 0;
+    for (auto const & x : group_vec) { group_map[x] = group_map_idx; group_map_idx++; }
+
+    // IPF: Loop through all transitions and generate peptidoform data structures
+    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
-      TransitionPQPFile::TSVTransition transition = transitions[i];
+      std::vector<String> peptidoforms;
+      String(targeted_exp.getTransitions()[i].getMetaValue("Peptidoforms")).split('|', peptidoforms);
+      std::copy( peptidoforms.begin(), peptidoforms.end(),
+          std::inserter( peptide_vec, peptide_vec.end() ) );
+    }
+    // OpenSWATH: Peptide and compound sets must be unique
+    boost::erase(peptide_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_vec)));
+    int peptide_map_idx = 0;
+    for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
+
+    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
+    {
+      TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
+
+      int group_set_index = group_map[transition.group_id];
+
+      if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
+      {
+        precursor_mz_map[group_set_index] = transition.precursor;
+      }
+      if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
+      {
+        if (transition.detecting_transition == 1)
+        {
+          precursor_decoy_map[group_set_index] = transition.decoy;
+        }
+      }
 
       // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
