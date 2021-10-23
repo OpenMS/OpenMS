@@ -389,8 +389,6 @@ namespace OpenMS
     std::unordered_map<int,double> precursor_mz_map;
     std::unordered_map<int,bool> precursor_decoy_map;
 
-    std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
-    insert_transition_sql.precision(11);
 
     // OpenSWATH: Loop through TargetedExperiment to generate index maps for peptides
     peptide_vec.reserve(targeted_exp.getPeptides().size());
@@ -446,54 +444,79 @@ namespace OpenMS
     int peptide_map_idx = 0;
     for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
 
-    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
-      TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
-
-      int group_set_index = group_map[transition.group_id];
-
-      if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
+      std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
+      insert_transition_sql.precision(11);
+      for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
       {
-        precursor_mz_map[group_set_index] = transition.precursor;
-      }
-      if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
-      {
-        if (transition.detecting_transition == 1)
+        TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
+
+        int group_set_index = group_map[transition.group_id];
+
+        if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
         {
-          precursor_decoy_map[group_set_index] = transition.decoy;
+          precursor_mz_map[group_set_index] = transition.precursor;
+        }
+        if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
+        {
+          if (transition.detecting_transition == 1)
+          {
+            precursor_decoy_map[group_set_index] = transition.decoy;
+          }
+        }
+
+        // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
+        for (Size j = 0; j < transition.peptidoforms.size(); j++)
+        {
+          insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
+            i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
+        }
+
+        // OpenSWATH: Associate transitions with their precursors
+        insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
+          i << "," << group_map[transition.group_id] << "); ";
+
+        std::string transition_charge = "NULL"; // workaround for compounds with missing charge
+        if (transition.fragment_charge != "NA")
+        {
+          transition_charge = transition.fragment_charge;
+        }
+
+        // OpenSWATH: Insert transition data
+        insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
+          "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
+          transition.transition_name << "'," <<
+          transition.product << "," <<
+          transition_charge << ",'" <<
+          transition.fragment_type << "','" <<
+          transition.Annotation <<"'," <<
+          transition.fragment_nr << "," <<
+          transition.detecting_transition << "," <<
+          transition.identifying_transition << "," <<
+          transition.quantifying_transition << "," <<
+          transition.library_intensity << "," << transition.decoy << "); ";
+
+        if (i % 50000 == 0)
+        // if (i % 2 == 0) // for testing
+        {
+          conn.executeStatement("BEGIN TRANSACTION");
+          conn.executeStatement(insert_transition_sql.str());
+          conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+          conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+          conn.executeStatement("END TRANSACTION");
+          insert_transition_sql.str("");
+          insert_transition_sql.clear();
+          insert_transition_peptide_mapping_sql.str("");
+          insert_transition_peptide_mapping_sql.clear();
+          insert_transition_precursor_mapping_sql.str("");
+          insert_transition_precursor_mapping_sql.clear();
         }
       }
-
-      // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
-      for (Size j = 0; j < transition.peptidoforms.size(); j++)
-      {
-        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
-          i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
-      }
-
-      // OpenSWATH: Associate transitions with their precursors
-      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
-        i << "," << group_map[transition.group_id] << "); ";
-
-      std::string transition_charge = "NULL"; // workaround for compounds with missing charge
-      if (transition.fragment_charge != "NA")
-      {
-        transition_charge = transition.fragment_charge;
-      }
-
-      // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
-        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
-        transition.transition_name << "'," <<
-        transition.product << "," <<
-        transition_charge << ",'" <<
-        transition.fragment_type << "','" <<
-        transition.Annotation <<"'," <<
-        transition.fragment_nr << "," <<
-        transition.detecting_transition << "," <<
-        transition.identifying_transition << "," <<
-        transition.quantifying_transition << "," <<
-        transition.library_intensity << "," << transition.decoy << "); ";
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_transition_sql.str());
+      conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+      conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+      conn.executeStatement("END TRANSACTION");
     }
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
@@ -676,9 +699,6 @@ namespace OpenMS
     conn.executeStatement(insert_precursor_peptide_mapping.str());
     conn.executeStatement(insert_precursor_compound_mapping.str());
     conn.executeStatement(insert_precursor_sql.str());
-    conn.executeStatement(insert_transition_sql.str());
-    conn.executeStatement(insert_transition_peptide_mapping_sql.str());
-    conn.executeStatement(insert_transition_precursor_mapping_sql.str());
     conn.executeStatement(update_decoys_sql.str());
     conn.executeStatement("END TRANSACTION");
   }
