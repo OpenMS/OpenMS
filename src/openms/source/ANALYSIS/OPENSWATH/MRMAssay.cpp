@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+
 #include <regex>
+#include <unordered_set>
 
 using namespace std;
 
@@ -878,9 +880,11 @@ namespace OpenMS
   void MRMAssay::detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     PeptideVectorType peptides;
-    std::map<String, int> peptide_ids;
     ProteinVectorType proteins;
     TransitionVectorType transitions;
+
+    std::unordered_set<String> peptide_ids;
+    std::unordered_set<String> ProteinList;
 
     Map<String, TransitionVectorType> TransitionsMap;
 
@@ -948,16 +952,11 @@ namespace OpenMS
           transitions.push_back(tr);
 
           // Append transition_group_id to index
-          {
-            // peptide_ids.push_back(tr.getPeptideRef());
-            // store in a map
-            peptide_ids[ tr.getPeptideRef() ] = 1;
-          }
+          peptide_ids.insert(tr.getPeptideRef());
         }
       }
     }
 
-    std::map<String, int> ProteinList;
     for (const auto& peptide : exp.getPeptides())
     {
       setProgress(++progress);
@@ -968,7 +967,7 @@ namespace OpenMS
         peptides.push_back(peptide);
         for (const auto& protein_ref : peptide.protein_refs)
         {
-          ProteinList[ protein_ref ] = 1;
+          ProteinList.insert(protein_ref);
         }
       }
       else
