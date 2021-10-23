@@ -214,11 +214,16 @@ if not iswin:
     extra_link_args.append("-std=c++17")
     extra_compile_args.append("-std=c++17")
     if isosx: # MacOS
+        extra_compile_args.append("-stdlib=libc++")
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
-        extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
+        extra_link_args.append("-mmacosx-version-min=10.9") # due to libc++
+        extra_compile_args.append("-Wno-deprecated")
+        extra_compile_args.append("-Wno-nullability-completeness")
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
             extra_link_args.append("-isysroot" + SYSROOT_OSX_PATH)
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
+    else:
+        extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
@@ -232,7 +237,7 @@ if not iswin:
     extra_compile_args.append("-Wno-deprecated-declarations")
     extra_compile_args.append("-Wno-missing-declarations")
     extra_compile_args.append("-Wno-int-in-bool-context")
-    extra_compile_args.append("-Wno-deprecated-copy")
+    
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
