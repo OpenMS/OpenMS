@@ -574,15 +574,13 @@ namespace OpenMS
     } // end loop over peptides
     endProgress();
 
-    MRMDecoy::TransitionVectorType filtered_decoy_transitions;
-    for (MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
-    {
-      if (exclusion_peptides.find(tr_it->getPeptideRef()) == exclusion_peptides.end())
+    decoy_transitions.erase( std::remove_if(
+      decoy_transitions.begin(), decoy_transitions.end(),
+      [&exclusion_peptides](const OpenMS::ReactionMonitoringTransition& tr)
       {
-        filtered_decoy_transitions.push_back(*tr_it);
-      }
-    }
-    dec.setTransitions(std::move(filtered_decoy_transitions));
+        return exclusion_peptides.find(tr.getPeptideRef()) != exclusion_peptides.end();
+      }), decoy_transitions.end());
+    dec.setTransitions(std::move(decoy_transitions));
 
     std::unordered_set<String> protein_ids;
     decoy_peptides.reserve(peptides.size());
