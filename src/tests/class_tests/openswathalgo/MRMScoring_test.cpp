@@ -70,23 +70,22 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& n
   native_ids.push_back("group1");
   native_ids.push_back("group2");
 
+  /*
   static const double arr1[] =
   {
     5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
     8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
   };
+
   std::vector<double> intensity1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] =
-  {
-    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
-    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
-  };
-  std::vector<double> intensity2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  static const double arr3[] =
-  {
-    0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0
-  };
-  std::vector<double> ms1intensity (arr3, arr3 + sizeof(arr3) / sizeof(arr3[0]) );
+  */
+  std::vector<double> intensity1 {5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+                                  8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392};
+
+  std::vector<double> intensity2 {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+                                  121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
+
+  std::vector<double> ms1intensity {0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0};
 
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
@@ -113,33 +112,18 @@ void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& 
   native_ids.push_back("group1");
   native_ids.push_back("group2");
 
-  static const double arr1[] =
-  {
-    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
-    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
-  };
-  std::vector<double> intensity1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] =
-  {
-    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
-    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
-  };
-  std::vector<double> intensity2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  static const double arr3[] =
-  {
-    0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0
-  };
-  std::vector<double> ms1intensity1 (arr3, arr3 + sizeof(arr3) / sizeof(arr3[0]) );
-  static const double arr4[] =
-  {
-    10.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0
-  };
-  std::vector<double> ms1intensity2 (arr4, arr4 + sizeof(arr4) / sizeof(arr4[0]) );
-  static const double arr5[] =
-  {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  };
-  std::vector<double> ms1intensity3 (arr5, arr5 + sizeof(arr5) / sizeof(arr5[0]) );
+
+  std::vector<double> intensity1 {5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+                                  8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392};
+
+  std::vector<double> intensity2 {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+                                  121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
+
+  std::vector<double> ms1intensity1 {0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0};
+
+  std::vector<double> ms1intensity2 {0.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0};
+
+  std::vector<double> ms1intensity3 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
@@ -251,13 +235,13 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrMatrix()[0][0].data.size(), 23)
+  TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 2)
+  TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 2)
+  TEST_EQUAL(mrmscore.getXCorrMatrix().getValue(0, 0).data.size(), 23)
 
   // test auto-correlation = xcorrmatrix_0_0
   const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-      mrmscore.getXCorrMatrix()[0][0];
+      mrmscore.getXCorrMatrix().getValue(0, 0);
 
   TEST_EQUAL(auto_correlation.data[11].first, 0)
   TEST_EQUAL(auto_correlation.data[12].first, 1)
@@ -273,7 +257,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 
   // test cross-correlation = xcorrmatrix_0_1
   const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-      mrmscore.getXCorrMatrix()[0][1];
+      mrmscore.getXCorrMatrix().getValue(0, 1);
 
   TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second, 
   TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second, 
@@ -298,8 +282,8 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().size(), 3)
-  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix()[0].size(), 2)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().rows(), 3)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().cols(), 2)
 }
 END_SECTION
 
@@ -316,8 +300,8 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().size(), 5)
-  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix()[0].size(), 5)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().rows(), 5)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().cols(), 5)
 }
 END_SECTION
 
@@ -333,13 +317,13 @@ BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getXCorrContrastMatrix().size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrContrastMatrix()[0].size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrContrastMatrix()[0][0].data.size(), 23)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix().rows(), 2)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix().cols(), 2)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix().getValue(0, 0).data.size(), 23)
 
   // test auto-correlation = xcorrmatrix_0_0
   const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-      mrmscore.getXCorrContrastMatrix()[0][0];
+      mrmscore.getXCorrContrastMatrix().getValue(0, 0);
   TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
   TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second, 
   TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
@@ -348,7 +332,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
 
   // // test cross-correlation = xcorrmatrix_0_1
   const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-      mrmscore.getXCorrContrastMatrix()[0][1];
+      mrmscore.getXCorrContrastMatrix().getValue(0, 1);
   TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second, 
   TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second, 
   TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second, 
@@ -682,13 +666,13 @@ mean(m4)
   mrmscore.initializeMIMatrix(imrmfeature, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getMIMatrix().size(), 2)
-  TEST_EQUAL(mrmscore.getMIMatrix()[0].size(), 2)
+  TEST_EQUAL(mrmscore.getMIMatrix().rows(), 2)
+  TEST_EQUAL(mrmscore.getMIMatrix().cols(), 2)
 
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][0], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][1], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][1], 3.4594)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][0], 0) // value not initialized for lower diagonal half of matrix
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 0), 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 1), 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 1), 3.4594)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 0), 0) // value not initialized for lower diagonal half of matrix
 }
 END_SECTION
 
@@ -705,8 +689,8 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
   mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().size(), 3)
-  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix()[0].size(), 2)
+  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
+  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
 }
 END_SECTION
 
@@ -723,8 +707,8 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorCombinedMatrix)
   mrmscore.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
   delete imrmfeature;
 
-  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().size(), 5)
-  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix()[0].size(), 5)
+  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().rows(), 5)
+  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().cols(), 5)
 }
 END_SECTION
 
@@ -740,10 +724,10 @@ BOOST_AUTO_TEST_CASE(initializeMIContrastMatrix)
   mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
   delete imrmfeature;
 
-  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][0], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][1], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[1][1], 3.4594)
-  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[1][0], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 0), 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 1), 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 1), 3.4594)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 0), 3.2776)
 }
 END_SECTION
 

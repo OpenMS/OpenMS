@@ -38,6 +38,7 @@
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <boost/numeric/conversion/cast.hpp>
 
+#include <OpenMS/OPENSWATHALGO/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
@@ -80,7 +81,7 @@ public:
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
-    typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
+    typedef OpenMS::Matrix<XCorrArrayType> XCorrMatrixType;
 
     typedef std::string String;
 
@@ -113,7 +114,7 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);
+    void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);     //andere matrix?
 
     /// Initialize the scoring object and building the cross-correlation matrix
     void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
@@ -220,23 +221,23 @@ public:
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
     /// non-mutable access to the MI matrix
-    const std::vector< std::vector<double> > & getMIMatrix() const;
+    const OpenMS::Matrix<double> & getMIMatrix() const;
     //@}
 
     /// non-mutable access to the MI contrast matrix
-    const std::vector< std::vector<double> > & getMIContrastMatrix() const;
+    const OpenMS::Matrix<double> & getMIContrastMatrix() const;
     //@}
 
     /// non-mutable access to the MI precursor contrast matrix
-    const std::vector< std::vector<double> > & getMIPrecursorContrastMatrix() const;
+    const OpenMS::Matrix<double> & getMIPrecursorContrastMatrix() const;
     //@}
 
     /// non-mutable access to the MI precursor combined matrix
-    const std::vector< std::vector<double> > & getMIPrecursorCombinedMatrix() const;
+    const OpenMS::Matrix<double> & getMIPrecursorCombinedMatrix() const;
     //@}
 
     /// Initialize the scoring object and building the MI matrix
-    void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
+    void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);  //ref?
 
     /// Initialize the scoring object and building the MI matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
     void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_set1, std::vector<String> native_ids_set2);
@@ -282,20 +283,20 @@ private:
     //@}
 
     /// the precomputed mutual information matrix
-    std::vector< std::vector<double> > mi_matrix_;
-
+    //std::vector< std::vector<double> > mi_matrix_;
+    OpenMS::Matrix<double> mi_matrix_;
     /// the precomputed contrast mutual information matrix
-    std::vector< std::vector<double> > mi_contrast_matrix_;
+    OpenMS::Matrix<double> mi_contrast_matrix_;
 
     /// the precomputed mutual information matrix of the MS1 trace
-    std::vector< std::vector<double> > mi_precursor_matrix_;
+    OpenMS::Matrix<double> mi_precursor_matrix_;
 
     /// the precomputed contrast mutual information matrix against the MS1 trace
-    std::vector< std::vector<double> > mi_precursor_contrast_matrix_;
+    OpenMS::Matrix<double> mi_precursor_contrast_matrix_;
     //@}
 
     /// the precomputed contrast mutual information matrix with the MS1 trace
-    std::vector< std::vector<double> > mi_precursor_combined_matrix_;
+    OpenMS::Matrix<double> mi_precursor_combined_matrix_;
     //@}
 
   };
