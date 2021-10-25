@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
@@ -46,6 +47,7 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -626,6 +628,54 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     return true;
+  }
+
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map)
+  {
+    //determine file type
+    FileTypes::Type type;
+    try
+    {
+      type = getType(filename);
+    }
+    catch ( Exception::FileNotFound& )
+    {
+      return false;
+    }
+
+    //store right file
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureXMLFile().store(filename, map);
+    }
+    else if (type == FileTypes::TSV)
+    {
+      MsInspectFile().store(filename, map);
+    }
+    else if (type == FileTypes::PEPLIST)
+    {
+      SpecArrayFile().store(filename, map);
+    }
+    else if (type == FileTypes::KROENIK)
+    {
+      KroenikFile().store(filename, map);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
+  {
+    ConsensusXMLFile().store(filename, map);
+  }
+
+  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
+  {
+    TraMLFile().store(filename, library);
   }
 
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)

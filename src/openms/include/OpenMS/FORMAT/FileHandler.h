@@ -45,6 +45,8 @@ namespace OpenMS
   class MSSpectrum;
   class MSExperiment;
   class FeatureMap;
+  class ConsensusMap;
+  class TargetedExperiment;
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -181,6 +183,42 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+    /**
+      @brief Store a FeatureMap
+
+      @param filename the file name of the file to write.
+      @param map The FeatureMap to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeFeatures(const String& filename, const FeatureMap& map);
+
+    /**
+      @brief Store a ConsensFeatureMap
+
+      @param filename the file name of the file to write.
+      @param map The ConsensusMap to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map);
+
+    /**
+      @brief Store transitions of a spectral library
+
+      @param filename the file name of the file to write.
+      @param map The TargetedExperiment to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeTransitions(const String& filename, const TargetedExperiment& library);
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.
