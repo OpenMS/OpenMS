@@ -237,13 +237,13 @@ public:
     //@}
 
     /// Initialize the scoring object and building the MI matrix
-    void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);  //ref?
+    void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
 
     /// Initialize the scoring object and building the MI matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
-    void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_set1, std::vector<String> native_ids_set2);
+    void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2);
 
     /// Initialize the scoring object and building the MI matrix
-    void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> precursor_ids);
+    void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids);
 
     /// Initialize the mutual information vector against the MS1 trace
     void initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);

@@ -560,7 +560,7 @@ namespace OpenSwath
     {
       intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
     }
-    //xc_precursor-combined_matrix_ is a triangle matrix
+    //xcorr_precursor-combined_matrix_ is a triangle matrix
     size_t element_number = xcorr_precursor_combined_matrix_.rows()*xcorr_precursor_combined_matrix_.rows()/2 + (xcorr_precursor_combined_matrix_.rows()+1)/2;
     return intensities / element_number;
   }
@@ -696,7 +696,7 @@ namespace OpenSwath
     return mi_precursor_combined_matrix_;
   }
 
-  void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids)
+  void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
   {
     std::vector<double> intensityi, intensityj;
     mi_matrix_.resize(native_ids.size(),native_ids.size());
@@ -719,7 +719,7 @@ namespace OpenSwath
     }
   }
 
-  void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_set1, std::vector<String> native_ids_set2)
+  void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2)
   { 
     std::vector<double> intensityi, intensityj;
     mi_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
@@ -742,7 +742,7 @@ namespace OpenSwath
     }
   }
 
-  void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> precursor_ids)
+  void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
   {
     std::vector<double> intensityi, intensityj;
     mi_precursor_matrix_.resize(precursor_ids.size(),precursor_ids.size());
