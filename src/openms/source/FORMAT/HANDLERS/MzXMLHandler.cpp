@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,8 @@
 #include <atomic>
 #include <stack>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     // class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
     struct IndexPos
@@ -153,8 +151,9 @@ namespace OpenMS
 
       //Skip all tags until the the next scan
       if (skip_spectrum_ && tag != "scan")
+      {
         return;
-
+      }
       if (tag == "msRun")
       {
         Int count = 0;
@@ -268,8 +267,9 @@ namespace OpenMS
         nesting_level_++;
 
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         // check if the scan is in the desired MS / RT range
         UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
         if (ms_level == 0)
@@ -366,9 +366,13 @@ namespace OpenMS
         else if (type == "Full")
         {
           if (ms_level > 1)
+          {
             spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          }
           else
+          {
             spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          }
         }
         else if (type == "SIM")
         {
@@ -495,8 +499,9 @@ namespace OpenMS
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name == "")
+        {
           return;
-
+        }
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
@@ -520,8 +525,9 @@ namespace OpenMS
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name == "")
+        {
           return;
-
+        }
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
@@ -569,8 +575,9 @@ namespace OpenMS
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)
+      {
         return;
-
+      }
       if (open_tags_.back() == "peaks")
       {
         //chars may be split to several chunks => concatenate them
@@ -639,7 +646,9 @@ namespace OpenMS
       {
         const SpectrumType& spec = (*cexp_)[s];
         if (spec.size() != 0)
+        {
           ++count_tmp_;
+        }
       }
       if (count_tmp_ == 0) ++count_tmp_;
 
@@ -700,7 +709,7 @@ namespace OpenMS
       {
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
-        // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
+        // Since the .getVendor() is usually empty, we infer this via the Acquisition Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
         if (options_.getForceMQCompatability() || 
             (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
@@ -942,8 +951,10 @@ namespace OpenMS
           type = "Full";
           warning(STORE, String("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
         }
-        if (!type.empty()) os << " scanType=\""<< type << "\"";
-
+        if (!type.empty())
+        {
+          os << " scanType=\""<< type << "\"";
+        }
         // filter line
         if (spec.metaValueExists("filter string"))
         {
@@ -954,7 +965,10 @@ namespace OpenMS
        
         // retention time
         os << " retentionTime=\"";
-        if (spec.getRT() < 0) os << "-";
+        if (spec.getRT() < 0)
+        {
+          os << "-";
+        }
         os << "PT" << std::fabs(spec.getRT()) << "S\"";
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
@@ -994,7 +1008,7 @@ namespace OpenMS
         if (!writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent") &&
             options_.getForceMQCompatability())
         {
-          writeKeyValue(os, "totIonCurrent", spec.getTIC());
+          writeKeyValue(os, "totIonCurrent", spec.calculateTIC());
         }
 
         if (ms_level == 2 &&
@@ -1042,7 +1056,7 @@ namespace OpenMS
         }
 
         // Note: Some parsers require the following line breaks (MaxQuants
-        // mzXML reader will fail otherwise! -- dont ask..) while others cannot
+        // mzXML reader will fail otherwise! -- don't ask..) while others cannot
         // deal with them (mostly TPP tools such as SpectraST).
         String s_peaks;
         if (options_.getForceMQCompatability())
@@ -1161,7 +1175,7 @@ namespace OpenMS
       }
 
       //remove whitespaces from binary data
-      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+      //this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
       spectrum_data.char_rest_.removeWhitespaces();
 
       if (spectrum_data.precision_ == "64")
@@ -1295,5 +1309,5 @@ namespace OpenMS
       String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
       cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
     }
-  }
-}
+} //namespace OpenMS //namespace Internal
+

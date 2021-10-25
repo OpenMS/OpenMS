@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ namespace OpenMS
     std::partial_sort(tmp.begin(),
                       tmp.begin() + n,
                       tmp.end(),
-                      reverseComparator(Peak2D::IntensityLess()));
+                      [](auto &left, auto &right) {Peak2D::IntensityLess cmp; return cmp(right, left);});
 
     for (Size element_index = 0; element_index < n; ++element_index)
     {
@@ -82,9 +82,14 @@ namespace OpenMS
     output_map.resize(input_map.size());
     output_map.DocumentIdentifier::operator=(input_map);
 
-    if (keep_uids) output_map.UniqueIdInterface::operator=(input_map);
-    else output_map.setUniqueId();
-
+    if (keep_uids)
+    {
+      output_map.UniqueIdInterface::operator=(input_map);
+    }
+    else
+    {
+      output_map.setUniqueId();
+    }
     output_map.setProteinIdentifications(input_map.getProteinIdentifications());
     output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
 
@@ -93,7 +98,10 @@ namespace OpenMS
       Feature& f = output_map[i];
       const ConsensusFeature& c = input_map[i];
       f.BaseFeature::operator=(c);
-      if (!keep_uids) f.setUniqueId();
+      if (!keep_uids)
+      {
+        f.setUniqueId();
+      }
     }
 
     output_map.updateRanges();

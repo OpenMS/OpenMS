@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -214,6 +214,17 @@ namespace OpenMS
 
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
+   /**
+       @brief Determine the RegEx string to extract scan/index number from native IDs. Can be used for extractScanNumber
+       
+       @param native_id RegEx string
+   */
+    static std::string getRegExFromNativeID(const String& id);
+
+    /**
+       @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
+    */
+    static bool isNativeID(const String& id);
 
   protected:
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -420,7 +420,10 @@ namespace OpenMS
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
-          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          if (intensity == 0.0)
+          {
+            continue; // skip zero-intensity peaks
+          }
           os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }

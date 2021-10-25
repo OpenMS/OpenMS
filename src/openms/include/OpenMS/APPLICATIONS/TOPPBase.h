@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
   */
   struct Citation
   {
-    std::string authors;    ///< list of authors in AMA style, i.e. `<surname>` `<initials>`, ...
+    std::string authors;    ///< list of authors in AMA style, i.e. "surname initials", ...
     std::string title;      ///< title of article
     std::string when_where; ///< suggested format: journal. year; volume, issue: pages
     std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
@@ -494,7 +494,7 @@ protected:
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
       when the option is accessed in the TOPP tool. 
-      This may also enable lookup on the PATH or skipping of the existance-check (see @p tags).
+      This may also enable lookup on the PATH or skipping of the existence-check (see @p tags).
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
@@ -504,7 +504,7 @@ protected:
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                       Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
-                                  @em 'is_executable' - checks existance of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                  @em 'is_executable' - checks existence of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
     */
     void registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -638,7 +638,7 @@ protected:
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
        @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
-                                   'is_executable' - checks existance of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                   'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
        */
     void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 

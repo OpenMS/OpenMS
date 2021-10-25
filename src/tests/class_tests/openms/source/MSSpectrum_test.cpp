@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1373,11 +1373,11 @@ START_SECTION(Iterator getBasePeak())
 END_SECTION
 
 
-START_SECTION(PeakType::IntensityType getTIC() const)
+START_SECTION(PeakType::IntensityType calculateTIC() const)
 {
-  auto r = spec_test.getTIC();
+  auto r = spec_test.calculateTIC();
   TEST_REAL_SIMILAR(r, 1032.0)
-  TEST_EQUAL(MSSpectrum().getTIC(), 0.0);
+  TEST_EQUAL(MSSpectrum().calculateTIC(), 0.0);
 }
 END_SECTION
 

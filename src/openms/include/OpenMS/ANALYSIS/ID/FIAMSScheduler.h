@@ -67,7 +67,7 @@ public:
       bool load_cached_ = true
     );
 
-    /// Default desctructor
+    /// Default destructor
     ~FIAMSScheduler() = default;
 
     /// Copy constructor

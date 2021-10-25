@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,10 @@ namespace OpenMS
     std::vector<float> mda_tmp_float;
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
-      if (float_data_arrays_[i].empty()) continue;
+      if (float_data_arrays_[i].empty())
+      {
+        continue;
+      }
       if (float_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
@@ -77,7 +80,10 @@ namespace OpenMS
     std::vector<String> mda_tmp_str;
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
-      if (string_data_arrays_[i].empty()) continue;
+      if (string_data_arrays_[i].empty())
+      {
+        continue;
+      }
       if (string_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
@@ -96,7 +102,10 @@ namespace OpenMS
     std::vector<Int> mda_tmp_int;
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
-      if (integer_data_arrays_[i].empty()) continue;
+      if (integer_data_arrays_[i].empty())
+      {
+        continue;
+      }
       if (integer_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
@@ -119,8 +128,10 @@ namespace OpenMS
   {
     SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
     // easy case: type is known
-    if (t != SpectrumSettings::UNKNOWN) return t;
-
+    if (t != SpectrumSettings::UNKNOWN)
+    {
+      return t;
+    }
     // Some conversion software only annotate "MS:1000525 spectrum representation" leading to an UNKNOWN type
     // Fortunately, some store a data processing item that indicates that the data has been picked
     for (auto& dp : getDataProcessing())
@@ -141,7 +152,10 @@ namespace OpenMS
   MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
   {
     ConstIterator largest = cbegin();
-    if (empty()) return largest;
+    if (empty())
+    {
+      return largest;
+    }
     ConstIterator current = cbegin();
     ++current;
     for (; current != cend(); ++current)
@@ -160,7 +174,7 @@ namespace OpenMS
     return begin() + std::distance(cbegin(), largest);
   }
 
-  MSSpectrum::PeakType::IntensityType MSSpectrum::getTIC() const
+  MSSpectrum::PeakType::IntensityType MSSpectrum::calculateTIC() const
   {
     return std::accumulate(cbegin(),
                            cend(),
@@ -223,8 +237,10 @@ namespace OpenMS
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
                               MSSpectrum::CoordinateType tolerance_right) const
   {
-    if (ContainerType::empty()) return -1;
-
+    if (ContainerType::empty())
+    {
+      return -1;
+    }
     // do a binary search for nearest peak first
     Size i = findNearest(mz);
 
@@ -238,12 +254,18 @@ namespace OpenMS
       }
       else
       {
-        if (i == this->size() - 1) return -1; // we are at the last peak which is too far left
+        if (i == this->size() - 1)
+        {
+          return -1; // we are at the last peak which is too far left
+        }
         // Nearest peak is too far left so there can't be a closer peak in the left window.
         // There still might be a peak to the right of mz that falls in the right window
         ++i;  // now we are at a peak exactly on or to the right of mz
         const double next_mz = this->operator[](i).getMZ();
-        if (next_mz <= mz + tolerance_right) return i;
+        if (next_mz <= mz + tolerance_right) 
+        {
+          return i;
+        }
       }
     }
     else
@@ -254,10 +276,16 @@ namespace OpenMS
       }
       else
       {
-        if (i == 0) return -1; // we are at the first peak which is too far right
+        if (i == 0)
+        {
+          return -1; // we are at the first peak which is too far right
+        }
         --i;  // now we are at a peak exactly on or to the right of mz
         const double next_mz = this->operator[](i).getMZ();
-        if (next_mz >= mz - tolerance_left) return i;
+        if (next_mz >= mz - tolerance_left)
+        {
+          return i;
+        }
       }
     }
 
@@ -267,7 +295,10 @@ namespace OpenMS
 
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance) const
   {
-    if (ContainerType::empty()) return -1;
+    if (ContainerType::empty())
+    {
+      return -1;
+    }
     Size i = findNearest(mz);
     const double found_mz = this->operator[](i).getMZ();
     if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
@@ -283,15 +314,21 @@ namespace OpenMS
   Size MSSpectrum::findNearest(MSSpectrum::CoordinateType mz) const
   {
     // no peak => no search
-    if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
-
+    if (ContainerType::size() == 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
+    }
     // search for position for inserting
     ConstIterator it = MZBegin(mz);
     // border cases
-    if (it == ContainerType::begin()) return 0;
-
-    if (it == ContainerType::end()) return ContainerType::size() - 1;
-
+    if (it == ContainerType::begin())
+    {
+      return 0;
+    }
+    if (it == ContainerType::end())
+    {
+      return ContainerType::size() - 1;
+    }
     // the peak before or the current peak are closest
     ConstIterator it2 = it;
     --it2;
@@ -308,8 +345,10 @@ namespace OpenMS
   Int MSSpectrum::findHighestInWindow(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
                               MSSpectrum::CoordinateType tolerance_right) const
   {
-    if (ContainerType::empty()) return -1;
-
+    if (ContainerType::empty())
+    {
+      return -1;
+    }
     // get left/right iterator
     auto left = this->MZBegin(mz - tolerance_left);
     auto right = this->MZEnd(mz + tolerance_right);
@@ -329,8 +368,10 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
-    if (chunks.size() == 1 && chunks[0].is_sorted) return;
-
+    if (chunks.size() == 1 && chunks[0].is_sorted)
+    {
+      return;
+    }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
@@ -371,8 +412,10 @@ namespace OpenMS
 
   void MSSpectrum::sortByPosition()
   {
-    if (isSorted()) return;
-
+    if (isSorted())
+    {
+      return;
+    }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
@@ -387,14 +430,19 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()))) return;
-    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess())) return;
-
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);}))
+    {
+      return;
+    }
+    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
+    {
+      return;
+    }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       if (reverse)
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
       }
       else
       {
@@ -445,8 +493,10 @@ namespace OpenMS
 
   MSSpectrum &MSSpectrum::operator=(const MSSpectrum &source)
   {
-    if (&source == this) return *this;
-
+    if (&source == this)
+    {
+      return *this;
+    }
     ContainerType::operator=(source);
     RangeManager<1>::operator=(source);
     SpectrumSettings::operator=(source);

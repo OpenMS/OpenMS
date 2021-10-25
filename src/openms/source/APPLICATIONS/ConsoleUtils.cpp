@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,8 +71,10 @@ namespace OpenMS
     // avoid calling this function more than once
     static bool been_here = false;
     if (been_here)
+    {
       return console_width_;
-
+    }
+    
     been_here = true;
 
     // determine column width of current console
@@ -171,7 +173,10 @@ namespace OpenMS
           line = line.substr(1);
           ++advance_size;
         } // advance by # of \n's
-        if (line.hasSubstring("\n")) line = line.prefix('\n');
+        if (line.hasSubstring("\n"))
+        {
+          line = line.prefix('\n');
+        }
         advance_size += line.size(); // + actual chars
       }
 
@@ -199,7 +204,7 @@ namespace OpenMS
       result.push_back((String(indentation, ' ') + String("..."))); //.fillRight(' ',(UInt) line_len));
       result.push_back(last);
     }
-    // remove last " " from last line to prevent automatic linebreak
+    // remove last " " from last line to prevent automatic line break
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
     return ListUtils::concatenate(result, "\n");
   }

@@ -330,7 +330,7 @@ mergeIntervals(TIntervals & intervals, const unsigned & thresholdGaps)
 	for (TPos i = 0; i < length(intervals) - 1; ++i)
 	{
 		j = i;
-		while ( (j < length(intervals) - 1) && (getValue(intervals, j).i2 + thresholdGaps >= getValue(intervals, j + 1).i1 - 1) )		// merges intervals, if the no. of gaps inbetween is smaller than threshold 
+		while ( (j < length(intervals) - 1) && (getValue(intervals, j).i2 + thresholdGaps >= getValue(intervals, j + 1).i1 - 1) )		// merges intervals, if the no. of gaps in between is smaller than threshold 
 		{
 			++j;
 		}

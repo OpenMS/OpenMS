@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 #endif
 
-#include <boost/math/special_functions/acosh.hpp>
+#include <boost/math/special_functions/acosh.hpp> // TODO replace with std::acosh
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
@@ -740,9 +740,7 @@ protected:
     d.picked_peaks = ms_exp;
     d.raw_data_first =  first;
 
-    //std::cout << "richtig hier" << std::endl;
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
-
 
     ParamValue pv = param_.getValue("penalties:position");
     if (pv.isEmpty() || pv.toString() == "")
@@ -837,14 +835,14 @@ protected:
 
         IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                                                         d.iso_map_iter->second.peaks.end(),
-                                                                        pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                        pair, [](auto& left, auto& right){return left.first < right.first;});   
 
 
         // find the last entry with this rt-value
         ++pair.first;
         IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                                                          d.iso_map_iter->second.peaks.end(),
-                                                                         pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                         pair, [](auto& left, auto& right){return left.first < right.first;});   
 
         while (set_iter != set_iter2)
         {
@@ -888,7 +886,7 @@ protected:
 
         set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
                                d.iso_map_iter->second.peaks.end(),
-                               pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                               pair, [](auto& left, auto& right){return left.first < right.first;});   
         Size p = 0;
         while (p < peak_shapes.size())
         {
@@ -976,7 +974,7 @@ protected:
       // get iterator in peaks-set that points to the first peak in the current scan
       IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                       iso_map_iter->second.peaks.end(),
-                                                                      pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                      pair, [](auto& left, auto& right){return left.first < right.first;});   
 
       // consider a bit more of the signal to the left
       first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
@@ -985,7 +983,7 @@ protected:
       ++pair.first;
       IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
                                                                        iso_map_iter->second.peaks.end(),
-                                                                       pair, PairComparatorFirstElement<IsotopeCluster::IndexPair>());
+                                                                       pair, [](auto& left, auto& right){return left.first < right.first;});   
 
       if (i == iso_map_iter->second.scans.size() - 1)
       {
@@ -1045,7 +1043,6 @@ protected:
       d.signal2D.push_back(right);
     }
 #ifdef DEBUG2D
-    //std::cout << "fertig"<< std::endl;
     std::cout << first_peak_mz << "\t" << last_peak_mz << std::endl;
 #endif
   }

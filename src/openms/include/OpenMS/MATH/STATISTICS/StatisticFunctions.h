@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,17 +42,12 @@
 #if OPENMS_BOOST_VERSION_MINOR >= 64
 #include <boost/serialization/array_wrapper.hpp>
 #endif
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/covariance.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/statistics/variates/covariate.hpp>
 #include <boost/function/function_base.hpp>
 #include <boost/lambda/casts.hpp>
 #include <boost/lambda/lambda.hpp>
 
 #include <iterator>
+#include <numeric>
 #include <algorithm>
 
 namespace OpenMS

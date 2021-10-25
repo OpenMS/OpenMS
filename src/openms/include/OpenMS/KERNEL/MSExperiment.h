@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -348,6 +348,43 @@ public:
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<std::vector<float>>& mz, 
+      std::vector<std::vector<float>>& intensity) const
+    {
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t) 
+        {
+          t = it.getRT();
+          rt.emplace_back(t);
+          mz.resize(mz.size() + 1); 
+          rt.resize(rt.size() + 1);
+          intensity.resize(intensity.size() + 1);
+        }
+        mz.back().emplace_back(it->getMZ());
+        intensity.back().emplace_back(it->getIntensity());
+      }
+    }
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<float>& mz, 
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.emplace_back(it.getRT());
+        mz.emplace_back(it->getMZ());
+        intensity.emplace_back(it->getIntensity());
+      }
+    }
+
+
     /**
       @brief Fast search for spectrum range begin
 
@@ -537,14 +574,16 @@ public:
     //@}
 
     /**
-    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    @brief Computes the total ion chromatogram (TIC) for a given MS level (use ms_level = 0 for all levels). 
 
-    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    If a bin size in RT seconds greater than 0 is given resampling is used.
 
-    @param bin_size RT bin size in seconds
+    @param bin_size RT bin size in seconds (0 = no resampling)
+    @param ms_level MS level of spectra for calculation (0 = all levels)
     @return TIC Chromatogram
     **/
-    const MSChromatogram getTIC(float rt_bin_size = 0) const;
+    const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
 
     /**
       @brief Clears all data and meta data
@@ -559,7 +598,7 @@ public:
     /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a peptideID?
+    /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
 
   protected:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,7 +225,7 @@ public:
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
     ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - Sytem temp directory (usually defined by environment 'TMP' or 'TEMP'
+    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)

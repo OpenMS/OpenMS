@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -648,7 +648,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values)
   {
-    // iterature through each sample and accumulate the min/max values in the samples in the filter_template
+    // iterate through each sample and accumulate the min/max values in the samples in the filter_template
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
 
       // iterate through each component_group/feature
@@ -855,7 +855,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
     accumulateFilterValues(filter_values, samples, filter_template, transitions);
 
@@ -873,7 +873,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
     accumulateFilterValues(filter_values, samples, filter_template, transitions);
 
@@ -1056,7 +1056,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
       MRMFeatureQC filter_value = filter_template;
 
@@ -1263,7 +1263,7 @@ namespace OpenMS
         }
       }
     }
-    for (size_t cg_qc_it = 0; cg_qc_it < filter_mean.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed seperately due to int types...)
+    for (size_t cg_qc_it = 0; cg_qc_it < filter_mean.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l / filter_values.size();
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u / filter_values.size();
       filter_mean.component_group_qcs.at(cg_qc_it).intensity_l = filter_mean.component_group_qcs.at(cg_qc_it).intensity_l / filter_values.size();
@@ -1347,7 +1347,7 @@ namespace OpenMS
         }
       }
     }
-    for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed seperately due to int types...)
+    for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_var.component_group_qcs.at(cg_qc_it).retention_time_l = filter_var.component_group_qcs.at(cg_qc_it).retention_time_l / (filter_values.size() - 1);
       filter_var.component_group_qcs.at(cg_qc_it).retention_time_u = filter_var.component_group_qcs.at(cg_qc_it).retention_time_u / (filter_values.size() - 1);
       filter_var.component_group_qcs.at(cg_qc_it).intensity_l = filter_var.component_group_qcs.at(cg_qc_it).intensity_l / (filter_values.size() - 1);

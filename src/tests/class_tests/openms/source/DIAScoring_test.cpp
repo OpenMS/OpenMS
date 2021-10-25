@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,6 +246,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   //
   TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -274,6 +275,7 @@ START_SECTION([EXTRA] forward negative charge: void dia_isotope_scores(const std
   //
   TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -302,6 +304,7 @@ START_SECTION([EXTRA] forward negative charge: void dia_isotope_scores(const std
     //
     TEST_REAL_SIMILAR(isotope_corr, 0.717092518007138)
     TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+    delete imrmfeature_test;
   }
 END_SECTION
 
@@ -329,6 +332,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   // (0.959570883150479, 0.0096989307464742554)
   TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
   TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -352,7 +356,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   // see above for the two individual numbers (forward and backward)
   TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618 * 0.7 + 0.959692139694113 * 0.3)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0 * 0.7 + 1.0 * 0.3)
-
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -421,6 +425,7 @@ START_SECTION (void dia_massdiff_score(const std::vector< TransitionType > &tran
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
+  delete imrmfeature_test;
 
   // create transitions, e.g. library intensity
   std::vector<OpenSwath::LightTransition> transitions;

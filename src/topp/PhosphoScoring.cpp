@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -313,24 +313,24 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp.getSpectra());
 
-    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    for (const PeptideIdentification& pep : pep_ids)
     {
-      Size scan_id = lookup.findByRT(pep_id->getRT());
+      Size scan_id = lookup.findByRT(pep.getRT());
       PeakSpectrum& temp = exp.getSpectrum(scan_id);
       
       vector<PeptideHit> scored_peptides;
-      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
+      for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit scored_hit = *hit;
-        addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
+        PeptideHit scored_hit = hit;
+        addScoreToMetaValues_(scored_hit, pep.getScoreType()); // backup score value
         
-        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep.getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);
       }
 
-      PeptideIdentification new_pep_id(*pep_id);
+      PeptideIdentification new_pep_id(pep);
       new_pep_id.setScoreType("PhosphoScore");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);

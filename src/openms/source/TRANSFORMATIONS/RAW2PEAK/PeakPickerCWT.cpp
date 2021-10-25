@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,7 +250,9 @@ namespace OpenMS
       {
         max_pos = (direction > 0) ? (i - distance_from_scan_border) : i;
         if (first + max_pos < first || first + max_pos >= last)
+        {
           break;
+        }
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "MAX in CWT at " << (first + max_pos)->getMZ() << " with " << wt[i]
                   << std::endl;
@@ -910,11 +912,15 @@ namespace OpenMS
 
     //std::vector<double>::iterator checker;
     while (wt.getSignal()[start + 1].getMZ() <= first->getMZ())
+    {
       ++start;
+    }
     //k=i;
     Int offset = start;
     while (wt.getSignal()[end].getMZ() > last->getMZ())
+    {
       --end;
+    }
     for (i = start; i != end; i += direction, k += direction)
     {
 
@@ -974,7 +980,9 @@ namespace OpenMS
       dif /= peaks - 1;
       charge = (Int) Math::round(1 / dif);
       if (boost::math::isnan((double)charge) || boost::math::isinf((double)charge))
+      {
         charge = 0;
+      }
 #ifdef DEBUG_DECONV
       std::cout << "1/dif = " << 1 / dif << ";\tcharge = " << charge << std::endl;
 #endif
@@ -1000,10 +1008,13 @@ namespace OpenMS
 
     // for separate overlapping peak correlate until the max position...
     if (direction > 0)
+    {
       corr_end = area.max;
+    }
     else if (direction < 0)
+    {
       corr_begin = area.max;
-
+    }
     for (PeakIterator pi = corr_begin; pi <= corr_end; ++pi)
     {
       double data_val = pi->getIntensity();
@@ -1021,8 +1032,9 @@ namespace OpenMS
     }
 
     if (number_of_points == 0)
+    {
       return 0.;
-
+    }
     data_average /= number_of_points;
     fit_average  /= number_of_points;
 
@@ -1098,8 +1110,9 @@ namespace OpenMS
 
     // nearly empty spectra shouldn't be picked
     if (input.size() < 2)
+    {
       return;
-
+    }
     //set up meta data arrays
     output.getFloatDataArrays().clear();
     output.getFloatDataArrays().resize(7);
@@ -1331,7 +1344,9 @@ namespace OpenMS
                     std::cout << " too small fwhm" << std::endl;
 #endif
                     if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                    {
                       peaks_to_skip.insert(i);
+                    }
                   }
                 }
                 else
@@ -1340,7 +1355,9 @@ namespace OpenMS
                   std::cout << "distance not ok" << dist_left << ' ' << peak_shapes[i - 1].mz_position << std::endl;
 #endif
                   if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                  {
                     peaks_to_skip.insert(i);
+                  }
                 }
               }
               else
@@ -1365,7 +1382,9 @@ namespace OpenMS
                       std::cout << "too small fwhm"  << std::endl;
 #endif
                       if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                      {
                         peaks_to_skip.insert(i);
+                      }
                     }
                   }
                   else
@@ -1374,7 +1393,9 @@ namespace OpenMS
                     std::cout << "distance not ok" << dist_right << ' ' << peak_shapes[i + 1].mz_position << std::endl;
 #endif
                     if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                    {
                       peaks_to_skip.insert(i);
+                    }
                   }
                 }
                 // no neighbor
@@ -1384,7 +1405,9 @@ namespace OpenMS
                   std::cout << "no neighbor" << std::endl;
 #endif
                   if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                  {
                     peaks_to_skip.insert(i);
+                  }
                 }
               }
             }
@@ -1464,15 +1487,17 @@ namespace OpenMS
     }
 
     // now sort the index_tic_vec according to tic and get the three highest spectra
-    sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
+    sort(index_tic_vec.begin(), index_tic_vec.end(), [](auto& left, auto& right){return left.second < right.second;});
     
     std::vector<double> best_FWHMs;
     for (Size vec_idx = 0; vec_idx < 3 && vec_idx < index_tic_vec.size(); ++vec_idx)
     {
       std::pair<Size, double> tic = index_tic_vec[vec_idx];
       // skip empty spectra
-      if (tic.second == 0) continue;
-
+      if (tic.second == 0)
+      {
+        continue;
+      }
       std::vector<Size> peak_counts;
 #ifdef DEBUG_PEAK_PICKING2
       std::cout << "RT: " << input[tic.first].getRT() << "\n";

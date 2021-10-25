@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Factory.h>
+
+#include <unsupported/Eigen/NonLinearOptimization>
 
 namespace OpenMS
 {
@@ -144,8 +146,9 @@ namespace OpenMS
   EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -161,9 +164,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -319,8 +326,9 @@ namespace OpenMS
     // sum over all intensities
     CoordinateType sum = 0.0;
     for (Size i = 0; i < set.size(); ++i)
+    {
       sum += set[i].getIntensity();
-
+    }
     // calculate the median
     Size median = 0;
     float count = 0.0;
@@ -328,7 +336,9 @@ namespace OpenMS
     {
       count += set[i].getIntensity();
       if (count <= sum / 2)
+      {
         median = i;
+      }
     }
 
     double max_peak_width = fabs(set[set.size() - 1].getPos() - set[median].getPos()); // cannot be wider than this

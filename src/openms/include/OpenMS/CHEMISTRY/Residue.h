@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -308,6 +308,14 @@ public:
 
     /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
     void setModification(const ResidueModification* mod);
+
+    /// sets the modification by looking for an exact match in the DB first, otherwise creating a
+    /// new entry
+    void setModification(const ResidueModification& mod);
+
+    /// sets a modification by monoisotopic mass difference. Searches in DBs first with a tolerance.
+    /// If not found, creates a new entry with name = OneLetterResidueCode[+/-diffMonoMass] and adds this as user-defined mod.
+    void setModificationByDiffMonoMass(double diffMonoMass);
     
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;

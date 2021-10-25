@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -305,6 +305,18 @@ START_SECTION(void setModification(const String& name))
 	TEST_EQUAL(e_ptr->getModificationName(), "")
 	TEST_EQUAL(e_ptr->getModification() == nullptr, true)
 	e_ptr->setModification("Oxidation");
+	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
+	e_ptr->setOneLetterCode("C"); // TODO Why do we allow setting of the OneLetterCode?? This should be const after construction!
+	// TODO Shouldn't the modification be re-checked or deleted if the OneLetterCode changes???
+END_SECTION
+
+START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
+	e_ptr->setModificationByDiffMonoMass(-1000000);
+	TEST_EQUAL(e_ptr->getModificationName(), "")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "C[-1.0e06]")
+	e_ptr->setOneLetterCode("M"); // we need M for the next mod to be findable
+	e_ptr->setModificationByDiffMonoMass(15.9949);
 	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
 	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
@@ -660,6 +672,8 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIon), "z-ion")
 }
 END_SECTION
+
+delete e_ptr;
 
 END_TEST
 

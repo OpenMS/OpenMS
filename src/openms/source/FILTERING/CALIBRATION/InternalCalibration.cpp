@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,10 @@ namespace OpenMS
             Size s_left = it->findNearest(mz_iso_left);
             if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
             { // peak nearby lock mass was not the monoisotopic
-              if (verbose) OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              if (verbose)
+              {
+                OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              }
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 1.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -157,7 +160,10 @@ namespace OpenMS
             Size s_right = it->findNearest(mz_iso_right);
             if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
             { // peak has no +1iso.. weird
-              if (verbose) OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              if (verbose)
+              {
+                OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              }
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 2.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -192,8 +198,14 @@ namespace OpenMS
     {
       const std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
       double mz_ref;
-      if (ids.empty()) continue;
-      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref)) continue;
+      if (ids.empty())
+      {
+        continue;
+      }
+      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref))
+      {
+        continue;
+      }
       cal_data_.insertCalibrationPoint(f.getRT(), f.getMZ(), f.getIntensity(), mz_ref, log(f.getIntensity()));
     }
 
@@ -255,8 +267,14 @@ namespace OpenMS
     double delta = Math::getPPMAbs(mz_obs, mz_ref);
     if (tol_ppm < delta)
     {
-      if (stats.cnt_decal < 10) OPENMS_LOG_INFO << "Peptide " << pid.getHits()[0].getSequence().toString() << " is " << delta << " (>" << tol_ppm << ") ppm away from theoretical mass and is omitted as calibration point.\n";
-      else if (stats.cnt_decal == 10) OPENMS_LOG_INFO << "More than 10 peptides are at least " << tol_ppm << " ppm away from theoretical mass and are omitted as calibration point.";
+      if (stats.cnt_decal < 10)
+      {
+        OPENMS_LOG_INFO << "Peptide " << pid.getHits()[0].getSequence().toString() << " is " << delta << " (>" << tol_ppm << ") ppm away from theoretical mass and is omitted as calibration point.\n";
+      }
+      else if (stats.cnt_decal == 10)
+      {
+        OPENMS_LOG_INFO << "More than 10 peptides are at least " << tol_ppm << " ppm away from theoretical mass and are omitted as calibration point.";
+      }
       ++stats.cnt_decal;
       return true;
     }
@@ -376,8 +394,14 @@ namespace OpenMS
           std::vector<MZTrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
           std::vector<MZTrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), MZTrafoModel::isValidModel);
           Size dist_right(0), dist_left(0);
-          if (it_right != tms.end()) dist_right = std::distance(it_center_r, it_right);
-          if (it_left != tms.rend()) dist_left  = std::distance(it_center_l, it_left);
+          if (it_right != tms.end())
+          {
+            dist_right = std::distance(it_center_r, it_right);
+          }
+          if (it_left != tms.rend())
+          {
+            dist_left  = std::distance(it_center_l, it_left);
+          }
           Size model_index;
           if (((dist_left <= dist_right) || dist_right == 0) && dist_left != 0) // left is closer in #spectra, i.e. time; or is the only valid direction
           {
@@ -392,7 +416,13 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size j = 0; j < tms.size(); ++j) if (!MZTrafoModel::isValidModel(tms[j])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
+        for (Size j = 0; j < tms.size(); ++j)
+        {
+          if (!MZTrafoModel::isValidModel(tms[j]))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
+          }
+        }
       }
     }
     endProgress();
@@ -421,9 +451,18 @@ namespace OpenMS
         for (Size i = 0; i < tms.size(); ++i)
         {
           sv << tms[i].getRT() << tms[i].toString();
-          if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
-          else if (invalid_models.count(i) > 0) sv << "neighbor";
-          else sv << "local";
+          if (!MZTrafoModel::isValidModel(tms[i]))
+          {
+            sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
+          }
+          else if (invalid_models.count(i) > 0)
+          {
+            sv << "neighbor";
+          }
+          else 
+          {
+            sv << "local";
+          }
           sv << nl;
         }
       }
@@ -455,8 +494,11 @@ namespace OpenMS
     std::vector<double> vec_ppm_before, vec_ppm_after;
     vec_ppm_before.reserve(cal_data_.size());
     vec_ppm_after.reserve(cal_data_.size());
-    if (sv != nullptr) *sv << "# residual error after calibration" << nl
+    if (sv != nullptr)
+    {
+      *sv << "# residual error after calibration" << nl
                         << "RT" << "intensity" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+    }
     Size ii(0);
     for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
     {
@@ -465,7 +507,10 @@ namespace OpenMS
       Size idx = (global_model ? 0 : MZTrafoModel::findNearest(tms, rt));
 
       double mz_corrected = std::numeric_limits<double>::quiet_NaN();
-      if (MZTrafoModel::isValidModel(tms[idx])) mz_corrected = tms[idx].predict(itc->getMZ());
+      if (MZTrafoModel::isValidModel(tms[idx]))
+      {
+        mz_corrected = tms[idx].predict(itc->getMZ());
+      }
       double mz_ref = cal_data_.getRefMZ(ii);
       double ppm_before = Math::getPPM(itc->getMZ(), mz_ref);
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);
@@ -499,8 +544,10 @@ namespace OpenMS
     if (!hasValidModels)
     { // QC tables are done; quit
       OPENMS_LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
-      if (use_RANSAC) OPENMS_LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
-
+      if (use_RANSAC)
+      {
+        OPENMS_LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
+      }
       return false;
     }
 

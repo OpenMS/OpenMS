@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,10 +85,14 @@ namespace OpenMS
     // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
     double pre_mz1 = 0.0;
     if (!spec1.getPrecursors().empty())
+    {
       pre_mz1 = spec1.getPrecursors()[0].getMZ();
+    }
     double pre_mz2 = 0.0;
     if (!spec2.getPrecursors().empty())
+    {
       pre_mz2 = spec2.getPrecursors()[0].getMZ();
+    }
     if (fabs(pre_mz1 - pre_mz2) > (double)param_.getValue("precursor_mass_tolerance"))
     {
       return 0;
@@ -220,7 +224,7 @@ namespace OpenMS
       best_score = max(best_score, matrix.getValue(i, matrix.cols() - 1));
     }
 
-    //calculate selfalignment-scores for both input spectra
+    //calculate self-alignment scores for both input spectra
     double score_spec1(0), score_spec2(0);
     for (Size i = 0; i < spec1.size(); ++i)
     {
@@ -423,7 +427,7 @@ namespace OpenMS
 
   double PeakAlignment::peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const
   {
-    //scoring formula : peakintensity score * peakposition score
+    //scoring formula : peak intensity score * peak position score
     double pi(sqrt(intens1 * intens2));
     double pp((1 / (sigma * sqrt(2 * Constants::PI))) * exp(-(fabs(pos1 - pos2)) / 2 * sigma * sigma));
 

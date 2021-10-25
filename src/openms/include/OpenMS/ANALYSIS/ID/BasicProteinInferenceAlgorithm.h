@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,9 +37,11 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
+
   /** \brief Algorithm class that implements simple protein inference by aggregation of peptide scores.
    * It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
    * and if you want to use shared peptides ("use_shared_peptides").
@@ -61,6 +63,8 @@ namespace OpenMS
   {
     public:
 
+    typedef std::unordered_map<std::string, std::map<Int, PeptideHit*>> SequenceToChargeToPSM;
+
     /**
      * @brief The aggregation method
      */
@@ -68,24 +72,41 @@ namespace OpenMS
     {
       PROD, ///< aggregate by product (ignore zeroes)
       SUM, ///< aggregate by summing
-      MAXIMUM ///< aggregate by maximum
+      BEST ///< aggregate by maximum/minimum
     };
 
     /// Default constructor
     BasicProteinInferenceAlgorithm();
 
-    /// main method of BasicProteinInferenceAlgorithm
-    /// inputs are not const, since it will get annotated with results
-    /// annotation of protein groups is currently only possible for a single protein ID run
-    void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids) const;
-    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id) const;
+    /**
+     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_ids.
+     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
+     * Associations (via getIdentifier) for peptides to protein runs need to be correct.
+     */
+    void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
+
+    /**
+     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_id.
+     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
+     * Associations (via getIdentifier) for peptides to protein runs need to be correct.
+     */
+    void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id) const;
+
+    /**
+     * Performs the actual inference based on best psm per peptide in @p cmap for proteins from @p prot_id.
+     * Ideally @p prot_id is the union of proteins in all runs of @p cmap.
+     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
+     * Associations (via getIdentifier) for peptides to protein runs ARE IGNORED and all pep_ids used.
+     * @todo allow checking matching IDs
+     */
+    void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
 
   private:
 
     /**
-     * @brief Performs simple inference on one protein run.
+     * @brief Performs simple aggregation-based inference on one protein run.
      * @param acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
-     *  and number of peptidoforms encountered @Todo could use member as hash to save strings
+     *  and number of peptidoforms encountered
      * @param best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
      *  best PeptideHit pointer
      * @param prot_run The current run to process
@@ -93,9 +114,54 @@ namespace OpenMS
      */
     void processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
-      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      SequenceToChargeToPSM& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids,
-      Size min_peptides_per_protein) const;
+      std::vector<PeptideIdentification>& pep_ids) const;
+
+    /**
+     * @brief fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
+     * @param best_pep (mod.) sequence to charge to pointer of best PSM (PeptideHit*)
+     * @param pep_ids the spectra with PSMs
+     * @param overall_score_type the pre-determined type name to raise an error if mixed types occur
+     * @param higher_better if for this score type higher is better
+     * @param run_id only process peptides associated with this run_id (e.g. proteinID run getIdentifier())
+     */
+    void aggregatePeptideScores_(
+        SequenceToChargeToPSM& best_pep,
+        std::vector<PeptideIdentification>& pep_ids,
+        const String& overall_score_type,
+        bool higher_better,
+        const std::string& run_id) const;
+
+    /**
+     * @brief aggregates and updates protein scores based on aggregation settings and aggregated peptide level results in
+     * prefilled @p best_pep
+     * @param acc_to_protein_hitP_and_count the results to fill
+     * @param best_pep best psm per peptide to read the score
+     * @param pep_scores if the score is a posterior error probability -> Auto-converts to posterior probability
+     * @param higher_better if for the score higher is better. Assume score is unconverted.
+     */
+    void updateProteinScores_(
+        std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
+        const SequenceToChargeToPSM& best_pep,
+        bool pep_scores,
+        bool higher_better) const;
+
+    /// get the AggregationMethod enum from a @p method_string
+    AggregationMethod aggFromString_(const std::string& method_string) const;
+
+    /// check if a @p score_type is compatible to the chosen @p aggregation_method
+    /// I.e. only probabilities can be used for multiplication
+    void checkCompat_(
+        const String& score_type,
+        const AggregationMethod& aggregation_method
+        ) const;
+
+    /// get the initial score value based on the chosen @p aggregation_method, @p higher_better is needed for "best" score
+    double getInitScoreForAggMethod_(const AggregationMethod& aggregation_method, bool higher_better) const;
+
+    /// get lambda function to aggregate scores
+    typedef double (*fptr)(double, double);
+    fptr aggFunFromEnum_(const BasicProteinInferenceAlgorithm::AggregationMethod& agg_method, bool higher_better) const;
   };
 } //namespace OpenMS

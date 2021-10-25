@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #    cdef AutowrapConstPtrHolder[_ElementDB] inst
 
+        # private
+        ElementDB() nogil except + # wrap-ignore
+        # private 
         ElementDB(ElementDB) nogil except + #wrap-ignore
 
         # No wrapping of const ref
@@ -19,8 +22,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
         const Element * getElement(const String & name) nogil except +
         const Element * getElement(UInt atomic_number) nogil except +
-        bool hasElement(const String & name) nogil except +
-        bool hasElement(UInt atomic_number) nogil except +
+        bool hasElement(const String & name) nogil except + # wrap-doc:Returns true if the db contains an element with the given name, else false
+        bool hasElement(UInt atomic_number) nogil except + # wrap-doc:Returns true if the db contains an element with the given atomic_number, else false
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS::ElementDB":

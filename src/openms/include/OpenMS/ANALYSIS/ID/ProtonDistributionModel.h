@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ namespace OpenMS
 
       Details and the proton affinities can be found in
       Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
-  Anal. Chem., 76 (14), 3908 - 3922, 2004
+      Anal. Chem., 76 (14), 3908 - 3922, 2004
 
       A proton distribution can be calculated using the getProtonDistribution method. The backbone
       probabilities are reported in the first parameter (index 0 for the N-terminus, index 1 for the

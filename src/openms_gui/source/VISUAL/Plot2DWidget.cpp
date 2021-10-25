@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -230,67 +230,80 @@ namespace OpenMS
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
-          if (it->getName() == name)
+          continue;
+        }
+        //float arrays
+        for (const OpenMS::DataArrays::FloatDataArray& fdat : s_it->getFloatDataArrays())
+        {
+          if (fdat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < fdat.size(); ++i)
             {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
+              if (fdat[i] < min)
+              {
+                min = fdat[i];
+              }
+              if (fdat[i] > max)
+              {
+                max = fdat[i];
+              }
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& dat : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
+              if (dat[i] < min)
+              {
+                min = dat[i];
+              }
+              if (dat[i] > max)
+              {
+                max = dat[i];
+              }
             }
             break;
           }
         }
       }
       if (min >= max)
+      {
         return tmp;
-
+      }
       //create histogram
       tmp.reset(min, max, (max - min) / 500.0);
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
-          if (it->getName() == name)
+          continue;
+        }
+        //float arrays
+        for (const OpenMS::DataArrays::FloatDataArray& dat : s_it->getFloatDataArrays())
+        {
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc(dat[i]);
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& idat : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (idat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < idat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc(idat[i]);
             }
             break;
           }
@@ -307,9 +320,13 @@ namespace OpenMS
         {
           float value = it->getMetaValue(name);
           if (value < min)
+          {
             min = value;
+          }
           if (value > max)
+          {
             max = value;
+          }
         }
       }
       //create histogram
@@ -449,7 +466,10 @@ namespace OpenMS
       {
         goto_dialog.fixRange();
         PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
+        if (goto_dialog.checked())
+        {
+          correctAreaToObeyMinMaxRanges_(area);
+        }
         canvas()->setVisibleArea(area);
       }
       else
@@ -461,9 +481,13 @@ namespace OpenMS
 
         Size feature_index(-1); // TODO : not use -1
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        {
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        {
           feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         if (feature_index == Size(-1)) // UID does not exist
         {
           try

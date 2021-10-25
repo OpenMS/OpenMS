@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS
     /**
       Constructor for a single vertical line of 1px width.
 
-      @param pos X-coordinate as show on the axis
+      @param x_pos X-coordinate as show on the axis
       @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
       @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
     **/ 
@@ -59,7 +59,7 @@ namespace OpenMS
     /**
       Constructor for a single vertical line of 1px width or a broader line (band) with the given width
 
-      @param pos X-coordinate of the center as show on the axis
+      @param x_center_pos X-coordinate of the center as show on the axis
       @param width Full width of the band; use 0 or 1 for a 1px line.
       @param alpha255 A transparency value from 0 (not visible), to 255 (fully opaque)
       @param dashed_line Should the line/band be dashed

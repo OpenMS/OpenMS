@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,6 @@ namespace OpenMS
       @param name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
       @param adduct Formula of the adduct, e.g. '2K-H'
       @param charge The charge (must not be 0; can be negative), e.g. 1
-      @param is_intrinsic True for a molecule without an explicit adduct, e.g. 'M;-1'
       @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
 
     **/
@@ -360,7 +359,7 @@ private:
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const;
+    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;

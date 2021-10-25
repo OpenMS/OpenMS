@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -277,10 +277,13 @@ namespace OpenMS
     {
       ToolListType tools;
       if (toolname == "GenericWrapper")
+      {
         tools = getTOPPToolList(true);
+      }
       else
+      {
         tools = getTOPPToolList();
-
+      }
       if (tools.has(toolname))
       {
         return tools[toolname].types;
@@ -340,9 +343,13 @@ namespace OpenMS
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
         if (i == 0 && i_t == 0)
-          tools_external_ = tools[i_t]; // init
+          {
+            tools_external_ = tools[i_t]; // init
+          }
         else
-          tools_external_.append(tools[i_t]); // append
+          {
+            tools_external_.append(tools[i_t]); // append
+          }
       }
     }
     tools_external_.name = "GenericWrapper";
