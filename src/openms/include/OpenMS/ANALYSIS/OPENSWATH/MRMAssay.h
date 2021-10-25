@@ -42,6 +42,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp> // cannot remove this since tests fail otherwise
 
 // #define DEBUG_MRMASSAY
 
@@ -83,16 +84,16 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
-    typedef std::unordered_map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
-    typedef std::unordered_map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows
+    typedef boost::unordered_map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
+    typedef boost::unordered_map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows
 
     typedef std::vector<std::pair<double, std::string> > FragmentSeqMap; ///< Describes a fragment sequence map of : "fragment m/z" -> "modified sequence"
-    typedef std::unordered_map<size_t, std::unordered_map<String, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows
+    typedef boost::unordered_map<size_t, boost::unordered_map<String, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows
 
     typedef std::vector<std::pair<std::string, double> > IonSeries; ///< Describes an ion series: "ion_type" -> "fragment m/z"
     typedef std::map<String, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
 
-    typedef std::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
+    typedef boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
 
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
@@ -348,7 +349,7 @@ protected:
 
     */
     void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                 std::unordered_map<String, String>& DecoySequenceMap,
+                                 boost::unordered_map<String, String>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -372,7 +373,7 @@ protected:
                                    int round_decPow,
                                    TargetDecoyMapT& TargetDecoyMap,
                                    PeptideMapT& TargetPeptideMap,
-                                   std::unordered_map<String, String>& DecoySequenceMap,
+                                   boost::unordered_map<String, String>& DecoySequenceMap,
                                    IonMapT& DecoyIonMap,
                                    PeptideMapT& DecoyPeptideMap);
 
