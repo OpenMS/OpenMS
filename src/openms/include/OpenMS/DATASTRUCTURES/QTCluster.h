@@ -380,5 +380,9 @@ public:
   };
 
   // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
+  static inline bool operator<(const QTCluster& q1, const QTCluster& q2)
+  {
+    return q1.getCurrentQuality() < q2.getCurrentQuality();
+  }
+
 } // namespace OpenMS
