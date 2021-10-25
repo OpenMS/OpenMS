@@ -88,7 +88,7 @@ namespace OpenMS
       double cut_off = DBL_MAX;
 
       /// the suitability of the database used for identification search, calculated with:
-      ///               #db_hits / (#db_hits + #deNovo_hit)
+      ///               \#db_hits / (\#db_hits + \#deNovo_hit)
       /// can reach from 0 -> the database was not at all suited to 1 -> the perfect database was used
       ///
       /// Preliminary tests have shown that databases of the right organism or close related organisms

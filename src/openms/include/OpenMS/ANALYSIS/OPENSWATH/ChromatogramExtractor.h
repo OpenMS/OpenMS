@@ -557,7 +557,7 @@ private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
+     * @param transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
      * @param id The identifier of the compound or peptide
      * @param prec_charge The charge state of the precursor
      *

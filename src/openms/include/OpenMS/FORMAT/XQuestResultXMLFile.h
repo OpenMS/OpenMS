@@ -129,19 +129,19 @@ public:
 private:
 
      /**
-      * @brief Transforms a PeakSpectrum into a base 64 encoded string, which is the format used in spec.xml for xQuest.
-      * @param The spectrum
-      * @param A header for the spectrum, build using the base_name parameter for writeXQuestXMLSpec and the index of the spectrum.
+      * @brief Transforms a PeakSpectrum into a base64 encoded string, which is the format used in spec.xml for xQuest.
+      * @param spec The spectrum
+      * @param header A header for the spectrum, build using the base_name parameter for writeXQuestXMLSpec and the index of the spectrum.
       */
       static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header);
 
      /**
       * @brief A helper function, that takes one string containing one line and wraps it into several lines of a given width
-      * @param The string as one line
-      * @param The preferred line width
-      * @param String in which the output is written
+      * @param input The string as one line
+      * @param width The preferred line width
+      * @param output String in which the output is written
       */
-      static void wrap_(const String& input, Size width, String & output);
+      static void wrap_(const String& input, Size width, String& output);
 
     int n_hits_; ///< Total number of hits within the result file
     double min_score_; ///< Minimum score encountered in file

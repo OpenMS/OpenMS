@@ -826,4 +826,22 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return fmaps;
   }
 
+  unsigned ConsensusMap::ColumnHeader::getLabelAsUInt(const String& experiment_type) const
+  {
+    if (metaValueExists("channel_id"))
+    {
+      return static_cast<unsigned int>(getMetaValue("channel_id")) + 1;
+    }
+    else
+    {
+      if (experiment_type != "label-free")
+      {
+        // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
+        //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
+        OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
+      }
+      return 1;
+    }
+  }
+
 } // namespace OpenMS

@@ -44,12 +44,14 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <map>
 #include <vector>
+#include <iosfwd>
 
 namespace OpenMS
 {
@@ -145,23 +147,7 @@ public:
       /// Unique id of the file
       UInt64 unique_id = UniqueIdInterface::INVALID;
 
-      unsigned getLabelAsUInt(const String& experiment_type) const
-      {
-        if (metaValueExists("channel_id"))
-        {
-          return static_cast<unsigned int>(getMetaValue("channel_id")) + 1;
-        }
-        else
-        {
-          if (experiment_type != "label-free")
-          {
-            // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
-            //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
-            OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
-          }
-          return 1;
-        }
-      }
+      unsigned getLabelAsUInt(const String& experiment_type) const;
     };
 
     ///@name Type definitions
@@ -309,8 +295,10 @@ public:
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
-    /// If it doesn't exist, fallback to @param s.
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e. 
+    /// If it doesn't exist, fallback to @p s.
+    /// @param s Fallback if @p e does not have a primary MS runpath
+    /// @param e Use primary MS runpath from this mzML file
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)

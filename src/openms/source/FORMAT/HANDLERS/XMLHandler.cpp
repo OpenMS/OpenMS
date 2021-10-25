@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -191,6 +192,22 @@ namespace OpenMS::Internal
     String XMLHandler::errorString()
     {
       return error_message_;
+    }
+
+    SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
+    {
+      OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
+
+      std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+      if (it != cv_terms_[section].end())
+      {
+        return it - cv_terms_[section].begin();
+      }
+      else
+      {
+        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+        return result_on_error;
+      }
     }
 
     /// handlers which support partial loading, implement this method
