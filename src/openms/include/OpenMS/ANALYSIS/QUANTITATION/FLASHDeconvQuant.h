@@ -455,11 +455,6 @@ namespace OpenMS
       return rt_of_apex;
     }
 
-    double getIntensityOfMostAbundantCharge() const
-    {
-      return *std::max_element(per_charge_int_.begin(), per_charge_int_.end());
-    }
-
     LogMassTrace* getApexLMTofCharge(int charge) const
     {
       LogMassTrace* apex_lmt = nullptr;
@@ -476,23 +471,31 @@ namespace OpenMS
       return apex_lmt;
     }
 
-    double getSummedIntensityOfMostAbundantMTperCS() const
+    std::pair<double, double> getSummedIntensityOfMostAbundantMTperCS() const
     {
+      auto per_cs_max_area = std::vector<double>(1 + max_abs_charge_, .0);
       auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
 
-      for (auto lmt: *this)
+      for (auto &lmt: *this)
       {
-        if (per_cs_max_inty[lmt.getCharge()] < lmt.getIntensity())
+        double sum_inty = 0;
+        for (auto &p : *(lmt.getMassTrace()))
         {
-          per_cs_max_inty[lmt.getCharge()] = lmt.getIntensity();
+          sum_inty += p.getIntensity();
+        }
+        if(per_cs_max_inty[lmt.getCharge()] < sum_inty)
+        {
+          per_cs_max_inty[lmt.getCharge()] = sum_inty;
+        }
+
+        if (per_cs_max_area[lmt.getCharge()] < lmt.getIntensity())
+        {
+          per_cs_max_area[lmt.getCharge()] = lmt.getIntensity();
         }
       }
-      return std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0);
-    }
 
-    int getMostAbundantCharge() const
-    {
-      return std::distance(per_charge_int_.begin(), std::max_element(per_charge_int_.begin(), per_charge_int_.end()));
+      return std::make_pair(std::accumulate(per_cs_max_area.begin(), per_cs_max_area.end(), .0),
+                            std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0));
     }
 
     double getAvgFwhmLength() const
