@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
@@ -207,6 +209,21 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     bool storeConsensusFeatures(const String& filename, const ConsensusMap& map);
+
+    /**
+      @brief Loads a file into a ConsensMap
+
+      @param filename the file name of the file to load.
+      @param map The ConsensMap to load the data into.
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    bool loadConsensusFeatures(const String& filename, ConsensusMap& map);
+
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides);
 
     /**
       @brief Store transitions of a spectral library

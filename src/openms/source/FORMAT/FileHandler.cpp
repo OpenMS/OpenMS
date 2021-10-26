@@ -48,6 +48,7 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -671,6 +672,16 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
   bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
   {
     ConsensusXMLFile().store(filename, map);
+  }
+
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
+  {
+    ConsensusXMLFile().load(filename, map);
+  }
+
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
+  {
+    IdXMLFile().load(filename, additional_proteins, additional_peptides);
   }
 
   bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
