@@ -126,7 +126,8 @@ namespace OpenMS
         <tr><td>DriftTimeUnit::VSSC            <td>MS:1003008 ! raw inverse reduced ion mobility array
         </table>
     
-        For any other unit we throw, since the PSI CV does not (and should not?) have terms for other IM units (e.g. FAIMS-Compensation voltage).
+        For any other unit  (e.g. FAIMS-Compensation voltage) we throw, since the PSI CV does not 
+        (and should not?) have CV terms for other IM units in ion mobility arrays.
 
         @param[out] fda The FDA to be annotated as an IM array
         @param[in] unit The unit of the IM measurement
