@@ -7,6 +7,7 @@ on:
 
 name: Clang format linting
 jobs:
+
 # Checkout OpenMS
   build:
     runs-on: ubuntu-latest
@@ -14,27 +15,32 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-# Get files changed in the PR
-    - name: Acquire files to lint
-      id: acquire_files_to_lint
-      uses: jitterbit/get-changed-files@v1
-# Correct path information to OpenMS
-# We have to check for the correct extensions here sine the files
-# will be passed directly instead of the source directory
-    - name: Correct files to lint
-      id: correct_files_to_lint
-      run: |
-          valid_extensions="h cpp"
-          for changed_file in ${{ steps.acquire_files_to_lint.outputs.all }}; do
-            current_filename=$(basename -- "$changed_file")
-            current_extension="${current_filename##*.}"
-            if [[ " $valid_extensions " =~ " $current_extension " ]]
-            then
+
+  # Get files changed in the PR
+      - name: Acquire files to lint
+        id: acquire_files_to_lint
+        uses: jitterbit/get-changed-files@v1
+
+  # Filter for valid extensions
+      - id: files-filtered
+        name: Run the action with filtering
+        with:
+          filter: |
+            *.h
+            *.cpp
+
+  # Correct path information to OpenMS
+      - name: Correct files to lint
+        id: correct_files_to_lint
+        run: |
+            for changed_file in ${{ steps.acquire_files_to_lint.outputs.added_modified }}; do
+              current_filename=$(basename -- "$changed_file")
+              current_extension="${current_filename##*.}"
               append_path=" ./OpenMS/${changed_file}"
               files+=${append_path}
-            fi
-          done
-          echo ::set-output name=filestolint::$(echo $files)
+            done
+            echo ::set-output name=filestolint::$(echo $files)
+
 # Perform linting
     - name: Use clang format linting
       uses: DoozyX/clang-format-lint-action@v0.12
