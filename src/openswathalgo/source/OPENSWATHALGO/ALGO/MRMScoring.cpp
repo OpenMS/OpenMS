@@ -86,14 +86,12 @@ namespace OpenSwath
     xcorr_matrix_.resize(native_ids.size(), native_ids.size());
     for (std::size_t i = 0; i < native_ids.size(); i++)
     {
-      String native_id = native_ids[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      FeatureType fi = mrmfeature->getFeature(native_ids[i]);
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = i; j < native_ids.size(); j++)
       {
-        String native_id2 = native_ids[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        FeatureType fj = mrmfeature->getFeature(native_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute normalized cross correlation
@@ -108,14 +106,12 @@ namespace OpenSwath
     xcorr_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
     for (std::size_t i = 0; i < native_ids_set1.size(); i++)
     { 
-      String native_id = native_ids_set1[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      FeatureType fi = mrmfeature->getFeature(native_ids_set1[i]);
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < native_ids_set2.size(); j++)
       {
-        String native_id2 = native_ids_set2[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        FeatureType fj = mrmfeature->getFeature(native_ids_set2[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute normalized cross correlation
@@ -130,14 +126,12 @@ namespace OpenSwath
     xcorr_precursor_matrix_.resize(precursor_ids.size(), precursor_ids.size());
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
     {
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = i; j < precursor_ids.size(); j++)
       {
-        String precursor_id2 = precursor_ids[j];
-        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_id2);
+        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute normalized cross correlation
@@ -151,15 +145,13 @@ namespace OpenSwath
     std::vector<double> intensityi, intensityj;
     xcorr_precursor_contrast_matrix_.resize(precursor_ids.size(), native_ids.size());
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
-    { 
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+    {
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < native_ids.size(); j++)
       {
-        String native_id = native_ids[j];
-        FeatureType fj = mrmfeature->getFeature(native_id);
+        FeatureType fj = mrmfeature->getFeature(native_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute normalized cross correlation
@@ -192,15 +184,13 @@ namespace OpenSwath
     std::vector<FeatureType> features;
 
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
-    { 
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+    {
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       features.push_back(fi);
     }
     for (std::size_t j = 0; j < native_ids.size(); j++)
     {
-      String native_id = native_ids[j];
-      FeatureType fj = mrmfeature->getFeature(native_id);
+      FeatureType fj = mrmfeature->getFeature(native_ids[j]);
       features.push_back(fj);
     }
 
@@ -208,7 +198,6 @@ namespace OpenSwath
     for (std::size_t i = 0; i < features.size(); i++)
     { 
       FeatureType fi = features[i];
-      //xcorr_precursor_combined_matrix_[i].resize(features.size());
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < features.size(); j++)
@@ -434,17 +423,7 @@ namespace OpenSwath
         intensities +=Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_.getValue(i, j))->second;
         element_number++;
       }
-    }/*
-    OpenSwath::mean_and_stddev msc;
-    msc = std::for_each(intensities.begin(), intensities.end(), msc);
-    return msc.mean();
-    double intensities{0};
-    for(auto e : xcorr_matrix_)
-    {
-      intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
-    }*/
-    // xcorr_matrix_ is a triangle matrix
-    //size_t element_number= xcorr_matrix_.rows()*xcorr_matrix_.rows()/2 + (xcorr_matrix_.rows()+1)/2;
+    }
     return intensities / element_number;
   }
 
@@ -514,19 +493,7 @@ namespace OpenSwath
   double MRMScoring::calcXcorrPrecursorShapeScore()
   {
     OPENSWATH_PRECONDITION(xcorr_precursor_matrix_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
-    /*
-    std::vector<double> intensities;
-    for (std::size_t i = 0; i < xcorr_precursor_matrix_.rows(); i++)
-    {
-      for (std::size_t j = i; j < xcorr_precursor_matrix_.rows(); j++)
-      {
-        // second is the Y value (intensity)
-        intensities.push_back(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_.getValue(i, j))->second);
-      }
-    }
-    OpenSwath::mean_and_stddev msc;
-    msc = std::for_each(intensities.begin(), intensities.end(), msc);
-    return msc.mean();*/
+
     double intensities{0};
     for(auto e : xcorr_precursor_matrix_)
     {
@@ -705,15 +672,13 @@ namespace OpenSwath
     mi_matrix_.resize(native_ids.size(),native_ids.size());
     for (std::size_t i = 0; i < native_ids.size(); i++)
     {
-      String native_id = native_ids[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      FeatureType fi = mrmfeature->getFeature(native_ids[i]);
 
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = i; j < native_ids.size(); j++)
       {
-        String native_id2 = native_ids[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        FeatureType fj = mrmfeature->getFeature(native_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute ranked mutual information
@@ -727,16 +692,14 @@ namespace OpenSwath
     std::vector<double> intensityi, intensityj;
     mi_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
     for (std::size_t i = 0; i < native_ids_set1.size(); i++)
-    { 
-      String native_id = native_ids_set1[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+    {
+      FeatureType fi = mrmfeature->getFeature(native_ids_set1[i]);
       //mi_contrast_matrix_[i].resize(native_ids_set2.size());
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < native_ids_set2.size(); j++)
       {
-        String native_id2 = native_ids_set2[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        FeatureType fj = mrmfeature->getFeature(native_ids_set2[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute ranked mutual information
@@ -751,15 +714,12 @@ namespace OpenSwath
     mi_precursor_matrix_.resize(precursor_ids.size(),precursor_ids.size());
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
     {
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
-      //mi_precursor_matrix_[i].resize(precursor_ids.size());
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = i; j < precursor_ids.size(); j++)
       {
-        String precursor_id2 = precursor_ids[j];
-        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_id2);
+        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute ranked mutual information
@@ -773,16 +733,14 @@ namespace OpenSwath
     std::vector<double> intensityi, intensityj;
     mi_precursor_contrast_matrix_.resize(precursor_ids.size(), native_ids.size());
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
-    { 
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+    {
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       //mi_precursor_contrast_matrix_[i].resize(native_ids.size());
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < native_ids.size(); j++)
       {
-        String native_id = native_ids[j];
-        FeatureType fj = mrmfeature->getFeature(native_id);
+        FeatureType fj = mrmfeature->getFeature(native_ids[j]);
         intensityj.clear();
         fj->getIntensity(intensityj);
         // compute ranked mutual information
@@ -797,15 +755,13 @@ namespace OpenSwath
     std::vector<FeatureType> features;
 
     for (std::size_t i = 0; i < precursor_ids.size(); i++)
-    { 
-      String precursor_id = precursor_ids[i];
-      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+    {
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
       features.push_back(fi);
     }
     for (std::size_t j = 0; j < native_ids.size(); j++)
     {
-      String native_id = native_ids[j];
-      FeatureType fj = mrmfeature->getFeature(native_id);
+      FeatureType fj = mrmfeature->getFeature(native_ids[j]);
       features.push_back(fj);
     }
 
