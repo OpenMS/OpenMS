@@ -9,7 +9,7 @@ name: Clang format linting
 jobs:
 
 # Checkout OpenMS
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
