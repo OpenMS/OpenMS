@@ -16,14 +16,10 @@ jobs:
       with:
         path: OpenMS
 
-# Get files changed in the PR and filter for valid extensions
+# Get files changed in the PR
     - name: Acquire files to lint
       id: acquire_files_to_lint
       uses: jitterbit/get-changed-files@v1
-      with:
-        filter: |
-          '*.h'
-          '*.cpp'
 
 # Correct path information to OpenMS
     - name: Correct files to lint
@@ -42,4 +38,6 @@ jobs:
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
         source: ${{ steps.correct_files_to_lint.outputs.filestolint }}
+        extensions: 'h,cpp'
+
         clangFormatVersion: 12
