@@ -556,9 +556,12 @@ namespace OpenSwath
 
 
     double intensities{0};
-    for(auto e : xcorr_precursor_combined_matrix_)
+    for(size_t i = 0; i < xcorr_precursor_combined_matrix_.rows(); i++)
     {
-      intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
+      for(size_t j = i; j < xcorr_precursor_combined_matrix_.cols(); j++)
+      {
+        intensities += Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_combined_matrix_.getValue(i,j))->second;
+      }
     }
     //xcorr_precursor-combined_matrix_ is a triangle matrix
     size_t element_number = xcorr_precursor_combined_matrix_.rows()*xcorr_precursor_combined_matrix_.rows()/2 + (xcorr_precursor_combined_matrix_.rows()+1)/2;

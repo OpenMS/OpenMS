@@ -121,7 +121,7 @@ void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& 
 
   std::vector<double> ms1intensity1 {0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0};
 
-  std::vector<double> ms1intensity2 {0.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0};
+  std::vector<double> ms1intensity2 {10.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0};
 
   std::vector<double> ms1intensity3 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
