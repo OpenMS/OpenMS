@@ -266,25 +266,24 @@ def _annotate_ion(mz: float, intensity: float,
     if annotation is None:
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
-    else:
-        ion_type = annotation[0]
-        if ion_type not in colors:
-            raise ValueError('Ion type not supported')
+    ion_type = annotation[0]
+    if ion_type not in colors:
+        raise ValueError('Ion type not supported')
 
-        color = (colors[ion_type] if color_ions else
-                 colors[None])
-        zorder = zorders[ion_type]
+    color = (colors[ion_type] if color_ions else
+             colors[None])
+    zorder = zorders[ion_type]
 
-        if annotate_ions:
-            annotation_pos = intensity
-            if annotation_pos > 0:
-                annotation_pos += 0.02
-            kws = annotation_kws.copy()
-            del kws['zorder']
-            ax.text(mz, annotation_pos, str(annotation), color=color,
-                    zorder=zorder, **kws)
+    if annotate_ions:
+        annotation_pos = intensity
+        if annotation_pos > 0:
+            annotation_pos += 0.02
+        kws = annotation_kws.copy()
+        del kws['zorder']
+        ax.text(mz, annotation_pos, str(annotation), color=color,
+                zorder=zorder, **kws)
 
-        return color, zorder
+    return color, zorder
 
 
 def plot_spectrum(spectrum: pms.MSSpectrum, color_ions: bool = True,
@@ -425,4 +424,3 @@ def mirror_plot_spectrum(spec_top: pms.MSSpectrum, spec_bottom: pms.MSSpectrum,
         lambda x, pos: f'{abs(x):.0%}'))
 
     return ax
-
