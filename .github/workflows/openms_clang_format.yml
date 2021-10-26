@@ -16,18 +16,14 @@ jobs:
       with:
         path: OpenMS
 
-  # Get files changed in the PR
+  # Get files changed in the PR and filter for valid extensions
       - name: Acquire files to lint
         id: acquire_files_to_lint
         uses: jitterbit/get-changed-files@v1
-
-  # Filter for valid extensions
-      - id: files-filtered
-        name: Run the action with filtering
         with:
           filter: |
-            *.h
-            *.cpp
+            '*.h'
+            '*.cpp'
 
   # Correct path information to OpenMS
       - name: Correct files to lint
