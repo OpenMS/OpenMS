@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         UInt getBinSpread() nogil except + # wrap-doc:Returns the bin spread
         UInt getBinIndex(float mz) nogil except + # wrap-doc:Returns the bin index of a given m/z position
         float getBinLowerMZ(size_t i) nogil except + # wrap-doc:Returns the lower m/z of a bin given its index
-        # float getBinIntensity(double mz) nogil except + # wrap-doc:Returns the bin intensity at a given m/z position
+        float getBinIntensity(double mz) nogil except + # wrap-doc:Returns the bin intensity at a given m/z position
 
         libcpp_vector[Precursor] getPrecursors() nogil except +
 

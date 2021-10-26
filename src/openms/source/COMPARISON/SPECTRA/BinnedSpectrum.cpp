@@ -210,5 +210,10 @@ namespace OpenMS
     }
   }
 
+  float BinnedSpectrum::getBinIntensity(double mz)
+  {
+    return bins_->coeffRef(getBinIndex(mz));
+  }
+
 }
 
