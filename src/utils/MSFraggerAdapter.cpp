@@ -903,7 +903,7 @@ protected:
     for (auto it = protein_identifications.begin(); it != protein_identifications.end(); it++)
     { 
         it->setSearchEngine("MSFragger");
-	//Whatever the pepXML says, overwrite origin as the input mzML
+		//Whatever the pepXML says, overwrite origin as the input mzML
         it->setPrimaryMSRunPath({this->getStringOption_(TOPPMSFraggerAdapter::in)}, exp);
     }
 
