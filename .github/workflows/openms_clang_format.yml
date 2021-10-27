@@ -14,11 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-
-
 # Get files changed in the PR
-
-
     - name: Get changed files
       id: changed-files
       uses: tj-actions/changed-files@v10.1
@@ -27,8 +23,6 @@ jobs:
           files: |
             \.h$
             \.cpp$
-
-
 
 # Perform linting
     - name: Use clang format linting
