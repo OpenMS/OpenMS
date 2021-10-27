@@ -138,7 +138,7 @@ public:
     bool operator!=(const BinnedSpectrum& rhs) const;
 
     /// returns the bin intensity at a given m/z position 
-    float getBinIntensity(double mz)
+    float getBinIntensity(double mz);
 
     /// return the bin index of a given m/z position
     size_t getBinIndex(float mz) const;
