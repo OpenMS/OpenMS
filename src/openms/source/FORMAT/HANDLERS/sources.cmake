@@ -5,6 +5,7 @@ set(directory source/FORMAT/HANDLERS)
 set(sources_list
   AcqusHandler.cpp
   CachedMzMLHandler.cpp
+  ConsensusXMLHandler.cpp
   FidHandler.cpp
   FeatureXMLHandler.cpp
   IndexedMzMLDecoder.cpp

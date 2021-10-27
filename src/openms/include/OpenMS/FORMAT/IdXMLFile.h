@@ -47,6 +47,7 @@ namespace OpenMS
   namespace Internal
   {
     class FeatureXMLHandler;
+    class ConsensusXMLHandler;
   }
   /**
     @brief Used to load and store idXML files
@@ -71,7 +72,7 @@ namespace OpenMS
   {
 public:
     // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helper functions to parse identifications without code duplication
-    friend class ConsensusXMLFile;
+    friend class Internal::ConsensusXMLHandler;
     friend class Internal::FeatureXMLHandler;
 
     /// Constructor
