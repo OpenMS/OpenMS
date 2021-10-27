@@ -32,3 +32,5 @@ cmake-build-release
 cmake-build-*
 *.code-workspace
 .vs
+/a.out
+/cmake_hdf5_test.o

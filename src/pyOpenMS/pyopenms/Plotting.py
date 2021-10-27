@@ -179,39 +179,16 @@
 #    of your accepting any such warranty or additional liability.
 #
 # END OF TERMS AND CONDITIONS
-#
-# APPENDIX: How to apply the Apache License to your work.
-#
-#    To apply the Apache License to your work, attach the following
-#    boilerplate notice, with the fields enclosed by brackets "[]"
-#    replaced with your own identifying information. (Don't include
-#    the brackets!)  The text should be enclosed in the appropriate
-#    comment syntax for the file format. We also recommend that a
-#    file or class name and description of purpose be included on the
-#    same "printed page" as the copyright notice for easier
-#    identification within third-party archives.
-#
-# Copyright [yyyy] [name of copyright owner]
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-
-import itertools
 import math
 from typing import Dict, Optional, Tuple, Union
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import pyopenms as pms
+try:
+    import itertools
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as mticker
+    from .all_modules import MSChromatogram, MSSpectrum
+except ImportError:
+    raise ImportError
 
 
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
@@ -221,13 +198,20 @@ zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
            None: 1}
 
 
-def plot_chromatogram(c):
-    import pylab
+def plot_chromatogram(c: MSChromatogram):
+    """
+    Plot chromatogram peaks.
+
+    Parameters
+    ----------
+    c : MSChromatogram
+        The chromatogram to be plotted.
+    """
     x, y = c.get_peaks()
-    pylab.plot( x, y )
-    pylab.xlabel("Retention time")
-    pylab.ylabel("Intensity")
-    pylab.show()
+    plt.plot(x, y)
+    plt.xlabel("Retention time")
+    plt.ylabel("Intensity")
+    plt.show()
 
 
 def _annotate_ion(mz: float, intensity: float,
@@ -286,7 +270,7 @@ def _annotate_ion(mz: float, intensity: float,
     return color, zorder
 
 
-def plot_spectrum(spectrum: pms.MSSpectrum, color_ions: bool = True,
+def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
              annotate_ions: bool = True, annot_kws: Optional[Dict] = None,
              mirror_intensity: bool = False, grid: Union[bool, str] = True,
              ax: Optional[plt.Axes] = None) -> plt.Axes:
@@ -372,7 +356,7 @@ def plot_spectrum(spectrum: pms.MSSpectrum, color_ions: bool = True,
     return ax
 
 
-def mirror_plot_spectrum(spec_top: pms.MSSpectrum, spec_bottom: pms.MSSpectrum,
+def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum,
            spectrum_kws: Optional[Dict] = None, ax: Optional[plt.Axes] = None)\
         -> plt.Axes:
     """
