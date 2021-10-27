@@ -63,7 +63,7 @@ namespace OpenMS
     Internal::FeatureXMLHandler handler(dummy, filename);
     handler.setOptions(options_);
     handler.setSizeOnly(true);
-
+    handler.setLogType(getLogType());
     parse_(filename, &handler);
 
     return handler.getSize();
@@ -78,7 +78,7 @@ namespace OpenMS
 
     Internal::FeatureXMLHandler handler(feature_map, filename);
     handler.setOptions(options_);
-
+    handler.setLogType(getLogType());
     parse_(filename, &handler);
 
     // !!! Hack: set feature FWHM from meta info entries as
@@ -128,6 +128,7 @@ namespace OpenMS
 
     Internal::FeatureXMLHandler handler(feature_map, filename);
     handler.setOptions(options_);
+    handler.setLogType(getLogType());
     save_(filename, &handler);
   }
 

@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <iosfwd>
 
@@ -59,7 +60,8 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI FeatureXMLFile :
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 
 public:

@@ -36,6 +36,8 @@
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
@@ -54,7 +56,8 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI ConsensusXMLFile :
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 public:
     ///Default constructor
