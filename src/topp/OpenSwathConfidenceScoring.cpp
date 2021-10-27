@@ -32,10 +32,10 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
+
 #include <iostream> // for "cout"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
