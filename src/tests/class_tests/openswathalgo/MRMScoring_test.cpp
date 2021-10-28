@@ -284,6 +284,24 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
 
   TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().rows(), 3)
   TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().cols(), 2)
+
+  std::vector<double> sum_matrix;
+  for(auto e : mrmscore.getXCorrPrecursorContrastMatrix())
+  {
+    double sum{0};
+    for(size_t i = 0; i < e.data.size(); ++i)
+    {
+      sum += abs(e.data[i].second);
+    }
+    sum_matrix.push_back(sum);
+  }
+
+  TEST_REAL_SIMILAR(sum_matrix[0], 3.40949220)
+  TEST_REAL_SIMILAR(sum_matrix[1], 6.19794611)
+  TEST_REAL_SIMILAR(sum_matrix[2], 3.68912454)
+  TEST_REAL_SIMILAR(sum_matrix[3], 6.60757921)
+  TEST_REAL_SIMILAR(sum_matrix[4], 0)
+  TEST_REAL_SIMILAR(sum_matrix[5], 0)
 }
 END_SECTION
 
@@ -302,8 +320,62 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
 
   TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().rows(), 5)
   TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().cols(), 5)
+
+  std::vector<double> sum_matrix;
+  for(auto e : mrmscore.getXCorrPrecursorCombinedMatrix())
+  {
+    double sum{0};
+    for(size_t i = 0; i < e.data.size(); ++i)
+    {
+      sum += abs(e.data[i].second);
+    }
+    sum_matrix.push_back(sum);
+  }
+
+  TEST_REAL_SIMILAR(sum_matrix[0], 5.86440677)
+  TEST_REAL_SIMILAR(sum_matrix[1], 6.05410398)
+  TEST_REAL_SIMILAR(sum_matrix[2], 0)
+  TEST_REAL_SIMILAR(sum_matrix[3], 3.40949220)
+  TEST_REAL_SIMILAR(sum_matrix[4], 6.19794611)
+  TEST_REAL_SIMILAR(sum_matrix[5], 6.05410398)
+  TEST_REAL_SIMILAR(sum_matrix[6], 6.30751744)
+  TEST_REAL_SIMILAR(sum_matrix[7], 0)
+  TEST_REAL_SIMILAR(sum_matrix[8], 3.68912454)
+  TEST_REAL_SIMILAR(sum_matrix[9], 6.60757921)
+  TEST_REAL_SIMILAR(sum_matrix[10], 0)
+  TEST_REAL_SIMILAR(sum_matrix[11], 0)
+  TEST_REAL_SIMILAR(sum_matrix[12], 0)
+  TEST_REAL_SIMILAR(sum_matrix[13], 0)
+  TEST_REAL_SIMILAR(sum_matrix[14], 0)
+  TEST_REAL_SIMILAR(sum_matrix[15], 3.40949220)
+  TEST_REAL_SIMILAR(sum_matrix[16], 3.68912454)
+  TEST_REAL_SIMILAR(sum_matrix[17], 0)
+  TEST_REAL_SIMILAR(sum_matrix[18], 3.13711983)
+  TEST_REAL_SIMILAR(sum_matrix[19], 3.57832717)
+  TEST_REAL_SIMILAR(sum_matrix[20], 6.19794611)
+  TEST_REAL_SIMILAR(sum_matrix[21], 6.60757921)
+  TEST_REAL_SIMILAR(sum_matrix[22], 0)
+  TEST_REAL_SIMILAR(sum_matrix[23], 3.57832717)
+  TEST_REAL_SIMILAR(sum_matrix[25], 0)
 }
 END_SECTION
+
+/*BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorMatrix)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> precursor_ids;
+  fill_mock_objects(imrmfeature, precursor_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
+  delete imrmfeature;
+
+  TEST_EQUAL(mrmscore.getXCorrPrecursorMatrix().rows(), 3)
+  TEST_EQUAL(mrmscore.getXCorrPrecurso().cols(), 2)
+}
+END_SECTION*/
 
 BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
 {
@@ -691,6 +763,12 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
 
   TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
   TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
+  double sum{0};
+  for(auto e : mrmscore.getMIPrecursorContrastMatrix())
+  {
+    sum += e;
+  }
+  TEST_REAL_SIMILAR(sum, 12.01954465)
 }
 END_SECTION
 
@@ -709,6 +787,13 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorCombinedMatrix)
 
   TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().rows(), 5)
   TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().cols(), 5)
+
+  double sum{0};
+  for(auto e : mrmscore.getMIPrecursorCombinedMatrix())
+  {
+    sum += e;
+  }
+  TEST_REAL_SIMILAR(sum, 48.98726953)
 }
 END_SECTION
 
