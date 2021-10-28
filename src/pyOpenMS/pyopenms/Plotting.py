@@ -181,7 +181,7 @@
 # END OF TERMS AND CONDITIONS
 
 import math
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union, List, Set
 try:
     import itertools
     import matplotlib.pyplot as plt
@@ -217,6 +217,7 @@ def plot_chromatogram(c: MSChromatogram):
 def _annotate_ion(mz: float, intensity: float,
                   annotation: Optional[str],
                   color_ions: bool, annotate_ions: bool,
+                  matched: Optional[bool],
                   annotation_kws: Dict[str, object], ax: plt.Axes)\
         -> Tuple[str, int]:
     """
@@ -258,6 +259,9 @@ def _annotate_ion(mz: float, intensity: float,
              colors[None])
     zorder = zorders[ion_type]
 
+    if matched is not None and not matched:
+        color = '#aaaaaa'
+
     if annotate_ions:
         annotation_pos = intensity
         if annotation_pos > 0:
@@ -271,7 +275,7 @@ def _annotate_ion(mz: float, intensity: float,
 
 
 def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
-             annotate_ions: bool = True, annot_kws: Optional[Dict] = None,
+             annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
              mirror_intensity: bool = False, grid: Union[bool, str] = True,
              ax: Optional[plt.Axes] = None) -> plt.Axes:
     """
@@ -287,6 +291,8 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
     annotate_ions : bool, optional
         Flag indicating whether or not to annotate fragment ions. The default
         is True.
+    matched_peaks : Optional[Set], optional
+        Indices of matched peaks in a spectrum alignment.
     annot_kws : Optional[Dict], optional
         Keyword arguments for `ax.text` to customize peak annotations.
     mirror_intensity : bool, optional
@@ -326,14 +332,17 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
         'rotation_mode': 'anchor', 'zorder': 5}
     if annot_kws is not None:
         annotation_kws.update(annot_kws)
-    for peak_mz, peak_intensity, peak_annotation in zip(mz, intensity, annotations):
+    for i_peak, (peak_mz, peak_intensity, peak_annotation) in enumerate(zip(mz, intensity, annotations)):
         peak_intensity = peak_intensity / max_intensity
         if mirror_intensity:
             peak_intensity *= -1
 
+        matched = matched_peaks is not None and i_peak in matched_peaks
+
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
-            annotation_kws, ax)
+            matched, annotation_kws, ax)
+
         ax.plot([peak_mz, peak_mz], [0, peak_intensity], color=color, zorder=zorder)
 
     ax.xaxis.set_minor_locator(mticker.AutoLocator())
@@ -356,8 +365,8 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
     return ax
 
 
-def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum,
-           spectrum_kws: Optional[Dict] = None, ax: Optional[plt.Axes] = None)\
+def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum, alignment: Optional[List] = None,
+                         spectrum_kws: Optional[Dict] = None, ax: Optional[plt.Axes] = None)\
         -> plt.Axes:
     """
     Mirror plot two MS/MS spectra.
@@ -368,6 +377,8 @@ def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum,
         The spectrum to be plotted on the top.
     spec_bottom : MsmsSpectrum
         The spectrum to be plotted on the bottom.
+    alignment : Optional[List], optional
+        List of aligned peak pairs.
     spectrum_kws : Optional[Dict], optional
         Keyword arguments for `plot.spectrum`.
     ax : Optional[plt.Axes], optional
@@ -384,11 +395,17 @@ def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum,
 
     if spectrum_kws is None:
         spectrum_kws = {}
+
+    if alignment is not None:
+        matched_peaks_top, matched_peaks_bottom = set(zip(*alignment))
+    else:
+        matched_peaks_top, matched_peaks_bottom = None, None
+
     # Top spectrum.
-    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, **spectrum_kws)
+    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, matched_peaks=matched_peaks_top, **spectrum_kws)
     y_max = ax.get_ylim()[1]
     # Mirrored bottom spectrum.
-    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, **spectrum_kws)
+    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, matched_peaks=matched_peaks_bottom, **spectrum_kws)
     y_min = ax.get_ylim()[0]
     ax.set_ylim(y_min, y_max)
 
