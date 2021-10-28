@@ -194,7 +194,6 @@ zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
 
 
 def plot_chromatogram(c: MSChromatogram):
-    import matplotlib.pyplot as plt
     """
     Plot chromatogram peaks.
 
@@ -203,6 +202,7 @@ def plot_chromatogram(c: MSChromatogram):
     c : MSChromatogram
         The chromatogram to be plotted.
     """
+    import matplotlib.pyplot as plt
     x, y = c.get_peaks()
     plt.plot(x, y)
     plt.xlabel("Retention time")
