@@ -904,7 +904,7 @@ protected:
     { 
         it->setSearchEngine("MSFragger");
         //Whatever the pepXML says, overwrite origin as the input mzML
-        it->setPrimaryMSRunPath({this->getStringOption_(TOPPMSFraggerAdapter::in)}, exp);
+        it->setPrimaryMSRunPath({{this->getStringOption_(TOPPMSFraggerAdapter::in)}}, exp);
     }
 
     // write all (!) parameters as metavalues to the search parameters
