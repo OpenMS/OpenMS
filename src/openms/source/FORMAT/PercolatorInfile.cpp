@@ -231,6 +231,14 @@ namespace OpenMS
         { // only if all feats were present add
           txt.addLine(ListUtils::concatenate(feats, '\t'));
         }
+        else
+        {
+          OPENMS_LOG_WARN << "Features missing in peptide hit (will skip):" << endl;
+          for (const auto& f : feature_set)
+          {
+            if (std::find(feats_names.begin(), feats_names.end(), f) == feats_names.end()) OPENMS_LOG_WARN << f << endl;
+          }
+        }        
       }
     }
     return txt;
