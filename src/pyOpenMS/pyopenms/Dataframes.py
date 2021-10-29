@@ -203,10 +203,12 @@ class MSExperimentDF(MSExperiment):
         super().__init__()
 
     def get_df(self, melt : bool = False):
-        if melt:
-            spectraarr = np.fromiter(((spec.getRT(), point[0], point[1]) for spec in self for point in zip(*spec.get_peaks())), dtype=[('RT', 'f'), ('mz', 'f'), ('inty', 'f')])
 
-            return pd.DataFrame(data=spectraarr)
+        if melt:
+            cols = ["RT", "mz", "inty"]
+            self.updateRanges()
+            spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
+            return pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
         cols = ["RT", "mzarray", "intarray"]
 
