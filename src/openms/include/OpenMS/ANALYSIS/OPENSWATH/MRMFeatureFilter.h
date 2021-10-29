@@ -43,7 +43,6 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

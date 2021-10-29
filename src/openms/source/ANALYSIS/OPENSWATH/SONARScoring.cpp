@@ -44,6 +44,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/cast.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 // #define DEBUG_SONAR
 

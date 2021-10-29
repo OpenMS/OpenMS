@@ -32,10 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/MATH/MISC/RANSAC.h>
 

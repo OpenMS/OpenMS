@@ -28,81 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
-
-#include <map>
-#include <vector>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-
-using std::map;
-using std::vector;
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 namespace OpenMS
 {
-  LabelFreeLabeler::LabelFreeLabeler() :
-    BaseLabeler()
-  {
-  }
-
-  LabelFreeLabeler::~LabelFreeLabeler()
-  {
-  }
-
-  void LabelFreeLabeler::preCheck(Param& /* param */) const
-  {
-    // no specific requirements
-  }
-
-  // merge all channels into the first one
-  // no further influence of the simulation process needed
-  void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
-  {
-    if (features.size() == 1)
-    {
-      return;
-    }
-    else
-    {
-      OPENMS_LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
-      SimTypes::FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
-      features.clear();
-      features.push_back(final_map);
-    }
-  }
-
-  /// Labeling between digestion and rt simulation
-  void LabelFreeLabeler::postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
-  {
-  }
-
-  /// Labeling between RT and Detectability
-  void LabelFreeLabeler::postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
-  {
-  }
-
-  /// Labeling between Detectability and Ionization
-  void LabelFreeLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
-  {
-  }
-
-  /// Labeling between Ionization and RawMS
-  void LabelFreeLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
-  {
-  }
-
-  /// Labeling after RawMS
-  void LabelFreeLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
-  {
-  }
-
-  void LabelFreeLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector&, SimTypes::MSSimExperiment&)
-  {
-
-  }
-
-} // namespace OpenMS
+}

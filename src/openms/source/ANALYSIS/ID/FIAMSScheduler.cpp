@@ -32,8 +32,10 @@
 // $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
+
+#include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #ifdef _OPENMP
 #include <omp.h>

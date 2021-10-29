@@ -39,7 +39,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

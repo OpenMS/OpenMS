@@ -34,19 +34,19 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-//DEBUG:
-#include <fstream>
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1
 #ifdef DC_DEVEL
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #endif
 
 using namespace std;

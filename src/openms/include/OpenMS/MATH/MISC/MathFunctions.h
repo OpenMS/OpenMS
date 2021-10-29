@@ -359,7 +359,6 @@ namespace OpenMS
         }
       }
 
-
       void seed(uint64_t val)
       {
         rng_.seed(val);

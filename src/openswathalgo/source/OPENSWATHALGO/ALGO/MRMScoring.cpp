@@ -40,6 +40,8 @@
 #include <iostream>
 #include <iterator>
 
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenSwath
 {
