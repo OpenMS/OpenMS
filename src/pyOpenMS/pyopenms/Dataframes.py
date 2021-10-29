@@ -30,7 +30,6 @@ class ConsensusMapDF(ConsensusMap):
 
         if not labelfree:
 
-            # TODO write two functions for LF and labelled. One has only one channel, the other has only one file per CF
             def extract_row_blocks_channel_wide_file_long(f: ConsensusFeature):
                 subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
                 filerows = defaultdict(lambda: [0] * len(labels))
@@ -203,9 +202,6 @@ class MSExperimentDF(MSExperiment):
     def __init__(self):
         super().__init__()
 
-    ## TODO add chromatogram version
-    ## TODO metadata df?
-
     def get_df(self, melt : bool = False):
         if melt:
             spectraarr = np.fromiter(((spec.getRT(), point[0], point[1]) for spec in self for point in zip(*spec.get_peaks())), dtype=[('RT', 'f'), ('mz', 'f'), ('inty', 'f')])
@@ -248,7 +244,6 @@ class DFConverter:
                         types.append(switchDict[type(mv)])
                 break
 
-        # TODO get score type name
         decodedMVs = [m.decode("utf-8") for m in metavals] if decode_ontology else metavals
         cv = ControlledVocabulary()
         cv.loadFromOBO("psims", File.getOpenMSDataPath() + "/CV/psi-ms.obo")
@@ -278,7 +273,6 @@ class DFConverter:
                     ret.append(np.NA)
             return tuple(ret)
 
-        #TODO implement hasHits function in C++
         psmarr = np.fromiter((extract(pep) for pep in peps), dtype=dt, count=len(peps))
-        #TODO make spectrum_ref the index, if available?
+
         return pd.DataFrame(psmarr)
