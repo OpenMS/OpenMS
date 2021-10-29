@@ -56,23 +56,22 @@ class ConsensusMapDF(ConsensusMap):
 
             return pd.DataFrame(intyarr).set_index('id')
 
-        else:
-            # Specialized for LabelFree which has to have only one channel
-            def extract_row_blocks_channel_long_file_wide_LF(f: ConsensusFeature):
-                subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
-                row = [0.] * len(files)
+        # Specialized for LabelFree which has to have only one channel
+        def extract_row_blocks_channel_long_file_wide_LF(f: ConsensusFeature):
+            subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
+            row = [0.] * len(files)
 
-                for fh in subfeatures:
-                    header = filemeta[fh.getMapIndex()]
-                    row[file_to_idx[header.filename]] = fh.getIntensity()
+            for fh in subfeatures:
+                header = filemeta[fh.getMapIndex()]
+                row[file_to_idx[header.filename]] = fh.getIntensity()
 
-                yield tuple([f.getUniqueId()] + row)
+            yield tuple([f.getUniqueId()] + row)
 
-            dtypes = [('id', np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
+        dtypes = [('id', np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
 
-            intyarr = np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
+        intyarr = np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
 
-            return pd.DataFrame(intyarr).set_index('id')
+        return pd.DataFrame(intyarr).set_index('id')
 
     def get_metadata_df(self):
         '''Generates a pandas DataFrame with feature meta data (sequence, charge, mz, RT, quality).
@@ -213,10 +212,9 @@ class MSExperimentDF(MSExperiment):
 
             return pd.DataFrame(data=spectraarr)
 
-        else:
-            cols = ["RT", "mzarray", "intarray"]
+        cols = ["RT", "mzarray", "intarray"]
 
-            return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+        return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
 
 MSExperiment = MSExperimentDF
 
@@ -263,22 +261,22 @@ class DFConverter:
             hits = pep.getHits()
             if not hits:
                 return tuple([pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), np.NA, np.NA] + [np.NA]*len(metavals))
-            else:
-                besthit = hits[0]
-                ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
-                for k in metavals:
-                    if besthit.metaValueExists(k):
-                        val = besthit.getMetaValue(k)
-                        if k == b"target_decoy":
-                            if val[0] == 't':
-                                ret.append(True)
-                            else:
-                                ret.append(False)
+
+            besthit = hits[0]
+            ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
+            for k in metavals:
+                if besthit.metaValueExists(k):
+                    val = besthit.getMetaValue(k)
+                    if k == b"target_decoy":
+                        if val[0] == 't':
+                            ret.append(True)
                         else:
-                            ret.append(val)
+                            ret.append(False)
                     else:
-                        ret.append(np.NA)
-                return tuple(ret)
+                        ret.append(val)
+                else:
+                    ret.append(np.NA)
+            return tuple(ret)
 
         #TODO implement hasHits function in C++
         psmarr = np.fromiter((extract(pep) for pep in peps), dtype=dt, count=len(peps))
