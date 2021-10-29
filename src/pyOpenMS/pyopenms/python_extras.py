@@ -2,7 +2,7 @@ from . import Constants
 from . import Plotting as Plot
 
 try:
-  from .Dataframes import ConsensusMap, FeatureMap, MSExperiment, DFConverter
+  from .dataframes import ConsensusMap, FeatureMap, MSExperiment, DFConverter
 except ImportError:
     print('Info: Install pandas to conveniently export common OpenMS data structures to data frames.')
 
