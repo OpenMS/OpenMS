@@ -672,21 +672,25 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
   bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
   {
     ConsensusXMLFile().store(filename, map);
+    return true;
   }
 
   bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
   {
     ConsensusXMLFile().load(filename, map);
+    return true;
   }
 
   bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
   {
     IdXMLFile().load(filename, additional_proteins, additional_peptides);
+    return true;
   }
 
   bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
   {
     TraMLFile().store(filename, library);
+    return true;
   }
 
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
