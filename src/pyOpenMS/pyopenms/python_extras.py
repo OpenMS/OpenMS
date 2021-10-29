@@ -1,10 +1,7 @@
 from . import Constants
 from . import Plotting as Plot
 
-try:
-  from .dataframes import ConsensusMap, FeatureMap, MSExperiment, DFConverter
-except ImportError:
-    print('Info: Install pandas to conveniently export common OpenMS data structures to data frames.')
+from .dataframes import ConsensusMap, FeatureMap, MSExperiment, DFConverter
 
 class SimpleOpenMSSpectraFactory:
 

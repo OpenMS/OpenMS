@@ -244,6 +244,7 @@ jobs:
             pip install -U nose
             pip install -U numpy
             pip install -U wheel
+            pip install -U pandas
 
             #conda deactivate
 
