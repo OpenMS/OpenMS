@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
+#include <boost/assign.hpp>
+#include <boost/lexical_cast.hpp>
+
 namespace OpenMS
 {
   MRMIonSeries::MRMIonSeries()
@@ -471,20 +474,20 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence,
-                                                                  size_t precursor_charge,
-                                                                  const std::vector<String>& fragment_types,
-                                                                  const std::vector<size_t>& fragment_charges,
-                                                                  const bool enable_specific_losses,
-                                                                  const bool enable_unspecific_losses,
-                                                                  const int round_decPow)
+  std::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence,
+                                                                size_t precursor_charge,
+                                                                const std::vector<String>& fragment_types,
+                                                                const std::vector<size_t>& fragment_charges,
+                                                                const bool enable_specific_losses,
+                                                                const bool enable_unspecific_losses,
+                                                                const int round_decPow)
   {
     const static EmpiricalFormula H2O = EmpiricalFormula("H2O1");
     const static EmpiricalFormula NH3 = EmpiricalFormula("H3N1");
     const static EmpiricalFormula CN2 = EmpiricalFormula("C1H2N2");
     const static EmpiricalFormula CNO = EmpiricalFormula("C1H2N1O1");
 
-    boost::unordered_map<String, double> ionseries;
+    std::unordered_map<String, double> ionseries;
 
     for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
     {

@@ -31,13 +31,16 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #include <algorithm>
 #include <cmath>
 
 #include <boost/math/special_functions/acosh.hpp>
-
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-
 
 using std::max;
 

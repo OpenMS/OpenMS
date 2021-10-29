@@ -372,7 +372,7 @@ START_SECTION((void getDeviations(std::vector<double>& diffs, bool do_apply = fa
 }
 END_SECTION
 
-START_SECTION((void printSummary(std::ostream& os = std::cout) const))
+START_SECTION((void printSummary(std::ostream& os) const))
 {
   stringstream ss;
 	TransformationDescription td(data_nonlinear);

@@ -39,8 +39,6 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {

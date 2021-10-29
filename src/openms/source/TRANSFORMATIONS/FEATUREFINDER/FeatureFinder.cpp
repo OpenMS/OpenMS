@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS

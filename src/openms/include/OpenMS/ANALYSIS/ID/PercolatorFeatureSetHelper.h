@@ -35,11 +35,10 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 #include <cmath>
 #include <string>
 #include <map>
-#include <algorithm>
+// #include <algorithm>
 #include <limits>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -48,9 +47,6 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <boost/lexical_cast.hpp>
 
 namespace OpenMS
 {

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

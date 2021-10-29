@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
 #include <numeric>

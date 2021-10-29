@@ -32,13 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <cmath>
-#include <limits>
-#include <map>
-#include <queue>
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>

@@ -45,6 +45,8 @@
 
 namespace OpenMS
 {
+  class StringView; 
+
   /**
      @brief Class for the enzymatic digestion of sequences
 

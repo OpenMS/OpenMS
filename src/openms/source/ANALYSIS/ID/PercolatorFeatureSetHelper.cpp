@@ -32,9 +32,13 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 

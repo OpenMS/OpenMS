@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>

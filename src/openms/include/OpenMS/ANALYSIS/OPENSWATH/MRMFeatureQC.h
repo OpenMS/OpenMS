@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
