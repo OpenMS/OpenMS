@@ -179,6 +179,36 @@ namespace OpenMS
     return result;
   }
 
+  // static
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, int num_peaks)
+  {
+    IsotopeDistribution result;
+    result.resize(num_peaks);
+
+    // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
+    double factor = mass / 1800.0;
+
+    // values of (m * lambda) ^ k
+    double curr_power = 1.0;
+
+    // values of k!
+    UInt curr_factorial = 1;
+
+    // for k=0, non-normalized value is always 1
+    result[0] = Peak1D(mass, 1.0);
+
+    for (UInt k = 1; k < num_peaks; ++k)
+    {
+      curr_power *= factor;
+      curr_factorial *= k;
+      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U), curr_power / curr_factorial);
+    }
+
+    result.renormalize();
+
+    return result;
+  }
+
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 7, 0, 1);

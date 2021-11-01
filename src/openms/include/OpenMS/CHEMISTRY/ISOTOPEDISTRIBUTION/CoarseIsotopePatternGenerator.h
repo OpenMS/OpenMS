@@ -155,6 +155,15 @@ namespace OpenMS
     IsotopeDistribution estimateFromPeptideWeightAndS(double average_weight, UInt S);
 
     /**
+       @brief roughly approximate peptide IsotopeDistribution from average weight using Poisson distribution.
+       m/z values are somewhat arbitrary. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+
+       @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
+    */
+    static IsotopeDistribution approximateFromPeptideWeight(double mass, int num_peaks);
+
+    /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
 
        averagine model from Zubarev, R. A.; Demirev, P. A. in
