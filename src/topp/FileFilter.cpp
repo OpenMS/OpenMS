@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -200,12 +200,12 @@ private:
     {
       String temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep.getHits())
         {
-          if (pep_hit_it->getSequence().toString() != temp)
+          if (pep_hit.getSequence().toString() != temp)
           {
             return false;
           }
@@ -217,15 +217,15 @@ private:
     {
       PeptideIdentification temp = feature.getPeptideIdentifications().front();
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep.getHits())
         {
-          if ((pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() > temp.getHits().front().getScore()) ||
-              (!pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() < temp.getHits().front().getScore()))
+          if ((pep.isHigherScoreBetter() && pep_hit.getScore() > temp.getHits().front().getScore()) ||
+              (!pep.isHigherScoreBetter() && pep_hit.getScore() < temp.getHits().front().getScore()))
           {
-            temp = *pep_id_it;
+            temp = pep;
           }
         }
       }
@@ -242,18 +242,18 @@ private:
       bool sequen = false;
       bool access = false;
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep_id : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep_id.getHits())
         {
-          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) 
+          if (sequenceIsWhiteListed_(pep_hit.getSequence(), sequences, sequence_comparison_method)) 
           {
             sequen = true;
           }
           
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
+          set<String> protein_accessions = pep_hit.extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
@@ -451,17 +451,40 @@ protected:
 
   bool checkMetaOk(const MetaInfoInterface& mi, const StringList& meta_info)
   {
-    if (!mi.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
-
+    if (!mi.metaValueExists(meta_info[0]))
+    {
+      return true; // not having the meta value means passing the test
+    }
     DataValue v_data = mi.getMetaValue(meta_info[0]);
     DataValue v_user;
-    if (v_data.valueType() == DataValue::STRING_VALUE) v_user = String(meta_info[2]);
-    else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String(meta_info[2]).toInt();
-    else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
-    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList)ListUtils::create<String>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<double>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
+    if (v_data.valueType() == DataValue::STRING_VALUE)
+    {
+      v_user = String(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::INT_VALUE)
+    {
+      v_user = String(meta_info[2]).toInt();
+    }
+    else if (v_data.valueType() == DataValue::DOUBLE_VALUE)
+    {
+      v_user = String(meta_info[2]).toDouble();
+    }
+    else if (v_data.valueType() == DataValue::STRING_LIST)
+    {
+      v_user = (StringList)ListUtils::create<String>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::INT_LIST) 
+    {
+      v_user = ListUtils::create<Int>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::DOUBLE_LIST) 
+    {
+      v_user = ListUtils::create<double>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::EMPTY_VALUE)
+    {
+      v_user = DataValue::EMPTY;
+    }
     if (meta_info[1] == "lt")
     {
       return !(v_data < v_user);
@@ -642,8 +665,22 @@ protected:
       f.getOptions().setMSLevels(levels);
 
       // set precision options
-      if (mz32 == 32) { f.getOptions().setMz32Bit(true); } else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
-      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); } else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+      if (mz32 == 32)
+      { 
+        f.getOptions().setMz32Bit(true); 
+      } 
+      else if (mz32 == 64) 
+      { 
+        f.getOptions().setMz32Bit(false);
+      }
+      if (int32 == 32)
+      {
+        f.getOptions().setIntensity32Bit(true); 
+      } 
+      else if (int32 == 64)
+      { 
+        f.getOptions().setIntensity32Bit(false);
+      }
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
@@ -701,8 +738,10 @@ protected:
 
       // remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
-      if (rm_pc_charge.size() > 0) exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
-
+      if (rm_pc_charge.size() > 0)
+      {
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+      }
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz_range.empty())
@@ -870,7 +909,10 @@ protected:
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
 
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
-        if (ret != EXECUTION_OK) return (ExitCodes)ret;
+        if (ret != EXECUTION_OK)
+        {
+          return (ExitCodes)ret;
+        }
       }
 
       // check if filtering by consensus feature is enabled
@@ -891,7 +933,10 @@ protected:
         consensus_map.sortByMZ();
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_map, rt_tol, mz_tol, is_ppm, maps);
-        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+        if (ret != EXECUTION_OK)
+        { 
+          return (ExitCodes)ret; 
+        }
       }
 
       // filter spectra if they occur in spectra:blackorwhitelist:file 
@@ -910,7 +955,10 @@ protected:
         MzMLFile().load(lib_file_name, lib_file);
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
-        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+        if (ret != EXECUTION_OK)
+        { 
+          return (ExitCodes)ret;
+        }
       }
 
 
@@ -953,27 +1001,27 @@ protected:
         map_sm.clear(false);
 
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-        for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+        for (Feature& fm : feature_map)
         {
-          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
-          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
-          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
-          bool const charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
-          bool const size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
-          bool const q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
+          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
+          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
+          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
+          bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
+          bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
+          bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
 
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {
             if (remove_meta_enabled)
             {
-              meta_ok = checkMetaOk(*fm_it, meta_info);
+              meta_ok = checkMetaOk(fm, meta_info);
             }
-            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
+            bool const annotation_ok = checkPeptideIdentification_(fm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) map_sm.push_back(fm);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           map_sm.getUnassignedPeptideIdentifications().clear();
@@ -1019,23 +1067,23 @@ protected:
         //.. but delete feature information
         consensus_map_filtered.resize(0);
 
-        for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
+        for (ConsensusFeature& cm : consensus_map)
         {
-          const bool charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
-          const bool size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
+          const bool charge_ok = ((charge_l <= cm.getCharge()) && (cm.getCharge() <= charge_u));
+          const bool size_ok = ((cm.size() >= size_l) && (cm.size() <= size_u));
 
           if (charge_ok && size_ok)
           {
             // this is expensive, so evaluate after everything else passes the test
             if (remove_meta_enabled)
             {
-              meta_ok = checkMetaOk(*cm_it, meta_info);
+              meta_ok = checkMetaOk(cm, meta_info);
             }
-            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
+            const bool annotation_ok = checkPeptideIdentification_(cm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(cm);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
@@ -1106,13 +1154,13 @@ protected:
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
           const bool and_connective = getFlag_("consensus:map_and");
-          for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
+          for (ConsensusFeature& cm : consensus_map_filtered) // iterate over consensuses in the original consensus map
           {
-            ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
+            ConsensusFeature consensus_feature_new(cm); // new consensus feature
             consensus_feature_new.clear();
 
-            ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
-            ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
+            ConsensusFeature::HandleSetType::const_iterator fh_it = cm.getFeatures().begin();
+            ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm.getFeatures().end();
             for (; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
             {
               if (ListUtils::contains(maps, fh_it->getMapIndex()))
@@ -1258,16 +1306,16 @@ protected:
   {
     std::vector<Peak2D> feature_pos;
     // if map_id are specified, only use these for blacklisting
-    for (ConsensusMap::const_iterator c_it = consensus_map.begin(); c_it != consensus_map.end(); ++c_it)
+    for (const ConsensusFeature& cm : consensus_map)
     {
-      for (ConsensusFeature::const_iterator f_it = c_it->begin(); f_it != c_it->end(); ++f_it)
+      for (const FeatureHandle& fh : cm)
       {
-        UInt64 map_index = f_it->getMapIndex();
+        UInt64 map_index = fh.getMapIndex();
         if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
         {
           Peak2D p;
-          p.setMZ(f_it->getMZ());
-          p.setRT(f_it->getRT());
+          p.setMZ(fh.getMZ());
+          p.setRT(fh.getRT());
           feature_pos.push_back(p);
         }
       }
@@ -1358,19 +1406,31 @@ protected:
           ++exp_index;
 
           // TODO: extend to other MS levels and multiple precursors
-          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty()) { continue; }
+          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty())
+          { 
+            continue;
+          }
 
           // skip if m/z's don't match
           const double pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
           const double mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
-          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da) { continue; }
+          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da)
+          {
+            continue; 
+          }
 
           // skip if rt's don't match
           const double pc_rt = exp_spectrum.getRT();
-          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol) { continue; }
+          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol)
+          {
+            continue;
+          }
 
           // skip if not similar enough
-          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol) { continue; }
+          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol)
+          {
+            continue;
+          }
 
           writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
 

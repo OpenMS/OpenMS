@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,8 +67,9 @@ namespace OpenMS
   IsotopeFitter1D& IsotopeFitter1D::operator=(const IsotopeFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);
     updateMembers_();
 
@@ -83,9 +84,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -130,8 +135,9 @@ namespace OpenMS
     QualityType quality;
     quality = fitOffset_(model, set, stdev, stdev, interpolation_step_);
     if (std::isnan(quality))
+    {
       quality = -1.0;
-
+    }
     return quality;
   }
 

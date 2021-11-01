@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,11 @@
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -43,6 +46,7 @@
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace std;
@@ -534,7 +538,10 @@ namespace OpenMS
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
-      for (auto const & r : msfile_section_) { unique_paths.insert(r.path); }
+      for (auto const & r : msfile_section_) 
+      { 
+        unique_paths.insert(r.path);
+      }
       return unique_paths.size();
     }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -366,7 +366,7 @@ protected:
     String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
     String rscript_executable;
     if (!file_models_plot.empty() || !file_residuals_plot.empty())
-    { // only check for existance of Rscript if output files are requested...
+    { // only check for existence of Rscript if output files are requested...
       rscript_executable = getStringOption_("rscript_executable");
     }
 

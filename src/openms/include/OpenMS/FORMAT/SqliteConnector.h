@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,7 +106,7 @@ namespace OpenMS
     Size countTableRows(const String& table_name);
 
     /**
-      @brief Checkes whether the given table contains a certain column
+      @brief Checks whether the given table contains a certain column
 
       @p tablename The name of the table (needs to exist)
       @p colname The name of the column to be checked

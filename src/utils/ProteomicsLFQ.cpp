@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -192,6 +192,9 @@ protected:
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);
 
+    //TODO test rigorously
+    registerStringOption_("picked_proteinFDR", "<choice>", "false", "Use a picked protein FDR?", false);
+
     registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
     setMinFloat_("psmFDR", 0.0);
@@ -200,7 +203,7 @@ protected:
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
       "Infer proteins:\n" 
-      "aggregation  = aggregates all peptide scores across a protein (by calculating the maximum) \n"
+      "aggregation  = aggregates all peptide scores across a protein (using the best score) \n"
       "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
       "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
       false, true);
@@ -536,7 +539,7 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
@@ -567,7 +570,7 @@ protected:
         if (getFlag_("force"))
         {
           OPENMS_LOG_ERROR
-            << "Error: alignment failed. Details:\n" << err.getMessage()
+            << "Error: alignment failed. Details:\n" << err.what()
             << "\nProcessing will continue using 'identity' transformations."
             << endl;
           model_type = "identity";
@@ -580,7 +583,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
+        writeDebug_("Using " + String() + " points in fit.", 1); 
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -638,7 +641,7 @@ protected:
             transformations[i]);
         } catch (Exception::IllegalArgument& e)
         {
-          OPENMS_LOG_WARN << e.getMessage() << endl;
+          OPENMS_LOG_WARN << e.what() << endl;
         }
           
         if (debug_level_ > 666)
@@ -720,13 +723,13 @@ protected:
     map<Size, UInt> num_consfeat_of_size_with_id;
 
     map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
-    for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
+    for (const ConsensusFeature& cfeature : cons)
     {
-      ++num_consfeat_of_size[cmit->size()];
-      const auto& pids = cmit->getPeptideIdentifications();
+      ++num_consfeat_of_size[cfeature.size()];
+      const auto& pids = cfeature.getPeptideIdentifications();
       if (!pids.empty())
       {
-        ++num_consfeat_of_size_with_id[cmit->size()];
+        ++num_consfeat_of_size_with_id[cfeature.size()];
 
         // count how often a peptide/charge pair has been observed in the different maps
         const vector<PeptideHit>& phits = pids[0].getHits();
@@ -741,7 +744,7 @@ protected:
           }
 
           // assign id to all dimensions in the consensus feature
-          for (auto const & f : cmit->getFeatures())
+          for (auto const & f : cfeature.getFeatures())
           {
             Size map_index = f.getMapIndex();
             seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
@@ -819,10 +822,14 @@ protected:
 
     StringList run_paths;
     protein_ids[0].getPrimaryMSRunPath(run_paths);
-    if (run_paths.size() != 1)
+    if (run_paths.size() > 1)
     {
       OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+    if (run_paths.size() == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: " << id_file_abs_path << endl;
     }
     
     return EXECUTION_OK;
@@ -1152,6 +1159,11 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
+      if (debug_level_ > 670)
+      {
+        MzMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms());
+      }
+
       ++fraction_group;
     }
 
@@ -1301,6 +1313,9 @@ protected:
     }
 
     // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
+    String picked_decoy_string = "DECOY_";
+    bool picked_decoy_prefix = true;
+
     if (!in_db.empty())
     {
       PeptideIndexing indexer;
@@ -1314,6 +1329,8 @@ protected:
       FASTAContainer<TFI_File> fasta_db(in_db);
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, inferred_protein_ids, inferred_peptide_ids);
 
+      picked_decoy_string = indexer.getDecoyString();
+      picked_decoy_prefix = indexer.isPrefix();
       if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
           (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
       {
@@ -1343,68 +1360,47 @@ protected:
     // TODO: Think about ProteinInference on IDs only merged per condition
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool bayesian = getStringOption_("protein_inference") == "bayesian";
+    bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
+
     if (!bayesian) // simple aggregation
     {
       BasicProteinInferenceAlgorithm bpia;
-      bpia.run(inferred_peptide_ids, inferred_protein_ids);
+      auto bpiaparams = bpia.getParameters();
+      bpiaparams.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
+      bpiaparams.setValue("greedy_group_resolution", greedy_group_resolution ? "true" : "false");
+      bpia.setParameters(bpiaparams);
 
-      if (groups)
-      {
-        IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 0, false, false};
-        ibg.computeConnectedComponents();
-        ibg.calculateAndAnnotateIndistProteins(true);
-        auto & ipg = inferred_protein_ids[0].getIndistinguishableProteins();
-        std::sort(std::begin(ipg), std::end(ipg));
-      }
+      bpia.run(inferred_peptide_ids, inferred_protein_ids);
     }
     else // if (bayesian)
     {
-      if (!groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
-      {
-        throw OpenMS::Exception::InvalidParameter(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Inference = Bayes currently automatically groups proteins and does not allow for"
-          " strictly_unique_peptides during quantification.");
-      }
       // Important Note: BayesianProteinInference by default keeps only the best
       // PSM per peptide!
-      // TODO maybe allow otherwise!
+      // TODO maybe allow otherwise by exposing the corresponding parameter. But I think it does not matter much here,
+      //  since we basically discard peptide+PSM information from inference and use the info in the cMaps.
       BayesianProteinInferenceAlgorithm bayes;
       //bayesian inference automatically annotates groups
-      bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
+      bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids, greedy_group_resolution);
+      if (!groups)
+      {
+        // should be enough to just clear the groups.
+        inferred_protein_ids[0].getIndistinguishableProteins().clear();
+      }
     }
-
-    // if no or only partial grouping was performed, add rest of proteins as singleton groups
-    // (assumed by greedy resolution for now)
-    inferred_protein_ids[0].fillIndistinguishableGroupsWithSingletons();
 
     if (debug_level_ >= 666)
     {
       IdXMLFile().store("debug_mergedIDs_inference.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
-    // TODO think about order of the next three steps (greedy resolution, FDR calc and filtering)
-
-    // Optional greedy group resolution
-    // TODO finish greedy resolution on the new graph structure, since we built it for inference already anyway
-    bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
-    if (greedy_group_resolution)
-    {
-      PeptideProteinResolution::run(inferred_protein_ids, inferred_peptide_ids);
-      // TODO add an option to calculate FDR including those "second best protein hits"?
-      if (debug_level_ >= 666)
-      {
-        IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
-      }
-    }
+    // TODO think about order of greedy resolution, FDR calc and filtering
 
     //-------------------------------------------------------------
     // Protein (and additional peptide?) FDR
     //-------------------------------------------------------------
     const double max_fdr = getDoubleOption_("proteinFDR");
-    // Note: actually, when Bayesian inference was performed, only one (best) PSM
+    const bool picked = getStringOption_("picked_proteinFDR") == "true";
+    // Note: actually, when Bayesian inference was performed, per default only one (best) PSM
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
@@ -1416,7 +1412,14 @@ protected:
       fdr.setParameters(fdr_param);
     }
 
-    fdr.applyBasic(inferred_protein_ids[0]);
+    if (!picked)
+    {
+      fdr.applyBasic(inferred_protein_ids[0]);
+    }
+    else
+    {
+      fdr.applyPickedProteinFDR(inferred_protein_ids[0], picked_decoy_string, picked_decoy_prefix);
+    }
 
     if (max_psm_fdr < 1.)
     {
@@ -1426,7 +1429,7 @@ protected:
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
@@ -1435,7 +1438,7 @@ protected:
     {
       // This is needed because we throw out decoy proteins during FDR
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
 
@@ -1601,6 +1604,7 @@ protected:
         e.path = s;
         e.sample = count;
         msfs.push_back(e);
+        ++count;
       }      
       design.setMSFileSection(msfs);
     }
@@ -1644,8 +1648,27 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
     }
-
+   
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
+
+    // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
+    for (auto & fraction_ms_files : frac2ms)
+    {
+      for (auto & s : fraction_ms_files.second)
+      { // for all ms files of current fraction number
+        // if basename in experimental design matches to basename in input file
+        // overwrite experimental design to point to existing file (and only if they were different)
+        if (auto it = std::find_if(in.begin(), in.end(), 
+              [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
+                 it != in.end() && s != *it) // and differ?
+        {
+          OPENMS_LOG_INFO << "Path of spectra files differ between experimental design (1) and input (2). Using the path of the input file as "
+                          << "we know this file exists on the file system: '" << *it << "' vs. '" << s << endl;
+          s = *it; // overwrite filename in design with filename in input files
+        }
+      }
+      
+    } 
 
     for (auto & f : frac2ms)
     {
@@ -1917,7 +1940,7 @@ protected:
     auto& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]);
 
-    // For correctness we would need to set the run reference in the pepIDs of the consensusXML all to the first run then
+    // For correctness, we would need to set the run reference in the pepIDs of the consensusXML all to the first run then
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
     // e.g. by removing them with a Filter beforehand.
 
@@ -1925,7 +1948,7 @@ protected:
     if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
-      // (they are neverless stored and passed to mzTab for proper export)
+      // (they are nevertheless stored and passed to mzTab for proper export)
       ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
     }
 

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  Julia Thueringer$
+// $Maintainer: Julia Thueringer$
 // $Authors: Julia Thueringer $
 // --------------------------------------------------------------------------
 

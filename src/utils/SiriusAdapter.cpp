@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,10 +118,10 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", 
+    registerInputFile_("sirius_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
 #ifdef OPENMS_WINDOWSPLATFORM
-      "sirius-console-64.exe",
+      "sirius.bat",
 #else
       "sirius",
 #endif
@@ -156,7 +156,7 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
-    String executable = getStringOption_("executable");
+    String sirius_executable = getStringOption_("sirius_executable");
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
@@ -217,7 +217,7 @@ protected:
     bool decoy_generation = false;
     subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
                                            sirius_tmp.getTmpOutDir(),
-                                           executable,
+                                           sirius_executable,
                                            out_csifingerid,
                                            decoy_generation);
     

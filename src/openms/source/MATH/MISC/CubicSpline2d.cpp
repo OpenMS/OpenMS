@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,6 +103,11 @@ namespace OpenMS
     
     const double xx = x - x_[i];
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
+  }
+
+  double CubicSpline2d::derivative(const double x) const
+  {
+    return derivatives(x, 1);
   }
 
   double CubicSpline2d::derivatives(double x, unsigned order) const

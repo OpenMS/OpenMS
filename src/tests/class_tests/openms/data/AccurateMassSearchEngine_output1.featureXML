@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2019-03-28T17:59:31" search_engine="AccurateMassSearch" search_engine_version="">
+	<UserParam type="stringList" name="spectra_data" value="[file://E:\NotARealFileJustATest.mzML]"/>
+	<IdentificationRun id="PI_0" date="2021-09-21T14:15:05" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -119,7 +120,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T141"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[36310.164094606996514]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.6310164094607e04]"/>
 			<UserParam type="float" name="FWHM" value="6.25"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
@@ -712,7 +713,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T43_T106_T170"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[2.15267481468212e06, 1.99952370346936e05, 13890.889608368199333]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.15267481468212e06, 1.99952370346936e05, 1.38908896083682e04]"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
@@ -1183,7 +1184,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T160"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[18965.949471672098298]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.89659494716721e04]"/>
 			<UserParam type="float" name="FWHM" value="5.75"/>
 		</feature>
 		<feature id="f_10893964381505000125">
@@ -1549,7 +1550,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T69_T134"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[4.13215012682643e05, 45456.721302070502134]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.13215012682643e05, 4.54567213020705e04]"/>
 			<UserParam type="float" name="FWHM" value="5.5"/>
 		</feature>
 		<feature id="f_3062115439946092212">
@@ -2548,7 +2549,7 @@
 		<feature id="f_425533765783660679">
 			<position dim="0">258.75</position>
 			<position dim="1">165.057161287125012</position>
-			<intensity>35837.5</intensity>
+			<intensity>3.58375e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.06578e-05</overallquality>
@@ -2615,7 +2616,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T121"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[35837.46716858039872]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.58374671685804e04]"/>
 			<UserParam type="float" name="FWHM" value="3.5"/>
 			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
 		</feature>

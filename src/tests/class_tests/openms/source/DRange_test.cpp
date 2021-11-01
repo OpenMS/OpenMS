@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -435,6 +435,22 @@ p2[1]=4.0f;
 	TEST_REAL_SIMILAR(r.maxPosition()[0], 5.0f);
 	TEST_REAL_SIMILAR(r.minPosition()[1],-5.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[1], 7.0f); 
+END_SECTION
+
+
+START_SECTION(DRange<D>& swapDimensions())
+	DRange<2> r(p1, p2);
+	/*
+	p1[0]=-1.0f;
+	p1[1]=-2.0f;
+	p2[0]=3.0f;
+	p2[1]=4.0f;
+	*/
+	r.swapDimensions();
+	TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+	TEST_REAL_SIMILAR(r.minPosition()[1], -1.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[1], 3.0f);
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

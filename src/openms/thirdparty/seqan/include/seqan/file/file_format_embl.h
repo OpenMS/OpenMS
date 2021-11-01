@@ -162,7 +162,7 @@ SEQAN_CHECKPOINT
 		it.data_file_pos += 1;
 
 		if ((it.data_char == '\n') || (it.data_char == '\r'))
-		{//linebreak detected: find begin of next line
+		{//line break detected: find begin of next line
 			do
 			{
 				it.data_char = _streamGet(host(it));

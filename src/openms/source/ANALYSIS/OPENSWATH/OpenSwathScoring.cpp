@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
@@ -47,8 +46,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
-
-// basic file operations
 
 namespace OpenMS
 {
@@ -64,7 +61,7 @@ namespace OpenMS
       sorted_indices.emplace_back(*mz_it, i);
       ++mz_it;
     }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end());                
 
     // extract list of indices
     std::vector<Size> select_indices;
@@ -198,7 +195,7 @@ namespace OpenMS
       // pattern?
       // Currently this is computed for an averagine model of a peptide so its
       // not optimal for metabolites - but better than nothing, given that for
-      // most fragments we dont really know their composition
+      // most fragments we don't really know their composition
       diascoring
           .dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
     }

@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>"
 
     cdef cppclass IsobaricQuantifierStatistics "OpenMS::IsobaricQuantifierStatistics":
         IsobaricQuantifierStatistics() nogil except +
-        IsobaricQuantifierStatistics(IsobaricQuantifierStatistics) nogil except +
+        IsobaricQuantifierStatistics(IsobaricQuantifierStatistics &) nogil except + # compiler
         Size channel_count
         Size iso_number_ms2_negative
         Size iso_number_reporter_negative

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,12 +50,10 @@
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -188,9 +186,7 @@ private:
       FileHandler().loadExperiment(filename, expmap);
       lookup.readSpectra(expmap.getSpectra());
 
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
       for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
       {
         try
@@ -201,9 +197,7 @@ private:
         }
         catch (Exception::ElementNotFound&)
         {
-#ifdef _OPENMP
 #pragma omp critical (IDFileConverter_ERROR)
-#endif
           {
             OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
@@ -322,7 +316,7 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -368,7 +362,7 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
@@ -390,7 +384,7 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
+          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
@@ -517,22 +511,20 @@ protected:
           fh.getOptions().addMSLevel(2);
           fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
                             false);
-          for (vector<PeptideIdentification>::iterator it =
-                 peptide_identifications.begin(); it !=
-                 peptide_identifications.end(); ++it)
+          for (PeptideIdentification& pep : peptide_identifications)
           {
-            UInt id = (Int)it->getMetaValue("spectrum_id");
+            UInt id = (Int)pep.getMetaValue("spectrum_id");
             --id; // native IDs were written 1-based
             if (id < exp.size())
             {
-              it->setRT(exp[id].getRT());
+              pep.setRT(exp[id].getRT());
               double pre_mz(0.0);
               if (!exp[id].getPrecursors().empty())
               {
                 pre_mz = exp[id].getPrecursors()[0].getMZ();
               }
-              it->setMZ(pre_mz);
-              it->removeMetaValue("spectrum_id");
+              pep.setMZ(pre_mz);
+              pep.removeMetaValue("spectrum_id");
             }
             else
             {
@@ -742,7 +734,10 @@ protected:
         Int curr_hit = 1;
         for (const PeptideHit& hit : pep_id.getHits())
         {
-          if (curr_hit > max_hits) break;
+          if (curr_hit > max_hits)
+          {
+            break;
+          }
           ++curr_hit;
 
           String seq = hit.getSequence().toUnmodifiedString();

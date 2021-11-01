@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -173,7 +173,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   using NucleotideModifications = vector<NucleotideModification>;
 
   // map nucleotide to list of empirical MS1 precursor losses/gains
-  // nucleotide->all loss/gain formulas (each composed of subformulas)->subformulas
+  // nucleotide->all loss/gain formulas (each composed of subformulae)->subformulae
   map<String, NucleotideModifications> map_to_nucleotide_modifications;
 
   for (String m : modifications)
@@ -194,7 +194,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
     m = m.substr(2); // remove nucleotide and ':' from front of string
 
-    // decompose string into subformulas
+    // decompose string into subformulae
     m.substitute("-", "#-");
     m.substitute("+", "#+");
     vector<String> ems;

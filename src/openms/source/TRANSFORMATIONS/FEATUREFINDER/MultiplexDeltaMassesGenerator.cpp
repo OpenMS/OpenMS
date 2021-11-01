@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 
 using namespace std;
 
@@ -66,14 +67,14 @@ namespace OpenMS
     fillLabelMasterList_();
 
     // set user parameters
-    for (std::vector<MultiplexDeltaMassesGenerator::Label>::const_iterator it = label_master_list_.begin(); it != label_master_list_.end(); ++it)
+    for (const MultiplexDeltaMassesGenerator::Label& multi : label_master_list_)
     {
-      defaults_.setValue(it->short_name, it->delta_mass, it->description);
-      defaults_.setMinFloat(it->short_name, 0);    
+      defaults_.setValue(multi.short_name, multi.delta_mass, multi.description);
+      defaults_.setMinFloat(multi.short_name, 0);
     }
-    defaultsToParam_();    
+    defaultsToParam_();
   }
-  
+
   MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
     DefaultParamHandler("labels"),
     labels_(labels),
@@ -84,23 +85,23 @@ namespace OpenMS
   {
     // fill label master list
     fillLabelMasterList_();
-    
+
     // generate short/long label mappings
-    for (std::vector<MultiplexDeltaMassesGenerator::Label>::const_iterator it = label_master_list_.begin(); it != label_master_list_.end(); ++it)
+    for (const MultiplexDeltaMassesGenerator::Label& multi : label_master_list_)
     {
-      label_short_long_.insert(make_pair(it->short_name, it->long_name));
-      label_long_short_.insert(make_pair(it->long_name, it->short_name));
+      label_short_long_.insert(make_pair(multi.short_name, multi.long_name));
+      label_long_short_.insert(make_pair(multi.long_name, multi.short_name));
     }
-    
+
     // split the labels_ string
     String temp_labels_string(labels_);
     std::vector<String> temp_samples;
-    
+
     boost::replace_all(temp_labels_string, "[]", "no_label");
     boost::replace_all(temp_labels_string, "()", "no_label");
     boost::replace_all(temp_labels_string, "{}", "no_label");
     boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
-    
+
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
@@ -119,7 +120,7 @@ namespace OpenMS
         }
       }
     }
-    
+
     if (samples_labels_.empty())
     {
       vector<String> temp_labels;
@@ -143,7 +144,7 @@ namespace OpenMS
         try
         {
           double mass_shift = std::stod(samples_labels_[i][j]);
-          
+
           // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
           // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
           label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
@@ -169,7 +170,7 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
     }
-    
+
     // Check if the labels are included in advanced section "labels"
     // unless the labelling is numeric.
     if (!numeric)
@@ -194,7 +195,7 @@ namespace OpenMS
     {
       // SILAC
       // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
-      
+
       for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= (unsigned) missed_cleavages_ + 1; ArgPerPeptide++)
       {
         for (unsigned LysPerPeptide = 0; LysPerPeptide <= (unsigned) missed_cleavages_ + 1; LysPerPeptide++)
@@ -268,13 +269,13 @@ namespace OpenMS
       // We assume each sample to be labelled only once. Hence, we only consider samples_labels_[...][0] below.
       // Unlike in classical SILAC where two labels with two different specificities are available, in Leu labelling
       // there is only one specificity Leu. Hence, [Lys8,Arg10] but [Leu3].
-      
+
       for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-        
+
         delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
-        
+
         double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[1][0]] - label_delta_mass_[samples_labels_[0][0]]);
         MultiplexDeltaMasses::LabelSet label_set;
         // construct label set
@@ -283,10 +284,10 @@ namespace OpenMS
           label_set.insert(samples_labels_[1][0]);
         }
         delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
-        
+
         delta_masses_list_.push_back(delta_masses_temp);
       }
-      
+
     }
     else if (Dimethyl || ICPL)
     {
@@ -329,11 +330,11 @@ namespace OpenMS
           {
             label_set.insert(samples_labels_[i][0]);
           }
-          
+
           delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
         }
         delta_masses_list_.push_back(delta_masses_temp);
-      }    
+      }
     }
     else
     {
@@ -342,7 +343,7 @@ namespace OpenMS
       delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
       delta_masses_list_.push_back(delta_masses_temp);
     }
-    
+
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
@@ -368,7 +369,7 @@ namespace OpenMS
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
-    
+
     unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     unsigned m = delta_masses_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
@@ -402,7 +403,7 @@ namespace OpenMS
         doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
         delta_masses_list_.push_back(doublet3);
       }
-      
+
       // add singlets
       MultiplexDeltaMasses dm;
       dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "any_label_set"));    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
@@ -418,20 +419,20 @@ namespace OpenMS
         triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
         triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
         delta_masses_list_.push_back(triplet1);
-        
+
         MultiplexDeltaMasses triplet2;
         triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
         triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
         triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
         delta_masses_list_.push_back(triplet2);
-        
+
         // Knockout combination previously forgotten. Will be un-commented in final FFM/MultiplexResolver version.
         /*MultiplexDeltaMasses triplet3;
         triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
         triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
         triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
         delta_masses_list_.push_back(triplet3);*/
-        
+
         MultiplexDeltaMasses triplet4;
         triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
         triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
@@ -480,13 +481,13 @@ namespace OpenMS
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
-    
+
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
-    
+
   }
-  
+
   void MultiplexDeltaMassesGenerator::printSamplesLabelsList(std::ostream &stream) const
   {
     stream << "\n";
@@ -500,7 +501,7 @@ namespace OpenMS
       stream << "\n";
     }
   }
-  
+
   void MultiplexDeltaMassesGenerator::printDeltaMassesList(std::ostream &stream) const
   {
     stream << "\n";
@@ -511,7 +512,7 @@ namespace OpenMS
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
-        
+
         stream << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
@@ -527,7 +528,7 @@ namespace OpenMS
     }
     stream << "\n";
   }
-  
+
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()
   {
     return delta_masses_list_;
@@ -537,7 +538,7 @@ namespace OpenMS
   {
     return delta_masses_list_;
   }
-  
+
   std::vector<std::vector<String> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
   {
     return samples_labels_;
@@ -557,7 +558,7 @@ namespace OpenMS
   {
     return label_short_long_[label];
   }
-  
+
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence)
   {
     String s(sequence.toString());
@@ -565,10 +566,10 @@ namespace OpenMS
     MultiplexDeltaMasses::LabelSet label_set;
     // loop over all labels that might occur
     for (std::vector<String>::size_type i = 0; i < labels_list_.size(); ++i)
-    {    
+    {
       String label("(" + getLabelLong(labels_list_[i]) + ")");
       String::size_type length_label = label.size();
-      
+
       // check if label occurs in peptide sequence
       if (s.hasSubstring(label))
       {
@@ -576,7 +577,7 @@ namespace OpenMS
         s.substitute(label, "");
         String::size_type length_after = s.size();
         String::size_type multiple = (length_before - length_after)/length_label;
-        
+
         // add as many labels to the set as occurred in the peptide sequence
         for (String::size_type j = 0; j < multiple; ++j)
         {
@@ -590,8 +591,8 @@ namespace OpenMS
     if (label_set.empty())
     {
       label_set.insert("no_label");
-    }    
-    
+    }
+
     return label_set;
   }
 

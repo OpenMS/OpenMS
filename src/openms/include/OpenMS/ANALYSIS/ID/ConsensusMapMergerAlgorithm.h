@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ namespace OpenMS
    *     again. In general detaching IDs from features would be of great help here.
    * @todo Untested for TMT/iTraq data where you usually have one Identification run per File but in one File you
    *     might have multiple conditions multiplexed, that you might want to split for inference. Problem:
-   *     There is only one PeptideIdentification object per Feature that is representative for all "submaps" (in this
+   *     There is only one PeptideIdentification object per Feature that is representative for all "sub maps" (in this
    *     case the labels/reporter ions). -> A lookup is necessary if the reporter ion had non-zero intensity and if
    *     so, the peptide ID needs to be duplicated for every new (condition-based) IdentificationRun it is supposed
    *     to be used in, according to the mapping.

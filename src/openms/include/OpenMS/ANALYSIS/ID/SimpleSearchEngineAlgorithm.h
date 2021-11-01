@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #include <vector>
 
@@ -74,7 +75,11 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       StringView sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       double score = 0; ///< main score
-      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;      
+      double prefix_fraction = 0; ///< fraction of annotated b-ions
+      double suffix_fraction = 0; ///< fraction of annotated y-ions
+      double mean_error = 0.0; ///< mean absolute fragment mass error
+
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;

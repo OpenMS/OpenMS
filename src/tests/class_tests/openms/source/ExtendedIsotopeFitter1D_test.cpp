@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,14 +54,14 @@ ExtendedIsotopeFitter1D* nullPointer = nullptr;
 START_SECTION(ExtendedIsotopeFitter1D())
 {
 	ptr = new ExtendedIsotopeFitter1D();
-        TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
+	TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
 	ExtendedIsotopeFitter1D eisof1;
-	
+
 	Param param;
 	param.setValue( "tolerance_stdev_bounding_box", 1.0);
   param.setValue( "statistics:mean", 680.1 );
@@ -69,7 +69,7 @@ START_SECTION((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
   param.setValue( "interpolation_step", 1.0 );
   param.setValue( "charge", 1 );
   param.setValue( "isotope:stdev", 0.04 );
-  param.setValue( "isotope:maximum", 20 );                	
+  param.setValue( "isotope:maximum", 20 );
 	eisof1.setParameters(param);
 
 	ExtendedIsotopeFitter1D eisof2(eisof1);
@@ -86,7 +86,7 @@ END_SECTION
 
 START_SECTION((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D &source)))
 	ExtendedIsotopeFitter1D eisof1;
-	
+
 	Param param;
 	param.setValue( "tolerance_stdev_bounding_box", 1.0);
   param.setValue( "statistics:mean", 680.1 );
@@ -94,7 +94,7 @@ START_SECTION((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotope
   param.setValue( "interpolation_step", 1.0 );
   param.setValue( "charge", 1 );
   param.setValue( "isotope:stdev", 0.04 );
-  param.setValue( "isotope:maximum", 20 );                	
+  param.setValue( "isotope:maximum", 20 );
 	eisof1.setParameters(param);
 
   ExtendedIsotopeFitter1D eisof2;
@@ -116,6 +116,7 @@ START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = ExtendedIsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 END_SECTION
 
 START_SECTION((const String getProductName()))

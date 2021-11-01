@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,8 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
+#include <atomic>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
@@ -76,7 +78,8 @@ namespace OpenMS
 
   File::TempDir::~TempDir()
   {
-    if (keep_dir_) {
+    if (keep_dir_)
+    {
       OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
       return;
     }
@@ -93,10 +96,10 @@ namespace OpenMS
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     // Use immediately evaluated lambda to protect static variable from concurrent access.
-    static String spath = [&]() -> String {
+    static const String spath = [&]() -> String {
         String rpath = "";
 
-        char path[1024];
+        char path[1024]; // maximum path length
 
 #ifdef OPENMS_WINDOWSPLATFORM
         int size = sizeof(path);
@@ -105,9 +108,14 @@ namespace OpenMS
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
 #else // LINUX
-        int size = sizeof(path);
-        int ch = readlink("/proc/self/exe", path, size);
-        if (ch != -1)
+        // note: implementation as suggested by readlink man page
+        ssize_t len = ::readlink("/proc/self/exe", path, sizeof(path)-1);
+        if (len != -1) //add 0 terminator at end
+        {
+          path[len] = '\0';
+        }
+
+        if (len != -1)
 #endif
         {
           rpath = File::path(String(path));
@@ -115,8 +123,10 @@ namespace OpenMS
           {
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
             rpath.ensureLastChar('/');
-          } else {
-            std::cerr << "Path extracted from Executable Path does not exist! Returning empty string!\n";
+          } 
+          else 
+          {
+            std::cerr << "Path '" << rpath << "' extracted from Executable Path '" << path << "' does not exist! Returning empty string!\n";
             rpath = "";
           }
         } else {
@@ -151,13 +161,19 @@ namespace OpenMS
     // existing file? Qt won't overwrite, so try to remove it:
     if (overwrite_existing && exists(to) && !remove(to))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      }
       return false;
     }
     // move the file to the actual destination:
     if (!QFile::rename(from.toQString(), to.toQString()))
     {
-      if (verbose) OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      }
       return false;
     }
     return true;
@@ -185,7 +201,7 @@ namespace OpenMS
       target_dir.mkpath(to_dir);
     }
   
-    // copy folder recurively
+    // copy folder recursively
     QFileInfoList file_list = source_dir.entryInfoList();
     for (const QFileInfo& entry : file_list)   
     {
@@ -227,11 +243,13 @@ namespace OpenMS
   bool File::remove(const String& file)
   {
     if (!exists(file))
+    {
       return true;
-
+    }
     if (std::remove(file.c_str()) != 0)
+    {
       return false;
-
+    }
     return true;
   }
 
@@ -305,15 +323,18 @@ namespace OpenMS
   }
 
   String File::basename(const String& file)
-  {
-    QFileInfo fi(file.toQString());
-    return fi.fileName();
+  { // using well-defined overflow of unsigned ints here if path separator is not found
+    return file.substr(file.find_last_of("\\/") + 1);
   }
 
   String File::path(const String& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.path();
+    size_t pos = file.find_last_of("\\/");
+    // do NOT return an empty string, because this leads to issues when in generic code you do:
+    // String new_path = path("a.txt") + '/' + basename("a.txt");
+    // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
+    String no_path = "."; 
+    return pos == string::npos ? no_path : file.substr(0, pos);
   }
 
   bool File::readable(const String& file)
@@ -346,16 +367,20 @@ namespace OpenMS
   String File::find(const String& filename, StringList directories)
   {
     // maybe we do not need to do anything?!
-    // This check is required since calling File::find(File::find("CHEMISTRY/Elements.xml")) will otherwise fail
+    // This check is required since calling File::find(File::find("CHEMISTRY/unimod.xml")) will otherwise fail
     // because the outer call receives an absolute path already
-    if (exists(filename)) return filename;
-
+    if (exists(filename))
+    {
+      return filename;
+    }
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-
+    if (filename_new.trim().empty())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
 
@@ -363,18 +388,18 @@ namespace OpenMS
     String path = File::path(filename);
     if (path != "")
     {
-      for (StringList::iterator it = directories.begin(); it != directories.end(); ++it)
+      for (String& str : directories)
       {
-        it->ensureLastChar('/');
-        *it += path;
+        str.ensureLastChar('/');
+        str += path;
       }
       filename_new = File::basename(filename);
     }
 
     //look up file
-    for (StringList::const_iterator it = directories.begin(); it != directories.end(); ++it)
+    for (const String& str : directories)
     {
-      String loc = *it;
+      String loc = str;
       loc.ensureLastChar('/');
       loc = loc + filename_new;
 
@@ -448,84 +473,93 @@ namespace OpenMS
 
   String File::getOpenMSDataPath()
   {
-    static String path;
-    static bool path_checked = false;
+    // Use immediately evaluated lambda to protect static variable from concurrent access.
+    static const String path = [&]() -> String {
+      String path;
+      bool path_checked = false;
 
-    // we already checked the path, just return it
-    // we do not support moving the path while OpenMS is running
-    if (path_checked) return path;
-
-    String found_path_from;
-    bool from_env(false);
-    if (getenv("OPENMS_DATA_PATH") != nullptr)
-    {
-      path = getenv("OPENMS_DATA_PATH");
-      from_env = true;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
-    }
-
-    // probe the install path
-    if (!path_checked)
-    {
-      path = OPENMS_INSTALL_DATA_PATH;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
-    }
-
-    // probe the OPENMS_DATA_PATH macro
-    if (!path_checked)
-    {
-      path = OPENMS_DATA_PATH;
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
-    }
-
-#if defined(__APPLE__)
-    // try to find it relative to the executable in the bundle (e.g. TOPPView)
-    if (!path_checked)
-    {
-      path = getExecutablePath() + "../../../share/OpenMS";
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "bundle path (run time)";
-    }
-#endif
-    
-    // On Linux and Apple check relative from the executable
-    if (!path_checked)
-    {
-      path = getExecutablePath() + "../share/OpenMS";
-      path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "tool path (run time)";
-    }
-
-    // make its a proper path:
-    path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
-
-    if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
-    { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
-      std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
-      if (from_env)
+      String found_path_from;
+      bool from_env(false);
+      if (getenv("OPENMS_DATA_PATH") != nullptr)
       {
-        String p = getenv("OPENMS_DATA_PATH");
-        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+        path = getenv("OPENMS_DATA_PATH");
+        from_env = true;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked)
+        {
+          found_path_from = "OPENMS_DATA_PATH (environment)";
+        }
       }
-#ifdef OPENMS_WINDOWSPLATFORM
-      String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
-#else
-      String share_dir = "/usr/share/OpenMS";
-#endif
-      std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
-      std::cerr << "Exiting now.\n";
-      exit(1);
-    }
+
+      // probe the install path
+      if (!path_checked)
+      {
+        path = OPENMS_INSTALL_DATA_PATH;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked)
+        {
+          found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+        }
+      }
+
+      // probe the OPENMS_DATA_PATH macro
+      if (!path_checked)
+      {
+        path = OPENMS_DATA_PATH;
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
+      }
+
+  #if defined(__APPLE__)
+      // try to find it relative to the executable in the bundle (e.g. TOPPView)
+      if (!path_checked)
+      {
+        path = getExecutablePath() + "../../../share/OpenMS";
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked) found_path_from = "bundle path (run time)";
+      }
+  #endif
+      
+      // On Linux and Apple check relative from the executable
+      if (!path_checked)
+      {
+        path = getExecutablePath() + "../share/OpenMS";
+        path_checked = isOpenMSDataPath_(path);
+        if (path_checked)
+        {
+          found_path_from = "tool path (run time)";
+        }
+      }
+
+      // make its a proper path:
+      path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
+
+      if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
+      { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
+        std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+        if (from_env)
+        {
+          String p = getenv("OPENMS_DATA_PATH");
+          std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+        }
+  #ifdef OPENMS_WINDOWSPLATFORM
+        String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
+  #else
+        String share_dir = "/usr/share/OpenMS";
+  #endif
+        std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
+        std::cerr << "Exiting now.\n";
+        exit(1);
+      }
+      return path;
+    }();
 
     return path;
   }
 
   bool File::isOpenMSDataPath_(const String& path)
   {
-    bool found = exists(path + "/CHEMISTRY/Elements.xml");
+    bool found = exists(path + "/CHEMISTRY/unimod.xml");
     return found;
   }
 
@@ -586,7 +620,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound& e)
     {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
     }
 
@@ -611,8 +645,20 @@ namespace OpenMS
   Param File::getSystemParameters()
   {
     String home_path = File::getOpenMSHomePath();
-
-    String filename = home_path + "/.OpenMS/OpenMS.ini";
+    String filename;
+    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+      if (getenv("XDG_CONFIG_HOME"))
+      {
+        filename = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+      }
+      else
+      {
+        filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
+      }
+    #else
+      filename = home_path + "/.OpenMS/OpenMS.ini";
+    #endif
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way
@@ -690,8 +736,10 @@ namespace OpenMS
 
   bool File::findExecutable(OpenMS::String& exe_filename)
   {
-    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
-
+    if (exists(exe_filename) && !isDirectory(exe_filename))
+    {
+      return true;
+    }
     StringList paths = getPathLocations();
     StringList exe_filenames = { exe_filename };
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -727,8 +775,10 @@ namespace OpenMS
     if (!exec.hasSuffix(".exe")) exec += ".exe";
 #endif
 
-    if (File::exists(exec)) return exec;
-
+    if (File::exists(exec))
+    {
+      return exec;
+    }
 #if defined(__APPLE__)
     // check if we are in one of the bundles (only built, not installed) 
     exec = File::getExecutablePath() + "../../../" + toolName;
@@ -750,8 +800,10 @@ namespace OpenMS
   const String& File::getTemporaryFile(const String& alternative_file)
   {
     // take no action
-    if (!alternative_file.empty()) return alternative_file;
-
+    if (!alternative_file.empty())
+    {
+      return alternative_file;
+    }
     // create temporary (and schedule for deletion)
     return temporary_files_.newFile();
   }
@@ -785,8 +837,10 @@ namespace OpenMS
   bool File::validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension, bool strict)
   {
     // same number of filenames?
-    if (sl1.size() != sl2.size()) return false;
-
+    if (sl1.size() != sl2.size())
+    {
+      return false;
+    }
     set<String> sl1_set;
     set<String> sl2_set;
     bool different_name_at_index = false;
@@ -810,18 +864,25 @@ namespace OpenMS
       sl1_set.insert(sl1_name);
       sl2_set.insert(sl2_name);
 
-      if (sl1_name != sl2_name) different_name_at_index = true;      
+      if (sl1_name != sl2_name)
+      {
+        different_name_at_index = true;      
+      }
     }
 
     // Check for common mistake that order of input files have been switched.
     // This is the case if names (or basenames) are identical but the order does not match.
     bool same_set = (sl1_set == sl2_set);
-    if (same_set && different_name_at_index) return false;
-
+    if (same_set && different_name_at_index)
+    {
+      return false;
+    }
     // If we enforce a strict check then the sets of filenames must be identical.
     // Note that this can lead to problems if a workflow engine assigns random names to intermediate results.
-    if (strict && !same_set) return false;
-
+    if (strict && !same_set)
+    {
+      return false;
+    }
     return true;
   }
 

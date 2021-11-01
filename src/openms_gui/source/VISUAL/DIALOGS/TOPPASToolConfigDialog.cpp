@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.what()).c_str());
       arg_param_.clear();
       return;
     }
@@ -213,7 +213,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.what()).c_str());
       return;
     }
   }

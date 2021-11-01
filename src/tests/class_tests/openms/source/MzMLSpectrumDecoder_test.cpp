@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,6 +97,7 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
 
   TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
   TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
+  delete ptr;
 }
 END_SECTION
 
@@ -136,6 +137,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(const std::string& in, OpenMS::Inte
 
   TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
   TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
+  delete ptr;
 }
 END_SECTION
 
@@ -164,6 +166,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -200,6 +203,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   // TEST_PRECONDITION_VIOLATED should already be sufficient to not trigger the "no subtests performed in"
   TEST_EQUAL(cptr->getMZArray()->data.size(), 0)
+  delete ptr;
 }
 END_SECTION
 
@@ -213,6 +217,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -238,6 +243,7 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
 
   TEST_EQUAL(cptr->getMZArray()->data.size(), 0)
   TEST_EQUAL(cptr->getIntensityArray()->data.size(), 0)
+  delete ptr;
 }
 END_SECTION
 
@@ -264,6 +270,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -295,6 +302,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   TEST_EQUAL(cptr->getMZArray()->data.size(), 0)
   TEST_EQUAL(cptr->getIntensityArray()->data.size(), 0)
+  delete ptr;
 }
 END_SECTION
 
@@ -317,6 +325,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -341,6 +350,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -367,6 +377,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -388,6 +399,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -412,6 +424,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ConversionError, ptr->domParseSpectrum(testString, cptr) );
+  delete ptr;
 }
 END_SECTION
 
@@ -439,6 +452,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  delete ptr;
 }
 END_SECTION
 
@@ -468,6 +482,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   TEST_EQUAL(cptr->getMZArray()->data.size(), 0) // failed since no m/z array is present
   TEST_EQUAL(cptr->getIntensityArray()->data.size(), 0) // failed since no m/z array is present
+  delete ptr;
 }
 END_SECTION
 
@@ -510,6 +525,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
   TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
+  delete ptr;
 }
 END_SECTION
 
@@ -544,6 +560,7 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
 
   TEST_REAL_SIMILAR(cptr->getTimeArray()->data[5], 5)
   TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[5], 5)
+  delete ptr;
 }
 END_SECTION
 
@@ -585,6 +602,7 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
   TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+  delete ptr;
 }
 END_SECTION
 
@@ -626,6 +644,7 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
   TEST_REAL_SIMILAR(s[5].getIntensity(), 5)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
   TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+  delete ptr;
 }
 END_SECTION
 

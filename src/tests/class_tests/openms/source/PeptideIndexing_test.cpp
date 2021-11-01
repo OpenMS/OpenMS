@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,13 +243,21 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   TEST_STRING_EQUAL(pi_3.getDecoyString(), "DECOY");
   TEST_EQUAL(pi_3.isPrefix(), true);
 
-  // simple suffix
+  // wrong suffix
   PeptideIndexing pi_4;
   Param p_4 = pi_4.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_4 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "Protein2DECOY_");
   pi_4.run(proteins_4, prot_ids_2, pep_ids_2);
-  TEST_STRING_EQUAL(pi_4.getDecoyString(), "DECOY_");
-  TEST_EQUAL(pi_4.isPrefix(), false);
+  TEST_STRING_EQUAL(pi_4.getDecoyString(), "DECOY_"); //here DECOY_ is the default when finding an affix fails
+  TEST_EQUAL(pi_4.isPrefix(), true); // prefix is default too
+
+  // simple suffix
+  PeptideIndexing pi_42;
+  Param p_42 = pi_42.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_42 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "Protein2_DECOY");
+  pi_42.run(proteins_42, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_42.getDecoyString(), "_DECOY");
+  TEST_EQUAL(pi_42.isPrefix(), false);
 
   // complex prefix with one false friend
   PeptideIndexing pi_5;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,7 +84,7 @@ namespace OpenMS
           The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
 
           <table>
-          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <caption> MSSpectrum </caption>
           <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
           <tr><td> mz <td> intensity <td> exact_mass <td> explanation
           <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
@@ -109,7 +109,7 @@ namespace OpenMS
           The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass),a StringDataArray (explanation), and a StringDataArray (ionization).
 
           <table>
-          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <caption> MSSpectrum </caption>
           <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
           <tr><td> mz <td> intensity <td> exact_mass <td> explanation
           <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N

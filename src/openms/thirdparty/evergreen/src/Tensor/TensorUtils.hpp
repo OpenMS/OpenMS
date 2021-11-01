@@ -8,7 +8,7 @@
 #include "Vector.hpp"
 
 #ifndef MAX_TENSOR_DIMENSION
-#define MAX_TENSOR_DIMENSION 24
+#define MAX_TENSOR_DIMENSION 12
 #endif
 
 // Tuple types:

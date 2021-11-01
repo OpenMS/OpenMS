@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,16 +105,8 @@ namespace OpenMS
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping);
 
-    // load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
     // validate
-    Internal::MzMLValidator v(mapping, cv);
+    Internal::MzMLValidator v(mapping, ControlledVocabulary::getPSIMSCV());
     bool result = v.validate(filename, errors, warnings);
 
     return result;
@@ -219,8 +211,10 @@ namespace OpenMS
   void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
-    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
-
+    if (!skip_first_pass)
+    {
+      transformFirstPass_(filename_in, consumer, skip_full_count);
+    }
     // Second pass through the data, now read the spectra!
     {
       PeakFileOptions tmp_options(options_);

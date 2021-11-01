@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
@@ -47,6 +48,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -212,7 +214,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.getMessage()) + ". Aborting!");
+      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.what()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -236,8 +238,14 @@ namespace OpenMS
     StringList args;
     for (int i = 0; i < argc; ++i)
     {
-      if (String(argv[i]).has(' ')) args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
-      else args.push_back(argv[i]);
+      if (String(argv[i]).has(' '))
+      { 
+        args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
+      }
+      else 
+      {
+        args.push_back(argv[i]);
+      }
     }
     writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
 
@@ -1840,7 +1848,7 @@ namespace OpenMS
     else
       message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
 
-    // check file existance
+    // check file existence
     if (!File::exists(filename))
     {
       OPENMS_LOG_ERROR << message;
@@ -2264,43 +2272,25 @@ namespace OpenMS
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      ParamXMLFile paramFile;
-      paramFile.writeXMLToStream(&ss, default_params);
-      String ini_file_str(ss.str());
+      ParamCTDFile paramFile;
 
-      //
-      QString docurl = getDocumentationURL().toQString();
-      QString category = "";
+      std::string docurl = getDocumentationURL();
+      std::string category;
       if (official_ || ToolHandler::getUtilList().count(tool_name_))
       { // we can only get the docurl/category from registered/official tools
-        category = ToolHandler::getCategory(tool_name_).toQString();
+        category = ToolHandler::getCategory(tool_name_);
       }
 
-      // morph to ctd format
-      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
-      lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-      lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
-      lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
-      int l = 5;
-      for (const Citation& c : citations_)
+      std::vector<std::string> citation_dois;
+      citation_dois.reserve(citations_.size() + 1);
+      citation_dois.push_back(cite_openms_.doi);
+      for (auto& citation : citations_)
       {
-        lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
+        citation_dois.push_back(citation.doi);
       }
-      lines.insert(++l, QString("</citations>"));
 
-      lines.insert(lines.size(), "</tool>");
-      String ctd_str = String(lines.join("\n")) + "\n";
-
-      //write to file
-      QFile file(write_ctd_file);
-      if (!file.open(QIODevice::WriteOnly))
-      {
-        return false;
-      }
-      file.write(ctd_str.c_str());
+      paramFile.store(write_ctd_file.toStdString(), default_params,
+                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
     }
 
     return true;

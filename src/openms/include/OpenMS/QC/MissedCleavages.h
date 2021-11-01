@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,9 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <vector>
 #include <map>
@@ -54,6 +57,10 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI MissedCleavages : public QCBase
   {
+  private:
+    typedef std::map<UInt32, UInt32> MapU32;
+    /// collects number of missed cleavages from PeptideIdentification in a result map (missed cleavages: occurences)
+    void get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id);
   public:
     ///constructor
     MissedCleavages() = default;
@@ -66,11 +73,12 @@ namespace OpenMS
      *
      * The result is a key/value map: #missed_cleavages --> counts
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
-     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
+     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
      *
      * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
+    void compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     /// returns the name of the metric
     const String& getName() const override;

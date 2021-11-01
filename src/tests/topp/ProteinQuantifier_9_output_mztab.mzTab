@@ -3,23 +3,24 @@ MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
-MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
+MTD	protein_search_engine_score[1]	[MS, MS:1003119, EPIFANY:Protein posterior probability, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
-MTD	psm_search_engine_score[1]	[, , Mascot, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-28]
-MTD	software[2]	[, , Mascot, ]
-MTD	software[2]-setting[1]	db:null
-MTD	software[2]-setting[2]	db_version:null
-MTD	software[2]-setting[3]	fragment_mass_tolerance:0.0
-MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
-MTD	software[2]-setting[5]	precursor_mass_tolerance:0.0
-MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:Da
-MTD	software[2]-setting[7]	enzyme:unknown_enzyme
-MTD	software[2]-setting[8]	enzyme_term_specificity:unknown
-MTD	software[2]-setting[9]	charges:null
-MTD	software[2]-setting[10]	missed_cleavages:0
-MTD	software[2]-setting[11]	fixed_modifications:null
-MTD	software[2]-setting[12]	variable_modifications:null
+MTD	psm_search_engine_score[1]	[, , Epifany, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-ProtQuantWEmptyProts-2021-05-12]
+MTD	software[2]	[MS, MS:1003118, EPIFANY, 2.6.0]
+MTD	software[3]	[, , Epifany, 2.6.0]
+MTD	software[3]-setting[1]	db:null
+MTD	software[3]-setting[2]	db_version:null
+MTD	software[3]-setting[3]	fragment_mass_tolerance:0.0
+MTD	software[3]-setting[4]	fragment_mass_tolerance_unit:Da
+MTD	software[3]-setting[5]	precursor_mass_tolerance:0.0
+MTD	software[3]-setting[6]	precursor_mass_tolerance_unit:Da
+MTD	software[3]-setting[7]	enzyme:unknown_enzyme
+MTD	software[3]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[3]-setting[9]	charges:null
+MTD	software[3]-setting[10]	missed_cleavages:0
+MTD	software[3]-setting[11]	fixed_modifications:null
+MTD	software[3]-setting[12]	variable_modifications:null
 MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
@@ -56,7 +57,7 @@ PEP	EEE	Protein	1	null	null	null	1.0	null	1.0	null	null	300.0	null	2	300.0	null	
 PEP	GGG	Protein	1	null	null	null	1.0	null	null	1.0	null	400.0	null	2	400.0	null	4.0	null	null	4.0	null	null	null	null	null	GGG
 
 PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_id_merge_index	opt_global_cv_MS:1000889_peptidoform_sequence
-PSM	AAA	0	Protein	1	null	null	[, , Mascot, ]	1.0	null	100.0	2	100.0	116.568230237921029	null	null	null	null	null	0	AAA
-PSM	CCC	1	Protein	1	null	null	[, , Mascot, ]	1.0	null	200.0	2	200.0	164.526336332921005	null	null	null	null	null	0	CCC
-PSM	EEE	2	Protein	1	null	null	[, , Mascot, ]	1.0	null	300.0	2	300.0	203.576450333621011	null	null	null	null	null	1	EEE
-PSM	GGG	3	Protein	1	null	null	[, , Mascot, ]	1.0	null	400.0	2	400.0	95.544755142220993	null	null	null	null	null	2	GGG
+PSM	AAA	0	Protein	1	null	null	[, , Epifany, 2.6.0]	1.0	null	100.0	2	100.0	116.568230237921	null	null	null	null	null	0	AAA
+PSM	CCC	1	Protein	1	null	null	[, , Epifany, 2.6.0]	1.0	null	200.0	2	200.0	164.526336332921005	null	null	null	null	null	0	CCC
+PSM	EEE	2	Protein	1	null	null	[, , Epifany, 2.6.0]	1.0	null	300.0	2	300.0	203.576450333621011	null	null	null	null	null	1	EEE
+PSM	GGG	3	Protein	1	null	null	[, , Epifany, 2.6.0]	1.0	null	400.0	2	400.0	95.544755142220993	null	null	null	null	null	2	GGG

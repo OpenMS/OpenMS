@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -79,7 +80,7 @@ namespace OpenMS
     map<String, StringList> design2FilePath;
     findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
-    //determine wether we deal with idXML or featureXML
+    //determine whether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
     if (in_type == FileTypes::IDXML)

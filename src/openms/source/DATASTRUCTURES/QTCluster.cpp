@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <numeric> // for make_pair
 #include <algorithm> // for set_intersection
+#include <iterator> // for inserter
 
 using std::map;
 using std::vector;
@@ -497,7 +498,7 @@ namespace OpenMS
           // As opposed to above IDed features (which could lead to new additional annotations),
           // no need to check further here: all following (also annotation-specific) distances are worse
           // than this unspecific one, since multimap is sorted & dists are already corrected
-          // with noID_penalty. If you dont want this to happen, set the penalty to one and unIDed ones
+          // with noID_penalty. If you don't want this to happen, set the penalty to one and unIDed ones
           // will always be added at the end):
           break;
         }

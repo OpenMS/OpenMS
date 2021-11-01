@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
@@ -43,7 +42,8 @@
 #   pragma warning( disable : 4396 )
 #endif
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+#include <sstream>
 
 #ifdef _MSC_VER
 #   pragma warning( pop )  // restore old warning state
@@ -64,7 +64,7 @@ namespace OpenMS
   {
 public:
 
-    typedef boost::unordered_map<UInt64, Size> UniqueIdMap;
+    typedef std::unordered_map<UInt64, Size> UniqueIdMap;
 
     /**
      @brief Returns the index of the feature with the given unique id, or Size(-1) if none exists in this random access container.

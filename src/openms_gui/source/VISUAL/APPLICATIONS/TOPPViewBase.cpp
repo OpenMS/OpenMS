@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -56,6 +57,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -1644,7 +1646,7 @@ namespace OpenMS
     // Make sure TOPP tool/util params have been inserted
     if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      addToolParamsToIni();
+      addToolParamsToIni_();
     }
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
@@ -1660,7 +1662,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::addToolParamsToIni()
+  void TOPPViewBase::addToolParamsToIni_()
   {
     tool_scanner_.waitForParams();
     param_.addSection("tool_params", "");
@@ -1725,7 +1727,7 @@ namespace OpenMS
     }
     if (!param_.hasSection("tool_params:"))
     {
-      addToolParamsToIni();
+      addToolParamsToIni_();
     }
     ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
@@ -2165,65 +2167,27 @@ namespace OpenMS
     updateMenu();
   }
 
+
   void TOPPViewBase::showCurrentPeaksAsIonMobility()
   {
-    double IM_BINNING = 1e5;
-
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
-    MSSpectrum tmps = layer.getCurrentSpectrum();
-
-    if (!tmps.containsIMData())
-    {
-      std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
-        " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
-      return;
-    }
-
-    // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
-    auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
-    for (Size k = 0;  k < tmps.size(); k++)
-    {
-      double im = im_arr[ k ];
-      if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
-      {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
-        news->setRT(im);
-        news->setMSLevel(1);
-        im_map[ int(im*IM_BINNING) ] = news;
-      }
-      im_map[ int(im*IM_BINNING) ]->push_back( tmps[k] );
-    }
-
-    // Add spectra into a MSExperiment, sort and prepare it for display
-    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
-    for (const auto& s : im_map)
-    {
-      tmpe->addSpectrum( *(s.second) );
-    }
-    tmpe->sortSpectra();
-    tmpe->updateRanges();
-    tmpe->setMetaValue("is_ion_mobility", "true");
-    tmpe->setMetaValue("ion_mobility_unit", "ms");
+    
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(layer.getCurrentSpectrum())));
+    // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
+    for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
-    w->xAxis()->setLegend(PlotWidget::IM_MS_AXIS_TITLE);
-
-    if (im_arr.getName().find("1002815") != std::string::npos)
-    {
-      w->xAxis()->setLegend(PlotWidget::IM_ONEKZERO_AXIS_TITLE);
-      tmpe->setMetaValue("ion_mobility_unit", "1/K0");
-    }
+    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
     String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())

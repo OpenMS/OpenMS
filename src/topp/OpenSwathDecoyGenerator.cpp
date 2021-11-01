@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -220,70 +220,75 @@ protected:
       allowed_fragment_charges.push_back(charge);
     }
 
-    TargetedExperiment targeted_exp;
-    TargetedExperiment targeted_decoy;
-
-    // Load data
-    OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
-    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-    {
-      const char* tr_file = in.c_str();
-      Param reader_parameters = getParam_().copy("algorithm:", true);
-      TransitionTSVFile tsv_reader = TransitionTSVFile();
-      tsv_reader.setLogType(log_type_);
-      tsv_reader.setParameters(reader_parameters);
-      tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
-      tsv_reader.validateTargetedExperiment(targeted_exp);
-    }
-    else if (in_type == FileTypes::PQP)
-    {
-      const char* tr_file = in.c_str();
-      TransitionPQPFile pqp_reader = TransitionPQPFile();
-      Param reader_parameters = getParam_().copy("algorithm:", true);
-      pqp_reader.setLogType(log_type_);
-      pqp_reader.setParameters(reader_parameters);
-      pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
-      pqp_reader.validateTargetedExperiment(targeted_exp);
-    }
-    else if (in_type == FileTypes::TRAML)
-    {
-      TraMLFile traml;
-      traml.load(in, targeted_exp);
-    }
-
-    MRMDecoy decoys = MRMDecoy();
-    decoys.setLogType(ProgressLogger::CMD);
-
-    OPENMS_LOG_INFO << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method,
-                          aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
-                          identity_threshold, precursor_mz_shift,
-                          product_mz_shift, product_mz_threshold,
-                          allowed_fragment_types, allowed_fragment_charges,
-                          enable_detection_specific_losses,
-                          enable_detection_unspecific_losses);
-
-    // Check if we have enough peptides left
-    OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
-    OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
-    OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
-    OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
-
-    if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
-    {
-       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
-    }
-
     TargetedExperiment targeted_merged;
-    if (separate)
     {
-      OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
-      targeted_merged = targeted_decoy;
-    }
-    else
-    {
-      OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
-      targeted_merged = targeted_exp + targeted_decoy;
+      TargetedExperiment targeted_exp;
+      TargetedExperiment targeted_decoy;
+
+      // Load data
+      OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
+      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+      {
+        const char* tr_file = in.c_str();
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        TransitionTSVFile tsv_reader = TransitionTSVFile();
+        tsv_reader.setLogType(log_type_);
+        tsv_reader.setParameters(reader_parameters);
+        tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
+        tsv_reader.validateTargetedExperiment(targeted_exp);
+      }
+      else if (in_type == FileTypes::PQP)
+      {
+        const char* tr_file = in.c_str();
+        TransitionPQPFile pqp_reader = TransitionPQPFile();
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        pqp_reader.setLogType(log_type_);
+        pqp_reader.setParameters(reader_parameters);
+        pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
+        pqp_reader.validateTargetedExperiment(targeted_exp);
+      }
+      else if (in_type == FileTypes::TRAML)
+      {
+        TraMLFile traml;
+        traml.load(in, targeted_exp);
+      }
+
+      MRMDecoy decoys = MRMDecoy();
+      decoys.setLogType(ProgressLogger::CMD);
+
+      OPENMS_LOG_INFO << "Generate decoys" << std::endl;
+      decoys.generateDecoys(targeted_exp, targeted_decoy, method,
+                            aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
+                            identity_threshold, precursor_mz_shift,
+                            product_mz_shift, product_mz_threshold,
+                            allowed_fragment_types, allowed_fragment_charges,
+                            enable_detection_specific_losses,
+                            enable_detection_unspecific_losses);
+
+
+      // Check if we have enough peptides left
+      OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
+      OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
+      OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
+      OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
+
+      if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
+      {
+         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
+      }
+
+      if (separate)
+      {
+        OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
+        targeted_merged = std::move(targeted_decoy);
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
+        targeted_merged = std::move(targeted_exp);
+        targeted_merged += std::move(targeted_decoy);
+      }
+
     }
 
     if (out_type == FileTypes::TSV)
