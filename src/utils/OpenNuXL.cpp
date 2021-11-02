@@ -263,29 +263,35 @@ public:
   static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
   static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
 
-  static constexpr std::array<const char*, 20> modifications_RNA_UV
+  static constexpr std::array<const char*, 22> modifications_RNA_UV_PASE
          {"U:", 
           "U:-H2O", 
-          "U:-H2O-HPO3", 
-          "U:-HPO3", 
+          "U:-H3PO4", 
+          "U:-HPO3",
+ 
           "C:", 
           "C:-NH3", 
           "C:-H2O", 
           "C:-NH3-HPO3", 
-          "C:-H2O-HPO3", 
-          "C:-HPO3", 
+          "C:-H3PO4",
+          "C:-HPO3",
+
           "G:", 
           "G:-H2O", 
           "G:-NH3", 
-          "G:-H2O-HPO3", 
+          "G:-H3PO4", 
           "G:-NH3-HPO3", 
-          "G:-HPO3", 
-          "A:", 
-          "A:-NH3",
-          "A:-NH3-HPO3", 
-          "A:-HPO3"};
+          "G:-HPO3",
 
-  static constexpr std::array<const char*, 45> fragments_RNA_UV
+          "A:", 
+          "A:-H2O", 
+          "A:-HPO3"
+          "A:-H3PO4", 
+          "A:-NH3",
+          "A:-NH3-HPO3"
+         };
+
+  static constexpr std::array<const char*, 33> fragments_RNA_UV_PASE
          {"U:C9H10N2O5;U-H3PO4",
           "U:C4H4N2O2;U'",
           "U:C4H2N2O1;U'-H2O",
@@ -293,9 +299,62 @@ public:
           "U:C9H13N2O9P1;U",
           "U:C9H11N2O8P1;U-H2O",
           "U:C9H12N2O6;U-HPO3",
-          "U:C5H9O7P;ribose",
-          "U:C5H7O6P;ribose-H2O",
-          "U:C5H6O3;ribose-H2O-HPO3",
+
+          "C:C9H14N3O8P;C",
+          "C:C9H11N2O8P;C-NH3",
+          "C:C9H12N3O7P;C-H2O",
+          "C:C9H13N3O5;C-HPO3",
+          "C:C9H11N3O4;C-H3PO4",
+          "C:C9H10N2O5;C-NH3-HPO3",
+          "C:C4H5N3O;C'",
+          "C:C4H3N3;C'-H2O",
+          "C:C4H2N2O;C'-NH3",
+
+          "G:C10H14N5O8P;G",
+          "G:C10H12N5O7P;G-H2O",
+          "G:C10H11N4O8P;G-NH3",
+          "G:C10H13N5O5;G-HPO3",
+          "G:C10H10N4O5;G-NH3-HPO3",
+          "G:C10H11N5O4;G-H3PO4",
+          "G:C5H5N5O;G'",
+          "G:C5H3N5;G'-H2O",
+          "G:C5H2N4O;G'-NH3",
+
+          "A:C10H14N5O7P;A",
+          "A:C10H12N5O6P;A-H2O",
+          "A:C10H11N4O7P;A-NH3",
+          "A:C10H13N5O4;A-HPO3",
+          "A:C10H11N5O3;A-H3PO4",
+          "A:C10H10N5O4;A-NH3-HPO3",
+          "A:C5H5N5;A'",
+          "A:C5H2N4;A'-NH3"
+        };
+  static constexpr std::array<const char*, 11> modifications_RNA_UV
+         {"U:", 
+          "U:-H2O", 
+
+          "C:", 
+          "C:-NH3", 
+          "C:-H2O", 
+
+          "G:", 
+          "G:-H2O", 
+          "G:-NH3", 
+
+          "A:", 
+          "A:-H2O", 
+          "A:-NH3"
+          };
+
+  static constexpr std::array<const char*, 33> fragments_RNA_UV
+         {"U:C9H10N2O5;U-H3PO4",
+          "U:C4H4N2O2;U'",
+          "U:C4H2N2O1;U'-H2O",
+          "U:C3O;C3O",
+          "U:C9H13N2O9P1;U",
+          "U:C9H11N2O8P1;U-H2O",
+          "U:C9H12N2O6;U-HPO3",
+
           "C:C9H14N3O8P;C",
           "C:C9H11N2O8P;C-NH3",
           "C:C9H12N3O7P;C-H2O",
@@ -304,6 +363,7 @@ public:
           "C:C4H5N3O;C'",
           "C:C4H3N3;C'-H2O",
           "C:C4H2N2O;C'-NH3",
+
           "G:C10H14N5O8P;G",
           "G:C10H12N5O7P;G-H2O",
           "G:C10H11N4O8P;G-NH3",
@@ -314,6 +374,7 @@ public:
           "G:C5H5N5O;G'",
           "G:C5H3N5;G'-H2O",
           "G:C5H2N4O;G'-NH3",
+
           "A:C10H14N5O7P;A",
           "A:C10H12N5O6P;A-H2O",
           "A:C10H11N4O7P;A-NH3",
@@ -321,18 +382,11 @@ public:
           "A:C10H11N5O3;A-H3PO4",
           "A:C10H10N5O4;A-NH3-HPO3",
           "A:C5H5N5;A'",
-          "A:C5H2N4;A'-NH3",
-          "C:C5H9O7P;ribose",
-          "G:C5H9O7P;ribose",
-          "A:C5H9O7P;ribose",
-          "G:C5H7O6P;rib-H2O",
-          "C:C5H7O6P;rib-H2O",
-          "A:C5H7O6P;rib-H2O",
-          "G:C5H6O3;ribose-H2O-HPO3",
-          "C:C5H6O3;ribose-H2O-HPO3",
-          "A:C5H6O3;ribose-H2O-HPO3"};
+          "A:C5H2N4;A'-NH3"
+        };
 
-  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU
+
+  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU_PASE
       {   "S:",
           "S:-H2O",
           "S:-H2O-HPO3",
@@ -341,8 +395,9 @@ public:
           "S:-H2S"
       };
 
-  static constexpr std::array<const char*, 46> fragments_RNA_UV_4SU
+  static constexpr std::array<const char*, 34> fragments_RNA_UV_4SU_PASE
       {   "S:C4H2N2O1;tU-H2S",
+
           "U:C9H10N2O5;U-H3PO4",
           "U:C4H4N2O2;U'",
           "U:C4H2N2O1;U'-H2O",
@@ -350,9 +405,7 @@ public:
           "U:C9H13N2O9P1;U",
           "U:C9H11N2O8P1;U-H2O",
           "U:C9H12N2O6;U-HPO3",
-          "U:C5H9O7P;ribose",
-          "U:C5H7O6P;ribose-H2O",
-          "U:C5H6O3;ribose-H2O-HPO3",
+
           "C:C9H14N3O8P;C",
           "C:C9H11N2O8P;C-NH3",
           "C:C9H12N3O7P;C-H2O",
@@ -361,6 +414,7 @@ public:
           "C:C4H5N3O;C'",
           "C:C4H3N3;C'-H2O",
           "C:C4H2N2O;C'-NH3",
+
           "G:C10H14N5O8P;G",
           "G:C10H12N5O7P;G-H2O",
           "G:C10H11N4O8P;G-NH3",
@@ -371,6 +425,7 @@ public:
           "G:C5H5N5O;G'",
           "G:C5H3N5;G'-H2O",
           "G:C5H2N4O;G'-NH3",
+
           "A:C10H14N5O7P;A",
           "A:C10H12N5O6P;A-H2O",
           "A:C10H11N4O7P;A-NH3",
@@ -378,56 +433,82 @@ public:
           "A:C10H11N5O3;A-H3PO4",
           "A:C10H10N5O4;A-NH3-HPO3",
           "A:C5H5N5;A'",
-          "A:C5H2N4;A'-NH3",
-          "C:C5H9O7P;ribose",
-          "G:C5H9O7P;ribose",
-          "A:C5H9O7P;ribose",
-          "G:C5H7O6P;rib-H2O",
-          "C:C5H7O6P;rib-H2O",
-          "A:C5H7O6P;rib-H2O",
-          "G:C5H6O3;ribose-H2O-HPO3",
-          "C:C5H6O3;ribose-H2O-HPO3",
-          "A:C5H6O3;ribose-H2O-HPO3"
+          "A:C5H2N4;A'-NH3"
       };    
 
-  static constexpr std::array<const char*, 37> modifications_DNA_UV
+  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU
+      {   "S:",
+          "S:-H2O",
+          "S:-H2S+HPO3",
+          "S:-H2S"
+      };
+
+  static constexpr std::array<const char*, 34> fragments_RNA_UV_4SU
+      {   "S:C4H2N2O1;tU-H2S",
+
+          "U:C9H10N2O5;U-H3PO4",
+          "U:C4H4N2O2;U'",
+          "U:C4H2N2O1;U'-H2O",
+          "U:C3O;C3O",
+          "U:C9H13N2O9P1;U",
+          "U:C9H11N2O8P1;U-H2O",
+          "U:C9H12N2O6;U-HPO3",
+
+          "C:C9H14N3O8P;C",
+          "C:C9H11N2O8P;C-NH3",
+          "C:C9H12N3O7P;C-H2O",
+          "C:C9H13N3O5;C-HPO3",
+          "C:C9H11N3O4;C-H3PO4",
+          "C:C4H5N3O;C'",
+          "C:C4H3N3;C'-H2O",
+          "C:C4H2N2O;C'-NH3",
+
+          "G:C10H14N5O8P;G",
+          "G:C10H12N5O7P;G-H2O",
+          "G:C10H11N4O8P;G-NH3",
+          "G:C10H13N5O5;G-HPO3",
+          "C:C9H10N2O5;C-NH3-HPO3",
+          "G:C10H10N4O5;G-NH3-HPO3",
+          "G:C10H11N5O4;G-H3PO4",
+          "G:C5H5N5O;G'",
+          "G:C5H3N5;G'-H2O",
+          "G:C5H2N4O;G'-NH3",
+
+          "A:C10H14N5O7P;A",
+          "A:C10H12N5O6P;A-H2O",
+          "A:C10H11N4O7P;A-NH3",
+          "A:C10H13N5O4;A-HPO3",
+          "A:C10H11N5O3;A-H3PO4",
+          "A:C10H10N5O4;A-NH3-HPO3",
+          "A:C5H5N5;A'",
+          "A:C5H2N4;A'-NH3"
+      };    
+
+
+  static constexpr std::array<const char*, 19> modifications_DNA_UV
        {"T:",
         "T:-H2O",
-        "T:-H2O-HPO3",
-        "T:-HPO3",
-        "A:",
-        "A:-H2O",
-        "A:-H2O-HPO3",
-        "A:-HPO3",
+        "T:+C5H7O5P", // + dribose-H2O
+        "T:-C5H6N2O2",
+
         "G:",
         "G:-H2O",
         "G:-NH3",
+        "G:+C5H7O5P",
+        "G:-C5H5N5O",
+
         "A:-NH3",
-        "G:-HPO3",
-        "G:-H2O-HPO3",
-        "G:-NH3-HPO3",
+        "A:+C5H7O5P",
+        "A:",
+        "A:-H2O",
+        "A:-C5H5N5",
+
         "C:",
         "C:-H2O",
         "C:-NH3",
-        "C:-H2O-HPO3",
-        "C:-NH3",
-        "C:-NH3-HPO3",
-        "T:+C5H7O5P", // + dribose-H2O
-        "A:+C5H7O5P",
-        "G:+C5H7O5P",
         "C:+C5H7O5P",
-        "C:-C4H5N3O", // loss of base -> only dribose remains
-        "T:-C5H6N2O2",
-        "G:-C5H5N5O",
-        "A:-C5H5N5",
-        "T:+HPO3",
-        "C:+HPO3",
-        "A:+HPO3",
-        "G:+HPO3",
-        "T:+HPO3-H2O",
-        "C:+HPO3-H2O",
-        "A:+HPO3-H2O",
-        "G:+HPO3-H2O"};
+        "C:-C4H5N3O" // loss of base -> only dribose remains
+        };
 
     static constexpr std::array<const char*, 44> fragments_DNA_UV
        {"T:C10H15N2O8P;T",
@@ -436,6 +517,7 @@ public:
         "T:C10H12N2O4;T-H3PO4",
         "T:C5H6N2O2;T'",
         "T:C5H4N2O;T'-H2O",
+
         "C:C9H14N3O7P;C",
         "C:C9H11N2O7P;C-NH3",
         "C:C9H12N3O6P;C-H2O",
@@ -445,6 +527,7 @@ public:
         "C:C4H5N3O;C'",
         "C:C4H3N3;C'-H2O",
         "C:C4H2N2O;C'-NH3",
+
         "G:C10H14N5O7P;G",
         "G:C10H12N5O6P;G-H2O",
         "G:C10H11N4O7P;G-NH3",
@@ -454,6 +537,7 @@ public:
         "G:C5H5N5O;G'",
         "G:C5H3N5;G'-H2O",
         "G:C5H2N4O;G'-NH3",
+
         "A:C10H14N5O6P;A",
         "A:C10H12N5O5P;A-H2O",
         "A:C10H11N4O6P;A-NH3",
@@ -462,27 +546,117 @@ public:
         "A:C10H10N5O3;A-NH3-HPO3",
         "A:C5H5N5;A'",
         "A:C5H2N4;A'-NH3",
-        "A:C5H9O6P;dribose", // base was lost -> only dribose remains
-        "G:C5H9O6P;dribose",
-        "C:C5H9O6P;dribose",
-        "T:C5H9O6P;dribose",
-        "A:C5H7O5P;dribose-H2O",
-        "G:C5H7O5P;dribose-H2O",
-        "C:C5H7O5P;dribose-H2O",
-        "T:C5H7O5P;dribose-H2O",
-        "A:C5H8O3;dribose-HPO3",
-        "G:C5H8O3;dribose-HPO3",
-        "C:C5H8O3;dribose-HPO3",
-        "T:C5H8O3;dribose-HPO3"
+
+        "A:C5H9O6P;C5H9O6P", // base was lost -> only dribose = C5H9O6P remains
+        "G:C5H9O6P;C5H9O6P",
+        "C:C5H9O6P;C5H9O6P",
+        "T:C5H9O6P;C5H9O6P",
+        "A:C5H7O5P;C5H9O6P-H2O",
+        "G:C5H7O5P;C5H9O6P-H2O",
+        "C:C5H7O5P;C5H9O6P-H2O",
+        "T:C5H7O5P;C5H9O6P-H2O",
+        "A:C5H8O3;C5H9O6P-HPO3",
+        "G:C5H8O3;C5H9O6P-HPO3",
+        "C:C5H8O3;C5H9O6P-HPO3",
+        "T:C5H8O3;C5H9O6P-HPO3"
       };
 
-  static constexpr std::array<const char*, 29> modifications_RNA_DEB
+  static constexpr std::array<const char*, 29> modifications_DNA_UV_PASE
+       {"T:",
+        "T:-H2O",
+        "T:-H2O-HPO3",
+        "T:-HPO3",
+
+        "A:",
+        "A:-H2O",
+        "A:-H2O-HPO3",
+        "A:-HPO3",
+        "A:-NH3",
+
+        "G:",
+        "G:-H2O",
+        "G:-NH3",
+        "G:-HPO3",
+        "G:-H2O-HPO3",
+        "G:-NH3-HPO3",
+
+        "C:",
+        "C:-H2O",
+        "C:-NH3",
+        "C:-H2O-HPO3",
+        "C:-NH3",
+        "C:-NH3-HPO3",
+
+        "T:+C5H7O5P", // + dribose-H2O
+        "A:+C5H7O5P",
+        "G:+C5H7O5P",
+        "C:+C5H7O5P",
+
+        "C:-C4H5N3O", // loss of base -> only dribose remains
+        "T:-C5H6N2O2",
+        "G:-C5H5N5O",
+        "A:-C5H5N5"
+        };
+
+    static constexpr std::array<const char*, 44> fragments_DNA_UV_PASE
+       {"T:C10H15N2O8P;T",
+        "T:C10H13N2O7P;T-H2O",
+        "T:C10H14N2O5;T-HPO3",
+        "T:C10H12N2O4;T-H3PO4",
+        "T:C5H6N2O2;T'",
+        "T:C5H4N2O;T'-H2O",
+
+        "C:C9H14N3O7P;C",
+        "C:C9H11N2O7P;C-NH3",
+        "C:C9H12N3O6P;C-H2O",
+        "C:C9H13N3O4;C-HPO3",
+        "C:C9H11N3O3;C-H3PO4",
+        "C:C9H10N2O4;C-NH3-HPO3",
+        "C:C4H5N3O;C'",
+        "C:C4H3N3;C'-H2O",
+        "C:C4H2N2O;C'-NH3",
+
+        "G:C10H14N5O7P;G",
+        "G:C10H12N5O6P;G-H2O",
+        "G:C10H11N4O7P;G-NH3",
+        "G:C10H13N5O4;G-HPO3",
+        "G:C10H10N4O4;G-NH3-HPO3",
+        "G:C10H11N5O3;G-H3PO4",
+        "G:C5H5N5O;G'",
+        "G:C5H3N5;G'-H2O",
+        "G:C5H2N4O;G'-NH3",
+
+        "A:C10H14N5O6P;A",
+        "A:C10H12N5O5P;A-H2O",
+        "A:C10H11N4O6P;A-NH3",
+        "A:C10H13N5O3;A-HPO3",
+        "A:C10H11N5O2;A-H3PO4",
+        "A:C10H10N5O3;A-NH3-HPO3",
+        "A:C5H5N5;A'",
+        "A:C5H2N4;A'-NH3",
+
+        "A:C5H9O6P;C5H9O6P", // base was lost -> only dribose = C5H9O6P remains
+        "G:C5H9O6P;C5H9O6P",
+        "C:C5H9O6P;C5H9O6P",
+        "T:C5H9O6P;C5H9O6P",
+        "A:C5H7O5P;C5H9O6P-H2O",
+        "G:C5H7O5P;C5H9O6P-H2O",
+        "C:C5H7O5P;C5H9O6P-H2O",
+        "T:C5H7O5P;C5H9O6P-H2O",
+        "A:C5H8O3;C5H9O6P-HPO3",
+        "G:C5H8O3;C5H9O6P-HPO3",
+        "C:C5H8O3;C5H9O6P-HPO3",
+        "T:C5H8O3;C5H9O6P-HPO3"
+      };
+
+  static constexpr std::array<const char*, 30> modifications_RNA_DEB_PASE
       { "U:+C4H6O2",
         "U:+C4H6O2-H2O",
         "U:+C4H6O2-HPO3",
         "U:+C4H6O2-H3PO4",
         "U:+C4H6O2-H2O-H2O",
         "U:+C4H6O2-H3PO4-H2O",
+
         "G:+C4H6O2",
         "G:+C4H6O2-H2O",
         "G:+C4H6O2-HPO3",
@@ -490,20 +664,89 @@ public:
         "G:+C4H6O2-H2O-H2O",
         "G:+C4H6O2-H3PO4-H2O",
         "G:+C4H6O2-NH3",
+        "G:+C4H602-NH3-HPO3",
+
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
         "C:+C4H6O2-HPO3",
         "C:+C4H6O2-H3PO4",
         "C:+C4H6O2-H2O-H2O",
         "C:+C4H6O2-H3PO4-H2O",
-        "C:+C4H6O2-H2O",
         "C:+C4H6O2-NH3",
+        "C:+C4H602-NH3-HPO3",
+
         "A:+C4H6O2",
         "A:+C4H6O2-H2O",
         "A:+C4H6O2-HPO3",
         "A:+C4H6O2-H3PO4",
         "A:+C4H6O2-H2O-H2O",
         "A:+C4H6O2-H3PO4-H2O",
+        "A:+C4H6O2-NH3",
+        "A:+C4H602-NH3-HPO3"
+      };
+
+  static constexpr std::array<const char*, 36> fragments_RNA_DEB_PASE
+      {
+        "U:C4H6O2;DEB",
+        "U:C4H4O;DEB-H2O",
+        "U:C13H16N2O7;DEB+U-H3PO4",
+        "U:C8H10N2O4;DEB+U'",
+        "U:C8H8N2O3;DEB+U'-H2O",
+        "U:C7H6O3;DEB+C3O",
+        "U:C13H19N2O11P1;DEB+U",
+        "U:C13H17N2O10P1;DEB+U-H2O",
+        "U:C13H16N2O7;DEB+U-H3PO4",
+
+        "G:C4H6O2;DEB",
+        "G:C4H4O;DEB-H2O",
+        "G:C14H17N5O6;DEB+G-H3PO4",
+        "G:C9H11N5O3;DEB+G'",
+        "G:C8H9N5O3;DEB+G'-H2O",
+        "G:C14H20N5O10P1;DEB+G",
+        "G:C14H18N5O9P1;DEB+G-H2O",
+        "G:C14H17N5O6;DEB+G-H3PO4",
+
+        "C:C4H6O2;DEB",
+        "C:C4H4O;DEB-H2O",
+        "C:C13H17N3O6;DEB+C-H3PO4",
+        "C:C8H11N3O3;DEB+C'",
+        "C:C8H9N3O2;DEB+C'-H2O",
+        "C:C13H20N3O10P1;DEB+C",
+        "C:C13H18N3O9P1;DEB+C-H2O",
+        "C:C13H17N3O6;DEB+C-H3PO4",
+
+        "A:C4H6O2;DEB",
+        "A:C4H4O;DEB-H2O",
+        "A:C14H17N5O5;DEB+A-H3PO4",
+        "A:C9H11N5O2;DEB+A'",
+        "A:C8H9N5O2;DEB+A'-H2O",
+        "A:C14H20N5O9P1;DEB+A",
+        "A:C14H18N5O8P1;DEB+A-H2O",
+        "A:C14H17N5O5;DEB+A-H3PO4",
+        "A:C19H12N5O6P;A-H2O",
+        "A:C9H17N4O;DEB+A'-NH3",
+        "A:C14H17N4O9;DEB+A-NH3"
+      };
+
+  static constexpr std::array<const char*, 17> modifications_RNA_DEB
+      { "U:+C4H6O2",
+        "U:+C4H6O2-H2O",
+        "U:+C4H6O2-H2O-H2O",
+
+        "G:+C4H6O2",
+        "G:+C4H6O2-H2O",
+        "G:+C4H6O2-H2O-H2O",
+        "G:+C4H6O2-NH3",
+
+        "C:+C4H6O2",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-H2O-H2O",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-NH3",
+
+        "A:+C4H6O2",
+        "A:+C4H6O2-H2O",
+        "A:+C4H6O2-H2O-H2O",
         "A:+C4H6O2-H2O",
         "A:+C4H6O2-NH3"
       };
@@ -519,6 +762,7 @@ public:
         "U:C13H19N2O11P1;DEB+U",
         "U:C13H17N2O10P1;DEB+U-H2O",
         "U:C13H16N2O7;DEB+U-H3PO4",
+
         "G:C4H6O2;DEB",
         "G:C4H4O;DEB-H2O",
         "G:C14H17N5O6;DEB+G-H3PO4",
@@ -527,6 +771,7 @@ public:
         "G:C14H20N5O10P1;DEB+G",
         "G:C14H18N5O9P1;DEB+G-H2O",
         "G:C14H17N5O6;DEB+G-H3PO4",
+
         "C:C4H6O2;DEB",
         "C:C4H4O;DEB-H2O",
         "C:C13H17N3O6;DEB+C-H3PO4",
@@ -535,6 +780,7 @@ public:
         "C:C13H20N3O10P1;DEB+C",
         "C:C13H18N3O9P1;DEB+C-H2O",
         "C:C13H17N3O6;DEB+C-H3PO4",
+
         "A:C4H6O2;DEB",
         "A:C4H4O;DEB-H2O",
         "A:C14H17N5O5;DEB+A-H3PO4",
@@ -548,21 +794,114 @@ public:
         "A:C14H17N4O9;DEB+A-NH3"
       };
 
-  static constexpr std::array<const char*, 10> modifications_DNA_DEB
+  static constexpr std::array<const char*, 15> modifications_DNA_DEB
        { // adapted from Fanni + water losses
         "T:+C4H6O2",
         "T:+C4H6O2-H2O",
+        "T:+C4H6O2-H2O-H2O",
+
         "G:+C4H6O2",
-        "G:+C4H6O2-C5H9O6P",
-        "G:+C4H6O2-H2O-C5H9O6P",
         "G:+C4H6O2-H2O",
+        "G:+C4H6O2-H2O-H2O",
+        "G:+C4H6O2-NH3",
+
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
+        "C:+C4H6O2-H2O-H2O",
+        "C:+C4H6O2-NH3",
+
         "A:+C4H6O2",
         "A:+C4H6O2-H2O"
+        "A:+C4H6O2-H2O-H2O",
+        "A:+C4H6O2-NH3"
        };
 
   static constexpr std::array<const char*, 36> fragments_DNA_DEB
+      { "T:C4H6O2;DEB",
+        "T:C4H4O;DEB-H2O",
+        "T:C5H6N2O2;T'",  // needed for marker ion
+        "T:C9H12N2O4;DEB+T'",
+        "T:C9H10N2O3;DEB+T'-H2O",
+        "T:C14H21N2O10P1;DEB+T",    // C4H6O2 + C10H15N2O8P
+        "T:C14H19N2O9P1;DEB+T-H2O", 
+        "T:C14H20N2O7;DEB+T-HPO3",  // C4H6O2 + C10H15N2O8P - HPO3
+        "T:C14H18N2O6;DEB+T-H3PO4", // C4H6O2 + C10H15N2O8P - H3PO4
+
+        "C:C4H6O2;DEB",
+        "C:C4H4O;DEB-H2O",
+        "C:C4H5N3O;C'",  // needed for marker ion
+        "C:C8H11N3O3;DEB+C'",
+        "C:C8H8N2O3;DEB+C'-NH3",
+        "C:C8H9N3O2;DEB+C'-H2O",
+        "C:C13H20N3O9P1;DEB+C",
+        "C:C13H17N2O9P1;DEB+C-NH3",
+        "C:C13H18N3O8P1;DEB+C-H2O",
+//      "C:C13H19N3O6;DEB+C-HPO3", 
+//      "C:C13H17N3O5;DEB+C-H3PO4",
+
+        "G:C4H6O2;DEB",
+        "G:C4H4O;DEB-H2O",
+        "G:C9H11N5O3;DEB+G'", 
+        "G:C9H9N5O2;DEB+G'-H2O", 
+        "G:C14H20N5O9P1;DEB+G",
+        "G:C5H5N5O;G'", // needed for marker ion
+        "G:C10H9N5O2;G-H3PO4-H2O", // exclusive to Fanni
+        "G:C14H18N5O8P1;DEB+G-H2O", // not in Fanni's list
+//      "G:C14H19N5O6;DEB+G-HPO3",
+//      "G:C14H17N5O5;DEB+G-H3PO4",
+
+        "A:C4H6O2;DEB",
+        "A:C4H4O;DEB-H2O",          
+        "A:C5H5N5;A'", // needed for marker ion
+        "A:C9H11N5O2;DEB+A'",       // C4H6O2 + C5H5N5
+        "A:C9H9N5O1;DEB+A'-H2O",    // not in Fanni's list
+        "A:C9H8N4O2;DEB+A'-NH3",    // C4H6O2 + C5H5N5 - NH3
+        "A:C14H20N5O8P1;DEB+A",     // C4H6O2 + C10H14N5O6P
+        "A:C14H17N4O8P1;DEB+A-NH3",     // C4H6O2 + C10H14N5O6P - NH3
+        "A:C14H18N5O7P1;DEB+A-H2O", // not in Fanni's list
+        "A:C10H9N5O;A-H3PO4-H2O" // Fanni
+//      "A:C14H19N5O5;DEB+A-HPO3",  // C4H6O2 + C10H14N5O6P - HPO3
+//      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
+      };
+
+  static constexpr std::array<const char*, 30> modifications_DNA_DEB_PASE
+       // adapted from Fanni + water losses
+       {"T:+C4H6O2",
+        "T:+C4H6O2-HPO3",
+        "T:+C4H6O2-H3PO4",
+        "T:+C4H6O2-H2O-H2O",
+        "T:+C4H6O2-H3PO4-H2O",
+        "T:+C4H6O2-H2O",
+
+        "G:+C4H6O2",
+        "G:+C4H6O2-HPO3",
+        "G:+C4H6O2-H3PO4",
+        "G:+C4H6O2-H2O-H2O",
+        "G:+C4H6O2-H3PO4-H2O",
+        "G:+C4H6O2-H2O",
+        "G:+C4H6O2-NH3",
+        "G:+C4H6O2-NH3-HPO3",
+
+        "C:+C4H6O2",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-HPO3",
+        "C:+C4H6O2-H3PO4",
+        "C:+C4H6O2-H2O-H2O",
+        "C:+C4H6O2-H3PO4-H2O",
+        "C:+C4H6O2-NH3",
+        "C:+C4H6O2-NH3-HPO3",
+
+        "A:+C4H6O2",
+        "A:+C4H6O2-H2O",
+        "A:+C4H6O2-H3PO4-H2O",
+        "A:+C4H6O2-H2O-H2O",
+        "A:+C4H6O2-H3PO4",
+        "A:+C4H6O2-HPO3",
+        "A:+C4H6O2-NH3",
+        "A:+C4H6O2-NH3-HPO3"
+      };
+
+  static constexpr std::array<const char*, 36> fragments_DNA_DEB_PASE
       { "T:C4H6O2;DEB",
         "T:C4H4O;DEB-H2O",
         "T:C5H6N2O2;T'",  // needed for marker ion
@@ -607,20 +946,21 @@ public:
 //      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
       };
 
-  static constexpr std::array<const char*, 27> modifications_RNA_NM
+
+  static constexpr std::array<const char*, 27> modifications_RNA_NM_PASE
        {"U:+C5H9N1",
         "U:+C5H9N1-HPO3",
+        "U:+C5H9N1-H2O",
         "U:+C5H9N1-H3PO4",
         "U:+C5H9N1-H2O-H2O",
         "U:+C5H9N1-H3PO4-H2O",
-        "U:+C5H9N1-H2O",
 
         "G:+C5H9N1",
         "G:+C5H9N1-HPO3",
+        "G:+C5H9N1-H2O",
         "G:+C5H9N1-H3PO4",
         "G:+C5H9N1-H2O-H2O",
         "G:+C5H9N1-H3PO4-H2O",
-        "G:+C5H9N1-H2O",
         "G:+C5H9N1-NH3",
 
         "C:+C5H9N1",
@@ -640,6 +980,65 @@ public:
         "A:+C5H9N1-NH3"
       };
 
+  static constexpr std::array<const char*, 32> fragments_RNA_NM_PASE
+       {"U:C5H9N1;NM",
+        "U:C14H21N3O6;NM+U-HPO3",
+        "U:C9H13N3O2;NM+U'",
+        "U:C9H11N3O1;NM+U'-H2O",
+        "U:C8H9N1O1;NM+C3O",
+        "U:C14H22N3O9P1;NM+U",
+        "U:C14H20N3O8P1;NM+U-H2O",
+        "U:C14H19N3O5;NM+U-H3PO4",
+
+        "C:C5H9N1;NM",
+        "C:C14H20N4O4;NM+C-H3PO4",
+        "C:C9H14N4O1;NM+C'",
+        "C:C9H12N4;NM+C'-H2O",
+        "C:C14H23N4O8P1;NM+C",
+        "C:C14H21N4O7P1;NM+C-H2O",
+        "C:C14H22N4O5;NM+C-HPO3",
+        "C:C14H20N3O8P1;NM+C-NH3",
+        "C:C9H11N3O1;NM+C'-NH3",
+
+        "G:C5H9N1;NM",
+        "G:C15H22N6O5;NM+G-HPO3",
+        "G:C10H14N6O1;NM+G'",
+        "G:C10H12N6;NM+G'-H2O",
+        "G:C15H23N6O8P1;NM+G",
+        "G:C15H21N6O7P1;NM+G-H2O",
+        "G:C15H20N6O4;NM+G-H3PO4",
+        "G:C10H14N6O1;NM+G'-NH3",
+
+        "A:C5H9N1;NM",
+        "A:C10H14N6;NM+A'",
+        "A:C10H11N5;NM+A'-NH3",
+        "A:C15H23N6O7P1;NM+A",
+        "A:C15H20N6O3;NM+A-H3PO4",
+        "A:C15H21N6O6P1;NM+A-H2O",
+        "A:C15H22N6O4;NM+A-HPO3"
+      };
+
+  static constexpr std::array<const char*, 15> modifications_RNA_NM
+       {"U:+C5H9N1",
+        "U:+C5H9N1-H2O-H2O",
+        "U:+C5H9N1-H2O",
+
+        "G:+C5H9N1",
+        "G:+C5H9N1-H2O-H2O",
+        "G:+C5H9N1-H2O",
+        "G:+C5H9N1-NH3",
+
+        "C:+C5H9N1",
+        "C:+C5H9N1-H2O",
+        "C:+C5H9N1-H2O-H2O",
+        "C:+C5H9N1-NH3",
+
+        "A:+C5H9N1",
+        "A:+C5H9N1-H2O",
+        "A:+C5H9N1-H2O-H2O",
+        "A:+C5H9N1-NH3"
+      };
+
   static constexpr std::array<const char*, 32> fragments_RNA_NM
        {"U:C5H9N1;NM",
         "U:C14H21N3O6;NM+U-HPO3",
@@ -649,12 +1048,17 @@ public:
         "U:C14H22N3O9P1;NM+U",
         "U:C14H20N3O8P1;NM+U-H2O",
         "U:C14H19N3O5;NM+U-H3PO4",
+
         "C:C5H9N1;NM",
         "C:C14H20N4O4;NM+C-H3PO4",
         "C:C9H14N4O1;NM+C'",
         "C:C9H12N4;NM+C'-H2O",
         "C:C14H23N4O8P1;NM+C",
         "C:C14H21N4O7P1;NM+C-H2O",
+        "C:C14H22N4O5;NM+C-HPO3",
+        "C:C14H20N3O8P1;NM+C-NH3",
+        "C:C9H11N3O1;NM+C'-NH3",
+
         "G:C5H9N1;NM",
         "G:C15H22N6O5;NM+G-HPO3",
         "G:C10H14N6O1;NM+G'",
@@ -662,51 +1066,37 @@ public:
         "G:C15H23N6O8P1;NM+G",
         "G:C15H21N6O7P1;NM+G-H2O",
         "G:C15H20N6O4;NM+G-H3PO4",
+        "G:C10H14N6O1;NM+G'-NH3",
+
         "A:C5H9N1;NM",
         "A:C10H14N6;NM+A'",
         "A:C10H11N5;NM+A'-NH3",
         "A:C15H23N6O7P1;NM+A",
         "A:C15H20N6O3;NM+A-H3PO4",
         "A:C15H21N6O6P1;NM+A-H2O",
-        "C:C14H22N4O5;NM+C-HPO3",
-        "C:C14H20N3O8P1;NM+C-NH3",
-        "C:C9H11N3O1;NM+C'-NH3",
-        "G:C10H14N6O1;NM+G'-NH3",
         "A:C15H22N6O4;NM+A-HPO3"
       };
 
-  static constexpr std::array<const char*, 31> modifications_DNA_NM
+
+  static constexpr std::array<const char*, 15> modifications_DNA_NM
        {"T:+C5H9N1",
-        "T:+C5H9N1-HPO3",
-        "T:+C5H9N1-H3PO4",
         "T:+C5H9N1-H2O-H2O",
-        "T:+C5H9N1-H3PO4-H2O",
         "T:+C5H9N1-H2O",
-        "T:+C5H9N1-NH3-HPO3",
+
         "G:+C5H9N1",
-        "G:+C5H9N1-HPO3",
-        "G:+C5H9N1-H3PO4",
         "G:+C5H9N1-H2O-H2O",
-        "G:+C5H9N1-H3PO4-H2O",
         "G:+C5H9N1-H2O",
         "G:+C5H9N1-NH3",
-        "G:+C5H9N1-NH3-HPO3",
+
         "C:+C5H9N1",
         "C:+C5H9N1-H2O",
-        "C:+C5H9N1-HPO3",
-        "C:+C5H9N1-H3PO4",
         "C:+C5H9N1-H2O-H2O",
-        "C:+C5H9N1-H3PO4-H2O",
         "C:+C5H9N1-NH3",
-        "C:+C5H9N1-NH3-HPO3",
+
         "A:+C5H9N1",
         "A:+C5H9N1-H2O",
-        "A:+C5H9N1-H3PO4-H2O",
         "A:+C5H9N1-H2O-H2O",
-        "A:+C5H9N1-H3PO4",
-        "A:+C5H9N1-HPO3",
         "A:+C5H9N1-NH3",
-        "A:+C5H9N1-NH3-HPO3"
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_NM
@@ -720,6 +1110,7 @@ public:
         "T:C10H12N2O2;NM+T'",
         "T:C15H20N2O8P1;NM+T-NH3",
         "T:C15H19N2O5;NM+T-NH3-HPO3",
+
         "C:C5H9N;NM",
         "C:C9H14N4O1;NM+C'",
         "C:C9H12N4;NM+C'-H2O",
@@ -727,6 +1118,7 @@ public:
         "C:C14H21N4O6P1;NM+C-H2O",
         "C:C14H20N4O3;NM+C-H3PO4",
         "C:C14H22N4O4;NM+C-HPO3",
+
         "G:C5H9N1;NM",
         "G:C10H14N6O1;NM+G'",
         "G:C10H12N6;NM+G'-H2O",
@@ -737,6 +1129,7 @@ public:
         "G:C15H20N6O3;NM+G-H3PO4",
         "G:C15H20N5O7P1;NM+G-NH3",
         "G:C15H19N5O4;NM+G-NH3-HPO3",
+
         "A:C5H9N1;NM",
         "A:C10H14N6;NM+A'",
         "A:C10H11N5;NM+A'-NH3",
@@ -745,7 +1138,86 @@ public:
         "A:C15H21N6O5P1;NM+A-H2O",
         "A:C15H22N6O3;NM+A-HPO3",
         "A:C15H20N5O6P1;NM+A-NH3",
-        "A:C15H19N5O3;NM+A-NH3-HPO3"};
+        "A:C15H19N5O3;NM+A-NH3-HPO3"
+      };
+
+  static constexpr std::array<const char*, 30> modifications_DNA_NM_PASE
+       {"T:+C5H9N1",
+        "T:+C5H9N1-H2O",
+        "T:+C5H9N1-HPO3",
+        "T:+C5H9N1-H3PO4",
+        "T:+C5H9N1-H2O-H2O",
+        "T:+C5H9N1-H3PO4-H2O",
+
+        "G:+C5H9N1",
+        "G:+C5H9N1-H2O",
+        "G:+C5H9N1-HPO3",
+        "G:+C5H9N1-H3PO4",
+        "G:+C5H9N1-H2O-H2O",
+        "G:+C5H9N1-H3PO4-H2O",
+        "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-HPO3",
+
+        "C:+C5H9N1",
+        "C:+C5H9N1-H2O",
+        "C:+C5H9N1-HPO3",
+        "C:+C5H9N1-H3PO4",
+        "C:+C5H9N1-H2O-H2O",
+        "C:+C5H9N1-H3PO4-H2O",
+        "C:+C5H9N1-NH3",
+        "C:+C5H9N1-NH3-HPO3",
+
+        "A:+C5H9N1",
+        "A:+C5H9N1-H2O",
+        "A:+C5H9N1-H3PO4-H2O",
+        "A:+C5H9N1-H2O-H2O",
+        "A:+C5H9N1-H3PO4",
+        "A:+C5H9N1-HPO3",
+        "A:+C5H9N1-NH3",
+        "A:+C5H9N1-NH3-HPO3"
+      };
+
+  static constexpr std::array<const char*, 36> fragments_DNA_NM_PASE
+      { "T:C5H9N1;NM",
+        "T:C14H19N3O5;NM+T-H3PO4",
+        "T:C10H15N3O2;NM+T'",
+        "T:C10H13N3O1;NM+T'-H2O",
+        "T:C15H24N3O8P1;NM+T",
+        "T:C15H22N3O7P1;NM+T-H2O",
+        "T:C15H19N3O4;NM+T-H3PO4",
+        "T:C10H12N2O2;NM+T'",
+        "T:C15H20N2O8P1;NM+T-NH3",
+        "T:C15H19N2O5;NM+T-NH3-HPO3",
+
+        "C:C5H9N;NM",
+        "C:C9H14N4O1;NM+C'",
+        "C:C9H12N4;NM+C'-H2O",
+        "C:C14H23N4O7P1;NM+C",
+        "C:C14H21N4O6P1;NM+C-H2O",
+        "C:C14H20N4O3;NM+C-H3PO4",
+        "C:C14H22N4O4;NM+C-HPO3",
+
+        "G:C5H9N1;NM",
+        "G:C10H14N6O1;NM+G'",
+        "G:C10H12N6;NM+G'-H2O",
+        "G:C10H11N5O1;NM+G'-NH3",
+        "G:C15H23N6O7P1;NM+G",
+        "G:C15H21N6O6P1;NM+G-H2O",
+        "G:C15H22N6O4;NM+G-HPO3",
+        "G:C15H20N6O3;NM+G-H3PO4",
+        "G:C15H20N5O7P1;NM+G-NH3",
+        "G:C15H19N5O4;NM+G-NH3-HPO3",
+
+        "A:C5H9N1;NM",
+        "A:C10H14N6;NM+A'",
+        "A:C10H11N5;NM+A'-NH3",
+        "A:C15H23N6O6P1;NM+A",
+        "A:C15H20N6O2;NM+A-H3PO4",
+        "A:C15H21N6O5P1;NM+A-H2O",
+        "A:C15H22N6O3;NM+A-HPO3",
+        "A:C15H20N5O6P1;NM+A-NH3",
+        "A:C15H19N5O3;NM+A-NH3-HPO3"
+    };
 
     static constexpr std::array<const char*, 4> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"}; // the mono-phosphates
     static constexpr std::array<const char*, 4> RNA_nucleotides {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
@@ -794,6 +1266,12 @@ protected:
       modifications =  StringList(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
       can_cross_link = "S";
     }
+    else if (p == "RNA-DEB (+Pase)")
+    {
+      modifications = StringList(modifications_RNA_DEB_PASE.begin(), modifications_RNA_DEB_PASE.end());
+      fragment_adducts = StringList(fragments_RNA_DEB_PASE.begin(), fragments_RNA_DEB_PASE.end());
+      can_cross_link = "UCGA";
+    }
     else if (p == "RNA-DEB")
     {
       modifications = StringList(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
@@ -806,11 +1284,29 @@ protected:
       fragment_adducts = StringList(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
       can_cross_link = "CTGA";
     }
+    else if (p == "DNA-DEB (+Pase)")
+    {
+      modifications = StringList(modifications_DNA_DEB_PASE.begin(), modifications_DNA_DEB_PASE.end());
+      fragment_adducts = StringList(fragments_DNA_DEB_PASE.begin(), fragments_DNA_DEB_PASE.end());
+      can_cross_link = "CTGA";
+    }
+    else if (p == "RNA-NM (+Pase)")
+    {
+      modifications = StringList(modifications_RNA_NM_PASE.begin(), modifications_RNA_NM_PASE.end());
+      fragment_adducts = StringList(fragments_RNA_NM_PASE.begin(), fragments_RNA_NM_PASE.end()); 
+      can_cross_link = "UCGA";
+    }
     else if (p == "RNA-NM")
     {
       modifications = StringList(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
       fragment_adducts = StringList(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
       can_cross_link = "UCGA";
+    }
+    else if (p == "DNA-NM (+Pase)")
+    {
+      modifications = StringList(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
+      fragment_adducts = StringList(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
+      can_cross_link = "TCGA";
     }
     else if (p == "DNA-NM")
     {
@@ -1161,12 +1657,14 @@ protected:
       float& im_MIC,
       size_t& n_theoretical_peaks)
   {
+#ifdef FRAGMENT_FREQ_SCALING
 static std::vector<double> a_ = {0.6381814842871244,0.5757708524966219,0.3527782831613766,0.5540067995825595,0.5937077770271472,0.44059687579253287,0.5225166639570802,0.38841395620372815,0.3030517328354761,0.30979251695059956,0.30364346970241557,0.34222974087638314,0.21622567124817516,0.24461462554326147,0.25749353729143076,0.24628219274901375,0.13784446820799334,0.1495672137250644,0.2962157379587473,0.10986006002310685,0.1351953897278425,0.1278257687841041,0.30540105664584627,0.22667644652579907,0.18995271867612293,0.11525992655496903,0.22667644652579907,0.22667644652579907,0.3695782162734005,0.3695782162734005,0.5396963997850618,0.3695782162734005,0.38473739338620383,0.40192864687860225,0.41911990037100066,0.4387234158726692,0.4625932410429686,0.486463066213268,0.5103328913835674,0.5103328913835674,0.5103328913835674, 
 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
 static std::vector<double> b_ = {0.36098796076403716,0.4347832206269399,0.5099710884346794,0.5179672293483799,0.5631123880294966,0.5533361427988034,0.5743842109687725,0.5423494643601069,0.5760269552782373,0.5036297443627675,0.4392665770184666,0.4555728357147309,0.44068578203629283,0.4818153581717703,0.36060791092937267,0.2209935596478243,0.20127921570150337,0.11845946442071022,0.07389126171037678,0.05773828326056386,0.05017396259908622,0.04637657640949555,0.16961055844449469,0.06798833158684754,0.3170397996809263,0.3380269790757273,0.40506200961781824,0.17955033881656035,0.4337336336589538,0.5052618285906718,0.6050407460304126,0.6050407460304126,0.33802697907572726,0.47153386255306995,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,
 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
 static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.5115897779268463,0.5755301366035181,0.5848527137044559,0.5930609869981058,0.6076345273266521,0.6200719791091611,0.6136770720442932,0.6146578764556351,0.6279320448204195,0.6391734877807232,0.6108431180748586,0.5674428548097566,0.5129822532754515,0.6840850182019967,0.5483712842406266,0.24344021427549448,0.35994473654661996,0.4434850423849219,0.452735096428622,0.25291947015843297,0.3767693801420614,0.5301810038419658,0.21555832324685273,0.23211081378876122,0.2872560096622122,0.2872560096622122,0.3767693801420614,0.5473238809294039,0.47556492012642165,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,
 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
+#endif
 
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
@@ -1210,7 +1708,9 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
+#ifdef FRAGMENT_FREQ_SCALING
             intensity *= b_[i]; ////////////////////////////////// fragment background freq scaling
+#endif
             dot_product += intensity;
             b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             b_ions[i] += intensity;
@@ -1248,7 +1748,9 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
+#ifdef FRAGMENT_FREQ_SCALING
             intensity *= a_[i]; ////////////////////////////////// fragment background freq scaling
+#endif
             dot_product += intensity;
             a_ions[i] += intensity;
             ++matches;
@@ -1281,8 +1783,9 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
+#ifdef FRAGMENT_FREQ_SCALING
             intensity *= y_[i];  ////////////////////////////////// fragment background freq scaling
-
+#endif
             y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             dot_product += intensity;                  
             y_ions[N-1 - i] += intensity;      
@@ -1571,10 +2074,12 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
                         size_t& n_theoretical_peaks/*,
                         bool is_decoy*/)
   {
-
+#ifdef FRAGMENT_FREQ_SCALING
 static std::vector<double> xl_a_ = {0.3659528914710744,0.47861728235068857,0.42071800758257055,0.5033640127522735,0.5895282639501609,0.49264930296695003,0.5324411204304591,0.48417463865923027,0.5511271154003025,0.5286803949442149,0.7173140531939944,0.336435471054921,0.4859101632376203,0.5024262214061576,0.46840208095976715,0.40809322953700483,0.3167094903810921,0.18129098288335982,0.4189105949805667,0.3330045922905184,0.3126071182614005,0.0650657360415093,0.40059551576627994,0.24183385621259657,0.17535844006882048,0.28364985698456463,0.433598827728014,0.27286545915347155,0.17535844006882048,0.24183385621259657,0.16767660150073574,0.32361968601164226,0.656809394243162,0.5729006723867871,0.4889919505304121,0.656809394243162,0.7021597756570445,0.7475101570709268,0.7928605384848093,0.7928605384848093,0.7928605384848093};
 static std::vector<double> xl_b_ = {0.2491938528289777,0.3856151839213907,0.3647776031187359,0.5407667409164766,0.48483561551239046,0.545482943034812,0.44176624959405336,0.4892070682435069,0.5821888866263324,0.5283814756892558,0.5874975667022032,0.5254550930392076,0.6008338026815329,0.6255675366401964,0.5644205635354829,0.4547628038391301,0.3373921521612854,0.32736271323930605,0.29693905198602577,0.4331622745676728,0.2866614892568747,0.41334354567005543,0.26789101676894134,0.15648636150792897,0.03829355836488023,0.051609876958974295,0.06627620698070251,0.07546738423116832,0.11156988263191558,0.32875347958219475,0.14034341782502044,0.1891158141543777,0.28984234629777234,0.28984234629777234,0.28984234629777234,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858};
 static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.35054745332681947,0.37174426433751473,0.41759826478801526,0.4269329894992057,0.4705619772415399,0.552562608306239,0.6461531416854231,0.5530968264015448,0.6025099662697077,0.5478810430654834,0.5571688470181058,0.5504295835175378,0.5390253808536244,0.4847596410095063,0.5018553373891388,0.473181377276754,0.5860391279941947,0.5556416220543001,0.3859448483873362,0.651387747360435,0.516376393935597,0.4093617866644474,0.4469048380712779,0.2713822504471235,0.24260619760761046,0.2337540058421485,0.319634600171193,0.35700263742531846,0.4479621597068155,0.17596775433173067,0.34805080737787986,0.3052687956612212,0.26248678394456265,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986};
+#endif
+
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -1680,7 +2185,9 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
               }
 #endif
               double intensity = exp_spectrum[index].getIntensity();
+#ifdef FRAGMENT_FREQ_SCALING
               intensity *= xl_b_[i]; ////////////////////////////////// fragment background freq scaling
+#endif
               b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
               dot_product += intensity;
               b_ions[i] += intensity;            
@@ -1740,7 +2247,9 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
               }
 #endif
               double intensity = exp_spectrum[index].getIntensity();
+#ifdef FRAGMENT_FREQ_SCALING
               intensity *= xl_a_[i]; ////////////////////////////////// fragment background freq scaling
+#endif
               dot_product += intensity;
               a_ions[i] += intensity;            
               peak_matched[index] = true;
@@ -1795,7 +2304,9 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
               }
 #endif
               double intensity = exp_spectrum[index].getIntensity();
-              intensity = intensity * xl_y_[i]; ////////////////////////////////// fragment background freq scaling
+#ifdef FRAGMENT_FREQ_SCALING
+              intensity *= xl_y_[i]; ////////////////////////////////// fragment background freq scaling
+#endif
               y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
               dot_product += intensity;                  
               y_ions[N-1 - i] += intensity;      
