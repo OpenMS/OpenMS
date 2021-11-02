@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 
 class ConsensusMapDF(ConsensusMap):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def get_intensity_df(self):
         '''Generates a pandas DataFrame with feature intensities from each sample.
@@ -133,8 +133,8 @@ common_meta_value_types = {
 }
 
 class FeatureMapDF(FeatureMap):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     
     # meta_values = None (default), 'all' or list of meta value names
     def get_df(self, meta_values = None):
@@ -199,8 +199,8 @@ FeatureMap = FeatureMapDF
 
 
 class MSExperimentDF(MSExperiment):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def get_df(self, melt : bool = False):
 
