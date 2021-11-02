@@ -197,11 +197,14 @@ namespace OpenMS
     // for k=0, non-normalized value is always 1
     result[0] = Peak1D(mass, 1.0);
 
+    float curr_intensity;
     for (UInt k = 1; k < num_peaks; ++k)
     {
       curr_power *= factor;
       curr_factorial *= k;
-      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U), curr_power / curr_factorial);
+      curr_intensity = curr_power / curr_factorial;
+      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U),
+        std::isinf(curr_intensity) ? 0 : curr_intensity);// at some point, curr_intensity will become too small for float (which is the intensity type)
     }
 
     result.renormalize();
