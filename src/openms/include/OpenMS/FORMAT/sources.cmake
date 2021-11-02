@@ -67,6 +67,7 @@ MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -74,6 +75,7 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
 QcMLFile.h

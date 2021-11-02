@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,13 @@
 //
 
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;
@@ -70,7 +72,7 @@ namespace OpenMS
                                         const vector<double> & mzs,
                                         const vector<double> & rts)
     {
-      //cout << "writting data" << endl;
+      //cout << "writing data" << endl;
       ofstream csv_file(out_csv.c_str());
       csv_file << setprecision(9);
 
@@ -182,7 +184,7 @@ namespace OpenMS
         double rt = precursors_rt[i]; // get precursor rt        
         double mz = precursors[i].getMZ(); // get precursor MZ
 
-        // retrieves iterator of the MS2 fragment sprectrum
+        // retrieves iterator of the MS2 fragment spectrum
         MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
@@ -260,7 +262,7 @@ namespace OpenMS
         // skip non-tandem mass spectra
         if (exp[scan].getMSLevel() != 2 || exp[scan].getPrecursors().empty()) continue;
 
-        // extract precusor / MS2 information
+        // extract precursor / MS2 information
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double rt = exp[scan].getRT();
         const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
@@ -268,14 +270,16 @@ namespace OpenMS
         for (Size f = 0; f != features.size(); ++f)
         {
           // feature  is incompatible if believe_charge is set and charges don't match
-          if (believe_charge && features[f].getCharge() != pc_charge) continue;
-
-          ++overlap_checks;
+          if (believe_charge && features[f].getCharge() != pc_charge)
+          {
+            continue;
+          }
           // check if precursor/MS2 position overlap with feature
           if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
           {
             scan_idx_to_feature_idx[scan].insert(f);
           }
+          ++overlap_checks;
         }
       }
 

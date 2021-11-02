@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,33 +71,55 @@ namespace OpenMS
     String out;
     //field
     if (field == INTENSITY)
+    {
       out = "Intensity ";
+    }
     else if (field == QUALITY)
+    {
       out = "Quality ";
+    }
     else if (field == CHARGE)
+    {
       out = "Charge ";
+    }
     else if (field == SIZE)
+    {
       out = "Size ";
+    }
     else if (field == META_DATA)
+    {
       out = "Meta::" + meta_name + " ";
+    }
     //operation
     if (op == GREATER_EQUAL)
+    {
       out += ">= ";
+    }
     else if (op == EQUAL)
+    {
       out += "= ";
+    }
     else if (op == LESS_EQUAL)
+    {
       out += "<= ";
+    }
     else if (op == EXISTS)
+    {
       out += "exists";
+    }
     //value
     if (field == META_DATA)
     {
       if (op != EXISTS)
       {
         if (value_is_numerical)
+        {
           out = out + value;
+        }
         else
+        {
           out = out + "\"" + value_string + "\"";
+        }
       }
       return out;
     }
@@ -114,18 +136,28 @@ namespace OpenMS
     tmp.split(' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
+    }
     //field
     tmp = parts[0];
     tmp.toLower();
     if (tmp == "intensity")
+    {
       field = INTENSITY;
+    }
     else if (tmp == "charge")
+    {
       field = CHARGE;
+    }
     else if (tmp == "size")
+    {
       field = SIZE;
+    }
     else if (tmp == "quality")
+    {
       field = QUALITY;
+    }
     else if (tmp.hasPrefix(String("meta::")))
     {
       meta = true;
@@ -133,15 +165,23 @@ namespace OpenMS
       meta_name = tmp.suffix(tmp.size() - 6);
     }
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid field name", tmp);
+    }
     //operation
     tmp = parts[1];
     if (tmp == ">=")
+    {
       op = GREATER_EQUAL;
+    }
     else if (tmp == "=")
+    {
       op = EQUAL;
+    }
     else if (tmp == "<=")
+    {
       op = LESS_EQUAL;
+    }
     else if (tmp == "exists" && meta)
     {
       op = EXISTS;
@@ -208,19 +248,25 @@ namespace OpenMS
   void DataFilters::remove(Size index)
   {
     if (index >= filters_.size())
+    {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
+    }
     filters_.erase(filters_.begin() + index);
     meta_indices_.erase(meta_indices_.begin() + index);
 
     //disable if empty
     if (size() == 0)
+    {
       is_active_ = false;
+    }
   }
 
   void DataFilters::replace(Size index, const DataFilter & filter)
   {
     if (index >= filters_.size())
+    {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
+    }
     filters_[index] = filter;
     if (filter.field == DataFilters::META_DATA)
     {
@@ -247,59 +293,88 @@ namespace OpenMS
   const DataFilters::DataFilter & DataFilters::operator[](Size index) const
   {
     if (index >= filters_.size())
+    {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
+    }
     return filters_[index];
   }
 
   bool DataFilters::passes(const Feature & feature) const
   {
     if (!is_active_)
+    {
       return true;
-
+    }
     for (Size i = 0; i < filters_.size(); i++)
     {
       const DataFilters::DataFilter & filter = filters_[i];
       if (filter.field == INTENSITY)
       {
         if (filter.op == GREATER_EQUAL && feature.getIntensity() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && feature.getIntensity() > filter.value)
+        {
           return false;
+        }
         else if (filter.op == EQUAL && feature.getIntensity() != filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == QUALITY)
       {
         if (filter.op == GREATER_EQUAL && feature.getOverallQuality() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && feature.getOverallQuality() > filter.value)
+        {
           return false;
+        }
         else if (filter.op == EQUAL && feature.getOverallQuality() != filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == CHARGE)
       {
         if (filter.op == EQUAL && feature.getCharge() != filter.value)
+        {
           return false;
+        }
         else if (filter.op == GREATER_EQUAL && feature.getCharge() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && feature.getCharge() > filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == SIZE)
       {
         if (filter.op == EQUAL && feature.getSubordinates().size() != filter.value)
+        {
           return false;
+        }
         else if (filter.op == GREATER_EQUAL && feature.getSubordinates().size() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && feature.getSubordinates().size() > filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == META_DATA)
       {
         const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(feature);
         if (!metaPasses_(mii, filter, meta_indices_[i]))
+        {
           return false;
+        }
       }
     }
     return true;
@@ -308,52 +383,79 @@ namespace OpenMS
   bool DataFilters::passes(const ConsensusFeature & consensus_feature) const
   {
     if (!is_active_)
+    {
       return true;
-
+    }
     for (Size i = 0; i < filters_.size(); i++)
     {
       const DataFilters::DataFilter & filter = filters_[i];
       if (filter.field == INTENSITY)
       {
         if (filter.op == GREATER_EQUAL && consensus_feature.getIntensity() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && consensus_feature.getIntensity() > filter.value)
+        {
           return false;
+        }
         else if (filter.op == EQUAL && consensus_feature.getIntensity() != filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == QUALITY)
       {
         if (filter.op == GREATER_EQUAL && consensus_feature.getQuality() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && consensus_feature.getQuality() > filter.value)
+        {
           return false;
+        }
         else if (filter.op == EQUAL && consensus_feature.getQuality() != filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == CHARGE)
       {
         if (filter.op == EQUAL && consensus_feature.getCharge() != filter.value)
+        {
           return false;
+        }
         else if (filter.op == GREATER_EQUAL && consensus_feature.getCharge() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && consensus_feature.getCharge() > filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == SIZE)
       {
         if (filter.op == EQUAL && consensus_feature.size() != filter.value)
+        {
           return false;
+        }
         else if (filter.op == GREATER_EQUAL && consensus_feature.size() < filter.value)
+        {
           return false;
+        }
         else if (filter.op == LESS_EQUAL && consensus_feature.size() > filter.value)
+        {
           return false;
+        }
       }
       else if (filter.field == META_DATA)
       {
         const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(consensus_feature);
         if (!metaPasses_(mii, filter, meta_indices_[i]))
+        {
           return false;
+        }
       }
     }
     return true;
@@ -361,28 +463,52 @@ namespace OpenMS
 
   bool DataFilters::metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const
   {
-    if (!meta_interface.metaValueExists((UInt)index)) return false;
+    if (!meta_interface.metaValueExists((UInt)index))
+    {
+      return false;
+    }
     else if (filter.op != EXISTS)
     {
       const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
       if (!filter.value_is_numerical)
       {
-        if (data_value.valueType() != DataValue::STRING_VALUE) return false;
+        if (data_value.valueType() != DataValue::STRING_VALUE)
+        {
+          return false;
+        }
         else
         {
           // for string values, equality is the only valid operation (besides "exists", see above)
-          if (filter.op != EQUAL) return false;
-          else if (filter.value_string != data_value.toString()) return false;
+          if (filter.op != EQUAL)
+          {
+            return false;
+          }
+          else if (filter.value_string != data_value.toString())
+          {
+            return false;
+          }
         }
       }
       else             // value_is_numerical
       {
-        if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
+        if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE)
+        {
+          return false;
+        }
         else
         {
-          if (filter.op == EQUAL && (double)data_value != filter.value) return false;
-          else if (filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
-          else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
+          if (filter.op == EQUAL && (double)data_value != filter.value)
+          {
+            return false;
+          }
+          else if (filter.op == LESS_EQUAL && (double)data_value > filter.value)
+          {
+            return false;
+          }
+          else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value)
+          {
+            return false;
+          }
         }
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,10 +64,15 @@ namespace OpenMS
     size_t j = i + 1;
     while (j < N)
     {
-      if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
-
+      if (tag.size() == max_tag_length_) 
+      { 
+        return; // maximum tag size reached? - continue with next parent
+      }
       const double gap = mzs[j] - mzs[i];
-      if ((gap * charge) > max_gap_) { return; } // already too far away - continue with next parent
+      if ((gap * charge) > max_gap_) 
+      { 
+        return; // already too far away - continue with next parent 
+      } 
 
       const char aa = getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag
@@ -82,7 +87,7 @@ namespace OpenMS
       getTag_(tag, mzs, j, tags, charge);
 
       // if aa is "L", then also add "I" as an alternative residue and extend the tag again
-      // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambigous matching to I and L later on
+      // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambiguous matching to I and L later on
       if (aa == 'L')
       {
         tag.pop_back();

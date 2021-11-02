@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
@@ -340,7 +339,7 @@ public:
       return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
     }
 
-    /// Sort by a user-definded property
+    /// Sort by a user-defined property
     /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
     /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
     /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)

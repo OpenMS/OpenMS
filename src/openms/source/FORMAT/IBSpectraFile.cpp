@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,7 @@ namespace OpenMS
                                         "Given ConsensusMap does not hold any isobaric quantification data.");
     }
 
-    // we take the mapcount as approximation
+    // we take the map count as approximation
     if (cm.getColumnHeaders().size() == 4)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 
 #include <unordered_set>
 
@@ -149,7 +150,17 @@ namespace OpenMS
     PeakSpectrum::StringDataArray* ion_names;
     PeakSpectrum::IntegerDataArray* charges;
 
-    bool charges_dynamic = false, ion_names_dynamic = false;
+    bool charges_dynamic = false;
+    bool ion_names_dynamic = false;
+
+    // Assure memory is freed even if an exception occurs.
+    RAIICleanup _(
+      [&]
+        {
+          if (charges_dynamic) delete charges;
+          if (ion_names_dynamic) delete ion_names;
+        }
+    );
 
     if (spectrum.getIntegerDataArrays().empty())
     {
@@ -225,9 +236,6 @@ namespace OpenMS
         spectrum.getStringDataArrays().push_back(std::move(*ion_names));
       }
     }
-
-    if (charges_dynamic) delete charges;
-    if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
 
@@ -728,7 +736,7 @@ namespace OpenMS
     std::set<EmpiricalFormula> fx_losses;
     std::map<EmpiricalFormula, String> formula_str_cache;
 
-    // precompute formula_str_cache
+    // pre-compute formula_str_cache
     if (add_losses_)
     {
       for (auto& p : peptide)

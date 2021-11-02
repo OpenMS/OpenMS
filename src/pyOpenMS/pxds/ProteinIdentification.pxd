@@ -17,72 +17,77 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         ProteinIdentification() nogil except +
-        ProteinIdentification(ProteinIdentification) nogil except +
+        ProteinIdentification(ProteinIdentification &) nogil except +
 
         bool operator==(ProteinIdentification) nogil except +
         bool operator!=(ProteinIdentification) nogil except +
 
-        # Returns the protein hits (mutable)
-        libcpp_vector[ProteinHit] getHits() nogil except +
-        # Appends a protein hit
-        void insertHit(ProteinHit input) nogil except +
-        # Sets the protein hits
-        void setHits(libcpp_vector[ProteinHit] hits) nogil except +
+        
+        libcpp_vector[ProteinHit] getHits() nogil except + # wrap-doc:Returns the protein hits
+        
+        void insertHit(ProteinHit input) nogil except + # wrap-doc:Appends a protein hit
+        
+        void setHits(libcpp_vector[ProteinHit] hits) nogil except + # wrap-doc:Sets the protein hits
         # Finds a protein hit by accession (returns past-the-end iterator if not found)
         # libcpp_vector[ProteinHit].iterator findHit(String accession) nogil except +
 
-        # Returns the protein groups (mutable)
-        libcpp_vector[ProteinGroup] getProteinGroups() nogil except +
-        # Appends a new protein group
-        void insertProteinGroup(ProteinGroup group) nogil except +
+        
+        libcpp_vector[ProteinGroup] getProteinGroups() nogil except + # wrap-doc:Returns the protein groups
+        
+        void insertProteinGroup(ProteinGroup group) nogil except + # wrap-doc:Appends a new protein group
 
-        # Returns the indistinguishable proteins (mutable)
-        libcpp_vector[ProteinGroup] getIndistinguishableProteins() nogil except +
-        # Appends new indistinguishable proteins
-        void insertIndistinguishableProteins(ProteinGroup group) nogil except +
+        
+        libcpp_vector[ProteinGroup] getIndistinguishableProteins() nogil except + # wrap-doc:Returns the indistinguishable proteins
+        
+        void insertIndistinguishableProteins(ProteinGroup group) nogil except + # wrap-doc:Appends new indistinguishable proteins
 
-        # Returns the protein significance threshold value
-        double getSignificanceThreshold() nogil except +
-        # Sets the protein significance threshold value
-        void setSignificanceThreshold(double value) nogil except +
-        # Returns the protein score type
-        String getScoreType() nogil except +
-        # Sets the protein score type
-        void setScoreType(String type) nogil except +
-        # Returns true if a higher score represents a better score
-        bool isHigherScoreBetter() nogil except +
-        # Sets the orientation of the score (is higher better?)
-        void setHigherScoreBetter(bool higher_is_better) nogil except +
-        # Sorts the protein hits according to their score
-        void sort() nogil except +
-        # Sorts the protein hits by score and assigns ranks (best score has rank 1)
-        void assignRanks() nogil except +
+        
+        double getSignificanceThreshold() nogil except + # wrap-doc:Returns the protein significance threshold value
+        
+        void setSignificanceThreshold(double value) nogil except + # wrap-doc:Sets the protein significance threshold value
+        
+        String getScoreType() nogil except + # wrap-doc:Returns the protein score type
+        
+        void setScoreType(String type) nogil except + # wrap-doc:Sets the protein score type
+        
+        bool isHigherScoreBetter() nogil except + # wrap-doc:Returns true if a higher score represents a better score
+        
+        void setHigherScoreBetter(bool higher_is_better) nogil except + # wrap-doc:Sets the orientation of the score (is higher better?)
+        
+        void sort() nogil except + # wrap-doc:Sorts the protein hits according to their score
+        
+        void assignRanks() nogil except + # wrap-doc:Sorts the protein hits by score and assigns ranks (best score has rank 1)
 
-        # Compute the coverage (in percent) of all ProteinHits given PeptideHits
-        void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except +
+        
+        void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except + # wrap-doc:Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
-        # Returns the date of the protein identification run
-        DateTime getDateTime() nogil except +
-        # Sets the date of the protein identification run
-        void setDateTime(DateTime date) nogil except +
-        # Sets the search engine type
-        void setSearchEngine(String search_engine) nogil except +
-        # Returns the type of search engine used
-        String getSearchEngine() nogil except +
-        # Sets the search engine version
-        void setSearchEngineVersion(String search_engine_version) nogil except +
-        # Returns the search engine version
-        String getSearchEngineVersion() nogil except +
-        # Sets the search parameters
-        void setSearchParameters(SearchParameters search_parameters) nogil except +
-        # Returns the search parameters
-        SearchParameters getSearchParameters() nogil except +
-        # Returns the identifier
-        String getIdentifier() nogil except +
-        # Sets the identifier
-        void setIdentifier(String id_) nogil except +
+        
+        DateTime getDateTime() nogil except + # wrap-doc:Returns the date of the protein identification run
+        
+        void setDateTime(DateTime date) nogil except + # wrap-doc:Sets the date of the protein identification run
+        
+        void setSearchEngine(String search_engine) nogil except + # wrap-doc:Sets the search engine type
+        
+        String getSearchEngine() nogil except + # wrap-doc:Returns the type of search engine used
+        
+        void setSearchEngineVersion(String search_engine_version) nogil except + # wrap-doc:Sets the search engine version
+        
+        String getSearchEngineVersion() nogil except + # wrap-doc:Returns the search engine version
+        
+        void setSearchParameters(SearchParameters search_parameters) nogil except + # wrap-doc:Sets the search parameters
+        
+        SearchParameters getSearchParameters() nogil except + # wrap-doc:Returns the search parameters
+        
+        String getIdentifier() nogil except + # wrap-doc:Returns the identifier
+        
+        void setIdentifier(String id_) nogil except + # wrap-doc:Sets the identifier
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+          # wrap-doc:
+            #   Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+            #   -----
+            #   :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
+
         void addPrimaryMSRunPath(StringList& s) nogil except +
         void getPrimaryMSRunPath(StringList& output) nogil except +
 
@@ -105,7 +110,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
     cdef cppclass ProteinGroup:
 
       ProteinGroup()  nogil except +
-      ProteinGroup(ProteinGroup)  nogil except +
+      ProteinGroup(ProteinGroup &)  nogil except +
 
       # Probability of this group
       double probability
@@ -119,7 +124,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
         #    MetaInfoInterface
 
       SearchParameters()  nogil except +
-      SearchParameters(SearchParameters) nogil except +
+      SearchParameters(SearchParameters &) nogil except +
 
       String db            #< The used database
       String db_version            #< The database version

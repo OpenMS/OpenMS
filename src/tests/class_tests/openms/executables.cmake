@@ -144,7 +144,6 @@ set(kernel_executables_list
   BaseFeature_test
   ChromatogramPeak_test
   ChromatogramTools_test
-  ComparatorUtils_test
   ConsensusFeature_test
   ConsensusMap_test
   ConversionHelper_test
@@ -232,6 +231,7 @@ set(format_executables_list
   OMSSAXMLFile_test
   OSWFile_test
   PTMXMLFile_test
+  ParamCTDFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test

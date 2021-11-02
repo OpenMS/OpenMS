@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -70,11 +70,11 @@ TMP_FILE_OLD=${TMP_DIR}/tool_list_old.txt
 TMP_FILE_NEW=${TMP_DIR}/tool_list_new.txt
 TMP_FILE_COMM=${TMP_DIR}/common_tools.txt
 
-# store relevant tool names in tmp files
+# store relevant tool names in tmp files (remove e.g., GUI tools)
 ls -la ${BIN_DIR_OLD}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$" \
     > ${TMP_FILE_OLD}
@@ -82,7 +82,7 @@ ls -la ${BIN_DIR_OLD}/ \
 ls -la ${BIN_DIR_NEW}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$"  \
     > ${TMP_FILE_NEW}

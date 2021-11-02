@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -297,7 +297,7 @@ public:
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
 
-       @note Currently implemented for FastaEntries and Peptide Evidences
+       @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template <class HitType, class Entry>
     struct GetMatchingItems
@@ -755,6 +755,10 @@ public:
     static void removeUnreferencedProteins(
       std::vector<ProteinIdentification>& proteins,
       const std::vector<PeptideIdentification>& peptides);
+    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
+    static void removeUnreferencedProteins(
+        ProteinIdentification& proteins,
+        const std::vector<PeptideIdentification>& peptides);
 
     /**
        @brief Removes references to missing proteins
@@ -771,12 +775,24 @@ public:
     /**
        @brief Removes references to missing proteins
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
 
        If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
     */
     static void updateProteinReferences(
         ConsensusMap& cmap,
+        bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+        ConsensusMap& cmap,
+        const ProteinIdentification& ref_run,
         bool remove_peptides_without_reference = false);
 
     /**

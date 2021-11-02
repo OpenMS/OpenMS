@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <sstream>
 
 //#define DEBUG
 
@@ -131,9 +133,9 @@ namespace OpenMS
     
     // construct navigators for all spline spectra
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
-    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
       navigators.push_back(nav);
     }
     
@@ -430,7 +432,7 @@ namespace OpenMS
           return false;
         }
         
-        // calculate correlation between peak insities in peptides 1 and 2
+        // calculate correlation between peak intensities in peptides 1 and 2
         double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         

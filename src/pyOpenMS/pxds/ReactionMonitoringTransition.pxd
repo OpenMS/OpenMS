@@ -8,31 +8,39 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef cppclass ReactionMonitoringTransition(CVTermList):
         # wrap-inherits:
         #    CVTermList
+        # wrap-doc:
+        #   This class stores a SRM/MRM transition
+        #   -----
+        #   This class is capable of representing a <Transition> tag in a TraML
+        #   document completely and contains all associated information
+        #   -----
+        #   The default values for precursor m/z is 0.0 which indicates that it is
+        #   uninitialized
 
-        ReactionMonitoringTransition()                  nogil except +
-        ReactionMonitoringTransition(ReactionMonitoringTransition)   nogil except + #wrap-ignore
-        String getName()                           nogil except +
-        String getNativeID()                       nogil except +
-        String getPeptideRef()                     nogil except +
-        void setName(String name)                  nogil except +
-        void setNativeID(String name)              nogil except +
-        void setPeptideRef(String peptide_ref)     nogil except +
+        ReactionMonitoringTransition() nogil except +
+        ReactionMonitoringTransition(ReactionMonitoringTransition &)   nogil except +
+        String getName() nogil except +
+        String getNativeID() nogil except +
+        String getPeptideRef() nogil except +
+        void setName(String name) nogil except +
+        void setNativeID(String name) nogil except +
+        void setPeptideRef(String peptide_ref) nogil except +
 
-        double getProductMZ()         nogil except +
-        void setProductMZ(double)     nogil except +
+        double getProductMZ() nogil except +
+        void setProductMZ(double) nogil except +
 
-        double getPrecursorMZ()       nogil except +
-        void setPrecursorMZ(double)   nogil except +
+        double getPrecursorMZ() nogil except + # wrap-doc:Returns the precursor mz (Q1 value)
+        void setPrecursorMZ(double) nogil except + # wrap-doc:Sets the precursor mz (Q1 value)
       
-        DecoyTransitionType getDecoyTransitionType() nogil except +
+        DecoyTransitionType getDecoyTransitionType() nogil except + # wrap-doc:Returns the type of transition (target or decoy)
 
         void setCompoundRef(const String & compound_ref)nogil except +
         String  getCompoundRef()nogil except +
 
-        bool hasPrecursorCVTerms() nogil except +
-        void setPrecursorCVTermList(CVTermList & list_)nogil except +
-        void addPrecursorCVTerm(CVTerm & cv_term)nogil except +
-        CVTermList getPrecursorCVTermList()nogil except +
+        bool hasPrecursorCVTerms() nogil except + # wrap-doc:Returns true if precursor CV Terms exist (means it is safe to call getPrecursorCVTermList)
+        void setPrecursorCVTermList(CVTermList & list_)nogil except + # wrap-doc:Sets a list of precursor CV Terms
+        void addPrecursorCVTerm(CVTerm & cv_term)nogil except + # wrap-doc:Adds precursor CV Term
+        CVTermList getPrecursorCVTermList()nogil except + # wrap-doc:Obtains the list of CV Terms for the precursor
 
         void addProductCVTerm(CVTerm & cv_term)nogil except +
 
@@ -45,18 +53,18 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void setRetentionTime(RetentionTime rt)nogil except +
         RetentionTime getRetentionTime()nogil except +
 
-        void setPrediction(Prediction & prediction)nogil except +
-        void addPredictionTerm(CVTerm & prediction)nogil except +
-        bool hasPrediction() nogil except +
-        Prediction getPrediction()nogil except +
+        void setPrediction(Prediction & prediction)nogil except + # wrap-doc:Sets prediction
+        void addPredictionTerm(CVTerm & prediction)nogil except + # wrap-doc:Adds prediction term
+        bool hasPrediction() nogil except + # wrap-doc:Returns true if a Prediction object exists (means it is safe to call getPrediction)
+        Prediction getPrediction()nogil except + # wrap-doc:Obtains the Prediction object 
 
-        void setDecoyTransitionType(DecoyTransitionType & d)nogil except +
+        void setDecoyTransitionType(DecoyTransitionType & d)nogil except + # wrap-doc:Sets the type of transition (target or decoy)
 
-        double getLibraryIntensity()nogil except +
-        void setLibraryIntensity(double intensity)nogil except +
+        double getLibraryIntensity()nogil except + # wrap-doc:Returns the library intensity (ion count or normalized ion count from a spectral library)
+        void setLibraryIntensity(double intensity)nogil except + # wrap-doc:Sets the library intensity (ion count or normalized ion count from a spectral library)
 
-        int getProductChargeState() nogil except +
-        bool isProductChargeStateSet() nogil except +
+        int getProductChargeState() nogil except + # wrap-doc:Returns the charge state of the product
+        bool isProductChargeStateSet() nogil except + # wrap-doc:Returns true if charge state of product is already set
 
         bool isDetectingTransition() nogil except +
         void setDetectingTransition(bool val) nogil except +
@@ -72,4 +80,3 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef enum DecoyTransitionType:
 
         UNKNOWN, TARGET, DECOY
-

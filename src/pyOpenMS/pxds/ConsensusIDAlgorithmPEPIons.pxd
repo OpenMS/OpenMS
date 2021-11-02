@@ -7,5 +7,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>" namespace 
         # wrap-inherits:
         #  ConsensusIDAlgorithmSimilarity
         ConsensusIDAlgorithmPEPIons() nogil except +
-        ConsensusIDAlgorithmPEPIons(ConsensusIDAlgorithmPEPIons) nogil except + #wrap-ignore
+        # private
+        ConsensusIDAlgorithmPEPIons(ConsensusIDAlgorithmPEPIons &) nogil except + #wrap-ignore
 

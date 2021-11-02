@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ public:
     double delta_D(double top_hit, double runner_up);
 
     /**
-        @brief: computes the overall all score
+        @brief computes the overall all score
         @param dot_product of a match
         @param delta_D should be calculated after all dot products for a unidentified spectrum are computed
         @param dot_bias

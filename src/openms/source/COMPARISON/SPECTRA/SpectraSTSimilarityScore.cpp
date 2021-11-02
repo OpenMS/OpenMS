@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
+
+#include <Eigen/Sparse>
 
 using namespace std;
 using namespace Eigen;
@@ -75,14 +77,14 @@ namespace OpenMS
     BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
 
     // normalized dot product
-    bin1.getBins() /= bin1.getBins().norm();
-    bin2.getBins() /= bin2.getBins().norm();
-    return bin1.getBins().dot(bin2.getBins());
+    *bin1.getBins() /= bin1.getBins()->norm();
+    *bin2.getBins() /= bin2.getBins()->norm();
+    return bin1.getBins()->dot(*bin2.getBins());
   }
 
   double SpectraSTSimilarityScore::operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2) const
   {
-    return bin1.getBins().dot(bin2.getBins());
+    return bin1.getBins()->dot(*bin2.getBins());
   }
 
   bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec,
@@ -123,13 +125,13 @@ namespace OpenMS
   {
     // TODO: resolution seems rather low. Check with current original implementations.
     BinnedSpectrum bin(spec, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
-    bin.getBins() /= bin.getBins().norm();
+    *bin.getBins() /= bin.getBins()->norm();
     return bin;
   }
 
   double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product) const
   {
-    double numerator = (bin1.getBins().cwiseProduct(bin2.getBins())).norm();
+    double numerator = (bin1.getBins()->cwiseProduct(*bin2.getBins())).norm();
     
     if (dot_product != 0)
     {

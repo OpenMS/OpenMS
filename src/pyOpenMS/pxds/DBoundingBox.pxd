@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DBoundingBox.h>" namespace "OpenMS":
 
     cdef cppclass DBoundingBox2 "OpenMS::DBoundingBox<2> ":
         DBoundingBox2() nogil except +
-        DBoundingBox2(DBoundingBox2) nogil except +
+        DBoundingBox2(DBoundingBox2 &) nogil except +
         DPosition2 minPosition() nogil except +
         DPosition2 maxPosition() nogil except +
 

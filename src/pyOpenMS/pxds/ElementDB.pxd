@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #    cdef AutowrapConstPtrHolder[_ElementDB] inst
 
+        # private
+        ElementDB() nogil except + # wrap-ignore
+        # private 
         ElementDB(ElementDB) nogil except + #wrap-ignore
 
         # No wrapping of const ref

@@ -31,8 +31,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         libcpp_pair[ size_t, size_t ] sizePair() nogil except +
         size_t index(size_t row, size_t col) nogil except +
         libcpp_pair[ size_t, size_t ] indexPair(size_t index) nogil except +
-        size_t colIndex(size_t index) nogil except +
-        size_t rowIndex(size_t index) nogil except +
+        size_t colIndex(size_t index) nogil except + # wrap-doc:Calculate the column from an index into the underlying vector. Note that Matrix uses the (row,column) lexicographic ordering for indexing
+        size_t rowIndex(size_t index) nogil except + # wrap-doc:Calculate the row from an index into the underlying vector. Note that Matrix uses the (row,column) lexicographic ordering for indexing
         ## bool operator==(Matrix & rhs) nogil except +
         ## bool operator<(Matrix & rhs) nogil except +
         # TEMPLATE # void setMatrix(ValueType matrix) nogil except +

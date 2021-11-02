@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
     cdef cppclass PrecursorCorrection:
 
         PrecursorCorrection() nogil except +
+        PrecursorCorrection(PrecursorCorrection &) nogil except + # compiler
 
 
 # COMMENT: wrap static methods

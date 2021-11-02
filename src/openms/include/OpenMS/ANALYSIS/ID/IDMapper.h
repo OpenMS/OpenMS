@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -173,8 +171,8 @@ public:
               - or only unidentified precursor.
       @param spectra The mass spectra
       @param ids The peptide identifications
-      @mz_tol Tolerance used to map to precursor m/z
-      @rt_tol Tolerance used to map to spectrum retention time
+      @param mz_tol Tolerance used to map to precursor m/z
+      @param rt_tol Tolerance used to map to spectrum retention time
 
       Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies). 
 

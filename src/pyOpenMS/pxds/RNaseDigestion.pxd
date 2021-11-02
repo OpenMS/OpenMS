@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
         #         for fragment in result:
         #           print (fragment)
 
-      RNaseDigestion() nogil except +
-      RNaseDigestion(RNaseDigestion) nogil except + # wrap-ignore
+      RNaseDigestion() nogil except + # compiler
+      RNaseDigestion(RNaseDigestion &) nogil except + # compiler
 
       void setEnzyme(String name) nogil except + # wrap-doc:Sets the enzyme for the digestion (by name)
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,10 +183,9 @@ private:
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
-      for (vector<TransformationDescription>::iterator it =
-             transformations.begin(); it != transformations.end(); ++it)
+      for (TransformationDescription& tra : transformations)
       {
-        it->fitModel(model_type, model_params);
+        tra.fitModel(model_type, model_params);
       }
     }
   }
@@ -278,7 +277,7 @@ private:
     }
     if (section == "model")
     {
-      return TOPPMapAlignerBase::getModelDefaults("b_spline");
+      return MapAlignerBase::getModelDefaults("b_spline");
     }
 
     return Param(); // this shouldn't happen

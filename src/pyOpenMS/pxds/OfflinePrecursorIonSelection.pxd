@@ -18,13 +18,21 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
         # wrap-inherits:
         #  DefaultParamHandler
         OfflinePrecursorIonSelection() nogil except +
-        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection) nogil except + #wrap-ignore
+        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection &) nogil except + # compiler
 
         void makePrecursorSelectionForKnownLCMSMap(FeatureMap & features,
                                                    MSExperiment & experiment,
                                                    MSExperiment & ms2,
                                                    libcpp_set[ int ] & charges_set, bool
                                                    feature_based) nogil except +
+            # wrap-doc:
+                #   Makes the precursor selection for a given feature map, either feature or scan based
+                #   -----
+                #   :param features: Input feature map
+                #   :param experiment: Input raw data
+                #   :param ms2: Precursors are added as empty MS2 spectra to this MSExperiment
+                #   :param charges_set: Allowed charge states
+                #   :param feature_based: If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
 
         # TODO nested STL
         void getMassRanges(FeatureMap & features, 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -114,7 +112,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief constructor of iterator
         * 
-        * @param scaling    The step width can be scaled by this factor. Often it is adventageous to iterate
+        * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
         Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);

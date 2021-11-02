@@ -36,7 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for PeakAnnotation
-
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 namespace OpenMS
 {

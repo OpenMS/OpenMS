@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ protected:
     };
 
     /**
-      @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.
+      @brief Encodes tabs '\\t' in the string as &amp;\#x9; and returns the encoded string.
 
       @param to_encode The String to encode.
       @return The encoded string.

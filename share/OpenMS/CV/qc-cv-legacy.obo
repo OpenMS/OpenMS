@@ -1,0 +1,757 @@
+format-version: 1.2
+data-version: 0.1.2
+date: 26:11:2015 09:52
+saved-by: Mathias Walzer
+remark: creator: Mathias Walzer <walzer <-at-> informatik.uni-tuebingen.de>
+remark: creator: Lucia Espona Pernas <espona <-at-> imsb.biol.ethz.ch>
+remark: creator: Marc Sturm <marc.sturm <-at-> med.uni-tuebingen.de>
+import: http://unit-ontology.googlecode.com/svn/trunk/unit.obo
+import: http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
+default-namespace: QC
+remark: namespace: QC
+remark: version: 0.1.1
+ontology: uo
+ontology: ms
+
+[Typedef]
+id: has_regexp
+name: has regexp
+
+[Typedef]
+id: has_units
+name: has_units
+
+[Typedef]
+id: part_of
+name: part_of
+is_transitive: true
+
+[Typedef]
+id: has_order
+name: has_order
+
+################################################################################################################################################
+# MASS SPECTROMETRY QC PARAMETERS - NAMESPACE QC:0000001...
+################################################################################################################################################
+
+[Term]
+id: QC:0000001
+name: quality parameter
+def: "A quality parameter of some sort." [PXS:QC]
+
+[Term]
+id: QC:0000002
+name: run quality parameter
+def: "A run quality parameter of some sort." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+
+[Term]
+id: QC:0000003
+name: set quality parameter
+def: "A set quality parameter of some sort." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+
+[Term]
+id: QC:0000004
+name: MS acquisition result details
+def: "The results (e.g. counts) of the MS acquisition step of a MS experiment." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+remark: run name is MS:1000577 as raw data file in [PSI:MS]
+
+[Term]
+id: QC:0000005
+name: set name
+def: "The set name describing the set grouping." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+
+[Term]
+id: QC:0000006
+name: MS1 spectra count
+def: "Contains the number of MS1 spectra recorded." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+
+[Term]
+id: QC:0000007
+name: MS2 spectra count
+def: "Contains the number of MS2 spectra recorded." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+
+[Term]
+id: QC:0000008
+name: Chromatogram count
+def: "Contains the number of chromatograms recorded." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+
+[Term]
+id: QC:0000009
+name: MS MZ acquisition ranges
+def: "Contains the min/max MZ range boundaries observed during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000010
+name: MS min MZ
+def: "Contains the actual min MZ occurrence in MS acquisition." [PXS:QC]
+is_a: QC:0000009 ! MS MZ acquisition ranges
+remark: supposed as table col
+
+[Term]
+id: QC:0000011
+name: MS max MZ
+def: "Contains the actual max MZ occurrence in MS acquisition." [PXS:QC]
+is_a: QC:0000009 ! MS MZ acquisition ranges
+remark: supposed as table col
+
+[Term]
+id: QC:0000012
+name: MS RT acquisition ranges
+def: "Contains the min/max RT range boundaries observed during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000013
+name: MS min RT
+def: "Contains the actual min RT occurrence in MS acquisition." [PXS:QC]
+is_a: QC:0000012 ! MS RT acquisition ranges
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000014
+name: MS max RT
+def: "Contains the actual max RT occurrence in MS acquisition." [PXS:QC]
+is_a: QC:0000012 ! MS RT acquisition ranges
+remark: supposed as table col
+
+[Term]
+id: QC:0000015
+name: MS gradient settings
+def: "Contains the min/max RT range boundaries used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000012 ! MS RT acquisition ranges
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000016
+name: MS MZ detection settings
+def: "Contains the min/max MZ range boundaries used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000009 ! MS MZ acquisition ranges
+
+[Term]
+id: QC:0000017
+name: MS1 injection time
+def: "Contains the accumulation time in the ion trap device used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute 
+
+[Term]
+id: QC:0000018
+name: MS2 injection time
+def: "Contains the accumulation time in the ion trap device used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute 
+
+[Term]
+id: QC:0000019
+name: MS1 scan time
+def: "Contains the	average scan time for a MS1 event used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute 
+
+[Term]
+id: QC:0000020
+name: MS2 scan time
+def: "Contains the	average scan time for a MS2 event used in machine settings during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute 
+
+[Term]
+id: QC:0000021
+name: lock mass percentage
+def: "Contains the	percentage of found lock masses during MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+
+[Term]
+id: QC:0000022
+name: TICs
+def: "The total ion currents detected in each of a series of mass spectra recorded." [PXS:QC]
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000023
+name: TIC slump
+def: "The percentage of tic slumps below 10k." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+remark: TIC plot is MS:1000235
+
+[Term]
+id: QC:0000024
+name: detector-saturation
+def: "The average ion saturation of the detector in MS acquisition." [PXS:QC]
+is_a: QC:0000004 ! MS acquisition result details
+
+[Term]
+id: QC:0000025
+name: MS identification result details
+def: "The results (e.g. identifications) of the MS identification step of a MS experiment." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+
+[Term]
+id: QC:0000026
+name: MS id settings
+def: "The settings of the search engine used engine name and further parameters." [PXS:QC]
+is_a: MS:1001249 ! search input details
+
+[Term]
+id: QC:0000027
+name: precursor ion tolerance 
+def: "This parameter shows the precursor tolerance that was used for MS/MS identification." [PXS:QC]
+is_a: MS:1001411 ! search tolerance specification
+
+[Term]
+id: QC:0000028
+name: product ion tolerance 
+def: "This parameter shows the product ion tolerance that was used for MS/MS identification." [PXS:QC]
+is_a: MS:1001411 ! search tolerance specification
+
+[Term]
+id: QC:0000029
+name: total number of PSMs
+def: "This number indicates the number of spectra that were given peptide annotations." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000030
+name: total number of identified peptides
+def: "This number indicates the number peptides that were identified." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000031
+name: total number of uniquely identified peptides
+def: "This number indicates the number peptides that were uniquely identified." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000032
+name: total number of identified proteins
+def: "This number indicates the number proteins that were identified." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000033
+name: total number of uniquely identified proteins
+def: "This number indicates the number proteins that were uniquely identified." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000034
+name: total number of modified peptides
+def: "This number indicates the number modified peptide sequences that were identified (after FDR)." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000035
+name: id ratio
+def: "This ratio indicates the number of identified peptides vs. the number of recorded ms2 spectra." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000036
+name: id coverage
+def: "The coverages of distinct sequences for a respective engine." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000037
+name: total number of missed cleavages
+def: "This number indicates the number missed cleavages that were identified." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000038
+name: mass accuracy
+def: "The values of overall mass accuracy." [PXS:QC]
+is_a: MS:1001105 ! peptide result details
+is_a: QC:0000025 ! MS identification result details
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000039
+name: delta ppm
+def: "The deviation of the precursor ion mass and the theoretical mass of the matched identification." [PXS:QC]
+relationship: has_units UO:0000169 ! parts per million
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000040
+name: mean delta ppm
+def: "The mean deviation of the precursor ion masses and the theoretical masses of the matched identifications." [PXS:QC]
+relationship: has_units UO:0000169 ! parts per million
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000041
+name: median delta ppm
+def: "The median deviation of the precursor ion masses and the theoretical masses of the matched identifications." [PXS:QC]
+relationship: has_units UO:0000169 ! parts per million
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000042
+name: enzyme contamination
+def: "The ratio of  the sum of chymotryptic and tryptic sequences by the number of tryptic sequences." [PXS:QC]
+relationship: has_units UO:0000169 ! parts per million	ratio	 NA
+is_a: QC:0000025 ! MS identification result details
+
+[Term]
+id: QC:0000043
+name: fractional masses plot
+def: "This plot visualizes the theoretical fractional masses (e.g. from the search DB input) vs. the measured fractional masses." [PXS:QC]
+is_a: QC:0000050 ! image plot
+
+[Term]
+id: QC:0000044
+name: precursors
+def: "The table of measured precursor ions over RT/mz." [PXS:QC]
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000045
+name: MS quantification result details
+def: "The results (e.g. number of features) of the MS quantification step of a MS experiment." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+
+[Term]
+id: QC:0000046
+name: number of features
+def: "The number of features reported." [PXS:QC]
+is_a: QC:0000045 ! MS quantification result details
+
+[Term]
+id: QC:0000047
+name: features
+def: "The tables of features over RT/mz." [PXS:QC]
+is_a: QC:0000048 ! value table
+is_a: QC:0000045 ! MS quantification result details
+
+[Term]
+id: QC:0000048
+name: value table
+def: "The table contains generic information." [PXS:QC]
+
+[Term]
+id: QC:0000049
+name: generic table
+def: "The table contains generic information." [PXS:QC]
+is_a: QC:0000048 ! value table
+
+[Term]
+id: QC:0000050
+name: image plot
+def: "The plot contains generic information." [PXS:QC]
+
+[Term]
+id: QC:0000051
+name: generic plot
+def: "The plot contains generic information." [PXS:QC]
+is_a: QC:0000050 ! image plot
+
+[Term]
+id: QC:0000052
+name: id ratio plot
+def: "This plot visualizes the ratio of number of identified peptides vs. the number of recorded ms2 spectra." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000050 ! image plot
+
+[Term]
+id: QC:0000053
+name: mass accuracy plot
+def: "This plot visualizes the mass accuracy of identified ms2 spectra." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000050 ! image plot
+
+[Term]
+id: QC:0000054
+name: mass accuracy over time plot
+def: "This plot visualizes the mass accuracy over the course of RT." [PXS:QC]
+is_a: MS:1001405 ! spectrum identification result details
+is_a: QC:0000050 ! image plot
+
+[Term]
+id: QC:0000055
+name: MS experiment heatmap
+def: "This plot visualizes the intensities on RT vs mz." [PXS:QC]
+is_a: QC:0000050 ! image plot
+
+################################################################################################################################################
+# META DATA PARAMETERS - NAMESPACE QC:1000001...
+################################################################################################################################################
+
+[Term]
+id: QC:1000001
+name: meta data parameter
+def: "A meta data parameter, i.e. it describes how/when the quality parameters were created." [PXS:QC]
+created_by: sturm
+
+[Term]
+id: QC:1000002
+name: creation software
+def: "Software used for QC calculation (name and version)." [PXS:QC]
+is_a: QC:1000001 ! meta data parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:1000003
+name: creation software parameters
+def: "Command-line parameters of the creation software that are relevant for QC calculation." [PXS:QC]
+is_a: QC:1000001 ! meta data parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:1000004
+name: creation date
+def: "Date and time when the quality parameters were calculation." [PXS:QC]
+is_a: QC:1000001 ! meta data parameter
+xref: value-type:xsd\:datetime "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:1000005
+name: source file
+def: "Input file that contains raw data for quality parameter calculation." [PXS:QC]
+is_a: QC:1000001 ! meta data parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: sturm
+
+################################################################################################################################################
+# NEXT GENERATION SEQUENCING QC PARAMETERS - NAMESPACE QC:2000001...
+################################################################################################################################################
+
+[Term]
+id: QC:2000001
+name: NGS quality parameter
+def: "Quality parameter from a next generation sequencing experiment." [PXS:QC]
+is_a: QC:0000001 ! quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000002
+name: NGS aquisition parameter
+def: "Quality parameter from the acquisition step of a next generation sequencing experiment. This includes the raw read data before any manipulation." [PXS:QC]
+is_a: QC:2000003 ! NGS quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000003
+name: NGS mapping parameter
+def: "Quality parameter from the mapping/alignment step of a next generation sequencing experiment." [PXS:QC]
+is_a: QC:2000003 ! NGS quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000004
+name: NGS variant list parameter
+def: "Quality parameter from the variant calling step of a next generation sequencing experiment." [PXS:QC]
+is_a: QC:2000003 ! NGS quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000005
+name: read count
+def: "Total number of reads (one cluster in a paired-end experiment generates two reads)." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000006
+name: read length
+def: "Raw read length of a single read before trimming. Comma-separated list of lenghs if several." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000007
+name: Q20 read percentage
+def: "The percentage of reads with a mean base quality score greater than Q20." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000008
+name: Q30 base percentage
+def: "The percentage of bases with a minimum quality score of Q30." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000009
+name: no base call percentage
+def: "The percentage of bases without base call (N)." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000010
+name: gc content percentage
+def: "The percentage of bases that are called to be G or C." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000011
+name: base distribution plot
+def: "Plots the base content in percent against the cycle. Bases might for example be A,C,G,T,N and GC." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000012
+name: Q score plot
+def: "Plots the mean forward/reverse Q score for each cycle." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000013
+name: variant count
+def: "Total number of variants in the target region." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000014
+name: known variants percentage
+def: "Percentage of variants that are known polymorphisms in the dbSNP database." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000015
+name: high-impact variants percentage
+def: "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000016
+name: homozygous variants percentage
+def: "Percentage of variants that are called as homozygous." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000017
+name: indel variants percentage
+def: "Percentage of variants that are insertions/deletions." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000018
+name: transition/transversion ratio
+def: "Transition/transversion ratio of single nucleotide variants." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000019
+name: trimmed base percentage
+def: "Percentage of bases that were trimmed during to adapter or quality trimming."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000020
+name: mapped read percentage
+def: "Percentage of reads that could be mapped to the reference genome."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000021
+name: on-target read percentage
+def: "Percentage of reads that could be mapped to the target region."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000022
+name: properly-paired read percentage
+def: "Percentage of properly paired reads (for paired-end reads only)."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000023
+name: insert size
+def: "Average insert size (for paired-end reads only)."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000024
+name: duplicate read percentage
+def: "Percentage of reads removed because they were duplicates (PCR, optical, etc)."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000025
+name: target region read depth
+def: "Average sequencing depth in target region."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000026
+name: target region 10x percentage
+def: "Percentage of the target region that is covered at least 10-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000027
+name: target region 20x percentage
+def: "Percentage of the target region that is covered at least 20-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000028
+name: target region 30x percentage
+def: "Percentage of the target region that is covered at least 30-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000029
+name: target region 50x percentage
+def: "Percentage of the target region that is covered at least 50-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000030
+name: target region 100x percentage
+def: "Percentage of the target region that is covered at least 100-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000031
+name: target region 200x percentage
+def: "Percentage of the target region that is covered at least 200-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000032
+name: target region 500x percentage
+def: "Percentage of the target region that is covered at least 500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000033
+name: error estimation read depth
+def: "Average read depth on the special target region used for error estimation after mapping."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000034
+name: error estimation N percentage
+def: "No base call (N) percentage determined on special target region after mapping."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000035
+name: error estimation SNV percentage
+def: "SNV error percentage determined on special target region after mapping."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+created_by: sturm
+
+[Term]
+id: QC:2000036
+name: error estimation indel percentage
+def: "indel error percentage determined on special target region after mapping."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000037
+name: depth distribution plot
+def: "Plots the depth of coverage against the percentage of the target region coverated at the specific depth." [PXS:QC]
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000038
+name: insert size distribution plot
+def: "Plots the paired-end insert size against the number of reads with the specific insert size." [PXS:QC]
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000039
+name: gender check
+def: "Gender check result: 'n/a', 'male_passed', 'male_failed', 'female_passed', 'female_failed'."
+is_a: QC:2000001 ! NGS quality parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: sturm

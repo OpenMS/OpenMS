@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,8 +69,14 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
+  if (spec.empty())
+  { 
+    return; 
+  }
+
   const bool preserve_high_intensity_peaks = true;
   const double preserve_low_mz_peaks_threshold = 154.0; // low m/z marker ion are often only 1 Da apart which would get them removed by Deisotoper
+
 
   Size charge_index(0);
   Size iso_peak_count_index(0);
@@ -359,8 +365,10 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
       }
     }
 
-    if (z == 0) continue;
-
+    if (z == 0)
+    {
+      continue;
+    }
     // convert mono-isotopic peak with charge assigned by deisotoping
     if (make_single_charged)
     {

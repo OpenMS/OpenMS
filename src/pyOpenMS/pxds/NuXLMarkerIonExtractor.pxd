@@ -10,8 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>" namespace "Op
     
     cdef cppclass NuXLMarkerIonExtractor "OpenMS::NuXLMarkerIonExtractor":
         NuXLMarkerIonExtractor() nogil except + 
-        NuXLMarkerIonExtractor(NuXLMarkerIonExtractor) nogil except + #wrap-ignore
+        NuXLMarkerIonExtractor(NuXLMarkerIonExtractor &) nogil except + #wrap-ignore
         # MarkerIonsType extractMarkerIons(MSSpectrum & s, double marker_tolerance) nogil except +
         libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] extractMarkerIons(MSSpectrum & s,
                                                                                             double marker_tolerance) nogil except +
-

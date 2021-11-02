@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,10 @@ namespace OpenMS
     // Adding TIC information to meta data
     for (Size i = 0; i < tics.size(); ++i)
     {
-      if (tics[i].intensities.empty()) continue; // no MS1 spectra
+      if (tics[i].intensities.empty())
+      {
+        continue; // no MS1 spectra
+      }
       MzTabParameter tic{};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");

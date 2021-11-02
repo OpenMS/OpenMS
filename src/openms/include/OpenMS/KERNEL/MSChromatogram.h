@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
@@ -416,7 +415,7 @@ public:
     ///@}
 
     /**
-      @brief Adds all the ChromatogramPeaks from another MSChromatogram and updates the metadata to indicate a merge
+      @brief Adds all the chromatogram peaks from another MSChromatogram and updates the metadata to indicate a merge
 
       @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
       undefined.

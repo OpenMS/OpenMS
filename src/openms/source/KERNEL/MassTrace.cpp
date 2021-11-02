@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,15 +115,16 @@ namespace OpenMS
       double peak_area(0.0);
 
       if (trace_peaks_.empty())
+      {
         return peak_area;
-
+      }
       double int_before = trace_peaks_.begin()->getIntensity();
       double rt_before = trace_peaks_.begin()->getRT();
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        peak_area += (int_before + l_it->getIntensity())/2 * (l_it->getRT() - rt_before);
-        int_before = l_it->getIntensity();
-        rt_before = l_it->getRT();
+        peak_area += (int_before + l_it.getIntensity())/2 * (l_it.getRT() - rt_before);
+        int_before = l_it.getIntensity();
+        rt_before = l_it.getRT();
       }
 
       return peak_area;
@@ -286,8 +287,7 @@ namespace OpenMS
 
     double MassTrace::computeFwhmAreaSmooth() const
     {
-      if (fwhm_start_idx_ == 0 
-       && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
       {
         return 0;
       }
@@ -308,8 +308,7 @@ namespace OpenMS
 
     double MassTrace::computeFwhmArea() const
     {
-      if (fwhm_start_idx_ == 0 
-       && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
       {
         return 0;
       }
@@ -411,10 +410,10 @@ namespace OpenMS
       ConvexHull2D::PointArrayType hull_points(trace_peaks_.size());
 
       Size i = 0;
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        hull_points[i][0] = (*l_it).getRT();
-        hull_points[i][1] = (*l_it).getMZ();
+        hull_points[i][0] = (l_it).getRT();
+        hull_points[i][1] = (l_it).getMZ();
         ++i;
       }
 
@@ -520,9 +519,9 @@ namespace OpenMS
       // copy mz values to temp vec
       std::vector<double> temp_rt;
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        temp_rt.push_back((*l_it).getRT());
+        temp_rt.push_back((l_it).getRT());
       }
 
       std::sort(temp_rt.begin(), temp_rt.end());
@@ -559,9 +558,9 @@ namespace OpenMS
       // copy mz values to temp vec
       std::vector<double> temp_mz;
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        temp_mz.push_back((*l_it).getMZ());
+        temp_mz.push_back((l_it).getMZ());
       }
 
       std::sort(temp_mz.begin(), temp_mz.end());
@@ -591,9 +590,9 @@ namespace OpenMS
 
       double sum_mz(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        sum_mz += (*l_it).getMZ();
+        sum_mz += (l_it).getMZ();
       }
 
       centroid_mz_ = sum_mz / trace_size;
@@ -611,11 +610,11 @@ namespace OpenMS
       double weighted_sum(0.0);
       double total_weight(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        double w_i = (*l_it).getIntensity();
+        double w_i = (l_it).getIntensity();
         total_weight += w_i;
-        weighted_sum += w_i * (*l_it).getMZ();
+        weighted_sum += w_i * (l_it).getMZ();
       }
 
       if (total_weight < std::numeric_limits<double>::epsilon())
@@ -636,11 +635,11 @@ namespace OpenMS
       double weighted_sum(0.0);
       double total_weight(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        double w_i = l_it->getIntensity();
+        double w_i = l_it.getIntensity();
         total_weight += w_i;
-        weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it->getMZ() - centroid_mz_)));
+        weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it.getMZ() - centroid_mz_)));
       }
 
       if (total_weight < std::numeric_limits<double>::epsilon())

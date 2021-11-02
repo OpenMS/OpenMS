@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,8 +136,10 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     MapAlignmentAlgorithmPoseClustering algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
@@ -251,8 +253,14 @@ protected:
       {
         PeakMap map;
         MzMLFile().load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
+        if (i == static_cast<int>(reference_index))
+        {
+          trafo.fitModel("identity");
+        }
+        else
+        {
+          algorithm.align(map, trafo);
+        }
         if (out_files.size())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);

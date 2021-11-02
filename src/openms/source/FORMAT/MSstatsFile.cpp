@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/MSstatsFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <tuple>
 
 using namespace std;
@@ -395,7 +397,7 @@ void MSstatsFile::storeLFQ(const String& filename,
         }
         else
         {
-          continue; // we dont need the rest of the loop
+          continue; // we don't need the rest of the loop
         }
 
         // Variables of the peptide hit
@@ -407,8 +409,10 @@ void MSstatsFile::storeLFQ(const String& filename,
         String frag_charge = "0";
 
         String accession  = ListUtils::concatenate(accs,accdelim_);
-        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
-
+        if (accession.empty())
+        {
+          accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
+        }
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
@@ -630,11 +634,11 @@ void MSstatsFile::storeISO(const String& filename,
         }
         else
         {
-          continue; // we dont need the rest of the loop
+          continue; // we don't need the rest of the loop
         }
 
         String accession = ListUtils::concatenate(accs,accdelim_);
-        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
+        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
 
         // Write new line for each run
         for (Size j = 0; j < AggregatedInfo.consensus_feature_filenames[i].size(); j++)
@@ -740,13 +744,19 @@ bool MSstatsFile::isQuantifyable_(
     const std::set<String>& accs,
     const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const
 {
-  if (accs.empty()) return false;
-
-  if (accs.size() == 1) return true;
-
+  if (accs.empty())
+  {
+    return false;
+  }
+  if (accs.size() == 1)
+  {
+    return true;
+  }
   auto git = accession_to_group.find(*accs.begin());
-  if (git == accession_to_group.end()) return false;
-
+  if (git == accession_to_group.end())
+  {
+    return false;
+  }
   const IndProtGrp* grp = git->second;
 
   // every prot accession in the set needs to belong to the same indist. group to make this peptide
@@ -759,10 +769,15 @@ bool MSstatsFile::isQuantifyable_(
     // we assume that it is a singleton. Cannot be quantifiable anymore.
     // Set makes them unique. Non-membership in groups means that there is at least one other
     // non-agreeing protein in the set.
-    if (it == accession_to_group.end()) return false;
-
+    if (it == accession_to_group.end())
+    {
+      return false;
+    }
     // check if two different groups
-    if (it->second != grp) return false;
+    if (it->second != grp)
+    {
+      return false;
+    }
   }
   
   return true;

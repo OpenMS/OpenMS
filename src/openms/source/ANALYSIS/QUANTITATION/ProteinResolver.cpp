@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -189,16 +191,16 @@ namespace OpenMS
 
   void ProteinResolver::computeIntensityOfMSD_(vector<MSDGroup> & msd_groups)
   {
-    // iteriert ueber alles msd gruppe
+    // iterates msd_groups
     for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
       std::vector<float> intensities;
-      // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
+      // iterates peptide entry (peptide identification), intensity (sum)
       for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
         intensities.push_back((*pep)->intensity);
       }
-      // median von der list ist itensity der msd group
+      // median of the list is used as intensity of the msd_group
       group->intensity = Math::median(intensities.begin(), intensities.end());
     }
   }
@@ -239,7 +241,7 @@ namespace OpenMS
     }
   }
 
-  //travers Protein and peptide nodes for building MSD groups
+  //traverse protein and peptide nodes for building MSD groups
   void ProteinResolver::traverseProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
@@ -273,7 +275,7 @@ namespace OpenMS
     }
   }
 
-  //searches given sequence in all  nodes and returns its index or nodes.size() if not found.
+  //searches given sequence in all nodes and returns its index or nodes.size() if not found.
   Size ProteinResolver::findPeptideEntry_(String seq, vector<PeptideEntry> & nodes)
   {
     if (nodes.size() == 0)

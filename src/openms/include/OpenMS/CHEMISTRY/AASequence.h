@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -462,15 +462,31 @@ protected:
     /// if an empty string is passed replaces the residue with its unmodified version
     void setModification(Size index, const String& modification);
 
-    // sets the (potentially modified) residue
-    void setModification(Size index, const Residue* modification) { peptide_[index] = modification; }
+    /// sets the modification of AA at @p index by providing an already, potentially modified residue
+    void setModification(Size index, const Residue* modification);
 
-    /// sets the N-terminal modification
-    /// Note: Don't use this method if speed is critical
+    /// sets the modification of AA at @p index by providing a pointer to a @class ResidueModification object found in the @class ModificationsDB
+    void setModification(Size index, const ResidueModification* modification);
+
+    /// sets the modification of AA at @p index by providing a @class ResidueModification object
+    /// stricter than just looking for the name and adds the Modification to the DB if not present
+    void setModification(Size index, const ResidueModification& modification);
+
+    /// modifies the residue at @p index in the sequence and potentially in the @class ResidueDB
+    void setModificationByDiffMonoMass(Size index, double diffMonoMass);
+
+    /// sets the N-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setNTerminalModification(const String& modification);
 
     /// sets the N-terminal modification
     void setNTerminalModification(const ResidueModification* modification);
+
+    /// sets the N-terminal modification (copies and adds to database if not present)
+    void setNTerminalModification(const ResidueModification& mod);
+
+    /// sets the N-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+    void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
     const String& getNTerminalModificationName() const;
@@ -478,12 +494,18 @@ protected:
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
-    /// sets the C-terminal modification
-    /// Note: Don't use this method if speed is critical
+    /// sets the C-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setCTerminalModification(const String& modification);
 
-    /// sets the C-terminal modification
+    /// sets the C-terminal modification (must be present in the database)
     void setCTerminalModification(const ResidueModification* modification);
+
+    /// sets the C-terminal modification (copies and adds to database if not present)
+    void setCTerminalModification(const ResidueModification& mod);
+
+    /// sets the C-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+    void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
     const String& getCTerminalModificationName() const;
@@ -643,8 +665,7 @@ protected:
       @param str_it Current position in the string to be parsed
       @param str Full input string
       @param aas Current AASequence object (will be modified with the correct residue added)
-      @param dot_notation Whether "dot notation" is used (e.g. ".PEPTIDE.")
-      @param dot_terminal Whether the previous character was a dot
+      @param specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */

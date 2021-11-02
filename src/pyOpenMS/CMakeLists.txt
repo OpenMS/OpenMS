@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -153,7 +153,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 18, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 2))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -168,7 +168,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.18.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.2 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -349,9 +349,23 @@ set(LIBRARIES_EXTEND "")
 set(LIBRARY_DIRS_EXTEND "")
 
 if (WITH_CRAWDAD)
-  set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
-  set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
-  set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
+  set(INCLUDE_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${CRAWDAD_INCLUDE_DIRS}/msmat ${INCLUDE_DIRS_EXTEND})
+  set(LIBRARIES_EXTEND "Crawdad" ${LIBRARIES_EXTEND})
+  set(LIBRARY_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${LIBRARY_DIRS_EXTEND})
+endif()
+
+if (MT_ENABLE_OPENMP)
+  find_package(OpenMP COMPONENTS CXX)
+endif()
+if (OpenMP_FOUND)
+  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
+# Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
+# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+# Might need regular updates..
+# foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
+#   list(APPEND LIBRARIES_EXTEND ${LIB})
+#   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
+# endforeach()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -367,6 +381,7 @@ endif()
 if(NOT WIN32)
   find_boost(regex) ## variables are not global -> find again
   find_package(XercesC)
+
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
@@ -374,16 +389,18 @@ if(NOT WIN32)
   # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
+
+  
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
   # We would need something recursive
   #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
-
-  file(GENERATE
-       OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
-       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 endif()
 
+file(GENERATE
+     OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
+     INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
+       
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
@@ -557,7 +574,7 @@ ENDIF()
 ###########################################################################
 
 # Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we dont see which tests
+# => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests

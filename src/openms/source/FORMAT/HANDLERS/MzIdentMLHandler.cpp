@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -424,7 +425,7 @@ namespace OpenMS
       /*
       1st: iterate over proteinidentification vector
       */
-      //TODO read type of crosslink reagens from settings
+      //TODO read type of crosslink reagent from settings
       bool is_ppxl = false;
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
@@ -694,9 +695,9 @@ namespace OpenMS
       2nd: iterate over peptideidentification vector
       */
       //TODO ppxl - write here "MS:1002511" Cross-linked spectrum identification item linking the other spectrum
-      //          PeptideIdentification repräsentiert xl paar.
-      //          PeptideHit score_type ist dann final score von xQuest_cpp.
-      //          top5 ids -> 5 PeptideIdentification für ein (paar) spectra. SIR with 5 entries and ranks
+      //          PeptideIdentification represents xl pair.
+      //          PeptideHit score_type is then the final score of xQuest_cpp.
+      //          top5 ids -> 5 PeptideIdentification for one (pair) spectra. SIR with 5 entries and ranks
       std::map<String, String> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
@@ -1084,8 +1085,7 @@ namespace OpenMS
     void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
-      for (std::vector<PeptideHit::PeakAnnotation>::const_iterator kt = annotations.begin();
-             kt != annotations.end(); ++kt)
+      for (const PeptideHit::PeakAnnotation& pep : annotations)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
         static const boost::regex frag_regex_tweak(R"(\[(?:([\|\w]+)\$)*([abcxyz])(\d+)(?:-(H2O|NH3))*\][(\d+)\+]*)"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
@@ -1095,7 +1095,7 @@ namespace OpenMS
         String loss;
         StringList extra;
         boost::smatch str_matches;
-        if (boost::regex_match(kt->annotation, str_matches, frag_regex_tweak))
+        if (boost::regex_match(pep.annotation, str_matches, frag_regex_tweak))
         {
           String(str_matches[1]).split("|",extra);
           iontype = std::string(str_matches[2]);
@@ -1109,34 +1109,36 @@ namespace OpenMS
           // TODO find ways to represent additional fragment types or filter out known incompatible types
 
           // OPENMS_LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          // OPENMS_LOG_WARN << kt->annotation << std::endl;
+          // OPENMS_LOG_WARN << pep.annotation << std::endl;
           continue;
         }
         String lt = "frag: " + iontype + " ion";
         if (!loss.empty())
-            lt += " - "+loss;
-        if (annotation_map.find(kt->charge) == annotation_map.end())
         {
-          annotation_map[kt->charge] = std::map<String, std::vector<StringList> >();
+          lt += " - "+loss;
         }
-        if (annotation_map[kt->charge].find(lt) == annotation_map[kt->charge].end())
+        if (annotation_map.find(pep.charge) == annotation_map.end())
         {
-          annotation_map[kt->charge][lt] = std::vector<StringList> (3);
+          annotation_map[pep.charge] = std::map<String, std::vector<StringList> >();
+        }
+        if (annotation_map[pep.charge].find(lt) == annotation_map[pep.charge].end())
+        {
+          annotation_map[pep.charge][lt] = std::vector<StringList> (3);
           if (is_ppxl)
           {
-            annotation_map[kt->charge][lt].push_back(StringList());  // alpha|beta
-            annotation_map[kt->charge][lt].push_back(StringList());  // ci|xi
+            annotation_map[pep.charge][lt].push_back(StringList());  // alpha|beta
+            annotation_map[pep.charge][lt].push_back(StringList());  // ci|xi
           }
         }
-        annotation_map[kt->charge][lt][0].push_back(ionseries_index);
-        annotation_map[kt->charge][lt][1].push_back(String(kt->mz));
-        annotation_map[kt->charge][lt][2].push_back(String(kt->intensity));
+        annotation_map[pep.charge][lt][0].push_back(ionseries_index);
+        annotation_map[pep.charge][lt][1].push_back(String(pep.mz));
+        annotation_map[pep.charge][lt][2].push_back(String(pep.intensity));
         if (is_ppxl)
         {
           String ab = ListUtils::contains<String>(extra ,String("alpha")) ? String("alpha"):String("beta");
           String cx = ListUtils::contains<String>(extra ,String("ci")) ? String("ci"):String("xi");
-          annotation_map[kt->charge][lt][3].push_back(ab);
-          annotation_map[kt->charge][lt][4].push_back(cx);
+          annotation_map[pep.charge][lt][3].push_back(ab);
+          annotation_map[pep.charge][lt][4].push_back(cx);
         }
       }
 
@@ -1757,8 +1759,14 @@ namespace OpenMS
                   }
                 }
                 // mod should never be null, but gcc complains (-Werror=maybe-uninitialized)
-                if (mod != nullptr) acc = mod->getPSIMODAccession();
-                if (mod != nullptr) name = mod->getId();
+                if (mod != nullptr)
+                {
+                  acc = mod->getPSIMODAccession();
+                }
+                if (mod != nullptr)
+                {
+                  name = mod->getId();
+                }
               }
               if (!acc.empty())
               {

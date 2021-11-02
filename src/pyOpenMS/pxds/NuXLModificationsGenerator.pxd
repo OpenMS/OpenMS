@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>" namespace
     cdef cppclass NuXLModificationsGenerator:
 
         NuXLModificationsGenerator() nogil except +
-        NuXLModificationsGenerator(NuXLModificationsGenerator) nogil except + 
+        NuXLModificationsGenerator(NuXLModificationsGenerator &) nogil except + 
 
         NuXLModificationMassesResult initModificationMassesNA(
             StringList target_nucleotides,
@@ -30,10 +30,8 @@ cdef extern from "<OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>" namespace
     cdef cppclass NuXLModificationMassesResult:
 
         NuXLModificationMassesResult() nogil except +
-        NuXLModificationMassesResult(NuXLModificationMassesResult) nogil except + 
+        NuXLModificationMassesResult(NuXLModificationMassesResult &) nogil except + 
 
         # libcpp_map[String, double] mod_masses # empirical formula -> mass
         # libcpp_map[String, libcpp_set[String] ] mod_combinations # empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
         # libcpp_map[Size, String] mod_formula_idx
-
-

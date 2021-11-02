@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,8 +95,8 @@ namespace OpenMS
       }
     }
     result.protein_hit_scores_mean = protein_hit_scores_sum / protein_hit_count;
-    // unique peptides and proteins with their significance threshhold (always the same in idXML file)
-    // get significance threshhold if score type is FDR, else -1
+    // unique peptides and proteins with their significance threshold (always the same in idXML file)
+    // get significance threshold if score type is FDR, else -1
     result.unique_peptides.count = peptides.size();
     result.unique_proteins.count = proteins.size();
     if (pep_ids.front().getScoreType() == "FDR")

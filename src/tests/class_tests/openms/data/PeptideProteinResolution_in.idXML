@@ -22,14 +22,14 @@
 			<ProteinHit id="PH_2" accession="D" score="0.6" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="E" score="0.6" sequence="" >
+			<ProteinHit id="PH_3" accession="E" score="0.7" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
       <UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML]"/>
       <UserParam type="string" name="indistinguishable_proteins_0" value="0.6,PH_0"/>
       <UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_1"/>
       <UserParam type="string" name="indistinguishable_proteins_2" value="0.6,PH_2"/>
-      <UserParam type="string" name="indistinguishable_proteins_3" value="0.6,PH_3"/>
+      <UserParam type="string" name="indistinguishable_proteins_3" value="0.7,PH_3"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8" MZ="0.0" RT="0.0" >
       <!-- two proteins with same score but PH_1 has more peptides -> PH_1 (C) wins tie resolution during inference --> 

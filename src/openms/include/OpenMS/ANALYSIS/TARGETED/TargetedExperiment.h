@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,6 +130,7 @@ public:
       @param rhs The targeted experiment to add to this one.
     */
     TargetedExperiment& operator+=(const TargetedExperiment & rhs);
+    TargetedExperiment& operator+=(TargetedExperiment && rhs);
 
     /**
       @brief Clears all data and meta data
@@ -190,6 +191,7 @@ public:
 
     // protein list
     void setProteins(const std::vector<Protein> & proteins);
+    void setProteins(std::vector<Protein> && proteins);
 
     const std::vector<Protein> & getProteins() const;
 
@@ -207,6 +209,7 @@ public:
     void addCompound(const Compound & rhs);
 
     void setPeptides(const std::vector<Peptide> & rhs);
+    void setPeptides(std::vector<Peptide> && rhs);
 
     const std::vector<Peptide> & getPeptides() const;
 
@@ -222,6 +225,7 @@ public:
 
     /// set transition list
     void setTransitions(const std::vector<ReactionMonitoringTransition> & transitions);
+    void setTransitions(std::vector<ReactionMonitoringTransition> && transitions);
 
     /// returns the transition list
     const std::vector<ReactionMonitoringTransition> & getTransitions() const;
