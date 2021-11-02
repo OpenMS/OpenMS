@@ -215,6 +215,7 @@ class MSExperimentDF(MSExperiment):
         return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
 
 MSExperiment = MSExperimentDF
+PeakMap = MSExperimentDF
 
 class DFConverter:
     '''Contains functions for the conversion of pyOpenMS data structures to a pandas DataFrame.'''
