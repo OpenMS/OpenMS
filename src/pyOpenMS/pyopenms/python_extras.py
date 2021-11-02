@@ -1,7 +1,7 @@
 from . import Constants
 from . import Plotting as Plot
 
-from .dataframes import ConsensusMap, FeatureMap, MSExperiment, DFConverter
+from .dataframes import ConsensusMap, FeatureMap, MSExperiment, PeakMap, DFConverter
 
 class SimpleOpenMSSpectraFactory:
 
