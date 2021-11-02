@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeptideIdentification, ControlledVocabulary, File
+from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File
 
 import pandas as pd
 import numpy as np
