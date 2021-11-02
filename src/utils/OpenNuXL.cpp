@@ -6392,7 +6392,7 @@ map<double, double> OpenNuXL::mass2high_frequency_ = {};
 #endif
 
 map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
-
+/*
 constexpr std::array<const char*, 20> OpenNuXL::modifications_RNA_UV; // TODO: remove with C17 see https://stackoverflow.com/questions/8016780/undefined-reference-to-static-constexpr-char
 constexpr std::array<const char*, 45> OpenNuXL::fragments_RNA_UV;
 constexpr std::array<const char*, 6> OpenNuXL::modifications_RNA_UV_4SU;
@@ -6411,7 +6411,7 @@ constexpr std::array<const char*, 4> OpenNuXL::DNA_nucleotides;
 constexpr std::array<const char*, 4> OpenNuXL::RNA_nucleotides;
 constexpr std::array<const char*, 4> OpenNuXL::DNA_mapping;
 constexpr std::array<const char*, 4> OpenNuXL::RNA_mapping;
-
+*/
 int main(int argc, const char** argv)
 {
   OpenNuXL tool;
