@@ -134,7 +134,7 @@ protected:
 
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
-    std::vector<Int> ms_level{1,2};
+    std::vector<Int> ms_level = {2};
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
@@ -142,7 +142,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any MS2/fragment spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
