@@ -161,7 +161,7 @@ namespace OpenMS
        @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
     */
-    static IsotopeDistribution approximateFromPeptideWeight(double mass, int num_peaks);
+    static IsotopeDistribution approximateFromPeptideWeight(double mass, int num_peaks = 20);
 
     /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
