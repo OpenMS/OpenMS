@@ -289,7 +289,7 @@ public:
 
           "A:", 
           "A:-H2O", 
-          "A:-HPO3"
+          "A:-HPO3",
           "A:-H3PO4", 
           "A:-NH3",
           "A:-NH3-H2O", 
@@ -990,7 +990,7 @@ public:
         "G:+C5H9N1-H3PO4-H2O",
         "G:+C5H9N1-NH3",
         "G:+C5H9N1-NH3-H2O",
-        "G:+C5H9N1-NH3-HPO3"
+        "G:+C5H9N1-NH3-HPO3",
         "G:+C5H9N1-NH3-H3PO4",
 
         "C:+C5H9N1",
@@ -1001,7 +1001,7 @@ public:
         "C:+C5H9N1-H3PO4-H2O",
         "C:+C5H9N1-NH3",
         "C:+C5H9N1-NH3-H2O",
-        "C:+C5H9N1-NH3-HPO3"
+        "C:+C5H9N1-NH3-HPO3",
         "C:+C5H9N1-NH3-H3PO4",
 
         "A:+C5H9N1",
@@ -1012,7 +1012,7 @@ public:
         "A:+C5H9N1-H3PO4-H2O",
         "A:+C5H9N1-NH3",
         "A:+C5H9N1-NH3-H2O",
-        "A:+C5H9N1-NH3-HPO3"
+        "A:+C5H9N1-NH3-HPO3",
         "A:+C5H9N1-NH3-H3PO4"
       };
 
@@ -1220,7 +1220,7 @@ public:
         "A:+C5H9N1-H3PO4",
         "A:+C5H9N1-HPO3",
         "A:+C5H9N1-NH3",
-        "A:+C5H9N1-NH3-HPO3"
+        "A:+C5H9N1-NH3-HPO3",
         "A:+C5H9N1-NH3-H2O",
         "A:+C5H9N1-NH3-H3PO4",
       };
@@ -1272,16 +1272,27 @@ public:
     static constexpr std::array<const char*, 4> DNA_mapping {"A->A", "C->C", "G->G", "T->T"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
+    static constexpr std::array<const char*, 17> presets_names {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV Pase (U)", "RNA-UV Pase (UCGA)", "RNA-UV (4SU)", "RNA-UV Pase (4SU)", "DNA-UV", "DNA-UV Pase", "RNA-DEB", "RNA-DEB Pase", "DNA-DEB", "DNA-DEB Pase", "RNA-NM", "RNA-NM Pase", "DNA-NM", "DNA-NM Pase"};
+
 protected:
   /// percolator feature set
   StringList feature_set_;
  
-  void getPresets_(const String& p, StringList& nucleotides, 
+  void getPresets_(const String& p, 
+    StringList& nucleotides, 
     StringList& mapping, 
     StringList& modifications, 
     StringList& fragment_adducts, 
     String& can_cross_link)
   {
+    const StringList names(presets_names.begin(), presets_names.end());
+
+    // sanity check: preset name needs to be in the list of supported presets
+    if (auto it = find(names.begin(), names.end(), p); it == names.end())
+    {
+      throw std::runtime_error("Error: unknown preset.");
+    }    
+
     // set NTs for RNA / DNA
     if (p.hasPrefix("RNA"))
     {
@@ -1293,73 +1304,137 @@ protected:
       nucleotides = StringList(DNA_nucleotides.begin(), DNA_nucleotides.end());
       mapping = StringList(DNA_mapping.begin(), DNA_mapping.end());
     }
- 
+
+    // initialize StringLists from constexpr arrays    
+    StringList RNA_UV_modifications(std::begin(modifications_RNA_UV), std::end(modifications_RNA_UV));
+    StringList RNA_UV_fragments(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
+
+    StringList RNA_UV_PASE_modifications(modifications_RNA_UV_PASE.begin(), modifications_RNA_UV_PASE.end());
+    StringList RNA_UV_PASE_fragments(fragments_RNA_UV_PASE.begin(), fragments_RNA_UV_PASE.end()); 
+
+    StringList DNA_UV_modifications(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
+    StringList DNA_UV_fragments(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
+
+    StringList DNA_UV_PASE_modifications(modifications_DNA_UV_PASE.begin(), modifications_DNA_UV_PASE.end());
+    StringList DNA_UV_PASE_fragments(fragments_DNA_UV_PASE.begin(), fragments_DNA_UV_PASE.end());
+
+    StringList RNA_UV_4SU_modifications(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
+    StringList RNA_UV_4SU_fragments(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
+
+    StringList RNA_UV_4SU_PASE_modifications(modifications_RNA_UV_4SU_PASE.begin(), modifications_RNA_UV_4SU_PASE.end());
+    StringList RNA_UV_4SU_PASE_fragments(fragments_RNA_UV_4SU_PASE.begin(), fragments_RNA_UV_4SU_PASE.end());
+
+    StringList RNA_DEB_modifications(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
+    StringList RNA_DEB_fragments(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
+
+    StringList RNA_DEB_PASE_modifications(modifications_RNA_DEB_PASE.begin(), modifications_RNA_DEB_PASE.end());
+    StringList RNA_DEB_PASE_fragments(fragments_RNA_DEB_PASE.begin(), fragments_RNA_DEB_PASE.end());
+
+    StringList DNA_DEB_modifications(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
+    StringList DNA_DEB_fragments(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
+
+    StringList DNA_DEB_PASE_modifications(modifications_DNA_DEB_PASE.begin(), modifications_DNA_DEB_PASE.end());
+    StringList DNA_DEB_PASE_fragments(fragments_DNA_DEB_PASE.begin(), fragments_DNA_DEB_PASE.end());
+
+    StringList RNA_NM_modifications(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
+    StringList RNA_NM_fragments(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
+
+    StringList RNA_NM_PASE_modifications(modifications_RNA_NM_PASE.begin(), modifications_RNA_NM_PASE.end());
+    StringList RNA_NM_PASE_fragments(fragments_RNA_NM_PASE.begin(), fragments_RNA_NM_PASE.end()); 
+
+    StringList DNA_NM_modifications(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
+    StringList DNA_NM_fragments(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
+
+    StringList DNA_NM_PASE_modifications(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
+    StringList DNA_NM_PASE_fragments(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
+
+    // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
     {
-      modifications = StringList(modifications_RNA_UV.begin(), modifications_RNA_UV.end()); 
-      fragment_adducts = StringList(fragments_RNA_UV.begin(), fragments_RNA_UV.end()); 
+      modifications = RNA_UV_modifications;
+      fragment_adducts = RNA_UV_fragments;
+      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
+    }
+    else if (p == "RNA-UV Pase (U)" || p == "RNA-UV Pase (UCGA)")
+    {
+      modifications = RNA_UV_PASE_modifications; 
+      fragment_adducts = RNA_UV_PASE_fragments;
       can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
     }
     else if (p == "DNA-UV")
     {
-      modifications = StringList(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
-      fragment_adducts = StringList(fragments_DNA_UV.begin(), fragments_DNA_UV.end()); 
+      modifications = DNA_UV_modifications;
+      fragment_adducts = DNA_UV_fragments;
+      can_cross_link = "CTGA";
+    }
+    else if (p == "DNA-UV Pase")
+    {
+      modifications = DNA_UV_PASE_modifications;
+      fragment_adducts = DNA_UV_PASE_fragments;
       can_cross_link = "CTGA";
     }
     else if (p == "RNA-UV (4SU)")
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
-      fragment_adducts = StringList(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
-      modifications =  StringList(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
+      modifications = RNA_UV_4SU_modifications;
+      fragment_adducts = RNA_UV_4SU_fragments;
       can_cross_link = "S";
     }
-    else if (p == "RNA-DEB (+Pase)")
+    else if (p == "RNA-UV Pase (4SU)")
     {
-      modifications = StringList(modifications_RNA_DEB_PASE.begin(), modifications_RNA_DEB_PASE.end());
-      fragment_adducts = StringList(fragments_RNA_DEB_PASE.begin(), fragments_RNA_DEB_PASE.end());
-      can_cross_link = "UCGA";
+      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
+      mapping.push_back("S->S");
+      modifications = RNA_UV_4SU_PASE_modifications;
+      fragment_adducts = RNA_UV_4SU_PASE_fragments;
+      can_cross_link = "S";
     }
     else if (p == "RNA-DEB")
     {
-      modifications = StringList(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
-      fragment_adducts = StringList(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
+      modifications = RNA_DEB_modifications;
+      fragment_adducts = RNA_DEB_fragments;
+      can_cross_link = "UCGA";
+    }
+    else if (p == "RNA-DEB Pase")
+    {
+      modifications = RNA_DEB_PASE_modifications;
+      fragment_adducts = RNA_DEB_PASE_fragments;
       can_cross_link = "UCGA";
     }
     else if (p == "DNA-DEB")
     {
-      modifications = StringList(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
-      fragment_adducts = StringList(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
+      modifications = DNA_DEB_modifications;
+      fragment_adducts = DNA_DEB_fragments;
       can_cross_link = "CTGA";
     }
-    else if (p == "DNA-DEB (+Pase)")
+    else if (p == "DNA-DEB Pase")
     {
-      modifications = StringList(modifications_DNA_DEB_PASE.begin(), modifications_DNA_DEB_PASE.end());
-      fragment_adducts = StringList(fragments_DNA_DEB_PASE.begin(), fragments_DNA_DEB_PASE.end());
+      modifications = DNA_DEB_PASE_modifications;
+      fragment_adducts = DNA_DEB_PASE_fragments;
       can_cross_link = "CTGA";
-    }
-    else if (p == "RNA-NM (+Pase)")
-    {
-      modifications = StringList(modifications_RNA_NM_PASE.begin(), modifications_RNA_NM_PASE.end());
-      fragment_adducts = StringList(fragments_RNA_NM_PASE.begin(), fragments_RNA_NM_PASE.end()); 
-      can_cross_link = "UCGA";
     }
     else if (p == "RNA-NM")
     {
-      modifications = StringList(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
-      fragment_adducts = StringList(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
+      modifications = RNA_NM_modifications;
+      fragment_adducts = RNA_NM_fragments; 
       can_cross_link = "UCGA";
     }
-    else if (p == "DNA-NM (+Pase)")
+    else if (p == "RNA-NM Pase")
     {
-      modifications = StringList(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
-      fragment_adducts = StringList(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
-      can_cross_link = "TCGA";
+      modifications = RNA_NM_PASE_modifications;
+      fragment_adducts = RNA_NM_PASE_fragments; 
+      can_cross_link = "UCGA";
     }
     else if (p == "DNA-NM")
     {
-      modifications = StringList(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
-      fragment_adducts = StringList(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
+      modifications = DNA_NM_modifications;
+      fragment_adducts = DNA_NM_fragments;
+      can_cross_link = "TCGA";
+    }
+    else if (p == "DNA-NM Pase")
+    {
+      modifications = DNA_NM_PASE_modifications;
+      fragment_adducts = DNA_NM_PASE_fragments;
       can_cross_link = "TCGA";
     }
   }
@@ -1446,7 +1521,7 @@ protected:
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
 
-    StringList presets{"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA-UV", "RNA-DEB", "DNA-DEB", "RNA-NM", "DNA-NM"};
+    StringList presets(presets_names.begin(), presets_names.end()); 
     setValidStrings_("RNPxl:presets", presets);
 
     // store presets (for visual inspection only) in ini
