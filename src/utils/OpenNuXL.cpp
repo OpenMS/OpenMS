@@ -263,32 +263,38 @@ public:
   static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
   static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
 
-  static constexpr std::array<const char*, 22> modifications_RNA_UV_PASE
+  static constexpr std::array<const char*, 28> modifications_RNA_UV_PASE
          {"U:", 
           "U:-H2O", 
-          "U:-H3PO4", 
           "U:-HPO3",
+          "U:-H3PO4", 
  
           "C:", 
           "C:-NH3", 
           "C:-H2O", 
-          "C:-NH3-HPO3", 
           "C:-H3PO4",
           "C:-HPO3",
+          "C:-NH3-HPO3", 
+          "C:-NH3-H2O", 
+          "C:-NH3-H3PO4", 
 
           "G:", 
           "G:-H2O", 
           "G:-NH3", 
           "G:-H3PO4", 
-          "G:-NH3-HPO3", 
           "G:-HPO3",
+          "G:-NH3-HPO3", 
+          "G:-NH3-H2O", 
+          "G:-NH3-H3PO4", 
 
           "A:", 
           "A:-H2O", 
           "A:-HPO3"
           "A:-H3PO4", 
           "A:-NH3",
-          "A:-NH3-HPO3"
+          "A:-NH3-H2O", 
+          "A:-NH3-HPO3",
+          "A:-NH3-H3PO4" 
          };
 
   static constexpr std::array<const char*, 33> fragments_RNA_UV_PASE
@@ -329,21 +335,24 @@ public:
           "A:C5H5N5;A'",
           "A:C5H2N4;A'-NH3"
         };
-  static constexpr std::array<const char*, 11> modifications_RNA_UV
+  static constexpr std::array<const char*, 14> modifications_RNA_UV
          {"U:", 
           "U:-H2O", 
 
           "C:", 
           "C:-NH3", 
           "C:-H2O", 
+          "C:-NH3-H2O", 
 
           "G:", 
           "G:-H2O", 
           "G:-NH3", 
+          "G:-NH3-H2O", 
 
           "A:", 
           "A:-H2O", 
-          "A:-NH3"
+          "A:-NH3",
+          "A:-NH3-H2O"
           };
 
   static constexpr std::array<const char*, 33> fragments_RNA_UV
@@ -386,12 +395,11 @@ public:
         };
 
 
-  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU_PASE
+  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_PASE
       {   "S:",
           "S:-H2O",
           "S:-H2O-HPO3",
           "S:-HPO3",
-          "S:-H2S+HPO3",
           "S:-H2S"
       };
 
@@ -414,12 +422,12 @@ public:
           "C:C4H5N3O;C'",
           "C:C4H3N3;C'-H2O",
           "C:C4H2N2O;C'-NH3",
+          "C:C9H10N2O5;C-NH3-HPO3",
 
           "G:C10H14N5O8P;G",
           "G:C10H12N5O7P;G-H2O",
           "G:C10H11N4O8P;G-NH3",
           "G:C10H13N5O5;G-HPO3",
-          "C:C9H10N2O5;C-NH3-HPO3",
           "G:C10H10N4O5;G-NH3-HPO3",
           "G:C10H11N5O4;G-H3PO4",
           "G:C5H5N5O;G'",
@@ -436,10 +444,9 @@ public:
           "A:C5H2N4;A'-NH3"
       };    
 
-  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU
+  static constexpr std::array<const char*, 3> modifications_RNA_UV_4SU
       {   "S:",
           "S:-H2O",
-          "S:-H2S+HPO3",
           "S:-H2S"
       };
 
@@ -485,29 +492,30 @@ public:
       };    
 
 
-  static constexpr std::array<const char*, 19> modifications_DNA_UV
+  static constexpr std::array<const char*, 18> modifications_DNA_UV
        {"T:",
         "T:-H2O",
-        "T:+C5H7O5P", // + dribose-H2O
-        "T:-C5H6N2O2",
 
         "G:",
         "G:-H2O",
         "G:-NH3",
-        "G:+C5H7O5P",
-        "G:-C5H5N5O",
+        "G:-NH3-H2O",
 
-        "A:-NH3",
-        "A:+C5H7O5P",
         "A:",
+        "A:-NH3",
         "A:-H2O",
-        "A:-C5H5N5",
+        "A:-NH3-H2O",
 
         "C:",
         "C:-H2O",
         "C:-NH3",
-        "C:+C5H7O5P",
-        "C:-C4H5N3O" // loss of base -> only dribose remains
+        "C:-NH3-H2O",
+
+        // loss of base -> only dribose remains        
+        "T:-C5H6N2O2",
+        "G:-C5H5N5O",
+        "A:-C5H5N5",
+        "C:-C4H5N3O" 
         };
 
     static constexpr std::array<const char*, 44> fragments_DNA_UV
@@ -561,38 +569,41 @@ public:
         "T:C5H8O3;C5H9O6P-HPO3"
       };
 
-  static constexpr std::array<const char*, 29> modifications_DNA_UV_PASE
+  static constexpr std::array<const char*, 32> modifications_DNA_UV_PASE
        {"T:",
         "T:-H2O",
-        "T:-H2O-HPO3",
+        "T:-H3PO4",
         "T:-HPO3",
 
         "A:",
         "A:-H2O",
-        "A:-H2O-HPO3",
+        "A:-H3PO4",
         "A:-HPO3",
         "A:-NH3",
+        "A:-NH3-H2O",
+        "A:-NH3-HPO3",
+        "A:-NH3-H3PO4",
 
         "G:",
         "G:-H2O",
-        "G:-NH3",
+        "G:-H3PO4",
         "G:-HPO3",
-        "G:-H2O-HPO3",
+        "G:-NH3",
+        "G:-NH3-H2O",
         "G:-NH3-HPO3",
+        "G:-NH3-H3PO4",
 
         "C:",
         "C:-H2O",
+        "C:-H3PO4",
+        "C:-HPO3",
         "C:-NH3",
-        "C:-H2O-HPO3",
-        "C:-NH3",
+        "C:-NH3-H2O",
         "C:-NH3-HPO3",
+        "C:-NH3-H3PO4",
 
-        "T:+C5H7O5P", // + dribose-H2O
-        "A:+C5H7O5P",
-        "G:+C5H7O5P",
-        "C:+C5H7O5P",
-
-        "C:-C4H5N3O", // loss of base -> only dribose remains
+        // loss of base -> only dribose remains
+        "C:-C4H5N3O", 
         "T:-C5H6N2O2",
         "G:-C5H5N5O",
         "A:-C5H5N5"
@@ -649,7 +660,7 @@ public:
         "T:C5H8O3;C5H9O6P-HPO3"
       };
 
-  static constexpr std::array<const char*, 30> modifications_RNA_DEB_PASE
+  static constexpr std::array<const char*, 36> modifications_RNA_DEB_PASE
       { "U:+C4H6O2",
         "U:+C4H6O2-H2O",
         "U:+C4H6O2-HPO3",
@@ -664,7 +675,9 @@ public:
         "G:+C4H6O2-H2O-H2O",
         "G:+C4H6O2-H3PO4-H2O",
         "G:+C4H6O2-NH3",
+        "G:+C4H6O2-NH3-H2O",
         "G:+C4H602-NH3-HPO3",
+        "G:+C4H6O2-NH3-H3PO4",
 
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
@@ -673,16 +686,20 @@ public:
         "C:+C4H6O2-H2O-H2O",
         "C:+C4H6O2-H3PO4-H2O",
         "C:+C4H6O2-NH3",
+        "C:+C4H6O2-NH3-H2O",
         "C:+C4H602-NH3-HPO3",
+        "C:+C4H6O2-NH3-H3PO4",
 
         "A:+C4H6O2",
         "A:+C4H6O2-H2O",
+        "A:+C4H6O2-H2O-H2O",
         "A:+C4H6O2-HPO3",
         "A:+C4H6O2-H3PO4",
-        "A:+C4H6O2-H2O-H2O",
         "A:+C4H6O2-H3PO4-H2O",
         "A:+C4H6O2-NH3",
-        "A:+C4H602-NH3-HPO3"
+        "A:+C4H6O2-NH3-H2O",
+        "A:+C4H602-NH3-HPO3",
+        "A:+C4H6O2-NH3-H3PO4"
       };
 
   static constexpr std::array<const char*, 36> fragments_RNA_DEB_PASE
@@ -728,7 +745,7 @@ public:
         "A:C14H17N4O9;DEB+A-NH3"
       };
 
-  static constexpr std::array<const char*, 17> modifications_RNA_DEB
+  static constexpr std::array<const char*, 18> modifications_RNA_DEB
       { "U:+C4H6O2",
         "U:+C4H6O2-H2O",
         "U:+C4H6O2-H2O-H2O",
@@ -737,18 +754,19 @@ public:
         "G:+C4H6O2-H2O",
         "G:+C4H6O2-H2O-H2O",
         "G:+C4H6O2-NH3",
+        "G:+C4H6O2-NH3-H2O",
 
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
         "C:+C4H6O2-H2O-H2O",
-        "C:+C4H6O2-H2O",
         "C:+C4H6O2-NH3",
+        "C:+C4H6O2-NH3-H2O",
 
         "A:+C4H6O2",
         "A:+C4H6O2-H2O",
         "A:+C4H6O2-H2O-H2O",
-        "A:+C4H6O2-H2O",
-        "A:+C4H6O2-NH3"
+        "A:+C4H6O2-NH3",
+        "A:+C4H6O2-NH3-H2O"
       };
 
   static constexpr std::array<const char*, 36> fragments_RNA_DEB
@@ -794,8 +812,8 @@ public:
         "A:C14H17N4O9;DEB+A-NH3"
       };
 
-  static constexpr std::array<const char*, 15> modifications_DNA_DEB
-       { // adapted from Fanni + water losses
+  static constexpr std::array<const char*, 18> modifications_DNA_DEB
+       {
         "T:+C4H6O2",
         "T:+C4H6O2-H2O",
         "T:+C4H6O2-H2O-H2O",
@@ -804,16 +822,19 @@ public:
         "G:+C4H6O2-H2O",
         "G:+C4H6O2-H2O-H2O",
         "G:+C4H6O2-NH3",
+        "G:+C4H6O2-NH3-H2O",
 
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
         "C:+C4H6O2-H2O-H2O",
         "C:+C4H6O2-NH3",
+        "C:+C4H6O2-NH3-H2O",
 
         "A:+C4H6O2",
-        "A:+C4H6O2-H2O"
+        "A:+C4H6O2-H2O",
         "A:+C4H6O2-H2O-H2O",
-        "A:+C4H6O2-NH3"
+        "A:+C4H6O2-NH3",
+        "A:+C4H6O2-NH3-H2O"
        };
 
   static constexpr std::array<const char*, 36> fragments_DNA_DEB
@@ -864,7 +885,7 @@ public:
 //      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
       };
 
-  static constexpr std::array<const char*, 30> modifications_DNA_DEB_PASE
+  static constexpr std::array<const char*, 36> modifications_DNA_DEB_PASE
        // adapted from Fanni + water losses
        {"T:+C4H6O2",
         "T:+C4H6O2-HPO3",
@@ -880,7 +901,9 @@ public:
         "G:+C4H6O2-H3PO4-H2O",
         "G:+C4H6O2-H2O",
         "G:+C4H6O2-NH3",
+        "G:+C4H6O2-NH3-H2O",
         "G:+C4H6O2-NH3-HPO3",
+        "G:+C4H6O2-NH3-H3PO4",
 
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
@@ -888,8 +911,10 @@ public:
         "C:+C4H6O2-H3PO4",
         "C:+C4H6O2-H2O-H2O",
         "C:+C4H6O2-H3PO4-H2O",
+        "C:+C4H6O2-NH3-H2O",
         "C:+C4H6O2-NH3",
         "C:+C4H6O2-NH3-HPO3",
+        "C:+C4H6O2-NH3-H3PO4",
 
         "A:+C4H6O2",
         "A:+C4H6O2-H2O",
@@ -898,7 +923,9 @@ public:
         "A:+C4H6O2-H3PO4",
         "A:+C4H6O2-HPO3",
         "A:+C4H6O2-NH3",
-        "A:+C4H6O2-NH3-HPO3"
+        "A:+C4H6O2-NH3-H2O",
+        "A:+C4H6O2-NH3-HPO3",
+        "A:+C4H6O2-NH3-H3PO4"
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_DEB_PASE
@@ -947,7 +974,7 @@ public:
       };
 
 
-  static constexpr std::array<const char*, 27> modifications_RNA_NM_PASE
+  static constexpr std::array<const char*, 36> modifications_RNA_NM_PASE
        {"U:+C5H9N1",
         "U:+C5H9N1-HPO3",
         "U:+C5H9N1-H2O",
@@ -962,6 +989,9 @@ public:
         "G:+C5H9N1-H2O-H2O",
         "G:+C5H9N1-H3PO4-H2O",
         "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-H2O",
+        "G:+C5H9N1-NH3-HPO3"
+        "G:+C5H9N1-NH3-H3PO4",
 
         "C:+C5H9N1",
         "C:+C5H9N1-HPO3",
@@ -970,6 +1000,9 @@ public:
         "C:+C5H9N1-H2O-H2O",
         "C:+C5H9N1-H3PO4-H2O",
         "C:+C5H9N1-NH3",
+        "C:+C5H9N1-NH3-H2O",
+        "C:+C5H9N1-NH3-HPO3"
+        "C:+C5H9N1-NH3-H3PO4",
 
         "A:+C5H9N1",
         "A:+C5H9N1-HPO3",
@@ -977,7 +1010,10 @@ public:
         "A:+C5H9N1-H3PO4",
         "A:+C5H9N1-H2O-H2O",
         "A:+C5H9N1-H3PO4-H2O",
-        "A:+C5H9N1-NH3"
+        "A:+C5H9N1-NH3",
+        "A:+C5H9N1-NH3-H2O",
+        "A:+C5H9N1-NH3-HPO3"
+        "A:+C5H9N1-NH3-H3PO4"
       };
 
   static constexpr std::array<const char*, 32> fragments_RNA_NM_PASE
@@ -1018,7 +1054,7 @@ public:
         "A:C15H22N6O4;NM+A-HPO3"
       };
 
-  static constexpr std::array<const char*, 15> modifications_RNA_NM
+  static constexpr std::array<const char*, 18> modifications_RNA_NM
        {"U:+C5H9N1",
         "U:+C5H9N1-H2O-H2O",
         "U:+C5H9N1-H2O",
@@ -1027,16 +1063,19 @@ public:
         "G:+C5H9N1-H2O-H2O",
         "G:+C5H9N1-H2O",
         "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-H2O",
 
         "C:+C5H9N1",
         "C:+C5H9N1-H2O",
         "C:+C5H9N1-H2O-H2O",
         "C:+C5H9N1-NH3",
+        "C:+C5H9N1-NH3-H2O",
 
         "A:+C5H9N1",
         "A:+C5H9N1-H2O",
         "A:+C5H9N1-H2O-H2O",
-        "A:+C5H9N1-NH3"
+        "A:+C5H9N1-NH3",
+        "A:+C5H9N1-NH3-H2O"
       };
 
   static constexpr std::array<const char*, 32> fragments_RNA_NM
@@ -1078,7 +1117,7 @@ public:
       };
 
 
-  static constexpr std::array<const char*, 15> modifications_DNA_NM
+  static constexpr std::array<const char*, 18> modifications_DNA_NM
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O-H2O",
         "T:+C5H9N1-H2O",
@@ -1087,16 +1126,19 @@ public:
         "G:+C5H9N1-H2O-H2O",
         "G:+C5H9N1-H2O",
         "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-H2O",
 
         "C:+C5H9N1",
         "C:+C5H9N1-H2O",
         "C:+C5H9N1-H2O-H2O",
         "C:+C5H9N1-NH3",
+        "C:+C5H9N1-NH3-H2O",
 
         "A:+C5H9N1",
         "A:+C5H9N1-H2O",
         "A:+C5H9N1-H2O-H2O",
         "A:+C5H9N1-NH3",
+        "A:+C5H9N1-NH3-H2O",
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_NM
@@ -1141,7 +1183,7 @@ public:
         "A:C15H19N5O3;NM+A-NH3-HPO3"
       };
 
-  static constexpr std::array<const char*, 30> modifications_DNA_NM_PASE
+  static constexpr std::array<const char*, 36> modifications_DNA_NM_PASE
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O",
         "T:+C5H9N1-HPO3",
@@ -1156,7 +1198,9 @@ public:
         "G:+C5H9N1-H2O-H2O",
         "G:+C5H9N1-H3PO4-H2O",
         "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-H2O",
         "G:+C5H9N1-NH3-HPO3",
+        "G:+C5H9N1-NH3-H3PO4",
 
         "C:+C5H9N1",
         "C:+C5H9N1-H2O",
@@ -1166,6 +1210,8 @@ public:
         "C:+C5H9N1-H3PO4-H2O",
         "C:+C5H9N1-NH3",
         "C:+C5H9N1-NH3-HPO3",
+        "C:+C5H9N1-NH3-H2O",
+        "C:+C5H9N1-NH3-H3PO4",
 
         "A:+C5H9N1",
         "A:+C5H9N1-H2O",
@@ -1175,6 +1221,8 @@ public:
         "A:+C5H9N1-HPO3",
         "A:+C5H9N1-NH3",
         "A:+C5H9N1-NH3-HPO3"
+        "A:+C5H9N1-NH3-H2O",
+        "A:+C5H9N1-NH3-H3PO4",
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_NM_PASE
