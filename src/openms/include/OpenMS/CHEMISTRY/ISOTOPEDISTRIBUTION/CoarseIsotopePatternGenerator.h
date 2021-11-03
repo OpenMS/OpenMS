@@ -164,6 +164,15 @@ namespace OpenMS
     static IsotopeDistribution approximateFromPeptideWeight(double mass, int num_peaks = 20);
 
     /**
+       @brief roughly approximate intensity distribution of peptidic isotope patterns from monoisotopic weight using Poisson distribution.
+       Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+
+       @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
+    */
+    static std::vector<float> approximateIntensities(double mass, int num_peaks = 20);
+
+    /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
 
        averagine model from Zubarev, R. A.; Demirev, P. A. in

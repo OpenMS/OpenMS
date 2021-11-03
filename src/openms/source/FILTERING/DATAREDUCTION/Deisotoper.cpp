@@ -182,11 +182,11 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       std::vector<double> extensions_intensities = {current_intensity};
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      IsotopeDistribution distr = CoarseIsotopePatternGenerator::approximateFromPeptideWeight(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks);
+      std::vector<float> distr = CoarseIsotopePatternGenerator::approximateIntensities(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks);
       
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;
-      double dist_total_intensity = distr[0].getIntensity();
+      double dist_total_intensity = distr[0];
 
       for (UInt i = 1; i < max_isopeaks; ++i)
       {
@@ -213,7 +213,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
         // update sums of intensities
         spec_total_intensity += extensions_intensities.back();
-        dist_total_intensity += distr[extensions.size()].getIntensity();
+        dist_total_intensity += distr[extensions.size()];
 
         // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
         float KL = 0;
@@ -222,7 +222,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
           // normalize spectrum intensities and averagine distribution intensities as this is a density measure and 
           // thresholds were probably determined for distributions adding up to 1
           double Px = extensions_intensities[peak] / spec_total_intensity;
-          KL += Px * log(Px / (distr[peak].getIntensity() / dist_total_intensity));
+          KL += Px * log(Px / (distr[peak] / dist_total_intensity));
         }
 
         // choose threshold corresponding to cluster size

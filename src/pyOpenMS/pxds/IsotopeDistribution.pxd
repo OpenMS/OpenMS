@@ -156,6 +156,12 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                 #   Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.
                 #   m/z values are somewhat arbitrary. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
 
+        libcpp_vector[ float ] approximateIntensities(double mass, int num_peaks) nogil except +
+
+            # wrap-doc:
+                #   Roughly approximate peptidic isotope pattern intensities from monoisotopic weight using Poisson distribution.
+                #   Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+
         IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,
                                                              libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
