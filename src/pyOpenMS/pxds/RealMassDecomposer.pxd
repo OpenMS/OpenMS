@@ -3,7 +3,7 @@ from IntegerMassDecomposer cimport *
 
 # Cannot use unsigned int as template argument ?
 # ctypedef libcpp_map[unsigned int, libcpp_pair[unsigned int, unsigned int] ] constraints_type
-ctypedef UInt64 long number_of_decompositions_type
+ctypedef UInt64 number_of_decompositions_type
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>" namespace "OpenMS::ims":
     
