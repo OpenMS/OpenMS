@@ -42,8 +42,8 @@ using namespace std;
 
 namespace OpenMS::Math
 {
-
-
+    namespace // anonymous namespace to prevent name clashes with GumbleDistributionFitter
+    {
       // Generic functor
       template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
       struct Functor
@@ -95,6 +95,7 @@ namespace OpenMS::Math
         const std::vector<double>& m_data;
         const std::vector<double>& m_weights;
       };
+    }
 
     GumbelMaxLikelihoodFitter::GumbelDistributionFitResult GumbelMaxLikelihoodFitter::fitWeighted(const std::vector<double> & x, const std::vector<double> & w)
     {
