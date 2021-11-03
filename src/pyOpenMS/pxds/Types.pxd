@@ -1,5 +1,5 @@
 from libc.stddef cimport *
-from libc cimport stdint
+from libc.stdint cimport *
 from ctime cimport *
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
@@ -15,13 +15,13 @@ cdef extern from "<OpenMS/config.h>":
 
 cdef extern from "<OpenMS/CONCEPT/Types.h>" namespace "OpenMS":
 
-    ctypedef stdint.int32_t Int32     "OPENMS_INT32_TYPE"
-    ctypedef stdint.int64_t Int64    "OPENMS_INT64_TYPE"
-    ctypedef stdint.uint32_t UInt32  "OPENMS_UINT32_TYPE"
-    ctypedef stdint.uint64_t UInt64 "OPENMS_UINT64_TYPE"
+    ctypedef int32_t Int32     "OPENMS_INT32_TYPE"
+    ctypedef int64_t Int64    "OPENMS_INT64_TYPE"
+    ctypedef uint32_t UInt32  "OPENMS_UINT32_TYPE"
+    ctypedef uint64_t UInt64 "OPENMS_UINT64_TYPE"
     ctypedef time_t   Time
     ctypedef unsigned int UInt
     ctypedef int      Int
-    ctypedef stdint.uint64_t UID "OPENMS_UINT64_TYPE"
+    ctypedef uint64_t UID "OPENMS_UINT64_TYPE"
     ctypedef size_t    Size
     ctypedef ptrdiff_t SignedSize
