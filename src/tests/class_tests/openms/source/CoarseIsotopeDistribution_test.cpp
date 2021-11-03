@@ -317,6 +317,32 @@ START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::approximateFromP
 }
 END_SECTION
 
+START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::approximateIntensities(double mass, int num_peaks))
+{
+  std::vector<float> masses_to_test = {20, 300, 1000, 2500};
+  for (auto mass = masses_to_test.begin(); mass != masses_to_test.end(); ++mass)
+  {
+    std::vector<float> approximation = CoarseIsotopePatternGenerator::approximateIntensities(*mass);
+    solver->setMaxIsotope(approximation.size());
+    IsotopeDistribution coarse_truth = solver->estimateFromPeptideWeight(*mass);
+
+    // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x)), where P is a distribution and Q its approximation
+    float KL = 0;
+    for (UInt peak = 0; peak != approximation.size() && peak != coarse_truth.size(); ++peak)// coarse_truth.size() is 18, although approximation.size() = 20 for mass = 20
+    {
+      double Px = coarse_truth[peak].getIntensity();
+      double Qx = approximation[peak];
+      if (Px != 0)// KL is 0 for Px = 0
+      {
+        KL += Px * log(Px / Qx);
+      }
+    }
+
+    TEST_EQUAL(KL < 0.05, true);
+  }
+}
+END_SECTION
+
 START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
 {
     IsotopeDistribution iso;
