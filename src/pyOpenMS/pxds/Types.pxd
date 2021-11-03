@@ -1,5 +1,5 @@
 from libc.stddef cimport *
-from libc.stdint cimport *
+from libc cimport stdint
 from ctime cimport *
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
