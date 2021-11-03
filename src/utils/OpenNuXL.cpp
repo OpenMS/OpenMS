@@ -119,6 +119,8 @@
 #include <boost/accumulators/statistics/p_square_quantile.hpp>
 using namespace boost::accumulators;
 
+#include <QtCore/QDir>
+
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -1285,6 +1287,7 @@ protected:
     StringList& fragment_adducts, 
     String& can_cross_link)
   {
+    // construct name list from constexpr array
     const StringList names(presets_names.begin(), presets_names.end());
 
     // sanity check: preset name needs to be in the list of supported presets
@@ -1305,7 +1308,9 @@ protected:
       mapping = StringList(DNA_mapping.begin(), DNA_mapping.end());
     }
 
-    // initialize StringLists from constexpr arrays    
+    // initialize all StringLists from constexpr arrays
+    // note: we do this here as this raises a logic error if e.g., size of the array doesn't match the reserved size.
+    //       This can easily happen if a comma is omitted and two string literals on two lines joined
     StringList RNA_UV_modifications(std::begin(modifications_RNA_UV), std::end(modifications_RNA_UV));
     StringList RNA_UV_fragments(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
 
@@ -1454,6 +1459,8 @@ protected:
 
     registerOutputFile_("out_tsv", "<file>", "", "tsv output file", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
+
+    registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for TOPPAS/KNIME/etc. users because these files are otherwise only stored in tmp folders.", false, false);
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 6.0, "Precursor mass tolerance (+/- around precursor m/z).", false);
@@ -5170,6 +5177,21 @@ static void scoreXLIons_(
     String out_idxml = getStringOption_("out");
     String in_db = getStringOption_("database");
 
+    // create extra output directy of set
+    String extra_output_directory = getStringOption_("output_folder");
+    if (!extra_output_directory.empty())
+    {
+      // convert path to absolute path
+      QDir extra_dir(extra_output_directory.toQString());
+      extra_output_directory = String(extra_dir.absolutePath());
+
+      // trying to create directory if not present
+      if (!extra_dir.exists())
+      {
+        extra_dir.mkpath(extra_output_directory.toQString());
+      }
+    }
+
     //
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
@@ -6834,7 +6856,15 @@ static void scoreXLIons_(
       String original_PSM_output_filename(out_idxml);
       original_PSM_output_filename.substitute(".idXML", "_");
       vector<PeptideIdentification> pep_pi, xl_pi;
-      fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+      if (extra_output_directory.empty())
+      {
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+      }
+      else
+      { // use output_folder
+        String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+      }
       OPENMS_LOG_INFO << "done." << endl;
 
       String percolator_executable = getStringOption_("percolator_executable");
@@ -6905,7 +6935,15 @@ static void scoreXLIons_(
           String percolator_PSM_output_filename(out_idxml);
           percolator_PSM_output_filename.substitute(".idXML", "_perc_");
           OPENMS_LOG_INFO << "Calculating peptide and XL q-values for percolator results." << endl;
-          fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+          if (extra_output_directory.empty())
+          {
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+          }
+          else
+          { // use output_folder
+            String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+          }
           OPENMS_LOG_INFO << "done." << endl;
         }
       }
@@ -6932,6 +6970,7 @@ static void scoreXLIons_(
       {
         csv_file.addLine(csv_rows[i].getString("\t"));
       }
+
       csv_file.store(out_tsv);
     }
 
