@@ -44,6 +44,7 @@
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <boost/numeric/conversion/cast.hpp>
 
+
 namespace OpenSwath
 {
 
@@ -803,22 +804,25 @@ namespace OpenSwath
       FeatureType fj = mrmfeature->getFeature(native_ids[j]);
       features.push_back(fj);
     }
-
+    std::vector<unsigned int> rank_vec1, rank_vec2;
     mi_precursor_combined_matrix_.resize(features.size(), features.size());
     for (std::size_t i = 0; i < features.size(); i++)
     { 
       FeatureType fi = features[i];
       intensityi.clear();
       fi->getIntensity(intensityi);
+      Scoring::computeRank2(intensityi, rank_vec1);
       for (std::size_t j = 0; j < features.size(); j++)
       {
         FeatureType fj = features[j];
         intensityj.clear();
         fj->getIntensity(intensityj);
+        Scoring::computeRank2(intensityj, rank_vec2);
         // compute ranked mutual information
-        mi_precursor_combined_matrix_.setValue(i ,j, Scoring::rankedMutualInformation(intensityi, intensityj));
+        mi_precursor_combined_matrix_.setValue(i , j, Scoring::rankedMutualInformation2(rank_vec1, rank_vec2));
       }
     }
+
   }
 
   double MRMScoring::calcMIScore()

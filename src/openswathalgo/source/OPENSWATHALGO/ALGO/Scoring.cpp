@@ -291,6 +291,28 @@ namespace OpenSwath::Scoring
       }
       return result;
     }
+    void computeRank2(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks)
+    {
+      std::vector<std::pair<float, unsigned int> > v_sort(v_temp.size());
+
+      for (unsigned int i = 0; i < v_sort.size(); ++i) {
+        v_sort[i] = std::make_pair(v_temp[i], i);
+      }
+
+      std::sort(v_sort.begin(), v_sort.end());
+
+      std::pair<double, unsigned int> rank;
+
+      ranks.resize(v_temp.size());
+      for (unsigned int i = 0; i < v_sort.size(); ++i)
+      {
+        if (v_sort[i].first != rank.first)
+        {
+          rank = std::make_pair(v_sort[i].first, i);
+        }
+        ranks[v_sort[i].second] = rank.second;
+      }
+    }
 
     double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2)
     {
@@ -304,6 +326,17 @@ namespace OpenSwath::Scoring
       unsigned int* arr_int_data2 = &int_data2[0];
 
       double result = calcMutualInformation(arr_int_data1, arr_int_data2, int_data1.size());
+
+      return result;
+    }
+    double rankedMutualInformation2(std::vector<unsigned int>& data1, std::vector<unsigned int>& data2)
+    {
+      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+
+      unsigned int* arr_int_data1 = &data1[0];
+      unsigned int* arr_int_data2 = &data2[0];
+
+      double result = calcMutualInformation(arr_int_data1, arr_int_data2, data1.size());
 
       return result;
     }
