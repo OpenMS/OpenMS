@@ -35,6 +35,7 @@
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 

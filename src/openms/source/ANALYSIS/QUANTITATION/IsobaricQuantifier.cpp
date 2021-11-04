@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>

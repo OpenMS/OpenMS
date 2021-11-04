@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <Eigen/Core>
 
 #include <numeric> // for "accumulate"
 

@@ -539,7 +539,7 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
@@ -583,7 +583,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
+        writeDebug_("Using " + String() + " points in fit.", 1); 
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -1652,10 +1652,10 @@ protected:
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
-    for (auto & [fraction, ms_files] : frac2ms)
+    for (auto & fraction_ms_files : frac2ms)
     {
-      for (auto & s : ms_files)
-      {
+      for (auto & s : fraction_ms_files.second)
+      { // for all ms files of current fraction number
         // if basename in experimental design matches to basename in input file
         // overwrite experimental design to point to existing file (and only if they were different)
         if (auto it = std::find_if(in.begin(), in.end(), 

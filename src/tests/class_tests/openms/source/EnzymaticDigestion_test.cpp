@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <vector>
 using namespace OpenMS;

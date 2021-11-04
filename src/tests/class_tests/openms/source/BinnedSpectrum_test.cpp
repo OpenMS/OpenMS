@@ -37,11 +37,19 @@
 
 ///////////////////////////
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/FORMAT/DTAFile.h>
 ///////////////////////////
+
+#include <Eigen/Sparse>
+#include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIndexType = Eigen::SparseVector<float>::Index;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
 
 START_TEST(BinnedSpectrum, "$Id$")
 
@@ -158,28 +166,28 @@ START_SECTION((float getBinLowerMZ(size_t i) const))
 }
 END_SECTION
 
-START_SECTION((const SparseVectorType& getBins() const))
+START_SECTION((const SparseVectorType* getBins() const))
 {
   bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0);
   // count non-zero elements before access
-  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+  TEST_EQUAL(bs1->getBins()->nonZeros(), 347)
 
   // access by bin index
-  TEST_EQUAL(bs1->getBins().coeffRef(658), 501645)
+  TEST_EQUAL(bs1->getBins()->coeffRef(658), 501645)
 
   // check if number of non-zero elements is still the same
-  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+  TEST_EQUAL(bs1->getBins()->nonZeros(), 347)
 
   // some additional tests for the underlying Eigen SparseVector
   UInt c = 0;
-  for (BinnedSpectrum::SparseVectorIteratorType it(bs1->getBins()); it; ++it) { ++c; }
-  TEST_EQUAL(bs1->getBins().nonZeros(), c)
+  for (SparseVectorIteratorType it(*bs1->getBins()); it; ++it) { ++c; }
+  TEST_EQUAL(bs1->getBins()->nonZeros(), c)
 }
 END_SECTION
 
-START_SECTION((SparseVectorType& getBins()))
+START_SECTION((SparseVectorType* getBins()))
 {
-  TEST_EQUAL(bs1->getBins().coeffRef(658),501645)
+  TEST_EQUAL(bs1->getBins()->coeffRef(658),501645)
 }
 END_SECTION
 

@@ -53,6 +53,7 @@
 #include <functional>
 
 #include <boost/bind.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 const double C13C12_MASSDIFF_U = 1.0033548;
 

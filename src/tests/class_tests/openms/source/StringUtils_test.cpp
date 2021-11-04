@@ -46,16 +46,16 @@ START_TEST(StringUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-StringUtils* ptr = nullptr;
-StringUtils* null_ptr = nullptr;
-START_SECTION(StringUtils())
+StringUtilsHelper* ptr = nullptr;
+StringUtilsHelper* null_ptr = nullptr;
+START_SECTION(StringUtilsHelper())
 {
-	ptr = new StringUtils();
+	ptr = new StringUtilsHelper();
 	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~StringUtils())
+START_SECTION(~StringUtilsHelper())
 {
 	delete ptr;
 }

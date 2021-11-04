@@ -34,12 +34,13 @@
 
 #pragma once
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 
 #include <map>
 #include <set>
+#include <array>
 
 namespace OpenMS
 {
@@ -188,7 +189,7 @@ protected:
     std::set<String> residue_sets_;
 
     /// lookup from name to residue
-    boost::unordered_map<String, const Residue*> residue_names_;
+    std::unordered_map<String, const Residue*> residue_names_;
 
     /// fast lookup table for residues  
     std::array<const Residue*, 256> residue_by_one_letter_code_ = {{nullptr}};

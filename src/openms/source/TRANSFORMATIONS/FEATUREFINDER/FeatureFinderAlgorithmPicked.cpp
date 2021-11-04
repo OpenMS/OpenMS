@@ -46,10 +46,14 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtCore/QDir>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 #ifdef _OPENMP
+#include <omp.h>
 #endif
 
 namespace OpenMS

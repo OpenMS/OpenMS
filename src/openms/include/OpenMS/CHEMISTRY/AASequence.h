@@ -665,8 +665,7 @@ protected:
       @param str_it Current position in the string to be parsed
       @param str Full input string
       @param aas Current AASequence object (will be modified with the correct residue added)
-      @param dot_notation Whether "dot notation" is used (e.g. ".PEPTIDE.")
-      @param dot_terminal Whether the previous character was a dot
+      @param specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */

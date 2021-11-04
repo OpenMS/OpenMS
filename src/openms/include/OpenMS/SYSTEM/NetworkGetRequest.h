@@ -38,9 +38,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtCore/QTimer>
 #include <QtCore/QUrl>
-#include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 
 namespace OpenMS

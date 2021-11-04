@@ -41,8 +41,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <algorithm>

@@ -39,6 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #ifdef _OPENMP
 #include <omp.h>
