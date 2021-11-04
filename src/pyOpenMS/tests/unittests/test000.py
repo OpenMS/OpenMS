@@ -855,6 +855,17 @@ def testConsensusMap():
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
+    
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+    intydf = m.get_intensity_df()
+    metadf = m.get_metadata_df()
+    assert intydf.shape[0] == 2
+    assert metadf.shape[0] == 2
 
     assert m == m
     assert not m != m
