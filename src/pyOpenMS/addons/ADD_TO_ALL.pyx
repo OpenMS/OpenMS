@@ -1,5 +1,6 @@
 
 from libc.stddef cimport ptrdiff_t
+from libc.stdint cimport *
 from Map cimport *
 cimport numpy as np
 import numpy as np
