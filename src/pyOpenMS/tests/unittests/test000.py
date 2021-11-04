@@ -2095,6 +2095,26 @@ def testFeatureXMLFile():
 
     fm = pyopenms.FeatureMap()
     fm.setUniqueIds()
+
+    f = pyopenms.Feature()
+    f.setMZ(200)
+    f.setCharge(1)
+    f.setRT(10)
+    f.setIntensity(10000)
+    f.setOverallQuality(10)
+
+    ch = pyopenms.ConvexHull2D()
+    ch.setHullPoints(np.asarray([[8,199],[12,201]], dtype='f'))
+    f.setConvexHulls([ch])
+
+    f.setMetaValue(b'mv1', 1)
+    f.setMetaValue(b'mv2', 2)
+
+    fm.push_back(f)
+    fm.push_back(f)
+
+    assert fm.get_df(meta_values='all').shape == (2, 12)
+    
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
