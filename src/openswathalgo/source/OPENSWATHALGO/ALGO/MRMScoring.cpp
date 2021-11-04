@@ -808,7 +808,6 @@ namespace OpenSwath
     for (std::size_t i = 0; i < features.size(); i++)
     { 
       FeatureType fi = features[i];
-      //mi_precursor_combined_matrix_[i].resize(features.size());
       intensityi.clear();
       fi->getIntensity(intensityi);
       for (std::size_t j = 0; j < features.size(); j++)
