@@ -2125,7 +2125,7 @@ def testFeatureXMLFile():
     fm.push_back(f)
 
     assert fm.get_df(meta_values='all').shape == (2, 12)
-    
+
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
@@ -2813,6 +2813,7 @@ def testMSExperiment():
      MSExperiment.getSize
      MSExperiment.isSorted
      MSExperiment.get2DPeakDataLong
+     MSExperiment.get_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2873,6 +2874,22 @@ def testMSExperiment():
 
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
+
+    exp = pyopenms.MSExperiment()
+    for i in range(3):
+        s = pyopenms.MSSpectrum()
+        s.setRT(i)
+        s.setMSLevel(1)
+
+        for mz in (500, 600):
+            p = pyopenms.Peak1D()
+            p.setMZ(mz + i)
+            p.setIntensity(i + 10)
+            s.push_back(p)
+
+        exp.addSpectrum(s)
+
+    assert exp.get_df().shape == (3,3)
 
 
 @report
