@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
   TEST_REAL_SIMILAR(sum_matrix[21], 6.60757921)
   TEST_REAL_SIMILAR(sum_matrix[22], 0)
   TEST_REAL_SIMILAR(sum_matrix[23], 3.57832717)
-  TEST_REAL_SIMILAR(sum_matrix[25], 0)
+  TEST_REAL_SIMILAR(sum_matrix[24], 6.78303987)
 }
 END_SECTION
 
