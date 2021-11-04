@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

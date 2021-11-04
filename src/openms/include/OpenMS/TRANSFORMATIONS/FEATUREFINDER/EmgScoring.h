@@ -46,7 +46,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-
 namespace OpenMS
 {
 

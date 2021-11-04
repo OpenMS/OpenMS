@@ -36,7 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

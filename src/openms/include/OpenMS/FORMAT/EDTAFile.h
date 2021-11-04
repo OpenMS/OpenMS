@@ -36,7 +36,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/TextFile.h>

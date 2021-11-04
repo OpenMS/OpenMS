@@ -36,9 +36,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h> 
+#include <OpenMS/FORMAT/TraMLFile.h> 
+#include <OpenMS/FORMAT/TransformationXMLFile.h> 
 
 using namespace OpenMS;
 using namespace std;

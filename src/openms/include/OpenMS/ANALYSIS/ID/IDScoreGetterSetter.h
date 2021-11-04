@@ -40,10 +40,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <boost/unordered_map.hpp>
-
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace OpenMS
 {

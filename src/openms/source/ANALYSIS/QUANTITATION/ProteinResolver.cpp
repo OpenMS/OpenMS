@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 

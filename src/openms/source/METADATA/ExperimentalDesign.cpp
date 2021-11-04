@@ -34,8 +34,11 @@
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -43,6 +46,7 @@
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace std;

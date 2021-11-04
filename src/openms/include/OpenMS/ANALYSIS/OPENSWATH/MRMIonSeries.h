@@ -36,9 +36,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <boost/unordered_map.hpp>
-#include <boost/assign.hpp>
-#include <boost/lexical_cast.hpp>
+#include <unordered_map>
 
 // #define DEBUG_MRMIONSERIES
 
@@ -82,7 +80,7 @@ public:
     ~MRMIonSeries();
     //@}
 
-    typedef boost::unordered_map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
+    typedef std::unordered_map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
 
     /**
       @brief Selects ion from IonSeries according to annotation string

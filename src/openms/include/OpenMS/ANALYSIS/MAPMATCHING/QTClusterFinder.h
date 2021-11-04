@@ -41,8 +41,8 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
-#include <boost/unordered_map.hpp>
 #include <boost/heap/fibonacci_heap.hpp>
+#include <unordered_map>
 
 #include <list>
 #include <vector>
@@ -107,12 +107,12 @@ namespace OpenMS
   public:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map< 
+    typedef std::unordered_map< 
               std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
               double> PairDistances;
 
     /// Map to store which grid features are next to which clusters (saves the clusters ids)
-    typedef OpenMSBoost::unordered_map<
+    typedef std::unordered_map<
               const OpenMS::GridFeature*, std::unordered_set<Size> > ElementMapping;
 
     /// Heap to efficiently find the best clusters

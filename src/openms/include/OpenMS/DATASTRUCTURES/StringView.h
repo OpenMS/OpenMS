@@ -28,100 +28,101 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <algorithm> // for "min"
+#include <string>
+#include <cstring>
 #include <vector>
-#include <set>
-#include <algorithm>
-#include <iostream>
+
+class QString;
 
 namespace OpenMS
 {
+
   /**
-   * @brief data structure for mass shift pattern
-   * 
-   * Groups of labelled peptides appear with characteristic mass shifts.
-   * 
-   * For example, for an Arg6 labeled SILAC peptide pair we expect to see
-   * mass shifts of 0 and 6 Da. Or as second example, for a 
-   * peptide pair of a dimethyl labelled sample with a single lysine
-   * we will see mass shifts of 56 Da and 64 Da.
-   * 28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
-   * for light and heavy partners respectively.
-   * 
-   * The data structure stores the mass shifts and corresponding labels
-   * for a group of matching peptide features. 
-   */
-  class OPENMS_DLLAPI MultiplexDeltaMasses
+    *  Minimal replacement for boost::string_ref or std::experimental::string_view until we increase our min boost version
+    *  @brief StringView provides a non-owning view on an existing string.
+    */ 
+  class OPENMS_DLLAPI StringView
   {
     public:
-    
-    /**
-     * @brief set of labels associated with a mass shift
-     * 
-     * For example, a set of SILAC labels [Lys8, Lys8, Arg10] would
-     * result in a +26 Da mass shift.
-     */
-    typedef std::multiset<String> LabelSet;
 
-    /**
-     * @brief mass shift with corresponding label set
-     */
-    struct OPENMS_DLLAPI DeltaMass
+    // create view on string
+    StringView() = default;
+
+    // construct from other view
+    StringView(const StringView&) = default;
+
+    // copy assignment
+    StringView& operator=(const StringView&) = default;
+
+    // create view on string
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size())
     {
-      double delta_mass;
-      LabelSet label_set;
-      
-      DeltaMass(double dm, LabelSet ls);
-      
-      // delta mass with a label set containing a single label
-      DeltaMass(double dm, String l);
-    };
+    }
 
-    /**
-     * @brief constructor
-     */
-    MultiplexDeltaMasses();
+    /// less operator
+    bool operator<(const StringView other) const
+    {
+      if (size_ < other.size_) return true;
+
+      if (size_ > other.size_) return false;
+
+      // same size
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return false;
+
+      return strncmp(begin_, other.begin_, size_) < 0;
+    }
+
+    bool operator==(const StringView other) const
+    {
+      if (size_ != other.size_) return false;
+
+      //same size
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return true;
+
+      return strncmp(begin_, other.begin_, size_) == 0;
+    }
+
+    /// create view that references a substring of the original string
+    inline StringView substr(Size start, Size length) const
+    {
+      if (!size_) return *this;
+
+      StringView sv(*this);
+      sv.begin_ = begin_ + start;
+      sv.size_ = std::min(length, sv.size_ - start);
+      return sv;
+    }
     
-    /**
-     * @brief constructor
-     */
-    MultiplexDeltaMasses(const std::vector<DeltaMass>& dm);
-        
-    /**
-     * @brief returns delta masses
-     */
-    std::vector<DeltaMass>& getDeltaMasses();
-    
-    /**
-     * @brief returns delta masses
-     */
-    const std::vector<DeltaMass>& getDeltaMasses() const;
-    
-    /**
-     * @brief converts a label set to a string
-     */
-    static String labelSetToString(const LabelSet& ls);
-    
+    /// size of view
+    inline Size size() const
+    {
+      return size_;
+    }
+
+    /// create String object from view
+    inline String getString() const
+    {
+      if (!size_) return String();
+      return String(begin_, begin_ + size_);
+    }
+
     private:
-   
-    /**
-     * @brief mass shifts between peptides
-     * (including zero mass shift for first peptide)
-     */
-    std::vector<DeltaMass> delta_masses_;
-    
- };
- 
- bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2);
-  
-}
-
+      const char* begin_;
+      Size size_;
+  };
+	
+} // namespace OpenMS
 

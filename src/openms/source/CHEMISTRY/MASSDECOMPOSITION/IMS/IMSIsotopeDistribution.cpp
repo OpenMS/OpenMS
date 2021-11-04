@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
+
 #include <functional>
 #include <numeric>
+#include <algorithm>
 #include <iostream>
 #include <cmath>
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
 namespace OpenMS::ims
 {

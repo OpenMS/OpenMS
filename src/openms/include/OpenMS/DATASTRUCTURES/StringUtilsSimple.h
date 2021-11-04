@@ -42,6 +42,7 @@
 #include <sstream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -53,7 +54,7 @@ namespace OpenMS
     //
     /// Functions
     //
-    static String numberLength(double d, UInt n)
+    static inline String numberLength(double d, UInt n)
     {
       std::stringstream s;
       //reserve one space for the minus sign
@@ -89,7 +90,7 @@ namespace OpenMS
       return s.str().substr(0, n);
     }
 
-    static String& fillLeft(String & this_s, char c, UInt size)
+    static inline String& fillLeft(String & this_s, char c, UInt size)
     {
       if (this_s.size() < size)
       {
@@ -98,7 +99,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static String& fillRight(String & this_s, char c, UInt size)
+    static inline String& fillRight(String & this_s, char c, UInt size)
     {
       if (this_s.size() < size)
       {
@@ -107,7 +108,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static bool hasPrefix(const String & this_s, const String & string)
+    static inline bool hasPrefix(const String & this_s, const String & string)
     {
       if (string.size() > this_s.size())
       {
@@ -120,7 +121,7 @@ namespace OpenMS
       return this_s.compare(0, string.size(), string) == 0;
     }
 
-    static bool hasSuffix(const String & this_s, const String& string)
+    static inline bool hasSuffix(const String & this_s, const String& string)
     {
       if (string.size() > this_s.size())
       {
@@ -133,17 +134,17 @@ namespace OpenMS
       return this_s.compare(this_s.size() - string.size(), string.size(), string) == 0;
     }
 
-    static bool hasSubstring(const String & this_s, const String& string)
+    static inline bool hasSubstring(const String & this_s, const String& string)
     {
       return this_s.find(string) != std::string::npos;
     }
 
-    static bool has(const String & this_s, Byte byte)
+    static inline bool has(const String & this_s, Byte byte)
     {
       return this_s.find(char(byte)) != std::string::npos;
     }
 
-    static String prefix(const String & this_s, size_t length)
+    static inline String prefix(const String & this_s, size_t length)
     {
       if (length > this_s.size())
       {
@@ -152,7 +153,7 @@ namespace OpenMS
       return this_s.substr(0, length);
     }
 
-    static String suffix(const String & this_s, size_t length)
+    static inline String suffix(const String & this_s, size_t length)
     {
       if (length > this_s.size())
       {
@@ -161,7 +162,7 @@ namespace OpenMS
       return this_s.substr(this_s.size() - length, length);
     }
 
-    static String prefix(const String & this_s, Int length)
+    static inline String prefix(const String & this_s, Int length)
     {
       if (length < 0)
       {
@@ -174,7 +175,7 @@ namespace OpenMS
       return this_s.substr(0, length);
     }
 
-    static String suffix(const String & this_s, Int length)
+    static inline String suffix(const String & this_s, Int length)
     {
       if (length < 0)
       {
@@ -187,7 +188,7 @@ namespace OpenMS
       return this_s.substr(this_s.size() - length, length);
     }
 
-    static String prefix(const String & this_s, char delim)
+    static inline String prefix(const String & this_s, char delim)
     {
       Size pos = this_s.find(delim);
       if (pos == std::string::npos) //char not found
@@ -198,7 +199,7 @@ namespace OpenMS
       return this_s.substr(0, pos);
     }
 
-    static String suffix(const String & this_s, char delim)
+    static inline String suffix(const String & this_s, char delim)
     {
       Size pos = this_s.rfind(delim);
       if (pos == std::string::npos) //char not found
@@ -209,13 +210,13 @@ namespace OpenMS
       return this_s.substr(++pos);
     }
 
-    static String substr(const String & this_s, size_t pos, size_t n)
+    static inline String substr(const String & this_s, size_t pos, size_t n)
     {
       Size begin = std::min(pos, this_s.size());
       return static_cast<String>(this_s.std::string::substr(begin, n));
     }
 
-    static String chop(const String & this_s, Size n)
+    static inline String chop(const String & this_s, Size n)
     {
       Size end = 0;
       if (n < this_s.size())
@@ -225,7 +226,7 @@ namespace OpenMS
       return String(this_s.begin(), this_s.begin() + end);
     }
 
-    static String& trim(String & this_s)
+    static inline String& trim(String & this_s)
     {
       //search for the begin of truncated string
       std::string::iterator begin = this_s.begin();
@@ -263,7 +264,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static String& quote(String & this_s, char q, String::QuotingMethod method)
+    static inline String& quote(String & this_s, char q, String::QuotingMethod method)
     {
       if (method == String::ESCAPE)
       {
@@ -276,7 +277,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static String& unquote(String & this_s, char q, String::QuotingMethod method)
+    static inline String& unquote(String & this_s, char q, String::QuotingMethod method)
     {
       // check if input string matches output format of the "quote" method:
       if ((this_s.size() < 2) || (this_s[0] != q) || (this_s[this_s.size() - 1] != q))
@@ -296,7 +297,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static String& simplify(String & this_s)
+    static inline String& simplify(String & this_s)
     {
       String simple;
 
@@ -322,7 +323,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static String random(UInt length)
+    static inline String random(UInt length)
     {
       srand(time(nullptr));
       String tmp(length, '.');
@@ -346,7 +347,7 @@ namespace OpenMS
       return tmp;
     }
 
-    static String& reverse(String & this_s)
+    static inline String& reverse(String & this_s)
     {
       String tmp = this_s;
       for (Size i = 0; i != this_s.size(); ++i)
@@ -356,7 +357,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static bool split(const String & this_s, const char splitter, std::vector<String>& substrings,
+    static inline bool split(const String & this_s, const char splitter, std::vector<String>& substrings,
                        bool quote_protect)
     {
       substrings.clear();
@@ -451,7 +452,7 @@ namespace OpenMS
       return true; 
     }
 
-    static bool split(const String & this_s, const String& splitter, std::vector<String>& substrings)
+    static inline bool split(const String & this_s, const String& splitter, std::vector<String>& substrings)
     {
       substrings.clear();
       if (this_s.empty())
@@ -478,7 +479,7 @@ namespace OpenMS
       return substrings.size() > 1;
     }
 
-    static bool split_quoted(const String & this_s, const String& splitter, std::vector<String>& substrings,
+    static inline bool split_quoted(const String & this_s, const String& splitter, std::vector<String>& substrings,
                               char q, String::QuotingMethod method)
     {
       substrings.clear();
@@ -553,13 +554,13 @@ namespace OpenMS
       return substrings.size() > 1;
     }
 
-    static String& toUpper(String & this_s)
+    static inline String& toUpper(String & this_s)
     {
       std::transform(this_s.begin(), this_s.end(), this_s.begin(), (int (*)(int))toupper);
       return this_s;
     }
 
-    static String& firstToUpper(String & this_s)
+    static inline String& firstToUpper(String & this_s)
     {
       if (this_s.size() != 0)
       {
@@ -568,19 +569,19 @@ namespace OpenMS
       return this_s;
     }
 
-    static String& toLower(String & this_s)
+    static inline String& toLower(String & this_s)
     {
       std::transform(this_s.begin(), this_s.end(), this_s.begin(), (int (*)(int))tolower);
       return this_s;
     }
 
-    static String& substitute(String & this_s, char from, char to)
+    static inline String& substitute(String & this_s, char from, char to)
     {
       std::replace(this_s.begin(), this_s.end(), from, to);
       return this_s;
     }
 
-    static String& substitute(String & this_s, const String& from, const String& to)
+    static inline String& substitute(String & this_s, const String& from, const String& to)
     {
       if (!from.empty())
       {
@@ -591,20 +592,20 @@ namespace OpenMS
       return this_s;
     }
   
-    static String& remove(String & this_s, char what)
+    static inline String& remove(String & this_s, char what)
     {
       this_s.erase(std::remove(this_s.begin(), this_s.end(), what), this_s.end());
       return this_s;
     }
   
-    static String& ensureLastChar(String & this_s, char end)
+    static inline String& ensureLastChar(String & this_s, char end)
     {
       if (!this_s.hasSuffix(end))
         this_s.append(1, end);
       return this_s;
     }
   
-    static String& removeWhitespaces(String& this_s)
+    static inline String& removeWhitespaces(String& this_s)
     {
       std::string::const_iterator it = this_s.begin();
       std::string::iterator dest = this_s.begin();

@@ -38,6 +38,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>

@@ -47,8 +47,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
-// basic file operations
-
 namespace OpenMS
 {
 

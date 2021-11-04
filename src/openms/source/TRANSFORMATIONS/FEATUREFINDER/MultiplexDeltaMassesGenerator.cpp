@@ -41,6 +41,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 
 using namespace std;
 
