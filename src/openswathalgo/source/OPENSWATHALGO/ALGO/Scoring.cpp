@@ -270,29 +270,6 @@ namespace OpenSwath::Scoring
 
     std::vector<unsigned int> computeRank(const std::vector<double>& v_temp)
     {
-      /*std::vector<unsigned int> ranks{};
-      ranks.resize(v_temp.size());
-      std::iota(ranks.begin(), ranks.end(), 0);
-      std::sort(ranks.begin(), ranks.end(),
-            [&v_temp](unsigned int i, unsigned int j) { return v_temp[i] < v_temp[j]; });
-      unsigned int tmp = 0;
-      for (unsigned int i = 1; i < ranks.size(); ++i)
-      {
-        if (v_temp[tmp] == v_temp[ranks[i]])
-        {
-          tmp = ranks[i];
-          ranks[i] = ranks[i-1];
-        }
-        else
-        {
-          tmp = ranks[i];
-          ranks[i] = i;
-        }
-      }
-
-      return ranks;
-    }*/
-    
       std::vector<std::pair<float, unsigned int> > v_sort(v_temp.size());
 
       for (unsigned int i = 0; i < v_sort.size(); ++i) {

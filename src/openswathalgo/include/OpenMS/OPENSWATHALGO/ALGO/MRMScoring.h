@@ -112,7 +112,7 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);     //andere matrix?
+    void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);
 
     /// Initialize the scoring object and building the cross-correlation matrix
     void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
@@ -295,7 +295,7 @@ private:
     OpenMS::Matrix<int> xcorr_precursor_combined_matrix_max_peak_;
     OpenMS::Matrix<double> xcorr_precursor_combined_matrix_max_peak_sec_;
     /// the precomputed mutual information matrix
-    //std::vector< std::vector<double> > mi_matrix_;
+
     OpenMS::Matrix<double> mi_matrix_;
     /// the precomputed contrast mutual information matrix
     OpenMS::Matrix<double> mi_contrast_matrix_;
