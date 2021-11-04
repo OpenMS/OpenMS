@@ -430,6 +430,11 @@ jobs:
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
           echo "Testing python version $CURRENT_VERSION"
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
+          if [[ "$CURRENT_WHL" == '' ]]; then
+
+            continue
+
+          fi
           echo "Found wheel $CURRENT_WHL : Testing.."
 
           # pip install all the stuff
