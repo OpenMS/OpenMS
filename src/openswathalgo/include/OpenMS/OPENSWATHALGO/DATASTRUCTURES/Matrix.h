@@ -78,7 +78,6 @@ namespace OpenMS
         typedef std::vector<Value> Base;
 
     public:
-
         ///@name STL compliance type definitions
         //@{
         typedef Base container_type;
@@ -214,7 +213,6 @@ namespace OpenMS
         */
         //@{
     public:
-
         using Base::begin;
         using Base::end;
         using Base::rbegin;
@@ -368,7 +366,6 @@ namespace OpenMS
         }
 
     protected:
-
         ///@name Data members
         //@{
         /// Number of rows (height of a column)
@@ -376,7 +373,6 @@ namespace OpenMS
         /// Number of columns (width of a row)
         SizeType cols_;
         //@}
-
     }; // class Matrix
 
     /**
