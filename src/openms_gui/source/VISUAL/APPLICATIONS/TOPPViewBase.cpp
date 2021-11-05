@@ -1923,13 +1923,26 @@ namespace OpenMS
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
+
       if (!File::readable(topp_.file_name + "_out"))
       {
         log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name + "_out'!");
       }
       else
       {
-        addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+        auto l = getCurrentLayer();
+        if (l)
+        {
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name + "_in");
+          if (annotator.get() == nullptr)
+          { // no suitable annotator? open new layer
+            addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+          }
+          else
+          { // we have an annotator ... let's annotate the current layer
+            annotator->annotateWithFilename(*l, *log_, topp_.out + "_out"); // ID tabs are automatically enabled
+          }
+        }         
       }
     }
 
