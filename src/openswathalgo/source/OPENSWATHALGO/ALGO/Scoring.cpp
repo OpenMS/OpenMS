@@ -231,7 +231,8 @@ namespace OpenSwath::Scoring
         // sigma_1 * sigma_2 * n
         denominator = sqrt(sqsum1 * sqsum2);
       }
-
+      //avoids division in the for loop
+      denominator = 1/denominator;
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
@@ -257,12 +258,12 @@ namespace OpenSwath::Scoring
 
         if (denominator > 0)
         {
-          result.data.push_back(std::make_pair(delay, sxy/denominator));
+          result.data.emplace_back(delay, sxy*denominator);
         }
         else
         {
           // e.g. if all datapoints are zero
-          result.data.push_back(std::make_pair(delay, 0));
+          result.data.emplace_back(delay, 0);
         }
       }
       return result;
