@@ -208,7 +208,7 @@ namespace OpenMS
     const int low_charge_ = 6; // inclusive
 
     /// allowed maximum peak count per spectrum - intensity based.
-    const int max_peak_count_ = 20000;
+    const int max_peak_count_ = 30000;
 
     /** @brief static function that converts bin to value
         @param bin bin number

@@ -300,15 +300,16 @@ namespace OpenMS
 
   void PeakGroup::updateSNR()
   {
-    float charge_cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
+    float cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
     float signal = 0, noise = 0;
     per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
 
     for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c)
     {
-      auto nom = charge_cos_squred * per_charge_signal_pwr_[c];
-      auto denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
-                   + (1 - charge_cos_squred) * per_charge_signal_pwr_[c] + 1;
+      float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
+      float nom = per_charge_cos_squared * per_charge_signal_pwr_[c];
+      float denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
+                    + (1 - per_charge_cos_squared) * per_charge_signal_pwr_[c] + 1;
 
       per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
 
@@ -316,9 +317,9 @@ namespace OpenMS
       noise += per_charge_pwr_[c] - per_charge_signal_pwr_[c];
     }
 
-    auto t_nom = charge_cos_squred * signal;
-    auto t_denom = noise
-                   + (1 - charge_cos_squred) * signal + 1;
+    float t_nom = cos_squred * signal;
+    float t_denom = noise
+                    + (1 - cos_squred) * signal + 1;
     snr_ = t_denom <= 0 ? .0 : t_nom / t_denom;
   }
 

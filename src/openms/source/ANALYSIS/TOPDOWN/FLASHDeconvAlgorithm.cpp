@@ -488,6 +488,7 @@ namespace OpenMS
     const float factor = 5.0;
     // intensity ratio between consecutive charges for possible harmonic should be within this factor
     const float hfactor = 2.0;
+
     for (int i = mz_bin_index_reverse.size() - 1; i >= 0; i--)
     {
       mz_bin_index = mz_bin_index_reverse[i];
@@ -875,7 +876,6 @@ namespace OpenMS
         double mz_delta = tol * mz; //
 
         double peak_pwr = .0;
-        double prev_sub_pwr_sum = .0;
         double max_mz = mz;
         double max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
         for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
@@ -897,7 +897,7 @@ namespace OpenMS
             break;
           }
 
-          prev_sub_pwr_sum += intensity * intensity;
+          peak_pwr += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // noise   max_intensity  vs   intensity
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
@@ -907,13 +907,9 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
-              peak_pwr += prev_sub_pwr_sum;
-              prev_sub_pwr_sum = 0;
             }
           }
         }
-
-        prev_sub_pwr_sum = 0;
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
           const double observed_mz = log_mz_peaks_[peak_index].mz;
@@ -934,7 +930,7 @@ namespace OpenMS
             break;
           }
 
-          prev_sub_pwr_sum += intensity * intensity;
+          peak_pwr += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta)
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
@@ -944,8 +940,6 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
-              peak_pwr += prev_sub_pwr_sum;
-              prev_sub_pwr_sum = 0;
             }
           }
         }
