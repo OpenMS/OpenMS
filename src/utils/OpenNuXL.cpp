@@ -491,7 +491,7 @@ public:
       };    
 
 
-  static constexpr std::array<const char*, 18> modifications_DNA_UV
+  static constexpr std::array<const char*, 16> modifications_DNA_UV
        {"T:",
         "T:-H2O",
 
@@ -510,11 +510,8 @@ public:
         "C:-NH3",
         "C:-NH3-H2O",
 
-        // loss of base -> only dribose remains        
-        "T:-C5H6N2O2",
-        "G:-C5H5N5O",
-        "A:-C5H5N5",
-        "C:-C4H5N3O" 
+        "d:", // deoxiribosephosphate (lower-letter = if present needs to be the cross-linked nt)
+        "d:-H2O"
         };
 
     static constexpr std::array<const char*, 44> fragments_DNA_UV
@@ -601,11 +598,10 @@ public:
         "C:-NH3-HPO3",
         "C:-NH3-H3PO4",
 
-        // loss of base -> only dribose remains
-        "C:-C4H5N3O", 
-        "T:-C5H6N2O2",
-        "G:-C5H5N5O",
-        "A:-C5H5N5"
+        "d:", // deoxyribosephosphate (lower-letter = if present needs to be the cross-linked nt)
+        "d:-H2O",
+        "d:-H3PO4",
+        "d:-HPO3"
         };
 
     static constexpr std::array<const char*, 44> fragments_DNA_UV_PASE
@@ -811,7 +807,7 @@ public:
         "A:C14H17N4O9;DEB+A-NH3"
       };
 
-  static constexpr std::array<const char*, 18> modifications_DNA_DEB
+  static constexpr std::array<const char*, 20> modifications_DNA_DEB
        {
         "T:+C4H6O2",
         "T:+C4H6O2-H2O",
@@ -833,7 +829,10 @@ public:
         "A:+C4H6O2-H2O",
         "A:+C4H6O2-H2O-H2O",
         "A:+C4H6O2-NH3",
-        "A:+C4H6O2-NH3-H2O"
+        "A:+C4H6O2-NH3-H2O",
+
+        "d:", // deoxyribosephosphate (lower-letter = if present needs to be the cross-linked nt)
+        "d:-H2O"
        };
 
   static constexpr std::array<const char*, 36> fragments_DNA_DEB
@@ -884,7 +883,7 @@ public:
 //      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
       };
 
-  static constexpr std::array<const char*, 36> modifications_DNA_DEB_PASE
+  static constexpr std::array<const char*, 40> modifications_DNA_DEB_PASE
        // adapted from Fanni + water losses
        {"T:+C4H6O2",
         "T:+C4H6O2-HPO3",
@@ -924,7 +923,12 @@ public:
         "A:+C4H6O2-NH3",
         "A:+C4H6O2-NH3-H2O",
         "A:+C4H6O2-NH3-HPO3",
-        "A:+C4H6O2-NH3-H3PO4"
+        "A:+C4H6O2-NH3-H3PO4",
+
+        "d:", // deoxyribosephosphate (lower-letter = if present needs to be the cross-linked nt)
+        "d:-H2O",
+        "d:-H3PO4",
+        "d:-HPO3"
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_DEB_PASE
@@ -1116,7 +1120,7 @@ public:
       };
 
 
-  static constexpr std::array<const char*, 18> modifications_DNA_NM
+  static constexpr std::array<const char*, 20> modifications_DNA_NM
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O-H2O",
         "T:+C5H9N1-H2O",
@@ -1138,6 +1142,9 @@ public:
         "A:+C5H9N1-H2O-H2O",
         "A:+C5H9N1-NH3",
         "A:+C5H9N1-NH3-H2O",
+
+        "d:", // deoxyribosephosphate (lower-letter = if present needs to be the cross-linked nt)
+        "d:-H2O"
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_NM
@@ -1182,7 +1189,7 @@ public:
         "A:C15H19N5O3;NM+A-NH3-HPO3"
       };
 
-  static constexpr std::array<const char*, 36> modifications_DNA_NM_PASE
+  static constexpr std::array<const char*, 40> modifications_DNA_NM_PASE
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O",
         "T:+C5H9N1-HPO3",
@@ -1222,6 +1229,11 @@ public:
         "A:+C5H9N1-NH3-HPO3",
         "A:+C5H9N1-NH3-H2O",
         "A:+C5H9N1-NH3-H3PO4",
+
+        "d:",
+        "d:-H2O",
+        "d:-H3PO4",
+        "d:-HPO3"
       };
 
   static constexpr std::array<const char*, 36> fragments_DNA_NM_PASE
@@ -1266,9 +1278,9 @@ public:
         "A:C15H19N5O3;NM+A-NH3-HPO3"
     };
 
-    static constexpr std::array<const char*, 4> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"}; // the mono-phosphates
+    static constexpr std::array<const char*, 5> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P", "d=C5H9O6P"}; // the mono-phosphates and deoxyribosephosphate
     static constexpr std::array<const char*, 4> RNA_nucleotides {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
-    static constexpr std::array<const char*, 4> DNA_mapping {"A->A", "C->C", "G->G", "T->T"};
+    static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
     static constexpr std::array<const char*, 17> presets_names {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV Pase (U)", "RNA-UV Pase (UCGA)", "RNA-UV (4SU)", "RNA-UV Pase (4SU)", "DNA-UV", "DNA-UV Pase", "RNA-DEB", "RNA-DEB Pase", "DNA-DEB", "DNA-DEB Pase", "RNA-NM", "RNA-NM Pase", "DNA-NM", "DNA-NM Pase"};
@@ -1350,30 +1362,36 @@ protected:
     StringList DNA_NM_PASE_modifications(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
     StringList DNA_NM_PASE_fragments(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
 
+
+    const String RNA_U = "U";
+    const String RNA_UCGA = "UCGA";
+    const String DNA_TCGAd = "TCGAd";
+
+
     // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
     {
       modifications = RNA_UV_modifications;
       fragment_adducts = RNA_UV_fragments;
-      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
+      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
     }
     else if (p == "RNA-UV Pase (U)" || p == "RNA-UV Pase (UCGA)")
     {
       modifications = RNA_UV_PASE_modifications; 
       fragment_adducts = RNA_UV_PASE_fragments;
-      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
+      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
     }
     else if (p == "DNA-UV")
     {
       modifications = DNA_UV_modifications;
       fragment_adducts = DNA_UV_fragments;
-      can_cross_link = "CTGA";
+      can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-UV Pase")
     {
       modifications = DNA_UV_PASE_modifications;
       fragment_adducts = DNA_UV_PASE_fragments;
-      can_cross_link = "CTGA";
+      can_cross_link = DNA_TCGAd;
     }
     else if (p == "RNA-UV (4SU)")
     {
@@ -1395,49 +1413,49 @@ protected:
     {
       modifications = RNA_DEB_modifications;
       fragment_adducts = RNA_DEB_fragments;
-      can_cross_link = "UCGA";
+      can_cross_link = RNA_UCGA;
     }
     else if (p == "RNA-DEB Pase")
     {
       modifications = RNA_DEB_PASE_modifications;
       fragment_adducts = RNA_DEB_PASE_fragments;
-      can_cross_link = "UCGA";
+      can_cross_link = RNA_UCGA;
     }
     else if (p == "DNA-DEB")
     {
       modifications = DNA_DEB_modifications;
       fragment_adducts = DNA_DEB_fragments;
-      can_cross_link = "CTGA";
+      can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-DEB Pase")
     {
       modifications = DNA_DEB_PASE_modifications;
       fragment_adducts = DNA_DEB_PASE_fragments;
-      can_cross_link = "CTGA";
+      can_cross_link = DNA_TCGAd;
     }
     else if (p == "RNA-NM")
     {
       modifications = RNA_NM_modifications;
       fragment_adducts = RNA_NM_fragments; 
-      can_cross_link = "UCGA";
+      can_cross_link = RNA_UCGA;
     }
     else if (p == "RNA-NM Pase")
     {
       modifications = RNA_NM_PASE_modifications;
       fragment_adducts = RNA_NM_PASE_fragments; 
-      can_cross_link = "UCGA";
+      can_cross_link = RNA_UCGA;
     }
     else if (p == "DNA-NM")
     {
       modifications = DNA_NM_modifications;
       fragment_adducts = DNA_NM_fragments;
-      can_cross_link = "TCGA";
+      can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-NM Pase")
     {
       modifications = DNA_NM_PASE_modifications;
       fragment_adducts = DNA_NM_PASE_fragments;
-      can_cross_link = "TCGA";
+      can_cross_link = DNA_TCGAd;
     }
   }
  
