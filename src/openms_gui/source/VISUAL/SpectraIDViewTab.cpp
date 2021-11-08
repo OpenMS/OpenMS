@@ -56,13 +56,13 @@ namespace Clmn
   enum HeaderNames
   { // indices into QTableWidget's columns (which start at index 0)
     MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, SCORE, RANK, 
-    CHARGE, SEQUENCE, ACCESSIONS, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
+    CHARGE, SEQUENCE, ACCESSIONS, START, END, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
   };
   // keep in SYNC with enum HeaderNames
   const QStringList HEADER_NAMES = QStringList()
                                     << "MS" << "index" << "RT"
                                     << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score"
-                                    << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH"
+                                    << "rank" << "charge" << "sequence" << "accessions" << "start" << "end" << "#ID" << "#PH"
                                     << "Curated" << "precursor error (|ppm|)" << "precursor intensity" << "peak annotations";
 }
 
@@ -429,12 +429,30 @@ namespace OpenMS
             }
             table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
-            // accession
-            set<String> protein_accessions = ph.extractProteinAccessionsSet();
+            // accession, start and end in protein (note that one peptide might match twice into same protein)
+            const vector<PeptideEvidence>& pevids = ph.getPeptideEvidences();
+            vector<String> protein_accessions;
+            vector<String> protein_starts;
+            vector<String> protein_ends;
+
+            for (const PeptideEvidence& ev : pevids)
+            {
+              protein_accessions.push_back(ev.getProteinAccession());
+              protein_starts.push_back(ev.getStart());
+              protein_ends.push_back(ev.getEnd());
+            }
+
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
+            String starts = ListUtils::concatenate(vector<String>(protein_starts.begin(), protein_starts.end()), ", ");
+            String ends = ListUtils::concatenate(vector<String>(protein_ends.begin(), protein_ends.end()), ", ");
             table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
+            table_widget_->setAtBottomRow(starts.toQString(), Clmn::START, bg_color);
+            table_widget_->setAtBottomRow(ends.toQString(), Clmn::END, bg_color);
+
             table_widget_->setAtBottomRow((int)(pi_idx), Clmn::ID_NR, bg_color);
             table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
+
+            //             
 
             bool selected(false);
             if (ph.metaValueExists("selected"))
