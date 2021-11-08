@@ -180,7 +180,7 @@ namespace OpenMS
   }
 
   // static
-  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, int num_peaks)
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, int num_peaks, uint8_t charge)
   {
     IsotopeDistribution result;
     result.resize(num_peaks);
@@ -203,7 +203,7 @@ namespace OpenMS
       curr_power *= factor;
       curr_factorial *= k;
       curr_intensity = curr_power / curr_factorial;
-      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U),
+      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U / charge),
         std::isinf(curr_intensity) ? 0 : curr_intensity);// at some point, curr_intensity will become too small for float (which is the intensity type)
     }
 
