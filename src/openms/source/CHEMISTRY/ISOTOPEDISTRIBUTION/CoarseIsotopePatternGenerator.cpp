@@ -188,23 +188,17 @@ namespace OpenMS
     // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
     double_t factor = mass / 1800.0;
 
-    // values of (m * lambda) ^ k
-    double_t curr_power = 1.0;
-
-    // values of k!
-    UInt curr_factorial = 1;
-
     // for k=0, non-normalized value is always 1
-    result[0] = Peak1D(mass, 1.0);
+    result[0] = Peak1D(mass, 1.0f);
 
-    float_t curr_intensity;
-    for (UInt k = 1; k < num_peaks; ++k)
+    float_t curr_intensity = 1.0f;
+    for (UInt k = 1; k < num_peaks; ++k) // result[0] is always 1 anyway
     {
-      curr_power *= factor;
-      curr_factorial *= k;
-      curr_intensity = curr_power / curr_factorial;
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
       result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U / charge),
-        std::isinf(curr_intensity) ? 0 : curr_intensity);// at some point, curr_intensity will become too small for float (which is the intensity type)
+                         curr_intensity != curr_intensity ? 0.0f : curr_intensity);
     }
 
     result.renormalize();
@@ -214,28 +208,23 @@ namespace OpenMS
 
   std::vector<double_t> CoarseIsotopePatternGenerator::approximateIntensities(double_t mass, UInt num_peaks)
   {
-    std::vector<double_t> result(num_peaks, 1.0f);
+    std::vector<double_t> result(num_peaks, 1.0);
 
-    // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
+    // lambda * mass. Lambda is the parameter of Poisson distribution. Value (1/1800) taken from Bellew et al
     double_t factor = mass / 1800.0;
+    double_t curr_intensity = 1.0;
+    double_t sum = 1.0; // result[0] is always factor^0/1 = 1, which is the reason why we start the loop at 1
 
-    // values of (m * lambda) ^ k
-    double_t curr_power = 1.0;
-
-    // values of k!
-    UInt curr_factorial = 1;
-
-    double_t curr_intensity;
-    double_t sum = 0.0;
     for (UInt k = 1; k < num_peaks; ++k)
     {
-      curr_power *= factor;
-      curr_factorial *= k;
-      curr_intensity = curr_power / curr_factorial;
-      result[k] = std::isinf(curr_intensity) ? 0.0f : curr_intensity;
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
+      result[k] = curr_intensity != curr_intensity ? 0.0: curr_intensity;
       sum += result[k];
     }
 
+    // normalize
     for (UInt k = 0; k != result.size(); ++k)
     {
       result[k] /= sum;
