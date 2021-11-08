@@ -253,35 +253,52 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   // count nucleotides in precursor adduct (e.g.: "TCA-H2O" yields map: T->1, C->1, A->1)
   // and determine the set of cross-linkable nucleotides in the precursor adduct
   size_t nt_count(0);
-  map<char, Size> exp_pc_nucleotide_count;
-  set<char> exp_pc_xl_nts;
-  String::const_iterator exp_pc_it = exp_pc_adduct.begin();
-  for (; exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
-  {
-    // we are finished with nucleotides in string if first loss/gain is encountered
-    if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
 
-    // count occurence of nucleotide
-    if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
+  set<char> exp_pc_xl_nts; // the cross-linkable nucleotides in the precursor adduct
+  map<char, Size> exp_pc_nucleotide_count; // all nucleotides in the precursor adduct (e.g., used to determine marker ions)
+
+  {
+    for (String::const_iterator exp_pc_it = exp_pc_adduct.begin(); exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
     {
-      exp_pc_nucleotide_count[*exp_pc_it] = 1;
-      if (can_xl.count(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
-    }
-    else
-    {
-      exp_pc_nucleotide_count[*exp_pc_it]++;
+      // we are finished with nucleotides in string if first loss/gain is encountered
+      if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
+
+      // count occurence of nucleotide
+      if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
+      {
+        exp_pc_nucleotide_count[*exp_pc_it] = 1;
+        if (can_xl.count(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
+      }
+      else
+      {
+        exp_pc_nucleotide_count[*exp_pc_it]++;
+      }
     }
   }
 
   // check if at least one nucleotide present that can cross link
-  bool has_xl_nt(false);
-  for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
-
+  bool has_xl_nt = !exp_pc_xl_nts.empty();
   OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
 
   // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
   if (!has_xl_nt) { return ret; }
 
+  // determine if there is a nucleotide/sugar/etc. that must be the cross-linked one
+  set<char> must_xl;
+  for (auto c : exp_pc_xl_nts) { if (islower(c)) must_xl.insert(c); }
+  if (must_xl.size() >= 2) 
+  {
+    OPENMS_LOG_WARN << "More than one nucleotide present that is marked as mandatory cross-linked (lower-case letter)." << endl;
+    return ret; 
+  }
+  else if (must_xl.size() == 1)
+  {  
+    cout << "Mandatory cross-linking nt/sugar: " << *must_xl.begin() << " in precursor adduct: " << exp_pc_adduct  << endl;
+    exp_pc_xl_nts = must_xl;
+  } 
+  // else we have no mandatory cross-linked nts
+
+  ///////////////////////////////////////////////////////////////////
   // HERE: at least one cross-linkable nt present in precursor adduct
 
   // extract loss string from precursor adduct (e.g.: "-H2O")

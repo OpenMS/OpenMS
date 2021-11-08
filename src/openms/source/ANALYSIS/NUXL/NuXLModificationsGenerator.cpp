@@ -82,8 +82,8 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
   NuXLModificationMassesResult result;
 
-  // read nucleotides and empirical formula of monophosphate. 
-  // create map target->formula e.g., U->C10H14N5O7P
+  // parse "nucleotide=empirical formula of monophosphate"
+  // create map target to formula e.g., map "U" to "C10H14N5O7P"
   map<String, EmpiricalFormula> map_target_to_formula;
   for (auto const & s : target_nucleotides)
   {
@@ -338,16 +338,18 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
   // 3) exceed maximum number of nucleotides
+  // 4) has multiple occurances of lower-case nucleotides/sugars 
+  //      - (e.g, "d" may only occur once to model binding to deoxyribose)
 
   // keep track if a sorted nucleotide composition and modification has already been added
   // e.g. we would not add both: UC-H2O-NH3 and CU-NH5O 
   std::vector<pair<String, double> > unique_nucleotide_and_mod_composition;
 
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
-  for (Map<String, double>::ConstIterator mit = result.formula2mass.begin(); mit != result.formula2mass.end(); ++mit)
+  for (const auto& [formula, mass] : result.formula2mass)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
-    const NuXLModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[mit->first];
+    const NuXLModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[formula];
     for (String const & s : ambiguities)
     {
       String nucleotide_style_formula(s);
@@ -363,6 +365,17 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       // sort nucleotides so we compare based on nucleotide composition 
       // e.g.: AC-H2O and CA-H2O are considered the same
       std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
+
+      // restrict mandatory cross-linked nts/sugars (lowercase letters) to one
+      // e.g., could be a sugar that MUST be cross-linked
+       size_t count_lower = count_if(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), 
+               [](unsigned char c) { return islower(c); });
+
+      if (count_lower >= 2)
+      {
+        violates_restriction.emplace_back(formula, s);
+        continue;
+      }
       
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
@@ -370,14 +383,14 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(formula, s);
         continue;
       }
 
       // check if nucleotide sequence too long
       if ((int)nucleotide_style_formula.size() > max_length) 
       {
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(formula, s); 
         continue;
       }
 
@@ -390,7 +403,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       // nucleotide style formula (e.g., AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.push_back({formula, s}); 
         continue;
       }
 
@@ -406,7 +419,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
       if (containment_violated)
       { 
-        violates_restriction.push_back(make_pair(mit->first, s)); // chemical formula, nucleotide style formula pair violates restrictions
+        violates_restriction.push_back({formula, s}); // chemical formula, nucleotide style formula pair violates restrictions
       }
 
       // last check: if the sorted nucleotide composition string and mass have already been added
@@ -414,13 +427,13 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       if (
         find(unique_nucleotide_and_mod_composition.begin(), 
         unique_nucleotide_and_mod_composition.end(),
-        make_pair(nucleotide_style_formula, mit->second)) != unique_nucleotide_and_mod_composition.end())
+        make_pair(nucleotide_style_formula, mass)) != unique_nucleotide_and_mod_composition.end())
       {
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.push_back({formula, s}); 
       }
 
       // record that nucleotide and mod combination has passed all filters and will be considered in further processing
-      unique_nucleotide_and_mod_composition.push_back({nucleotide_style_formula, mit->second});
+      unique_nucleotide_and_mod_composition.push_back({nucleotide_style_formula, mass});
     }
   }
 
