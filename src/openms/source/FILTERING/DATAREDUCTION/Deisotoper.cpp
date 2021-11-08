@@ -182,7 +182,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       std::vector<double> extensions_intensities = {current_intensity};
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      std::vector<float> distr = CoarseIsotopePatternGenerator::approximateIntensities(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks);
+      std::vector<double_t> distr = CoarseIsotopePatternGenerator::approximateIntensities(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks);
       
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;

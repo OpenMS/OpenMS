@@ -180,16 +180,16 @@ namespace OpenMS
   }
 
   // static
-  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, int num_peaks, uint8_t charge)
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double_t mass, UInt num_peaks, uint8_t charge)
   {
     IsotopeDistribution result;
     result.resize(num_peaks);
 
     // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
-    double factor = mass / 1800.0;
+    double_t factor = mass / 1800.0;
 
     // values of (m * lambda) ^ k
-    double curr_power = 1.0;
+    double_t curr_power = 1.0;
 
     // values of k!
     UInt curr_factorial = 1;
@@ -197,7 +197,7 @@ namespace OpenMS
     // for k=0, non-normalized value is always 1
     result[0] = Peak1D(mass, 1.0);
 
-    float curr_intensity;
+    float_t curr_intensity;
     for (UInt k = 1; k < num_peaks; ++k)
     {
       curr_power *= factor;
@@ -212,27 +212,27 @@ namespace OpenMS
     return result;
   }
 
-  std::vector<float> CoarseIsotopePatternGenerator::approximateIntensities(double mass, int num_peaks)
+  std::vector<double_t> CoarseIsotopePatternGenerator::approximateIntensities(double_t mass, UInt num_peaks)
   {
-    std::vector<float> result(num_peaks, 1.0f);
+    std::vector<double_t> result(num_peaks, 1.0f);
 
     // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
-    double factor = mass / 1800.0;
+    double_t factor = mass / 1800.0;
 
     // values of (m * lambda) ^ k
-    double curr_power = 1.0;
+    double_t curr_power = 1.0;
 
     // values of k!
     UInt curr_factorial = 1;
 
-    float curr_intensity;
-    float sum = 0.0f;
+    double_t curr_intensity;
+    double_t sum = 0.0;
     for (UInt k = 1; k < num_peaks; ++k)
     {
       curr_power *= factor;
       curr_factorial *= k;
       curr_intensity = curr_power / curr_factorial;
-      result[k] = std::isinf(curr_intensity) ? 0.0f : curr_intensity;// at some point, curr_intensity will become too small for float (which is the intensity type)
+      result[k] = std::isinf(curr_intensity) ? 0.0f : curr_intensity;
       sum += result[k];
     }
 
