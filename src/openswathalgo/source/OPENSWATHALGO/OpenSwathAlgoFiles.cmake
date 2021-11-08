@@ -37,7 +37,7 @@ set(directory source/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
-  ALGO/MRMScoring.cpp
+
   ALGO/Scoring.cpp
   ALGO/StatsHelpers.cpp
 )
