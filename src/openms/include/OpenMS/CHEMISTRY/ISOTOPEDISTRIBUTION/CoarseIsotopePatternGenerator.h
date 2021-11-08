@@ -179,8 +179,8 @@ namespace OpenMS
        @brief roughly approximate intensity distribution of peptidic isotope patterns from monoisotopic weight using Poisson distribution.
        Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
 
-       This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation. 
-       For a comparison of intensities, see approximateFromPeptideWeight.
+       This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation of the intensities. 
+       It does not return IsotopeDistribution but a vector of intensities. For an assessment of accuracy, see approximateFromPeptideWeight.
 
        @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
