@@ -32,9 +32,6 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-    // TODO: 
-    // - precursor correction
-
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -1578,8 +1575,8 @@ protected:
     StringList modifications;
     modifications.emplace_back("U:");
     modifications.emplace_back("U:-H2O");
-    modifications.emplace_back("U:-H2O-HPO3");
     modifications.emplace_back("U:-HPO3");
+    modifications.emplace_back("U:-H3PO4");
 
     // fragment adducts that may occur for every precursor adduct (if chemically feasible in terms of elements may not be negative)
     StringList fragment_adducts = {"U:C9H10N2O5;U-H3PO4", 
@@ -1616,8 +1613,6 @@ protected:
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration", "optimize"}); 
-
-
     registerDoubleOption_("window_size", "<number>", 75.0, "Peak window for spectra precprocessing.", false, true);
     registerIntOption_("peak_count", "<number>", 20, "Retained peaks in peak window.", false, true);
   }

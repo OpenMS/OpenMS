@@ -1935,14 +1935,14 @@ namespace OpenMS
         {
           auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name + "_in");
           if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer
+          { // no suitable annotator? open new layer/window
             addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
           }
           else
           { // we have an annotator ... let's annotate the current layer
             annotator->annotateWithFilename(*l, *log_, topp_.out + "_out"); // ID tabs are automatically enabled
           }
-        }         
+        }
       }
     }
 
