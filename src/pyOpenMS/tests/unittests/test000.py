@@ -2240,6 +2240,29 @@ def testIdXMLFile():
     assert pyopenms.IdXMLFile().store is not None
 
 @report
+def test_peptide_identifications_to_df():
+    peps = []
+
+    p = pyopenms.PeptideIdentification()
+    p.setRT(1243.56)
+    p.setMZ(440.0)
+    p.setScoreType("ScoreType")
+    p.setHigherScoreBetter(False)
+    p.setIdentifier("IdentificationRun1")
+
+    h = pyopenms.PeptideHit()
+    h.setScore(1.0)
+    h.setCharge(2)
+    h.setMetaValue("StringMetaValue", "Value")
+    h.setMetaValue("IntMetaValue", 2)
+    p.insertHit(h)
+
+    peps.append(p)
+    peps.append(p)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,7)
+
+@report
 def testPepXMLFile():
     """
     @tests: PepXMLFile
