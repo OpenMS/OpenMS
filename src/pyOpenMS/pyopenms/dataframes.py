@@ -174,7 +174,7 @@ class FeatureMapDF(FeatureMap):
             pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
             bb = f.getConvexHull().getBoundingBox2D()
                 
-            vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.NA for m in meta_values]
+            vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values]
             
             if len(pep) != 0:
                 hits = pep[0].getHits()
@@ -235,7 +235,7 @@ PeakMap = MSExperimentDF
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
-def peptide_identifications_to_df(self, peps: List[PeptideIdentification], decode_ontology : bool = True):
+def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_ontology : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
 
     Parameters:
@@ -273,7 +273,8 @@ def peptide_identifications_to_df(self, peps: List[PeptideIdentification], decod
     def extract(pep):
         hits = pep.getHits()
         if not hits:
-            return tuple([pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), np.NA, np.NA] + [np.NA]*len(metavals))
+            # default missing int value: -9999, replace with pandas.NA later
+            return tuple([pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), np.nan, -9999] + [np.nan]*len(metavals))
 
         besthit = hits[0]
         ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
@@ -288,9 +289,9 @@ def peptide_identifications_to_df(self, peps: List[PeptideIdentification], decod
                 else:
                     ret.append(val)
             else:
-                ret.append(np.NA)
+                ret.append(np.nan)
         return tuple(ret)
 
     psmarr = np.fromiter((extract(pep) for pep in peps), dtype=dt, count=len(peps))
 
-    return pd.DataFrame(psmarr)
+    return pd.DataFrame(psmarr).replace(-9999, pd.NA)

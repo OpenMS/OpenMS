@@ -1,7 +1,7 @@
 from . import Constants
 from . import Plotting as Plot
 
-from .dataframes import ConsensusMap, FeatureMap, MSExperiment, PeakMap, DFConverter
+from .dataframes import ConsensusMap, FeatureMap, MSExperiment, PeakMap, peptide_identifications_to_df
 
 class SimpleOpenMSSpectraFactory:
 
