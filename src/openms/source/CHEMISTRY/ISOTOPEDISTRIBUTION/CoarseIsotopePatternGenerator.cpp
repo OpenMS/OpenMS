@@ -180,18 +180,18 @@ namespace OpenMS
   }
 
   // static
-  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double_t mass, UInt num_peaks, uint8_t charge)
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, UInt num_peaks, uint8_t charge)
   {
     IsotopeDistribution result;
     result.resize(num_peaks);
 
     // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
-    double_t factor = mass / 1800.0;
+    double factor = mass / 1800.0;
 
     // for k=0, non-normalized value is always 1
     result[0] = Peak1D(mass, 1.0f);
 
-    float_t curr_intensity = 1.0f;
+    float curr_intensity = 1.0f;
     for (UInt k = 1; k < num_peaks; ++k) // result[0] is always 1 anyway
     {
       curr_intensity *= factor / k; // represents (m * lambda)^k / k!
@@ -206,14 +206,14 @@ namespace OpenMS
     return result;
   }
 
-  std::vector<double_t> CoarseIsotopePatternGenerator::approximateIntensities(double_t mass, UInt num_peaks)
+  std::vector<double> CoarseIsotopePatternGenerator::approximateIntensities(double mass, UInt num_peaks)
   {
-    std::vector<double_t> result(num_peaks, 1.0);
+    std::vector<double> result(num_peaks, 1.0);
 
     // lambda * mass. Lambda is the parameter of Poisson distribution. Value (1/1800) taken from Bellew et al
-    double_t factor = mass / 1800.0;
-    double_t curr_intensity = 1.0;
-    double_t sum = 1.0; // result[0] is always factor^0/1 = 1, which is the reason why we start the loop at 1
+    double factor = mass / 1800.0;
+    double curr_intensity = 1.0;
+    double sum = 1.0; // result[0] is always factor^0/1 = 1, which is the reason why we start the loop at 1
 
     for (UInt k = 1; k < num_peaks; ++k)
     {

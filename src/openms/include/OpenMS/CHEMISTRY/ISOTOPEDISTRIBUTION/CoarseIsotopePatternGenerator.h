@@ -173,7 +173,7 @@ namespace OpenMS
        @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
     */
-    static IsotopeDistribution approximateFromPeptideWeight(double_t mass, UInt num_peaks = 20, uint8_t charge = 1);
+    static IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks = 20, uint8_t charge = 1);
 
     /**
        @brief roughly approximate intensity distribution of peptidic isotope patterns from monoisotopic weight using Poisson distribution.
@@ -185,7 +185,7 @@ namespace OpenMS
        @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
     */
-    static std::vector<double_t> approximateIntensities(double_t mass, UInt num_peaks = 20);
+    static std::vector<double> approximateIntensities(double mass, UInt num_peaks = 20);
 
     /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
