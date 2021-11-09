@@ -42,7 +42,6 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 # --------------------------------------------------------------------------
 # list of available tests
 set(openswath_algo_tests
-
   Scoring_test
   Datastructures_test
   TestConvert
