@@ -1466,7 +1466,7 @@ protected:
     registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
 
-    registerInputFile_("database", "<file>", "", "input file ");
+    registerInputFile_("database", "<file>", "", "The protein database used for identification.");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "output file ");
@@ -1474,6 +1474,9 @@ protected:
 
     registerOutputFile_("out_tsv", "<file>", "", "tsv output file", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("out_xls", "<file>", "", "XL output file with group q-values calculated at the XL PSM-level. Generated for the highest FDR threshold in report:xlFDR.", false);
+    setValidFormats_("out_xls", ListUtils::create<String>("idXML"));
 
     registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for TOPPAS/KNIME/etc. users because these files are otherwise only stored in tmp folders.", false, false);
 
@@ -5190,6 +5193,8 @@ static void scoreXLIons_(
     String out_idxml = getStringOption_("out");
     String in_db = getStringOption_("database");
 
+    String out_xl_idxml = getStringOption_("out_xls");
+
     // create extra output directy of set
     String extra_output_directory = getStringOption_("output_folder");
     if (!extra_output_directory.empty())
@@ -5545,7 +5550,16 @@ static void scoreXLIons_(
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
     double peptide_FDR = getDoubleOption_("report:peptideFDR");
+
     DoubleList XL_FDR = getDoubleList_("report:xlFDR");
+    if (XL_FDR.empty()) XL_FDR.push_back(1.0); // needs at least one entry - otherwise fails because no XL result file can be written to out_xls
+
+    // determine maximum FDR treshold used to create result files
+    double xl_fdr_max{1.0};
+    if (!XL_FDR.empty())
+    {
+      xl_fdr_max = *std::max_element(XL_FDR.begin(), XL_FDR.end());
+    }
 
     StringList nt_groups = getStringList_("RNPxl:nt_groups");
 
@@ -6872,13 +6886,28 @@ static void scoreXLIons_(
       if (extra_output_directory.empty())
       {
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+        // copy XL results (with highest threshold=little filtering) to output
+        if (!out_xl_idxml.empty())
+        {
+          QFile::copy(String(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+        }
       }
       else
       { // use output_folder
         String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+        // copy XL results (with highest threshold=little filtering) to output
+        if (!out_xl_idxml.empty())
+        {
+          QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+        }
       }
+
+
       OPENMS_LOG_INFO << "done." << endl;
+
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // score recalibration with percolator
 
       String percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
@@ -6948,14 +6977,27 @@ static void scoreXLIons_(
           String percolator_PSM_output_filename(out_idxml);
           percolator_PSM_output_filename.substitute(".idXML", "_perc_");
           OPENMS_LOG_INFO << "Calculating peptide and XL q-values for percolator results." << endl;
+
           if (extra_output_directory.empty())
           {
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+
+            // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
+            if (!out_xl_idxml.empty())
+            {
+              QFile::copy(String(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+            }
           }
           else
           { // use output_folder
             String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+
+            // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
+            if (!out_xl_idxml.empty())
+            {
+              QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+            }
           }
           OPENMS_LOG_INFO << "done." << endl;
         }
@@ -6972,6 +7014,7 @@ static void scoreXLIons_(
     {
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+      // TODO: probably not supported / wrong at this point
     }
 
     // save report
