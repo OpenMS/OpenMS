@@ -16,6 +16,7 @@ NuXLFragmentIonGenerator.h
 NuXLMarkerIonExtractor.h
 NuXLModificationsGenerator.h
 NuXLParameterParsing.h
+NuXLPresets.h
 NuXLReport.h
 )
 
