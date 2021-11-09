@@ -233,28 +233,27 @@ class MSExperimentDF(MSExperiment):
 MSExperiment = MSExperimentDF
 PeakMap = MSExperimentDF
 
+
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
 def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_ontology : bool = True,
                                   default_missing_values: dict = {bool: False, int: -9999, float: np.nan, str: ''},
-                                  export_unidentified = True):
+                                  export_unidentified : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
-
     Parameters:
     peps (List[PeptideIdentification]): list of PeptideIdentification objects
     decode_ontology (bool): decode meta value names
     default_missing_values: default value for missing values for each data type
     export_unidentified: export PeptideIdentifications without PeptideHit
-
     Returns:
     pandas.DataFrame: peptide identifications in a DataFrame
     """
     switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
 
     # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
-    # TODO move the filtering to the main iteration
+    count = len(peps)
     if not export_unidentified:
-        peps = [pep for pep in peps if len(pep.getHits()) > 0]
+        count = sum(len(pep.getHits()) > 0 for pep in peps)
 
     # get all possible metavalues
     metavals = []
@@ -288,7 +287,7 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
             if val == value:
                 return key
     dmv = [default_missing_values[get_key(t)] for t in types]
-    
+
     decodedMVs = [m.decode("utf-8") for m in metavals] if decode_ontology else metavals
     cv = ControlledVocabulary()
     cv.loadFromOBO("psims", File.getOpenMSDataPath() + "/CV/psi-ms.obo")
@@ -301,7 +300,10 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
     def extract(pep):
         hits = pep.getHits()
         if not hits:
-            return tuple([pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int]] + dmv)
+            if export_unidentified:
+                return tuple(pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int], *dmv)
+            else:
+                return
 
         besthit = hits[0]
         ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
@@ -319,4 +321,4 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
                 ret.append(default_missing_values[type(val)])
         return tuple(ret)
 
-    return pd.DataFrame(np.fromiter((extract(pep) for pep in peps), dtype=dt, count=len(peps)))
+    return pd.DataFrame(np.fromiter((extract(pep) for pep in peps), dtype=dt, count=count))
