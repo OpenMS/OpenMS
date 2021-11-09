@@ -74,7 +74,6 @@ set(header_directory include/OpenMS/OPENSWATHALGO)
 
 ## add groups for headers
 set(header_algo_list
-  #ALGO/MRMScoring.h
   ALGO/Scoring.h
   ALGO/StatsHelpers.h
 )

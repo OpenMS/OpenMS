@@ -69,7 +69,7 @@ namespace OpenSwath
         - elution_fit_score: how well the elution profile fits a theoretical elution profile
 
     */
-    class OPENSWATHALGO_DLLAPI MRMScoring
+    class OPENMS_DLLAPI MRMScoring
     {
 
     public:
