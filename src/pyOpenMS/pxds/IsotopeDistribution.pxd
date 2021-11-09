@@ -150,7 +150,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                 #   number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
                 #   and a set of isolated precursor isotopes.
 
-        IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks, uint8_t charge) nogil except +
+        IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge) nogil except +
 
             # wrap-doc:
                 #   Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.

@@ -180,7 +180,7 @@ namespace OpenMS
   }
 
   // static
-  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, UInt num_peaks, uint8_t charge)
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge)
   {
     IsotopeDistribution result;
     result.resize(num_peaks);
