@@ -252,6 +252,7 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
     switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
 
     # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
+    # TODO move the filtering to the main iteration
     if not export_unidentified:
         peps = [pep for pep in peps if len(pep.getHits()) > 0]
 
