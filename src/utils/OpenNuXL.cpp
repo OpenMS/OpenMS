@@ -130,7 +130,6 @@
 #define CALCULATE_LONGEST_TAG
 //#define MODDS_ON_ABY_IONS_ONLY
 //#define FILTER_RANKS 1
-#define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
 
 #define CONSIDER_AA_LOSSES 1
 
@@ -411,13 +410,6 @@ protected:
 
   static bool badPartialLossScore(float tlss_Morph, float plss_Morph, float plss_MIC, float plss_im_MIC, float plss_pc_MIC, float marker_ions_score)
   {
-#if !defined DONT_ACCUMULATE_PARTIAL_ION_SCORES
-    // if partial loss scores accumulate on the total loss scores, we first need to calculate the individual components
-    plss_Morph -= tlss_Morph;
-    float tlss_MIC = tlss_Morph - static_cast<int>(tlss_Morph);
-    plss_MIC -= tlss_MIC;
-#endif
-
     if (plss_Morph + tlss_Morph < 5.03) return true; // less than 5 peaks? 3% TIC
 
     if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.03) return true;
