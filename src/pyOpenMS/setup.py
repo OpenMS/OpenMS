@@ -275,6 +275,7 @@ setup(
     ext_package="pyopenms",
 	install_requires=[
           'numpy',
+          'pandas'
     ],
 
     version=package_version,
