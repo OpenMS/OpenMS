@@ -325,7 +325,7 @@ START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::approximateInten
   std::vector<Int> masses_to_test = {20, 300, 1000, 2500};
   for (auto mass = masses_to_test.begin(); mass != masses_to_test.end(); ++mass)
   {
-    std::vector<double_t> approximation = CoarseIsotopePatternGenerator::approximateIntensities(*mass);
+    std::vector<double> approximation = CoarseIsotopePatternGenerator::approximateIntensities(*mass);
     solver->setMaxIsotope(approximation.size());
     IsotopeDistribution coarse_truth = solver->estimateFromPeptideWeight(*mass);
 
