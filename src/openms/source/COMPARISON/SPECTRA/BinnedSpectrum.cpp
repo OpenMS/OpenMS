@@ -35,34 +35,68 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 
+#include <Eigen/Sparse>
+
 using namespace std;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIndexType = Eigen::SparseVector<float>::Index;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
 
 namespace OpenMS
 {
-  // Empty vector initialized to maximum supported dimensionality.
-  const BinnedSpectrum::SparseVectorType BinnedSpectrum::EmptySparseVector(numeric_limits<BinnedSpectrum::SparseVectorIndexType>::max());
 
   BinnedSpectrum::BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset) :
     bin_spread_(spread), 
     bin_size_(size),
     unit_ppm_(unit_ppm),
-    offset_(offset),
-    bins_()
+    offset_(offset)
   {
+    bins_ = new SparseVectorType(numeric_limits<SparseVectorIndexType>::max());
     precursors_ = ps.getPrecursors();
     binSpectrum_(ps);
   }
 
-  BinnedSpectrum::~BinnedSpectrum()
+  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum& rhs) :
+    bin_spread_(rhs.bin_spread_), 
+    bin_size_(rhs.bin_size_),
+    unit_ppm_(rhs.unit_ppm_),
+    offset_(rhs.offset_),
+    bins_(new SparseVectorType(*rhs.bins_)),
+    precursors_(rhs.precursors_)
   {
   }
 
-  const BinnedSpectrum::SparseVectorType& BinnedSpectrum::getBins() const
+  BinnedSpectrum& BinnedSpectrum::operator=(const BinnedSpectrum& rhs)
+  {
+    if (this != &rhs)
+    {
+      bin_spread_ = rhs.bin_spread_;
+      bin_size_ = rhs.bin_size_;
+      unit_ppm_ = rhs.unit_ppm_;
+      offset_ = rhs.offset_;
+      precursors_ = rhs.precursors_;
+
+      delete bins_;
+      bins_ = new SparseVectorType(*rhs.bins_);
+    }
+
+    return *this;
+  }
+
+  BinnedSpectrum::~BinnedSpectrum()
+  {
+    delete bins_;
+  }
+
+  const BinnedSpectrum::SparseVectorType* BinnedSpectrum::getBins() const
   {
     return bins_;
   }
 
-  BinnedSpectrum::SparseVectorType& BinnedSpectrum::getBins()
+  BinnedSpectrum::SparseVectorType* BinnedSpectrum::getBins()
   {
     return bins_;
   }
@@ -86,7 +120,8 @@ namespace OpenMS
       return;
     }
 
-    bins_ = EmptySparseVector;
+    // delete bins_;
+    // bins_ = new SparseVectorType(numeric_limits<SparseVectorIndexType>::max());
 
     for (auto const & p : ps)
     {
@@ -97,17 +132,17 @@ namespace OpenMS
       const size_t idx = getBinIndex(p.getMZ());
 
       // add peak to corresponding bin
-      bins_.coeffRef(idx) += p.getIntensity();
+      bins_->coeffRef(idx) += p.getIntensity();
 
       // add peak to neighboring bins
       for (Size j = 0; j < bin_spread_; ++j)
       {
-         bins_.coeffRef(idx + j + 1) +=  p.getIntensity();
+         bins_->coeffRef(idx + j + 1) +=  p.getIntensity();
         
         // prevent spreading over left boundaries
         if (static_cast<int>(idx - j - 1) >= 0)
         {
-          bins_.coeffRef(idx - j - 1) += p.getIntensity();
+          bins_->coeffRef(idx - j - 1) += p.getIntensity();
         }
       }
     }
@@ -123,14 +158,14 @@ namespace OpenMS
     }
 
     // efficient look-up of number of non-zero entries, so we use this as-well
-    if (bins_.nonZeros() != rhs.bins_.nonZeros())
+    if (bins_->nonZeros() != rhs.bins_->nonZeros())
     {
       return false;
     }
 
     // test non-sparse (non-zero) elements for equality
-    SparseVectorIteratorType it(bins_);
-    SparseVectorIteratorType rhs_it(rhs.bins_);  
+    SparseVectorIteratorType it(*bins_);
+    SparseVectorIteratorType rhs_it(*rhs.bins_);  
     while (it)      
     {
       if (it.index() != rhs_it.index() || it.value() != rhs_it.value())
@@ -154,6 +189,30 @@ namespace OpenMS
   bool BinnedSpectrum::operator!=(const BinnedSpectrum& rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  size_t BinnedSpectrum::getBinIndex(float mz) const 
+  {
+    if (unit_ppm_)
+    {
+      /*
+       * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_ * 1e-6)^index for index
+       *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6))
+       * Note: for ppm we don't need to consider an offset_.
+       */  
+      return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
+    }
+    else 
+    { // implemented as described in PMC4607604
+      // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
+      //       may fall on the mass peak apex. See publication for details.).
+      return static_cast<SparseVectorIndexType>(floor(mz / bin_size_ + offset_)); 
+    }
+  }
+
+  float BinnedSpectrum::getBinIntensity(double mz)
+  {
+    return bins_->coeffRef(getBinIndex(mz));
   }
 
 }

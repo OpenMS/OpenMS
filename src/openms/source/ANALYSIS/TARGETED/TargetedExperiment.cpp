@@ -33,9 +33,41 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
+
+
+// from https://stackoverflow.com/questions/17010005/how-to-use-c11-move-semantics-to-append-vector-contents-to-another-vector
+template <typename T>
+typename std::vector<T>::iterator appendRVector(std::vector<T>&& src, std::vector<T>& dest)
+{
+  typename std::vector<T>::iterator result;
+
+  if (dest.empty())
+  {
+    dest = std::move(src);
+    result = std::begin(dest);
+  }
+  else
+  {
+#if 1
+    // dest.reserve(dest.size() + src.size());
+    std::move(std::begin(src), std::end(src), std::back_inserter(dest));
+    src.clear();
+#else
+    result = dest.insert(std::end(dest),
+                         std::make_move_iterator(std::begin(src)),
+                         std::make_move_iterator(std::end(src)));
+#endif
+  }
+
+  src.clear();
+  src.shrink_to_fit();
+
+  return result;
+}
 
 namespace OpenMS
 {
@@ -120,6 +152,41 @@ namespace OpenMS
     include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
+
+    for (Map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    {
+      for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
+      {
+        targets_.addCVTerm(*term_it);
+      }
+    }
+
+    // todo: check for double entries
+    // transitions, peptides, proteins
+
+    return *this;
+  }
+
+  TargetedExperiment & TargetedExperiment::operator+=(TargetedExperiment && rhs)
+  {
+    protein_reference_map_dirty_ = true;
+    peptide_reference_map_dirty_ = true;
+    compound_reference_map_dirty_ = true;
+
+    // merge these:
+    appendRVector(std::move(rhs.cvs_), cvs_);
+    appendRVector(std::move(rhs.contacts_), contacts_);
+    appendRVector(std::move(rhs.publications_), publications_);
+    appendRVector(std::move(rhs.instruments_), instruments_);
+    appendRVector(std::move(rhs.software_), software_);
+
+    appendRVector(std::move(rhs.proteins_), proteins_);
+    appendRVector(std::move(rhs.compounds_), compounds_);
+    appendRVector(std::move(rhs.peptides_), peptides_);
+    appendRVector(std::move(rhs.transitions_), transitions_);
+    appendRVector(std::move(rhs.include_targets_), include_targets_);
+    appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
+    appendRVector(std::move(rhs.source_files_), source_files_);
 
     for (Map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
@@ -302,6 +369,12 @@ namespace OpenMS
     proteins_ = proteins;
   }
 
+  void TargetedExperiment::setProteins(std::vector<Protein> && proteins)
+  {
+    protein_reference_map_dirty_ = true;
+    proteins_ = std::move(proteins);
+  }
+
   const std::vector<TargetedExperiment::Protein> & TargetedExperiment::getProteins() const
   {
     return proteins_;
@@ -351,6 +424,12 @@ namespace OpenMS
   {
     peptide_reference_map_dirty_ = true;
     peptides_ = peptides;
+  }
+
+  void TargetedExperiment::setPeptides(std::vector<Peptide> && peptides)
+  {
+    peptide_reference_map_dirty_ = true;
+    peptides_ = std::move(peptides);
   }
 
   const std::vector<TargetedExperiment::Peptide> & TargetedExperiment::getPeptides() const
@@ -405,6 +484,11 @@ namespace OpenMS
   void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition> & transitions)
   {
     transitions_ = transitions;
+  }
+
+  void TargetedExperiment::setTransitions(std::vector<ReactionMonitoringTransition> && transitions)
+  {
+    transitions_ = std::move(transitions);
   }
 
   const std::vector<ReactionMonitoringTransition> & TargetedExperiment::getTransitions() const

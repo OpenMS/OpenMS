@@ -34,13 +34,12 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/SYSTEM/File.h>
-
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 using namespace std;
 
@@ -238,7 +237,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(Feature::IntensityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -265,7 +264,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(Feature::OverallQualityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::OverallQualityLess cmp; return cmp(right, left);});
     }
     else
     {

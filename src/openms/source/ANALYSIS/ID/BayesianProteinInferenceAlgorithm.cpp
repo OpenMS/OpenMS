@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
+
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
@@ -42,6 +43,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>

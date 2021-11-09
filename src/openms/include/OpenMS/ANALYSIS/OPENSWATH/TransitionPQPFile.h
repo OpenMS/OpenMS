@@ -36,10 +36,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
-#include <boost/range/algorithm.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
-#include <iostream>
-
 namespace OpenMS
 {
 

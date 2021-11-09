@@ -36,8 +36,6 @@
 
 #include <vector>
 #include <set>
-#include <limits>
-#include <algorithm>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>

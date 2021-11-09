@@ -36,6 +36,7 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/random/uniform_real.hpp>

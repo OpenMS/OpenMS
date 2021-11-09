@@ -34,13 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
-// Classes
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
-
-// Functions
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 

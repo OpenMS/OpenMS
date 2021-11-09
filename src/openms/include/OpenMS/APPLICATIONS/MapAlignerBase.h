@@ -67,48 +67,52 @@
 
 namespace OpenMS
 {
+  // @brief stores model defaults for map aligner algorithms
+  struct MapAlignerBase
+  {
+    // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
+    static Param getModelDefaults(const String& default_model)
+    {
+      Param params;
+      params.setValue("type", default_model, "Type of model");
+      // TODO: avoid referring to each TransformationModel subclass explicitly
+      std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
+      if (!ListUtils::contains(model_types, default_model))
+      {
+        model_types.insert(model_types.begin(), default_model);
+      }
+      params.setValidStrings("type", model_types);
+
+      Param model_params;
+      TransformationModelLinear::getDefaultParameters(model_params);
+      params.insert("linear:", model_params);
+      params.setSectionDescription("linear", "Parameters for 'linear' model");
+
+      TransformationModelBSpline::getDefaultParameters(model_params);
+      params.insert("b_spline:", model_params);
+      params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
+
+      TransformationModelLowess::getDefaultParameters(model_params);
+      params.insert("lowess:", model_params);
+      params.setSectionDescription("lowess", "Parameters for 'lowess' model");
+
+      TransformationModelInterpolated::getDefaultParameters(model_params);
+      params.insert("interpolated:", model_params);
+      params.setSectionDescription("interpolated",
+                                  "Parameters for 'interpolated' model");
+      return params;
+    }
+  };
+
 
 class TOPPMapAlignerBase :
-  public TOPPBase
+  public TOPPBase, public MapAlignerBase
 {
 
 public:
   TOPPMapAlignerBase(String name, String description, bool official = true) :
     TOPPBase(name, description, official), ref_params_(REF_NONE)
   {
-  }
-
-  // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
-  static Param getModelDefaults(const String& default_model)
-  {
-    Param params;
-    params.setValue("type", default_model, "Type of model");
-    // TODO: avoid referring to each TransformationModel subclass explicitly
-    std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
-    if (!ListUtils::contains(model_types, default_model))
-    {
-      model_types.insert(model_types.begin(), default_model);
-    }
-    params.setValidStrings("type", model_types);
-
-    Param model_params;
-    TransformationModelLinear::getDefaultParameters(model_params);
-    params.insert("linear:", model_params);
-    params.setSectionDescription("linear", "Parameters for 'linear' model");
-
-    TransformationModelBSpline::getDefaultParameters(model_params);
-    params.insert("b_spline:", model_params);
-    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
-
-    TransformationModelLowess::getDefaultParameters(model_params);
-    params.insert("lowess:", model_params);
-    params.setSectionDescription("lowess", "Parameters for 'lowess' model");
-
-    TransformationModelInterpolated::getDefaultParameters(model_params);
-    params.insert("interpolated:", model_params);
-    params.setSectionDescription("interpolated",
-                                 "Parameters for 'interpolated' model");
-    return params;
   }
 
 protected:

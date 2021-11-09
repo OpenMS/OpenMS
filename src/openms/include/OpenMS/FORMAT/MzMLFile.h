@@ -43,6 +43,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <map>
+
 namespace OpenMS
 {
   /**

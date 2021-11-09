@@ -718,7 +718,7 @@ protected:
               throw Exception::InvalidValue(
                   __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                   "Currently only ID runs on exactly one mzML file are supported. "
-                  "Run " + prot.getIdentifier() + " contains too many.", String(original_files.size()));
+                  "Run " + prot.getIdentifier() + " contains no 'file_origin' UserParam (report issue) or has multiple entries in it (avoid merging).", String(original_files.size()));
             }
             String original_file = original_files[0];
             auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});

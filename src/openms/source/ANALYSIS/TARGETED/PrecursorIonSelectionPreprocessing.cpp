@@ -40,6 +40,10 @@
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+
 #include <boost/math/distributions/normal.hpp>
 
 using namespace std;

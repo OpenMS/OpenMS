@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>

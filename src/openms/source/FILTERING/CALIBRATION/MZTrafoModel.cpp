@@ -32,7 +32,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -40,6 +39,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

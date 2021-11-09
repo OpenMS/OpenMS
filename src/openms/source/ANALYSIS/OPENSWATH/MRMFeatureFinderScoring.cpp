@@ -48,6 +48,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 #define run_identifier "unique_run_identifier"

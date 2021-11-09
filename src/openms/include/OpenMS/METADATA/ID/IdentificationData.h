@@ -48,7 +48,7 @@
 #include <OpenMS/METADATA/ID/ObservationMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -178,7 +178,7 @@ namespace OpenMS
     using ParentGroupSets =
       IdentificationDataInternal::ParentGroupSets;
 
-    using AddressLookup = boost::unordered_set<uintptr_t>;
+    using AddressLookup = std::unordered_set<uintptr_t>;
 
     /// structure that maps references of corresponding objects after copying
     struct RefTranslator {

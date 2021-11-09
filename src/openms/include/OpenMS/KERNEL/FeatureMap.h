@@ -51,7 +51,6 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <algorithm>
 #include <exception>
 #include <vector>
 

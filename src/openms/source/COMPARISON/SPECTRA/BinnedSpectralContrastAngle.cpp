@@ -35,6 +35,8 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 
+#include <Eigen/Sparse>
+
 using namespace std;
 
 namespace OpenMS
@@ -78,9 +80,9 @@ namespace OpenMS
     OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
     // resulting score standardized to interval [0,1]
-    const double sum1 = spec1.getBins().dot(spec1.getBins());    
-    const double sum2 = spec2.getBins().dot(spec2.getBins());    
-    const double numerator = spec1.getBins().dot(spec2.getBins());
+    const double sum1 = spec1.getBins()->dot(*spec1.getBins());
+    const double sum2 = spec2.getBins()->dot(*spec2.getBins());
+    const double numerator = spec1.getBins()->dot(*spec2.getBins());
     const double score = numerator / (sqrt(sum1 * sum2));
 
     return score;

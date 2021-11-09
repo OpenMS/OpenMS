@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
@@ -47,8 +46,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
-
-// basic file operations
 
 namespace OpenMS
 {
@@ -64,7 +61,7 @@ namespace OpenMS
       sorted_indices.emplace_back(*mz_it, i);
       ++mz_it;
     }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end());                
 
     // extract list of indices
     std::vector<Size> select_indices;

@@ -36,15 +36,13 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp> // cannot remove this since tests fail otherwise
 
 // #define DEBUG_MRMASSAY
 

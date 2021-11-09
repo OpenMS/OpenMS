@@ -33,8 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <QtNetwork/QNetworkRequest>
 #include <QtGui/QTextDocument>
 
 using namespace std;

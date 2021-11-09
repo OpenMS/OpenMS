@@ -541,7 +541,7 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 

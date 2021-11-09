@@ -42,6 +42,8 @@
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 //OpenSWATH classes
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 

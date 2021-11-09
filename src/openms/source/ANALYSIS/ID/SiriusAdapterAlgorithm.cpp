@@ -33,17 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QDir>
 #include <QDirIterator>
 #include <QString>
 #include <QtCore/QProcess>
 #include <fstream>
-#include <include/OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
