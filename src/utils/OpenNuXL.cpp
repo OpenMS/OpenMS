@@ -555,15 +555,6 @@ protected:
       float& im_MIC,
       size_t& n_theoretical_peaks)
   {
-#ifdef FRAGMENT_FREQ_SCALING
-static std::vector<double> a_ = {0.6381814842871244,0.5757708524966219,0.3527782831613766,0.5540067995825595,0.5937077770271472,0.44059687579253287,0.5225166639570802,0.38841395620372815,0.3030517328354761,0.30979251695059956,0.30364346970241557,0.34222974087638314,0.21622567124817516,0.24461462554326147,0.25749353729143076,0.24628219274901375,0.13784446820799334,0.1495672137250644,0.2962157379587473,0.10986006002310685,0.1351953897278425,0.1278257687841041,0.30540105664584627,0.22667644652579907,0.18995271867612293,0.11525992655496903,0.22667644652579907,0.22667644652579907,0.3695782162734005,0.3695782162734005,0.5396963997850618,0.3695782162734005,0.38473739338620383,0.40192864687860225,0.41911990037100066,0.4387234158726692,0.4625932410429686,0.486463066213268,0.5103328913835674,0.5103328913835674,0.5103328913835674, 
-0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
-static std::vector<double> b_ = {0.36098796076403716,0.4347832206269399,0.5099710884346794,0.5179672293483799,0.5631123880294966,0.5533361427988034,0.5743842109687725,0.5423494643601069,0.5760269552782373,0.5036297443627675,0.4392665770184666,0.4555728357147309,0.44068578203629283,0.4818153581717703,0.36060791092937267,0.2209935596478243,0.20127921570150337,0.11845946442071022,0.07389126171037678,0.05773828326056386,0.05017396259908622,0.04637657640949555,0.16961055844449469,0.06798833158684754,0.3170397996809263,0.3380269790757273,0.40506200961781824,0.17955033881656035,0.4337336336589538,0.5052618285906718,0.6050407460304126,0.6050407460304126,0.33802697907572726,0.47153386255306995,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,0.6050407460304126,
-0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
-static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.5115897779268463,0.5755301366035181,0.5848527137044559,0.5930609869981058,0.6076345273266521,0.6200719791091611,0.6136770720442932,0.6146578764556351,0.6279320448204195,0.6391734877807232,0.6108431180748586,0.5674428548097566,0.5129822532754515,0.6840850182019967,0.5483712842406266,0.24344021427549448,0.35994473654661996,0.4434850423849219,0.452735096428622,0.25291947015843297,0.3767693801420614,0.5301810038419658,0.21555832324685273,0.23211081378876122,0.2872560096622122,0.2872560096622122,0.3767693801420614,0.5473238809294039,0.47556492012642165,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,0.3767693801420614,
-0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,};
-#endif
-
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
     OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() == total_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
@@ -606,9 +597,6 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-            intensity *= b_[i]; ////////////////////////////////// fragment background freq scaling
-#endif
             dot_product += intensity;
             b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             b_ions[i] += intensity;
@@ -646,9 +634,6 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-            intensity *= a_[i]; ////////////////////////////////// fragment background freq scaling
-#endif
             dot_product += intensity;
             a_ions[i] += intensity;
             ++matches;
@@ -681,9 +666,6 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-            intensity *= y_[i];  ////////////////////////////////// fragment background freq scaling
-#endif
             y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             dot_product += intensity;                  
             y_ions[N-1 - i] += intensity;      
@@ -917,34 +899,10 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
     err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
 
-
-/*
-    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
-#ifdef MODDS_ON_ABY_IONS_ONLY
-    modds = matchOddsScore_(total_loss_template_z1_b_ions.size() + total_loss_template_z1_y_ions.size(),
-     fragment_mass_tolerance_Da,
-     exp_spectrum.size(),
-     exp_spectrum.back().getMZ(),
-     (int)Morph);
-#else
-    modds = matchOddsScore_(n_theoretical_peaks,
-     fragment_mass_tolerance_Da,
-     exp_spectrum.size(),
-     exp_spectrum.back().getMZ(),
-     matches);
-#endif
-*/
     //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
     const double p_random_match = 1e-3;
     OPENMS_PRECONDITION(n_theoretical_peaks > 0, "Error: no theoretical peaks are generated");
     modds = matchOddsScore_(n_theoretical_peaks, matches, p_random_match);
-/*
-    boost::math::binomial flip(N-1, 0.5);
-    if (y_larger_than_b > 0)
-    {
-      modds += -log10(boost::math::cdf(boost::math::complement(flip, y_larger_than_b - 1)));
-    }
-*/
   }
 
   static void scoreShiftedLadderIons_(
@@ -972,12 +930,6 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
                         size_t& n_theoretical_peaks/*,
                         bool is_decoy*/)
   {
-#ifdef FRAGMENT_FREQ_SCALING
-static std::vector<double> xl_a_ = {0.3659528914710744,0.47861728235068857,0.42071800758257055,0.5033640127522735,0.5895282639501609,0.49264930296695003,0.5324411204304591,0.48417463865923027,0.5511271154003025,0.5286803949442149,0.7173140531939944,0.336435471054921,0.4859101632376203,0.5024262214061576,0.46840208095976715,0.40809322953700483,0.3167094903810921,0.18129098288335982,0.4189105949805667,0.3330045922905184,0.3126071182614005,0.0650657360415093,0.40059551576627994,0.24183385621259657,0.17535844006882048,0.28364985698456463,0.433598827728014,0.27286545915347155,0.17535844006882048,0.24183385621259657,0.16767660150073574,0.32361968601164226,0.656809394243162,0.5729006723867871,0.4889919505304121,0.656809394243162,0.7021597756570445,0.7475101570709268,0.7928605384848093,0.7928605384848093,0.7928605384848093};
-static std::vector<double> xl_b_ = {0.2491938528289777,0.3856151839213907,0.3647776031187359,0.5407667409164766,0.48483561551239046,0.545482943034812,0.44176624959405336,0.4892070682435069,0.5821888866263324,0.5283814756892558,0.5874975667022032,0.5254550930392076,0.6008338026815329,0.6255675366401964,0.5644205635354829,0.4547628038391301,0.3373921521612854,0.32736271323930605,0.29693905198602577,0.4331622745676728,0.2866614892568747,0.41334354567005543,0.26789101676894134,0.15648636150792897,0.03829355836488023,0.051609876958974295,0.06627620698070251,0.07546738423116832,0.11156988263191558,0.32875347958219475,0.14034341782502044,0.1891158141543777,0.28984234629777234,0.28984234629777234,0.28984234629777234,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858,0.3524087974901858};
-static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.35054745332681947,0.37174426433751473,0.41759826478801526,0.4269329894992057,0.4705619772415399,0.552562608306239,0.6461531416854231,0.5530968264015448,0.6025099662697077,0.5478810430654834,0.5571688470181058,0.5504295835175378,0.5390253808536244,0.4847596410095063,0.5018553373891388,0.473181377276754,0.5860391279941947,0.5556416220543001,0.3859448483873362,0.651387747360435,0.516376393935597,0.4093617866644474,0.4469048380712779,0.2713822504471235,0.24260619760761046,0.2337540058421485,0.319634600171193,0.35700263742531846,0.4479621597068155,0.17596775433173067,0.34805080737787986,0.3052687956612212,0.26248678394456265,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986,0.34805080737787986};
-#endif
-
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -986,21 +938,6 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     OPENMS_PRECONDITION(intensity_sum.size() == y_ions.size(), "Sum array needs to be of same size as y-ion array");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
-
-#ifdef FILTER_AMBIGIOUS_PEAKS
-    // is the mass shift ambigious and common in non-XL data (e.g.: freq > 10%)
-    auto ambigious_match = [&](const double& previous_theo_mass, const double& current_theo_mass)->bool
-      {
-        const double dist = current_theo_mass - previous_theo_mass;
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? current_theo_mass * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-        auto low_it = mass2high_frequency_.lower_bound(dist - max_dist_dalton);
-        if (low_it != mass2high_frequency_.end() && fabs(low_it->first - dist) < max_dist_dalton) // in tolerance window?
-        {
-          return true; // ambigious match
-        }
-        return false;
-      };
-#endif
 
     auto ambigious_match = [&](const double& mz, const double z, const String& name)->bool
     {
@@ -1045,22 +982,12 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
      {
        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
-/////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
-       // TODO move out?
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
-        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-#endif
 
         for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
         {
           const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
 
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
-#endif
- 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -1075,17 +1002,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
           {
             if (!peak_matched[index])
             {
-#ifdef FILTER_AMBIGIOUS_PEAKS
-              // skip ambigious matches
-              if (i >= 1)
-              {
-                if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
-              }
-#endif
               double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-              intensity *= xl_b_[i]; ////////////////////////////////// fragment background freq scaling
-#endif
               b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
               dot_product += intensity;
               b_ions[i] += intensity;            
@@ -1107,22 +1024,12 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
       for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
-        // TODO move out?
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-//////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
-        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
-        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-#endif
 
         for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
         {
           const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
             + (z-1) * Constants::PROTON_MASS_U) / z;
 
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-            if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
-#endif
- 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -1137,17 +1044,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
           {
             if (!peak_matched[index])
             {
-#ifdef FILTER_AMBIGIOUS_PEAKS
-              // skip ambigious matches
-              if (i >= 1)
-              {
-                if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
-              }
-#endif
               double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-              intensity *= xl_a_[i]; ////////////////////////////////// fragment background freq scaling
-#endif
               dot_product += intensity;
               a_ions[i] += intensity;            
               peak_matched[index] = true;
@@ -1167,11 +1064,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
       {
 
         n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-        ////////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
-        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
-        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-#endif
+
         for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
@@ -1179,9 +1072,6 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
-#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
-#endif
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
           Size index = exp_spectrum.findNearest(theo_mz);
 
@@ -1194,17 +1084,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
           {
             if (!peak_matched[index])
             {
-#ifdef FILTER_AMBIGIOUS_PEAKS
-              // skip ambigious matches
-              if (i >= 1)
-              {
-                  if (ambigious_match(partial_loss_template_z1_y_ions[i - 1], partial_loss_template_z1_y_ions[i] + fa.mass)) continue;
-              }
-#endif
               double intensity = exp_spectrum[index].getIntensity();
-#ifdef FRAGMENT_FREQ_SCALING
-              intensity *= xl_y_[i]; ////////////////////////////////// fragment background freq scaling
-#endif
               y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
               dot_product += intensity;                  
               y_ions[N-1 - i] += intensity;      
@@ -1470,40 +1350,12 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
 //    plss_err = plss_Morph > 2 ? plss_err : fragment_mass_tolerance;
 
-/*
-    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
-
-#ifdef MODDS_ON_ABY_IONS_ONLY
-    plss_modds = matchOddsScore_(
-     partial_loss_template_z1_b_ions.size() + partial_loss_template_z1_y_ions.size(), 
-     fragment_mass_tolerance_Da,
-     exp_spectrum.size(),
-     exp_spectrum.back().getMZ(),
-     (int)plss_Morph);
-#else
-    plss_modds = matchOddsScore_(
-     n_theoretical_XL_peaks, 
-     fragment_mass_tolerance_Da,
-     exp_spectrum.size(),
-     exp_spectrum.back().getMZ(),
-     matches);
-#endif
-*/
-
     assert(n_theoretical_XL_peaks != 0);
 
     //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
     const double p_random_match = 1e-3;
     plss_modds = matchOddsScore_(n_theoretical_XL_peaks, matches, p_random_match);
     n_theoretical_peaks += n_theoretical_XL_peaks;
-
-/*
-    boost::math::binomial flip(N-1, 0.5);
-    if (y_larger_than_b > 0)
-    {
-      plss_modds += -log10(boost::math::cdf(boost::math::complement(flip, y_larger_than_b - 1)));
-    }
-*/
   } 
 
 /*
@@ -1517,61 +1369,6 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     //, const double fraction_of_top50annotated
     )
   {
-// Tie-braker score
-//    return + 1.0 * ah.total_loss_score + ah.total_MIC + 0.1 * ah.mass_error_p 
-//           - 0.01 * ah.isotope_error - 10.0 * ah.err - 10.0 * ah.pl_err;
-
-/*
-     double score = 2.52872532
-                   +0.38318303 * nucleotide_mass_tags;
-           
-    if (!isXL)
-    {
-       score += ah.mass_error_p * 0.45919677
-+ ah.err          * 0.01016288
-+ ah.modds        * -0.02450589
-+ ah.immonium_score  * 0.26555840
-+ ah.precursor_score * 0.06148951
-+ ah.MIC             * 0.91845925
-+ ah.sequence_score  * 0.23213255
-+ ah.total_loss_score * 8.69880275;
-    }
-    else
-    {
-score += ah.mass_error_p     *   1.15386068
-+ah.err         *       -0.75849696
-+ah.pl_err       *       0.01731052
-+ah.marker_ions_score *  0.40870416
-+ah.total_loss_score *   4.92806210
-+ah.modds           *    0.96869679
-+ah.immonium_score   *   0.14292426
-+ah.precursor_score *   -0.05822564
-+ah.MIC            *     0.73432514
-+ah.pl_MIC         *     0.27953670
-+ah.pl_modds       *     0.03810840
-+ah.pl_pc_MIC      *     0.15083043
-+ah.pl_im_MIC      *    -0.12681649
-+ah.sequence_score  *    0.46228471;
-    }
-
-    return score;
-*/
-
-//TODO: check Alex    if (ah.Morph + ah.pl_Morph < 5.03) return 0;
-//    return ah.total_MIC + ah.marker_ions_score + fraction_of_top50annotated;
-
-
-/*
-    return 
-             10.0 * ah.total_loss_score + ah.partial_loss_score 
-           + 0.01 * ah.mass_error_p 
-           - 10.0 * ah.err 
-           - 10.0 * ah.pl_err
-           + 3.0 * ah.pl_MIC
-           + isXL * 3.0 * ah.marker_ions_score
-           + 3.0 * ah.total_MIC + ah.ladder_score;
-*/
-
       return ah.modds + ah.pl_modds;
   }
 
@@ -1579,9 +1376,8 @@ score += ah.mass_error_p     *   1.15386068
   static float calculateFastScore(const NuXLAnnotatedHit& ah)
   {
     return ah.modds;
-/*               + 1.0 * ah.total_MIC         
-               + 0.333 * ah.mass_error_p*/;
-  } 
+  }
+ 
 /*
 *  Score fragments carrying NA adducts 
 */
@@ -1932,9 +1728,6 @@ static void scoreXLIons_(
   }
 */
 
-#ifdef FILTER_AMBIGIOUS_PEAKS
-  static map<double, double> mass2high_frequency_;
-#endif
   static map<String, vector<vector<double>>> fragment_adduct2block_if_masses_present;
 
 
@@ -2310,9 +2103,6 @@ static void scoreXLIons_(
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
 
-#ifdef FILTER_AMBIGIOUS_PEAKS
-    mass2high_frequency_.clear();
-#endif
     for (const auto& aa2 : aa2mass2count)
     {
       auto& mass2count = aa2.second;
@@ -2320,21 +2110,10 @@ static void scoreXLIons_(
       {
         double current_mass = m2c.first;
         size_t current_residue_count = m2c.second;
-#ifdef FILTER_AMBIGIOUS_PEAKS
-        size_t unmodified_residue_count = mass2count.begin()->second;
-#endif
         if (debug_level_ > 0)
         {
           OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
         }
-
-#ifdef FILTER_AMBIGIOUS_PEAKS
-        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;  // frequency relative to unmodified residue
-        if (frequency_normalized > 0.5 && frequency_normalized != 1.0) // residue with shift as frequent as unmodified residue
-        {
-          mass2high_frequency_[m2c.first] = frequency_normalized;
-        }
-#endif
       }
     }
 
@@ -2355,15 +2134,6 @@ static void scoreXLIons_(
         }
       }
     }
-
-#ifdef FILTER_AMBIGIOUS_PEAKS
-    OPENMS_LOG_DEBUG << "Frequent background mass shifts (mass vs. freq):" << endl;
-    for (auto & hf : mass2high_frequency_)
-    {
-      OPENMS_LOG_DEBUG << hf.first << "\t" << hf.second << endl;
-    }
-#endif
-
   }
 
    // An interval has start time and end time 
@@ -5867,10 +5637,6 @@ static void scoreXLIons_(
 
 
 };
-
-#ifdef FILTER_AMBIGIOUS_PEAKS
-map<double, double> OpenNuXL::mass2high_frequency_ = {};
-#endif
 
 map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
 
