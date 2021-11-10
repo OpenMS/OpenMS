@@ -41,8 +41,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-using namespace std;
-
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
@@ -237,7 +235,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::IntensityLess cmp; return cmp(right, left);});
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {Feature::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -264,7 +262,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::OverallQualityLess cmp; return cmp(right, left);});
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {Feature::OverallQualityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -464,22 +462,22 @@ namespace OpenMS
   }
 
 
-  set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
+  std::set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
   {
-    set<IdentificationData::ObservationMatchRef> all_matches;
+    std::set<IdentificationData::ObservationMatchRef> all_matches;
     for (auto it = id_data_.getObservationMatches().begin();
          it != id_data_.getObservationMatches().end(); ++it)
     {
       all_matches.insert(it);
     }
-    set<IdentificationData::ObservationMatchRef> assigned_matches;
+    std::set<IdentificationData::ObservationMatchRef> assigned_matches;
     for (const Feature& feat : *this)
     {
       assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
       // @TODO: consider subordinate features? - probably not
     }
-    set<IdentificationData::ObservationMatchRef> result;
-    set_difference(all_matches.begin(), all_matches.end(),
+    std::set<IdentificationData::ObservationMatchRef> result;
+    std::set_difference(all_matches.begin(), all_matches.end(),
                    assigned_matches.begin(), assigned_matches.end(),
                    inserter(result, result.end()));
     return result;
