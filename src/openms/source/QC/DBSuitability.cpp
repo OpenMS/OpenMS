@@ -79,13 +79,12 @@ namespace OpenMS
   
   void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
-    if (pep_ids[0].getScoreType() == "q-value") // q-value as score?
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-    }
-
     for (const auto& id : pep_ids)
     {
+      if (id.getScoreType() == "q-value") // q-value as score?
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+      }
       if (id.getHits().empty()) continue;
       if (id.getHits()[0].metaValueExists("q-value")) // q-value at meta values?
       {
