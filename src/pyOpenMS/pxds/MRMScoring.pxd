@@ -11,7 +11,7 @@ from Matrix cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath":
     
-    cdef cppclass MRMScoring "OpenMS::MRMScoring":
+    cdef cppclass MRMScoring:
         MRMScoring() nogil except + # compiler
         MRMScoring(MRMScoring &) nogil except + # compiler
 
