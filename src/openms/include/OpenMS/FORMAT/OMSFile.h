@@ -52,7 +52,6 @@ namespace OpenMS
   class OPENMS_DLLAPI OMSFile: public ProgressLogger
   {
   public:
-
     /// Constructor (with option to set log type)
     explicit OMSFile(LogType log_type = LogType::NONE):
       log_type_(log_type)
@@ -89,7 +88,6 @@ namespace OpenMS
     void load(const String& filename, FeatureMap& features);
 
   protected:
-
     using Key = qint64;
 
     LogType log_type_;

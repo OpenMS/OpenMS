@@ -212,11 +212,9 @@ namespace OpenMS
     return result.first;
   }
 
-
   IdentificationData::ObservationRef
   IdentificationData::registerObservation(const Observation& obs)
   {
-
     if (!no_checks_)
     {
       // reference to spectrum or feature is required:

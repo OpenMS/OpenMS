@@ -108,7 +108,6 @@ public:
     String(InputIterator first, InputIterator last) :
       std::string(first, last)
     {
-
     }
 
     /// Constructor from an integer
@@ -479,9 +478,7 @@ public:
         std::string::operator+=(glue + (*it));
       }
     }
-
   };
-
   OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
 } // namespace OpenMS
 

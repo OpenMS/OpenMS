@@ -162,8 +162,6 @@ namespace OpenMS
                                             OPENMS_PRETTY_FUNCTION);
         }
       }
-
     };
-
   }
 }
