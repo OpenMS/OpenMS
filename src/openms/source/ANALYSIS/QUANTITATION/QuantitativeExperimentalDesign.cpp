@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>

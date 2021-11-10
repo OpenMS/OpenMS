@@ -41,10 +41,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 #include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {

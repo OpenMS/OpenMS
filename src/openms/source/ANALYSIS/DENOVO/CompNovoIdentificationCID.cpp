@@ -39,6 +39,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 //#define DAC_DEBUG
 
 //#define WRITE_SCORED_SPEC

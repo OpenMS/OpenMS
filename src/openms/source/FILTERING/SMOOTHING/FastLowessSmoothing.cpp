@@ -51,6 +51,7 @@
 #include <algorithm>    // std::min, std::max
 #include <cstdlib>
 #include <vector>
+#include <functional>
 
 namespace c_lowess
 {
@@ -611,6 +612,18 @@ namespace OpenMS
                                   resid_weights, weights);
 
       return retval;
+    }
+
+    int lowess(const std::vector<double>& x, const std::vector<double>& y,
+               std::vector<double>& result)
+    {
+      OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
+      OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
+      OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
+          "The vector x needs to be sorted")
+
+      double delta = 0.01 * (x[ x.size()-1 ] - x[0]); // x is sorted
+      return lowess(x, y, 2.0/3, 3, delta, result);
     }
 
   }

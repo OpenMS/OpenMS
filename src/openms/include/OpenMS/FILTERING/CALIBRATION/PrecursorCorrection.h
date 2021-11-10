@@ -44,10 +44,9 @@
 
 #include <OpenMS/METADATA/Precursor.h>
 
-#include <fstream>
-#include <iostream>
 #include <string>
-#include <algorithm>
+#include <vector>
+#include <set>
 
 namespace OpenMS
 {

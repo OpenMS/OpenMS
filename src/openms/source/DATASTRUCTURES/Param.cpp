@@ -35,6 +35,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <algorithm>
 
 namespace OpenMS
 {

@@ -32,12 +32,15 @@
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
+#include <cmath>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM

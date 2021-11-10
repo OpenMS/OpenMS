@@ -34,9 +34,7 @@
 
 #pragma once
 
-
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <map>
 

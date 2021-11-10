@@ -40,6 +40,7 @@
 
 #include <numeric> // for make_pair
 #include <algorithm> // for set_intersection
+#include <iterator> // for inserter
 
 using std::map;
 using std::vector;

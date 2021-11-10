@@ -100,6 +100,8 @@ namespace OpenMS
 
   Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name)
   {
+    static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
+
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
@@ -117,9 +119,14 @@ namespace OpenMS
       std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
       return tool_param;
     }
+    // Spawning a thread for all tools is no problem (if std::async decides to do so)
+    // but spawning that many processes failed with not enough file handles on machines with large number of cores.
+    // Restricting the number of running processes solves that issue.
+    while (running_processes >= 6) { std::this_thread::sleep_for(std::chrono::milliseconds(10)); QCoreApplication::processEvents(); }
+    ++running_processes;
     // Write tool ini to temporary file
-    ExternalProcess proc;
-    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), false, ExternalProcess::IO_MODE::NO_IO);
+    auto return_state = ExternalProcess().run(executable.toQString(), args, working_dir.toQString(), false, ExternalProcess::IO_MODE::NO_IO);
+    --running_processes;
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
