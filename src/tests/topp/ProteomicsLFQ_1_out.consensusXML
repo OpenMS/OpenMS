@@ -26,7 +26,7 @@
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-09-27"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-idfile-integration-2021-11-09"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -230,9 +230,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="1"/>
-			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_2" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -273,9 +271,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="2"/>
-			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_3" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -304,9 +300,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="3"/>
-			<UserParam type="int" name="fraction" value="1"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_4" date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -359,9 +353,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="1"/>
-			<UserParam type="int" name="fraction" value="2"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_5" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -390,9 +382,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="2"/>
-			<UserParam type="int" name="fraction" value="2"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_6" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -409,9 +399,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
-			<UserParam type="int" name="fraction_group" value="3"/>
-			<UserParam type="int" name="fraction" value="2"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.832153320312" RT="1607.2958984375" spectrum_reference="spectrum=2475" >
@@ -838,27 +826,27 @@
 		<UserParam type="int" name="map_index" value="5"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
-		<map id="0" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="5860084234476467938" label="label-free" size="0">
+		<map id="0" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="5860084234476467938" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="1" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="9693516254110939661" label="label-free" size="0">
+		<map id="1" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="9693516254110939661" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="2" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="3895238410403729308" label="label-free" size="0">
+		<map id="2" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="3895238410403729308" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="3" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="9229951951226823321" label="label-free" size="0">
+		<map id="3" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="9229951951226823321" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="4" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="17913703819525749873" label="label-free" size="0">
+		<map id="4" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="17913703819525749873" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="5" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="3070492751474283061" label="label-free" size="0">
+		<map id="5" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="3070492751474283061" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
@@ -907,10 +895,10 @@
 			<UserParam type="string" name="feature_id" value="10409195546240342212"/>
 		</consensusElement>
 		<consensusElement id="e_2477368416748083016" quality="0.432693" charge="2">
-			<centroid rt="1641.742577455876472" mz="508.247494448271027" it="1.592094e05"/>
+			<centroid rt="1641.742577455876472" mz="508.24749444827097" it="1.592094e05"/>
 			<groupedElementList>
-				<element map="1" id="16616557306000669869" rt="1524.941088971155523" mz="508.247494448271027" it="2.140297e05" charge="2"/>
-				<element map="2" id="13663761038749696507" rt="1758.544065940597648" mz="508.247494448271027" it="1.04389e05" charge="2"/>
+				<element map="1" id="16616557306000669869" rt="1524.941088971155523" mz="508.24749444827097" it="2.140297e05" charge="2"/>
+				<element map="2" id="13663761038749696507" rt="1758.544065940597648" mz="508.24749444827097" it="1.04389e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="508.245635986328" RT="1520.49755859375" spectrum_reference="spectrum=2315" >
 				<PeptideHit score="0" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_31">
@@ -987,9 +975,9 @@
 		<consensusElement id="e_17757401347613427925" quality="0.961813" charge="2">
 			<centroid rt="1726.141157089023409" mz="449.744389900420913" it="2.278242e06"/>
 			<groupedElementList>
-				<element map="0" id="7276556891837796968" rt="1781.642176761832616" mz="449.74438990042097" it="1.971501e06" charge="2"/>
-				<element map="1" id="15721057298497490036" rt="1673.962453042176094" mz="449.74438990042097" it="4.102755e06" charge="2"/>
-				<element map="2" id="276808963686810837" rt="1722.818841463061517" mz="449.74438990042097" it="7.604715e05" charge="2"/>
+				<element map="0" id="7276556891837796968" rt="1781.642176761832616" mz="449.744389900420913" it="1.971501e06" charge="2"/>
+				<element map="1" id="15721057298497490036" rt="1673.962453042176094" mz="449.744389900420913" it="4.102755e06" charge="2"/>
+				<element map="2" id="276808963686810837" rt="1722.818841463061517" mz="449.744389900420913" it="7.604715e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="449.744232177734" RT="1776.05004882812" spectrum_reference="spectrum=2588" >
 				<PeptideHit score="0.0344827586206897" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_25">
@@ -1125,9 +1113,9 @@
 			<UserParam type="string" name="feature_id" value="3103608995878612024"/>
 		</consensusElement>
 		<consensusElement id="e_5494749430262800962" quality="0.0" charge="2">
-			<centroid rt="1748.196881731948679" mz="523.285465678970922" it="8.232995e05"/>
+			<centroid rt="1748.196881731948679" mz="523.285465678971036" it="8.232995e05"/>
 			<groupedElementList>
-				<element map="2" id="3985464472191994486" rt="1748.196881731948679" mz="523.285465678970922" it="8.232995e05" charge="2"/>
+				<element map="2" id="3985464472191994486" rt="1748.196881731948679" mz="523.285465678971036" it="8.232995e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="523.284973144531" RT="1746.76638354514" spectrum_reference="spectrum=2510" >
 				<PeptideHit score="0" sequence="LSSPATLNSR" charge="2" aa_before="K X" aa_after="V X" protein_refs="PH_38 PH_40">
@@ -1143,9 +1131,9 @@
 		<consensusElement id="e_9283548542228005819" quality="0.977655" charge="2">
 			<centroid rt="1755.020224719759426" mz="722.324660331071186" it="2.377239e07"/>
 			<groupedElementList>
-				<element map="0" id="7539502987715517688" rt="1788.385620876663324" mz="722.324660331071073" it="3.697615e07" charge="2"/>
-				<element map="1" id="3279626156608649238" rt="1734.725603004736968" mz="722.324660331071073" it="2.396901e07" charge="2"/>
-				<element map="2" id="4870109536405501088" rt="1741.949450277877986" mz="722.324660331071073" it="1.037201e07" charge="2"/>
+				<element map="0" id="7539502987715517688" rt="1788.385620876663324" mz="722.324660331071186" it="3.697615e07" charge="2"/>
+				<element map="1" id="3279626156608649238" rt="1734.725603004736968" mz="722.324660331071186" it="2.396901e07" charge="2"/>
+				<element map="2" id="4870109536405501088" rt="1741.949450277877986" mz="722.324660331071186" it="1.037201e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" spectrum_reference="spectrum=2624" >
 				<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_25">
@@ -1193,11 +1181,11 @@
 			<UserParam type="string" name="feature_id" value="14976954448023685397"/>
 		</consensusElement>
 		<consensusElement id="e_4052294204879239723" quality="0.96763" charge="2">
-			<centroid rt="1791.525739926758661" mz="487.732534471620909" it="6.794489e07"/>
+			<centroid rt="1791.525739926758661" mz="487.732534471621023" it="6.794489e07"/>
 			<groupedElementList>
-				<element map="0" id="474525871221756682" rt="1850.125288661992272" mz="487.732534471620909" it="9.063513e07" charge="2"/>
-				<element map="1" id="3689406389503231823" rt="1772.139820750561739" mz="487.732534471620909" it="8.830588e07" charge="2"/>
-				<element map="2" id="11164532998186420766" rt="1752.312110367722653" mz="487.732534471620909" it="2.489364e07" charge="2"/>
+				<element map="0" id="474525871221756682" rt="1850.125288661992272" mz="487.732534471621023" it="9.063513e07" charge="2"/>
+				<element map="1" id="3689406389503231823" rt="1772.139820750561739" mz="487.732534471621023" it="8.830588e07" charge="2"/>
+				<element map="2" id="11164532998186420766" rt="1752.312110367722653" mz="487.732534471621023" it="2.489364e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732299804688" RT="1875.54736328125" spectrum_reference="spectrum=2716" >
 				<PeptideHit score="0.0344827586206897" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_25">
@@ -1229,9 +1217,9 @@
 			<UserParam type="string" name="feature_id" value="4052294204879239723"/>
 		</consensusElement>
 		<consensusElement id="e_14278822580076064845" quality="0.0" charge="2">
-			<centroid rt="1792.508458559750579" mz="739.765263949420955" it="6.884174e05"/>
+			<centroid rt="1792.508458559750579" mz="739.765263949421069" it="6.884174e05"/>
 			<groupedElementList>
-				<element map="1" id="7061025990090747374" rt="1792.508458559750579" mz="739.765263949420955" it="6.884174e05" charge="2"/>
+				<element map="1" id="7061025990090747374" rt="1792.508458559750579" mz="739.765263949421069" it="6.884174e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="739.765686035156" RT="1790.20324707031" spectrum_reference="spectrum=2570" >
 				<PeptideHit score="0" sequence="ETYGDMADC(Carbamidomethyl)C(Carbamidomethyl)EK" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_31">
@@ -1313,9 +1301,9 @@
 			<UserParam type="string" name="feature_id" value="1479160453569602855"/>
 		</consensusElement>
 		<consensusElement id="e_14086301720075657476" quality="0.0" charge="2">
-			<centroid rt="1858.622136065448785" mz="379.715100772820961" it="6.24017e06"/>
+			<centroid rt="1858.622136065448785" mz="379.715100772820904" it="6.24017e06"/>
 			<groupedElementList>
-				<element map="2" id="11513186574425272818" rt="1858.622136065448785" mz="379.715100772820961" it="6.24017e06" charge="2"/>
+				<element map="2" id="11513186574425272818" rt="1858.622136065448785" mz="379.715100772820904" it="6.24017e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="1834.07925537094" spectrum_reference="spectrum=2624" >
 				<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_39">
@@ -1355,9 +1343,9 @@
 			<UserParam type="string" name="feature_id" value="17798533385406028685"/>
 		</consensusElement>
 		<consensusElement id="e_4877407491526870466" quality="0.0" charge="2">
-			<centroid rt="1942.87914250559561" mz="395.239463487570902" it="1.801425e08"/>
+			<centroid rt="1942.87914250559561" mz="395.239463487570958" it="1.801425e08"/>
 			<groupedElementList>
-				<element map="0" id="4584897071539917580" rt="1942.87914250559561" mz="395.239463487570902" it="1.801425e08" charge="2"/>
+				<element map="0" id="4584897071539917580" rt="1942.87914250559561" mz="395.239463487570958" it="1.801425e08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.239349365234" RT="1933.40515136719" spectrum_reference="spectrum=2811" >
 				<PeptideHit score="0" sequence="LVTDLTK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_25">
@@ -1371,10 +1359,10 @@
 			<UserParam type="string" name="feature_id" value="4877407491526870466"/>
 		</consensusElement>
 		<consensusElement id="e_5634796270667792442" quality="0.496035" charge="2">
-			<centroid rt="1951.959204506901415" mz="461.747653035420967" it="6.930444e07"/>
+			<centroid rt="1951.959204506901415" mz="461.747653035421024" it="6.930444e07"/>
 			<groupedElementList>
-				<element map="1" id="17287849381738438716" rt="1951.23183628886045" mz="461.747653035420967" it="8.861572e07" charge="2"/>
-				<element map="2" id="6330535588886112108" rt="1952.68657272494238" mz="461.747653035420967" it="4.999316e07" charge="2"/>
+				<element map="1" id="17287849381738438716" rt="1951.23183628886045" mz="461.747653035421024" it="8.861572e07" charge="2"/>
+				<element map="2" id="6330535588886112108" rt="1952.68657272494238" mz="461.747653035421024" it="4.999316e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747375488281" RT="1948.32080078125" spectrum_reference="spectrum=2794" >
 				<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_31">
@@ -1397,9 +1385,9 @@
 			<UserParam type="string" name="feature_id" value="5634796270667792442"/>
 		</consensusElement>
 		<consensusElement id="e_17153118873428995855" quality="0.0" charge="2">
-			<centroid rt="1981.815619995114048" mz="351.204368724971005" it="3.483044e05"/>
+			<centroid rt="1981.815619995114048" mz="351.204368724970948" it="3.483044e05"/>
 			<groupedElementList>
-				<element map="1" id="13641829453453140763" rt="1981.815619995114048" mz="351.204368724971005" it="3.483044e05" charge="2"/>
+				<element map="1" id="13641829453453140763" rt="1981.815619995114048" mz="351.204368724970948" it="3.483044e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="351.204498291016" RT="1983.37719726562" spectrum_reference="spectrum=2840" >
 				<PeptideHit score="0" sequence="GACLLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_31">
@@ -1413,9 +1401,9 @@
 			<UserParam type="string" name="feature_id" value="17153118873428995855"/>
 		</consensusElement>
 		<consensusElement id="e_6330378408783783417" quality="0.0" charge="2">
-			<centroid rt="1993.808613230953597" mz="395.726522907820936" it="6914.940918"/>
+			<centroid rt="1993.808613230953597" mz="395.726522907820993" it="6914.940918"/>
 			<groupedElementList>
-				<element map="1" id="4143272592559840046" rt="1993.808613230953597" mz="395.726522907820936" it="6914.940918" charge="2"/>
+				<element map="1" id="4143272592559840046" rt="1993.808613230953597" mz="395.726522907820993" it="6914.940918" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.700927734375" RT="1989.79528808594" spectrum_reference="spectrum=2848" >
 				<PeptideHit score="0" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" protein_refs="PH_34">
@@ -1429,9 +1417,9 @@
 			<UserParam type="string" name="feature_id" value="6330378408783783417"/>
 		</consensusElement>
 		<consensusElement id="e_8183479809560916255" quality="0.0" charge="2">
-			<centroid rt="2023.952880356795049" mz="461.747653035420967" it="1.546597e08"/>
+			<centroid rt="2023.952880356795049" mz="461.747653035421024" it="1.546597e08"/>
 			<groupedElementList>
-				<element map="3" id="8269033494178950104" rt="2023.952880356795049" mz="461.747653035420967" it="1.546597e08" charge="2"/>
+				<element map="3" id="8269033494178950104" rt="2023.952880356795049" mz="461.747653035421024" it="1.546597e08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747497558594" RT="2015.59265136719" spectrum_reference="spectrum=2950" >
 				<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_47">
@@ -1445,9 +1433,9 @@
 			<UserParam type="string" name="feature_id" value="8183479809560916255"/>
 		</consensusElement>
 		<consensusElement id="e_1710461392160758637" quality="0.0" charge="2">
-			<centroid rt="2072.094747027906124" mz="395.726522907820936" it="7877.708008"/>
+			<centroid rt="2072.094747027906124" mz="395.726522907820993" it="7877.708008"/>
 			<groupedElementList>
-				<element map="3" id="5790065978798102656" rt="2072.094747027906124" mz="395.726522907820936" it="7877.708008" charge="2"/>
+				<element map="3" id="5790065978798102656" rt="2072.094747027906124" mz="395.726522907820993" it="7877.708008" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.700897216797" RT="2085.73901367188" spectrum_reference="spectrum=3077" >
 				<PeptideHit score="0.0454545454545455" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" protein_refs="PH_53">
@@ -1477,9 +1465,9 @@
 			<UserParam type="string" name="feature_id" value="626016427783280945"/>
 		</consensusElement>
 		<consensusElement id="e_14545089398880866717" quality="0.0" charge="2">
-			<centroid rt="2089.596569519389959" mz="421.758354535420949" it="2.062205e07"/>
+			<centroid rt="2089.596569519389959" mz="421.758354535420892" it="2.062205e07"/>
 			<groupedElementList>
-				<element map="3" id="5322749189241434745" rt="2089.596569519389959" mz="421.758354535420949" it="2.062205e07" charge="2"/>
+				<element map="3" id="5322749189241434745" rt="2089.596569519389959" mz="421.758354535420892" it="2.062205e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" spectrum_reference="spectrum=3087" >
 				<PeptideHit score="0.0344827586206897" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_46">
@@ -1493,10 +1481,10 @@
 			<UserParam type="string" name="feature_id" value="14545089398880866717"/>
 		</consensusElement>
 		<consensusElement id="e_18251849631538333325" quality="0.496264" charge="2">
-			<centroid rt="2133.576519092495346" mz="428.234180955671036" it="3.274066e06"/>
+			<centroid rt="2133.576519092495346" mz="428.234180955670979" it="3.274066e06"/>
 			<groupedElementList>
-				<element map="4" id="15293352267620635047" rt="2136.810805324523244" mz="428.234180955671036" it="3.643801e06" charge="2"/>
-				<element map="5" id="14355553896400643137" rt="2130.342232860467448" mz="428.234180955671036" it="2.904332e06" charge="2"/>
+				<element map="4" id="15293352267620635047" rt="2136.810805324523244" mz="428.234180955670979" it="3.643801e06" charge="2"/>
+				<element map="5" id="14355553896400643137" rt="2130.342232860467448" mz="428.234180955670979" it="2.904332e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="428.234222412109" RT="2133.27758789062" spectrum_reference="spectrum=3034" >
 				<PeptideHit score="0" sequence="FVEGLYK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_55">
@@ -1649,10 +1637,10 @@
 			<UserParam type="string" name="feature_id" value="9280572821339638149"/>
 		</consensusElement>
 		<consensusElement id="e_14629045591043354911" quality="0.4867" charge="3">
-			<centroid rt="2313.268754290307697" mz="547.317436139904316" it="4.039545e07"/>
+			<centroid rt="2313.268754290307697" mz="547.31743613990443" it="4.039545e07"/>
 			<groupedElementList>
-				<element map="4" id="1306039369812879929" rt="2301.485281500716155" mz="547.317436139904316" it="6.220473e07" charge="3"/>
-				<element map="5" id="4169697051499708787" rt="2325.052227079899239" mz="547.317436139904316" it="1.858616e07" charge="3"/>
+				<element map="4" id="1306039369812879929" rt="2301.485281500716155" mz="547.31743613990443" it="6.220473e07" charge="3"/>
+				<element map="5" id="4169697051499708787" rt="2325.052227079899239" mz="547.31743613990443" it="1.858616e07" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="547.317077636719" RT="2281.44189453125" spectrum_reference="spectrum=3243" >
 				<PeptideHit score="0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_54">
@@ -1675,10 +1663,10 @@
 			<UserParam type="string" name="feature_id" value="14629045591043354911"/>
 		</consensusElement>
 		<consensusElement id="e_1958179543060470692" quality="0.485248" charge="2">
-			<centroid rt="2371.16333972502116" mz="501.795134726820947" it="6.963189e07"/>
+			<centroid rt="2371.16333972502116" mz="501.795134726821004" it="6.963189e07"/>
 			<groupedElementList>
-				<element map="3" id="1713197315473853654" rt="2391.725498473171683" mz="501.795134726820947" it="7.702322e07" charge="2"/>
-				<element map="4" id="2652253729487148893" rt="2350.601180976870637" mz="501.795134726820947" it="6.224055e07" charge="2"/>
+				<element map="3" id="1713197315473853654" rt="2391.725498473171683" mz="501.795134726821004" it="7.702322e07" charge="2"/>
+				<element map="4" id="2652253729487148893" rt="2350.601180976870637" mz="501.795134726821004" it="6.224055e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="501.794891357422" RT="2431.52172851562" spectrum_reference="spectrum=3482" >
 				<PeptideHit score="0.0454545454545455" sequence="LVVSTQTALA" charge="2" aa_before="K" protein_refs="PH_47">
