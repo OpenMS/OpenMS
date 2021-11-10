@@ -32,10 +32,12 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
+
 #include <map>
 #include <vector>
 
-#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using std::map;
 using std::vector;

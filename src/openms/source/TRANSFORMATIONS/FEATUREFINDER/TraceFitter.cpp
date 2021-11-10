@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
 
 namespace OpenMS
 {

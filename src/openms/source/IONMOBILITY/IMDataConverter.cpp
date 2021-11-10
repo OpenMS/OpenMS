@@ -297,7 +297,8 @@ namespace OpenMS
         return;
       default:
         // invalid enum ...
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit", toString(unit));
+        // There is no CV term which can be used to describe the FDA
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", toString(unit));
     }
   }
 

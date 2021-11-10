@@ -34,11 +34,14 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
+
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
 
 //#define DAC_DEBUG
 //#define ESTIMATE_PRECURSOR_DEBUG

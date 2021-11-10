@@ -39,8 +39,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {

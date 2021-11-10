@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Factory.h>
 

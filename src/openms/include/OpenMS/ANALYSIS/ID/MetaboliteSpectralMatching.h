@@ -44,9 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-
 #include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {

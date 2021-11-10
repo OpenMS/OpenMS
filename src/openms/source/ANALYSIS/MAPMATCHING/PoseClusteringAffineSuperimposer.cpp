@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
 
 // #define Debug_PoseClusteringAffineSuperimposer
 

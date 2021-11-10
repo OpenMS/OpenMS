@@ -32,12 +32,18 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm>
 
 #include <boost/regex.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 

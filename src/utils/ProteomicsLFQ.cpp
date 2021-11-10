@@ -539,7 +539,7 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
@@ -583,7 +583,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
+        writeDebug_("Using " + String() + " points in fit.", 1); 
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);

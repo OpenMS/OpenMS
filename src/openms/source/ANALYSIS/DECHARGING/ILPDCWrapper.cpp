@@ -31,8 +31,10 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>

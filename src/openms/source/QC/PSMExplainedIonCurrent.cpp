@@ -35,6 +35,7 @@
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 
 #include <numeric>
+#include <float.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>

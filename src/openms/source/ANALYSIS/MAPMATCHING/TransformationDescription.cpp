@@ -40,6 +40,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 #include <iomanip>
+#include <iostream>
 
 using namespace std;
 

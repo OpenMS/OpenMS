@@ -430,7 +430,7 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess())))
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);}))
     {
       return;
     }
@@ -442,7 +442,7 @@ namespace OpenMS
     {
       if (reverse)
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
       }
       else
       {

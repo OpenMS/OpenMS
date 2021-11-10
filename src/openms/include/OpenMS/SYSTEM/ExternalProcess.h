@@ -56,7 +56,7 @@ namespace OpenMS
     Running an external program blocks the caller, so do not use this in a main GUI thread
     (unless you have some other means to tell the user that no interaction is possible at the moment).
 
-    @Note If you want QMessageBoxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
+    If you want QMessageBoxes to be shown if something went wrong, use ExternalProcessMBox as a convenient wrapper instead.
 
   */
   class OPENMS_DLLAPI ExternalProcess
@@ -100,9 +100,9 @@ namespace OpenMS
 
       @param exe The program to call (can contain spaces in path, no problem)
       @param args A list of extra arguments (can be empty)
-      @param verbose Report the call command and errors via the callbacks (default: false)
       @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
-      @param[out] error_string Message to display to the user if something went wrong (if return != SUCCESS)
+      @param verbose Report the call command and errors via the callbacks (default: false)
+      @param[out] error_msg Message to display to the user if something went wrong (if return != SUCCESS)
       @param io_mode Open mode for the process (read access, write access, ...)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */

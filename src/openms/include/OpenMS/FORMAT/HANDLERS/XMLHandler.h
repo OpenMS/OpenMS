@@ -47,7 +47,6 @@
 #include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
-#include <algorithm>
 #include <iosfwd>
 #include <string>
 #include <memory>
@@ -470,21 +469,7 @@ protected:
 
       /// Converts @p term to the index of the term in the cv_terms_ entry @p section
       /// If the term is not found, @p result_on_error is returned (0 by default)
-      inline SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0)
-      {
-        OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
-
-        std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
-        if (it != cv_terms_[section].end())
-        {
-          return it - cv_terms_[section].begin();
-        }
-        else
-        {
-          warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
-          return result_on_error;
-        }
-      }
+      SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0);
 
       //@}
 

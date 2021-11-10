@@ -33,10 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
 
 using namespace std;
+
 namespace OpenMS
 {
   ConsensusMapMergerAlgorithm::ConsensusMapMergerAlgorithm() :
