@@ -7,10 +7,11 @@ from ISpectrumAccess cimport *
 # from StatsHelpers cimport *
 # from Scoring cimport *
 from LightTargetedExperiment cimport *
+from Matrix cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath":
     
-    cdef cppclass MRMScoring "OpenSwath::MRMScoring":
+    cdef cppclass MRMScoring "OpenMS::MRMScoring":
         MRMScoring() nogil except + # compiler
         MRMScoring(MRMScoring &) nogil except + # compiler
 
@@ -64,4 +65,4 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
         double calcMIPrecursorCombinedScore() nogil except + 
         libcpp_vector[ double ] calcSeparateMIContrastScore() nogil except +              
         
-        libcpp_vector[ libcpp_vector[ double ] ]  getMIMatrix() nogil except +
+        Matrix[ double ] getMIMatrix() nogil except +
