@@ -104,7 +104,7 @@ For re-ranking all cases where a peptide hit only found in the de novo "database
 For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crucial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
 @note For identification search the recommended search engine is Comet because the Comet cross-correlation score is recommended for re-ranking.@n
-If you use other search engines re-ranking will be turned off automaticly. You can still enforce re-ranking by using the 'force' flag.@n
+If you use other search engines re-ranking will be turned off automatically. You can still enforce re-ranking by using the 'force' flag.@n
 In this case the tool will use the default score of your search engine. This can result in undefined behaviour. Be warned.@n
 
 
