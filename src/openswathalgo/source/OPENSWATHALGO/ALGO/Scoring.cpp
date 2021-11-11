@@ -160,7 +160,7 @@ namespace OpenSwath::Scoring
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                              std::vector<double>& data2, const int& maxdelay, const int& lag = 1)
+                                              std::vector<double>& data2, int maxdelay, int lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -176,7 +176,7 @@ namespace OpenSwath::Scoring
     }
 
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                             const std::vector<double>& data2, const int& maxdelay, const int& lag)
+                                             const std::vector<double>& data2, int maxdelay, int lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -232,7 +232,7 @@ namespace OpenSwath::Scoring
         // sigma_1 * sigma_2 * n
         denominator = sqrt(sqsum1 * sqsum2);
       }
-
+      denominator = 1/denominator; // inverse denominator for faster calculation 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
@@ -258,12 +258,12 @@ namespace OpenSwath::Scoring
 
         if (denominator > 0)
         {
-          result.data.push_back(std::make_pair(delay, sxy/denominator));
+          result.data.emplace_back(delay, sxy*denominator);
         }
         else
         {
           // e.g. if all datapoints are zero
-          result.data.push_back(std::make_pair(delay, 0));
+          result.data.emplace_back(delay, 0);
         }
       }
       return result;
