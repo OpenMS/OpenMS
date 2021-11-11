@@ -583,9 +583,11 @@ namespace OpenMS
         ConsensusXMLFile().load(abs_filename, *consensus_map);
         data_type = LayerData::DT_CONSENSUS;
       }
-      else if (file_type == FileTypes::IDXML)
+      else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        IdXMLFile().load(abs_filename, proteins, peptides);
+        if (file_type == FileTypes::MZIDENTML) IdXMLFile().load(abs_filename, proteins, peptides);
+        else if (file_type == FileTypes::MZIDENTML) MzIdentMLFile().load(abs_filename, proteins, peptides);
+
         if (peptides.empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
@@ -653,39 +655,6 @@ namespace OpenMS
             }
           }
         }
-        data_type = LayerData::DT_IDENT;
-      }
-      else if (file_type == FileTypes::MZIDENTML)
-      {
-        vector<ProteinIdentification> proteins; // not needed later
-        MzIdentMLFile().load(abs_filename, proteins, peptides);
-        if (peptides.empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
-        }
-        // check if RT (and sequence) information is present:
-        vector<PeptideIdentification> peptides_with_rt;
-        for (vector<PeptideIdentification>::const_iterator it =
-               peptides.begin(); it != peptides.end(); ++it)
-        {
-          if (!it->getHits().empty() && it->hasRT())
-          {
-            peptides_with_rt.push_back(*it);
-          }
-        }
-        Size diff = peptides.size() - peptides_with_rt.size();
-        if (diff)
-        {
-          String msg = String(diff) + " peptide identification(s) without"
-                                      " sequence and/or retention time information were removed.\n" +
-                       peptides_with_rt.size() + " peptide identification(s) remaining.";
-          log_->appendNewHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
-        }
-        if (peptides_with_rt.empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
-        }
-        peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
       }
       else
