@@ -184,6 +184,8 @@ namespace OpenMS
     // totally breaks the OpenSWATH feature detection (no features found)!
     params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
                     signal_to_noise_);
+    
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false");     
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
