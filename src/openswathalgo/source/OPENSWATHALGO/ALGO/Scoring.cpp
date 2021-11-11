@@ -175,7 +175,7 @@ namespace OpenSwath::Scoring
     }
 
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                             const std::vector<double>& data2, int maxdelay, int lag) //const ref entfernt
+                                             const std::vector<double>& data2, int maxdelay, int lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -231,7 +231,7 @@ namespace OpenSwath::Scoring
         // sigma_1 * sigma_2 * n
         denominator = sqrt(sqsum1 * sqsum2);
       }
-      denominator = 1/denominator;
+      denominator = 1/denominator; // inverse denominator for faster calculation 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
