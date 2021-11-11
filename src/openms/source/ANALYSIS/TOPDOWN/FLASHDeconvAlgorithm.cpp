@@ -1090,7 +1090,7 @@ namespace OpenMS
       for (auto &pg: deconvoluted_spectrum_)//filteredPeakGroups
       {
         pg.shrink_to_fit();
-        LogMzPeak mzPeak;
+        /*LogMzPeak mzPeak;
         double max_int = 0;
         for (auto &p: pg)
         {
@@ -1104,10 +1104,10 @@ namespace OpenMS
         if (max_int <= 0)
         {
           continue;
-        }
-        //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
+        }*/
+        double mass_delta = avg_.getMostAbundantMassDelta(pg.getMonoMass());
 
-        Size pg_bin = getBinNumber_(log(mzPeak.getUnchargedMass()), 0, bin_width);
+        Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
         curr_mass_bin.push_back(pg_bin);
       }
 
@@ -1132,25 +1132,25 @@ namespace OpenMS
       for (auto &pg: deconvoluted_spectrum_)//filteredPeakGroups
       {
         pg.shrink_to_fit();
+        /*
+                LogMzPeak mzPeak;
+                double max_int = 0;
+                for (auto &p: pg)
+                {
+                  if (max_int > p.intensity)
+                  {
+                    continue;
+                  }
+                  max_int = p.intensity;
+                  mzPeak = p;
+                }
+                if (max_int <= 0)
+                {
+                  continue;
+                }*/
+        double mass_delta = avg_.getMostAbundantMassDelta(pg.getMonoMass());
 
-        LogMzPeak mzPeak;
-        double max_int = 0;
-        for (auto &p: pg)
-        {
-          if (max_int > p.intensity)
-          {
-            continue;
-          }
-          max_int = p.intensity;
-          mzPeak = p;
-        }
-        if (max_int <= 0)
-        {
-          continue;
-        }
-        //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
-
-        Size pg_bin = getBinNumber_(log(mzPeak.getUnchargedMass()), 0, bin_width);
+        Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
 
         //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
         //Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
@@ -1833,7 +1833,7 @@ namespace OpenMS
     for (auto &m : masses)
     {
 
-      double mass_delta = avg_.getAverageMassDelta(m);
+      double mass_delta = avg_.getMostAbundantMassDelta(m);
       Size pg_bin = getBinNumber_(log(m + mass_delta), 0, bin_width_[ms_level - 1]);
       target_mass_bins_.push_back(pg_bin);
     }

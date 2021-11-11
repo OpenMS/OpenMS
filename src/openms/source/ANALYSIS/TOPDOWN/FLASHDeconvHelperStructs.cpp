@@ -130,6 +130,7 @@ namespace OpenMS
       right_count_from_apex_.push_back(1 + right_count);
       left_count_from_apex_.push_back(1 + left_count);
       average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
+      abundant_mono_mass_difference_.push_back(iso.getMostAbundant().getMZ() - iso[0].getMZ());
       isotopes_.push_back(iso);
     }
   }
@@ -165,6 +166,13 @@ namespace OpenMS
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return average_mono_mass_difference_[i];
+  }
+
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getMostAbundantMassDelta(const double mass) const
+  {
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return abundant_mono_mass_difference_[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const

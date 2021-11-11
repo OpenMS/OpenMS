@@ -60,6 +60,8 @@ namespace OpenMS
       std::vector<double> norms_;
       /// mass differences between average mass and monoisotopic mass
       std::vector<double> average_mono_mass_difference_;
+      /// mass differences between most abundant mass and monoisotopic mass
+      std::vector<double> abundant_mono_mass_difference_;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
       std::vector<int> left_count_from_apex_;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
@@ -113,6 +115,8 @@ namespace OpenMS
       /// get mass difference between avg and mono masses
       double getAverageMassDelta(const double mass) const;
 
+      /// get mass difference between most abundant mass and mono masses
+      double getMostAbundantMassDelta(const double mass) const;
     };
 
     /// struct for TopPIC identification (both PrSMs and proteoforms)
