@@ -876,6 +876,7 @@ namespace OpenMS
         double mz_delta = tol * mz; //
 
         double peak_pwr = .0;
+        double max_noise_peak_intensity = .0;
         double max_mz = mz;
         double max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
         for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
@@ -897,8 +898,8 @@ namespace OpenMS
             break;
           }
 
-          peak_pwr += intensity * intensity;
-          if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // noise   max_intensity  vs   intensity
+          //peak_pwr += intensity * intensity;
+          if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // if peak is signal
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
             if (bin < mass_bin_size)
@@ -907,9 +908,18 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
+              peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
+              peak_pwr += intensity * intensity;
+              max_noise_peak_intensity = .0;
             }
           }
+          else
+          {
+            max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
+          }
         }
+        max_noise_peak_intensity = .0;
+
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
           const double observed_mz = log_mz_peaks_[peak_index].mz;
@@ -930,7 +940,7 @@ namespace OpenMS
             break;
           }
 
-          peak_pwr += intensity * intensity;
+          //peak_pwr += intensity * intensity;
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta)
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
@@ -940,7 +950,14 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
+              peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
+              peak_pwr += intensity * intensity;
+              max_noise_peak_intensity = .0;
             }
+          }
+          else
+          {
+            max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
           }
         }
 
@@ -1090,7 +1107,7 @@ namespace OpenMS
       for (auto &pg: deconvoluted_spectrum_)//filteredPeakGroups
       {
         pg.shrink_to_fit();
-        /*LogMzPeak mzPeak;
+        LogMzPeak mzPeak;
         double max_int = 0;
         for (auto &p: pg)
         {
@@ -1104,10 +1121,10 @@ namespace OpenMS
         if (max_int <= 0)
         {
           continue;
-        }*/
-        double mass_delta = avg_.getMostAbundantMassDelta(pg.getMonoMass());
+        }
+        //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
 
-        Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
+        Size pg_bin = getBinNumber_(log(mzPeak.getUnchargedMass()), 0, bin_width);
         curr_mass_bin.push_back(pg_bin);
       }
 
@@ -1132,25 +1149,25 @@ namespace OpenMS
       for (auto &pg: deconvoluted_spectrum_)//filteredPeakGroups
       {
         pg.shrink_to_fit();
-        /*
-                LogMzPeak mzPeak;
-                double max_int = 0;
-                for (auto &p: pg)
-                {
-                  if (max_int > p.intensity)
-                  {
-                    continue;
-                  }
-                  max_int = p.intensity;
-                  mzPeak = p;
-                }
-                if (max_int <= 0)
-                {
-                  continue;
-                }*/
-        double mass_delta = avg_.getMostAbundantMassDelta(pg.getMonoMass());
 
-        Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
+        LogMzPeak mzPeak;
+        double max_int = 0;
+        for (auto &p: pg)
+        {
+          if (max_int > p.intensity)
+          {
+            continue;
+          }
+          max_int = p.intensity;
+          mzPeak = p;
+        }
+        if (max_int <= 0)
+        {
+          continue;
+        }
+        //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
+
+        Size pg_bin = getBinNumber_(log(mzPeak.getUnchargedMass()), 0, bin_width);
 
         //double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
         //Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);

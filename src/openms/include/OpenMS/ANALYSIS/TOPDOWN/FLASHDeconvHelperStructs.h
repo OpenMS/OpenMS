@@ -114,7 +114,6 @@ namespace OpenMS
 
       /// get mass difference between avg and mono masses
       double getAverageMassDelta(const double mass) const;
-
       /// get mass difference between most abundant mass and mono masses
       double getMostAbundantMassDelta(const double mass) const;
     };

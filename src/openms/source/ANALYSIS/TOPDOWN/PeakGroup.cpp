@@ -307,14 +307,16 @@ namespace OpenMS
     for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c)
     {
       float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
-      float nom = per_charge_cos_squared * per_charge_signal_pwr_[c];
-      float denom = per_charge_pwr_[c] - per_charge_signal_pwr_[c]
-                    + (1 - per_charge_cos_squared) * per_charge_signal_pwr_[c] + 1;
+      float signal_pwr =
+          per_charge_signal_pwr_[c] < per_charge_pwr_[c] ? per_charge_signal_pwr_[c] : per_charge_pwr_[c];
+      float nom = per_charge_cos_squared * signal_pwr;
+      float denom = per_charge_pwr_[c] - signal_pwr
+                    + (1 - per_charge_cos_squared) * signal_pwr + 1;
 
       per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
 
       signal += per_charge_signal_pwr_[c];
-      noise += per_charge_pwr_[c] - per_charge_signal_pwr_[c];
+      noise += per_charge_pwr_[c] - signal_pwr;
     }
 
     float t_nom = cos_squred * signal;
