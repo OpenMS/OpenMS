@@ -895,6 +895,19 @@ namespace OpenMS
     trafo_.setDataPoints(points);
   }
 
+  void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
+  { 
+    ms_data_ = m; 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
+
 
 }
 

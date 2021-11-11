@@ -95,7 +95,7 @@ public:
   const PeakMap& getMSData() const { return ms_data_; }
 
   /// @brief Set spectra
-  void setMSData(const PeakMap& m) { ms_data_ = m; } // needed because pyOpenMS can't wrap the non-const reference version
+  void setMSData(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }
