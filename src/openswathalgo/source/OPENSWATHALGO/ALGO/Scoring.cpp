@@ -159,7 +159,7 @@ namespace OpenSwath::Scoring
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                              std::vector<double>& data2, int maxdelay, int lag = 1)  //const ref entfernt
+                                              std::vector<double>& data2, int maxdelay, int lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
