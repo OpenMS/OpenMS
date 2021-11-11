@@ -34,6 +34,12 @@
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
 using namespace OpenMS;
 using namespace std;
 

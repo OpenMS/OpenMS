@@ -42,6 +42,9 @@
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>

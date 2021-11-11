@@ -43,8 +43,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -236,7 +235,7 @@ namespace OpenMS
 
     if (!candidates_out_.empty()) // store feature candidates
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     selectFeaturesFromCandidates_(features);

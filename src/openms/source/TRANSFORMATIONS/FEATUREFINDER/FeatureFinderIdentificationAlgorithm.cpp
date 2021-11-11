@@ -45,8 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -438,7 +437,7 @@ namespace OpenMS
       // Really use for debug only
       createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, false);
       cout << "Writing debug.traml file." << endl;
-      TraMLFile().store("debug.traml", library_);
+      FileHandler().storeTransitions("debug.traml", library_);
       ref_rt_map.clear();
       library_.clear(true);
     }
@@ -585,7 +584,7 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     filterFeatures_(features, with_external_ids);
