@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
@@ -43,25 +44,6 @@
 
 namespace OpenMS
 {
-
-// static
-std::vector<MSSpectrum::PeakType::IntensityType> _approximateDistribution(MSSpectrum::PeakType::CoordinateType mass,
-                                                                          UInt number_of_isotopes,
-                                                                          std::vector<double>& precalculated)
-{
-  std::vector<MSSpectrum::PeakType::IntensityType> _distr(number_of_isotopes, 1.0);
-
-  double _weight_pow = 1.0;
-
-  // start at 1 as first entry is 1.0 anyway
-  for (UInt k = 1; k < number_of_isotopes; ++k)
-  {
-    _weight_pow *= mass;
-    _distr[k] = precalculated[k] * _weight_pow;
-  }
-
-  return _distr;
-}
 
 // static
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
@@ -144,27 +126,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
   const float averagine_check_threshold[7] = {0.0f, 0.0f, 0.05f, 0.1f, 0.2f, 0.4f, 0.6f};
 
-  // precalculate values needed for approximation of isotope distribution
-  // (lambda^k / k!)
-  std::vector<double> precalculated(max_isopeaks, 1.0);
-  {
-    // values of k!
-    UInt curr_factorial = 1;
-
-    // values of lambda ^ k
-    double curr_power = 1.0;
-
-    // value taken from Bellew et al
-    double lambda = 1.0 / 1800.0;
-    
-    for (UInt i = 1; i < max_isopeaks; ++i)
-    {
-      curr_factorial *= i;
-      curr_power *= lambda;
-      precalculated[i] = curr_power / curr_factorial;
-    }
-  }
-
   bool has_precursor_data(false);
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
@@ -221,7 +182,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       std::vector<double> extensions_intensities = {current_intensity};
       
       // generate averagine distribution for peptide mass corresponding to current mz and charge
-      std::vector<MSSpectrum::PeakType::IntensityType> distr = _approximateDistribution(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks, precalculated);
+      std::vector<double> distr = CoarseIsotopePatternGenerator::approximateIntensities(q * (current_mz - Constants::PROTON_MASS_U), max_isopeaks);
       
       // sum of intensities of both observed and generated peaks is needed for normalization
       double spec_total_intensity = current_intensity;

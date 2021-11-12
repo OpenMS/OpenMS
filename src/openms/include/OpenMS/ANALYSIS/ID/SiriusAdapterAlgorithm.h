@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <unordered_map>
 #include <QString>

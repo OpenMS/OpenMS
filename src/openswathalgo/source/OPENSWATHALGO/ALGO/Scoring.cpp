@@ -48,15 +48,16 @@
 namespace OpenSwath::Scoring
 {
     void normalize_sum(double x[], unsigned int n)
-    {
+    { 
       double sumx = std::accumulate(&x[0], &x[0] + n, 0.0);
       if (sumx == 0.0)
-      {
+      { // avoid divide by zero below
         return;
-      } // do not divide by zero
-      for (unsigned int i = 0; i < n; i++)
+      }                           
+      auto inverse_sum = 1 / sumx; // precompute inverse since division is expensive!
+      for (int i = 0; i < n; ++i)
       {
-        x[i] = x[i] / sumx;
+        x[i] *= inverse_sum;
       }
     }
 

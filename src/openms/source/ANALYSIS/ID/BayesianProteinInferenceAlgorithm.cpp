@@ -45,7 +45,6 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
