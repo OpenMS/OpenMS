@@ -230,7 +230,7 @@ protected:
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<String, double> target_rts_; ///< RTs of targets (assays)
   
-  size_t n_shared_;
+  size_t n_shared_ = 0;
 };
 
 } // namespace OpenMS

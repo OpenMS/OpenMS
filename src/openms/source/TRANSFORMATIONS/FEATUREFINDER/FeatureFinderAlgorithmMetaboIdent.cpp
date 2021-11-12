@@ -272,7 +272,14 @@ namespace OpenMS
                << " features left after resolving overlaps (involving "
                << n_overlap_features << " features in " << n_overlap_groups
                << " groups)." << endl;
+      if (features.empty())
+      {
+        OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      }    
     }
+
+    if (features.empty()) return;
+
     n_shared_ = addTargetAnnotations_(features);
 
     if (elution_model_ != "none")
