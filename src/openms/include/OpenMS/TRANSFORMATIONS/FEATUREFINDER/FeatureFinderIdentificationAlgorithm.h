@@ -82,7 +82,7 @@ public:
   PeakMap& getMSData();
   const PeakMap& getMSData() const;
 
-  // @brief set the MS data used for feature detection
+  /// @brief set the MS data used for feature detection
   void setMSData(const PeakMap& ms_data); // for pyOpenMS
   void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
