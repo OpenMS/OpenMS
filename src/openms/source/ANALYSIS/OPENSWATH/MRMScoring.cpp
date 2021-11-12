@@ -709,19 +709,22 @@ namespace OpenSwath
     {
       std::vector<double> intensityi, intensityj;
       mi_matrix_.resize(native_ids.size(),native_ids.size());
+      std::vector<unsigned int> rank_vec1, rank_vec2;
       for (std::size_t i = 0; i < native_ids.size(); i++)
       {
         FeatureType fi = mrmfeature->getFeature(native_ids[i]);
 
         intensityi.clear();
         fi->getIntensity(intensityi);
+        Scoring::computeRank(intensityi, rank_vec1);
         for (std::size_t j = i; j < native_ids.size(); j++)
         {
           FeatureType fj = mrmfeature->getFeature(native_ids[j]);
           intensityj.clear();
           fj->getIntensity(intensityj);
+          Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_matrix_.setValue(i,j,Scoring::rankedMutualInformation(intensityi, intensityj));
+          mi_matrix_.setValue(i,j,Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
         }
       }
     }
@@ -730,19 +733,22 @@ namespace OpenSwath
     {
       std::vector<double> intensityi, intensityj;
       mi_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
+      std::vector<unsigned int> rank_vec1, rank_vec2;
       for (std::size_t i = 0; i < native_ids_set1.size(); i++)
       {
         FeatureType fi = mrmfeature->getFeature(native_ids_set1[i]);
         //mi_contrast_matrix_[i].resize(native_ids_set2.size());
         intensityi.clear();
         fi->getIntensity(intensityi);
+        Scoring::computeRank(intensityi, rank_vec1);
         for (std::size_t j = 0; j < native_ids_set2.size(); j++)
         {
           FeatureType fj = mrmfeature->getFeature(native_ids_set2[j]);
           intensityj.clear();
           fj->getIntensity(intensityj);
+          Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_contrast_matrix_.setValue(i, j, Scoring::rankedMutualInformation(intensityi, intensityj));
+          mi_contrast_matrix_.setValue(i, j, Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
         }
       }
     }
@@ -751,18 +757,21 @@ namespace OpenSwath
     {
       std::vector<double> intensityi, intensityj;
       mi_precursor_matrix_.resize(precursor_ids.size(),precursor_ids.size());
+      std::vector<unsigned int> rank_vec1, rank_vec2;
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
       {
         FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
         intensityi.clear();
         fi->getIntensity(intensityi);
+        Scoring::computeRank(intensityi, rank_vec1);
         for (std::size_t j = i; j < precursor_ids.size(); j++)
         {
           FeatureType fj = mrmfeature->getPrecursorFeature(precursor_ids[j]);
           intensityj.clear();
           fj->getIntensity(intensityj);
+          Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_precursor_matrix_.setValue(i, j, Scoring::rankedMutualInformation(intensityi, intensityj));
+          mi_precursor_matrix_.setValue(i, j, Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
         }
       }
     }
@@ -771,19 +780,22 @@ namespace OpenSwath
     {
       std::vector<double> intensityi, intensityj;
       mi_precursor_contrast_matrix_.resize(precursor_ids.size(), native_ids.size());
+      std::vector<unsigned int> rank_vec1, rank_vec2;
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
       {
         FeatureType fi = mrmfeature->getPrecursorFeature(precursor_ids[i]);
         //mi_precursor_contrast_matrix_[i].resize(native_ids.size());
         intensityi.clear();
         fi->getIntensity(intensityi);
+        Scoring::computeRank(intensityi, rank_vec1);
         for (std::size_t j = 0; j < native_ids.size(); j++)
         {
           FeatureType fj = mrmfeature->getFeature(native_ids[j]);
           intensityj.clear();
           fj->getIntensity(intensityj);
+          Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_precursor_contrast_matrix_.setValue(i, j, Scoring::rankedMutualInformation(intensityi, intensityj));
+          mi_precursor_contrast_matrix_.setValue(i, j, Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
         }
       }
     }
@@ -803,20 +815,22 @@ namespace OpenSwath
         FeatureType fj = mrmfeature->getFeature(native_ids[j]);
         features.push_back(fj);
       }
-
+      std::vector<unsigned int> rank_vec1, rank_vec2;
       mi_precursor_combined_matrix_.resize(features.size(), features.size());
       for (std::size_t i = 0; i < features.size(); i++)
       {
         FeatureType fi = features[i];
         intensityi.clear();
         fi->getIntensity(intensityi);
+        Scoring::computeRank(intensityi, rank_vec1);
         for (std::size_t j = 0; j < features.size(); j++)
         {
           FeatureType fj = features[j];
           intensityj.clear();
           fj->getIntensity(intensityj);
+          Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_precursor_combined_matrix_.setValue(i ,j, Scoring::rankedMutualInformation(intensityi, intensityj));
+          mi_precursor_combined_matrix_.setValue(i ,j, Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
         }
       }
     }

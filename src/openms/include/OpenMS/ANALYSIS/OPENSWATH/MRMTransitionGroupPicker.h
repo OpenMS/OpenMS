@@ -445,12 +445,13 @@ public:
         double transition_total_mi = 0;
         if (compute_total_mi_)
         {
+          std::vector<unsigned int> rank_vec1, rank_vec2;
           std::vector<double> chrom_vect_id, chrom_vect_det;
           for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
           {
             chrom_vect_id.push_back(it->getIntensity());
           }
-
+          OpenSwath::Scoring::computeRank(chrom_vect_id, rank_vec2);
           // compute baseline mutual information
           int transition_total_mi_norm = 0;
           for (Size m = 0; m < transition_group.getTransitions().size(); m++)
@@ -463,7 +464,8 @@ public:
               {
                 chrom_vect_det.push_back(it->getIntensity());
               }
-              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+              OpenSwath::Scoring::computeRank(chrom_vect_det, rank_vec1);
+              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
               transition_total_mi_norm++;
             }
           }
