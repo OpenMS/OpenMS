@@ -292,26 +292,24 @@ namespace OpenSwath::Scoring
       }
       return result;
     }
-    void computeRank2(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks)
+    void computeRank2(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
-      std::vector<std::pair<float, unsigned int> > v_sort(v_temp.size());
-
-      for (unsigned int i = 0; i < v_sort.size(); ++i) {
-        v_sort[i] = std::make_pair(v_temp[i], i);
-      }
-
-      std::sort(v_sort.begin(), v_sort.end());
-
-      std::pair<double, unsigned int> rank;
-
+      std::vector<unsigned int> ranks{};
       ranks.resize(v_temp.size());
-      for (unsigned int i = 0; i < v_sort.size(); ++i)
+      std::iota(ranks.begin(), ranks.end(), 0);
+      std::sort(ranks.begin(), ranks.end(),
+                [&v_temp](unsigned int i, unsigned int j) { return v_temp[i] < v_temp[j]; });
+      ranks_out.resize(v_temp.size());
+      double x = 0;
+      unsigned int y = 0;
+      for(unsigned int i = 0; i < ranks.size();++i)
       {
-        if (v_sort[i].first != rank.first)
+        if(v_temp[ranks[i]] != x)
         {
-          rank = std::make_pair(v_sort[i].first, i);
+          x = v_temp[ranks[i]];
+          y = i;
         }
-        ranks[v_sort[i].second] = rank.second;
+        ranks_out[ranks[i]] = y;
       }
     }
 
