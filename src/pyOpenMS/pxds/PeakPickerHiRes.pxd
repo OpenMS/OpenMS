@@ -15,12 +15,17 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
 
         PeakPickerHiRes() nogil except +
         PeakPickerHiRes(PeakPickerHiRes &) nogil except + # compiler
+
         void pick(MSSpectrum & input,
                   MSSpectrum & output
                  ) nogil except +
+        void pick(MSChromatogram & input,
+                  MSChromatogram & output
+                 ) nogil except +
 
         void pickExperiment(MSExperiment & input,
-                            MSExperiment & output
+                            MSExperiment & output,
+                            bool check_spectrum_type
                            ) nogil except +
             # wrap-doc:
                 #   Applies the peak-picking algorithm to a map (MSExperiment). This
@@ -30,6 +35,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
                 #   :param input: Input map in profile mode
                 #   :param output: Output map with picked peaks
                 #   :param check_spectrum_type: If set, checks spectrum type and throws an exception if a centroided spectrum is passed 
+
+        void pickExperiment(MSExperiment & input,
+                            MSExperiment & output,
+                            libcpp_vector[libcpp_vector[PeakBoundary] ]& boundaries_spec,
+                            libcpp_vector[libcpp_vector[PeakBoundary] ]& boundaries_chrom,
+                            bool check_spectrum_type
+                           ) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
     

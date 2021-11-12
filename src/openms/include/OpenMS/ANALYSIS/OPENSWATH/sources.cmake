@@ -21,6 +21,7 @@ set(sources_list_h
   MRMFeatureSelector.h
   MRMIonSeries.h
   MRMRTNormalizer.h
+  MRMScoring.h
   MRMTransitionGroupPicker.h
   OpenSwathHelper.h
   OpenSwathScores.h

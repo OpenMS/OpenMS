@@ -38,7 +38,7 @@
 
 // scoring
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
