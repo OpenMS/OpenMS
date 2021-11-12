@@ -97,6 +97,8 @@ public:
   /// @brief Set spectra
   void setMSData(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
 
+  void setMSData(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
+
   /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }
   PeakMap& getChromatograms() { return chrom_data_; }

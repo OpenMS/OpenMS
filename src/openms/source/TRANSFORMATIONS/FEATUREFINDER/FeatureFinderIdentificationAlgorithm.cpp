@@ -190,7 +190,28 @@ namespace OpenMS
 
   void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
   {
-    ms_data_ = ms_data;
+    ms_data_ = m; 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());    
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
+  {
+    ms_data_ = std::move(m); 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());    
   }
 
   PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
