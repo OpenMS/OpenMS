@@ -227,16 +227,18 @@ namespace OpenMS
             feats.push_back(hit.getMetaValue(feat).toString());
           }
         }
+        // here: feats (metavalues in peptide hits) and feature_set are equal if they have same size (if no metavalue is missing)
+
         if (feats.size() == feature_set.size())
         { // only if all feats were present add
           txt.addLine(ListUtils::concatenate(feats, '\t'));
-        }
+        }        
         else
-        {
+        { // at least one feature is missing in the current peptide hit
           OPENMS_LOG_WARN << "Features missing in peptide hit (will skip):" << endl;
           for (const auto& f : feature_set)
           {
-            if (std::find(feats_names.begin(), feats_names.end(), f) == feats_names.end()) OPENMS_LOG_WARN << f << endl;
+            if (std::find(feats.begin(), feats.end(), f) == feats.end()) OPENMS_LOG_WARN << f << endl;
           }
         }        
       }
