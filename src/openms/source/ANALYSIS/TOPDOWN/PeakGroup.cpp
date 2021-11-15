@@ -311,7 +311,7 @@ namespace OpenMS
           per_charge_signal_pwr_[c] < per_charge_pwr_[c] ? per_charge_signal_pwr_[c] : per_charge_pwr_[c];
       float nom = per_charge_cos_squared * signal_pwr;
       float denom = per_charge_pwr_[c] - signal_pwr
-                    + (1 - per_charge_cos_squared) * signal_pwr + 1;
+                    + (1 - per_charge_cos_squared) * signal_pwr;
 
       per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
 
@@ -321,7 +321,7 @@ namespace OpenMS
 
     float t_nom = cos_squred * signal;
     float t_denom = noise
-                    + (1 - cos_squred) * signal + 1;
+                    + (1 - cos_squred) * signal;
     snr_ = t_denom <= 0 ? .0 : t_nom / t_denom;
   }
 
