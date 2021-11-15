@@ -301,7 +301,7 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
         hits = pep.getHits()
         if not hits:
             if export_unidentified:
-                return tuple(pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int], *dmv)
+                return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int], *dmv)
             else:
                 return
 
