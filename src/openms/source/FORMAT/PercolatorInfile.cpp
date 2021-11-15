@@ -98,6 +98,10 @@ namespace OpenMS
     // determine RegEx to extract scan/index number
     boost::regex scan_regex = boost::regex(SpectrumLookup::getRegExFromNativeID(sid));
 
+    // keep track of errors
+    size_t missing_meta_value_count{};
+    set<String> missing_meta_values;
+
     size_t index = 0;
     for (const PeptideIdentification& pep_id : peptide_ids)
     {
@@ -235,14 +239,26 @@ namespace OpenMS
         }        
         else
         { // at least one feature is missing in the current peptide hit
-          OPENMS_LOG_WARN << "Features missing in peptide hit (will skip):" << endl;
+          missing_meta_value_count++;        
           for (const auto& f : feature_set)
           {
-            if (std::find(feats.begin(), feats.end(), f) == feats.end()) OPENMS_LOG_WARN << f << endl;
+            if (std::find(feats.begin(), feats.end(), f) == feats.end()) missing_meta_values.insert(f);
           }
-        }        
+        }
       }
     }
+
+    // print warnings
+    if (missing_meta_value_count != 0)
+    {
+      OPENMS_LOG_WARN << "There were peptide hits with missing features/meta values. Skipped peptide hits: " << missing_meta_value_count << endl;
+      OPENMS_LOG_WARN << "Names of missing meta values: " << endl;
+      for (const auto& f : missing_meta_values)
+      {
+        OPENMS_LOG_WARN << f << endl;
+      }
+    }
+
     return txt;
   }
 
