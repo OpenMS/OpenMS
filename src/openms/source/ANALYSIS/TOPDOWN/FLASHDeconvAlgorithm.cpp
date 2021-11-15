@@ -66,7 +66,7 @@ namespace OpenMS
     defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
     defaults_.setValue("min_isotope_cosine",
-                       DoubleList{.8, .9},
+                       DoubleList{.85, .85},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
@@ -74,7 +74,7 @@ namespace OpenMS
                        "minimum QScore threshold for precursors for MS2. QScore is the probability that a precursor is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
-                       IntList{4, 2},
+                       IntList{3, 3},
                        "minimum number of peaks of consecutive charge states per MS level."
                        "(e.g., -min_peaks 4 2 to specify 4 and 2 for MS1 and MS2, respectively). "
                        "This affects only for peaks of highly charged peaks (>8). "
@@ -84,8 +84,8 @@ namespace OpenMS
                        IntList{-1, -1},
                        "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
 
-    defaults_.setValue("min_intensity", .0, "intensity threshold");
-    defaults_.setValue("rt_window", 20.0, "RT window for MS1 deconvolution");
+    defaults_.setValue("min_intensity", 10.0, "intensity threshold");
+    defaults_.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
     defaultsToParam_();
   }
 

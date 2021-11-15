@@ -93,11 +93,11 @@ namespace OpenMS
     fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("rt_window", rt_window_);
-    fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
+    fd_defaults.setValue("min_peaks", IntList{3, 3}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
 
-    for (double j : mass_count_double)
+    for (double j: mass_count_double)
     {
       mass_count_.push_back((int) j);
     }
