@@ -2255,12 +2255,26 @@ def test_peptide_identifications_to_df():
     h.setCharge(2)
     h.setMetaValue("StringMetaValue", "Value")
     h.setMetaValue("IntMetaValue", 2)
+    e = pyopenms.PeptideEvidence()
+    e.setProteinAccession("sp|MyAccession")
+    e.setStart(123)
+    e.setEnd(141)
+    h.setPeptideEvidences([e, e])
     p.insertHit(h)
 
     peps.append(p)
-    peps.append(p)
 
-    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,7)
+    p1 = pyopenms.PeptideIdentification()
+    p1.setRT(1243.56)
+    p1.setMZ(240.0)
+    p1.setScoreType("ScoreType")
+    p1.setHigherScoreBetter(False)
+    p1.setIdentifier("IdentificationRun2")
+
+    peps.append(p1)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
 @report
 def testPepXMLFile():
