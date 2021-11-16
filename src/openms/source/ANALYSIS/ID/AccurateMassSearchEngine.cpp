@@ -575,12 +575,7 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
-  // TODO: How to open it up to run mztab or mztab-m output? pass boolean?
-  // Then the function does not have to be overloaded? But the scope of the mztabm file would be within the function
-  // that would not be the best way to do it?
-  // overload the run function is bad. pass both and fill the needed one?
-  // will clutter the memory.
-  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTabM& mztabm_out) const
+  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out, MzTabM& mztabm_out) const
   {
     if (!is_initialized_)
     {
@@ -664,6 +659,15 @@ namespace OpenMS
       ion_mode_internal = resolveAutoMode_(fmap);
     }
 
+    // corresponding file locations
+    std::vector<String> file_locations;
+    StringList paths;
+    fmap.getPrimaryMSRunPath(paths);
+    if (!paths.empty()) // if the file location is not available it will be set to UNKNOWN by MzTab
+    {
+      file_locations.emplace_back(paths[0]);
+    }
+
     // map for storing overall results
     QueryResultsTable overall_results;
     Size dummy_count(0);
@@ -732,15 +736,13 @@ namespace OpenMS
       OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
 
-    bool export_mztab = false; // TODO: set parameter depending on mztab/mztab-m
-    if (export_mztab)
-    {
-      // exportMzTab_(overall_results, 1, mztab_out);
-    }
-    else
+    exportMzTab_(overall_results, 1, mztab_out);
+
+    if (!legacyID_) // export to mztab-m only works with featuremap including the identification data structure.
     {
       exportMzTabM_(fmap, 1, mztabm_out);
     }
+
     return;
   }
 

@@ -140,9 +140,7 @@ START_TEST(MzTabM, "$Id$")
           sme_row.spectra_ref = sp_ref;
           sme_row.identification_method.fromCellString("[MS, MS:1000752, TOPP Software,]");
           sme_row.ms_level.fromCellString("[MS, MS:1000511, ms level, 1]");
-          // TODO: FIX -> changed to std::map<Size, MzTabDouble>
-          // TODO: Check SML
-          //sme_row.id_confidence_measure.set(0.4);
+          sme_row.id_confidence_measure[0] = MzTabDouble(123);
           sme_row.rank.set(1);
 
           e.first = "SIRIUS_TREE_score";

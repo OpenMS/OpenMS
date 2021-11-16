@@ -102,6 +102,7 @@ protected:
     setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    registerFlag_("mztabm", "Enable the flag to use the mztab-m (mztab-m is currently only available for single samples (feautreXML)");
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
     setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
@@ -141,6 +142,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String file_ann = getStringOption_("out_annotation");
+    bool mztabm = getFlag_("mztabm");
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm
@@ -159,8 +161,6 @@ protected:
     // mzTAB output data structure
     MzTab mztab_output;
     MzTabM mztabm_output;
-    MzTabFile mztab_outfile;
-    MzTabMFile mztabm_outfile;
 
     AccurateMassSearchEngine ams;
     ams.setParameters(ams_param);
@@ -176,7 +176,7 @@ protected:
       //-------------------------------------------------------------
       // do the work
       //-------------------------------------------------------------
-      ams.run(ms_feat_map, mztabm_output);
+      ams.run(ms_feat_map, mztab_output, mztabm_output);
 
       //-------------------------------------------------------------
       // writing output
@@ -209,14 +209,23 @@ protected:
       //-------------------------------------------------------------
 
       // annotate output with data processing info
-      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+      // addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       if (!file_ann.empty())
       {
         ConsensusXMLFile().store(file_ann, ms_cons_map);
       }
     }
 
-    mztabm_outfile.store(out, mztabm_output);
+    if(mztabm && !(filetype == FileTypes::CONSENSUSXML))
+    {
+      MzTabMFile mztabm_file;
+      mztabm_file.store(out, mztabm_output);
+    }
+    else // currently works for FeatureMap (featureXML input)
+    {
+      MzTabFile mztab_file;
+      mztab_file.store(out, mztab_output);
+    }
 
     return EXECUTION_OK;
   }

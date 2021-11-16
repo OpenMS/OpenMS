@@ -228,7 +228,7 @@ public:
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap&, MzTabM&) const;
+    void run(FeatureMap&, MzTab&, MzTabM&) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
