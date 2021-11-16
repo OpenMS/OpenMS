@@ -153,9 +153,10 @@ namespace OpenSwath::Scoring
       {
         stdev = 1; // all data is equal
       }
+      stdev = 1/stdev;
       for (std::size_t i = 0; i < data.size(); i++)
       {
-        data[i] = (data[i] - mean) / stdev;
+        data[i] = (data[i] - mean) * stdev;
       }
     }
 
@@ -168,9 +169,10 @@ namespace OpenSwath::Scoring
       standardize_data(data1);
       standardize_data(data2);
       XCorrArrayType result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
+
       for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
       {
-        it->second = it->second / data1.size();
+        it->second /= data1.size();
       }
       return result;
     }
