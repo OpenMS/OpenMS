@@ -2255,12 +2255,31 @@ def test_peptide_identifications_to_df():
     h.setCharge(2)
     h.setMetaValue("StringMetaValue", "Value")
     h.setMetaValue("IntMetaValue", 2)
+    e1 = pyopenms.PeptideEvidence()
+    e1.setProteinAccession("sp|Accession1")
+    e1.setStart(123)
+    e1.setEnd(141)
+    e2 = pyopenms.PeptideEvidence()
+    e2.setProteinAccession("sp|Accession2")
+    e2.setStart(12)
+    e2.setEnd(24)
+    h.setPeptideEvidences([e1, e2])
     p.insertHit(h)
 
     peps.append(p)
-    peps.append(p)
 
-    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,7)
+    p1 = pyopenms.PeptideIdentification()
+    p1.setRT(1243.56)
+    p1.setMZ(240.0)
+    p1.setScoreType("ScoreType")
+    p1.setHigherScoreBetter(False)
+    p1.setIdentifier("IdentificationRun2")
+
+    peps.append(p1)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
 @report
 def testPepXMLFile():

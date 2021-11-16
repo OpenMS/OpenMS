@@ -293,20 +293,26 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
     cv.loadFromOBO("psims", File.getOpenMSDataPath() + "/CV/psi-ms.obo")
     clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
     #cols = ["id", "RT", "mz", "score", "charge"] + decodedMVs
-    clearcols = ["id", "RT", "mz", mainscorename, "charge"] + clearMVs
-    coltypes = ['U100', 'f', 'f', 'f', 'i'] + types
+    clearcols = ["id", "RT", "mz", mainscorename, "charge", "protein_accession", "start", "end"] + clearMVs
+    coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000'] + types
     dt = list(zip(clearcols, coltypes))
 
     def extract(pep):
         hits = pep.getHits()
         if not hits:
             if export_unidentified:
-                return tuple(pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int], *dmv)
+                return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
+                        default_missing_values[str], default_missing_values[str], default_missing_values[str], *dmv)
             else:
                 return
 
         besthit = hits[0]
-        ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
+        ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()] 
+        # add accession, start and end positions of peptide evidences as comma separated str (like in mzTab)
+        evs = besthit.getPeptideEvidences()
+        ret += [','.join(v) if v else default_missing_values[str] for v in ([e.getProteinAccession() for e in evs],
+                                                                            [str(e.getStart()) for e in evs],
+                                                                            [str(e.getEnd()) for e in evs])]
         for k in metavals:
             if besthit.metaValueExists(k):
                 val = besthit.getMetaValue(k)
