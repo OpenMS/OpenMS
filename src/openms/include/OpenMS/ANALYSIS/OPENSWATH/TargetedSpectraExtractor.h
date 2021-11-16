@@ -213,7 +213,8 @@ public:
     */
     void searchSpectrum(
         OpenMS::FeatureMap& feat_map,
-        OpenMS::FeatureMap& feat_map_output) const;
+        OpenMS::FeatureMap& feat_map_output,
+        bool add_unknown_features = false) const;
 
     /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.

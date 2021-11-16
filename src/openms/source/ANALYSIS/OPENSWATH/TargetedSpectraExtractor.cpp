@@ -244,6 +244,9 @@ namespace OpenMS
             ms2_feature.setIntensity(subordinate.getIntensity());
             ms2_feature.setMetaValue("transition_name", peptide_ref);
             ms2_features.push_back(ms2_feature);
+            // ========================
+            std::cout << "spectrum_rt " << spectrum_rt << ", " << peptide_ref << ":  feature rt:" << ms2_feature.getRT() << ", mz:" << ms2_feature.getMZ() << std::endl;
+            // ========================
           }
         }
       }
@@ -252,7 +255,8 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::searchSpectrum(
       OpenMS::FeatureMap& feat_map,
-      OpenMS::FeatureMap& feat_map_output) const
+      OpenMS::FeatureMap& feat_map_output,
+      bool add_unknown_features) const
   {
     OpenMS::AccurateMassSearchEngine ams;
     OpenMS::MzTab output;
@@ -261,46 +265,79 @@ namespace OpenMS
     ams.run(feat_map, output);
     // Remake the feature map replacing the peptide hits as features/sub-features
     feat_map_output.clear();
+    int unknown_feature_counter = 1;
     for (const OpenMS::Feature& feature : feat_map)
     {
-      for (const auto& ident : feature.getPeptideIdentifications())
+      const auto& peptide_identifications = feature.getPeptideIdentifications();
+      if (peptide_identifications.size())
       {
-        for (const auto& hit : ident.getHits())
+        for (const auto& ident : peptide_identifications)
         {
-          OpenMS::Feature f;
-          OpenMS::Feature s = feature;
-          f.setUniqueId();
-          f.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
-          s.setUniqueId();
-          s.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
-          std::string native_id = hit.getMetaValue("chemical_formula").toString() + ";" + hit.getMetaValue("modifications").toString();
-          s.setMetaValue("native_id", native_id);
-          s.setMetaValue("identifier", hit.getMetaValue("identifier"));
-          s.setMetaValue("description", hit.getMetaValue("description"));
-          s.setMetaValue("modifications", hit.getMetaValue("modifications"));
-          std::string adducts;
-          try
+          for (const auto& hit : ident.getHits())
           {
-            std::string str = hit.getMetaValue("modifications").toString();
-            std::string delimiter = ";";
-            adducts = str.substr(1, str.find(delimiter) - 1);
+            OpenMS::Feature f;
+            OpenMS::Feature s = feature;
+            f.setUniqueId();
+            f.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+            s.setUniqueId();
+            s.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+            std::string native_id = hit.getMetaValue("chemical_formula").toString() + ";" + hit.getMetaValue("modifications").toString();
+            s.setMetaValue("native_id", native_id);
+            s.setMetaValue("identifier", hit.getMetaValue("identifier"));
+            s.setMetaValue("description", hit.getMetaValue("description"));
+            s.setMetaValue("modifications", hit.getMetaValue("modifications"));
+            std::string adducts;
+            try
+            {
+              std::string str = hit.getMetaValue("modifications").toString();
+              std::string delimiter = ";";
+              adducts = str.substr(1, str.find(delimiter) - 1);
+            }
+            catch (const std::exception& e)
+            {
+              OPENMS_LOG_ERROR << e.what();
+            }
+            s.setMetaValue("adducts", adducts);
+            OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
+            double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
+            s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
+            s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
+            s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
+            s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
+            s.setCharge(hit.getCharge());
+            std::vector<OpenMS::Feature> subs = {s};
+            f.setSubordinates(subs);
+            feat_map_output.push_back(f);
           }
-          catch (const std::exception& e)
-          {
-            OPENMS_LOG_ERROR << e.what();
-          }
-          s.setMetaValue("adducts", adducts);
-          OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
-          double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
-          s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
-          s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
-          s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
-          s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
-          s.setCharge(hit.getCharge());
-          std::vector<OpenMS::Feature> subs = {s};
-          f.setSubordinates(subs);
-          feat_map_output.push_back(f);
         }
+      }
+      else if (add_unknown_features)
+      {
+        OpenMS::Feature f;
+        OpenMS::Feature s = feature;
+        std::ostringstream native_id;
+        native_id << "Unknown " << unknown_feature_counter++;
+        std::ostringstream mass_of_the_peak;
+        mass_of_the_peak << s.getMZ();
+        f.setUniqueId();
+        f.setMetaValue("PeptideRef", mass_of_the_peak.str());
+        s.setUniqueId();
+        // s.setMetaValue("PeptideRef", mass_of_the_peak.str());
+        s.setMetaValue("PeptideRef", native_id.str());
+        s.setMetaValue("native_id", native_id.str());
+        DataValue identifiers(std::vector<std::string>({native_id.str()})); 
+        s.setMetaValue("identifier", identifiers);
+        s.setMetaValue("description", "Unknown");
+        s.setMetaValue("modifications", "");
+        s.setMetaValue("adducts", "");
+        s.setMetaValue("dc_charge_adduct_mass", 0);
+        s.setMetaValue("chemical_formula", "Unknown");
+        s.setMetaValue("mz_error_ppm", 0);
+        s.setMetaValue("mz_error_Da", 0);
+        // s.setCharge(hit.getCharge()); // -1 for negative polarity and +1 for positive polarity (polarity is provided in the sample metadata)
+        std::vector<OpenMS::Feature> subs = {s};
+        f.setSubordinates(subs);
+        feat_map_output.push_back(f);
       }
     }
   }
@@ -781,8 +818,13 @@ namespace OpenMS
 
     std::vector<ReactionMonitoringTransition> v_rmt_all;
     std::vector<TargetedExperiment::Peptide> peptides;
+
     for (const auto& ms1_feature : ms1_features)
     {
+      //=====================================
+      float min_diff = 100000000.0f;
+      bool added_one = false;
+      //=====================================
       std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
       OpenMS::TargetedExperiment::Peptide peptide;
       peptide.id = peptide_ref;
@@ -793,6 +835,13 @@ namespace OpenMS
       for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
       {
         auto current_mz = ms2_feature->getMZ();
+        //=====================================
+        auto ms1_mz = ms1_feature.getMZ();
+        if (min_diff > (ms1_feature.getMZ() - current_mz))
+        {
+          min_diff = (ms1_feature.getMZ() - current_mz);
+        }
+        //=====================================
         if ((current_mz > min_fragment_mz_ && current_mz < max_fragment_mz_) &&
             (current_mz < ms1_feature.getMZ() + relative_allowable_product_mass_))
         {
@@ -808,8 +857,15 @@ namespace OpenMS
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
           v_rmt_all.push_back(rmt);
+          added_one = true;
         }
       }
+      //======================
+      if (!added_one)
+      {
+        std::cout << "No transition created for " << peptide_ref << ". min is: " << min_diff << std::endl;
+      }
+      //======================
     }
 
     TargetedExperiment t_exp;
@@ -823,6 +879,11 @@ namespace OpenMS
     // write traML
     TraMLFile traml_file;
     traml_file.store(filename, t_exp);
+
+    auto filename_csv = filename;
+    filename_csv = filename_csv + ".csv";
+    TransitionTSVFile transition_tsv_file;
+    transition_tsv_file.convertTargetedExperimentToTSV(filename_csv.c_str(), t_exp);
   }
 
   void TargetedSpectraExtractor::mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const
