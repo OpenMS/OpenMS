@@ -295,7 +295,7 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
         clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
     else:
         clearMVs = decodedMVs
-
+        
     clearcols = ["id", "RT", "mz", mainscorename, "charge", "protein_accession", "start", "end"] + clearMVs
     coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000'] + types
     dt = list(zip(clearcols, coltypes))
