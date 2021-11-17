@@ -55,7 +55,7 @@ namespace OpenSwath::Scoring
         return;
       }                           
       auto inverse_sum = 1 / sumx; // precompute inverse since division is expensive!
-      for (int i = 0; i < n; ++i)
+      for (unsigned int i = 0; i < n; ++i)
       {
         x[i] *= inverse_sum;
       }
