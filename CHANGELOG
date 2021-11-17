@@ -41,6 +41,8 @@ documentation.
 - fix bug in GaussFilter when using ppm as width (#6830)
 - Add support to load parameter values from a JSON formatted .json file. (Accessible via -ini. This will be
   helpful for Common Workflow Language users and others)
+- Add export for Common Workflow Language (CWL)
+- Add tool description lib (TDL) dependency
 
 New Tools:
 - FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)

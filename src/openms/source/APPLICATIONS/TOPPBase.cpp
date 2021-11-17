@@ -202,6 +202,7 @@ namespace OpenMS
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
+    registerStringOption_("write_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
@@ -329,6 +330,17 @@ namespace OpenMS
         if (!writeCTD_())
         {
           writeLogError_("Error: Could not write CTD file!");
+          return INTERNAL_ERROR;
+        }
+        return EXECUTION_OK;
+      }
+
+      // '-write_cwl' given
+      if (param_cmdline_.exists("write_cwl"))
+      {
+        if (!writeCWL_())
+        {
+          writeLogError_("Error: Could not write CWL file!");
           return INTERNAL_ERROR;
         }
         return EXECUTION_OK;
@@ -2061,7 +2073,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
+      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd" || it->name == "write_cwl") // do not store those params in ini file
       {
         continue;
       }
@@ -2405,6 +2417,57 @@ namespace OpenMS
       }
 
       paramFile.store(write_ctd_file.toStdString(), default_params,
+                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
+    }
+
+    return true;
+  }
+
+  bool TOPPBase::writeCWL_()
+  {
+    //store ini-file content in ini_file_str
+    QString out_dir_str = String(param_cmdline_.getValue("write_cwl").toString()).toQString();
+    if (out_dir_str == "")
+    {
+      out_dir_str = QDir::currentPath();
+    }
+    StringList type_list = ToolHandler::getTypes(tool_name_);
+    if (type_list.empty())
+      type_list.push_back(""); // no type for most tools (except GenericWrapper)
+
+    for (Size i = 0; i < type_list.size(); ++i)
+    {
+      QString write_cwl_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + ".cwl";
+      outputFileWritable_(write_cwl_file, "write_cwl");
+
+      // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
+      if (!type_list[i].empty())
+        param_cmdline_.setValue("type", type_list[i]);
+      Param default_params = getDefaultParameters_();
+
+      // add type to ini file
+      if (!type_list[i].empty())
+        default_params.setValue(this->ini_location_ + "type", type_list[i]);
+
+      std::stringstream ss;
+      ParamCWLFile paramFile;
+
+      std::string docurl = getDocumentationURL();
+      std::string category;
+      if (official_ || ToolHandler::getUtilList().count(tool_name_))
+      { // we can only get the docurl/category from registered/official tools
+        category = ToolHandler::getCategory(tool_name_);
+      }
+
+      std::vector<std::string> citation_dois;
+      citation_dois.reserve(citations_.size() + 1);
+      citation_dois.push_back(cite_openms_.doi);
+      for (auto& citation : citations_)
+      {
+        citation_dois.push_back(citation.doi);
+      }
+
+      paramFile.store(write_cwl_file.toStdString(), default_params,
                       {version_, tool_name_, docurl, category, tool_description_, citation_dois});
     }
 

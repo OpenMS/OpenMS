@@ -40,6 +40,7 @@ namespace OpenMS
 
   /**
   @brief Load from JSON (in a Common Workflow Language (CWL) compatible way) into the Param class.
+         Exports .cwl files.
 
         The JSON file must contain one top level mapping of param value names to actual values.
         These values can be one of the following types:
@@ -86,6 +87,26 @@ Same file with "__" instead of ':' as the section separator.
     ParamCWLFile() = default; ///< Constructor
 
     ~ParamCWLFile() = default; ///< Destructor
+
+/**
+       @brief Write CWL file
+
+       @param filename The name of the file the param data structure should be stored in.
+       @param param The param data structure that should be stored.
+       @param ToolInfo Additional information about the Tool for which the param data should be stored.
+
+       @exception std::ios::failure is thrown if the file could not be created
+     */
+    void store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const;
+
+    /**
+       @brief Write CWL to output stream.
+
+       @param os_ptr The stream to which the param data should be written.
+       @param param The param data structure that should be writte to stream.
+       @param tool_info Additional information about the Tool for which the param data should be written.
+     */
+    void writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
 
     /**
       @brief Read JSON file that is formatted in CWL conforming style.

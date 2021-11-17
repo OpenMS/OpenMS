@@ -37,6 +37,7 @@
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
+#include <tdl/ParamDocumentToCWL.h>
 
 using json = nlohmann::json;
 
@@ -55,6 +56,269 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
 
 namespace OpenMS
 {
+  void ParamCWLFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
+  {
+    std::ofstream os;
+    std::ostream* os_ptr;
+    if (filename != "-")
+    {
+      os.open(filename.c_str(), std::ofstream::out);
+      if (!os)
+      {
+        // Replace the OpenMS specific exception with a std exception
+        // Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        throw std::ios::failure("Unable to create file: " + filename);
+      }
+      os_ptr = &os;
+    }
+    else
+    {
+      os_ptr = &std::cout;
+    }
+
+    writeCWLToStream(os_ptr, param, tool_info);
+  }
+
+  void ParamCWLFile::writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const
+  {
+    std::ostream& os = *os_ptr;
+    os.precision(std::numeric_limits<double>::digits10);
+
+    tdl::ToolInfo tdl_tool_info;
+    tdl_tool_info.metaInfo.version = tool_info.version_;
+    tdl_tool_info.metaInfo.name = tool_info.name_;
+    tdl_tool_info.metaInfo.docurl = tool_info.docurl_;
+    tdl_tool_info.metaInfo.category = tool_info.category_;
+    tdl_tool_info.metaInfo.description = tool_info.description_;
+    for (auto cite : tool_info.citations_)
+    {
+      tdl::Citation tdl_citation;
+      tdl_citation.doi = cite;
+      tdl_citation.url = "";
+      tdl_tool_info.metaInfo.citations.push_back(tdl_citation);
+    }
+
+    // discover the name of the first nesting Level
+    // this is expected to result in something like "ToolName:1:"
+    auto traces = param.begin().getTrace();
+    std::string toolNamespace = traces.front().name + ":1:";
+
+    std::vector<tdl::Node> stack;
+    stack.push_back(tdl::Node {});
+
+    auto param_it = param.begin();
+    for (auto last = param.end(); param_it != last; ++param_it)
+    {
+      for (auto& trace : param_it.getTrace())
+      {
+        if (trace.opened)
+        {
+          // First nested param should be the executable name of the tool
+          if (tdl_tool_info.metaInfo.executableName.empty())
+          {
+            tdl_tool_info.metaInfo.executableName = trace.name;
+          }
+          stack.push_back(tdl::Node {trace.name, trace.description, {}, tdl::Node::Children {}});
+        }
+        else // these nodes must be closed
+        {
+          auto top = stack.back();
+          stack.pop_back();
+          auto& children = std::get<tdl::Node::Children>(stack.back().value);
+          children.push_back(top);
+        }
+      }
+
+      // converting trags to tdl compatible tags
+      std::set<std::string> tags;
+      for (auto const& t : param_it->tags)
+      {
+        if (t == "input file")
+        {
+          tags.insert("file");
+        }
+        else if (t == "output file")
+        {
+          tags.insert("file");
+          tags.insert("output");
+        }
+        else if (t == "output prefix")
+        {
+          tags.insert("output");
+          tags.insert("prefixed");
+        }
+        else
+        {
+          tags.insert(t);
+        }
+      }
+
+      // Sets a single value into the tdl library
+      auto setValue = [&](auto value) { std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, value}); };
+      // Sets a value including their limits into the tdl library
+      auto setValueLimits = [&](auto value) {
+        using T = typename decltype(value.minLimit)::value_type;
+        if (value.minLimit == -std::numeric_limits<T>::max())
+          value.minLimit.reset();
+        if (value.maxLimit == std::numeric_limits<T>::max())
+          value.maxLimit.reset();
+        setValue(value);
+      };
+      switch (param_it->value.valueType())
+      {
+        case ParamValue::INT_VALUE:
+          setValueLimits(tdl::IntValue {static_cast<int>(param_it->value), param_it->min_int, param_it->max_int});
+          break;
+        case ParamValue::DOUBLE_VALUE:
+          setValueLimits(tdl::DoubleValue {static_cast<double>(param_it->value), param_it->min_float, param_it->max_float});
+          break;
+        case ParamValue::STRING_VALUE:
+          if (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false" && param_it->value == "false")
+          {
+            std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, false});
+          }
+          else
+          {
+            std::get<tdl::Node::Children>(stack.back().value)
+              .push_back(tdl::Node {param_it->name, param_it->description, tags, tdl::StringValue {static_cast<std::string>(param_it->value), param_it->valid_strings}});
+          }
+          break;
+        case ParamValue::INT_LIST: {
+          auto value = tdl::IntValueList {};
+          value.value = param_it->value.toIntVector();
+          value.minLimit = param_it->min_int;
+          value.maxLimit = param_it->max_int;
+          setValueLimits(value);
+          break;
+        }
+        case ParamValue::DOUBLE_LIST: {
+          auto value = tdl::DoubleValueList {};
+          value.value = param_it->value.toDoubleVector();
+          value.minLimit = param_it->min_float;
+          value.maxLimit = param_it->max_float;
+          setValueLimits(value);
+          break;
+        }
+        case ParamValue::STRING_LIST: {
+          auto value = tdl::StringValueList {};
+          value.value = param_it->value.toStringVector();
+          value.validValues = param_it->valid_strings;
+          auto param = tdl::Node {param_it->name, param_it->description, tags, value};
+          std::get<tdl::Node::Children>(stack.back().value).push_back(param);
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    while (stack.size() > 1)
+    {
+      auto top = stack.back();
+      stack.pop_back();
+      auto& children = std::get<tdl::Node::Children>(stack.back().value);
+      children.push_back(top);
+    }
+    assert(stack.size() == 1);
+
+    // fix naming of all children, by appending their parents name
+    // skipping the first two levels, since they are always the "ToolName:1:" keys
+    auto renameNodes = std::function<void(tdl::Node&, tdl::Node const*, int)> {};
+    renameNodes = [&](tdl::Node& element, tdl::Node const* parent, int level) {
+      if (parent != nullptr && !parent->name.empty())
+      {
+        element.name = parent->name + ":" + element.name;
+      }
+
+      if (auto children = std::get_if<tdl::Node::Children>(&element.value))
+      {
+        for (auto& child : *children)
+        {
+          renameNodes(child, &element, level+1);
+        }
+      }
+    };
+    renameNodes(stack.back(), nullptr, 0);
+
+
+    // This does different things
+    // 1. uses a safer sign than ':' for output
+    // 2. adds fake cli methods, so they get exported via tdl
+    // 3. strips of the toolNamespace
+    // 4. ignore certain options
+    auto addFakeCLIMapping = std::function<void(tdl::Node&)> {};
+    addFakeCLIMapping = [&](tdl::Node& element) {
+      auto name = element.name;
+
+      // strip of the tool namespace part and ignore entries that aren't part of the name space (like ToolName:version)
+      if (name.size() >= toolNamespace.size()
+         && name.substr(0, toolNamespace.size()) == toolNamespace)
+      {
+         element.name = name.substr(toolNamespace.size());
+      }
+      else
+      {
+        name = "";
+        element.name = "";
+      }
+
+      // remove options we want to hide //!TODO
+      for (auto namesToIgnore : {"test"})
+      {
+          if (element.name == namesToIgnore)
+          {
+            name = "";
+          }
+      }
+
+      element.name = replaceAll(element.name, ":", "__");
+
+      if (param.exists(name) && param.getValueType(name) != ParamValue::EMPTY_VALUE)
+      {
+        tdl_tool_info.cliMapping.emplace_back(tdl::CLIMapping {"--fake_" + element.name, element.name});
+      }
+      if (auto children = std::get_if<tdl::Node::Children>(&element.value))
+      {
+        for (auto& child : *children)
+        {
+          addFakeCLIMapping(child);
+        }
+      }
+    };
+    addFakeCLIMapping(stack.back());
+
+    tdl_tool_info.params.push_back(stack.back());
+
+    // Removing the fake cli methods
+    tdl::post_process_cwl = [&](YAML::Node node) {
+      node["requirements"] = YAML::Load(R"-(
+            InlineJavascriptRequirement: {}
+            InitialWorkDirRequirement:
+              listing:
+                - entryname: cwl_inputs.json
+                  entry: $(JSON.stringify(inputs))
+        )-");
+      node["arguments"] = YAML::Load(R"-(
+            - -ini
+            - cwl_inputs.json
+        )-");
+
+      // Remove All fake cli prefix bindings
+      for (auto in : node["inputs"])
+      {
+        if (in.second["inputBinding"].IsMap() && in.second["inputBinding"]["prefix"].IsScalar())
+        {
+          auto prefix = in.second["inputBinding"]["prefix"].as<std::string>();
+          if (prefix.size() > 6 and prefix.substr(0, 6) == "--fake")
+          {
+            in.second.remove("inputBinding");
+          }
+        }
+      }
+    };
+    os << convertToCWL(tdl_tool_info);
+  }
+
   bool ParamCWLFile::load(const std::string& filename, Param& param)
   {
     // discover the name of the first nesting Level

@@ -64,6 +64,8 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
 add_subdirectory(thirdparty)
+openms_register_export_target(tdl)
+install_library(tdl)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -88,8 +90,8 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES 
-  GTE Quadtree ${LPTARGET} 
+set(OPENMS_DEP_PRIVATE_LIBRARIES
+  GTE Quadtree ${LPTARGET}
   Eigen3::Eigen
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   Boost::iostreams
@@ -98,7 +100,9 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::regex
   BZip2::BZip2
   ZLIB::ZLIB
-  SQLiteCpp)
+  SQLiteCpp
+  tdl::tdl
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
