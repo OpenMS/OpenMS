@@ -134,10 +134,8 @@ public:
     OPENSWATHALGO_DLLAPI void computeRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
     // Estimate rank-transformed mutual information between two vectors of data points
-    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
-
-    // Estimate rank-transformed mutual information between two vectors of data points
-    OPENSWATHALGO_DLLAPI double preCalcRankedMutualInformation(std::vector<unsigned int>& rank_vector1, std::vector<unsigned int>& rank_vector2);
+    //OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& data1, std::vector<unsigned int>& data2);
 
     //@}
 
