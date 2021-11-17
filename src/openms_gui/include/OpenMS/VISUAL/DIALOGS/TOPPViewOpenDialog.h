@@ -51,7 +51,6 @@ namespace Ui
 
 namespace OpenMS
 {
-  class Param;
   class String;
   /**
       @brief Dataset opening options for TOPPView

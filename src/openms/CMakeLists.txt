@@ -65,6 +65,9 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
 add_subdirectory(thirdparty)
+openms_register_export_target(tdl_tdl)
+install_library(tdl_tdl)
+target_compile_definitions(tdl_tdl INTERFACE -DTDL_USE_OPENMS_EXCEPTION)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -102,7 +105,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 #                          ${Qt5Network_LIBRARIES}
 #                          ${Qt5Sql_LIBRARIES})
 
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql tdl::tdl)
 
 set(OPENMS_DEP_PRIVATE_LIBRARIES WM5::WM5 CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
   BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)

@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
@@ -46,7 +47,6 @@
 namespace OpenMS
 {
   class TOPPASScene;
-  class Param;
 
   /**
     @brief Widget visualizing and allowing to edit TOPP pipelines.

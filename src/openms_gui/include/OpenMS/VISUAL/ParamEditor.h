@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QItemDelegate>
@@ -57,7 +58,6 @@ namespace Ui
 namespace OpenMS
 {
   class String;
-  class Param;
   class ParamEditor;
   /**
       @brief Namespace used to hide implementation details from users.

@@ -39,6 +39,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
 #include <QMenu>
 #include <QStringList>
 
@@ -48,7 +50,6 @@ class QAction;
 
 namespace OpenMS
 {
-  class Param;
   class String;
 
   /**

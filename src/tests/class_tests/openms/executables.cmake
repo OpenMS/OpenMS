@@ -67,8 +67,6 @@ set(datastructures_executables_list
   Matrix_test
   #MatrixUtils_test
   OPXLDataStructs_test
-  Param_test
-  ParamValue_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -233,7 +231,6 @@ set(format_executables_list
   OMSSAXMLFile_test
   OSWFile_test
   PTMXMLFile_test
-  ParamCTDFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test

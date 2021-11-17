@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
 #include <mutex>
@@ -42,7 +43,6 @@
 
 namespace OpenMS
 {
-  class Param;
   class TOPPBase;
 
   /**
