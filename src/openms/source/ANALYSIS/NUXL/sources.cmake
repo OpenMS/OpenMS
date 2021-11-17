@@ -8,6 +8,7 @@ MorpheusScore.cpp
 PScore.cpp
 NuXLAnnotateAndLocate.cpp
 NuXLFDR.cpp
+NuXLFeatureAugmentation.cpp
 NuXLFragmentAdductDefinition.cpp
 NuXLFragmentAnnotationHelper.cpp
 NuXLFragmentIonGenerator.cpp

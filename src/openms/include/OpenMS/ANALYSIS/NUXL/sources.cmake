@@ -10,6 +10,7 @@ NuXLAnnotateAndLocate.h
 NuXLAnnotatedHit.h
 NuXLConstants.h
 NuXLFDR.h
+NuXLFeatureAugmentation.h
 NuXLFragmentAdductDefinition.h
 NuXLFragmentAnnotationHelper.h
 NuXLFragmentIonGenerator.h

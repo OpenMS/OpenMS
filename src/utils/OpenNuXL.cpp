@@ -59,6 +59,7 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFDR.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFeatureAugmentation.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
@@ -213,6 +214,10 @@ struct ImmoniumIonsInPeptide
        - Keep max. 400 peaks per spectrum
          to highly charged fragments in the low m/z region
        - Calculate and store TIC of filtered spectrum
+    5. Experimental feature precalculation from spectra
+       - Precalculate nucleotide tags
+       - Calculate intensity ranks
+       - Calculate amino acid tags
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_OpenNuXL.cli
@@ -522,6 +527,8 @@ protected:
 
   static double matchOddsScore_(const size_t N, const size_t matches, const double p)
   {
+    if (N == 0) return 0;
+
     const double pscore = boost::math::ibeta(matches + 1, N - matches, p);
     if (pscore <= std::numeric_limits<double>::min())
     {
@@ -1818,12 +1825,8 @@ static void scoreXLIons_(
   static map<String, vector<vector<double>>> fragment_adduct2block_if_masses_present;
 
 
-  void calculateNucleotideTags_(PeakMap& exp, 
-    const double fragment_mass_tolerance, 
-    const bool fragment_mass_tolerance_unit_ppm,
-    const NuXLParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
+  static set<double> getSetOfAdductMasses(const NuXLParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
   {
-    // set of all possibly observable fragment adduct masses
     set<double> adduct_mass;
     for (const auto & p : nucleotide_to_fragment_adducts)
     {
@@ -1832,37 +1835,87 @@ static void scoreXLIons_(
         adduct_mass.insert(fa.mass);
       }
     }
+    return adduct_mass;
+  }
 
-    // mass shift to residue + adduct (including no adduct, see below)
-    map<double, map<const Residue*, double> > aa_plus_adduct_mass;
+  static map<double, map<const Residue*, double>> getMapAAPlusAdductMass(const set<double>& adduct_mass,
+    const std::string& debug_file)
+  {
+    map<double, map<const Residue*, double>> aa_plus_adduct_mass;
     auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
     for (const double d : adduct_mass)
-    {
+    { // for every fragment adduct mass
       for (const Residue* r : residues)
-      {
+      { // calculate mass of adduct bound to an internal residue
         double m = d + r->getMonoWeight(Residue::Internal);
         aa_plus_adduct_mass[m][r] = d; // mass, residue, shift mass
       }
     }
-    // add mass shits of plain residues
+    // add mass shits of plain residues (= no adduct)
     for (const Residue* r : residues)
     {
       double m = r->getMonoWeight(Residue::Internal);
       aa_plus_adduct_mass[m][r] = 0;
     }
 
-    ////////////////////// check if multiple AAs match to an adduct
-    // set of all possibly observable fragment adduct masses
-    map<double, map<const Residue*, String>> res_adduct_mass2residue2adduct; 
+    if (!debug_file.empty())
+    {
+      // output ambigious masses
+      ofstream of;
+      of.open(debug_file);
+      of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+      of << "Total\tResidue\tAdduct" << endl;
+      for (auto& m : aa_plus_adduct_mass)
+      {
+        double mass = m.first;
+        if (m.second.size() == 1) continue; 
+        // more than one residue / adduct registered for that mass
+        for (auto& a : m.second)
+        {
+          of << mass << "\t" << a.first->getOneLetterCode() << "\t" << a.second << "\n";
+        }
+      }
+      of.close(); 
 
+      // Calculate background statistics on shifts
+      OPENMS_LOG_INFO << "mass\tresidue\tshift:" << endl;
+      for (const auto& mra : aa_plus_adduct_mass)
+      {
+        double m = mra.first;
+        const map<const Residue*, double>& residue2adduct = mra.second;
+        for (auto& r2a : residue2adduct)
+        {
+          OPENMS_LOG_INFO << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+        }
+      }
+    }
+
+    return aa_plus_adduct_mass;
+  }
+
+  static map<double, set<String>> getAdductMass2Name(const NuXLParameterParsing::NucleotideToFragmentAdductMap&  nucleotide_to_fragment_adducts)
+  {
     map<double, set<String>> adduct_mass2adduct_names;
-
     for (const auto & p : nucleotide_to_fragment_adducts)
     {
       for (const auto & fa : p.second)
       {
         adduct_mass2adduct_names[fa.mass].insert(fa.name);
+      }
+    }
+    return adduct_mass2adduct_names;
+  }
+
+  static map<double, map<const Residue*, String>> getMapAAPlusAdductMassToResidueToAdductName(const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
+  {
+    map<double, map<const Residue*, String>> res_adduct_mass2residue2adduct;
+    auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
+
+    for (const auto & p : nucleotide_to_fragment_adducts)
+    {
+      for (const auto & fa : p.second)
+      {
         for (const Residue* r : residues)
         {
           double m = fa.mass + r->getMonoWeight(Residue::Internal); // mass of residue + fragment adduct
@@ -1870,63 +1923,83 @@ static void scoreXLIons_(
         }
       }
     }
+    return res_adduct_mass2residue2adduct;
+  }
 
-    map<String, set<String>> tag2ADs;
-    unordered_map<String, unordered_set<String>> ADs2tag;
+  static void getTagToAdduct(
+    const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts, 
+    map<String, set<String>>& tag2ADs, 
+    unordered_map<String, unordered_set<String>>& ADs2tag,
+    const double fragment_mass_tolerance,
+    const bool fragment_mass_tolerance_unit_ppm)
+  {
+    // create map from adduct mass to adduct name (e.g., "U-H2O")
+    map<double, set<String>> adduct_mass2adduct_names = getAdductMass2Name(nucleotide_to_fragment_adducts);
 
-    // 2 AA vs 1AA + adduct 
+    // create map from residue + adduct to residue to adduct names
+    map<double, map<const Residue*, String>> res_adduct_mass2residue2adduct = getMapAAPlusAdductMassToResidueToAdductName(nucleotide_to_fragment_adducts);
+
+    auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
+
+    // check if 2 AA match 1AA + adduct 
     for (const Residue* a : residues)
     {
       double am = a->getMonoWeight(Residue::Internal);
       for (const Residue* b : residues)
-      {
+      { // for all pairs of residues
         double bm = b->getMonoWeight(Residue::Internal);
-
+        const double abmass = am + bm;
         // take 1000 Da as reference mass so we get meaningful Da from ppm
-        const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, am + bm  + 1000.0) : fragment_mass_tolerance;
+        const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, abmass + 1000.0) : fragment_mass_tolerance;
 
         // find all (shifted/normal) residues that match to an observed shift
-        auto left = res_adduct_mass2residue2adduct.lower_bound(am + bm - tolerance);
-        auto right = res_adduct_mass2residue2adduct.upper_bound(am + bm + tolerance);
+        auto left = res_adduct_mass2residue2adduct.lower_bound(abmass - tolerance);
+        auto right = res_adduct_mass2residue2adduct.upper_bound(abmass + tolerance);
         for (; left != right; ++left)
-        {
+        { // found at least one AA + adduct mass that matches to A+B mass
           auto& residues2adductname = left->second;
           const String& A = a->getOneLetterCode();
           const String& B = b->getOneLetterCode();
-          const String tag = A+B;
+          String tag = A+B;
+          // sort AA tag because there is no difference between e.g., "AB" or "BA" 
+          std::sort(tag.begin(), tag.end());
           for (auto& r2s : residues2adductname)
           {
             const String& adduct_name = r2s.second;
-            OPENMS_LOG_DEBUG << (am + bm) << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+            OPENMS_LOG_DEBUG << abmass << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
             tag2ADs[tag].insert(adduct_name);
             ADs2tag[adduct_name].insert(tag);
             vector<double> list;
             list.push_back(am);        
-            list.push_back(bm);        
+            list.push_back(bm);
+            // for every fragment adduct name, store amino acid masses that that would also match     
             fragment_adduct2block_if_masses_present[adduct_name].push_back(list);
           }
         }      
       }
     }
 
-    // 2 AA vs adduct (e.g., 2AA or same ion get's observed with and without adduct)
+    // 2 AA vs adduct (e.g., is it 2 AA or is a fragment ion observed both with and without adduct)
     for (const Residue* a : residues)
     {
       double am = a->getMonoWeight(Residue::Internal);
       for (const Residue* b : residues)
       {
         double bm = b->getMonoWeight(Residue::Internal);
+        const double abmass = am + bm;
 
         // take 1000 Da as reference mass so we get meaningful Da from ppm
-        const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, am + bm  + 1000.0) : fragment_mass_tolerance;
+        const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, abmass  + 1000.0) : fragment_mass_tolerance;
 
-        auto left = adduct_mass2adduct_names.lower_bound(am + bm - tolerance);
-        auto right = adduct_mass2adduct_names.upper_bound(am + bm + tolerance);
+        auto left = adduct_mass2adduct_names.lower_bound(abmass - tolerance);
+        auto right = adduct_mass2adduct_names.upper_bound(abmass + tolerance);
         for (; left != right; ++left)
-        {
+        { // found at least one adduct mass that matches to A+B mass
           const String& A = a->getOneLetterCode();
           const String& B = b->getOneLetterCode();
-          const String tag = A+B;
+          String tag = A+B;
+          // sort AA tag because there is no difference between e.g., "AB" or "BA" 
+          std::sort(tag.begin(), tag.end());
           for (auto& adduct_name : left->second)
           {
             OPENMS_LOG_DEBUG << (am + bm) << ":" << tag << "=" << adduct_name << endl;
@@ -1942,7 +2015,7 @@ static void scoreXLIons_(
     }
 
     // The bad cases where one AA matches to one AA + adduct or even one AA to adduct
-
+    // This is expected to happy quite a bit in real data.
     // 1 (heavy) AA vs 1 (light) AA + adduct 
     for (const Residue* a : residues)
     {
@@ -1955,13 +2028,13 @@ static void scoreXLIons_(
       auto left = res_adduct_mass2residue2adduct.lower_bound(am - tolerance);
       auto right = res_adduct_mass2residue2adduct.upper_bound(am + tolerance);
       for (; left != right; ++left)
-      {
+      { // at least one AA matches another AA + adduct mass
         auto& residues2adductname = left->second;
         const String& A = a->getOneLetterCode();
         for (auto& r2s : residues2adductname)
         {
           const String& adduct_name = r2s.second;
-          OPENMS_LOG_DEBUG << am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+          OPENMS_LOG_DEBUG<< am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
           tag2ADs[A].insert(adduct_name);
           ADs2tag[adduct_name].insert(A);
           vector<double> list;
@@ -1982,7 +2055,7 @@ static void scoreXLIons_(
       auto left = adduct_mass2adduct_names.lower_bound(am - tolerance);
       auto right = adduct_mass2adduct_names.upper_bound(am + tolerance);
       for (; left != right; ++left)
-      {
+      { // at least one adduct mass matches another AA
         const String& A = a->getOneLetterCode();
         for (auto& adduct_name : left->second)
         {
@@ -1995,53 +2068,48 @@ static void scoreXLIons_(
         }
       }      
     }
-{
-    OpenNuXLTagger tagger(0.03,1,2);
+  }
+
+  static void calculateAATagsOfLength1and2(MSExperiment& exp, const map<String, set<String>>& tag2ADs)
+  {
+    // precalculate AA tags of length 1-2nt and store potential conflicting adducts in the spectrum meta data
+    OpenNuXLTagger tagger(0.03,1,2); // calculate tags of length 1-2nt
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
       std::set<std::string> tags;
       tagger.getTag(spec, tags);
       spec.getStringDataArrays().push_back({});
-      for (const auto& s : tags) // map tag to ambigious fragment adduct and store
+      for (std::string s : tags) // map tag to ambigious fragment adduct and store
       {
-        const auto it = tag2ADs.find(s);
-        if (it != tag2ADs.end()) 
+        std::sort(s.begin(), s.end());          
+        if (const auto it = tag2ADs.find(s); it != tag2ADs.end()) 
         {
           for (const auto& ad : it->second)
           {
-            //cout << ad << " ";
-            spec.getStringDataArrays().back().push_back(ad);
+            spec.getStringDataArrays().back().push_back(ad); // store adduct name
           }
         }
-      };
-//      cout << endl;
-    } 
-}
-    //////////////////////////////////// above should go into new function !!!!!!!!!!!!!!! as it is not nucleotide tag related
-
-    if (debug_level_ > 0)
-    {
-      // output ambigious masses
-      ofstream of;
-      of.open(getStringOption_("in") + ".ambigious_masses.csv");
-      of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
-      of << "Total\tResidue\tAdduct" << endl;
-      for (auto& m : aa_plus_adduct_mass)
-      {
-        double mass = m.first;
-        if (m.second.size() == 1) continue; 
-        // more than one residue / adduct registered for that mass
-        for (auto& a : m.second)
-        {
-          of << mass << "\t" << a.first->getOneLetterCode() << "\t" << a.second << "\n";
-        }
       }
-      of.close(); 
-    }
+    } 
+  }
+  
+  static void getAdductAndAAPlusAdductMassCountsFromSpectra(
+    const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts, 
+    MSExperiment& exp,
+    map<double, size_t>& adduct_mass_count,
+    map<double, size_t>& aa_plus_adduct_mass_count,    
+    const double fragment_mass_tolerance,
+    const bool fragment_mass_tolerance_unit_ppm,
+    std::string debug_file)
+  {
+    // create the set of all fragment adduct masses
+    set<double> adduct_mass = getSetOfAdductMasses(nucleotide_to_fragment_adducts);
+    
+    // create map from residue+adduct mass shift to residue + adduct (including no adduct (!))
+    // e.g. allows checking if an observed mass shift could be induced by a cross-linked fragment
 
-    map<double, size_t> adduct_mass_count;
-    map<double, size_t> aa_plus_adduct_mass_count;
+    map<double, map<const Residue*, double> > aa_plus_adduct_mass = getMapAAPlusAdductMass(adduct_mass, debug_file);
 
     for (auto & spec : exp)
     {
@@ -2055,7 +2123,7 @@ static void scoreXLIons_(
       size_t match(0);
       size_t in_mass_range(0);
 
-      // for all peak pairs
+      // for all fragment peak pairs of matching charge
       for (Size i = 0; i != mzs.size(); ++i)
       {
         for (Size j = i+1; j < mzs.size(); ++j)
@@ -2067,16 +2135,22 @@ static void scoreXLIons_(
 
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
 
-          if (dm * charges[i] > *adduct_mass.rbegin() + tolerance) break;
+          double mass_delta = dm * charges[i];
 
-          auto left = adduct_mass.lower_bound((dm * charges[i]) - tolerance);
-          if (left == adduct_mass.end()) continue;
-          ++in_mass_range;
+          // dm already so large that I can't match to largest adduct_mass anymore? done
+          if (mass_delta > *adduct_mass.rbegin() + tolerance) break;
+
+          auto left = adduct_mass.lower_bound(mass_delta - tolerance);
+
+          if (left == adduct_mass.end()) continue; // not found
+
+          ++in_mass_range; // mass range of all adduct masses TODO: improve?
+
           // count if distance matches to adduct mass
-          if (fabs(*left - (dm * charges[i])) < tolerance )
+          if (fabs(*left - mass_delta) < tolerance )
           {
             ++match;
-            ++adduct_mass_count[*left];
+            ++adduct_mass_count[*left]; // note: potentially dangerous because of floating point precision
           }
         } 
       } 
@@ -2110,11 +2184,67 @@ static void scoreXLIons_(
 
       spec.getFloatDataArrays().resize(3);
       spec.getFloatDataArrays()[2].resize(1);
-      spec.getFloatDataArrays()[2][0] = (double)match / (double)in_mass_range;
+//      spec.getFloatDataArrays()[2][0] = (double)match / (double)in_mass_range;  // TODO: this doesn't seem to normalize well for noise etc.
+      spec.getFloatDataArrays()[2][0] = matchOddsScore_((double)in_mass_range, (double)match, 1e-3);  // count all in mass range as trial, match as success, p=0.001
       spec.getFloatDataArrays()[2].setName("nucleotide_mass_tags");
     }
 
-    // calculate ranks
+    // reformat to get: amino acid, mass, count statistics for spectra
+    map<const Residue*, map<double, size_t>> aa2mass2count;
+    for (const auto& mc : aa_plus_adduct_mass_count)
+    {
+      double mass = mc.first;
+      size_t count = mc.second;
+
+      auto it = aa_plus_adduct_mass.lower_bound(mass - 1e-6); // "exact" match
+      if (it == aa_plus_adduct_mass.end()) continue;
+
+      const map<const Residue*, double>& residue2adduct = it->second;
+      for (auto& r2a : residue2adduct)
+      {
+        const Residue* residue = r2a.first;
+        String name = residue->getName();
+        aa2mass2count[residue][mass] = count;
+      }
+    }
+
+    for (const auto& aa2 : aa2mass2count)
+    {
+      auto& mass2count = aa2.second;
+      for (const auto& m2c : mass2count)
+      {
+        double current_mass = m2c.first;
+        size_t current_residue_count = m2c.second;
+        if (!debug_file.empty())
+        {
+          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
+        }
+      }
+    }
+
+    if (!debug_file.empty())
+    {
+      OPENMS_LOG_DEBUG << "Normalized counts per residue:" << endl;
+      for (const auto& aa2 : aa2mass2count)
+      {
+        auto& mass2count = aa2.second;
+        for (const auto& m2c : mass2count)
+        {
+          // normalize by counts
+          double current_mass = m2c.first;
+          size_t current_residue_count = m2c.second;
+          size_t unmodified_residue_count = mass2count.begin()->second;
+          double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
+          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl; // aa mass count
+        }
+      }
+    }
+
+    OPENMS_LOG_DEBUG << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
+  }
+
+  static void calculateIntensityRanks(MSExperiment& exp)
+  {
     OPENMS_LOG_INFO << "Calculating ranks..." << endl;
     for (auto & spec : exp)
     {
@@ -2134,7 +2264,10 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX].setName("intensity_rank");
     }
     OPENMS_LOG_INFO << " done!" << endl;
+  }
 
+  static void calculateLongestAASequenceTag(MSExperiment& exp)
+  {
     OPENMS_LOG_INFO << "Calculating longest mass tags..." << endl;
     OpenNuXLTagger tagger(0.03, 3);
     for (auto & spec : exp)
@@ -2151,76 +2284,29 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
     OPENMS_LOG_INFO << " done!" << endl;
+  }
 
+  void calculateNucleotideTags_(PeakMap& exp, 
+    const double fragment_mass_tolerance, 
+    const bool fragment_mass_tolerance_unit_ppm,
+    const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
+  {
+    // check for theoretically ambigious fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
+    map<String, set<String>> tag2ADs; // AA tags that match adduct names in mass
+    unordered_map<String, unordered_set<String>> ADs2tag;
+    getTagToAdduct(nucleotide_to_fragment_adducts, tag2ADs, ADs2tag, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
-    if (debug_level_ > 0) 
-    {
-      OPENMS_LOG_DEBUG << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
-      // Calculate background statistics on shifts
-      OPENMS_LOG_INFO << "mass\tresidue\tshift:" << endl;
-      for (const auto& mra : aa_plus_adduct_mass)
-      {
-        double m = mra.first;
-        const map<const Residue*, double>& residue2adduct = mra.second;
-        for (auto& r2a : residue2adduct)
-        {
-          OPENMS_LOG_INFO << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
-        }
-      }
-    }
+    // calculate and annotate in stringdataarray
+    calculateAATagsOfLength1and2(exp, tag2ADs);
 
-    // reformat to get: amino acid, mass, count statistics
-    map<const Residue*, map<double, size_t> > aa2mass2count;
-    for (const auto& mc : aa_plus_adduct_mass_count)
-    {
-      double mass = mc.first;
-      size_t count = mc.second;
-
-      auto it = aa_plus_adduct_mass.lower_bound(mass - 1e-6); // "exact" match
-      if (it == aa_plus_adduct_mass.end()) continue;
-
-      const map<const Residue*, double>& residue2adduct = it->second;
-      for (auto& r2a : residue2adduct)
-      {
-        const Residue* residue = r2a.first;
-        String name = residue->getName();
-        aa2mass2count[residue][mass] = count;
-      }
-    }
+    // similar to a mass tagger we look for mass shifts that match to adduct masses or AA+adduct masses
+    // annotates in spec.getFloatDataArrays()[2] / name "nucleotide_mass_tags";
+    map<double, size_t> adduct_mass_count;
+    map<double, size_t> aa_plus_adduct_mass_count;
+    getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, getStringOption_("in") + ".ambigious_masses.csv");
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
 
-    for (const auto& aa2 : aa2mass2count)
-    {
-      auto& mass2count = aa2.second;
-      for (const auto& m2c : mass2count)
-      {
-        double current_mass = m2c.first;
-        size_t current_residue_count = m2c.second;
-        if (debug_level_ > 0)
-        {
-          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
-        }
-      }
-    }
-
-    if (debug_level_ > 0)
-    {
-      OPENMS_LOG_DEBUG << "Normalized counts per residue:" << endl;
-      for (const auto& aa2 : aa2mass2count)
-      {
-        auto& mass2count = aa2.second;
-        for (const auto& m2c : mass2count)
-        {
-          // normalize by counts
-          double current_mass = m2c.first;
-          size_t current_residue_count = m2c.second;
-          size_t unmodified_residue_count = mass2count.begin()->second;
-          double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
-          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl; // aa mass count
-        }
-      }
-    }
   }
 
    // An interval has start time and end time 
@@ -3750,39 +3836,6 @@ static void scoreXLIons_(
     if (filtered_spectra > 0) OPENMS_LOG_INFO << "  On average " << filtered_peaks_count / (double)filtered_spectra << " peaks per MS2." << endl;
   }
 
-  void addAugmentedFeatures_(vector<PeptideIdentification>& pep_ids, const vector<string>& positive_weights)
-  {
-    // only for XLs? because they are fewer?
-    if (pep_ids.empty()) return;
-    if (pep_ids[0].getHits().empty()) return;
-    vector<String> keys;
-    auto p_template = pep_ids[0].getHits()[0];
-    p_template.setScore(0);
-    p_template.getKeys(keys);
-
-    // clear scores
-    for (const auto& k : keys)
-    { 
-      if (p_template.getMetaValue(k).valueType() == DataValue::INT_VALUE) p_template.setMetaValue(k, 0);
-      if (p_template.getMetaValue(k).valueType() == DataValue::DOUBLE_VALUE) p_template.setMetaValue(k, 0.0);
-    }
-
-    size_t c = 0;
-    for (const auto& s : positive_weights) 
-    {
-      auto p = p_template;
-      p.setMetaValue(s, 1e7);
-      vector<PeptideHit> phs;
-      phs.push_back(p);
-      PeptideIdentification pid = pep_ids[0];
-      pid.setRT(1e6 + c);
-      pid.setHits(phs);
-      pep_ids.push_back(pid);
-      ++c;
-    } 
-    
-  }
-
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -4325,6 +4378,16 @@ static void scoreXLIons_(
 
     progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
+    progresslogger.endProgress();
+
+    // calculate peak intensity ranks and store in spec.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX] / name "intensity_rank"
+    progresslogger.startProgress(0, 1, "Calculate intensity ranks...");
+    calculateIntensityRanks(spectra);
+    progresslogger.endProgress();
+
+    // calculate longest AA sequence tag and annotates it length in  spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0]
+    progresslogger.startProgress(0, 1, "Calculate AA Tags...");
+    calculateLongestAASequenceTag(spectra);
     progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
@@ -5063,6 +5126,8 @@ static void scoreXLIons_(
                        true, window_size, peak_count, purities); // annotate charge (true)
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
+    calculateIntensityRanks(spectra);
+    calculateLongestAASequenceTag(spectra);
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Post-processing PSMs... (localization of cross-links)");
@@ -5367,9 +5432,31 @@ static void scoreXLIons_(
       xl_pi.clear();
       pep_pi.clear();
 */
-     vector<string> positive_weights_features = { "NuXL:mass_error_p", "NuXL:total_loss_score", "NuXL:modds", "NuXL:immonium_score", "NuXL:MIC", "NuXL:Morph", "NuXL:total_MIC", "NuXL:ladder_score", "NuXL:sequence_score",
-                                              "NuXL:total_Morph",  "NuXL:total_HS", "NuXL:tag_XLed", "NuXL:tag_unshifted", "NuXL:tag_shifted", "NuXL:explained_peak_fraction", "NuXL:theo_peak_fraction",
-                                              "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC", "NuXL:score" };
+     vector<string> positive_weights_features = 
+        { "NuXL:mass_error_p", 
+          "NuXL:total_loss_score", 
+          "NuXL:modds", 
+          "NuXL:immonium_score", 
+          "NuXL:MIC", 
+          "NuXL:Morph", 
+          "NuXL:total_MIC", 
+          "NuXL:ladder_score", 
+          "NuXL:sequence_score",
+          "NuXL:total_Morph",  
+          "NuXL:total_HS", 
+          "NuXL:tag_XLed", 
+          "NuXL:tag_unshifted", 
+          "NuXL:tag_shifted", 
+          "NuXL:explained_peak_fraction", 
+          "NuXL:theo_peak_fraction",
+          "NuXL:marker_ions_score", 
+          "NuXL:partial_loss_score", 
+          "NuXL:pl_MIC", 
+          "NuXL:pl_Morph", 
+          "NuXL:pl_modds", 
+          "NuXL:pl_pc_MIC", 
+          "NuXL:pl_im_MIC", 
+          "NuXL:score" };
 /*
        << "NuXL:err"
        << "NuXL:immonium_score"
@@ -5381,7 +5468,6 @@ static void scoreXLIons_(
 
        << "NuXL:isPhospho" 
        << "NuXL:isXL" 
-       << "NuXL:score"
        << "isotope_error"
        << "variable_modifications"
        << "precursor_intensity_log10"
@@ -5390,7 +5476,7 @@ static void scoreXLIons_(
        << "nucleotide_mass_tags"
        << "n_theoretical_peaks";
 */
-      // addAugmentedFeatures_(peptide_ids, positive_weights_features); TODO: seems to work ... scales weights but no improvement
+      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
