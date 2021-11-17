@@ -48,4 +48,4 @@ add_subdirectory(json)
 add_subdirectory(GTE)
 add_subdirectory(SQLiteCpp)
 add_subdirectory(Quadtree)
-
+add_subdirectory(tool_description_lib)

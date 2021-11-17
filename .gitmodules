@@ -8,3 +8,6 @@
 [submodule "src/pyOpenMS/pyopenms-docs"]
 	path = src/pyOpenMS/pyopenms-docs
 	url = https://github.com/OpenMS/pyopenms-docs.git
+[submodule "src/openms/thirdparty/tool_description_lib"]
+	path = src/openms/thirdparty/tool_description_lib
+	url = https://github.com/deNBI-cibi/tool_description_lib.git

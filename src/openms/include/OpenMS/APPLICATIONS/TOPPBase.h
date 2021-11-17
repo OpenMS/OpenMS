@@ -962,6 +962,10 @@ protected:
     /// Write common tool description (CTD) file
     bool writeCTD_();
 
+    /// Write common workflow language (CWL) file
+    bool writeCWL_();
+
+
     /**
       @brief Test mode
 
