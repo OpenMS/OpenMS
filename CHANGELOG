@@ -74,6 +74,9 @@ Misc:
 - Restore developer quick guide in Doxygen docu - see https://openms.de/current_doxygen/html/index.html (#7109)
 - Updated the changelog helper to set LD_LIBRARY_PATH automatically and other fixes
 - Added "area" column to EICextractor output
+- Add export for Common Workflow Language (CWL) (#6156)
+- Add tool description lib (TDL) dependency (#6156)
+
 
 Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator

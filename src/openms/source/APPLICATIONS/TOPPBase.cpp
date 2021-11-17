@@ -156,6 +156,8 @@ namespace OpenMS
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
+    registerStringOption_("write_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
+    registerStringOption_("write_flat_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
@@ -259,7 +261,7 @@ namespace OpenMS
             // We hand an additional parameter object with the default values, so we have information
             // about the tree when parsing the JSON file.
             ini_params = getDefaultParameters_();
-            if (!ParamCWLFile::load(in_ini_path, ini_params))
+            if (!ParamCWLFile<false>::load(in_ini_path, ini_params))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -280,13 +282,24 @@ namespace OpenMS
       // '-write_ctd' given
       if (param_cmdline_.exists("write_ctd"))
       {
-        if (!writeCTD_())
-        {
-          writeLogError_("Error: Could not write CTD file!");
-          return INTERNAL_ERROR;
-        }
+        writeToolDescription_<ParamCTDFile>("write_ctd", ".ctd");
         return EXECUTION_OK;
       }
+
+      // '-write_cwl' given
+      if (param_cmdline_.exists("write_cwl"))
+      {
+        writeToolDescription_<ParamCWLFile</*FlatHierarchy=*/false>>("write_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_cwl' given
+      if (param_cmdline_.exists("write_flat_cwl"))
+      {
+        writeToolDescription_<ParamCWLFile</*FlatHierarchy=*/true>>("write_flat_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
 
       //-------------------------------------------------------------
       // load INI file
@@ -307,7 +320,7 @@ namespace OpenMS
             // We prepopulate the param object with the default values, so we have information
             // about the tree when parsing the JSON file.
             param_inifile_ = getDefaultParameters_();
-            if (!ParamCWLFile::load(value_ini, param_inifile_))
+            if (!ParamCWLFile<false>::load(value_ini, param_inifile_))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -2016,7 +2029,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
+      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_flat_cwl"}.count(it->name) > 0) // do not store these params in ini file
       {
         continue;
       }
@@ -2320,10 +2333,11 @@ namespace OpenMS
     }
   }
 
-  bool TOPPBase::writeCTD_()
+  template <typename Writer>
+  void TOPPBase::writeToolDescription_(std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue("write_ctd").toString()).toQString();
+    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
     if (out_dir_str == "")
     {
       out_dir_str = QDir::currentPath();
@@ -2334,8 +2348,8 @@ namespace OpenMS
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
-      QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + ".ctd";
-      outputFileWritable_(write_ctd_file, "write_ctd");
+      QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      outputFileWritable_(write_ctd_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
       if (!type_list[i].empty())
@@ -2347,7 +2361,7 @@ namespace OpenMS
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      ParamCTDFile paramFile;
+      Writer paramFile;
 
       std::string docurl = getDocumentationURL();
       std::string category;
@@ -2367,8 +2381,6 @@ namespace OpenMS
       paramFile.store(write_ctd_file.toStdString(), default_params,
                       {version_, tool_name_, docurl, category, tool_description_, citation_dois});
     }
-
-    return true;
   }
 
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const String& misc, const String& unknown)

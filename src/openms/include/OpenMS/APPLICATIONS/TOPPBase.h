@@ -933,8 +933,13 @@ protected:
 
     //@}
 
-    /// Write common tool description (CTD) file
-    bool writeCTD_();
+    /**
+       @brief Helper function avoiding repeated code between CTD and CWL.
+       @param write_type The type of file that is being writen, typically write_ini or write_cwl.
+       @param fileExtension The extension of the requested tool description file.
+    */
+    template <typename Writer>
+    void writeToolDescription_(std::string write_type, std::string fileExtension);
 
     /**
       @brief Test mode
