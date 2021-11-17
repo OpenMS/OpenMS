@@ -822,15 +822,16 @@ namespace OpenSwath
         intensityi.clear();
         fi->getIntensity(intensityi);
         Scoring::computeRank(intensityi, rank_vec1);
-        for (std::size_t j = 0; j < features.size(); j++)
+        for (std::size_t j = i; j < features.size(); j++)
         {
           FeatureType fj = features[j];
           intensityj.clear();
           fj->getIntensity(intensityj);
           Scoring::computeRank(intensityj, rank_vec2);
           // compute ranked mutual information
-          mi_precursor_combined_matrix_.setValue(i ,j, Scoring::rankedMutualInformation(rank_vec1, rank_vec2));
-          // j, i
+          double curr_mutual_score = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+          mi_precursor_combined_matrix_.setValue(i ,j, curr_mutual_score);
+          mi_precursor_combined_matrix_.setValue(j ,i, curr_mutual_score);
         }
       }
     }
