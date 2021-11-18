@@ -275,6 +275,7 @@ protected:
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
     if (!in_log_file.empty())
     {
+      std::cout << "Log file used: " << in_log_file << std::endl;
       std::ifstream instream(in_log_file);
       if (instream.good())
       {
@@ -398,6 +399,7 @@ protected:
       {
         std::cout << in_log_file << " not found\n";
       }
+      std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << std::endl;
     }
     return precursor_map_for_real_time_acquisition;
   }
