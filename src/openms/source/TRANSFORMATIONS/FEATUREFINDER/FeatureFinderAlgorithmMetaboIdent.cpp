@@ -164,7 +164,8 @@ namespace OpenMS
     FeatureMap& features, 
     String spectra_file)
   {
-    features.setPrimaryMSRunPath({spectra_file});
+    // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
 
     for (const auto& c : metaboIdentTable)
     {
