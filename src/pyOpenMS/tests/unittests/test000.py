@@ -2278,6 +2278,7 @@ def test_peptide_identifications_to_df():
     peps.append(p1)
 
     assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
     assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
     assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
