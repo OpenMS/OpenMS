@@ -65,11 +65,13 @@ public:
   /// in which case no machine learning or FDR estimation will be performed.
   /// Optional seeds from e.g. untargeted FeatureFinders can be added with
   /// @p seeds.
-  /// Results will be written to @p features.
+  /// Results will be written to @p features. 
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// stored in the MSExperiment.
+  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// will be annotated as a fall-back.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
-  /// If @p spectra_file is provided it will be used to setPrimaryMSRunPath
-  /// in the feature map in case this is not properly annotated in the MSExperiment.
   void run(
     std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
