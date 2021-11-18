@@ -5476,7 +5476,7 @@ static void scoreXLIons_(
        << "nucleotide_mass_tags"
        << "n_theoretical_peaks";
 */
-      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
+      //NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
