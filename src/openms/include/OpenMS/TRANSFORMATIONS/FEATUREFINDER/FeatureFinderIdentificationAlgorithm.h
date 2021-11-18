@@ -68,13 +68,16 @@ public:
   /// Results will be written to @p features.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
+  /// If @p spectra_file is provided it will be used to setPrimaryMSRunPath
+  /// in the feature map in case this is not properly annotated in the MSExperiment.
   void run(
     std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap()
+    const FeatureMap& seeds = FeatureMap(),
+    const String spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);
