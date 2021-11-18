@@ -794,17 +794,21 @@ mean(m4)
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
 
-          std::vector<std::string> native_ids;
-          fill_mock_objects(imrmfeature, native_ids);
+          std::vector<std::string> native_ids1, native_ids2;
+          fill_mock_objects(imrmfeature, native_ids1);
+          for (int i=native_ids1.size()-1; i>=0; i--)
+          {
+            native_ids2.push_back(native_ids1[i]);
+          }   
 
           //initialize the XCorr Matrix
-          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids1, native_ids2);
           delete imrmfeature;
 
           TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 0), 3.2776)
           TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 1), 3.4594)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 0), 3.4594)
         }
     END_SECTION
 
@@ -824,9 +828,13 @@ mean(m4)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
-          std::vector<std::string> native_ids;
-          fill_mock_objects(imrmfeature, native_ids);
-          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+          std::vector<std::string> native_ids1, native_ids2;
+          fill_mock_objects(imrmfeature, native_ids1);
+          for (int i=native_ids1.size()-1; i>=0; i--)
+          {
+            native_ids2.push_back(native_ids1[i]);
+          }   
+          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids1, native_ids2);
           delete imrmfeature;
           TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[0], 3.27761)
           TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[1], 3.36852)
