@@ -89,14 +89,17 @@ namespace OpenMS
 
     // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
     // This is the case if the Gaussian filter is smaller than the spacing of raw data
-    if (!found_signal && write_log_messages_ && spectrum.size() >= 3)
+    if (!found_signal && spectrum.size() >= 3)
     {
-      String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
-      if (spectrum.getRT() > 0.0)
+      if (write_log_messages_)
       {
-        error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
+        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
+        if (spectrum.getRT() > 0.0)
+        {
+          error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
+        }
+        OPENMS_LOG_WARN << error_message << std::endl;
       }
-      OPENMS_LOG_WARN << error_message << std::endl;
     }
     else
     {
@@ -137,14 +140,17 @@ namespace OpenMS
 
     // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
     // This is the case if the Gaussian filter is smaller than the spacing of raw data
-    if (!found_signal && write_log_messages_ && chromatogram.size() >= 3)
+    if (!found_signal && chromatogram.size() >= 3)
     {
-      String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
-      if (chromatogram.getMZ() > 0.0)
+      if (write_log_messages_)
       {
-        error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
+        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
+        if (chromatogram.getMZ() > 0.0)
+        {
+          error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
+        }
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
-      OPENMS_LOG_ERROR << error_message << std::endl;
     }
     else
     {
