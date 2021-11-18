@@ -88,7 +88,7 @@ public:
   FeatureFinderAlgorithmMetaboIdent();
 
   /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
-  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features);
+  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, String spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   PeakMap& getMSData() { return ms_data_; }
