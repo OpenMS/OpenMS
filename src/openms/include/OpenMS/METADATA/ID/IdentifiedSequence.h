@@ -113,7 +113,15 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
       > IdentifiedPeptides;
-    typedef IteratorWrapper<IdentifiedPeptides::iterator> IdentifiedPeptideRef;
+
+    class IdentifiedPeptideRef : public IteratorWrapper<IdentifiedPeptides::iterator>
+    {
+      public:
+      explicit IdentifiedPeptideRef(IteratorWrapper<IdentifiedPeptides::iterator> it) :
+        IteratorWrapper<IdentifiedPeptides::iterator>(it)
+      {
+      }
+    };
 
     // identified oligos indexed by their sequences:
     typedef boost::multi_index_container<

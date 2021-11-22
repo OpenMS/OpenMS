@@ -227,8 +227,9 @@ namespace OpenMS
     }
     checkParentMatches_(peptide.parent_matches, MoleculeType::PROTEIN);
 
-    return insertIntoMultiIndex_(identified_peptides_, peptide,
+    auto tmp = insertIntoMultiIndex_(identified_peptides_, peptide,
                                  identified_peptide_lookup_);
+    return IdentifiedPeptideRef(tmp);
   }
 
 
@@ -633,7 +634,7 @@ namespace OpenMS
     for (auto it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_refs.insert(IdentifiedPeptideRef(it));
     }
     for (auto it = identified_compounds_.begin();
          it != identified_compounds_.end(); ++it)
