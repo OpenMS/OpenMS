@@ -218,6 +218,21 @@ struct ImmoniumIonsInPeptide
        - Precalculate nucleotide tags
        - Calculate intensity ranks
        - Calculate amino acid tags
+    6. Generate decoy sequences
+       - Uses maximum number of attempts to shuffle in order to minimize sequence similarity
+       - Sequence similarity target vs. decoy is calculated by overlap prefix with prefix
+         and prefix to suffix (e.g, reversing is also discouraged if possible)
+    7. Search:
+       For all proteins:
+       - Diggest current protein
+       - For all peptides of current digest
+         - Skip peptide if already searched
+         - Determine potential immonium ions of peptide
+         - Apply fixed modification(s) to peptide
+         - Apply variable modifications(s) to peptide to get modification peptidoforms
+         - For all modified peptide sequences (of current peptide)
+           - 
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_OpenNuXL.cli
@@ -4432,7 +4447,7 @@ static void scoreXLIons_(
     fastaFile.load(in_db, fasta_db);
     progresslogger.endProgress();
 
-    // generate decoy protein sequences by reversing them
+    // generate decoy protein sequences
     if (generate_decoys)
     {
       progresslogger.startProgress(0, 1, "Generating decoys...");
@@ -4450,7 +4465,7 @@ static void scoreXLIons_(
         std::vector<AASequence> output;
         digestor.digest(AASequence::fromString(e.sequence), output);
 
-        // pseudo reverse protein digest
+        // generate decoy peptides from current digest
         e.sequence = "";
         for (const auto & aas : output)
         {
@@ -4472,7 +4487,6 @@ static void scoreXLIons_(
       r.portable_random_shuffle(fasta_db.begin(),fasta_db.end());
       progresslogger.endProgress();
     }
-
 
     // set up enzyme
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
@@ -5476,10 +5490,11 @@ static void scoreXLIons_(
        << "nucleotide_mass_tags"
        << "n_theoretical_peaks";
 */
-      //NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
-
+      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+
+      NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features
 
       // generate filtered results
 #ifdef FILTER_RANKS
@@ -5580,6 +5595,8 @@ static void scoreXLIons_(
         { 
           // load back idXML
           IdXMLFile().load(perc_out, protein_ids, peptide_ids);
+
+          NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features after percolator run
  
           // generate filtered results
           IDFilter::keepNBestHits(peptide_ids, 1);

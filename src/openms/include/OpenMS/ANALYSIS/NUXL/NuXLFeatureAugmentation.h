@@ -57,6 +57,7 @@ namespace OpenMS
         p_template.setScore(0);
         std::vector<String> keys;
         p_template.getKeys(keys);
+        p_template.setMetaValue("NuXL:augmented", "true");
 
         // clear scores of template
         for (const auto& k : keys)
@@ -65,12 +66,43 @@ namespace OpenMS
           if (p_template.getMetaValue(k).valueType() == DataValue::DOUBLE_VALUE) p_template.setMetaValue(k, 0.0);
         }
 
+        // determine minium and maximum for each of the positive constrained features
+        std::map<String, double> minima;
+        std::map<String, double> maxima;
+
+        for (const auto& k : positive_weights) 
+        {
+          minima[k] = 1e32;
+          maxima[k] = -1e32;
+        }
+
+        for (const auto& pid : pep_ids)
+        {
+          for (const auto& ph : pid.getHits())
+          {
+            for (const auto& k : positive_weights) 
+            {
+              auto dv = ph.getMetaValue(k);
+              if (dv.valueType() == DataValue::INT_VALUE) 
+              { 
+                if (minima[k] > (int)dv) minima[k] = (int)dv; 
+                if (maxima[k] < (int)dv) maxima[k] = (int)dv; 
+              };
+              if (dv.valueType() == DataValue::DOUBLE_VALUE) 
+              { 
+                if (minima[k] > (double)dv) minima[k] = (double)dv; 
+                if (maxima[k] < (double)dv) maxima[k] = (double)dv; 
+              };
+            }    
+          }
+        }
+
         size_t c = 0;
         // for each positive_weight feature, create one example with that feature set to large value
         for (const auto& s : positive_weights) 
         {
           auto p = p_template;
-          p.setMetaValue(s, 1e7); // set feature value to a large value
+          p.setMetaValue(s, maxima[s]); // set feature value to maximum of observed ones
           std::vector<PeptideHit> phs;
           phs.push_back(p);
           PeptideIdentification pid = pep_ids[0];
@@ -79,7 +111,17 @@ namespace OpenMS
           pep_ids.push_back(pid);
           ++c;
         } 
-      } 
+      }
+ 
+      static void removeAugmented(std::vector<PeptideIdentification>& pep_ids)
+      {
+        // remove augmented features again
+        for (auto& pid : pep_ids)
+        {
+          auto& phs = pid.getHits();
+          phs.erase(remove_if(phs.begin(), phs.end(), [](const PeptideHit& ph){ return ph.metaValueExists("NuXL:augmented"); }), phs.end());
+        }
+      }
   };
 }
 
