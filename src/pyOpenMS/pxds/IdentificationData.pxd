@@ -3,6 +3,7 @@ from libcpp cimport bool
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
 from MetaInfoInterface cimport *
+from IdentifiedPeptideRef cimport *
 
 cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
     
@@ -11,3 +12,5 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
         #  MetaInfoInterface
 
         IdentificationData() nogil except + # wrap-doc:Representation of spectrum identification results and associated data
+
+        IdentifiedPeptideRef registerIdentifiedPeptide(IdentifiedSequence[AASequence]& peptide) nogil except +

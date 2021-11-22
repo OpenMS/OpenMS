@@ -117,6 +117,7 @@ namespace OpenMS
     class IdentifiedPeptideRef : public IteratorWrapper<IdentifiedPeptides::iterator>
     {
       public:
+      IdentifiedPeptideRef() {}
       explicit IdentifiedPeptideRef(IteratorWrapper<IdentifiedPeptides::iterator> it) :
         IteratorWrapper<IdentifiedPeptides::iterator>(it)
       {
