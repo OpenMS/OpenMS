@@ -52,6 +52,12 @@ namespace OpenMS
         return &(**this) < &(*other);
       }
 
+      bool operator==(const IteratorWrapper& other) const
+      {
+        // compare by address of referenced element:
+        return &(**this) == &(*other);
+      }
+
       /// Conversion to pointer type for hashing
       operator uintptr_t() const
       {

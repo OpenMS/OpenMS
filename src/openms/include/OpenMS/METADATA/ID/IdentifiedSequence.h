@@ -55,6 +55,7 @@ namespace OpenMS
 
       ParentMatches parent_matches;
 
+      IdentifiedSequence() {} // for PYOPENMS
       explicit IdentifiedSequence(
         const SeqType& sequence,
         const ParentMatches& parent_matches = ParentMatches(),
@@ -117,13 +118,14 @@ namespace OpenMS
     class IdentifiedPeptideRef : public IteratorWrapper<IdentifiedPeptides::iterator>
     {
       public:
-      IdentifiedPeptideRef() {}
+      IdentifiedPeptideRef() {} // for PYOPENMS
       explicit IdentifiedPeptideRef(IteratorWrapper<IdentifiedPeptides::iterator> it) :
         IteratorWrapper<IdentifiedPeptides::iterator>(it)
       {
       }
 
       AASequence getAASequence() {return (**this).sequence;}
+      IdentifiedPeptide getIdentifiedPeptide() {return **this;}
     };
 
     // identified oligos indexed by their sequences:
