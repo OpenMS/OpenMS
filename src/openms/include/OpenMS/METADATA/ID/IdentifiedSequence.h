@@ -121,6 +121,8 @@ namespace OpenMS
         IteratorWrapper<IdentifiedPeptides::iterator>(it)
       {
       }
+
+      AASequence getAASequence() {return (**this).sequence;}
     };
 
     // identified oligos indexed by their sequences:
