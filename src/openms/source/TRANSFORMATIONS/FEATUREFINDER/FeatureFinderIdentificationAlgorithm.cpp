@@ -250,7 +250,8 @@ namespace OpenMS
     vector<PeptideIdentification> peptides_ext,
     vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds
+    const FeatureMap& seeds,
+    const String spectra_file
     )
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -261,6 +262,9 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
+
+    // annotate mzML file
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
