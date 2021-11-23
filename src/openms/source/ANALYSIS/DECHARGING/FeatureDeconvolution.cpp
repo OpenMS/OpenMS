@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 
 #undef DC_DEVEL
@@ -47,6 +46,7 @@
 #ifdef DC_DEVEL
 #include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #endif
 
 using namespace std;
@@ -1039,8 +1039,7 @@ namespace OpenMS
     FeatureMap fm_missing;
     cl.suggestMissingFeatures(fm_out, cons_map, fm_missing);
 
-    FeatureXMLFile fmf;
-    fmf.store("fm_missing.featureXML", fm_missing);
+    FileHandler.storeFeatures("fm_missing.featureXML", fm_missing);
 #endif
 
     cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);

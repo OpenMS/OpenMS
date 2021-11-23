@@ -516,6 +516,7 @@ set(analysis_executables_list
   MRMFeaturePicker_test
   MRMFragmentSelection_test
   MRMMapping_test
+  MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test

@@ -76,7 +76,7 @@ public:
     GaussFilter();
 
     /// Destructor
-    ~GaussFilter() override;
+    ~GaussFilter() override = default;
 
     /**
       @brief Smoothes an MSSpectrum containing profile data.
@@ -102,6 +102,8 @@ protected:
 
     /// The spacing of the pre-tabulated kernel coefficients
     double spacing_;
+
+    bool write_log_messages_ = false;
 
     // Docu in base class
     void updateMembers_() override;

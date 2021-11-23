@@ -43,6 +43,9 @@
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -1144,17 +1147,11 @@ protected:
 
       // create empty feature map and annotate MS file
       FeatureMap seeds;
-
-      StringList sl;
-      sl.push_back(mz_file);
-      seeds.setPrimaryMSRunPath(sl);
-      seeds.setLoadedFilePath(sl[0]); // fills path in DocumentIdentifier - needed in function convertSeeds
+      seeds.setPrimaryMSRunPath({mz_file});
 
       if (getStringOption_("targeted_only") == "false")
       {
         calculateSeeds_(ms_centroided, seeds, median_fwhm); // resets LoadedFilePath()
-        seeds.setPrimaryMSRunPath(sl);
-        seeds.setLoadedFilePath(sl[0]);
         if (debug_level_ > 666)
         {
           FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
@@ -1164,10 +1161,6 @@ protected:
       // Run FeatureFinderIdentification
 
       FeatureMap fm;
-      StringList feature_msfile_ref;
-      feature_msfile_ref.push_back(mz_file);
-      fm.setPrimaryMSRunPath(feature_msfile_ref);
-      fm.setLoadedFilePath(feature_msfile_ref[0]);
 
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
@@ -1195,17 +1188,7 @@ protected:
         ffi.convertSeeds(seeds, id_data);
       }
 
-      ffi.run(fm, id_data, id_data_ext);
-
-      // remove transferred IDs and seeds
-      // TODO Note: this is currently not needed since the export to the old data structures does not export ObsMatches w/o score
-      // But this also makes sense, since there would be no good score (maybe the best of the consensusFeature?).
-      // I think the association to an ID for those transferred IDs that result in features should happen through
-      // linking to the consensusFeature anyway. Therefore I think *all* of them can be deleted (not only unvalidated ones).
-      //if (!transfered_ids.empty()) removeUnvalidatedTransferIDs_(fm);
-      //removeTransferIDsAndSeeds_(fm);
-
-      // TODO annotate in the consensusMap if a feature was a seed or transfer?
+      ffi.run(fm, id_data, id_data_ext, mz_file);
 
       // convert IDs in feature map to Peptide-/ProteinIdentification:
       IdentificationDataConverter::exportFeatureIDs(fm);

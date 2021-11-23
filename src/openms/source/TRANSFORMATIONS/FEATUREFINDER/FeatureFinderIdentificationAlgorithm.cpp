@@ -44,6 +44,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
@@ -193,6 +194,27 @@ namespace OpenMS
   void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
   {
     ms_data_ = ms_data;
+
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
+  {
+    ms_data_ = std::move(ms_data);
+
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
   }
 
   PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
@@ -228,7 +250,8 @@ namespace OpenMS
   void FeatureFinderIdentificationAlgorithm::run(
     FeatureMap& features,
     IdentificationData& id_data,
-    IdentificationData& id_data_ext)
+    IdentificationData& id_data_ext,
+    const String& spectra_file)
   {
     target_map_.clear();
 
@@ -240,6 +263,9 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
+
+    // annotate mzML file
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
@@ -471,8 +497,7 @@ namespace OpenMS
     // TODO make sure that only assembled traces (more than one trace -> has a charge) are used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
 
-    ID::ProcessingSoftware software("FeatureFinderIdentification",
-                                        VersionInfo::getVersion());
+    ID::ProcessingSoftware software("FeatureFinderIdentification", VersionInfo::getVersion());
     ID::ProcessingSoftwareRef sw_ref = id_data.registerProcessingSoftware(software);
     ID::InputFile input(seeds.getLoadedFilePath());
     ID::InputFileRef file_ref = id_data.registerInputFile(input);
@@ -580,7 +605,7 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     filterFeatures_(features, with_external_ids);

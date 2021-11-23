@@ -97,7 +97,7 @@ namespace OpenMS
       UInt getNumberOfHits() const;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os) override;
+      void writeTo(std::ostream& os) override;
 
       // TODO move these to StringUtils?
       /**

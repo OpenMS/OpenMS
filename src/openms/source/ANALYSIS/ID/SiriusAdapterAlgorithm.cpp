@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -455,9 +455,8 @@ namespace OpenMS
         if (File::exists(featureinfo) && !File::empty(featureinfo))
         {
           // read featureXML          
-          FeatureXMLFile fxml;
           FeatureMap feature_map;
-          fxml.load(featureinfo, feature_map);
+          FileHandler().loadFeatures(featureinfo, feature_map);
 
           UInt num_masstrace_filter = getFilterByNumMassTraces();
           double precursor_mz_tol = getPrecursorMzTolerance();

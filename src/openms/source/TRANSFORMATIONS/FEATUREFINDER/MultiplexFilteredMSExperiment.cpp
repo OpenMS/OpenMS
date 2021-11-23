@@ -32,12 +32,12 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
@@ -161,8 +161,7 @@ namespace OpenMS
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map.setExperimentType("label-free");
 
-    ConsensusXMLFile file;
-    file.store(debug_out, map);
+    FileHandler().storeConsensusFeatures(debug_out, map);
   }
 
 }

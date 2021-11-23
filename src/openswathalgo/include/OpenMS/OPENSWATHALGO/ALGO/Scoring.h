@@ -115,11 +115,11 @@ public:
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
     /// NOTE: this replaces calcxcorr 
     OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                                                   std::vector<double>& data2, const int& maxdelay, const int& lag);
+                                                                   std::vector<double>& data2, const int maxdelay, const int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
     OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                                                  const std::vector<double>& data2, const int& maxdelay, const int& lag);
+                                                                  const std::vector<double>& data2, const int maxdelay, const int lag);
 
     /// Find best peak in an cross-correlation (highest apex)
     OPENSWATHALGO_DLLAPI XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType & array);

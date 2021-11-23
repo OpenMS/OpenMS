@@ -587,7 +587,7 @@ namespace OpenMS::Internal
       logger_.startProgress(0, cexp_->size(), "storing mzData file");
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-         << "<mzData version=\"1.05\" accessionNumber=\"" << cexp_->getIdentifier() << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
+         << R"(<mzData version="1.05" accessionNumber=")" << cexp_->getIdentifier() << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
 
       //---------------------------------------------------------------------------------------------------
       //DESCRIPTION
@@ -1445,7 +1445,7 @@ namespace OpenMS::Internal
     {
       if (value != 0.0)
       {
-        os << String(indent, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+        os << String(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }
     }
 
@@ -1453,7 +1453,7 @@ namespace OpenMS::Internal
     {
       if (value != "")
       {
-        os << String(indent, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+        os << String(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }
     }
 

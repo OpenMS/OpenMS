@@ -277,7 +277,7 @@ protected:
       }
 
       // run feature detection:
-      ffid_algo.run(features, id_data, id_data_ext);
+      ffid_algo.run(features, id_data, id_data_ext, in);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();

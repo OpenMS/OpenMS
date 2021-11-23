@@ -66,12 +66,14 @@ public:
      @param features Output feature map
      @param id_data Primary ("internal") identifications as targets for feature detection
      @param id_data_ext Additional ("external") identifications as targets for feature detection
+     @param spectra_file Fall-back value for setting @p primaryMSRunPath in the output (by default set based on the MS data being processed)
 
      External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
   */
   void run(FeatureMap& features,
            IdentificationData& id_data,
-           IdentificationData& id_data_ext);
+           IdentificationData& id_data_ext,
+           const String& spectra_file = "");
 
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
@@ -82,7 +84,9 @@ public:
   PeakMap& getMSData();
   const PeakMap& getMSData() const;
 
-  void setMSData(const PeakMap& ms_data);
+  /// @brief set the MS data used for feature detection
+  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
   PeakMap& getChromatograms();
   const PeakMap& getChromatograms() const;

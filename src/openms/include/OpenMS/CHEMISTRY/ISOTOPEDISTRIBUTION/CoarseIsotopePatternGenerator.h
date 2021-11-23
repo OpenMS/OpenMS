@@ -100,7 +100,7 @@ namespace OpenMS
  public:
     CoarseIsotopePatternGenerator(const Size max_isotope = 0, const bool round_masses = false);
 
-    virtual ~CoarseIsotopePatternGenerator();
+    ~CoarseIsotopePatternGenerator() override;
 
     /// @name Accessors
     ///@{
