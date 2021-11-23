@@ -281,8 +281,9 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    return insertIntoMultiIndex_(parent_molecules_, parent,
-                                 parent_molecule_lookup_);
+    auto tmp =  insertIntoMultiIndex_(parent_molecules_, parent,
+                                      parent_molecule_lookup_);
+    return ParentMoleculeRef(tmp);
   }
 
 
@@ -557,10 +558,10 @@ namespace OpenMS
                               double(pair.second.length));
     }
     // set coverage:
-    for (ParentMoleculeRef ref = parent_molecules_.begin();
+    for (auto ref = parent_molecules_.begin();
          ref != parent_molecules_.end(); ++ref)
     {
-      auto pos = parent_info.find(ref);
+      auto pos = parent_info.find(ParentMoleculeRef(ref));
       double coverage = (pos == parent_info.end()) ? 0.0 : pos->second.coverage;
       parent_molecules_.modify(ref, [coverage](ParentMolecule& parent)
                                {

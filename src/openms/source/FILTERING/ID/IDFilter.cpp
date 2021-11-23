@@ -926,7 +926,7 @@ namespace OpenMS
     Size n_parents = id_data.getParentMolecules().size();
     id_data.removeFromSetIf_(
       id_data.parent_molecules_,
-      [&](IdentificationData::ParentMoleculeRef it) -> bool
+      [&](IdentificationDataInternal::ParentMolecules::iterator it) -> bool
       {
         return it->is_decoy;
       });

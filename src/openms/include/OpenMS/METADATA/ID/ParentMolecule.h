@@ -62,6 +62,7 @@ namespace OpenMS
 
       bool is_decoy;
 
+      ParentMolecule() {} // for PYOPENMS
       explicit ParentMolecule(
         const String& accession,
         MoleculeType molecule_type = MoleculeType::PROTEIN,
@@ -97,7 +98,18 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           ParentMolecule, String, &ParentMolecule::accession>>>
       > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+
+    class ParentMoleculeRef : public IteratorWrapper<ParentMolecules::iterator>
+    {
+      public:
+      ParentMoleculeRef() {} // for PYOPENMS
+      explicit ParentMoleculeRef(IteratorWrapper<ParentMolecules::iterator> it) :
+        IteratorWrapper<ParentMolecules::iterator>(it)
+      {
+      }
+
+      ParentMolecule getParentMolecule() {return **this;}
+    };
 
   }
 }

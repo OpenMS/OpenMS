@@ -32,6 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/ID/ParentMolecule.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
@@ -207,10 +208,8 @@ namespace OpenMS
   void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
-    for (IdentificationData::ParentMoleculeRef parent_ref =
-             id_data.getParentMolecules().begin();
-         parent_ref !=
-         id_data.getParentMolecules().end();
+    for (auto parent_ref = id_data.getParentMolecules().begin();
+         parent_ref != id_data.getParentMolecules().end();
          ++parent_ref)
     {
       if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
@@ -241,7 +240,7 @@ namespace OpenMS
         match.right_neighbor = (end_pos < rna.size()) ?
                                    rna[end_pos]->getCode() :
                                    IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
-        oligo.parent_matches[parent_ref].insert(match);
+        oligo.parent_matches[IdentificationDataInternal::ParentMoleculeRef(parent_ref)].insert(match);
         id_data.registerIdentifiedOligo(oligo);
       }
     }
