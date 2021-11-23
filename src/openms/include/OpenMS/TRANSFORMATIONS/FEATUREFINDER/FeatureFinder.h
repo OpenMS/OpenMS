@@ -63,7 +63,7 @@ public:
     FeatureFinder();
 
     /// Destructor
-    virtual ~FeatureFinder();
+    ~FeatureFinder() override;
 
     /**
         @brief Executes the FeatureFinder using the given algorithm

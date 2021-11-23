@@ -236,11 +236,11 @@ public:
       **/
     IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula, double p);
 
-    virtual inline bool nextConf() override final { return ILG.advanceToNextConfiguration(); };
-    virtual inline Peak1D getConf() override final { return Peak1D(ILG.mass(), ILG.prob()); };
-    virtual inline double getMass() override final { return ILG.mass(); };
-    virtual inline double getIntensity() override final { return ILG.prob(); };
-    virtual inline double getLogIntensity() override final { return ILG.lprob(); };
+    inline bool nextConf() final { return ILG.advanceToNextConfiguration(); };
+    inline Peak1D getConf() final { return Peak1D(ILG.mass(), ILG.prob()); };
+    inline double getMass() final { return ILG.mass(); };
+    inline double getIntensity() final { return ILG.prob(); };
+    inline double getLogIntensity() final { return ILG.lprob(); };
 
 protected:
     IsoSpec::IsoLayeredGenerator ILG;
@@ -298,11 +298,11 @@ public:
       **/
   IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
-  virtual inline bool nextConf() override final { return ITG.advanceToNextConfiguration(); };
-  virtual inline Peak1D getConf() override final { return Peak1D(ITG.mass(), ITG.prob()); };
-  virtual inline double getMass() override final { return ITG.mass(); };
-  virtual inline double getIntensity() override final { return ITG.prob(); };
-  virtual inline double getLogIntensity() override final { return ITG.lprob(); };
+  inline bool nextConf() final { return ITG.advanceToNextConfiguration(); };
+  inline Peak1D getConf() final { return Peak1D(ITG.mass(), ITG.prob()); };
+  inline double getMass() final { return ITG.mass(); };
+  inline double getIntensity() final { return ITG.prob(); };
+  inline double getLogIntensity() final { return ITG.lprob(); };
 
 
 protected:
@@ -348,11 +348,11 @@ public:
       **/
   IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
-  virtual inline bool nextConf() override final { return IOG.advanceToNextConfiguration(); };
-  virtual inline Peak1D getConf() override final { return Peak1D(IOG.mass(), IOG.prob()); };
-  virtual inline double getMass() override final { return IOG.mass(); };
-  virtual inline double getIntensity() override final { return IOG.prob(); };
-  virtual inline double getLogIntensity() override final { return IOG.lprob(); };
+  inline bool nextConf() final { return IOG.advanceToNextConfiguration(); };
+  inline Peak1D getConf() final { return Peak1D(IOG.mass(), IOG.prob()); };
+  inline double getMass() final { return IOG.mass(); };
+  inline double getIntensity() final { return IOG.prob(); };
+  inline double getLogIntensity() final { return IOG.lprob(); };
 
 protected:
   IsoSpec::IsoOrderedGenerator IOG;
@@ -413,7 +413,7 @@ public:
       **/
     IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double p, bool do_p_trim = false);
 
-    virtual IsotopeDistribution run() override final;
+    IsotopeDistribution run() final;
 
 protected:
     IsoSpec::IsoLayeredGenerator ILG;
@@ -472,7 +472,7 @@ public:
       **/
     IsoSpecThresholdWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
-    virtual IsotopeDistribution run() override final;
+    IsotopeDistribution run() final;
 
 protected:
     IsoSpec::IsoThresholdGenerator ITG;

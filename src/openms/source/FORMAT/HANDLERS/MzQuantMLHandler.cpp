@@ -731,7 +731,7 @@ namespace OpenMS::Internal
 
       //---header---
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\" id=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\" version=\"1.0.0\"" << " creationDate=\"" << DateTime::now().get() << "\">\n";
+      os << R"(<MzQuantML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd" xmlns="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3" id="OpenMS_)" << String(UniqueIdGenerator::getUniqueId()) << R"(" version="1.0.0")" << " creationDate=\"" << DateTime::now().get() << "\">\n";
 
       //---CVList---
       os << "<CvList>\n";

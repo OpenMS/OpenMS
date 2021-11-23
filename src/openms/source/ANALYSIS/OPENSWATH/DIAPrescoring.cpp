@@ -67,7 +67,7 @@ namespace OpenMS
     std::transform(normalizedLibraryIntensities.begin(),
                    normalizedLibraryIntensities.end(),
                    normalizedLibraryIntensities.begin(),
-                   boost::bind(std::divides<double>(), _1, totalInt));
+                   [totalInt](auto && PH1) { return std::divides<double>()(std::forward<decltype(PH1)>(PH1), totalInt); });
   }
 
   void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans,

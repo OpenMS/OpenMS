@@ -128,22 +128,22 @@ namespace OpenMS
         switch (value_type)
         {
         case ParamValue::INT_VALUE:
-          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"int\"";
+          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << R"(" type="int")";
           break;
 
         case ParamValue::DOUBLE_VALUE:
-          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"double\"";
+          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << R"(" type="double")";
           break;
 
         case ParamValue::STRING_VALUE:
           if (tag_list.find("input file") != tag_list.end())
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"input-file\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
           else if (tag_list.find("output file") != tag_list.end())
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"output-file\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
           else if (it->valid_strings.size() == 2 &&
@@ -151,37 +151,37 @@ namespace OpenMS
           it->value == "false")
           {
             stringParamIsFlag = true;
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"bool\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << R"(" type="bool")";
           }
           else
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"string\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << R"(" type="string")";
           }
           break;
 
         case ParamValue::STRING_LIST:
           if (tag_list.find("input file") != tag_list.end())
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"input-file\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
           else if (tag_list.find("output file") != tag_list.end())
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"output-file\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
           else
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"string\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="string")";
           }
           break;
 
         case ParamValue::INT_LIST:
-          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"int\"";
+          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="int")";
           break;
 
         case ParamValue::DOUBLE_LIST:
-          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"double\"";
+          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="double")";
           break;
 
         default:

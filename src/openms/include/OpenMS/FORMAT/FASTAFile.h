@@ -119,7 +119,7 @@ namespace OpenMS
         FASTAFile() = default;
 
         /// Destructor
-        virtual ~FASTAFile() = default;
+        ~FASTAFile() override = default;
 
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().

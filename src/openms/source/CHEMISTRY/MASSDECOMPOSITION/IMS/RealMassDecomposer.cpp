@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 //
 
-#include <iostream>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
+#include <iostream>
+#include <memory>
 
 namespace OpenMS::ims
 {
@@ -44,8 +45,8 @@ namespace OpenMS::ims
 
     rounding_errors_ = std::make_pair(weights.getMinRoundingError(), weights.getMaxRoundingError());
     precision_ = weights.getPrecision();
-    decomposer_ = std::shared_ptr<integer_decomposer_type>(
-      new integer_decomposer_type(weights));
+    decomposer_ = std::make_shared<integer_decomposer_type>(
+      weights);
   }
 
   RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(double mass, double error)

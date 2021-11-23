@@ -238,7 +238,7 @@ class MarginalTrek : public Marginal
     inline const std::vector<int*>& confs() const { return _confs; }
 
 
-    virtual ~MarginalTrek();
+    ~MarginalTrek() override;
 };
 
 
@@ -282,7 +282,7 @@ class PrecalculatedMarginal : public Marginal
     PrecalculatedMarginal& operator=(const PrecalculatedMarginal& other) = delete;
 
     //! Destructor.
-    virtual ~PrecalculatedMarginal();
+    ~PrecalculatedMarginal() override;
 
     //! Is there a subisotopologue with a given number?
     /*!

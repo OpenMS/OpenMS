@@ -579,10 +579,7 @@ public:
   };
 }
 
-namespace OpenMS
-{
-
-  namespace FastLowessSmoothing
+namespace OpenMS::FastLowessSmoothing
   {
 
     int lowess(const std::vector<double>& x, const std::vector<double>& y,
@@ -627,6 +624,3 @@ namespace OpenMS
     }
 
   }
-
-
-}

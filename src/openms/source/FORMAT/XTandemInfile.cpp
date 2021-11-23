@@ -184,7 +184,7 @@ namespace OpenMS
   void XTandemInfile::writeTo_(ostream& os, bool ignore_member_parameters)
   {
     os << "<?xml version=\"1.0\"?>" << "\n"
-       << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
+       << R"(<?xml-stylesheet type="text/xsl" href="tandem-input-style.xsl"?>)" << "\n"
        << "<bioml>" << "\n";
 
     writeNote_(os, "spectrum, path", input_filename_);

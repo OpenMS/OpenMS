@@ -62,7 +62,7 @@ namespace OpenMS
     /// Constructor
     DIATreeTab(QWidget* parent = nullptr);
     /// Destructor
-    ~DIATreeTab() = default;
+    ~DIATreeTab() override = default;
 
     // docu in base class
     bool hasData(const LayerData* layer) override;

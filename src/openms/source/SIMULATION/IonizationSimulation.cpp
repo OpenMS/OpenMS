@@ -272,7 +272,7 @@ public:
     std::transform(esi_impurity_probabilities_.begin(),
                    esi_impurity_probabilities_.end(),
                    std::back_inserter(weights),
-                   boost::bind(std::multiplies<double>(), _1, 10));
+                   [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
     for (size_t i = 0; i < weights.size(); ++i)
     {
       std::cout << "weights[" << i << "]: " << weights[i] << std::endl;
@@ -548,7 +548,7 @@ public:
     std::transform(maldi_probabilities_.begin(),
                    maldi_probabilities_.end(),
                    std::back_inserter(weights),
-                   boost::bind(std::multiplies<double>(), _1, 10));
+                   [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
     boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try

@@ -144,7 +144,7 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
   TEST_EQUAL(meta.rt, 2.0);
   TEST_EQUAL(meta.native_id, "spectrum=1");
 
-  lookup.addReferenceFormat("rt=(?<RT>\\d+(\\.\\d+)?),mz=(?<MZ>\\d+(\\.\\d+)?)");
+  lookup.addReferenceFormat(R"(rt=(?<RT>\d+(\.\d+)?),mz=(?<MZ>\d+(\.\d+)?))");
   SpectrumMetaDataLookup::SpectrumMetaData meta2;
   SpectrumMetaDataLookup::MetaDataFlags flags =
     (SpectrumMetaDataLookup::MDF_RT | SpectrumMetaDataLookup::MDF_PRECURSORMZ);

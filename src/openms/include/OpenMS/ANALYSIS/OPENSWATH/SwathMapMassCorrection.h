@@ -60,7 +60,7 @@ public:
     SwathMapMassCorrection();
 
     /// Destructor
-    ~SwathMapMassCorrection() = default;
+    ~SwathMapMassCorrection() override = default;
     //@}
 
     /// Synchronize members with param class

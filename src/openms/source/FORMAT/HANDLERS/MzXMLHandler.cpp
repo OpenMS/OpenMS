@@ -1065,7 +1065,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
+          s_peaks = R"(<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" )";
         }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
         { // internal check against inadvertently removing line breaks above!
