@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
 #include <boost/range/adaptor/reversed.hpp>
+#include <boost/optional/optional.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
