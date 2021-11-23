@@ -74,14 +74,14 @@ private:
           standard).
       */
       GlobalExceptionHandler()
-      noexcept;
+      throw();
 
       //@}
 
       /// private version of c'tor to avoid initialization
-      GlobalExceptionHandler(const GlobalExceptionHandler &) = default;
+      GlobalExceptionHandler(const GlobalExceptionHandler &) {}
 
-      ~GlobalExceptionHandler() = default;
+      ~GlobalExceptionHandler() {}
 public:
 
       /// The accessor for the singleton. It also serves as a replacement for the constructor.
@@ -103,39 +103,39 @@ public:
       /**
       */
       static void setName(const std::string & name)
-      noexcept;
+      throw();
 
       /**
       */
       static void setMessage(const std::string & message)
-      noexcept;
+      throw();
 
       /**
       */
       static void setLine(int line)
-      noexcept;
+      throw();
 
       /**
       */
       static void setFile(const std::string & file)
-      noexcept;
+      throw();
 
       /**
       */
       static void setFunction(const std::string & function)
-      noexcept;
+      throw();
 
       /**
       */
       static void set(const std::string & file, int line, const std::string & function,
                       const std::string & name, const std::string & message)
-      noexcept;
+      throw();
       //@}
 protected:
 
       /// The OPENMS replacement for terminate
       static void terminate()
-      noexcept;
+      throw();
 
       /// The OPENMS new handler
       static void newHandler();

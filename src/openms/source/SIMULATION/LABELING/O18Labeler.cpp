@@ -60,7 +60,8 @@ namespace OpenMS
   }
 
   O18Labeler::~O18Labeler()
-  = default;
+  {
+  }
 
   void O18Labeler::preCheck(Param& param) const
   {

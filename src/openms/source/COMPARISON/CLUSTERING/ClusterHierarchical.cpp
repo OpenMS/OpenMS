@@ -39,12 +39,13 @@
 
 namespace OpenMS
 {
-  UnnormalizedComparator::UnnormalizedComparator(const char * file, int line, const char * function, const char * message) noexcept :
+  UnnormalizedComparator::UnnormalizedComparator(const char * file, int line, const char * function, const char * message) throw() :
     BaseException(file, line, function, "ClusterHierarchical::UnnormalizedComparator", message)
   {
   }
 
-  UnnormalizedComparator::~UnnormalizedComparator() noexcept
-  = default;
+  UnnormalizedComparator::~UnnormalizedComparator() throw()
+  {
+  }
 
 }

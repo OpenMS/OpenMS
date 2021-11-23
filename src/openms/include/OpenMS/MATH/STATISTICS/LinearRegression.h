@@ -212,9 +212,9 @@ protected:
 private:
 
       /// Not implemented
-      LinearRegression(const LinearRegression& arg) = delete;
+      LinearRegression(const LinearRegression& arg);
       /// Not implemented
-      LinearRegression& operator=(const LinearRegression& arg) = delete;
+      LinearRegression& operator=(const LinearRegression& arg);
 
     }; //class
 

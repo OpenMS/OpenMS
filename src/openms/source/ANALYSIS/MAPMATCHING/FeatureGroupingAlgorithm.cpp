@@ -171,6 +171,7 @@ namespace OpenMS
   }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
-  = default;
+  {
+  }
 
 } //namespace OpenMS

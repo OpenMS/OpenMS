@@ -72,7 +72,7 @@ namespace Interfaces
       typedef MSSpectrum SpectrumType;
       typedef MSChromatogram ChromatogramType;
 
-      virtual ~IMSDataConsumer() = default;
+      virtual ~IMSDataConsumer() {}
 
       /**
         @brief Consume a spectrum

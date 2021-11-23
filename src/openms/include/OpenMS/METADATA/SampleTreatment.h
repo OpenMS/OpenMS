@@ -121,7 +121,7 @@ protected:
 
 private:
     /// Default constructor hidden to force setting of a type
-    SampleTreatment() = delete;
+    SampleTreatment();
 
   };
 } // namespace OpenMS

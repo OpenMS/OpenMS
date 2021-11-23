@@ -51,7 +51,8 @@ namespace OpenMS
   }
 
   FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT()
-  = default;
+  {
+  }
 
   template <typename MapType>
   void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,

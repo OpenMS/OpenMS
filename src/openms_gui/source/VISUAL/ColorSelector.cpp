@@ -60,7 +60,9 @@ namespace OpenMS
   }
 
   ColorSelector::~ColorSelector()
-  = default;
+  {
+
+  }
 
   void ColorSelector::paintEvent(QPaintEvent * /*e*/)
   {

@@ -78,7 +78,7 @@ public:
 
 private:
       /// Private default constructor
-      AcqusHandler() = delete;
+      AcqusHandler();
 
       /// Map for params saving
       Map<String, String> params_;

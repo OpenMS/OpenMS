@@ -63,9 +63,9 @@ public:
 private:
     String head_;
     /// private CTor - not implemented
-    CompressedInputSource() = delete;
-    CompressedInputSource(const CompressedInputSource & source) = delete;
-    CompressedInputSource & operator=(const CompressedInputSource & source) = delete;
+    CompressedInputSource();
+    CompressedInputSource(const CompressedInputSource & source);
+    CompressedInputSource & operator=(const CompressedInputSource & source);
   };
 
 } // namespace OpenMS

@@ -899,7 +899,7 @@ protected:
 
 private:
       /// Not implemented
-      XMLHandler() = delete;
+      XMLHandler();
 
       inline const String& expectList_(const String& str) const
       {

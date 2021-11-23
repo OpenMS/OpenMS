@@ -43,7 +43,8 @@ namespace OpenMS
   }
 
   SpectrumAccessOpenMS::~SpectrumAccessOpenMS()
-  = default;
+  {
+  }
 
   SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
     ms_experiment_(rhs.ms_experiment_)

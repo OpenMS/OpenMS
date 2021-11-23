@@ -56,7 +56,9 @@ namespace OpenMS
   }
 
   EnhancedTabBar::~EnhancedTabBar()
-  = default;
+  {
+
+  }
 
   void EnhancedTabBar::setTabText(const QString& text)
   {

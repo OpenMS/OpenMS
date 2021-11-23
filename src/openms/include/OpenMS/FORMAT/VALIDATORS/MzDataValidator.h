@@ -68,13 +68,13 @@ protected:
 private:
 
       /// Not implemented
-      MzDataValidator() = delete;
+      MzDataValidator();
 
       /// Not implemented
-      MzDataValidator(const MzDataValidator & rhs) = delete;
+      MzDataValidator(const MzDataValidator & rhs);
 
       /// Not implemented
-      MzDataValidator & operator=(const MzDataValidator & rhs) = delete;
+      MzDataValidator & operator=(const MzDataValidator & rhs);
 
     };
 

@@ -49,7 +49,8 @@ namespace OpenMS
   }
 
   FileWatcher::~FileWatcher()
-  = default;
+  {
+  }
 
   void FileWatcher::monitorFileChanged_(const QString & name)
   {

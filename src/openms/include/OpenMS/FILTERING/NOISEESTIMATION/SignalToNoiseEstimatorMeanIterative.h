@@ -155,7 +155,7 @@ public:
 
     /// Destructor
     ~SignalToNoiseEstimatorMeanIterative() override
-    = default;
+    {}
 
 
 protected:

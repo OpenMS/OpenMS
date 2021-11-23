@@ -71,8 +71,10 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  GoodDiffFilter::GoodDiffFilter(const GoodDiffFilter & source)  
-  = default;
+  GoodDiffFilter::GoodDiffFilter(const GoodDiffFilter & source) :
+    FilterFunctor(source), aamass_(source.aamass_)
+  {
+  }
 
   GoodDiffFilter & GoodDiffFilter::operator=(const GoodDiffFilter & source)
   {
@@ -85,6 +87,7 @@ namespace OpenMS
   }
 
   GoodDiffFilter::~GoodDiffFilter()
-  = default;
+  {
+  }
 
 }

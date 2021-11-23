@@ -42,7 +42,8 @@ using namespace std;
 namespace OpenMS
 {
   DateTime::DateTime()
-  = default;
+  {
+  }
 
 
   DateTime& DateTime::operator=(const DateTime& source)

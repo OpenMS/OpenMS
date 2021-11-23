@@ -127,9 +127,11 @@ namespace OpenMS
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) 
-        
-      = default;
+      ConstIterator(const ConstIterator& rhs) :
+        vector_(rhs.vector_),
+        position_(rhs.position_)
+      {
+      }
 
       /// copy constructor from Iterator
       ConstIterator(const NASequence::Iterator& rhs) :
@@ -139,7 +141,7 @@ namespace OpenMS
       }
 
       /// destructor
-      virtual ~ConstIterator() = default;
+      virtual ~ConstIterator() {}
 
       //@}
 
@@ -257,12 +259,14 @@ namespace OpenMS
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) 
-        
-      = default;
+      Iterator(const Iterator& rhs) :
+        vector_(rhs.vector_),
+        position_(rhs.position_)
+      {
+      }
 
       /// destructor
-      virtual ~Iterator() = default;
+      virtual ~Iterator() {}
 
       //@}
 

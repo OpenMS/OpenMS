@@ -47,10 +47,10 @@ namespace OpenMS
   {
 private:
     /// copy constructor is not implemented -> private
-    ConsensusMapNormalizerAlgorithmThreshold(const ConsensusMapNormalizerAlgorithmThreshold & copyin) = delete;
+    ConsensusMapNormalizerAlgorithmThreshold(const ConsensusMapNormalizerAlgorithmThreshold & copyin);
 
     /// assignment operator is not implemented -> private
-    ConsensusMapNormalizerAlgorithmThreshold & operator=(const ConsensusMapNormalizerAlgorithmThreshold & rhs) = delete;
+    ConsensusMapNormalizerAlgorithmThreshold & operator=(const ConsensusMapNormalizerAlgorithmThreshold & rhs);
 
 public:
     /// default constructor is not implemented -> private

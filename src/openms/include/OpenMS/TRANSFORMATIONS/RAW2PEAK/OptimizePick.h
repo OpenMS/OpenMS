@@ -69,11 +69,18 @@ namespace OpenMS
     {
       PenaltyFactors() :
         pos(0), lWidth(0), rWidth(0) {}
-      PenaltyFactors(const PenaltyFactors & p)  = default;
+      PenaltyFactors(const PenaltyFactors & p) :
+        pos(p.pos), lWidth(p.lWidth), rWidth(p.rWidth) {}
       inline PenaltyFactors & operator=(const PenaltyFactors & p)
-      = default;
+      {
+        pos = p.pos;
+        lWidth = p.lWidth;
+        rWidth = p.rWidth;
 
-      ~PenaltyFactors()= default;
+        return *this;
+      }
+
+      ~PenaltyFactors(){}
 
       /// Penalty factor for the peak shape's position
       double pos;

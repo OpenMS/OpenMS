@@ -315,7 +315,7 @@ public:
         }
       }
 
-      GetMatchingItems()= default;
+      GetMatchingItems(){}
 
       const String& getKey(const FASTAFile::FASTAEntry& entry) const
       {

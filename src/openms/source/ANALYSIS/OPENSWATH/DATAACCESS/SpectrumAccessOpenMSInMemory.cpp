@@ -66,7 +66,7 @@ namespace OpenMS
     OPENMS_POSTCONDITION(chromatogram_ids_.size() == chromatograms_.size(), "Chromatograms and meta data needs to match")
   }
 
-  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() = default;
+  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() {}
 
   SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(const SpectrumAccessOpenMSInMemory & rhs) :
     spectra_(rhs.spectra_),

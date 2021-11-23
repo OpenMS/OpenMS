@@ -56,7 +56,8 @@ namespace OpenMS
   }
 
   EnzymaticDigestion::~EnzymaticDigestion()
-  = default;
+  {
+  }
 
   Size EnzymaticDigestion::getMissedCleavages() const
   {

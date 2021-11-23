@@ -47,9 +47,12 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) 
-    
-  = default;
+  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
+    mod_(rhs.mod_),
+    fixed_modification_(rhs.fixed_modification_),
+    max_occurrences_(rhs.max_occurrences_)
+  {
+  }
 
   ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
     mod_(nullptr),
@@ -90,7 +93,8 @@ namespace OpenMS
   }
 
   ModificationDefinition::~ModificationDefinition()
-  = default;
+  {
+  }
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {

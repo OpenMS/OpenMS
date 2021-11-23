@@ -105,9 +105,9 @@ protected:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering&) = delete;
+    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering&);
     /// Assignment operator intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering&) = delete;
+    MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering&);
   };
 } // namespace OpenMS
 

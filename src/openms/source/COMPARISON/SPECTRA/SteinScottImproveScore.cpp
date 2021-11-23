@@ -50,13 +50,15 @@ namespace OpenMS
   }
 
   /// copy constructor
-  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore & source) 
-    
-  = default;
+  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore & source) :
+    PeakSpectrumCompareFunctor(source)
+  {
+  }
 
   /// destructor
   SteinScottImproveScore::~SteinScottImproveScore()
-  = default;
+  {
+  }
 
   /// assignment operator
   SteinScottImproveScore & SteinScottImproveScore::operator=(const SteinScottImproveScore & source)

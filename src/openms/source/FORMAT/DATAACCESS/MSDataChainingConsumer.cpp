@@ -37,13 +37,13 @@
 namespace OpenMS
 {
 
-  MSDataChainingConsumer::MSDataChainingConsumer() = default;
+  MSDataChainingConsumer::MSDataChainingConsumer() {}
 
   MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer *> consumers) :
     consumers_(consumers)
   {}
 
-  MSDataChainingConsumer::~MSDataChainingConsumer() = default;
+  MSDataChainingConsumer::~MSDataChainingConsumer() {}
 
   void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer * consumer)
   {

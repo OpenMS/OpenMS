@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-  MSDataStoringConsumer::MSDataStoringConsumer() = default;
+  MSDataStoringConsumer::MSDataStoringConsumer() {}
 
   void MSDataStoringConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
   {

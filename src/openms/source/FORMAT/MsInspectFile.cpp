@@ -40,10 +40,12 @@ namespace OpenMS
 {
 
   MsInspectFile::MsInspectFile()
-  = default;
+  {
+  }
 
   MsInspectFile::~MsInspectFile()
-  = default;
+  {
+  }
 
 } // namespace OpenMS
 

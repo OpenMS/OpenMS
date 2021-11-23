@@ -668,7 +668,8 @@ public:
 
     /// See std::vector documentation.
     ~ConstRefVector()
-    = default;
+    {
+    }
 
     //@}
 

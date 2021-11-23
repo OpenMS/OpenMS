@@ -83,7 +83,7 @@ protected:
 private:
 
   /// Default constructor is not supposed to be called
-  KDTreeFeatureNode() = delete;
+  KDTreeFeatureNode();
 
 };
 

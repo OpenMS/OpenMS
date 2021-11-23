@@ -56,7 +56,8 @@ namespace OpenMS
   }
 
   MSQuantifications::~MSQuantifications()
-  = default;
+  {
+  }
 
   /// Equality operator
   bool MSQuantifications::operator==(const MSQuantifications & rhs) const

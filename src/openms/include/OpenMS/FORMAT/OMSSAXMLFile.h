@@ -106,9 +106,9 @@ protected:
 
 private:
 
-    OMSSAXMLFile(const OMSSAXMLFile& rhs) = delete;
+    OMSSAXMLFile(const OMSSAXMLFile& rhs);
 
-    OMSSAXMLFile& operator=(const OMSSAXMLFile& rhs) = delete;
+    OMSSAXMLFile& operator=(const OMSSAXMLFile& rhs);
 
     /// reads the mapping file needed for modifications
     void readMappingFile_();

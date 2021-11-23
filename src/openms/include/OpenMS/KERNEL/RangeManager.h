@@ -73,7 +73,7 @@ public:
 
     /// Destructor
     virtual ~RangeManager()
-    = default;
+    {}
 
     /// Assignment operator
     RangeManager & operator=(const RangeManager & rhs)

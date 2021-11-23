@@ -85,7 +85,7 @@ public:
 
     /// Destructor
     ~RichPeak2D() override
-    = default;
+    {}
 
     /// Assignment operator
     RichPeak2D & operator=(const RichPeak2D& rhs) = default;

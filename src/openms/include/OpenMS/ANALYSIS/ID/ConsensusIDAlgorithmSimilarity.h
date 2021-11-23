@@ -75,10 +75,10 @@ namespace OpenMS
 
   private:
     /// Not implemented
-    ConsensusIDAlgorithmSimilarity(const ConsensusIDAlgorithmSimilarity&) = delete;
+    ConsensusIDAlgorithmSimilarity(const ConsensusIDAlgorithmSimilarity&);
 
     /// Not implemented
-    ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&) = delete;
+    ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&);
 
     /// Consensus scoring
     void apply_(std::vector<PeptideIdentification>& ids,

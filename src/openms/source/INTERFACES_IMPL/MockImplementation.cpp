@@ -42,8 +42,8 @@ namespace OpenMS::Interfaces
     public ISpectraReader
   {
 public:
-    MockISpectraReader() = default;
-    ~MockISpectraReader() override = default;
+    MockISpectraReader() {}
+    ~MockISpectraReader() override {}
     /// Return a pointer to a spectrum at the given id
     SpectrumPtr getSpectrumById(int /* id */) const override
     {
@@ -80,8 +80,8 @@ public:
     public IChromatogramsReader
   {
 public:
-    MockIChromatogramsReader() = default;
-    ~MockIChromatogramsReader() override = default;
+    MockIChromatogramsReader() {}
+    ~MockIChromatogramsReader() override {}
     /// Return a pointer to a chromatogram at the given id
     ChromatogramPtr getChromatogramById(int /* id */) const override
     {
@@ -118,8 +118,8 @@ public:
     public ISpectraWriter
   {
 public:
-    MockISpectraWriter() = default;
-    ~MockISpectraWriter() override = default;
+    MockISpectraWriter() {}
+    ~MockISpectraWriter() override {}
     /// Append a spectrum to the end
     void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/) override
     {
@@ -138,8 +138,8 @@ public:
     public IChromatogramsWriter
   {
 public:
-    MockIChromatogramsWriter() = default;
-    ~MockIChromatogramsWriter() override = default;
+    MockIChromatogramsWriter() {}
+    ~MockIChromatogramsWriter() override {}
     /// Append a chromatogram to the end
     void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */) override
     {

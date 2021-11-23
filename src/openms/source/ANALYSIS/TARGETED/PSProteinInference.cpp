@@ -47,7 +47,8 @@ namespace OpenMS
   }
 
   PSProteinInference::~PSProteinInference()
-  = default;
+  {
+  }
 
   Size PSProteinInference::findMinimalProteinList(const std::vector<PeptideIdentification>& peptide_ids)
   {

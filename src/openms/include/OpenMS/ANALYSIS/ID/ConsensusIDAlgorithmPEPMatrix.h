@@ -62,10 +62,10 @@ namespace OpenMS
     NeedlemanWunsch alignment_;
 
     /// Not implemented
-    ConsensusIDAlgorithmPEPMatrix(const ConsensusIDAlgorithmPEPMatrix&) = delete;
+    ConsensusIDAlgorithmPEPMatrix(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Not implemented
-    ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&) = delete;
+    ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Sequence similarity based on substitution matrix (ignores PTMs)
     double getSimilarity_(AASequence seq1, AASequence seq2) override;

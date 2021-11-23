@@ -137,7 +137,8 @@ public:
       //@{
       /// default constructor
       ConstIterator()
-      = default;
+      {
+      }
 
       /// detailed constructor with pointer to the vector and offset position
       ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
@@ -147,9 +148,11 @@ public:
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) 
-        
-      = default;
+      ConstIterator(const ConstIterator& rhs) :
+        vector_(rhs.vector_),
+        position_(rhs.position_)
+      {
+      }
 
       /// copy constructor from Iterator
       ConstIterator(const AASequence::Iterator& rhs) :
@@ -160,7 +163,8 @@ public:
 
       /// destructor
       virtual ~ConstIterator()
-      = default;
+      {
+      }
 
       //@}
 
@@ -266,7 +270,8 @@ public:
       //@{
       /// default constructor
       Iterator()
-      = default;
+      {
+      }
 
       /// detailed constructor with pointer to the vector and offset position
       Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
@@ -276,13 +281,16 @@ public:
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) 
-        
-      = default;
+      Iterator(const Iterator& rhs) :
+        vector_(rhs.vector_),
+        position_(rhs.position_)
+      {
+      }
 
       /// destructor
       virtual ~Iterator()
-      = default;
+      {
+      }
 
       //@}
 

@@ -56,12 +56,21 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) 
-    
-  = default;
+  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) :
+    score(rhs.score),
+    s_bion(rhs.s_bion),
+    s_yion(rhs.s_yion),
+    s_witness(rhs.s_witness),
+    position(rhs.position),
+    s_isotope_pattern_1(rhs.s_isotope_pattern_1),
+    is_isotope_1_mono(rhs.is_isotope_1_mono),
+    s_isotope_pattern_2(rhs.s_isotope_pattern_2)
+  {
+  }
 
   CompNovoIonScoringBase::IonScore::~IonScore()
-  = default;
+  {
+  }
 
   CompNovoIonScoringBase::IonScore & CompNovoIonScoringBase::IonScore::operator=(const IonScore & rhs)
   {
@@ -113,7 +122,8 @@ namespace OpenMS
   }
 
   CompNovoIonScoringBase::~CompNovoIonScoringBase()
-  = default;
+  {
+  }
 
   void CompNovoIonScoringBase::addSingleChargedIons_(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
   {

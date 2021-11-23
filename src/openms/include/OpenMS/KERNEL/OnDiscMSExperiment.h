@@ -76,7 +76,7 @@ public:
 
       This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment() = default;
+    OnDiscMSExperiment() {}
 
     /**
       @brief Open a specific file on disk.
@@ -254,7 +254,7 @@ public:
 private:
 
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
-    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) = delete;
+    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
     void loadMetaData_(const String& filename);
 

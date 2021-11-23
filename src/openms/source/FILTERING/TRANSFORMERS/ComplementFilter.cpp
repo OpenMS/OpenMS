@@ -47,9 +47,11 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ComplementFilter::ComplementFilter(const ComplementFilter & source) 
-    
-  = default;
+  ComplementFilter::ComplementFilter(const ComplementFilter & source) :
+    FilterFunctor(source)
+  {
+
+  }
 
   ComplementFilter & ComplementFilter::operator=(const ComplementFilter & source)
   {
@@ -61,6 +63,7 @@ namespace OpenMS
   }
 
   ComplementFilter::~ComplementFilter()
-  = default;
+  {
+  }
 
 }

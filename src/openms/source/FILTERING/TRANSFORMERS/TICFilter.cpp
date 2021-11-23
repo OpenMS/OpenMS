@@ -47,9 +47,10 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  TICFilter::TICFilter(const TICFilter & source) 
-    
-  = default;
+  TICFilter::TICFilter(const TICFilter & source) :
+    FilterFunctor(source)
+  {
+  }
 
   TICFilter & TICFilter::operator=(const TICFilter & source)
   {
@@ -61,6 +62,7 @@ namespace OpenMS
   }
 
   TICFilter::~TICFilter()
-  = default;
+  {
+  }
 
 }

@@ -74,7 +74,8 @@ namespace OpenMS
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs)  = default;
+    CmpInfo_(const CmpInfo_& rhs) :
+      s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
 
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
@@ -300,7 +301,8 @@ namespace OpenMS
 
   /// destructor
   FeatureDeconvolution::~FeatureDeconvolution()
-  = default;
+  {
+  }
 
   //@}
 

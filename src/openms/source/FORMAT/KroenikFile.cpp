@@ -42,10 +42,12 @@
 namespace OpenMS
 {
   KroenikFile::KroenikFile()
-  = default;
+  {
+  }
 
   KroenikFile::~KroenikFile()
-  = default;
+  {
+  }
 
   void KroenikFile::load(const String& filename, FeatureMap& feature_map)
   {

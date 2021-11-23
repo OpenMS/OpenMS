@@ -57,7 +57,8 @@ namespace OpenMS
   }
 
   BiGaussFitter1D::~BiGaussFitter1D()
-  = default;
+  {
+  }
 
   BiGaussFitter1D& BiGaussFitter1D::operator=(const BiGaussFitter1D& source)
   {

@@ -65,7 +65,8 @@ namespace OpenMS
   }
 
   MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering()
-  = default;
+  {
+  }
 
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {

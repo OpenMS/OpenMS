@@ -50,7 +50,8 @@ namespace OpenMS::Internal
     }
 
     MzMLValidator::~MzMLValidator()
-    = default;
+    {
+    }
 
     //This method needed to be reimplemented to
     // - check CV term values

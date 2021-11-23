@@ -65,7 +65,8 @@ class TestModel : public BaseModel<2>
 	}
 
 	~TestModel() override
-	= default;
+	{
+	}
 
 	virtual TestModel& operator = (const TestModel& source)
 	{

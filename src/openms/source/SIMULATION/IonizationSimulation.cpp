@@ -113,7 +113,8 @@ namespace OpenMS
   }
 
   IonizationSimulation::~IonizationSimulation()
-  = default;
+  {
+  }
 
   void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {

@@ -101,10 +101,10 @@ private:
 
     // will not be implemented
     /// Copy constructor
-    MassDecompositionAlgorithm(const MassDecompositionAlgorithm & deco) = delete;
+    MassDecompositionAlgorithm(const MassDecompositionAlgorithm & deco);
 
     /// assignment operator
-    MassDecompositionAlgorithm & operator=(const MassDecompositionAlgorithm & rhs) = delete;
+    MassDecompositionAlgorithm & operator=(const MassDecompositionAlgorithm & rhs);
   };
 
 } // namespace OpenMS

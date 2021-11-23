@@ -106,9 +106,9 @@ private:
     double dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b);
 
     ///Copy constructor not implemented => private
-    LocalLinearMap(LocalLinearMap & rhs) = delete;
+    LocalLinearMap(LocalLinearMap & rhs);
     ///Assignment operator not implemented => private
-    LocalLinearMap & operator=(const LocalLinearMap & llm) = delete;
+    LocalLinearMap & operator=(const LocalLinearMap & llm);
 
   };
 

@@ -101,9 +101,9 @@ private:
     XMLSize_t       file_current_index_;
 
     //not implemented
-    Bzip2InputStream() = delete;
-    Bzip2InputStream(const Bzip2InputStream& stream) = delete;
-    Bzip2InputStream& operator=(const Bzip2InputStream& stream) = delete;
+    Bzip2InputStream();
+    Bzip2InputStream(const Bzip2InputStream& stream);
+    Bzip2InputStream& operator=(const Bzip2InputStream& stream);
   };
 
   inline XMLFilePos Bzip2InputStream::curPos() const

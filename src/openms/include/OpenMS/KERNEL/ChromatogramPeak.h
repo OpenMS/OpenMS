@@ -78,9 +78,10 @@ public:
     {}
 
     /// Copy constructor
-    inline ChromatogramPeak(const ChromatogramPeak & p) 
-      
-    = default;
+    inline ChromatogramPeak(const ChromatogramPeak & p) :
+      position_(p.position_),
+      intensity_(p.intensity_)
+    {}
 
     /// Constructor with position and intensity
     inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
@@ -97,7 +98,7 @@ public:
       classes from ChromatogramPeak (unless you know what you are doing, of course).
     */
     ~ChromatogramPeak()
-    = default;
+    {}
     //@}
 
     /**

@@ -90,7 +90,7 @@ public:
       /**
         A virtual destructor.
       */
-      virtual ~MassDecomposer()= default;
+      virtual ~MassDecomposer(){}
 
       /**
         Returns true if the decomposition for the given @c mass exists, otherwise - false.

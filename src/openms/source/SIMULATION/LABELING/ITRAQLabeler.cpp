@@ -87,7 +87,8 @@ namespace OpenMS
   }
 
   ITRAQLabeler::~ITRAQLabeler()
-  = default;
+  {
+  }
 
   void ITRAQLabeler::updateMembers_()
   {

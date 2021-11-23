@@ -63,9 +63,17 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) 
-    
-  = default;
+  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) :
+    name(rhs.name),
+    id(rhs.id),
+    value(rhs.value),
+    cvRef(rhs.cvRef),
+    cvAcc(rhs.cvAcc),
+    unitRef(rhs.unitRef),
+    unitAcc(rhs.unitAcc),
+    flag(rhs.flag)
+  {
+  }
 
   QcMLFile::QualityParameter& QcMLFile::QualityParameter::operator=(const QualityParameter& rhs)
   {
@@ -140,9 +148,20 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::Attachment::Attachment(const Attachment& rhs) 
-    
-  = default;
+  QcMLFile::Attachment::Attachment(const Attachment& rhs) :
+    name(rhs.name),
+    id(rhs.id),
+    value(rhs.value),
+    cvRef(rhs.cvRef),
+    cvAcc(rhs.cvAcc),
+    unitRef(rhs.unitRef),
+    unitAcc(rhs.unitAcc),
+    binary(rhs.binary),
+    qualityRef(rhs.qualityRef),
+    colTypes(rhs.colTypes),
+    tableRows(rhs.tableRows)
+  {
+  }
 
   QcMLFile::Attachment& QcMLFile::Attachment::operator=(const Attachment& rhs)
   {
@@ -285,7 +304,9 @@ namespace OpenMS
   }
 
   QcMLFile::~QcMLFile()
-  = default;
+  {
+
+  }
 
   void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {

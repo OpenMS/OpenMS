@@ -68,7 +68,7 @@ namespace OpenMS
     InternalCalibration();
 
     /// Destructor
-    ~InternalCalibration() override= default;
+    ~InternalCalibration() override{}
 
     /// helper class, describing a lock mass
     struct LockMass

@@ -75,7 +75,7 @@ public:
     {}
 
     /// Destructor.
-    ~ContinuousWaveletTransformNumIntegration() override = default;
+    ~ContinuousWaveletTransformNumIntegration() override {}
 
     /**
         @brief Computes the wavelet transform of a given profile data interval [begin_input,end_input)

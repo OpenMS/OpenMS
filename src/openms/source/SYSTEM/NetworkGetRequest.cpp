@@ -51,7 +51,8 @@ namespace OpenMS
   }
 
   NetworkGetRequest::~NetworkGetRequest()
-  = default;
+  {
+  }
 
   void NetworkGetRequest::setUrl(const QUrl& url)
   {

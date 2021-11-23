@@ -95,7 +95,7 @@ public:
 
     /// Destructor
     ~SignalToNoiseEstimator() override
-    = default;
+    {}
 
     /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
     virtual void init(const Container& c)

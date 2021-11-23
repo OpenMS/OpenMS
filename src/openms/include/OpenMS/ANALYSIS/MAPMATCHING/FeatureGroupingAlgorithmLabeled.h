@@ -83,9 +83,9 @@ public:
 private:
 
     ///Copy constructor is not implemented -> private
-    FeatureGroupingAlgorithmLabeled(const FeatureGroupingAlgorithmLabeled &) = delete;
+    FeatureGroupingAlgorithmLabeled(const FeatureGroupingAlgorithmLabeled &);
     ///Assignment operator is not implemented -> private
-    FeatureGroupingAlgorithmLabeled & operator=(const FeatureGroupingAlgorithmLabeled &) = delete;
+    FeatureGroupingAlgorithmLabeled & operator=(const FeatureGroupingAlgorithmLabeled &);
 
   };
 

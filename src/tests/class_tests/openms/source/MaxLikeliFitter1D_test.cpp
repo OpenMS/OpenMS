@@ -61,7 +61,8 @@ class TestModel : public MaxLikeliFitter1D
   }
 
   ~TestModel() override
-  = default;
+  {
+  }
 
   virtual TestModel& operator = (const TestModel& source)
   {

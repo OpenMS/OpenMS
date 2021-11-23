@@ -153,10 +153,10 @@ public:
 private:
 
     /// Copy constructor (algorithm class)
-    DIAScoring(const DIAScoring& rhs) = delete;
+    DIAScoring(const DIAScoring& rhs);
 
     /// Assignment operator (algorithm class)
-    DIAScoring& operator=(const DIAScoring& rhs) = delete;
+    DIAScoring& operator=(const DIAScoring& rhs);
 
     /// Synchronize members with param class
     void updateMembers_() override;

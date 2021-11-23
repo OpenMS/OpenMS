@@ -103,7 +103,8 @@ public:
 
     /// Destructor
     ~DBoundingBox()
-    = default;
+    {
+    }
 
     ///Constructor from two positions
     DBoundingBox(const PositionType& minimum, const PositionType& maximum) :

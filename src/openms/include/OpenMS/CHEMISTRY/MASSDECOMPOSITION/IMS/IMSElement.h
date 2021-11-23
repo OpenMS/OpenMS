@@ -78,12 +78,14 @@ public:
 
       /// Empty constructor.
       IMSElement()
-      = default;
+      {}
 
       /// Copy constructor.
-      IMSElement(const IMSElement & element) 
-        
-      = default;
+      IMSElement(const IMSElement & element) :
+        name_(element.name_),
+        sequence_(element.sequence_),
+        isotopes_(element.isotopes_)
+      {}
 
       /// Constructor with name and isotope distribution.
       IMSElement(const name_type & name,
@@ -240,7 +242,7 @@ public:
       bool operator!=(const IMSElement & element) const;
 
       /// Default destructor.
-      virtual ~IMSElement() = default;
+      virtual ~IMSElement() {}
 
 private:
       /// Element's name.

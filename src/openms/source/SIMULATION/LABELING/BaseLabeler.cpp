@@ -57,7 +57,8 @@ namespace OpenMS
   }
 
   BaseLabeler::~BaseLabeler()
-  = default;
+  {
+  }
 
   Param BaseLabeler::getDefaultParameters() const
   {

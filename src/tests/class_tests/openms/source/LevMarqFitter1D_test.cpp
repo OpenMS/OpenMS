@@ -65,7 +65,8 @@ class TestModel : public LevMarqFitter1D
   }
 
   ~TestModel() override
-  = default;
+  {
+  }
 
   virtual TestModel& operator = (const TestModel& source)
   {

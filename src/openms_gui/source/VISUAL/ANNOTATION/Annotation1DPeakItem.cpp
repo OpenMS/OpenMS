@@ -58,7 +58,8 @@ namespace OpenMS
   }
 
   Annotation1DPeakItem::~Annotation1DPeakItem()
-  = default;
+  {
+  }
 
   QRectF Annotation1DPeakItem::calculateBoundingBox(
     const PointType & peak_position,

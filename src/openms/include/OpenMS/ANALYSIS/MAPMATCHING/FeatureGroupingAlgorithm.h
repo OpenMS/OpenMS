@@ -115,9 +115,9 @@ protected:
     }
 private:
     ///Copy constructor is not implemented -> private
-    FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm &) = delete;
+    FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm &);
     ///Assignment operator is not implemented -> private
-    FeatureGroupingAlgorithm & operator=(const FeatureGroupingAlgorithm &) = delete;
+    FeatureGroupingAlgorithm & operator=(const FeatureGroupingAlgorithm &);
 
 
 

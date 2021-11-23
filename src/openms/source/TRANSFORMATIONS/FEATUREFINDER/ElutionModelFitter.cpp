@@ -84,7 +84,7 @@ ElutionModelFitter::ElutionModelFitter():
 }
 
 
-ElutionModelFitter::~ElutionModelFitter() = default;
+ElutionModelFitter::~ElutionModelFitter() {}
 
 
 double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,

@@ -103,9 +103,9 @@ protected:
 
 private:
       /// Copy constructor (not implemented)
-      GumbelMaxLikelihoodFitter(const GumbelMaxLikelihoodFitter & rhs) = delete;
+      GumbelMaxLikelihoodFitter(const GumbelMaxLikelihoodFitter & rhs);
       /// assignment operator (not implemented)
-      GumbelMaxLikelihoodFitter & operator=(const GumbelMaxLikelihoodFitter & rhs) = delete;
+      GumbelMaxLikelihoodFitter & operator=(const GumbelMaxLikelihoodFitter & rhs);
     };
   }
 }

@@ -52,8 +52,9 @@ class TestSignalToNoiseEstimator
   }
 
   TestSignalToNoiseEstimator(const TestSignalToNoiseEstimator& bpf)
-   
-  = default;
+  : SignalToNoiseEstimator< >(bpf)
+  {
+  }
 
   TestSignalToNoiseEstimator& operator=(const TestSignalToNoiseEstimator& bpf)
   {
@@ -67,7 +68,7 @@ class TestSignalToNoiseEstimator
   protected:
 
   void computeSTN_(const MSSpectrum& C)
-      noexcept override
+      throw() override
   {
     if (C.begin() == C.end())
     {

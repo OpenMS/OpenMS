@@ -197,7 +197,7 @@ not be done when casting back to grand-child. To just omit the warning, use 'war
 
 private:
     /// Hidden default C'tor (class name parameter is required!)
-    DefaultParamHandler() = delete;
+    DefaultParamHandler();
 
   }; //class
 

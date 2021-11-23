@@ -140,10 +140,10 @@ namespace OpenMS
 
   private:
    /// Not implemented
-    ConsensusIDAlgorithm(const ConsensusIDAlgorithm&) = delete;
+    ConsensusIDAlgorithm(const ConsensusIDAlgorithm&);
 
     /// Not implemented
-    ConsensusIDAlgorithm& operator=(const ConsensusIDAlgorithm&) = delete;
+    ConsensusIDAlgorithm& operator=(const ConsensusIDAlgorithm&);
 
   };
 

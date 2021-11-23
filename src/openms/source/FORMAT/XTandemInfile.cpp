@@ -75,7 +75,8 @@ namespace OpenMS
   }
 
   XTandemInfile::~XTandemInfile()
-  = default;
+  {
+  }
 
   void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
   {

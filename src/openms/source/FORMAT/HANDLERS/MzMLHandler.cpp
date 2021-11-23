@@ -79,7 +79,8 @@ namespace OpenMS::Internal
 
     /// Destructor
     MzMLHandler::~MzMLHandler()
-    = default;
+    {
+    }
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
     {

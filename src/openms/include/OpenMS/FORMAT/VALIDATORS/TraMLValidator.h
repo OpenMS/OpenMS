@@ -63,13 +63,13 @@ public:
 private:
 
       /// Not implemented
-      TraMLValidator() = delete;
+      TraMLValidator();
 
       /// Not implemented
-      TraMLValidator(const TraMLValidator & rhs) = delete;
+      TraMLValidator(const TraMLValidator & rhs);
 
       /// Not implemented
-      TraMLValidator & operator=(const TraMLValidator & rhs) = delete;
+      TraMLValidator & operator=(const TraMLValidator & rhs);
 
     };
 

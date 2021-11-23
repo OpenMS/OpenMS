@@ -149,7 +149,7 @@ public:
     }
 
     /// Destructor
-    ~PeakPickerIterative() override = default;
+    ~PeakPickerIterative() override {}
 
 private:
 

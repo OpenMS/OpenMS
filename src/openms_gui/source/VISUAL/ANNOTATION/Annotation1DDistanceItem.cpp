@@ -58,7 +58,8 @@ namespace OpenMS
   }
 
   Annotation1DDistanceItem::~Annotation1DDistanceItem()
-  = default;
+  {
+  }
 
   void Annotation1DDistanceItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
   {

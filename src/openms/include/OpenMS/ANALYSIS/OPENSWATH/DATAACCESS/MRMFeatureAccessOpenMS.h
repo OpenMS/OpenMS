@@ -125,7 +125,8 @@ public:
     }
 
     ~TransitionGroupOpenMS() override
-    = default;
+    {
+    }
 
     std::size_t size() const override
     {

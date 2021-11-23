@@ -236,8 +236,8 @@ namespace seqan
     Spawn(const Spawn& other) = default;
 
     private:
-      Spawn() = delete;
-      Spawn& operator=(const Spawn&) = delete;
+      Spawn();
+      Spawn& operator=(const Spawn&);
   };
 
   template <typename TNeedle>
@@ -284,8 +284,8 @@ namespace seqan
   class Pattern<TNeedle, FuzzyAC>
   {
   private:
-    Pattern(Pattern const& other) = delete;
-    Pattern const& operator=(Pattern const & other) = delete;
+    Pattern(Pattern const& other);
+    Pattern const& operator=(Pattern const & other);
   public:
     Pattern()
       : nilVal(getNil<TVert>()),

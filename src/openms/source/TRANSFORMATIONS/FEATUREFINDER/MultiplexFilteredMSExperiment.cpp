@@ -52,7 +52,8 @@ namespace OpenMS
 {
 
   MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment()
-  = default;
+  {
+  }
 
   void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
   {

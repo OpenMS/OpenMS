@@ -40,9 +40,11 @@ namespace OpenMS
 {
 
   SpecArrayFile::SpecArrayFile()
-  = default;
+  {
+  }
 
   SpecArrayFile::~SpecArrayFile()
-  = default;
+  {
+  }
 
 } // namespace OpenMS

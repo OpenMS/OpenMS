@@ -96,7 +96,8 @@ namespace OpenMS
   }
 
   MRMTransitionGroupPicker::~MRMTransitionGroupPicker()
-  = default;
+  {
+  }
 
   MRMTransitionGroupPicker& MRMTransitionGroupPicker::operator=(const MRMTransitionGroupPicker& rhs)
   {

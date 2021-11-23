@@ -40,7 +40,8 @@
 namespace OpenMS
 {
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod()
-  = default;
+  {
+  }
 
   IsobaricQuantitationMethod::IsobaricQuantitationMethod() :
     DefaultParamHandler("IsobaricQuantitationMethod")

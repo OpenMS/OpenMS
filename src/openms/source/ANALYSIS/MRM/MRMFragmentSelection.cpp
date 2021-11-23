@@ -58,12 +58,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection & rhs) 
-    
-  = default;
+  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection & rhs) :
+    DefaultParamHandler(rhs)
+  {
+  }
 
   MRMFragmentSelection::~MRMFragmentSelection()
-  = default;
+  {
+  }
 
   MRMFragmentSelection & MRMFragmentSelection::operator=(const MRMFragmentSelection & rhs)
   {

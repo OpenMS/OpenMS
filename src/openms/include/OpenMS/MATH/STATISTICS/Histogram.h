@@ -121,7 +121,8 @@ public:
 
       ///destructor
       virtual ~Histogram()
-      = default;
+      {
+      }
 
       //@}
 

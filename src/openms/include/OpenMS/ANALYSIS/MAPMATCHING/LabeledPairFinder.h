@@ -64,7 +64,8 @@ public:
 
     /// Destructor
     inline ~LabeledPairFinder() override
-    = default;
+    {
+    }
 
     /// Returns an instance of this class
     static BaseGroupFinder * create()
@@ -108,10 +109,10 @@ protected:
 private:
 
     /// Copy constructor not implemented => private
-    LabeledPairFinder(const LabeledPairFinder & source) = delete;
+    LabeledPairFinder(const LabeledPairFinder & source);
 
     /// Assignment operator not implemented => private
-    LabeledPairFinder & operator=(const LabeledPairFinder & source) = delete;
+    LabeledPairFinder & operator=(const LabeledPairFinder & source);
 
   };   // end of class LabeledPairFinder
 

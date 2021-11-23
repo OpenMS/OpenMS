@@ -66,7 +66,8 @@ class TestModel : public InterpolationModel
   }
 
   ~TestModel() override
-  = default;
+  {
+  }
 
   virtual TestModel& operator = (const TestModel& source)
   {

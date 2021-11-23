@@ -48,7 +48,8 @@ namespace OpenMS
 
       /// Default destructor
       MSDataTransformingConsumer::~MSDataTransformingConsumer()
-      = default;
+      {
+      }
 
       void MSDataTransformingConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
       {

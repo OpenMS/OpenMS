@@ -39,7 +39,8 @@ using namespace std;
 namespace OpenMS
 {
   SeedListGenerator::SeedListGenerator()
-  = default;
+  {
+  }
 
   void SeedListGenerator::generateSeedList(const PeakMap& experiment,
                                            SeedList& seeds)

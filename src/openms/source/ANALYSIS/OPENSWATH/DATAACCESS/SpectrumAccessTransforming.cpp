@@ -41,7 +41,7 @@ namespace OpenMS
     sptr_(sptr)
   {}
 
-  SpectrumAccessTransforming::~SpectrumAccessTransforming() = default;
+  SpectrumAccessTransforming::~SpectrumAccessTransforming() {}
 
   size_t SpectrumAccessTransforming::getNrChromatograms() const
   {

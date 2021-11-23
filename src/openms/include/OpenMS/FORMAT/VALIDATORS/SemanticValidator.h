@@ -197,13 +197,13 @@ protected:
 private:
 
       /// Not implemented
-      SemanticValidator() = delete;
+      SemanticValidator();
 
       /// Not implemented
-      SemanticValidator(const SemanticValidator & rhs) = delete;
+      SemanticValidator(const SemanticValidator & rhs);
 
       /// Not implemented
-      SemanticValidator & operator=(const SemanticValidator & rhs) = delete;
+      SemanticValidator & operator=(const SemanticValidator & rhs);
 
     };
 

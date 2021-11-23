@@ -51,7 +51,8 @@ namespace OpenMS
   }
 
   CVMappingFile::~CVMappingFile()
-  = default;
+  {
+  }
 
   void CVMappingFile::load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces)
   {

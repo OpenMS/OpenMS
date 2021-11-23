@@ -65,7 +65,7 @@ public:
     float distance;
 
 private:
-    BinaryTreeNode() = delete;
+    BinaryTreeNode();
   };
 
 }

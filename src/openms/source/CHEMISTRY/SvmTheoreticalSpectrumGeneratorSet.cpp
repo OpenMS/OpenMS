@@ -40,16 +40,19 @@ namespace OpenMS
 
   // Default constructor
   SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet()
-  = default;
+  {
+  }
 
   // Copy constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source) 
-    
-  = default;
+  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source) :
+    simulators_(source.simulators_)
+  {
+  }
 
   //Destructor
   SvmTheoreticalSpectrumGeneratorSet::~SvmTheoreticalSpectrumGeneratorSet()
-  = default;
+  {
+  }
 
   // Assignment operator
   SvmTheoreticalSpectrumGeneratorSet& SvmTheoreticalSpectrumGeneratorSet::operator=(const SvmTheoreticalSpectrumGeneratorSet& rhs)

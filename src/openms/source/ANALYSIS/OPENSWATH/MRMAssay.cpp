@@ -45,10 +45,12 @@ using namespace std;
 namespace OpenMS
 {
   MRMAssay::MRMAssay()
-  = default;
+  {
+  }
 
   MRMAssay::~MRMAssay()
-  = default;
+  {
+  }
 
   std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion,
                                                               const FragmentSeqMap& ions,

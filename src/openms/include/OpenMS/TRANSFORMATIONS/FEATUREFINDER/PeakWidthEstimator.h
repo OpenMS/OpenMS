@@ -82,7 +82,7 @@ namespace OpenMS
     private:        
 
     /// hide default constructor
-    PeakWidthEstimator() = delete;
+    PeakWidthEstimator();
 
     /**
      * @brief B-spline for peak width interpolation

@@ -56,7 +56,7 @@
 namespace OpenMS::Exception
 {
 
-    GlobalExceptionHandler::GlobalExceptionHandler() noexcept
+    GlobalExceptionHandler::GlobalExceptionHandler() throw()
     {
       std::set_terminate(terminate);
       //std::set_unexpected(terminate); // removed in c++17
@@ -68,7 +68,7 @@ namespace OpenMS::Exception
       throw OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void GlobalExceptionHandler::terminate() noexcept
+    void GlobalExceptionHandler::terminate() throw()
     {
       // add cerr to the log stream
       // and write all available information on
@@ -106,7 +106,7 @@ namespace OpenMS::Exception
       abort();
     }
 
-    void GlobalExceptionHandler::set(const std::string & file, int line, const std::string & function, const std::string & name, const std::string & message) noexcept
+    void GlobalExceptionHandler::set(const std::string & file, int line, const std::string & function, const std::string & name, const std::string & message) throw()
     {
       GlobalExceptionHandler::name_() = name;
       GlobalExceptionHandler::line_() = line;
@@ -115,27 +115,27 @@ namespace OpenMS::Exception
       GlobalExceptionHandler::function_() = function;
     }
 
-    void GlobalExceptionHandler::setName(const std::string & name) noexcept
+    void GlobalExceptionHandler::setName(const std::string & name) throw()
     {
       GlobalExceptionHandler::name_() = name;
     }
 
-    void GlobalExceptionHandler::setMessage(const std::string & message) noexcept
+    void GlobalExceptionHandler::setMessage(const std::string & message) throw()
     {
       GlobalExceptionHandler::what_() = message;
     }
 
-    void GlobalExceptionHandler::setFile(const std::string & file) noexcept
+    void GlobalExceptionHandler::setFile(const std::string & file) throw()
     {
       GlobalExceptionHandler::file_() = file;
     }
 
-    void GlobalExceptionHandler::setFunction(const std::string & function) noexcept
+    void GlobalExceptionHandler::setFunction(const std::string & function) throw()
     {
       GlobalExceptionHandler::function_() = function;
     }
 
-    void GlobalExceptionHandler::setLine(int line) noexcept
+    void GlobalExceptionHandler::setLine(int line) throw()
     {
       GlobalExceptionHandler::line_() = line;
     }

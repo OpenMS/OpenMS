@@ -54,7 +54,8 @@ namespace OpenMS
   }
 
   SplinePackage::~SplinePackage()
-  = default;
+  {
+  }
 
   double SplinePackage::getPosMin() const
   {

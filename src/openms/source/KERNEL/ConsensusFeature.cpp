@@ -65,7 +65,8 @@ namespace OpenMS
   }
 
   ConsensusFeature::~ConsensusFeature()
-  = default;
+  {
+  }
 
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {

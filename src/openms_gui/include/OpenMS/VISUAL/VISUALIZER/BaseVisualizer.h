@@ -63,7 +63,7 @@ public:
       update_();
     }
 
-    virtual ~BaseVisualizer() = default;
+    virtual ~BaseVisualizer() {}
 
 protected:
 

@@ -61,7 +61,7 @@ public:
 
     /// Destructor.
     virtual ~ContinuousWaveletTransform()
-    = default;
+    {}
 
     /// Non-mutable access to the wavelet transform of the signal
     inline const std::vector<Peak1D> & getSignal() const

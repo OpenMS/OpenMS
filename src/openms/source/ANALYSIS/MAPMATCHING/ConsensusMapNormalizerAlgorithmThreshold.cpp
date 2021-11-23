@@ -44,10 +44,14 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusMapNormalizerAlgorithmThreshold::ConsensusMapNormalizerAlgorithmThreshold()
-  = default;
+  {
+
+  }
 
   ConsensusMapNormalizerAlgorithmThreshold::~ConsensusMapNormalizerAlgorithmThreshold()
-  = default;
+  {
+
+  }
 
   vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const String& acc_filter, const String& desc_filter)
   {

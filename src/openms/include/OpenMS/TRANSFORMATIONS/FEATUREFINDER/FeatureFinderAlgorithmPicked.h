@@ -306,9 +306,9 @@ protected:
 private:
 
     /// Not implemented
-    FeatureFinderAlgorithmPicked& operator=(const FeatureFinderAlgorithmPicked&) = delete;
+    FeatureFinderAlgorithmPicked& operator=(const FeatureFinderAlgorithmPicked&);
     /// Not implemented
-    FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked&) = delete;
+    FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked&);
   };
 
 } // namespace OpenMS

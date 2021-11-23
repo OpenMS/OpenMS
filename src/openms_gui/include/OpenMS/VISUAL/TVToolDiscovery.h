@@ -61,13 +61,13 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-    TVToolDiscovery() = default;;
+    TVToolDiscovery() {};
 
     TVToolDiscovery(const TVToolDiscovery &) = delete;
 
     TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
 
-    ~TVToolDiscovery() = default;;
+    ~TVToolDiscovery() {};
 
     /// Start creating params for each tool/util asynchronously
     void loadParams();

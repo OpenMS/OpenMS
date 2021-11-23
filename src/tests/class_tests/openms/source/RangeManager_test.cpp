@@ -56,8 +56,10 @@ class RM
     }
 
     RM(const RM& rhs)
-       
-    = default;
+      : RangeManager<2>(rhs)
+    {
+
+    }
 
     RM& operator = (const RM& rhs)
     {

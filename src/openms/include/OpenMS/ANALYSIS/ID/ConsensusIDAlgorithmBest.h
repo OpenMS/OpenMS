@@ -54,10 +54,10 @@ namespace OpenMS
 
   private:
     /// Not implemented
-    ConsensusIDAlgorithmBest(const ConsensusIDAlgorithmBest&) = delete;
+    ConsensusIDAlgorithmBest(const ConsensusIDAlgorithmBest&);
 
     /// Not implemented
-    ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&) = delete;
+    ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&);
 
     /// Aggregate peptide scores into one final score (by taking the best score)
     double getAggregateScore_(std::vector<double>& scores,

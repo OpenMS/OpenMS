@@ -48,7 +48,8 @@ namespace OpenMS
   }
 
   MzQuantMLFile::~MzQuantMLFile()
-  = default;
+  {
+  }
 
   void MzQuantMLFile::load(const String & filename, MSQuantifications & msq)
   {

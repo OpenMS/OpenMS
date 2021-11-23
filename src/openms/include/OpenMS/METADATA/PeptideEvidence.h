@@ -73,7 +73,7 @@ public:
     PeptideEvidence(PeptideEvidence&&) noexcept = default;
 
     /// Destructor
-    ~PeptideEvidence() = default;
+    ~PeptideEvidence() {}
     //@}
 
     /// Assignment operator

@@ -118,7 +118,8 @@ namespace OpenMS
   }
 
   SpectrumAnnotator::~SpectrumAnnotator()
-  = default;
+  {
+  }
 
   void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {

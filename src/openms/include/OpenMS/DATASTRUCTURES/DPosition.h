@@ -92,7 +92,8 @@ public:
 
     /// Destructor (not-virtual as this will save a lot of space!)
     ~DPosition()
-    = default;
+    {
+    }
 
     /// Constructor that fills all dimensions with the value @p x
     DPosition(CoordinateType x)

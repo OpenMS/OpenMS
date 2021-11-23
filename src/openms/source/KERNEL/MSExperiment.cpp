@@ -67,9 +67,14 @@ namespace OpenMS
   {}
 
   /// Copy constructor
-  MSExperiment::MSExperiment(const MSExperiment & source) 
-    
-  = default;
+  MSExperiment::MSExperiment(const MSExperiment & source) :
+    RangeManagerType(source),
+    ExperimentalSettings(source),
+    ms_levels_(source.ms_levels_),
+    total_size_(source.total_size_),
+    chromatograms_(source.chromatograms_),
+    spectra_(source.spectra_)
+  {}
 
   /// Assignment operator
   MSExperiment & MSExperiment::operator=(const MSExperiment & source)

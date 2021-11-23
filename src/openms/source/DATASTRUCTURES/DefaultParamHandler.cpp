@@ -51,9 +51,15 @@ namespace OpenMS
 
   }
 
-  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) 
-    
-  = default;
+  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) :
+    param_(rhs.param_),
+    defaults_(rhs.defaults_),
+    subsections_(rhs.subsections_),
+    error_name_(rhs.error_name_),
+    check_defaults_(rhs.check_defaults_),
+    warn_empty_defaults_(rhs.warn_empty_defaults_)
+  {
+  }
 
   DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs)
   {
@@ -83,7 +89,8 @@ namespace OpenMS
   }
 
   DefaultParamHandler::~DefaultParamHandler()
-  = default;
+  {
+  }
 
   void DefaultParamHandler::setParameters(const Param& param)
   {

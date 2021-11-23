@@ -81,7 +81,8 @@ namespace OpenMS
   }
 
   CompNovoIdentificationCID::~CompNovoIdentificationCID()
-  = default;
+  {
+  }
 
   void CompNovoIdentificationCID::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
   {

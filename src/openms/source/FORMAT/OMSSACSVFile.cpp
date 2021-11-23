@@ -42,10 +42,12 @@ namespace OpenMS
 {
 
   OMSSACSVFile::OMSSACSVFile()
-  = default;
+  {
+  }
 
   OMSSACSVFile::~OMSSACSVFile()
-  = default;
+  {
+  }
 
   void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, vector<PeptideIdentification> & id_data) const
   {

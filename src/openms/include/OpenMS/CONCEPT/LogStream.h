@@ -186,7 +186,7 @@ public:
 
         /// Delete the notification target.
         ~StreamStruct()
-        = default;
+        {}
 
       };
 

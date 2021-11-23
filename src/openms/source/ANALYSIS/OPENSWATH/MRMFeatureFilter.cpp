@@ -57,7 +57,8 @@ namespace OpenMS
   }
 
   MRMFeatureFilter::~MRMFeatureFilter()
-  = default;
+  {
+  }
 
   void MRMFeatureFilter::getDefaultParameters(Param& params) const
   {

@@ -71,7 +71,7 @@ public:
 
     /// Destructor
     ~PoseClusteringShiftSuperimposer() override
-    = default;
+    {}
 
     /**
       @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)

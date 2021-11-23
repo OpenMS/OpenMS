@@ -269,9 +269,9 @@ private:
       static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)
-      PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs) = delete;
+      PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);
       ///Copy constructor (not implemented)
-      PosteriorErrorProbabilityModel(const PosteriorErrorProbabilityModel & rhs) = delete;
+      PosteriorErrorProbabilityModel(const PosteriorErrorProbabilityModel & rhs);
       ///stores parameters for incorrectly assigned sequences. If gumbel fit was used, A can be ignored. Furthermore, in this case, x0 and sigma are the local parameter alpha and scale parameter beta, respectively.
       GaussFitter::GaussFitResult incorrectly_assigned_fit_param_;
       GumbelMaxLikelihoodFitter::GumbelDistributionFitResult incorrectly_assigned_fit_gumbel_param_;

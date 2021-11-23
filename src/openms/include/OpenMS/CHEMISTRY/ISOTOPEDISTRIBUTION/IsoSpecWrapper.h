@@ -143,7 +143,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual inline ~IsoSpecGeneratorWrapper() = default;;
+    virtual inline ~IsoSpecGeneratorWrapper() {};
   };
 
   /** @brief A convenience class for the IsoSpec algorithm - easier to use than the IsoSpecGeneratorWrapper classes.
@@ -175,7 +175,7 @@ public:
       **/
     virtual IsotopeDistribution run() = 0;
 
-    virtual inline ~IsoSpecWrapper() = default;;
+    virtual inline ~IsoSpecWrapper() {};
   };
 
   //-------------------------------------------------------------------------- 

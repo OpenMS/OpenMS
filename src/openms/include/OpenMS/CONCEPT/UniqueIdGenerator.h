@@ -82,7 +82,7 @@ private:
 
     static UniqueIdGenerator& getInstance_();
     void init_();
-    UniqueIdGenerator(const UniqueIdGenerator& ) = delete;//protect from c++ auto-generation
+    UniqueIdGenerator(const UniqueIdGenerator& );//protect from c++ auto-generation
   };
 
 } // namespace OpenMS

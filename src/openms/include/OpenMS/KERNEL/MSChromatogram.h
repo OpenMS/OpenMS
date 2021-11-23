@@ -135,7 +135,7 @@ public:
 
     /// Destructor
     ~MSChromatogram() override
-    = default;
+    {}
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);

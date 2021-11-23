@@ -174,13 +174,14 @@ public:
       {}
 
       /// Copy constructor.
-      IMSIsotopeDistribution(const IMSIsotopeDistribution & distribution) 
-        
-      = default;
+      IMSIsotopeDistribution(const IMSIsotopeDistribution & distribution) :
+        peaks_(distribution.peaks_),
+        nominal_mass_(distribution.nominal_mass_)
+      {}
 
       /// Destructor.
       ~IMSIsotopeDistribution()
-      = default;
+      {}
 
       /**
         Gets size of isotope distribution. @note Size is not smaller than

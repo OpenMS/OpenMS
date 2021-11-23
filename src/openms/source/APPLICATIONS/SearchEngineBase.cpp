@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  SearchEngineBase::~SearchEngineBase() = default;
+  SearchEngineBase::~SearchEngineBase() {}
 
   
   String SearchEngineBase::getRawfileName(int ms_level) const

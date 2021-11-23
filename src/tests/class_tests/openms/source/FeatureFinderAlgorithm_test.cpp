@@ -54,7 +54,8 @@ namespace OpenMS
 			}
 
 			~FFA() override
-			= default;
+			{
+			}
 
 			void run() override
 			{

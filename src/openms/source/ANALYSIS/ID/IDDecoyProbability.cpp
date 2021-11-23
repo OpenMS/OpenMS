@@ -58,12 +58,15 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IDDecoyProbability::IDDecoyProbability(const IDDecoyProbability & rhs) 
-    
-  = default;
+  IDDecoyProbability::IDDecoyProbability(const IDDecoyProbability & rhs) :
+    DefaultParamHandler(rhs)
+  {
+
+  }
 
   IDDecoyProbability::~IDDecoyProbability()
-  = default;
+  {
+  }
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
   {

@@ -100,7 +100,7 @@ public:
       /**
         Empty constructor.
       */
-      IMSAlphabet() = default;
+      IMSAlphabet() {}
 
 
       /**
@@ -118,9 +118,9 @@ public:
 
         @param alphabet Alphabet to be assigned
       */
-      IMSAlphabet(const IMSAlphabet & alphabet) 
-        
-      = default;
+      IMSAlphabet(const IMSAlphabet & alphabet) :
+        elements_(alphabet.elements_)
+      {}
 
       /**
         Returns the alphabet size.
@@ -303,7 +303,7 @@ public:
       /**
         Default destructor.
       */
-      virtual ~IMSAlphabet() = default;
+      virtual ~IMSAlphabet() {}
 
 private:
       /**

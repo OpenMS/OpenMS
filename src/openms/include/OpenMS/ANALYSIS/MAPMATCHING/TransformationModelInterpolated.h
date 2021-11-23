@@ -128,7 +128,7 @@ public:
       /**
        * @brief d'tor.
        */
-      virtual ~Interpolator() = default;
+      virtual ~Interpolator() {}
     };
 
 private:

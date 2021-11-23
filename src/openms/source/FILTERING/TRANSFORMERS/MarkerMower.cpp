@@ -44,7 +44,8 @@ namespace OpenMS
   }
 
   MarkerMower::~MarkerMower()
-  = default;
+  {
+  }
 
   MarkerMower::MarkerMower(const MarkerMower & source) :
     DefaultParamHandler(source)

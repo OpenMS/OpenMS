@@ -83,7 +83,7 @@ public:
       typedef weights_type::size_type size_type;
 
       /// Empty constructor.
-      Weights() = default;
+      Weights() {}
 
       /**
         Constructor with double values and precision.
@@ -103,8 +103,10 @@ public:
 
         @param other Weights to be copied.
       */
-      Weights(const Weights & other) 
-        = default;
+      Weights(const Weights & other) :
+        alphabet_masses_(other.alphabet_masses_),
+        precision_(other.precision_),
+        weights_(other.weights_) {}
 
       /**
         Assignment operator.

@@ -131,7 +131,7 @@ public:
       use_external_boundaries_ = !swath_map_boundaries_.empty();
     }
 
-    ~FullSwathFileConsumer() override = default;
+    ~FullSwathFileConsumer() override {}
 
     void setExpectedSize(Size, Size) override {}
     void setExperimentalSettings(const ExperimentalSettings& exp) override {settings_ = exp; }
@@ -339,7 +339,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    RegularSwathFileConsumer() = default;
+    RegularSwathFileConsumer() {}
 
     RegularSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries) :
       FullSwathFileConsumer(known_window_boundaries) {}

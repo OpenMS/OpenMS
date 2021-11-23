@@ -78,7 +78,8 @@ private:
     };
 
     XMLFile::XMLFile()
-    = default;
+    {
+    }
 
     XMLFile::XMLFile(const String & schema_location, const String & version) :
       schema_location_(schema_location),
@@ -87,7 +88,8 @@ private:
     }
 
     XMLFile::~XMLFile()
-    = default;
+    {
+    }
 
     void XMLFile::enforceEncoding_(const String& encoding)
     {

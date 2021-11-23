@@ -42,7 +42,8 @@ namespace OpenMS
 {
 
   ExperimentalSettings::~ExperimentalSettings()
-  = default;
+  {
+  }
 
   bool ExperimentalSettings::operator==(const ExperimentalSettings & rhs) const
   {

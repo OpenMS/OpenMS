@@ -74,7 +74,8 @@ public:
 
       /// Destructor
       ~MzDataHandler() override
-      = default;
+      {
+      }
 
       //@}
 

@@ -74,7 +74,8 @@ public:
 
       /// Destructor
       virtual ~Unit()
-      = default;
+      {
+      }
 
       /// Assignment operator
       Unit& operator=(const Unit&) = default;

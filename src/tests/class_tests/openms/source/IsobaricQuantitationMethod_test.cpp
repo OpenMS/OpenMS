@@ -64,7 +64,7 @@ public:
   }
 
   ~TestQuantitationMethod() override
-  = default;
+  {}
 
   const String& getMethodName() const override
   {

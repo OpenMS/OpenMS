@@ -47,6 +47,7 @@ namespace OpenMS::Internal
   }
 
   MzQuantMLValidator::~MzQuantMLValidator()
-  = default;
+  {
+  }
 
 } // namespace OpenMS   // namespace Internal

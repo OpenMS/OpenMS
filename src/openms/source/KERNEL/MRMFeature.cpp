@@ -72,7 +72,8 @@ namespace OpenMS
   }
 
   MRMFeature::~MRMFeature()
-  = default;
+  {
+  }
 
   const OpenSwath_Scores & MRMFeature::getScores() const
   {

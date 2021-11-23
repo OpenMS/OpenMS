@@ -70,7 +70,8 @@ namespace OpenMS
   }
 
   ElutionPeakDetection::~ElutionPeakDetection()
-  = default;
+  {
+  }
 
   double ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
   {

@@ -51,7 +51,7 @@ namespace Interfaces
   class OPENMS_DLLAPI ISpectraReader
   {
 public:
-    virtual ~ISpectraReader() = default;
+    virtual ~ISpectraReader() {}
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) const = 0;
     /// Return a pointer to a spectrum at the given string id
@@ -81,7 +81,7 @@ public:
   class OPENMS_DLLAPI IChromatogramsReader
   {
 public:
-    virtual ~IChromatogramsReader() = default;
+    virtual ~IChromatogramsReader() {}
     /// Return a pointer to a chromatogram at the given id
     virtual ChromatogramPtr getChromatogramById(int id) const = 0;
     /// Return a pointer to a chromatogram at the given string id
@@ -107,7 +107,7 @@ public:
   class OPENMS_DLLAPI ISpectraWriter
   {
 public:
-    virtual ~ISpectraWriter() = default;
+    virtual ~ISpectraWriter() {}
     /// Append a spectrum to the end
     virtual void appendSpectrum(SpectrumPtr spectrum, bool write_through=false) = 0;
     /// write all cached data to disk
@@ -119,7 +119,7 @@ public:
   class OPENMS_DLLAPI IChromatogramsWriter
   {
 public:
-    virtual ~IChromatogramsWriter() = default;
+    virtual ~IChromatogramsWriter() {}
     /// Append a chromatogram to the end
     virtual void appendChromatogram(ChromatogramPtr chromatogram, bool write_through=false) = 0;
     /// write all cached data to disk

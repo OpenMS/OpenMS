@@ -47,7 +47,7 @@ namespace OpenMS
         ppm_(ppm)
     {}
         
-    SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() = default;
+    SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() {}
 
     boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessQuadMZTransforming::lightClone() const
     {

@@ -60,10 +60,10 @@ namespace OpenMS
     Size current_considered_hits_;
 
     /// Not implemented
-    ConsensusIDAlgorithmRanks(const ConsensusIDAlgorithmRanks&) = delete;
+    ConsensusIDAlgorithmRanks(const ConsensusIDAlgorithmRanks&);
 
     /// Not implemented
-    ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&) = delete;
+    ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&);
 
     /// Assign peptide scores based on search ranks
     void preprocess_(std::vector<PeptideIdentification>& ids) override;

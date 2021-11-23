@@ -42,10 +42,13 @@ namespace OpenMS
 {
 
   TextFile::TextFile()
-  = default;
+  {
+
+  }
 
   TextFile::~TextFile()
-  = default;
+  {
+  }
 
   TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {

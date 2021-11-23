@@ -63,13 +63,13 @@ public:
 private:
 
       /// Not implemented
-      MzIdentMLValidator() = delete;
+      MzIdentMLValidator();
 
       /// Not implemented
-      MzIdentMLValidator(const MzIdentMLValidator & rhs) = delete;
+      MzIdentMLValidator(const MzIdentMLValidator & rhs);
 
       /// Not implemented
-      MzIdentMLValidator & operator=(const MzIdentMLValidator & rhs) = delete;
+      MzIdentMLValidator & operator=(const MzIdentMLValidator & rhs);
 
     };
 

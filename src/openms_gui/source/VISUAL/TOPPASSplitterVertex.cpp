@@ -43,12 +43,17 @@
 namespace OpenMS
 {
 
-  TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) 
-    
-  = default;
+  TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) :
+    TOPPASVertex(rhs)
+  {
+  }
 
   TOPPASSplitterVertex & TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs)
-  = default;
+  {
+    TOPPASVertex::operator=(rhs);
+
+    return *this;
+  }
 
   String TOPPASSplitterVertex::getName() const
   {

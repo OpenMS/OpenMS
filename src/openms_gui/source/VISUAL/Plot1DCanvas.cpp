@@ -153,7 +153,8 @@ namespace OpenMS
   }
 
   Plot1DCanvas::~Plot1DCanvas()
-  = default;
+  {
+  }
 
   bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
                                    ODExperimentSharedPtrType ondisc_sptr,

@@ -76,7 +76,8 @@ namespace OpenMS
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs)  = default;
+    CmpInfo_(const CmpInfo_& rhs) :
+      s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
 
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
@@ -338,7 +339,8 @@ namespace OpenMS
 
   /// destructor
   MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution()
-  = default;
+  {
+  }
 
 
   void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)

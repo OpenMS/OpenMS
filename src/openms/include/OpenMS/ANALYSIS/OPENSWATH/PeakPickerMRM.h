@@ -76,7 +76,7 @@ public:
     PeakPickerMRM();
 
     /// Destructor
-    ~PeakPickerMRM() override = default;
+    ~PeakPickerMRM() override {}
     //@}
 
 	/// indices into FloatDataArrays of resulting picked chromatograms

@@ -42,7 +42,8 @@ namespace OpenMS
 {
 
   MetaInfoDescription::~MetaInfoDescription()
-  = default;
+  {
+  }
 
   bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
   {

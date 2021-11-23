@@ -46,10 +46,13 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusMapNormalizerAlgorithmMedian::ConsensusMapNormalizerAlgorithmMedian()
-  = default;
+  {
+  }
 
   ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian()
-  = default;
+  {
+
+  }
 
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {

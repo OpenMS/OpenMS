@@ -93,7 +93,7 @@ protected:
 private:
 
   /// Default constructor is not supposed to be used.
-  MapAlignmentAlgorithmKD() = delete;
+  MapAlignmentAlgorithmKD();
 
   /// RT data for fitting the LOWESS
   std::vector<TransformationModel::DataPoints> fit_data_;

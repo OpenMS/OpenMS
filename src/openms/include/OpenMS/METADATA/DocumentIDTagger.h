@@ -55,7 +55,7 @@ namespace OpenMS
   {
 private:
     /// Constructor (declared away)
-    DocumentIDTagger() = delete;
+    DocumentIDTagger();
 
     /**
         @brief retrieve an ID from the pool

@@ -75,9 +75,9 @@ public:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentEvaluationAlgorithmPrecision(const MapAlignmentEvaluationAlgorithmPrecision &) = delete;
+    MapAlignmentEvaluationAlgorithmPrecision(const MapAlignmentEvaluationAlgorithmPrecision &);
     /// Assignment operator intentionally not implemented -> private
-    MapAlignmentEvaluationAlgorithmPrecision & operator=(const MapAlignmentEvaluationAlgorithmPrecision &) = delete;
+    MapAlignmentEvaluationAlgorithmPrecision & operator=(const MapAlignmentEvaluationAlgorithmPrecision &);
 
   };
 

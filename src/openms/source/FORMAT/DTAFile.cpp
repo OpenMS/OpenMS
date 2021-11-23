@@ -45,6 +45,7 @@ namespace OpenMS
   }
 
   DTAFile::~DTAFile()
-  = default;
+  {
+  }
 
 } // namespace OpenMS

@@ -51,7 +51,8 @@ namespace OpenMS::Internal
     }
 
     ToolDescriptionHandler::~ToolDescriptionHandler()
-    = default;
+    {
+    }
 
     void ToolDescriptionHandler::startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes)
     {

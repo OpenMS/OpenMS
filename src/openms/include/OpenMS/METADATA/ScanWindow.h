@@ -53,7 +53,7 @@ namespace OpenMS
     /// Move constructor
     ScanWindow(ScanWindow&&) = default;
     /// Destructor
-    ~ScanWindow() = default;
+    ~ScanWindow() {}
 
     /// Equality operator
     bool operator==(const ScanWindow & source) const;

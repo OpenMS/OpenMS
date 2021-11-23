@@ -87,7 +87,7 @@ public:
 private:
 
     /// hide default constructor
-    MinimumDistance() = delete;
+    MinimumDistance();
 
     /**
     * @brief index in the cluster list

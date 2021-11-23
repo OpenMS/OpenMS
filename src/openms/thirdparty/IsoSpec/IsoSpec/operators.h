@@ -117,7 +117,7 @@ class ConfOrderMarginalDescending
 template<typename T> class ReverseOrder
 {
  public:
-    inline ReverseOrder() = default;
+    inline ReverseOrder() {}
     inline bool operator()(const T a, const T b) const { return a > b; }
 };
 

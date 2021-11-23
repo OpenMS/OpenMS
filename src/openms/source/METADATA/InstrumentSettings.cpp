@@ -50,7 +50,8 @@ namespace OpenMS
   }
 
   InstrumentSettings::~InstrumentSettings()
-  = default;
+  {
+  }
 
   bool InstrumentSettings::operator==(const InstrumentSettings & rhs) const
   {

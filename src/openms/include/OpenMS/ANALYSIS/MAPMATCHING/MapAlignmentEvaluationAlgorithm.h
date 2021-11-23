@@ -70,9 +70,9 @@ public:
 
 private:
     ///Copy constructor is not implemented -> private
-    MapAlignmentEvaluationAlgorithm(const MapAlignmentEvaluationAlgorithm &) = delete;
+    MapAlignmentEvaluationAlgorithm(const MapAlignmentEvaluationAlgorithm &);
     ///Assignment operator is not implemented -> private
-    MapAlignmentEvaluationAlgorithm & operator=(const MapAlignmentEvaluationAlgorithm &) = delete;
+    MapAlignmentEvaluationAlgorithm & operator=(const MapAlignmentEvaluationAlgorithm &);
 
   };
 

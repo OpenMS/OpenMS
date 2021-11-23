@@ -64,7 +64,8 @@ namespace OpenMS::Internal
   }
 
   FidHandler::~FidHandler()
-  = default;
+  {
+  }
 
   Size FidHandler::getIndex()
   {

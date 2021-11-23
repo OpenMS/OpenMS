@@ -80,10 +80,10 @@ namespace OpenMS
 
   private:
     /// Not implemented
-    ConsensusIDAlgorithmIdentity(const ConsensusIDAlgorithmIdentity&) = delete;
+    ConsensusIDAlgorithmIdentity(const ConsensusIDAlgorithmIdentity&);
 
     /// Not implemented
-    ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&) = delete;
+    ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
     /// Consensus scoring
     void apply_(std::vector<PeptideIdentification>& ids,

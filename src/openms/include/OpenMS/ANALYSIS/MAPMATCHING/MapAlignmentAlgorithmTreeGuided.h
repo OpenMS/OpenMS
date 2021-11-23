@@ -173,9 +173,9 @@ protected:
 
 private:
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentAlgorithmTreeGuided(const MapAlignmentAlgorithmTreeGuided&) = delete;
+    MapAlignmentAlgorithmTreeGuided(const MapAlignmentAlgorithmTreeGuided&);
 
     /// Assignment operator intentionally not implemented -> private
-    MapAlignmentAlgorithmTreeGuided& operator=(const MapAlignmentAlgorithmTreeGuided&) = delete;
+    MapAlignmentAlgorithmTreeGuided& operator=(const MapAlignmentAlgorithmTreeGuided&);
   };
 } // namespace OpenMS

@@ -138,7 +138,8 @@ using namespace OpenMS;
   }
 
   OpenPepXLAlgorithm::~OpenPepXLAlgorithm()
-  = default;
+  {
+  }
 
   void OpenPepXLAlgorithm::updateMembers_()
   {

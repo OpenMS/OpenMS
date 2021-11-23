@@ -47,7 +47,8 @@ namespace OpenMS
   }
 
   Software::~Software()
-  = default;
+  {
+  }
 
   bool Software::operator==(const Software& rhs) const
   {

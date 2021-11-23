@@ -117,7 +117,7 @@ public:
 
     /// default constructor
     // BinnedSpectrum() = delete;
-    BinnedSpectrum() = default;
+    BinnedSpectrum() {}
 
     /// detailed constructor
     BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);

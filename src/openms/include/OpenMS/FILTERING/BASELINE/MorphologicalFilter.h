@@ -182,7 +182,8 @@ public:
 
     /// Destructor
     ~MorphologicalFilter() override
-    = default;
+    {
+    }
 
     /** @brief Applies the morphological filtering operation to an iterator range.
 
@@ -578,7 +579,7 @@ protected:
 private:
 
     /// copy constructor not implemented
-    MorphologicalFilter(const MorphologicalFilter & source) = delete;
+    MorphologicalFilter(const MorphologicalFilter & source);
 
   };
 

@@ -41,7 +41,8 @@ namespace OpenSwath
 {
 
   IDataFrameWriter::~IDataFrameWriter()
-  = default;
+  {
+  }
 
   DataMatrix::DataMatrix() :
     colnames_(), rownames_(), store_()

@@ -100,9 +100,14 @@ protected:
       {
       }
 
-      Transformation_(const Transformation_ & rhs) 
-        
-      = default;
+      Transformation_(const Transformation_ & rhs) :
+        max_intensity(rhs.max_intensity),
+        diff_score(rhs.diff_score),
+        min_score(rhs.min_score),
+        max_score(rhs.max_score),
+        max_intensity_bin(rhs.max_intensity_bin)
+      {
+      }
 
       Transformation_ & operator=(const Transformation_ & rhs)
       {

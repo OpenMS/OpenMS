@@ -71,7 +71,7 @@ namespace OpenMS
       CrossLinksDB();
 
       /// Copy constructor
-      CrossLinksDB(const CrossLinksDB& residue_db) = delete;
+      CrossLinksDB(const CrossLinksDB& residue_db);
 
       /// Destructor
       ~CrossLinksDB() override;
@@ -81,7 +81,7 @@ namespace OpenMS
        */
       //@{
       /// Assignment operator
-      CrossLinksDB & operator=(const CrossLinksDB& aa) = delete;
+      CrossLinksDB & operator=(const CrossLinksDB& aa);
       //@}
 
   };

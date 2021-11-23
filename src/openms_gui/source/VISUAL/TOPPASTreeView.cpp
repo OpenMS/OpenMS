@@ -54,7 +54,9 @@ namespace OpenMS
   }
 
   TOPPASTreeView::~TOPPASTreeView()
-  = default;
+  {
+
+  }
 
   void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
   {

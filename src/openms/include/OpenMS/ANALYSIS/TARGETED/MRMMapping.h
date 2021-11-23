@@ -58,7 +58,7 @@ public:
     MRMMapping();
 
     /// destructor
-    ~MRMMapping() override = default;
+    ~MRMMapping() override {}
     //@}
 
     /**

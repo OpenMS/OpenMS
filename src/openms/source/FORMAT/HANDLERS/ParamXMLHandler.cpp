@@ -49,7 +49,8 @@ namespace OpenMS::Internal
     }
 
     ParamXMLHandler::~ParamXMLHandler()
-    = default;
+    {
+    }
 
     void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {

@@ -51,7 +51,8 @@ namespace OpenMS
   }
 
   HPLC::~HPLC()
-  = default;
+  {
+  }
 
   bool HPLC::operator==(const HPLC & rhs) const
   {

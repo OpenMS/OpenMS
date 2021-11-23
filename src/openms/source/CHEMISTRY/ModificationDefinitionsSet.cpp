@@ -46,9 +46,12 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinitionsSet::ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs) 
-    
-  = default;
+  ModificationDefinitionsSet::ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs) :
+    variable_mods_(rhs.variable_mods_),
+    fixed_mods_(rhs.fixed_mods_),
+    max_mods_per_peptide_(rhs.max_mods_per_peptide_)
+  {
+  }
 
   ModificationDefinitionsSet::ModificationDefinitionsSet(const StringList& fixed_modifications, const StringList& variable_modifications) :
     max_mods_per_peptide_(0)
@@ -57,7 +60,8 @@ namespace OpenMS
   }
 
   ModificationDefinitionsSet::~ModificationDefinitionsSet()
-  = default;
+  {
+  }
 
   void ModificationDefinitionsSet::setMaxModifications(Size max_mod)
   {
