@@ -239,7 +239,8 @@ class FeatureMapDF(FeatureMap):
                 for hit in pep.getHits():
                     hit.setMetaValue('feature_id', str(f.getUniqueId()))
                     hit.setMetaValue('ID_filename', self.__get_prot_id_filename_from_pep_id(pep))
-                    hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
+                    if f.metaValueExists('spectrum_native_id'):
+                        hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
                     hits.append(hit)
                 pep.setHits(hits)
                 result.append(pep)
