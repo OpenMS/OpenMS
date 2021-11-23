@@ -143,13 +143,31 @@ common_meta_value_types = {
 class FeatureMapDF(FeatureMap):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def __get_prot_id_filename_from_pep_id(self, pep_id):
+        """Gets the primary MS run path of the ProteinIdentification linked with the given PeptideIdentification.
+
+        Parameters:
+        pep_id: PeptideIdentification
+
+        Returns:
+        str: primary MS run path (filename) of the ProteinIdentification with the same identifier as the given PeptideIdentification
+        """
+        for prot in self.getProteinIdentifications():
+            if prot.getIdentifier() == pep_id.getIdentifier():
+                filenames = []
+                prot.getPrimaryMSRunPath(filenames)
+                if filenames:
+                    return filenames[0]
+        return 'unknown'
     
     # meta_values = None (default), 'all' or list of meta value names
-    def get_df(self, meta_values = None):
+    def get_df(self, meta_values = None, export_peptide_identifications = True):
         """Generates a pandas DataFrame with information contained in the FeatureMap.
 
         Parameters:
         meta_values: meta values to include (None, [custom list of meta value names] or 'all')
+        export_peptide_identifications (bool): export best hit for PeptideIdentifications assigned to a feature
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
@@ -168,30 +186,34 @@ class FeatureMapDF(FeatureMap):
         
         def gen(fmap: FeatureMap, fun):
             for f in fmap:
-                yield from fun(f, meta_values)
+                yield from fun(f)
 
-        def extract_meta_data(f: Feature, meta_values):
+        def extract_meta_data(f: Feature):
             pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
             bb = f.getConvexHull().getBoundingBox2D()
                 
             vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values]
             
-            if len(pep) != 0:
-                hits = pep[0].getHits()
-
-                if len(hits) != 0:
-                    besthit = hits[0]  # type: PeptideHit
-                    yield (f.getUniqueId(), besthit.getSequence().toString(), f.getCharge(), f.getRT(), f.getMZ(), bb[0][0], bb[1][0], bb[0][1], bb[1][1], f.getOverallQuality(), f.getIntensity(), *vals)
-                else:
-                    yield (f.getUniqueId(), None, f.getCharge(), f.getRT(), f.getMZ(), bb[0][0], bb[1][0], bb[0][1], bb[1][1], f.getOverallQuality(), f.getIntensity(), *vals)
+            if export_peptide_identifications:
+                pep_values = (None, None, None, None)
+                if len(pep) > 0:
+                    ID_filename = self.__get_prot_id_filename_from_pep_id(pep[0])
+                    hits = pep[0].getHits()
+                    if len(hits) > 0:
+                        besthit = hits[0]
+                        pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, f.getMetaValue('spectrum_native_id'))
             else:
-                yield (f.getUniqueId(), None, f.getCharge(), f.getRT(), f.getMZ(), bb[0][0], bb[1][0], bb[0][1], bb[1][1], f.getOverallQuality(), f.getIntensity(), *vals)
+                pep_values = ()
+
+            yield tuple([f.getUniqueId()]) + pep_values + (f.getCharge(), f.getRT(), f.getMZ(), bb[0][0], bb[1][0], bb[0][1], bb[1][1], f.getOverallQuality(), f.getIntensity(), *vals)
 
         cnt = self.size()
 
-        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'), ('RT', np.dtype('double')), 
-                    ('mz', np.dtype('double')), ('RTstart', np.dtype('double')), ('RTend', np.dtype('double')),
-                    ('mzstart', np.dtype('double')), ('mzend', np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
+        mddtypes = [('feature_id', 'U100')]
+        if export_peptide_identifications:
+            mddtypes += [('peptide_sequence', 'U200'), ('peptide_score', 'f'), ('ID_filename', 'U100'), ('ID_native_id', 'U100')]
+        mddtypes += [('charge', 'i4'), ('RT', np.dtype('double')), ('mz', np.dtype('double')), ('RTstart', np.dtype('double')), ('RTend', np.dtype('double')),
+                    ('MZstart', np.dtype('double')), ('MZend', np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
         
         for meta_value in meta_values:
             if meta_value in common_meta_value_types:
@@ -201,7 +223,27 @@ class FeatureMapDF(FeatureMap):
 
         mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
-        return pd.DataFrame(mdarr).set_index('id')
+        return pd.DataFrame(mdarr).set_index('feature_id')
+
+    def get_assigned_peptide_identifications(self):
+        """Generates a list with peptide identifications assigned to a feature.
+        Adds 'ID_native_id' (feature spectrum id) and 'ID_filename' (primary MS run path of corresponding protein id)
+        as meta values to the peptide hits.
+
+        Returns:
+        [PeptideIdentification]: list of PeptideIdentification objects"""
+        result = []
+        for f in self:
+            for pep in f.getPeptideIdentifications():
+                hits = []
+                for hit in pep.getHits():
+                    hit.setMetaValue('feature_id', str(f.getUniqueId()))
+                    hit.setMetaValue('ID_filename', self.__get_prot_id_filename_from_pep_id(pep))
+                    hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
+                    hits.append(hit)
+                pep.setHits(hits)
+                result.append(pep)
+        return result
 
 FeatureMap = FeatureMapDF
 
