@@ -68,27 +68,12 @@ namespace OpenMS
 
   /// Default destructor
   SpectralMatch::~SpectralMatch()
-  {
-  }
+  = default;
 
   /// Copy constructor
-  SpectralMatch::SpectralMatch(const SpectralMatch& sm) :
-    observed_precursor_mass_(sm.observed_precursor_mass_),
-    observed_precursor_rt_(sm.observed_precursor_rt_),
-    found_precursor_mass_(sm.found_precursor_mass_),
-    found_precursor_charge_(sm.found_precursor_charge_),
-    matching_score_(sm.matching_score_),
-    observed_spectrum_idx_(sm.observed_spectrum_idx_),
-    matching_spectrum_idx_(sm.matching_spectrum_idx_),
-    primary_id_(sm.primary_id_),
-    secondary_id_(sm.secondary_id_),
-    common_name_(sm.common_name_),
-    sum_formula_(sm.sum_formula_),
-    inchi_string_(sm.inchi_string_),
-    smiles_string_(sm.smiles_string_),
-    precursor_adduct_(sm.precursor_adduct_)
-  {
-  }
+  SpectralMatch::SpectralMatch(const SpectralMatch& sm) 
+    
+  = default;
 
   /// Assignment operator
   SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
@@ -304,8 +289,7 @@ namespace OpenMS
 
 
   MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-  {
-  }
+  = default;
 
 
   double MetaboliteSpectralMatching::computeHyperScore(

@@ -45,21 +45,16 @@ using namespace std;
 namespace OpenMS
 {
   PepNovoOutfile::PepNovoOutfile()
-  {
-  }
+  = default;
 
   PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile &)
-  {
-  }
+  = default;
 
   PepNovoOutfile::~PepNovoOutfile()
-  {
-  }
+  = default;
 
   PepNovoOutfile & PepNovoOutfile::operator=(const PepNovoOutfile &)
-  {
-    return *this;
-  }
+  = default;
 
   bool PepNovoOutfile::operator==(const PepNovoOutfile &) const
   {

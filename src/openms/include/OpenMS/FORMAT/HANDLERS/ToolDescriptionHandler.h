@@ -98,9 +98,9 @@ protected:
 
 private:
 
-      ToolDescriptionHandler();
-      ToolDescriptionHandler(const ToolDescriptionHandler & rhs);
-      ToolDescriptionHandler & operator=(const ToolDescriptionHandler & rhs);
+      ToolDescriptionHandler() = delete;
+      ToolDescriptionHandler(const ToolDescriptionHandler & rhs) = delete;
+      ToolDescriptionHandler & operator=(const ToolDescriptionHandler & rhs) = delete;
 
     };
   }   // namespace Internal

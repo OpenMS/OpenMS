@@ -82,8 +82,7 @@ namespace OpenMS
   }
 
   AxisWidget::~AxisWidget()
-  {
-  }
+  = default;
 
   void AxisWidget::paintEvent(QPaintEvent * e)
   {

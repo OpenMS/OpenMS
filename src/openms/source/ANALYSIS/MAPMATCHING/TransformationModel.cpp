@@ -80,8 +80,7 @@ namespace OpenMS
   }
 
   TransformationModel::~TransformationModel()
-  {
-  }
+  = default;
 
   double TransformationModel::evaluate(double value) const
   {

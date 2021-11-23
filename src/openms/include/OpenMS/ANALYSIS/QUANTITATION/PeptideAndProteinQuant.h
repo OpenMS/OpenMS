@@ -145,7 +145,7 @@ public:
     PeptideAndProteinQuant();
 
     /// Destructor
-    ~PeptideAndProteinQuant() override {}
+    ~PeptideAndProteinQuant() override = default;
 
     /**
          @brief Read quantitative data from a feature map.

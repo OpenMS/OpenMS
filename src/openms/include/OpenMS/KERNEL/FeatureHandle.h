@@ -165,8 +165,8 @@ protected:
 private:
     using FeatureHandle::setUniqueId;
     using FeatureHandle::setMapIndex;
-    FeatureHandleMutable_();
-    FeatureHandleMutable_(const FeatureHandleMutable_&);
+    FeatureHandleMutable_() = delete;
+    FeatureHandleMutable_(const FeatureHandleMutable_&) = delete;
   };
 
   inline FeatureHandle::FeatureHandleMutable_& FeatureHandle::asMutable() const

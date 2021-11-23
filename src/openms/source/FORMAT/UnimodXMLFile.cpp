@@ -49,8 +49,7 @@ namespace OpenMS
   }
 
   UnimodXMLFile::~UnimodXMLFile()
-  {
-  }
+  = default;
 
   void UnimodXMLFile::load(const String& filename, vector<ResidueModification*> & modifications)
   {

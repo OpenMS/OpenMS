@@ -51,8 +51,7 @@ namespace OpenMS
   }
 
   IdentificationHit::~IdentificationHit()
-  {
-  }
+  = default;
 
   // Equality operator
   bool IdentificationHit::operator==(const IdentificationHit & rhs) const

@@ -48,19 +48,14 @@ using namespace std;
 namespace OpenMS
 {
   CVMappings::CVMappings()
-  {
-  }
+  = default;
 
-  CVMappings::CVMappings(const CVMappings& rhs) :
-    mapping_rules_(rhs.mapping_rules_),
-    cv_references_(rhs.cv_references_),
-    cv_references_vector_(rhs.cv_references_vector_)
-  {
-  }
+  CVMappings::CVMappings(const CVMappings& rhs) 
+    
+  = default;
 
   CVMappings::~CVMappings()
-  {
-  }
+  = default;
 
   CVMappings& CVMappings::operator=(const CVMappings& rhs)
   {

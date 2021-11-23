@@ -87,7 +87,7 @@ protected:
 
 private:
       /// Not implemented
-      ParamXMLHandler();
+      ParamXMLHandler() = delete;
     };
 
   } // namespace Internal

@@ -56,10 +56,9 @@ namespace OpenMS
     readConsoleSize_();
   }
 
-  ConsoleUtils::ConsoleUtils(ConsoleUtils const& other) :
-    console_width_(other.console_width_)
-  {
-  }
+  ConsoleUtils::ConsoleUtils(ConsoleUtils const& other) 
+    
+  = default;
 
   void ConsoleUtils::operator=(const ConsoleUtils& other)
   {

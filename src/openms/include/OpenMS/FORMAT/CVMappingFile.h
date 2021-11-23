@@ -92,10 +92,10 @@ protected:
 private:
 
     ///Not implemented
-    CVMappingFile(const CVMappingFile& rhs);
+    CVMappingFile(const CVMappingFile& rhs) = delete;
 
     ///Not implemented
-    CVMappingFile& operator=(const CVMappingFile& rhs);
+    CVMappingFile& operator=(const CVMappingFile& rhs) = delete;
 
     String tag_;
 

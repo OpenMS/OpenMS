@@ -73,9 +73,7 @@ namespace OpenMS
   }
 
   MassAnalyzer::~MassAnalyzer()
-  {
-
-  }
+  = default;
 
   bool MassAnalyzer::operator==(const MassAnalyzer & rhs) const
   {

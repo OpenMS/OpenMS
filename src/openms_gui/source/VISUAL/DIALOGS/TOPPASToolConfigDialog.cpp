@@ -106,9 +106,7 @@ namespace OpenMS
   }
 
   TOPPASToolConfigDialog::~TOPPASToolConfigDialog()
-  {
-
-  }
+  = default;
 
   void TOPPASToolConfigDialog::ok_()
   {

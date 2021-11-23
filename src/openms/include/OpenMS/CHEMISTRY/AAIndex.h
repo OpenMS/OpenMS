@@ -1263,7 +1263,7 @@ protected:
 private:
 
     ///Constructor not implemented => private
-    AAIndex();
+    AAIndex() = delete;
   };
 
 }

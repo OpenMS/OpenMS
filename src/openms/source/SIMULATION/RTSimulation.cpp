@@ -82,8 +82,7 @@ namespace OpenMS
   }
 
   RTSimulation::~RTSimulation()
-  {
-  }
+  = default;
 
   void RTSimulation::setDefaultParams_()
   {

@@ -68,8 +68,7 @@ namespace OpenMS
   }
 
   OptimizePick::~OptimizePick()
-  {
-  }
+  = default;
 
   void OptimizePick::optimize(std::vector<PeakShape> & peaks, Data & data)
   {

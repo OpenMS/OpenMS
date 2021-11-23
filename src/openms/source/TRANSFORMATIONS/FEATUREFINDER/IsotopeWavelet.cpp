@@ -128,8 +128,7 @@ namespace OpenMS
   }
 
   IsotopeWavelet::IsotopeWavelet()
-  {
-  }
+  = default;
 
   IsotopeWavelet::IsotopeWavelet(const double max_m, const UInt max_charge)
   {
@@ -139,8 +138,7 @@ namespace OpenMS
   }
 
   IsotopeWavelet::~IsotopeWavelet()
-  {
-  }
+  = default;
 
   void IsotopeWavelet::destroy()
   {

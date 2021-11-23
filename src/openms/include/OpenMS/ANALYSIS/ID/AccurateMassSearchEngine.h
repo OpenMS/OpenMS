@@ -99,7 +99,7 @@ namespace OpenMS
 
   private:
     /// hide default C'tor
-    AdductInfo();
+    AdductInfo() = delete;
 
     /// members
     String name_; ///< arbitrary name, only used for error reporting

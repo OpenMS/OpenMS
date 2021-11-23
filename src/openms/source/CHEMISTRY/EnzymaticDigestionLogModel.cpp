@@ -69,13 +69,9 @@ namespace OpenMS
     }
   }
 
-  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) :
-    enzyme_(rhs.enzyme_),
-    log_model_threshold_(rhs.log_model_threshold_),
-    model_data_(rhs.model_data_)
-  {
-
-  }
+  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) 
+    
+  = default;
 
   /// Assignment operator
   EnzymaticDigestionLogModel& EnzymaticDigestionLogModel::operator=(const EnzymaticDigestionLogModel& rhs)

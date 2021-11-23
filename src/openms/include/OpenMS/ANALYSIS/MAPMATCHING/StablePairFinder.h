@@ -119,8 +119,7 @@ public:
 
     /// Destructor
     ~StablePairFinder() override
-    {
-    }
+    = default;
 
     /// Returns an instance of this class
     static BaseGroupFinder* create()

@@ -277,7 +277,7 @@ private:
     explicit ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
-    ModificationsDB(const ModificationsDB& residue_db);
+    ModificationsDB(const ModificationsDB& residue_db) = delete;
 
     /// Destructor
     virtual ~ModificationsDB();
@@ -287,7 +287,7 @@ private:
      */
     //@{
     /// Assignment operator
-    ModificationsDB & operator=(const ModificationsDB& aa);
+    ModificationsDB & operator=(const ModificationsDB& aa) = delete;
     //@}
 
     /**

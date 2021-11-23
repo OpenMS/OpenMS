@@ -89,8 +89,7 @@ public:
     SimplePairFinder();
     /// Destructor
     ~SimplePairFinder() override
-    {
-    }
+    = default;
 
     /// returns an instance of this class
     static BaseGroupFinder * create()

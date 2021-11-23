@@ -69,8 +69,7 @@ namespace OpenMS
   }
 
   EmpiricalFormula::~EmpiricalFormula()
-  {
-  }
+  = default;
 
   double EmpiricalFormula::getMonoWeight() const
   {

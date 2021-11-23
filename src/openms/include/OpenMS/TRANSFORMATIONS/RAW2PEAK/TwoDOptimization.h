@@ -96,7 +96,7 @@ public:
     TwoDOptimization(const TwoDOptimization& opt);
 
     /// Destructor
-    ~TwoDOptimization() override{}
+    ~TwoDOptimization() override= default;
 
     /// Assignment operator
     TwoDOptimization& operator=(const TwoDOptimization& opt);

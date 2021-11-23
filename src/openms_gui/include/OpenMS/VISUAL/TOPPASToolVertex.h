@@ -78,12 +78,9 @@ public:
       }
 
       /// Copy constructor
-      IOInfo(const IOInfo& rhs) :
-        type(rhs.type),
-        param_name(rhs.param_name),
-        valid_types(rhs.valid_types)
-      {
-      }
+      IOInfo(const IOInfo& rhs) 
+        
+      = default;
 
       /// The type
       enum IOType
@@ -107,13 +104,7 @@ public:
 
       /// Assignment operator
       IOInfo& operator=(const IOInfo& rhs)
-      {
-        type = rhs.type;
-        param_name = rhs.param_name;
-        valid_types = rhs.valid_types;
-
-        return *this;
-      }
+      = default;
 
       /// Is any of the input/output parameters a list?
       static bool isAnyList(const QVector<IOInfo>& params)

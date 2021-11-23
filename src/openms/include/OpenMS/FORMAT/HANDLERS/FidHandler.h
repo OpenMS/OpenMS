@@ -72,7 +72,7 @@ public:
 
 private:
       /// Private default constructor
-      FidHandler();
+      FidHandler() = delete;
 
       /// Index of position
       Size index_;

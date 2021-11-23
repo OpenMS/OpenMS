@@ -77,6 +77,6 @@ public:
 private:
 
     ///Constructor: only static methods
-    AxisTickCalculator();
+    AxisTickCalculator() = delete;
   };
 }

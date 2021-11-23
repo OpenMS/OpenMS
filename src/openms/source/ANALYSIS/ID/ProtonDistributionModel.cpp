@@ -70,8 +70,7 @@ namespace OpenMS
   }
 
   ProtonDistributionModel::~ProtonDistributionModel()
-  {
-  }
+  = default;
 
   ProtonDistributionModel::ProtonDistributionModel(const ProtonDistributionModel & model) :
     DefaultParamHandler(model),

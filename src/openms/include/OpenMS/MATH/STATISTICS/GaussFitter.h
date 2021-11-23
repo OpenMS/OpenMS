@@ -136,10 +136,10 @@ protected:
 
 private:
      /// Copy constructor (not implemented)
-      GaussFitter(const GaussFitter & rhs);
+      GaussFitter(const GaussFitter & rhs) = delete;
 
       /// Assignment operator (not implemented)
-      GaussFitter & operator=(const GaussFitter & rhs);
+      GaussFitter & operator=(const GaussFitter & rhs) = delete;
     };
   }
 }

@@ -47,8 +47,7 @@ namespace OpenMS
   }
 
   LowessSmoothing::~LowessSmoothing()
-  {
-  }
+  = default;
 
   void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
   {

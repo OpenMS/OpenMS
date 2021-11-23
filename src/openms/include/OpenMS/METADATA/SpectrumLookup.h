@@ -276,10 +276,10 @@ namespace OpenMS
   private:
 
     /// Copy constructor (not implemented)
-    SpectrumLookup(const SpectrumLookup&);
+    SpectrumLookup(const SpectrumLookup&) = delete;
 
     /// Assignment operator (not implemented).
-    SpectrumLookup& operator=(const SpectrumLookup&);
+    SpectrumLookup& operator=(const SpectrumLookup&) = delete;
 
   };
 

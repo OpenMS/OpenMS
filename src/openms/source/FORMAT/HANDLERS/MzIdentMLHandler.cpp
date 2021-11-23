@@ -115,8 +115,7 @@ namespace OpenMS::Internal
     //~ }
 
     MzIdentMLHandler::~MzIdentMLHandler()
-    {
-    }
+    = default;
 
     void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {

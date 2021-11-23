@@ -84,8 +84,7 @@ public:
       }
 
       virtual ~IonScore()
-      {
-      }
+      = default;
 
       IonScore & operator=(const IonScore & rhs)
       {

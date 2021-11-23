@@ -146,8 +146,7 @@ public:
 
     /// Destructor
     ~DRange()
-    {
-    }
+    = default;
 
     //@}
 

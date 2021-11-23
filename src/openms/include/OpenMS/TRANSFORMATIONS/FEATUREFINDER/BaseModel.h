@@ -76,8 +76,7 @@ public:
 
     /// Destructor
     ~BaseModel() override
-    {
-    }
+    = default;
 
     /// assignment operator
     virtual BaseModel & operator=(const BaseModel & source)

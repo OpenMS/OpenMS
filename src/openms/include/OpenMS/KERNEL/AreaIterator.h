@@ -102,7 +102,7 @@ public:
 
       /// Destructor
       ~AreaIterator()
-      {}
+      = default;
 
       /// Copy constructor
       AreaIterator(const AreaIterator & rhs) :

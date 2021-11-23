@@ -75,8 +75,7 @@ public:
 
     /// Destructor.
     ~LinearResampler() override
-    {
-    }
+    = default;
 
     /**
         @brief Applies the resampling algorithm to an MSSpectrum.

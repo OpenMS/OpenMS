@@ -63,9 +63,7 @@ namespace OpenMS
   }
 
   Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  = default;
 
   void Plot3DWidget::recalculateAxes_()
   {

@@ -66,8 +66,7 @@ namespace OpenMS
   }
 
   TOPPASWidget::~TOPPASWidget()
-  {
-  }
+  = default;
 
   TOPPASScene * TOPPASWidget::getScene()
   {

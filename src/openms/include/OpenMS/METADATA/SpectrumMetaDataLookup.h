@@ -196,7 +196,7 @@ namespace OpenMS
     {}
 
     /// Destructor
-    ~SpectrumMetaDataLookup() override {}
+    ~SpectrumMetaDataLookup() override = default;
 
     /**
        @brief Read spectra and store their meta data
@@ -324,10 +324,10 @@ namespace OpenMS
   private:
 
     /// Copy constructor (not implemented)
-    SpectrumMetaDataLookup(const SpectrumMetaDataLookup&);
+    SpectrumMetaDataLookup(const SpectrumMetaDataLookup&) = delete;
 
     /// Assignment operator (not implemented)
-    SpectrumMetaDataLookup& operator=(const SpectrumMetaDataLookup&);
+    SpectrumMetaDataLookup& operator=(const SpectrumMetaDataLookup&) = delete;
 
   };
 

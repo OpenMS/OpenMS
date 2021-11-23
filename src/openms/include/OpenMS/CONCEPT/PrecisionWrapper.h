@@ -55,7 +55,7 @@ namespace OpenMS
       ref_(rhs.ref_) {}
     FloatingPointType const ref_;
 private:
-    PrecisionWrapper();     // intentionally not implemented
+    PrecisionWrapper() = delete;     // intentionally not implemented
   };
 
   /**

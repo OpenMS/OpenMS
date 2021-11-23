@@ -78,8 +78,7 @@ namespace OpenMS
   }
 
   FuzzyStringComparator::~FuzzyStringComparator()
-  {
-  }
+  = default;
 
   const double& FuzzyStringComparator::getAcceptableRelative() const
   {

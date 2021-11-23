@@ -49,8 +49,7 @@ namespace OpenMS
   }
 
   TraMLFile::~TraMLFile()
-  {
-  }
+  = default;
 
   void TraMLFile::load(const String & filename, TargetedExperiment & exp)
   {

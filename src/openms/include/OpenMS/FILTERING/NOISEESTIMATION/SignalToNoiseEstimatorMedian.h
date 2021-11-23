@@ -163,7 +163,7 @@ public:
 
     /// Destructor
     ~SignalToNoiseEstimatorMedian() override
-    {}
+    = default;
 
     /// Returns how many percent of the windows were sparse
     double getSparseWindowPercent() const

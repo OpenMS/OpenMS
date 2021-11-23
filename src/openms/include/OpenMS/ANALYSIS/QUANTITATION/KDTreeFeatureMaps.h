@@ -73,8 +73,7 @@ public:
 
   /// Destructor
   ~KDTreeFeatureMaps() override
-  {
-  }
+  = default;
 
   /// Add @p maps and balance kd-tree
   template <typename MapType>

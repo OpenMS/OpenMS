@@ -70,9 +70,9 @@ public:
 private:
 
     ///Not implemented
-    UnimodXMLFile(const UnimodXMLFile & rhs);
+    UnimodXMLFile(const UnimodXMLFile & rhs) = delete;
     ///Not implemented
-    UnimodXMLFile & operator=(const UnimodXMLFile & rhs);
+    UnimodXMLFile & operator=(const UnimodXMLFile & rhs) = delete;
 
   };
 

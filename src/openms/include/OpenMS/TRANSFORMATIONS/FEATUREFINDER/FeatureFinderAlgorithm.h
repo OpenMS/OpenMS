@@ -93,8 +93,7 @@ public:
 
     /// destructor
     ~FeatureFinderAlgorithm() override
-    {
-    }
+    = default;
 
     /// register all derived classes here (see FeatureFinderAlgorithm_impl.h)
     static void registerChildren();
@@ -147,10 +146,10 @@ protected:
 private:
 
     /// Not implemented
-    FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&);
+    FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&) = delete;
 
     /// Not implemented
-    FeatureFinderAlgorithm(const FeatureFinderAlgorithm&);
+    FeatureFinderAlgorithm(const FeatureFinderAlgorithm&) = delete;
 
   };
 }

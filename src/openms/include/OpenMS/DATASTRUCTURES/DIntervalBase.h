@@ -102,8 +102,7 @@ public:
 
       /// Destructor
       ~DIntervalBase()
-      {
-      }
+      = default;
 
       /**
           @brief This constructor sets min_ and max_ directly.

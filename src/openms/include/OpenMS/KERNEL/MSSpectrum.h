@@ -174,7 +174,7 @@ public:
 
     /// Destructor
     ~MSSpectrum() override
-    {}
+    = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);

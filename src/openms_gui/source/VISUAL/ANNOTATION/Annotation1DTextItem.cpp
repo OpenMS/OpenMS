@@ -56,8 +56,7 @@ namespace OpenMS
   }
 
   Annotation1DTextItem::~Annotation1DTextItem()
-  {
-  }
+  = default;
 
   void Annotation1DTextItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
   {

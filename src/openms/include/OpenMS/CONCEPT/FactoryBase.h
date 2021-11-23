@@ -49,7 +49,7 @@ namespace OpenMS
   {
 public:
     /// destructor
-    virtual ~FactoryBase(){}
+    virtual ~FactoryBase()= default;
 
   };
 

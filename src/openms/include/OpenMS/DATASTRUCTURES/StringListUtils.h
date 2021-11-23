@@ -246,9 +246,9 @@ protected:
     /// @endcond INTERNAL
 
     /// hide c'tors to avoid instantiation of utils class
-    StringListUtils() {}
-    StringListUtils(const StringListUtils&){}
-    StringListUtils& operator=(StringListUtils&){return *this; }
+    StringListUtils() = default;
+    StringListUtils(const StringListUtils&)= default;
+    StringListUtils& operator=(StringListUtils&)= default;
   };
 
 } // namespace OPENMS

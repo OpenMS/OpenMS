@@ -56,8 +56,7 @@ namespace OpenMS
   }
 
   GaussFitter1D::~GaussFitter1D()
-  {
-  }
+  = default;
 
   GaussFitter1D& GaussFitter1D::operator=(const GaussFitter1D& source)
   {

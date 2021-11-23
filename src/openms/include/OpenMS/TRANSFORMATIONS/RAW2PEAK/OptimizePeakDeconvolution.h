@@ -59,8 +59,7 @@ namespace OpenMS
     {
       PenaltyFactorsIntensity() :
         PenaltyFactors(), height(0){}
-      PenaltyFactorsIntensity(const PenaltyFactorsIntensity & p) :
-        PenaltyFactors(p), height(p.height) {}
+      PenaltyFactorsIntensity(const PenaltyFactorsIntensity & p)  = default;
       inline PenaltyFactorsIntensity & operator=(const PenaltyFactorsIntensity & p)
       {
         height = p.height;
@@ -71,7 +70,7 @@ namespace OpenMS
         return *this;
       }
 
-      ~PenaltyFactorsIntensity(){}
+      ~PenaltyFactorsIntensity()= default;
 
       double height;
 
@@ -125,26 +124,18 @@ public:
     OptimizePeakDeconvolution();
 
     /// Copy-Constructor
-    OptimizePeakDeconvolution(const OptimizePeakDeconvolution & opt) :
-      DefaultParamHandler(opt),
-      penalties_(opt.penalties_),
-      charge_(opt.charge_){}
+    OptimizePeakDeconvolution(const OptimizePeakDeconvolution & opt) 
+      = default;
 
     ///Destructor
-    ~OptimizePeakDeconvolution() override{}
+    ~OptimizePeakDeconvolution() override= default;
     //@}
 
     /**	@name Assignment
      */
     //@{
     inline OptimizePeakDeconvolution & operator=(const OptimizePeakDeconvolution & opt)
-    {
-      DefaultParamHandler::operator=(opt);
-      penalties_ = opt.penalties_;
-      charge_ = opt.charge_;
-
-      return *this;
-    }
+    = default;
 
     //@}
 

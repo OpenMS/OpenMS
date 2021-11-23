@@ -230,10 +230,10 @@ public:
 private:
 
     /// Not implemented
-    FalseDiscoveryRate(const FalseDiscoveryRate&);
+    FalseDiscoveryRate(const FalseDiscoveryRate&) = delete;
 
     /// Not implemented
-    FalseDiscoveryRate& operator=(const FalseDiscoveryRate&);
+    FalseDiscoveryRate& operator=(const FalseDiscoveryRate&) = delete;
 
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;

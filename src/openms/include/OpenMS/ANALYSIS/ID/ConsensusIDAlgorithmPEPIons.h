@@ -60,10 +60,10 @@ namespace OpenMS
     Size min_shared_;
 
     /// Not implemented
-    ConsensusIDAlgorithmPEPIons(const ConsensusIDAlgorithmPEPIons&);
+    ConsensusIDAlgorithmPEPIons(const ConsensusIDAlgorithmPEPIons&) = delete;
 
     /// Not implemented
-    ConsensusIDAlgorithmPEPIons& operator=(const ConsensusIDAlgorithmPEPIons&);
+    ConsensusIDAlgorithmPEPIons& operator=(const ConsensusIDAlgorithmPEPIons&) = delete;
 
     /// Docu in base class
     void updateMembers_() override;

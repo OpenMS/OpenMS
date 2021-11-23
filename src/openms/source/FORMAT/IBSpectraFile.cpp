@@ -97,8 +97,7 @@ namespace OpenMS
   };
 
   IBSpectraFile::IBSpectraFile()
-  {
-  }
+  = default;
 
   IBSpectraFile::IBSpectraFile(const IBSpectraFile& /* other */)
   {
@@ -106,9 +105,7 @@ namespace OpenMS
   }
 
   IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */)
-  {
-    return *this;
-  }
+  = default;
 
   boost::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
   {

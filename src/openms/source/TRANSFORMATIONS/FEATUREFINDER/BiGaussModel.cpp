@@ -58,8 +58,7 @@ namespace OpenMS
   }
 
   BiGaussModel::~BiGaussModel()
-  {
-  }
+  = default;
 
   BiGaussModel & BiGaussModel::operator=(const BiGaussModel & source)
   {

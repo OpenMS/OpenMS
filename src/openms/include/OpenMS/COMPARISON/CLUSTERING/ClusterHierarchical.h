@@ -75,15 +75,13 @@ public:
     }
 
     /// copy constructor
-    ClusterHierarchical(const ClusterHierarchical & source) :
-      threshold_(source.threshold_)
-    {
-    }
+    ClusterHierarchical(const ClusterHierarchical & source) 
+      
+    = default;
 
     /// destructor
     virtual ~ClusterHierarchical()
-    {
-    }
+    = default;
 
     /**
         @brief Clustering function
@@ -213,8 +211,8 @@ public:
   {
 public:
     UnnormalizedComparator(const char * file, int line, const char * function, const char * message
-                             = "Clustering with unnormalized similarity measurement requested, normalized is mandatory") throw();
-    ~UnnormalizedComparator() throw() override;
+                             = "Clustering with unnormalized similarity measurement requested, normalized is mandatory") noexcept;
+    ~UnnormalizedComparator() noexcept override;
   };
 
 }

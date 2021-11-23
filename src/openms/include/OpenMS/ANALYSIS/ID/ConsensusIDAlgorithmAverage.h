@@ -54,10 +54,10 @@ namespace OpenMS
 
   private:
     /// Not implemented
-    ConsensusIDAlgorithmAverage(const ConsensusIDAlgorithmAverage&);
+    ConsensusIDAlgorithmAverage(const ConsensusIDAlgorithmAverage&) = delete;
 
     /// Not implemented
-    ConsensusIDAlgorithmAverage& operator=(const ConsensusIDAlgorithmAverage&);
+    ConsensusIDAlgorithmAverage& operator=(const ConsensusIDAlgorithmAverage&) = delete;
 
     /// Aggregate peptide scores into one final score (by averaging)
     double getAggregateScore_(std::vector<double>& scores,

@@ -77,8 +77,7 @@ public:
 
     /// destructor
     virtual ~ModelDescription()
-    {
-    }
+    = default;
 
     /// assignment operator
     virtual ModelDescription & operator=(const ModelDescription & source)

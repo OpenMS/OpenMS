@@ -52,7 +52,7 @@ namespace OpenMS
   {
   public:
 
-    NoopMSDataConsumer() {}
+    NoopMSDataConsumer() = default;
     void setExperimentalSettings(const ExperimentalSettings &) override {}
     void setExpectedSize(Size, Size) override {}
     void consumeSpectrum(SpectrumType &) override {}

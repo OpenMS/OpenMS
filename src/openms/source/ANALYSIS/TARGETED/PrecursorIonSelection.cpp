@@ -84,9 +84,7 @@ namespace OpenMS
   }
 
   PrecursorIonSelection::~PrecursorIonSelection()
-  {
-
-  }
+  = default;
 
   const double& PrecursorIonSelection::getMaxScore() const
   {

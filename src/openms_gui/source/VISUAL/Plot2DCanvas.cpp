@@ -122,8 +122,7 @@ namespace OpenMS
   }
 
   Plot2DCanvas::~Plot2DCanvas()
-  {
-  }
+  = default;
 
   void Plot2DCanvas::highlightPeak_(QPainter & painter, const PeakIndex & peak)
   {

@@ -38,11 +38,9 @@ namespace OpenMS
 {
 
   XMassFile::XMassFile()
-  {
-  }
+  = default;
 
   XMassFile::~XMassFile()
-  {
-  }
+  = default;
 
 } // namespace OpenMS

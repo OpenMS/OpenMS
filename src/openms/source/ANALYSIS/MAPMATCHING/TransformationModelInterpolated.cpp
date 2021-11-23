@@ -125,7 +125,7 @@ private:
   {
 public:
     LinearInterpolator()
-    {}
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -168,8 +168,7 @@ public:
     }
 
     ~LinearInterpolator() override
-    {
-    }
+    = default;
 
 private:
     /// x values

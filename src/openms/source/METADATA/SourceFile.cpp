@@ -54,8 +54,7 @@ namespace OpenMS
   }
 
   SourceFile::~SourceFile()
-  {
-  }
+  = default;
 
   bool SourceFile::operator==(const SourceFile& rhs) const
   {

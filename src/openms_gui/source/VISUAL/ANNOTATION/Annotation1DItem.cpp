@@ -55,8 +55,7 @@ namespace OpenMS
   }
 
   Annotation1DItem::~Annotation1DItem()
-  {
-  }
+  = default;
 
   void Annotation1DItem::drawBoundingBox_(QPainter & painter)
   {

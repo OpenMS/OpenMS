@@ -75,7 +75,7 @@ public:
       GenericFunctor(int dimensions, int num_data_points)
       : m_inputs(dimensions), m_values(num_data_points) {}
 
-      virtual ~GenericFunctor() {}
+      virtual ~GenericFunctor() = default;
 
       virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const = 0;
 
@@ -102,8 +102,7 @@ public:
 
     /// destructor
     ~LevMarqFitter1D() override
-    {
-    }
+    = default;
 
     /// assignment operator
     virtual LevMarqFitter1D & operator=(const LevMarqFitter1D & source)

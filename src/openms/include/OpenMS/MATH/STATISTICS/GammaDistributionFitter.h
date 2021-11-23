@@ -102,9 +102,9 @@ protected:
 
 private:
       /// Copy constructor (not implemented to prevent usage)
-      GammaDistributionFitter(const GammaDistributionFitter& rhs);
+      GammaDistributionFitter(const GammaDistributionFitter& rhs) = delete;
       /// assignment operator (not implemented to prevent usage)
-      GammaDistributionFitter& operator=(const GammaDistributionFitter& rhs);
+      GammaDistributionFitter& operator=(const GammaDistributionFitter& rhs) = delete;
     };
   }
 }

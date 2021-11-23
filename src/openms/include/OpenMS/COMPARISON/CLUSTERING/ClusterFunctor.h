@@ -65,8 +65,8 @@ public:
       public Exception::BaseException
     {
 public:
-      InsufficientInput(const char * file, int line, const char * function, const char * message = "not enough data points to cluster anything") throw();
-      ~InsufficientInput() throw() override;
+      InsufficientInput(const char * file, int line, const char * function, const char * message = "not enough data points to cluster anything") noexcept;
+      ~InsufficientInput() noexcept override;
     };
 
 

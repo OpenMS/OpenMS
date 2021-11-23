@@ -57,14 +57,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore & source) :
-    PeakSpectrumCompareFunctor(source)
-  {
-  }
+  ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore & source) 
+    
+  = default;
 
   ZhangSimilarityScore::~ZhangSimilarityScore()
-  {
-  }
+  = default;
 
   ZhangSimilarityScore & ZhangSimilarityScore::operator=(const ZhangSimilarityScore & source)
   {

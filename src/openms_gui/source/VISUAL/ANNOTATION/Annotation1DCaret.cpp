@@ -66,8 +66,7 @@ namespace OpenMS
   }
 
   Annotation1DCaret::~Annotation1DCaret()
-  {
-  }
+  = default;
 
   void Annotation1DCaret::setRichText(const QString& text)
   {

@@ -50,9 +50,7 @@ using std::ofstream;
 namespace OpenMS
 {
   StreamHandler::StreamHandler()
-  {
-
-  }
+  = default;
 
   StreamHandler::StreamHandler(const StreamHandler & source)
   {
@@ -77,12 +75,7 @@ namespace OpenMS
   }
 
   StreamHandler & StreamHandler::operator=(const StreamHandler & source)
-  {
-    name_to_stream_map_ = source.name_to_stream_map_;
-    name_to_counter_map_ = source.name_to_counter_map_;
-    name_to_type_map_ = source.name_to_type_map_;
-    return *this;
-  }
+  = default;
 
   ostream & StreamHandler::getStream(StreamType const type, const String & stream_name)
   {

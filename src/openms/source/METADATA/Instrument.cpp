@@ -49,9 +49,7 @@ namespace OpenMS
   }
 
   Instrument::~Instrument()
-  {
-
-  }
+  = default;
 
   bool Instrument::operator==(const Instrument & rhs) const
   {

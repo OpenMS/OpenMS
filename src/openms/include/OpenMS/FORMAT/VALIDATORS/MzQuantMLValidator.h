@@ -70,13 +70,13 @@ protected:
 private:
 
       /// Not implemented
-      MzQuantMLValidator();
+      MzQuantMLValidator() = delete;
 
       /// Not implemented
-      MzQuantMLValidator(const MzQuantMLValidator & rhs);
+      MzQuantMLValidator(const MzQuantMLValidator & rhs) = delete;
 
       /// Not implemented
-      MzQuantMLValidator & operator=(const MzQuantMLValidator & rhs);
+      MzQuantMLValidator & operator=(const MzQuantMLValidator & rhs) = delete;
 
     };
 

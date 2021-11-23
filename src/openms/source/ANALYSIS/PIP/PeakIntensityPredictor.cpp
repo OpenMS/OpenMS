@@ -50,8 +50,7 @@ namespace OpenMS
   }
 
   PeakIntensityPredictor::~PeakIntensityPredictor()
-  {
-  }
+  = default;
 
   double PeakIntensityPredictor::predict(const AASequence & sequence)
   {

@@ -147,7 +147,7 @@ public:
       return *this;
     }
 
-    ~Matrix() {}
+    ~Matrix() = default;
     //@}
 
     ///@name Accessors

@@ -123,7 +123,7 @@ protected:
     /// Structure for storing distance parameters
     struct DistanceParams_
     {
-      DistanceParams_() {}
+      DistanceParams_() = default;
 
       DistanceParams_(const String & what, const Param & global)
       {

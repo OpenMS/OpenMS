@@ -51,10 +51,10 @@ namespace OpenMS
 
 private:
     /// copy constructor is not implemented -> private
-    ConsensusMapNormalizerAlgorithmMedian(const ConsensusMapNormalizerAlgorithmMedian & copyin);
+    ConsensusMapNormalizerAlgorithmMedian(const ConsensusMapNormalizerAlgorithmMedian & copyin) = delete;
 
     /// assignment operator is not implemented -> private
-    ConsensusMapNormalizerAlgorithmMedian & operator=(const ConsensusMapNormalizerAlgorithmMedian & rhs);
+    ConsensusMapNormalizerAlgorithmMedian & operator=(const ConsensusMapNormalizerAlgorithmMedian & rhs) = delete;
 
 public:
     /// default constructor is not implemented -> private

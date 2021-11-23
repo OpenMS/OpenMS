@@ -55,8 +55,7 @@ namespace OpenMS
   }
 
   IonSource::~IonSource()
-  {
-  }
+  = default;
 
   bool IonSource::operator==(const IonSource & rhs) const
   {

@@ -125,20 +125,9 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricChannelExtractor& other) :
-    DefaultParamHandler(other),
-    quant_method_(other.quant_method_),
-    selected_activation_(other.selected_activation_),
-    reporter_mass_shift_(other.reporter_mass_shift_),
-    min_precursor_intensity_(other.min_precursor_intensity_),
-    keep_unannotated_precursor_(other.keep_unannotated_precursor_),
-    min_reporter_intensity_(other.min_reporter_intensity_),
-    remove_low_intensity_quantifications_(other.remove_low_intensity_quantifications_),
-    min_precursor_purity_(other.min_precursor_purity_),
-    max_precursor_isotope_deviation_(other.max_precursor_isotope_deviation_),
-    interpolate_precursor_purity_(other.interpolate_precursor_purity_)
-  {
-  }
+  IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricChannelExtractor& other) 
+    
+  = default;
 
   IsobaricChannelExtractor& IsobaricChannelExtractor::operator=(const IsobaricChannelExtractor& rhs)
   {

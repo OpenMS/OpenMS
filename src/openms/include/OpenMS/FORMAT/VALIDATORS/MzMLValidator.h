@@ -85,13 +85,13 @@ protected:
 private:
 
       /// Not implemented
-      MzMLValidator();
+      MzMLValidator() = delete;
 
       /// Not implemented
-      MzMLValidator(const MzMLValidator & rhs);
+      MzMLValidator(const MzMLValidator & rhs) = delete;
 
       /// Not implemented
-      MzMLValidator & operator=(const MzMLValidator & rhs);
+      MzMLValidator & operator=(const MzMLValidator & rhs) = delete;
 
     };
 

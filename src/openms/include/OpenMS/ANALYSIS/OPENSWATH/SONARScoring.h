@@ -62,7 +62,7 @@ public:
     SONARScoring();
 
     /// Destructor
-    ~SONARScoring() override {}
+    ~SONARScoring() override = default;
     //@}
     //
 
@@ -77,10 +77,10 @@ private:
                        double& xcorr_coelution_score, double& xcorr_shape_score) const;
 
     /// Copy constructor (algorithm class)
-    SONARScoring(const SONARScoring& rhs);
+    SONARScoring(const SONARScoring& rhs) = delete;
 
     /// Assignment operator (algorithm class)
-    SONARScoring& operator=(const SONARScoring& rhs);
+    SONARScoring& operator=(const SONARScoring& rhs) = delete;
 
     /// Synchronize members with param class
     void updateMembers_() override;

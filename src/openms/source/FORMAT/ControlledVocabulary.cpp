@@ -59,20 +59,9 @@ namespace OpenMS
   {
   }
 
-  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    parents(rhs.parents),
-    children(rhs.children),
-    obsolete(rhs.obsolete),
-    description(rhs.description),
-    synonyms(rhs.synonyms),
-    unparsed(rhs.unparsed),
-    xref_type(rhs.xref_type),
-    xref_binary(rhs.xref_binary),
-    units(rhs.units)
-  {
-  }
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) 
+    
+  = default;
 
   ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
   {
@@ -182,9 +171,7 @@ namespace OpenMS
   }
 
   ControlledVocabulary::~ControlledVocabulary()
-  {
-
-  }
+  = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {

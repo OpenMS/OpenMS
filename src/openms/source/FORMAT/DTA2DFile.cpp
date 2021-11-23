@@ -40,12 +40,10 @@ namespace OpenMS
 {
 
   DTA2DFile::DTA2DFile()
-  {
-  }
+  = default;
 
   DTA2DFile::~DTA2DFile()
-  {
-  }
+  = default;
 
   PeakFileOptions & DTA2DFile::getOptions()
   {

@@ -39,12 +39,10 @@ namespace OpenSwath
 {
 
   MockFeature::MockFeature()
-  {
-  }
+  = default;
 
   MockFeature::~MockFeature()
-  {
-  }
+  = default;
 
   void MockFeature::getRT(std::vector<double>& rt) const
   {
@@ -67,12 +65,10 @@ namespace OpenSwath
   }
 
   MockMRMFeature::MockMRMFeature()
-  {
-  }
+  = default;
 
   MockMRMFeature::~MockMRMFeature()
-  {
-  }
+  = default;
 
   boost::shared_ptr<OpenSwath::IFeature> MockMRMFeature::getFeature(std::string nativeID)
   {
@@ -122,12 +118,10 @@ namespace OpenSwath
   }
 
   MockTransitionGroup::MockTransitionGroup()
-  {
-  }
+  = default;
 
   MockTransitionGroup::~MockTransitionGroup()
-  {
-  }
+  = default;
 
   std::size_t MockTransitionGroup::size() const
   {
@@ -145,8 +139,7 @@ namespace OpenSwath
   }
 
   MockSignalToNoise::MockSignalToNoise()
-  {
-  }
+  = default;
 
   double MockSignalToNoise::getValueAtRT(double /* RT */)
   {

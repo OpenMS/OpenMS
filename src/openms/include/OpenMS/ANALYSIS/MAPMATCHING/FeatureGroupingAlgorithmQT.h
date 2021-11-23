@@ -93,10 +93,10 @@ public:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT&);
+    FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT&) = delete;
 
     /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmQT& operator=(const FeatureGroupingAlgorithmQT&);
+    FeatureGroupingAlgorithmQT& operator=(const FeatureGroupingAlgorithmQT&) = delete;
 
     /**
         @brief Applies the algorithm to feature or consensus maps

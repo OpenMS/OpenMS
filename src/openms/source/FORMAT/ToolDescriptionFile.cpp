@@ -45,8 +45,7 @@ namespace OpenMS
   }
 
   ToolDescriptionFile::~ToolDescriptionFile()
-  {
-  }
+  = default;
 
   void ToolDescriptionFile::load(const String & filename, std::vector<Internal::ToolDescription> & tds)
   {

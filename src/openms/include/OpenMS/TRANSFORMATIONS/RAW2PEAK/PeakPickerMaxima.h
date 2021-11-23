@@ -73,7 +73,7 @@ public:
         unsigned missing = 2);
 
     /// Destructor
-    virtual ~PeakPickerMaxima() {}
+    virtual ~PeakPickerMaxima() = default;
 
     /**
       @brief The PeakCandidate describes the output of the peak picker

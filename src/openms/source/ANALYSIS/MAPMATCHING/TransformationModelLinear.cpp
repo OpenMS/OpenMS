@@ -95,8 +95,7 @@ namespace OpenMS
   }
 
   TransformationModelLinear::~TransformationModelLinear()
-  {
-  }
+  = default;
 
   double TransformationModelLinear::evaluate(double value) const
   {

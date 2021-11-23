@@ -157,7 +157,7 @@ public:
       Peak2D (unless you know what you are doing, of course).
     */
     ~Peak2D()
-    {}
+    = default;
     ///@}
 
     ///@name Accessors

@@ -56,15 +56,13 @@ public:
     }
 
     /// copy constructor
-    MaxLikeliFitter1D(const MaxLikeliFitter1D & source) :
-      Fitter1D(source)
-    {
-    }
+    MaxLikeliFitter1D(const MaxLikeliFitter1D & source) 
+      
+    = default;
 
     /// destructor
     ~MaxLikeliFitter1D() override
-    {
-    }
+    = default;
 
     /// assignment operator
     virtual MaxLikeliFitter1D & operator=(const MaxLikeliFitter1D & source)

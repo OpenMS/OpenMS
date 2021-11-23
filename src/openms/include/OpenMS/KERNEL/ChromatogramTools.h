@@ -58,15 +58,15 @@ public:
     //@{
     /// default constructor
     ChromatogramTools()
-    {}
+    = default;
 
     /// copy constructor
     ChromatogramTools(const ChromatogramTools & /*rhs*/)
-    {}
+    = default;
 
     /// destructor
     virtual ~ChromatogramTools()
-    {}
+    = default;
 
     //@}
 

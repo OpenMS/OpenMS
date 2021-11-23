@@ -73,7 +73,7 @@ public:
     /// Representation of a peak/feature filter combining FilterType, FilterOperation and a value (either double or String)
     struct OPENMS_DLLAPI DataFilter
     {
-      DataFilter(){};
+      DataFilter()= default;;
       /// ctor for common case of numerical filter
       DataFilter(const FilterType type, const FilterOperation op, const double val, const String& meta_name = "")
         : field(type), op(op), value(val), value_string(), meta_name(meta_name), value_is_numerical(true)

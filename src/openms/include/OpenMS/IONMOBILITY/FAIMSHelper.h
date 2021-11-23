@@ -50,7 +50,7 @@ namespace OpenMS
     class OPENMS_DLLAPI FAIMSHelper
     {
     public:
-      virtual ~FAIMSHelper() {}
+      virtual ~FAIMSHelper() = default;
 
       /**
         @brief Get all FAIMS compensation voltages that occur in a PeakMap

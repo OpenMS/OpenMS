@@ -51,8 +51,7 @@ namespace OpenMS::Internal
     }
 
     MzDataValidator::~MzDataValidator()
-    {
-    }
+    = default;
 
     void MzDataValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
     {

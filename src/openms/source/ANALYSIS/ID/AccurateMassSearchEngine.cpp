@@ -286,29 +286,12 @@ namespace OpenMS
 
   /// default destructor
   AccurateMassSearchResult::~AccurateMassSearchResult()
-  {
-  }
+  = default;
 
   /// copy constructor
-  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
-    observed_mz_(source.observed_mz_),
-    theoretical_mz_(source.theoretical_mz_),
-    searched_mass_(source.searched_mass_),
-    db_mass_(source.db_mass_),
-    charge_(source.charge_),
-    mz_error_ppm_(source.mz_error_ppm_),
-    observed_rt_(source.observed_rt_),
-    observed_intensity_(source.observed_intensity_),
-    individual_intensities_(source.individual_intensities_),
-    matching_index_(source.matching_index_),
-    source_feature_index_(source.source_feature_index_),
-    found_adduct_(source.found_adduct_),
-    empirical_formula_(source.empirical_formula_),
-    matching_hmdb_ids_(source.matching_hmdb_ids_),
-    mass_trace_intensities_(source.mass_trace_intensities_),
-    isotopes_sim_score_(source.isotopes_sim_score_)
-  {
-  }
+  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) 
+    
+  = default;
 
   /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
@@ -564,8 +547,7 @@ namespace OpenMS
   }
 
   AccurateMassSearchEngine::~AccurateMassSearchEngine()
-  {
-  }
+  = default;
 
 /// public methods
 

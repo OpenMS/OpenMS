@@ -54,14 +54,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakAlignment::PeakAlignment(const PeakAlignment& source) :
-    PeakSpectrumCompareFunctor(source)
-  {
-  }
+  PeakAlignment::PeakAlignment(const PeakAlignment& source) 
+    
+  = default;
 
   PeakAlignment::~PeakAlignment()
-  {
-  }
+  = default;
 
   PeakAlignment& PeakAlignment::operator=(const PeakAlignment& source)
   {

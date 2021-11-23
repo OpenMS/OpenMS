@@ -66,8 +66,7 @@ namespace OpenMS
   }
 
   Ribonucleotide::~Ribonucleotide()
-  {
-  }
+  = default;
 
   bool Ribonucleotide::operator==(const Ribonucleotide& ribonucleotide) const
   {

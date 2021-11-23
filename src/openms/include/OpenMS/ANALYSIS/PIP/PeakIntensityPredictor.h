@@ -141,9 +141,9 @@ private:
     LocalLinearMap llm_;
 
     /// copy constructor not implemented => private
-    PeakIntensityPredictor(const PeakIntensityPredictor & llmModel);
+    PeakIntensityPredictor(const PeakIntensityPredictor & llmModel) = delete;
     /// assignment operator not implemented => private
-    PeakIntensityPredictor & operator=(const PeakIntensityPredictor & peakIntensityPredictor);
+    PeakIntensityPredictor & operator=(const PeakIntensityPredictor & peakIntensityPredictor) = delete;
 
   };
 

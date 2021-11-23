@@ -95,8 +95,7 @@ public:
     struct AnalysisSummary
     {
       AnalysisSummary()
-      {
-      }
+      = default;
 
       AnalysisSummary(const AnalysisSummary & rhs) :
         cv_params_(rhs.cv_params_)
@@ -106,8 +105,7 @@ public:
       }
 
       virtual ~AnalysisSummary()
-      {
-      }
+      = default;
 
       AnalysisSummary & operator=(const AnalysisSummary & rhs)
       {
@@ -129,8 +127,7 @@ public:
     {
       //TODO feature_maps_ also in Assay?! srsly?!
       Assay()
-      {
-      }
+      = default;
 
       Assay(const Assay & rhs)
       {
@@ -141,8 +138,7 @@ public:
       }
 
       virtual ~Assay()
-      {
-      }
+      = default;
 
       Assay & operator=(const Assay & rhs)
       {

@@ -50,8 +50,7 @@ namespace OpenMS
   }
 
   MzIdentMLFile::~MzIdentMLFile()
-  {
-  }
+  = default;
 
   void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
   {

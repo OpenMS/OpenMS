@@ -163,10 +163,10 @@ public:
     };
 
     /// default constructor
-    MSNumpressCoder() {}
+    MSNumpressCoder() = default;
 
     /// Destructor
-    virtual ~MSNumpressCoder() {}
+    virtual ~MSNumpressCoder() = default;
 
     /**
      * @brief Encodes a vector of floating point numbers into a Base64 string using numpress

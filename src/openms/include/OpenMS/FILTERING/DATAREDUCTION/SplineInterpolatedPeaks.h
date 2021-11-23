@@ -190,7 +190,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
   private:
 
     /// hide default C'tor
-    SplineInterpolatedPeaks();
+    SplineInterpolatedPeaks() = delete;
     
     /**
      * @brief m/z (or RT) limits of the spectrum

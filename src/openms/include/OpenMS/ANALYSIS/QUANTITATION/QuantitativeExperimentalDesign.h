@@ -73,10 +73,10 @@ public:
 
 private:
     ///Not implemented
-    QuantitativeExperimentalDesign(const QuantitativeExperimentalDesign &);
+    QuantitativeExperimentalDesign(const QuantitativeExperimentalDesign &) = delete;
 
     ///Not implemented
-    QuantitativeExperimentalDesign & operator=(const QuantitativeExperimentalDesign &);
+    QuantitativeExperimentalDesign & operator=(const QuantitativeExperimentalDesign &) = delete;
 
     void mergeConsensusMaps_(ConsensusMap & map, const String & experiment, StringList & file_paths);
 

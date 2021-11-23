@@ -48,8 +48,7 @@ namespace OpenMS
 
 
   PercolatorOutfile::PercolatorOutfile()
-  {
-  }
+  = default;
 
 
   enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(

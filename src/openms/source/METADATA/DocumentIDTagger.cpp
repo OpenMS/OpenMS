@@ -62,8 +62,7 @@ namespace OpenMS
   }
 
   DocumentIDTagger::~DocumentIDTagger()
-  {
-  }
+  = default;
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
   {

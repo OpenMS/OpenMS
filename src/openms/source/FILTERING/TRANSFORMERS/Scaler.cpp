@@ -43,13 +43,11 @@ namespace OpenMS
   }
 
   Scaler::~Scaler()
-  {
-  }
+  = default;
 
-  Scaler::Scaler(const Scaler & source) :
-    DefaultParamHandler(source)
-  {
-  }
+  Scaler::Scaler(const Scaler & source) 
+    
+  = default;
 
   Scaler & Scaler::operator=(const Scaler & source)
   {

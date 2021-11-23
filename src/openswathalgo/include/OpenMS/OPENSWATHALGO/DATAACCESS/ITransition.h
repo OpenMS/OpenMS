@@ -46,7 +46,7 @@ namespace OpenSwath
   class OPENSWATHALGO_DLLAPI IFeature
   {
 public:
-    virtual ~IFeature(){}
+    virtual ~IFeature()= default;
     virtual void getRT(std::vector<double>& rt) const = 0;
     virtual void getIntensity(std::vector<double>& intens) const = 0;
     virtual float getIntensity() const = 0;
@@ -56,7 +56,7 @@ public:
   class OPENSWATHALGO_DLLAPI IMRMFeature
   {
 public:
-    virtual ~IMRMFeature(){}
+    virtual ~IMRMFeature()= default;
     virtual boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) = 0;
     virtual boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
     virtual std::vector<std::string> getNativeIDs() const = 0;
@@ -68,7 +68,7 @@ public:
 
   struct OPENSWATHALGO_DLLAPI ITransitionGroup
   {
-    virtual ~ITransitionGroup() {}
+    virtual ~ITransitionGroup() = default;
     virtual std::size_t size() const = 0;
     virtual std::vector<std::string> getNativeIDs() const = 0;
     virtual void getLibraryIntensities(std::vector<double>& intensities) const = 0;
@@ -76,7 +76,7 @@ public:
 
   struct OPENSWATHALGO_DLLAPI ISignalToNoise
   {
-    virtual ~ISignalToNoise() {}
+    virtual ~ISignalToNoise() = default;
     virtual double getValueAtRT(double RT) = 0; // cannot be const due to OpenMS implementation
   };
   typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;

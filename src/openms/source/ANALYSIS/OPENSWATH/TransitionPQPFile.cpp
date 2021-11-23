@@ -55,8 +55,7 @@ namespace OpenMS
   }
 
   TransitionPQPFile::~TransitionPQPFile()
-  {
-  }
+  = default;
 
   static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
   {

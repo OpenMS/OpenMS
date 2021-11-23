@@ -48,8 +48,7 @@ namespace OpenMS
   }
 
   GaussFilterAlgorithm::~GaussFilterAlgorithm()
-  {
-  }
+  = default;
 
   void GaussFilterAlgorithm::initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance)
   {

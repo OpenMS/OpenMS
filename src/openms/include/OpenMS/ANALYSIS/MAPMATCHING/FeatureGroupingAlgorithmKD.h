@@ -77,27 +77,17 @@ public:
   }
 
   /// Copy constructor
-  ClusterProxyKD(const ClusterProxyKD& rhs) :
-    size_(rhs.size_),
-    avg_distance_(rhs.avg_distance_),
-    center_index_(rhs.center_index_)
-  {
-  }
+  ClusterProxyKD(const ClusterProxyKD& rhs) 
+    
+  = default;
 
   /// Destructor (non-virtual to save memory)
   ~ClusterProxyKD()
-  {
-  }
+  = default;
 
   /// Assignment operator
   ClusterProxyKD& operator=(const ClusterProxyKD& rhs)
-  {
-    size_ = rhs.size_;
-    avg_distance_ = rhs.avg_distance_;
-    center_index_ = rhs.center_index_;
-
-    return *this;
-  }
+  = default;
 
   /// Less-than operator for sorting / equality check in std::set. We use the ordering in std::set as a "priority queue", hence a < b means cluster a will be preferred over b.
   bool operator<(const ClusterProxyKD& rhs) const
@@ -218,10 +208,10 @@ public:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmKD(const FeatureGroupingAlgorithmKD&);
+    FeatureGroupingAlgorithmKD(const FeatureGroupingAlgorithmKD&) = delete;
 
     /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmKD& operator=(const FeatureGroupingAlgorithmKD&);
+    FeatureGroupingAlgorithmKD& operator=(const FeatureGroupingAlgorithmKD&) = delete;
 
     /**
         @brief Applies the algorithm to feature or consensus maps

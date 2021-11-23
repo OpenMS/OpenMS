@@ -84,8 +84,7 @@ public:
     //@{
     /// Default constructor
     MRMTransitionGroup()
-    {
-    }
+    = default;
 
     /// Copy Constructor
     MRMTransitionGroup(const MRMTransitionGroup & rhs) :
@@ -102,8 +101,7 @@ public:
 
     /// Destructor
     virtual ~MRMTransitionGroup()
-    {
-    }
+    = default;
     //@}
 
     MRMTransitionGroup & operator=(const MRMTransitionGroup & rhs)

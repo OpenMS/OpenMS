@@ -55,15 +55,9 @@ namespace OpenMS
     pos_col_[100] = Qt::black;
   }
 
-  MultiGradient::MultiGradient(const MultiGradient & multigradient) :
-    pos_col_(multigradient.pos_col_),
-    interpolation_mode_(multigradient.interpolation_mode_),
-    pre_(multigradient.pre_),
-    pre_min_(multigradient.pre_min_),
-    pre_size_(multigradient.pre_size_),
-    pre_steps_(multigradient.pre_steps_)
-  {
-  }
+  MultiGradient::MultiGradient(const MultiGradient & multigradient) 
+    
+  = default;
 
   MultiGradient & MultiGradient::operator=(const MultiGradient & rhs)
   {
@@ -81,9 +75,7 @@ namespace OpenMS
   }
 
   MultiGradient::~MultiGradient()
-  {
-
-  }
+  = default;
 
   Size MultiGradient::size() const
   {

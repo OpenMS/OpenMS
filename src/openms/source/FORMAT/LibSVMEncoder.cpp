@@ -44,14 +44,10 @@ using namespace std;
 namespace OpenMS
 {
   LibSVMEncoder::LibSVMEncoder()
-  {
-
-  }
+  = default;
 
   LibSVMEncoder::~LibSVMEncoder()
-  {
-
-  }
+  = default;
 
   void LibSVMEncoder::encodeCompositionVector(const String& sequence,
                                               vector<pair<Int, double> >& composition_vector,

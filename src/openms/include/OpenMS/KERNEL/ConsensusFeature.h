@@ -118,8 +118,7 @@ public:
     struct Ratio
     {
       Ratio()
-      {
-      }
+      = default;
 
       Ratio(const Ratio& rhs)
       {
@@ -130,8 +129,7 @@ public:
       }
 
       virtual ~Ratio()
-      {
-      }
+      = default;
 
       Ratio& operator=(const Ratio& rhs)
       {

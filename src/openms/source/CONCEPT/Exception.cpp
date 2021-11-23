@@ -86,18 +86,12 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
-    BaseException::BaseException(const BaseException& exception) noexcept :
-      std::runtime_error(exception),
-      file_(exception.file_),
-      line_(exception.line_),
-      function_(exception.function_),
-      name_(exception.name_)
-    {
-    }
+    BaseException::BaseException(const BaseException& exception) noexcept 
+      
+    = default;
 
     BaseException::~BaseException() noexcept
-    {
-    }
+    = default;
 
     const char* BaseException::getName() const noexcept
     {

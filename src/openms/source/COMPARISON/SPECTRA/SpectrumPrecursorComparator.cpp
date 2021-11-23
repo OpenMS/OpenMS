@@ -49,14 +49,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumPrecursorComparator::SpectrumPrecursorComparator(const SpectrumPrecursorComparator & source) :
-    PeakSpectrumCompareFunctor(source)
-  {
-  }
+  SpectrumPrecursorComparator::SpectrumPrecursorComparator(const SpectrumPrecursorComparator & source) 
+    
+  = default;
 
   SpectrumPrecursorComparator::~SpectrumPrecursorComparator()
-  {
-  }
+  = default;
 
   SpectrumPrecursorComparator & SpectrumPrecursorComparator::operator=(const SpectrumPrecursorComparator & source)
   {

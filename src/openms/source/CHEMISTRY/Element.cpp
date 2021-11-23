@@ -50,15 +50,9 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const Element & e) :
-    name_(e.name_),
-    symbol_(e.symbol_),
-    atomic_number_(e.atomic_number_),
-    average_weight_(e.average_weight_),
-    mono_weight_(e.mono_weight_),
-    isotopes_(e.isotopes_)
-  {
-  }
+  Element::Element(const Element & e) 
+    
+  = default;
 
   Element::Element(const string & name,
                    const string & symbol,
@@ -76,8 +70,7 @@ namespace OpenMS
   }
 
   Element::~Element()
-  {
-  }
+  = default;
 
   void Element::setAtomicNumber(unsigned int atomic_number)
   {
@@ -140,15 +133,7 @@ namespace OpenMS
   }
 
   Element & Element::operator=(const Element & element)
-  {
-    name_ = element.name_;
-    symbol_ = element.symbol_;
-    atomic_number_ = element.atomic_number_;
-    average_weight_ = element.average_weight_;
-    mono_weight_ = element.mono_weight_;
-    isotopes_ = element.isotopes_;
-    return *this;
-  }
+  = default;
 
   bool Element::operator==(const Element & element) const
   {

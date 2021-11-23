@@ -104,12 +104,9 @@ public:
       }
 
       //Copy constructor
-      IonType(const IonType & rhs) :
-        residue(rhs.residue),
-        loss(rhs.loss),
-        charge(rhs.charge)
-      {
-      }
+      IonType(const IonType & rhs) 
+        
+      = default;
 
       //Assignment operator
       IonType & operator=(const IonType & rhs)

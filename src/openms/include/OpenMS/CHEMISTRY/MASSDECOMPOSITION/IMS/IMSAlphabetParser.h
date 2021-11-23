@@ -92,7 +92,7 @@ public:
       virtual void parse(InputSource & is) = 0;
 
       /// Destructor
-      virtual ~IMSAlphabetParser() {}
+      virtual ~IMSAlphabetParser() = default;
     };
 
     template <typename AlphabetElementType, typename Container, typename InputSource>

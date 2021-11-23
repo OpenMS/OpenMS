@@ -61,10 +61,10 @@ private:
     typedef Map::const_iterator MapIterator;
 
     /// destructor
-    virtual ~SingletonRegistry(){}
+    virtual ~SingletonRegistry()= default;
 
     /// C'Tor
-    SingletonRegistry(){}
+    SingletonRegistry()= default;
 
     /// singleton access to SingletonRegistry
     static SingletonRegistry * instance_()

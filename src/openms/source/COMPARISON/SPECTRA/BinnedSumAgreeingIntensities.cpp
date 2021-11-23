@@ -54,8 +54,7 @@ namespace OpenMS
   }
 
   BinnedSumAgreeingIntensities::~BinnedSumAgreeingIntensities()
-  {
-  }
+  = default;
 
   BinnedSumAgreeingIntensities& BinnedSumAgreeingIntensities::operator=(const BinnedSumAgreeingIntensities& source)
   {

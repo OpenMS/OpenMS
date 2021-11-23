@@ -56,14 +56,12 @@ class ST_Test: public SampleTreatment
     {
     }
 
-    ST_Test(const ST_Test& source):
-    SampleTreatment(source)
-    {
-    }
+    ST_Test(const ST_Test& source)
+    
+    = default;
 
     ~ST_Test() override
-    {
-    }
+    = default;
 
     ST_Test& operator = (const ST_Test& source)
     {

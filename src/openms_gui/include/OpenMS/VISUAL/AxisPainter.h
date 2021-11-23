@@ -74,7 +74,7 @@ public:
                       const bool is_log, const bool is_inverse_orientation);
 private:
     /// Constructor: only static methods
-    AxisPainter();
+    AxisPainter() = delete;
 
     /// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
     static void getShortenedNumber_(QString & short_num, double number);

@@ -131,9 +131,9 @@ private:
     std::vector<ConsensusMap> pairfinder_input_;
 
     /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmUnlabeled(const FeatureGroupingAlgorithmUnlabeled &);
+    FeatureGroupingAlgorithmUnlabeled(const FeatureGroupingAlgorithmUnlabeled &) = delete;
     /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmUnlabeled & operator=(const FeatureGroupingAlgorithmUnlabeled &);
+    FeatureGroupingAlgorithmUnlabeled & operator=(const FeatureGroupingAlgorithmUnlabeled &) = delete;
 
   };
 

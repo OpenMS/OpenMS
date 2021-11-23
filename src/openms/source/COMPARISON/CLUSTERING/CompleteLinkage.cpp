@@ -60,8 +60,7 @@ namespace OpenMS
   }
 
   CompleteLinkage::~CompleteLinkage()
-  {
-  }
+  = default;
 
   CompleteLinkage & CompleteLinkage::operator=(const CompleteLinkage & source)
   {

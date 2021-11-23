@@ -43,7 +43,7 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  PeakIntegrator::~PeakIntegrator() {}
+  PeakIntegrator::~PeakIntegrator() = default;
 
   PeakIntegrator::PeakArea PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double left, const double right) const
   {

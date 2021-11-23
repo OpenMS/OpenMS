@@ -76,8 +76,7 @@ namespace OpenMS
   }
 
   Feature::~Feature()
-  {
-  }
+  = default;
 
   Feature::QualityType Feature::getOverallQuality() const
   {

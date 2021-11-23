@@ -51,8 +51,7 @@ namespace OpenMS
   }
 
   FeatureGroupingAlgorithmLabeled::~FeatureGroupingAlgorithmLabeled()
-  {
-  }
+  = default;
 
   void FeatureGroupingAlgorithmLabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {

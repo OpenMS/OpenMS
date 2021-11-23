@@ -91,7 +91,7 @@ namespace OpenMS
     typedef std::vector<DataPoint> DataPoints;
 
     /// Constructor
-    TransformationModel() {}
+    TransformationModel() = default;
 
     /// Alternative constructor (derived classes should implement this one!)
     /// Both data and params must be provided, since some derived classes require both to create a model!
@@ -174,9 +174,9 @@ namespace OpenMS
 
   private:
     /// do not allow copy
-    TransformationModel(const TransformationModel&);
+    TransformationModel(const TransformationModel&) = delete;
     /// do not allow assignment
-    const TransformationModel& operator=(const TransformationModel&);
+    const TransformationModel& operator=(const TransformationModel&) = delete;
 
   };
 

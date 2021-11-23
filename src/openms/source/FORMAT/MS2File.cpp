@@ -45,8 +45,6 @@ namespace OpenMS
   }
 
   MS2File::~MS2File()
-  {
-
-  }
+  = default;
 
 } // namespace OpenMS

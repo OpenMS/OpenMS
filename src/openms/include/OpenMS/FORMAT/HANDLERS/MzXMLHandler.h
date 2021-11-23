@@ -76,7 +76,7 @@ public:
       MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      ~MzXMLHandler() override {}
+      ~MzXMLHandler() override = default;
       //@}
 
       /// handler which support partial loading, implement this method
@@ -200,7 +200,7 @@ protected:
 
 private:
       /// Not implemented
-      MzXMLHandler();
+      MzXMLHandler() = delete;
       
       /// initialize members (call from C'tor)
       void init_();

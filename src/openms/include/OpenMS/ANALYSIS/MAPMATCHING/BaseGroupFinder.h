@@ -91,10 +91,10 @@ protected:
 private:
 
     /// Copy constructor intentionally not implemented
-    BaseGroupFinder(const BaseGroupFinder &);
+    BaseGroupFinder(const BaseGroupFinder &) = delete;
 
     /// Assignment operator intentionally not implemented
-    BaseGroupFinder & operator=(const BaseGroupFinder &);
+    BaseGroupFinder & operator=(const BaseGroupFinder &) = delete;
 
   };
 

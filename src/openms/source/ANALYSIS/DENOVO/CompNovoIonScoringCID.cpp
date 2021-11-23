@@ -51,10 +51,9 @@ namespace OpenMS
     updateMembers_();
   }
 
-  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) :
-    CompNovoIonScoringBase(rhs)
-  {
-  }
+  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) 
+    
+  = default;
 
   CompNovoIonScoringCID & CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID & rhs)
   {
@@ -66,8 +65,7 @@ namespace OpenMS
   }
 
   CompNovoIonScoringCID::~CompNovoIonScoringCID()
-  {
-  }
+  = default;
 
   void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
   {

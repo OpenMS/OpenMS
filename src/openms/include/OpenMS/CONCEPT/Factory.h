@@ -71,12 +71,11 @@ private:
     typedef Factory<FactoryProduct> FactoryType;
 
     /// Destructor
-    ~Factory() override{}
+    ~Factory() override= default;
 
     /// Constructor
     Factory()
-    {
-    }
+    = default;
 
     /// singleton access to Factory
     static Factory * instance_()

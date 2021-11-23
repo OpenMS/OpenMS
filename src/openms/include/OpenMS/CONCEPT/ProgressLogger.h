@@ -83,7 +83,7 @@ public:
       virtual SignedSize nextProgress() const = 0; //< does not print/show anything; returns current progress
       virtual void endProgress(const int current_recursion_depth) const = 0;
 
-      virtual ~ProgressLoggerImpl() {}
+      virtual ~ProgressLoggerImpl() = default;
 
       /// Factory requirements
       static void registerChildren();

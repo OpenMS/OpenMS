@@ -67,9 +67,9 @@ public:
 
 private:
     /// Copy constructor is not implemented -> private
-    MapAlignmentAlgorithmSpectrumAlignment(const MapAlignmentAlgorithmSpectrumAlignment&);
+    MapAlignmentAlgorithmSpectrumAlignment(const MapAlignmentAlgorithmSpectrumAlignment&) = delete;
     /// Assignment operator is not implemented -> private
-    MapAlignmentAlgorithmSpectrumAlignment & operator=(const MapAlignmentAlgorithmSpectrumAlignment &);
+    MapAlignmentAlgorithmSpectrumAlignment & operator=(const MapAlignmentAlgorithmSpectrumAlignment &) = delete;
 
     /**
       @brief inner class necessary for using the sort algorithm.
