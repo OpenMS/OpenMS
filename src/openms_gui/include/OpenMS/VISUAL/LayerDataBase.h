@@ -45,6 +45,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
@@ -169,7 +170,9 @@ namespace OpenMS
     //@}
 
     /// Default constructor
-    LayerDataBase() = default;
+    LayerDataBase() = delete;
+    /// Ctor for child classes
+    LayerDataBase(const DataType type) : type(type) {};
     /// no Copy-ctor (should not be needed)
     LayerDataBase(const LayerDataBase& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -178,6 +181,9 @@ namespace OpenMS
     LayerDataBase(LayerDataBase&& ld) noexcept = default;
     /// move assignment
     LayerDataBase& operator=(LayerDataBase&& ld) noexcept = default;
+    /// Dtor
+    virtual ~LayerDataBase() = default;
+
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType& getFeatureMap() const
