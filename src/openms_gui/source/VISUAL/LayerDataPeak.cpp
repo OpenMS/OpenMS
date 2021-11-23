@@ -32,16 +32,17 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  
-  namespace { // internal linkage -- just to test instanciability
-    LayerDataChrom l_data;
-  }
-  
 
-} // namespace OpenMS
+  namespace
+  {// internal linkage -- just to test instanciability
+    LayerDataPeak l_data;
+  }
+
+
+}// namespace OpenMS
