@@ -2121,10 +2121,17 @@ def testFeatureXMLFile():
     f.setMetaValue(b'mv1', 1)
     f.setMetaValue(b'mv2', 2)
 
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
     fm.push_back(f)
     fm.push_back(f)
 
-    assert fm.get_df(meta_values='all').shape == (2, 12)
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
