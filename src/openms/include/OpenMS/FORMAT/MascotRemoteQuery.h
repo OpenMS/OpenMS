@@ -68,7 +68,7 @@ public:
     OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
 
     /// destructor
-    OPENMS_DLLAPI ~MascotRemoteQuery() override override;
+    OPENMS_DLLAPI ~MascotRemoteQuery() override ;
     //@}
 
     /// sets the query spectra, given in MGF file format
@@ -93,7 +93,7 @@ public:
     OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 protected:
 
-    OPENMS_DLLAPI void updateMembers_() override override;
+    OPENMS_DLLAPI void updateMembers_() override ;
 
 public slots:
 

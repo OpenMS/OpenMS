@@ -2053,7 +2053,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     if (!xslt_ref.empty())
     {
-        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+        os << R"(<?xml-stylesheet type="text/xml" href="#)" << xslt_ref << "\"?>\n";
         os << "<!DOCTYPE catelog [\n"
            << "  <!ATTLIST xsl:stylesheet\n"
            << "  id  ID  #REQUIRED>\n"

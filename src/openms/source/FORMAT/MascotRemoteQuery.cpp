@@ -559,7 +559,7 @@ namespace OpenMS
       // <A HREF="../cgi/master_results.pl?file=../data/20100728/F018032.dat">Click here to see Search Report</A>
       QString response(new_bytes);
 
-      QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
+      QRegExp rx(R"(file=(.+/\d+/\w+\.dat))");
       rx.setMinimal(true);
       rx.indexIn(response);
       dat_file_path_ = rx.cap(1);

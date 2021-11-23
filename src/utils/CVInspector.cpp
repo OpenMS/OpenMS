@@ -326,7 +326,7 @@ protected:
           // check whether we need the whole tree, or just the term itself
           if (tit->getAllowChildren())
           {
-            file.addLine(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
+            file.addLine(String("        <div id=\"div") + term_count + R"(" style="display: none">)");
             if (cv.exists(tit->getAccession()))
             {
               writeTermTree_(tit->getAccession(), cv, file, 1);

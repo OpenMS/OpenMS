@@ -438,7 +438,7 @@ namespace OpenMS
                 box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
               }
-              box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
+              box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
               widget_1D->canvas()->setTextBox(box_text.toQString());
             }
             else if (ph.getPeakAnnotations().empty()) // only write the sequence

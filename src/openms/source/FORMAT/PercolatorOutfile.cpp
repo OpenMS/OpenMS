@@ -78,7 +78,7 @@ namespace OpenMS
 
   void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
   {
-    boost::regex re("^[A-Z]\\[(?<MOD1>-?\\d+(\\.\\d+)?)\\](\\[(?<MOD2>-?\\d+(\\.\\d+)?)\\])?");
+    boost::regex re(R"(^[A-Z]\[(?<MOD1>-?\d+(\.\d+)?)\](\[(?<MOD2>-?\d+(\.\d+)?)\])?)");
     boost::smatch match;
     bool found = boost::regex_search(peptide, match, re);
     if (found && match["MOD1"].matched)
@@ -179,7 +179,7 @@ namespace OpenMS
                << "'" << endl;
       peptide.substitute(unknown_mod, "");
     }
-    boost::regex re("\\[UNIMOD:(\\d+)\\]");
+    boost::regex re(R"(\[UNIMOD:(\d+)\])");
     std::string replacement = "(UniMod:$1)";
     peptide = boost::regex_replace(peptide, re, replacement);
     // search results from X! Tandem:
@@ -209,12 +209,12 @@ namespace OpenMS
     if (lookup.reference_formats.empty())
     {
       // MS-GF+ Percolator (mzid?) format:
-      lookup.addReferenceFormat("_SII_(?<INDEX1>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+");
+      lookup.addReferenceFormat(R"(_SII_(?<INDEX1>\d+)_\d+_\d+_(?<CHARGE>\d+)_\d+)");
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
-      lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      lookup.addReferenceFormat(R"(spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\d+)[^;]+;rt:(?<RT>\d*(\.\d+)?);mz:(?<MZ>\d+(\.\d+)?);charge:(?<CHARGE>-?\d+))");
       // X! Tandem Percolator format:
-      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+$");
+      lookup.addReferenceFormat(R"(_(?<INDEX0>\d+)_(?<CHARGE>\d+)_\d+$)");
     }
 
     vector<String> items;

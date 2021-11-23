@@ -525,7 +525,7 @@ namespace OpenMS
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
         search_params.removeMetaValue("MS:1001029");
         writeMetaInfos_(sip, search_params, 3);
-        sip += String(3, '\t') + "<userParam name=\"charges\" unitName=\"xsd:string\" value=\"" + search_params.charges + "\"/>\n";
+        sip += String(3, '\t') + R"(<userParam name="charges" unitName="xsd:string" value=")" + search_params.charges + "\"/>\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
@@ -550,22 +550,22 @@ namespace OpenMS
         writeEnzyme_(sip, search_params.digestion_enzyme, search_params.missed_cleavages, 2);
         // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
-        String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        String unit_str = R"(unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221")";
         if (search_params.fragment_mass_tolerance_ppm)
         {
-          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+          unit_str = R"(unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169")";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + R"(<cvParam accession="MS:1001412" name="search tolerance plus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + R"(<cvParam accession="MS:1001413" name="search tolerance minus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
         sip += String("\t\t</FragmentTolerance>\n");
         sip += String("\t\t<ParentTolerance>\n");
-        unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        unit_str = R"(unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221")";
         if (search_params.precursor_mass_tolerance_ppm)
         {
-          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+          unit_str = R"(unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169")";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + R"(<cvParam accession="MS:1001412" name="search tolerance plus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + R"(<cvParam accession="MS:1001413" name="search tolerance minus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
@@ -886,7 +886,7 @@ namespace OpenMS
       std::map<String, String>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
       {
-        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"" << String("SOF_") << String(UniqueIdGenerator::getUniqueId()) << "\">\n"
+        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<R"(" name="TOPP software" id=")" << String("SOF_") << String(UniqueIdGenerator::getUniqueId()) << "\">\n"
            << "\t\t<SoftwareName>\n\t\t\t" << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << "\n\t\t</SoftwareName>\n\t</AnalysisSoftware>\n";
       }
       os << "</AnalysisSoftwareList>\n";
@@ -1238,7 +1238,7 @@ namespace OpenMS
               String acc = n_term_mod->getUniModAccession();
               p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
               p += "\" name=\"" + n_term_mod->getId();
-              p += "\" cvRef=\"UNIMOD\"/>";
+              p += R"(" cvRef="UNIMOD"/>)";
               p += "\n\t\t</Modification>\n";
             }
             const ResidueModification* c_term_mod = hit.getSequence().getCTerminalModification();
@@ -1248,7 +1248,7 @@ namespace OpenMS
               String acc = c_term_mod->getUniModAccession();
               p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
               p += "\" name=\"" + c_term_mod->getId();
-              p += "\" cvRef=\"UNIMOD\"/>";
+              p += R"(" cvRef="UNIMOD"/>)";
               p += "\n\t\t</Modification>\n";
             }
             for (Size i = 0; i < hit.getSequence().size(); ++i)
@@ -1264,7 +1264,7 @@ namespace OpenMS
                 {
                   p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
                   p += "\" name=\"" + mod->getId();
-                  p += "\" cvRef=\"UNIMOD\"/>";
+                  p += R"(" cvRef="UNIMOD"/>)";
                   p += "\n\t\t</Modification>\n";
                 }
                 else
@@ -1613,11 +1613,11 @@ namespace OpenMS
           p += "\" name=\"" + n_term_mod->getId();
           if (unimod)
           {
-            p += "\" cvRef=\"UNIMOD\"/>";
+            p += R"(" cvRef="UNIMOD"/>)";
           }
           else
           {
-            p += "\" cvRef=\"XLMOD\"/>";
+            p += R"(" cvRef="XLMOD"/>)";
           }
           p += "\n\t\t</Modification>\n";
         }
@@ -1640,11 +1640,11 @@ namespace OpenMS
           p += "\" name=\"" + c_term_mod->getId();
           if (unimod)
           {
-            p += "\" cvRef=\"UNIMOD\"/>";
+            p += R"(" cvRef="UNIMOD"/>)";
           }
           else
           {
-            p += "\" cvRef=\"XLMOD\"/>";
+            p += R"(" cvRef="XLMOD"/>)";
           }
           p += "\n\t\t</Modification>\n";
         }
@@ -1660,7 +1660,7 @@ namespace OpenMS
             {
               p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
               p += "\" name=\"" + mod->getId();
-              p += "\" cvRef=\"UNIMOD\"/>";
+              p += R"(" cvRef="UNIMOD"/>)";
               p += "\n\t\t</Modification>\n";
             }
             else
@@ -1670,7 +1670,7 @@ namespace OpenMS
               {
                 p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
                 p += "\" name=\"" +  mod->getId();
-                p += "\" cvRef=\"XLMOD\"/>";
+                p += R"(" cvRef="XLMOD"/>)";
                 p += "\n\t\t</Modification>\n";
               }
               else
@@ -1699,7 +1699,7 @@ namespace OpenMS
             p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
             p += "\">\n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
             p += "\" name=\"" +  hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString();
-            p += "\" cvRef=\"XLMOD\"/>";
+            p += R"(" cvRef="XLMOD"/>)";
             p += "\n\t\t</Modification>\n";
           }
         }
@@ -1783,7 +1783,7 @@ namespace OpenMS
             {
               p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString() + "\">\n";
-              p += "\t\t\t<cvParam accession=\"" + acc + "\" cvRef=\"XLMOD\" name=\"" + name + "\"/>\n";
+              p += "\t\t\t<cvParam accession=\"" + acc + R"(" cvRef="XLMOD" name=")" + name + "\"/>\n";
             }
             else // if there is no matching modification in the database, write out a placeholder
             {
