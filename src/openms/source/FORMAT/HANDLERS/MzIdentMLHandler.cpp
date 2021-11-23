@@ -49,9 +49,7 @@
 
 using namespace std;
 
-namespace OpenMS
-{
-  namespace Internal
+namespace OpenMS::Internal
   {
 
     MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
@@ -2153,5 +2151,4 @@ namespace OpenMS
         ppxl_specref_2_element[sid] += sii_tmp;
       }
     }
-  } //namespace Internal
-} // namespace OpenMS
+  } // namespace OpenMS
