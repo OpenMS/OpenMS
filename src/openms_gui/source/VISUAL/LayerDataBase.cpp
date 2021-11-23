@@ -66,38 +66,6 @@ namespace OpenMS
     return os;
   }
 
-
-  /// Default constructor
-
-  LayerDataBase::LayerDataBase() :
-      flags(),
-      visible(true),
-      flipped(false),
-      type(DT_UNKNOWN),
-      name_(),
-      filename(),
-      peptides(),
-      param(),
-      gradient(),
-      filters(),
-      annotations_1d(),
-      peak_colors_1d(),
-      modifiable(false),
-      modified(false),
-      label(L_NONE),
-      peptide_id_index(-1),
-      peptide_hit_index(-1),
-      features_(new FeatureMapType()),
-      consensus_map_(new ConsensusMapType()),
-      peak_map_(new ExperimentType()),
-      on_disc_peaks(new OnDiscMSExperiment()),
-      chromatogram_map_(new ExperimentType()),
-      current_spectrum_idx_(0),
-      cached_spectrum_()
-  {
-    annotations_1d.resize(1);
-  }
-
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataBase::getPeakData() const
   {
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);

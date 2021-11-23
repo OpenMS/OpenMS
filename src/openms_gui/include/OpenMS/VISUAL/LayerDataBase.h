@@ -169,18 +169,15 @@ namespace OpenMS
     //@}
 
     /// Default constructor
-    LayerDataBase();
-
+    LayerDataBase() = default;
     /// no Copy-ctor (should not be needed)
     LayerDataBase(const LayerDataBase& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-
     /// move Ctor
-    LayerDataBase(LayerDataBase&& ld) = default;
-
+    LayerDataBase(LayerDataBase&& ld) noexcept = default;
     /// move assignment
-    LayerDataBase& operator=(LayerDataBase&& ld) = default;
+    LayerDataBase& operator=(LayerDataBase&& ld) noexcept = default;
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType& getFeatureMap() const
@@ -426,13 +423,13 @@ namespace OpenMS
     void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
 
     /// if this layer is visible
-    bool visible;
+    bool visible = true;
 
     /// if this layer is flipped (1d mirror view)
-    bool flipped;
+    bool flipped = false;
 
     /// data type (peak or feature data)
-    DataType type;
+    DataType type = DT_UNKNOWN;
 
   private:
     /// layer name
@@ -464,23 +461,23 @@ namespace OpenMS
     DataFilters filters;
 
     /// Annotations of all spectra of the experiment (1D view)
-    std::vector<Annotations1DContainer> annotations_1d;
+    std::vector<Annotations1DContainer> annotations_1d = std::vector<Annotations1DContainer>(1);
 
     /// Peak colors of the currently shown spectrum
     std::vector<QColor> peak_colors_1d;
 
     /// Flag that indicates if the layer data can be modified (so far used for features only)
-    bool modifiable;
+    bool modifiable = false;
 
     /// Flag that indicates that the layer data was modified since loading it
-    bool modified;
+    bool modified = false;
 
     /// Label type
-    LabelType label;
+    LabelType label = L_NONE;
 
     /// Selected peptide id and hit index (-1 if none is selected)
-    int peptide_id_index;
-    int peptide_hit_index;
+    int peptide_id_index = -1;
+    int peptide_hit_index = -1;
 
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
     String getDecoratedName() const;
@@ -493,25 +490,25 @@ namespace OpenMS
     void updatePeptideHitAnnotations_(PeptideHit& hit);
 
     /// feature data
-    FeatureMapSharedPtrType features_;
+    FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
 
     /// consensus feature data
-    ConsensusMapSharedPtrType consensus_map_;
+    ConsensusMapSharedPtrType consensus_map_ = ConsensusMapSharedPtrType(new ConsensusMapType());
 
     /// peak data
-    ExperimentSharedPtrType peak_map_;
+    ExperimentSharedPtrType peak_map_ = ExperimentSharedPtrType(new ExperimentType());
 
     /// on disc peak data
-    ODExperimentSharedPtrType on_disc_peaks;
+    ODExperimentSharedPtrType on_disc_peaks = ODExperimentSharedPtrType(new OnDiscMSExperiment());
 
     /// chromatogram data
-    ExperimentSharedPtrType chromatogram_map_;
+    ExperimentSharedPtrType chromatogram_map_ = ExperimentSharedPtrType(new ExperimentType());
 
     /// Chromatogram annotation data
     OSWDataSharedPtrType chrom_annotation_;
 
     /// Index of the current spectrum
-    Size current_spectrum_idx_;
+    Size current_spectrum_idx_ = 0;
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;
