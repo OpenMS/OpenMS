@@ -40,6 +40,9 @@
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
 
