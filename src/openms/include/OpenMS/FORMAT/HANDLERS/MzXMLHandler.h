@@ -104,7 +104,7 @@ public:
       }
 
       ///Gets the scan count
-      UInt getScanCount()
+      UInt getScanCount() const
       {
         return scan_count_;
       }

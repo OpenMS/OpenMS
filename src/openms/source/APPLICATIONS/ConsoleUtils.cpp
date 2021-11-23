@@ -163,7 +163,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < input.size(); )
     {
-      String line = input.substr(i, result.size() == 0 ? line_len : short_line_len); // first line has full length
+      String line = input.substr(i, result.empty() ? line_len : short_line_len); // first line has full length
       Size advance_size = line.size();
       if (line.hasSubstring("\n"))
       {
@@ -182,7 +182,7 @@ namespace OpenMS
 
       // check if we are using the full length and split a word at the same time
       // cut a little earlier in that case for nicer looks
-      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
+      if (line.size() ==  (result.empty() ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');
         if (last_word.length() < 4)
@@ -193,8 +193,8 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no indentation
-      String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
+      String s_intend = (result.empty() ? "" : String(indentation, ' ')); // first line no indentation
+      String r = s_intend + (result.empty() ? line : line.trim()); // intended lines get trimmed
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
     if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...

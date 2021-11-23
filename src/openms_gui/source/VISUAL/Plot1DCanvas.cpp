@@ -1878,7 +1878,7 @@ namespace OpenMS
   }
 
   /// Returns whether this widget is currently in mirror mode
-  bool Plot1DCanvas::mirrorModeActive()
+  bool Plot1DCanvas::mirrorModeActive() const
   {
     return mirror_mode_;
   }
@@ -2071,7 +2071,7 @@ namespace OpenMS
     return aligned_peaks_mz_delta_.size();
   }
 
-  double Plot1DCanvas::getAlignmentScore()
+  double Plot1DCanvas::getAlignmentScore() const
   {
     return alignment_score_;
   }

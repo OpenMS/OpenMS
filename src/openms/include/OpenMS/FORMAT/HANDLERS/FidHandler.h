@@ -65,7 +65,7 @@ public:
       ~FidHandler() override;
 
       /// Get index of current position (without position moving).
-      Size getIndex();
+      Size getIndex() const;
 
       /// Get intensity of current position and move to next position.
       Size getIntensity();

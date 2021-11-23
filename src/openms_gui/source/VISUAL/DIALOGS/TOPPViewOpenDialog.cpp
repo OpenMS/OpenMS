@@ -177,7 +177,7 @@ namespace OpenMS
     // remove all items
     ui_->merge_combo_->clear();
 
-    if (layers.size() != 0)
+    if (!layers.empty())
     {
       ui_->merge_->setEnabled(true);
       ui_->merge_combo_->setEnabled(true);

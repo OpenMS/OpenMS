@@ -118,7 +118,7 @@ protected:
    *
    * @param intensity_peptide    peptide intensities to be corrected
    */
-  void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide);
+  void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const;
 
   /**
    * @brief calculate peptide intensities

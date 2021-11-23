@@ -220,7 +220,7 @@ protected:
     // null transformation.
     String trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
-    if (trafo_in.size() > 0) 
+    if (!trafo_in.empty()) 
     {
       TransformationXMLFile trafoxml;
 

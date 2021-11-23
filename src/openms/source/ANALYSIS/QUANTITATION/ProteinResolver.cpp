@@ -278,7 +278,7 @@ namespace OpenMS
   //searches given sequence in all nodes and returns its index or nodes.size() if not found.
   Size ProteinResolver::findPeptideEntry_(String seq, vector<PeptideEntry> & nodes)
   {
-    if (nodes.size() == 0)
+    if (nodes.empty())
       return 0;
 
     return binarySearchNodes_(seq, nodes, 0, nodes.size() - 1);
@@ -573,7 +573,7 @@ namespace OpenMS
           msd_group.number_of_decoy = 0;
           msd_group.number_of_target_plus_decoy = 0;
           traverseProtein_(prot_node, msd_group);
-          if (msd_group.peptides.size() > 0)
+          if (!msd_group.peptides.empty())
           {
             msd_groups.push_back(msd_group);
             isd_groups[isd_group].msd_groups.push_back(msd_group_counter);

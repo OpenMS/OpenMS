@@ -144,7 +144,7 @@ namespace OpenMS
      */
     QCBase::Status requires() const override;
 
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta) const;
   };
 
 } // namespace OpenMS

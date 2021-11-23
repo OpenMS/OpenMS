@@ -145,7 +145,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  void Annotations1DContainer::selectItemAt(const QPoint & pos)
+  void Annotations1DContainer::selectItemAt(const QPoint & pos) const
   {
     Annotation1DItem * item = getItemAt(pos);
     if (item != nullptr)
@@ -154,7 +154,7 @@ namespace OpenMS
     }
   }
 
-  void Annotations1DContainer::deselectItemAt(const QPoint & pos)
+  void Annotations1DContainer::deselectItemAt(const QPoint & pos) const
   {
     Annotation1DItem * item = getItemAt(pos);
     if (item != nullptr)

@@ -166,7 +166,7 @@ private:
     */
     void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt) const
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {

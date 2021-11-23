@@ -444,7 +444,7 @@ namespace OpenMS
     f << "\t<sample_enzyme name=\"";
     f << enzyme_name.toLower() << "\">" << "\n";
     f << "\t\t<specificity cut=\"";
-    if (search_params.digestion_enzyme.getRegEx() != "")
+    if (!search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<String> sub_regex;
       search_params.digestion_enzyme.getRegEx().split(")",sub_regex);

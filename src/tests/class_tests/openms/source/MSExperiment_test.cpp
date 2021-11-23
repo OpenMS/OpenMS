@@ -967,7 +967,7 @@ START_SECTION((void reset()))
 
   exp.reset();
 
-  TEST_EQUAL(exp==PeakMap(),true);
+  TEST_EQUAL(exp.empty(),true);
 }
 END_SECTION
 
@@ -1084,10 +1084,10 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-    TEST_EQUAL(edit==PeakMap(),false)
+    TEST_EQUAL(edit.empty(),false)
 
     edit.clear(true);
-  TEST_EQUAL(edit==PeakMap(),true)
+  TEST_EQUAL(edit.empty(),true)
 }
 END_SECTION
 

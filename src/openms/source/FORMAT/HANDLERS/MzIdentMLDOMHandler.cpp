@@ -616,7 +616,7 @@ namespace OpenMS::Internal
         }
 
         // Add unit *after* creating the term
-        if (unitAcc != "")
+        if (!unitAcc.empty())
         {
           if (unitAcc.hasPrefix("UO:"))
           {
@@ -739,7 +739,7 @@ namespace OpenMS::Internal
             }
             child = child->getNextElementSibling();
           }
-          if (acc != "")
+          if (!acc.empty())
           {
             DBSequence temp_struct = {seq, dbref, acc, cvs};
             db_sq_map_.insert(make_pair(id, temp_struct));
@@ -1886,7 +1886,7 @@ namespace OpenMS::Internal
 
       std::vector<String> unique_peptides;
       unique_peptides.push_back(peptides[alpha[0]]);
-      if (beta.size() > 0)
+      if (!beta.empty())
       {
         unique_peptides.push_back(peptides[beta[0]]);
       }

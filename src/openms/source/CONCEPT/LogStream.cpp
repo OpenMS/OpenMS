@@ -84,7 +84,7 @@ namespace OpenMS
       syncLF_();
       {
         clearCache();
-        if (incomplete_line_.size() > 0)
+        if (!incomplete_line_.empty())
         {
           distribute_(incomplete_line_);
         }

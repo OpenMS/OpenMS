@@ -1065,7 +1065,7 @@ namespace OpenMS
     canvas->showMetaData(true);
   }
 
-  void TOPPViewBase::layerStatistics()
+  void TOPPViewBase::layerStatistics() const
   {
     getActivePlotWidget()->showStatistics();
   }
@@ -1120,7 +1120,7 @@ namespace OpenMS
     statusBar()->update();
   }
 
-  void TOPPViewBase::resetZoom()
+  void TOPPViewBase::resetZoom() const
   {
     PlotWidget* w = getActivePlotWidget();
     if (w != nullptr)
@@ -1139,7 +1139,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::setDrawMode1D(int index)
+  void TOPPViewBase::setDrawMode1D(int index) const
   {
     Plot1DWidget* w = getActive1DWidget();
     if (w)
@@ -1408,7 +1408,7 @@ namespace OpenMS
     filter_list_->set(getActiveCanvas()->getCurrentLayer().filters);
   }
 
-  void TOPPViewBase::layerFilterVisibilityChange(bool on)
+  void TOPPViewBase::layerFilterVisibilityChange(bool on) const
   {
     if (getActiveCanvas())
     {
@@ -1430,7 +1430,7 @@ namespace OpenMS
     zoom_together_ = !zoom_together_;
   }
 
-  void TOPPViewBase::layerZoomChanged() // todo rename zoomothers
+  void TOPPViewBase::layerZoomChanged() const // todo rename zoomothers
   {
     if (!zoom_together_) return;
 
@@ -1517,7 +1517,7 @@ namespace OpenMS
     showWindow(sw->getWindowId());
   }
 
-  void TOPPViewBase::showGoToDialog()
+  void TOPPViewBase::showGoToDialog() const
   {
     PlotWidget* w = getActivePlotWidget();
     if (w)
@@ -1957,7 +1957,7 @@ namespace OpenMS
     return &(canvas->getCurrentLayer());
   }
 
-  LayerData* TOPPViewBase::getCurrentLayer()
+  LayerData* TOPPViewBase::getCurrentLayer() const
   {
     PlotCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
@@ -2481,34 +2481,34 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::saveLayerAll()
+  void TOPPViewBase::saveLayerAll() const
   {
     getActiveCanvas()->saveCurrentLayer(false);
   }
 
-  void TOPPViewBase::saveLayerVisible()
+  void TOPPViewBase::saveLayerVisible() const
   {
     getActiveCanvas()->saveCurrentLayer(true);
   }
 
-  void TOPPViewBase::toggleGridLines()
+  void TOPPViewBase::toggleGridLines() const
   {
     getActiveCanvas()->showGridLines(!getActiveCanvas()->gridLinesShown());
   }
 
-  void TOPPViewBase::toggleAxisLegends()
+  void TOPPViewBase::toggleAxisLegends() const
   {
     getActivePlotWidget()->showLegend(!getActivePlotWidget()->isLegendShown());
   }
 
-  void TOPPViewBase::toggleInterestingMZs()
+  void TOPPViewBase::toggleInterestingMZs() const
   {
     auto w = getActive1DWidget();
     if (w == nullptr) return;
     w->canvas()->setDrawInterestingMZs(!w->canvas()->isDrawInterestingMZs());
   }
 
-  void TOPPViewBase::showPreferences()
+  void TOPPViewBase::showPreferences() const
   {
     getActiveCanvas()->showCurrentLayerPreferences();
   }
@@ -2541,7 +2541,7 @@ namespace OpenMS
   }
 
 
-  void TOPPViewBase::showSpectrumMetaData(int spectrum_index)
+  void TOPPViewBase::showSpectrumMetaData(int spectrum_index) const
   {
     getActiveCanvas()->showMetaData(true, spectrum_index);
   }

@@ -129,7 +129,7 @@ namespace OpenMS
     return data_->neighbors_.size() + 1; // + 1 for the center
   }
 
-  bool QTCluster::operator<(const QTCluster& rhs)
+  bool QTCluster::operator<(const QTCluster& rhs) const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")

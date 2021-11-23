@@ -137,12 +137,12 @@ protected:
     // reading input
     //------------------------------------------------------------
     QcMLFile qcmlfile;
-    if (in != "")
+    if (!in.empty())
     {
       qcmlfile.load(in);
     }
 
-    if (mappi != "" && tab != "")
+    if (!mappi.empty() && !tab.empty())
     {
       CsvFile csv_file(tab);
       CsvFile map_file(mappi);
@@ -241,7 +241,7 @@ protected:
             def.value = li[j];
             qps.push_back(def);
           }
-          if (id != "")
+          if (!id.empty())
           {
             for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qps.begin(); qit != qps.end(); ++qit)
             {

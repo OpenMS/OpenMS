@@ -249,7 +249,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         type += " list";
 
       //restrictions
-      if (it->valid_strings.size() != 0)
+      if (!it->valid_strings.empty())
       {
         String valid_strings;
         valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");

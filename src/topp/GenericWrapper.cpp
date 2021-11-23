@@ -331,7 +331,7 @@ protected:
 
   Internal::ToolExternalDetails tde_;
 
-  ExitCodes wrapExit(const ExitCodes return_code)
+  ExitCodes wrapExit(const ExitCodes return_code) const
   {
     if (return_code != EXECUTION_OK)
     {
@@ -416,7 +416,7 @@ protected:
       if (type == gw.types[i])
       {
         tde_ = gw.external_details[i];
-        if (tde_.working_directory.trim() == "")
+        if (tde_.working_directory.trim().empty())
         {
           tde_.working_directory = ".";
         }

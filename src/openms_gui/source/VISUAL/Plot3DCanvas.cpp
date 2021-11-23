@@ -164,7 +164,7 @@ namespace OpenMS
     resetZoom();
   }
 
-  Plot3DOpenGLCanvas * Plot3DCanvas::openglwidget()
+  Plot3DOpenGLCanvas * Plot3DCanvas::openglwidget() const
   {
     return static_cast<Plot3DOpenGLCanvas *>(openglcanvas_);
   }

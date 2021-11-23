@@ -1277,7 +1277,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureFinderIdentificationAlgorithm::ensureConvexHulls_(Feature& feature)
+  void FeatureFinderIdentificationAlgorithm::ensureConvexHulls_(Feature& feature) const
   {
     if (feature.getConvexHulls().empty()) // add hulls for mass traces
     {
@@ -1448,7 +1448,7 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, Int>& training_labels)
+  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, Int>& training_labels) const
   {
     // @TODO: can this be done with less copying back and forth of data?
     // Pick a random subset of size "svm_n_samples_" for training: Shuffle the whole

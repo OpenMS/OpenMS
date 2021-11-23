@@ -331,7 +331,7 @@ protected:
       : min_size_(min_size), max_size_(max_size)
     {
     }
-    bool operator()(const NASequence& s) { return (s.size() < min_size_ || s.size() > max_size_); }
+    bool operator()(const NASequence& s) const { return (s.size() < min_size_ || s.size() > max_size_); }
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula

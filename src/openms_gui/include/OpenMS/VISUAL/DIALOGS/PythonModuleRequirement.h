@@ -67,7 +67,7 @@ namespace OpenMS
       void setFreeText(const QString& text);
 
       /// are all modules present?
-      bool isReady() { return is_ready_;};
+      bool isReady() const const { return is_ready_;};
 
 
     signals:

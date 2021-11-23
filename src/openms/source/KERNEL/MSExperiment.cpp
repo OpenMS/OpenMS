@@ -264,7 +264,7 @@ namespace OpenMS
           RangeManagerType::pos_range_.setMaxX(it->getRT());
         }
         //do not update mz and int when the spectrum is empty
-        if (it->size() == 0)
+        if (it->->empty())
         {
           continue;
         }
@@ -345,7 +345,7 @@ namespace OpenMS
         RangeManagerType::pos_range_.setMaxY(cp.getMZ());
       }
       // do not update RT and intensity if the chromatogram is empty
-      if (cp.size() == 0)
+      if (cp.empty())
       {
         continue;
       }
@@ -528,9 +528,9 @@ namespace OpenMS
     bool meta_present = false;
     for (Size i = 0; i < spectra_.size(); ++i)
     {
-      if (spectra_[i].getFloatDataArrays().size() != 0 
-        || spectra_[i].getIntegerDataArrays().size() != 0 
-        || spectra_[i].getStringDataArrays().size() != 0)
+      if (!spectra_[i].getFloatDataArrays().empty() 
+        || !spectra_[i].getIntegerDataArrays().empty() 
+        || !spectra_[i].getStringDataArrays().empty())
       {
         meta_present = true;
       }

@@ -720,7 +720,7 @@ namespace OpenMS
       return nullptr;
     }
 
-    if (problems.size() > 0)
+    if (!problems.empty())
     {
       int count = 0;
 
@@ -766,7 +766,7 @@ namespace OpenMS
 
     if (problems.size() != 1 || except != 0)
     {
-      if (problems.size() > 0)
+      if (!problems.empty())
       {
         Size count = 0;
         for (Size i = 0; i < problems.size(); i++)
@@ -1394,7 +1394,7 @@ namespace OpenMS
 
   void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<double>& weights)
   {
-    if (weight_labels.size() == weights.size() && weights.size() > 0)
+    if (weight_labels.size() == weights.size() && !weights.empty())
     {
       param_->nr_weight = (Int)weights.size();
       param_->weight_label = new Int[weights.size()];
