@@ -797,7 +797,7 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  const String& File::getTemporaryFile(const String& alternative_file)
+  String File::getTemporaryFile(const String& alternative_file)
   {
     // take no action
     if (!alternative_file.empty())
