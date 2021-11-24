@@ -105,7 +105,7 @@ namespace OpenMS
     DBSuitability();
 
     /// Destructor
-    ~DBSuitability() = default;
+    ~DBSuitability() override = default;
 
     /**
     * @brief Computes suitability of a database used to search a mzML

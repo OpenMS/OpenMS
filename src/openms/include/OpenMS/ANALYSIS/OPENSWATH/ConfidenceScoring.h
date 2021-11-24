@@ -56,7 +56,7 @@ namespace OpenMS
       /// Constructor
       explicit ConfidenceScoring(bool test_mode_ = false);
 
-      virtual ~ConfidenceScoring() {}
+      ~ConfidenceScoring() override {}
 
   protected:
 

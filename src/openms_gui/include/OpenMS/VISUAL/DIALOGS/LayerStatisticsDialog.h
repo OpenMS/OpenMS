@@ -70,7 +70,7 @@ public:
     /// Constructor
     LayerStatisticsDialog(PlotWidget * parent);
 
-    ~LayerStatisticsDialog();
+    ~LayerStatisticsDialog() override;
 
 protected slots:
 

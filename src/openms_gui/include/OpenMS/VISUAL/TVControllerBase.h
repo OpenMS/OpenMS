@@ -71,7 +71,7 @@ public:
     //@}
     TVControllerBase() = delete;
 
-    virtual ~TVControllerBase() = default;
+    ~TVControllerBase() override = default;
 public slots:
     /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
     virtual void activateBehavior();

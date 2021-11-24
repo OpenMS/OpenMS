@@ -63,7 +63,7 @@ public:
 
     /// Constructor
     TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
-    ~TOPPASOutputFilesDialog();
+    ~TOPPASOutputFilesDialog() override;
 
     /// Returns the name of the directory
     QString getDirectory() const;

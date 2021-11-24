@@ -42,9 +42,7 @@
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const String& filename) :
     XMLHandler("", "1.7"),
@@ -993,5 +991,4 @@ namespace Internal
     }
   }
 
-} // namespace Internal
 } // namespace OpenMS

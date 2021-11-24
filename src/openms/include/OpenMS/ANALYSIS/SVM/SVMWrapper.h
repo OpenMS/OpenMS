@@ -113,7 +113,7 @@ public:
     SVMWrapper();
 
     /// destructor
-    virtual ~SVMWrapper();
+    ~SVMWrapper() override;
 
     /**
       @brief You can set the parameters of the svm:

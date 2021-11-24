@@ -44,9 +44,7 @@
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const String& filename) :
     Internal::XMLHandler("", "1.9")
@@ -1138,5 +1136,4 @@ namespace Internal
     }
   }
 
-}
 }

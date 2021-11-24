@@ -64,7 +64,7 @@ public:
     /// Constructor
     FeatureEditDialog(QWidget * parent);
     /// Destructor
-    ~FeatureEditDialog();
+    ~FeatureEditDialog() override;
 
     /// Sets the feature
     void setFeature(const Feature & feature);

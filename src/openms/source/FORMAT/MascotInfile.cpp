@@ -703,7 +703,7 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
             }
           }
         }

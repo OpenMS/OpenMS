@@ -81,7 +81,7 @@ public:
 
         Destroys the OpenGLWidget and all associated data.
     */
-    virtual ~Plot3DOpenGLCanvas();
+    ~Plot3DOpenGLCanvas() override;
 
     ///virtual function provided from QGLWidget
     void initializeGL() override;

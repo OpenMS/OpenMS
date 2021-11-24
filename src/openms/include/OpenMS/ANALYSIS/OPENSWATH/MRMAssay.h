@@ -73,7 +73,7 @@ public:
     MRMAssay(); // empty, no members
 
     /// Destructor
-    ~MRMAssay();
+    ~MRMAssay() override;
     //@}
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;

@@ -78,7 +78,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         String d = it2->description;
         d.substitute("\n", "<br>");
         os << indentation
-           << "<div class=\"node\"><span class=\"node_name\">"
+           << R"(<div class="node"><span class="node_name">)"
            << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)

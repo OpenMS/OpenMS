@@ -572,7 +572,7 @@ private:
   protected:
     /// loads the ID data from @p filename and calls Layer::annotate.
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
 
   /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
@@ -589,7 +589,7 @@ private:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
   
   /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
@@ -606,7 +606,7 @@ private:
   protected:
     /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
 
   /// Print the contents to a stream.
