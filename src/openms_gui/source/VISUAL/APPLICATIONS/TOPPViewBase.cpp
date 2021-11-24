@@ -586,7 +586,7 @@ namespace OpenMS
       }
       else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        if (file_type == FileTypes::MZIDENTML) IdXMLFile().load(abs_filename, proteins, peptides);
+        if (file_type == FileTypes::IDXML) IdXMLFile().load(abs_filename, proteins, peptides);
         else if (file_type == FileTypes::MZIDENTML) MzIdentMLFile().load(abs_filename, proteins, peptides);
 
         if (peptides.empty())
