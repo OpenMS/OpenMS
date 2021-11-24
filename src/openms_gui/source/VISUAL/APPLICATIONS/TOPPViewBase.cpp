@@ -77,6 +77,7 @@
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
@@ -2543,7 +2544,11 @@ namespace OpenMS
         FeatureMapSharedPtrType features = layer.getFeatureMap();
         ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
         ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
-        vector<PeptideIdentification> peptides = layer.peptides;
+        vector<PeptideIdentification> peptides;
+        if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
+        {
+          peptides = p->getPeptideIds();
+        }
         ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
         // add the data

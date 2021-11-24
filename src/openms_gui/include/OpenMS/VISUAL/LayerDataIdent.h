@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 namespace OpenMS
 {
@@ -67,7 +68,7 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase
+  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase, public IPeptideIds
   {
   public:
     /// Default constructor
@@ -81,6 +82,22 @@ namespace OpenMS
     LayerDataIdent(LayerDataIdent&& ld) = default;
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
+
+    
+    virtual const PepIds& getPeptideIds() const override
+    {
+      return peptides_;
+    }
+    virtual PepIds& getPeptideIds() override
+    {
+      return peptides_;
+    }
+
+
+  private:
+    /// peptide identifications
+    std::vector<PeptideIdentification> peptides_;
+
   };
 
 }// namespace OpenMS

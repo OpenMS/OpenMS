@@ -445,13 +445,12 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(vector<PeptideIdentification> & peptides, const String & filename)
+  bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename)
   {
-    LayerDataBaseUPtr new_layer(new LayerDataIdent);
-    new_layer->peptides.swap(peptides);
-
-    augmentLayer(new_layer.get(), param_, filename);
-    layers_.addLayer(std::move(new_layer));
+    LayerDataIdent* new_layer(new LayerDataIdent);
+    new_layer->getPeptideIds().swap(peptides);
+    augmentLayer(new_layer, param_, filename);
+    layers_.addLayer(LayerDataBaseUPtr(new_layer));
     return finishAdding_(); 
   }
 
@@ -597,7 +596,7 @@ namespace OpenMS
       else if (getLayer(layer_index).type == LayerDataBase::DT_IDENT)
       {
         const vector<PeptideIdentification> & peptides =
-          getLayer(layer_index).peptides;
+          dynamic_cast<IPeptideIds*>(&getLayer(layer_index))->getPeptideIds();
         for (const PeptideIdentification& pep : peptides)
         {
           double rt = pep.getRT();
@@ -909,25 +908,22 @@ namespace OpenMS
     }
   }
 
-  void PlotCanvas::getVisibleIdentifications(vector<PeptideIdentification> &
-                                                 peptides) const
+  void PlotCanvas::getVisibleIdentifications(vector<PeptideIdentification>& peptides) const
   {
     peptides.clear();
 
-    const LayerDataBase& layer = getCurrentLayer();
-    if (layer.type == LayerDataBase::DT_IDENT)
+    auto p = dynamic_cast<const IPeptideIds*>(&getCurrentLayer());
+    if (p == nullptr) return;
+
+    // copy peptides, if visible
+    for (const auto& p : p->getPeptideIds())
     {
-      // copy peptides, if visible
-      for (vector<PeptideIdentification>::const_iterator it =
-             layer.peptides.begin(); it != layer.peptides.end(); ++it)
+      double rt = p.getRT();
+      double mz = getIdentificationMZ_(layers_.getCurrentLayerIndex(), p);
+      // TODO: if (layer.filters.passes(*it) && ...)
+      if (getVisibleArea().encloses(mz, rt))
       {
-        double rt = it->getRT();
-        double mz = getIdentificationMZ_(layers_.getCurrentLayerIndex(), *it);
-        // TODO: if (layer.filters.passes(*it) && ...)
-        if (getVisibleArea().encloses(mz, rt))
-        {
-          peptides.push_back(*it);
-        }
+        peptides.push_back(p);
       }
     }
   }

@@ -45,6 +45,8 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 //STL
@@ -887,40 +889,28 @@ namespace OpenMS
 
   void Plot2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
   {
-    const LayerDataBase& layer = getLayer(layer_index);
     bool show_labels = getLayerFlag(layer_index, LayerDataBase::I_LABELS);
-    vector<PeptideIdentification>::const_iterator pep_begin, pep_end;
-    if (layer.type == LayerDataBase::DT_FEATURE)
-    {
-      pep_begin = layer.getFeatureMap()->getUnassignedPeptideIdentifications().begin();
-      pep_end = layer.getFeatureMap()->getUnassignedPeptideIdentifications().end();
-    }
-    else if (layer.type == LayerDataBase::DT_IDENT)
-    {
-      pep_begin = layer.peptides.begin();
-      pep_end = layer.peptides.end();
-    }
-    else
-      return;
+    auto p = dynamic_cast <IPeptideIds*>(&getLayer(layer_index));
+    if (p == nullptr) return;
 
     painter.setPen(Qt::darkRed);
 
-    for (; pep_begin != pep_end; ++pep_begin)
+    for (const auto& id : p->getPeptideIds())
     {
-      if (!pep_begin->getHits().empty() || show_labels)
+      if (!id.getHits().empty() || show_labels)
       {
-        if (!pep_begin->hasRT() ||
-            !pep_begin->hasMZ())
+        if (!id.hasRT() ||
+            !id.hasMZ())
         {
           // TODO: show error message here
           continue;
         }
-        double rt = pep_begin->getRT();
+        double rt = id.getRT();
         if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1])
         {
           continue;
         }
-        double mz = getIdentificationMZ_(layer_index, *pep_begin);
+        double mz = getIdentificationMZ_(layer_index, id);
         if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0])
         {
           continue;
@@ -935,17 +925,17 @@ namespace OpenMS
         String sequence;
         if (show_labels)
         {
-          sequence = pep_begin->getMetaValue("label");
+          sequence = id.getMetaValue("label");
         }
         else
         {
-          sequence = pep_begin->getHits()[0].getSequence().toString();
+          sequence = id.getHits()[0].getSequence().toString();
         }
-        if (sequence.empty() && !pep_begin->getHits().empty())
+        if (sequence.empty() && !id.getHits().empty())
         {
-          sequence = pep_begin->getHits()[0].getMetaValue("label");
+          sequence = id.getHits()[0].getMetaValue("label");
         }
-        if (pep_begin->getHits().size() > 1) sequence += "...";
+        if (id.getHits().size() > 1) sequence += "...";
         painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
       }
     }
@@ -1293,7 +1283,7 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)   // identification data
     {
       // abort if no data points are contained
-      if (getCurrentLayer().peptides.empty())
+      if (dynamic_cast<IPeptideIds*>(&getCurrentLayer())->getPeptideIds().empty())
       {
         popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
         return false;
@@ -3069,10 +3059,12 @@ namespace OpenMS
   {
     LayerDataBase& layer = layers_.getLayer(i);
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_IDENT, "Plot2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
+    
+    auto& layer_peptides = dynamic_cast<IPeptideIds*>(&layer)->getPeptideIds();
     // reserve enough space
-    layer.peptides.reserve(layer.peptides.size() + peptides.size());
+    layer_peptides.reserve(layer_peptides.size() + peptides.size());
     // insert peptides
-    layer.peptides.insert(layer.peptides.end(), peptides.begin(),
+    layer_peptides.insert(layer_peptides.end(), peptides.begin(),
                                peptides.end());
     // update the layer and overall ranges
     recalculateRanges_(0, 1, 2);

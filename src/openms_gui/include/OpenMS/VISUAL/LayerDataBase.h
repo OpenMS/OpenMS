@@ -454,9 +454,6 @@ namespace OpenMS
     /// file name of the file the data comes from (if available)
     String filename;
 
-    /// peptide identifications
-    std::vector<PeptideIdentification> peptides;
-
     /// Layer parameters
     Param param;
 

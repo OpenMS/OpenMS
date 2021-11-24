@@ -4,6 +4,7 @@ set(OpenMSVisual_sources  CACHE INTERNAL "This variable should hold all OpenMS s
 include(source/VISUAL/APPLICATIONS/sources.cmake)
 include(source/VISUAL/APPLICATIONS/MISC/sources.cmake)
 include(source/VISUAL/DIALOGS/sources.cmake)
+include(source/VISUAL/INTERFACES/sources.cmake)
 include(source/VISUAL/MISC/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
 include(source/VISUAL/ANNOTATION/sources.cmake)
@@ -16,6 +17,7 @@ set(OpenMSVisual_sources_h  CACHE INTERNAL "This variable should hold all OpenMS
 ## added to OpenMSVisual library: ${OpenMSVisual_sources}
 include(include/OpenMS/VISUAL/ANNOTATION/sources.cmake)
 include(include/OpenMS/VISUAL/APPLICATIONS/sources.cmake)
+include(include/OpenMS/VISUAL/INTERFACES/sources.cmake)
 include(include/OpenMS/VISUAL/MISC/sources.cmake)
 include(include/OpenMS/VISUAL/APPLICATIONS/MISC/sources.cmake)  ## MOC sources are included here
 include(include/OpenMS/VISUAL/sources.cmake)					 					## and here ...

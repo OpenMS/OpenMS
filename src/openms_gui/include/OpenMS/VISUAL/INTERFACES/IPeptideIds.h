@@ -34,65 +34,23 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <vector>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
 
   /**
-  @brief Class that stores the data for one layer
-
-  The data for a layer can be peak data, feature data (feature, consensus),
-  chromatogram or peptide identification data. 
-
-  For 2D and 3D data, the data is generally accessible through getPeakData()
-  while features are accessible through getFeatureMap() and getConsensusMap().
-  For 1D data, the current spectrum must be accessed through
-  getCurrentSpectrum().
-
-  Peak data is stored using a shared pointer to an MSExperiment data structure
-  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
-  the actual data may not be in memory as this is not efficient for large files
-  and therefore may have to be retrieved from disk on-demand. 
-
-  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
-  copy of the actual raw data and *different* from the one retrieved through
-  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
-  non-persistent and will be gone the next time the cache is updated.
-  Persistent changes can be applied to getPeakDataMuteable() and will be
-  available on the next cache update.
-
-  @note Layer is mainly used as a member variable of PlotCanvas which holds
-  a vector of LayerData objects.
-
-  @ingroup PlotWidgets
+  @brief Abstract base class which defines an interface for obtained PeptideIdentifications
   */
-  class OPENMS_GUI_DLLAPI LayerDataFeature : public LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI IPeptideIds
   {
   public:
-    /// Default constructor
-    LayerDataFeature() :
-        LayerDataBase(LayerDataBase::DT_FEATURE){};
-    /// no Copy-ctor (should not be needed)
-    LayerDataFeature(const LayerDataFeature& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move Ctor
-    LayerDataFeature(LayerDataFeature&& ld) = default;
-    /// move assignment
-    LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
-
-
-    virtual const PepIds& getPeptideIds() const override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-    virtual PepIds& getPeptideIds() override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-
+    using PepIds = std::vector<PeptideIdentification>;
+    
+    /// implement this function in derived classes
+    virtual const PepIds& getPeptideIds() const = 0;
+    virtual PepIds& getPeptideIds() = 0;
   };
 
 }// namespace OpenMS
