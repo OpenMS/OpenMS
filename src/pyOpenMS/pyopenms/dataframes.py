@@ -12,6 +12,7 @@ class ConsensusMapDF(ConsensusMap):
 
     def get_intensity_df(self):
         """Generates a pandas DataFrame with feature intensities from each sample in long format (over files).
+
         For labelled analyses channel intensities will be in one row, therefore resulting in a semi-long/block format.
         Resulting DataFrame can be joined with result from get_metadata_df by their index 'id'.
 
@@ -77,6 +78,7 @@ class ConsensusMapDF(ConsensusMap):
 
     def get_metadata_df(self):
         """Generates a pandas DataFrame with feature meta data (sequence, charge, mz, RT, quality).
+
         Resulting DataFrame can be joined with result from get_intensity_df by their index 'id'.
 
         Returns:
@@ -165,9 +167,18 @@ class FeatureMapDF(FeatureMap):
     def get_df(self, meta_values = None, export_peptide_identifications = True):
         """Generates a pandas DataFrame with information contained in the FeatureMap.
 
+        Optionally the feature meta values and information for the assigned PeptideHit can be exported.
+
         Parameters:
         meta_values: meta values to include (None, [custom list of meta value names] or 'all')
-        export_peptide_identifications (bool): export best hit for PeptideIdentifications assigned to a feature
+
+        export_peptide_identifications (bool): export sequence and score for best PeptideHit assigned to a feature.
+        Additionally the ID_filename (file name of the corresponding ProteinIdentification) and the ID_native_id 
+        (spectrum ID of the corresponding Feature) are exported. They are also annotated as meta values when 
+        collecting all assigned PeptideIdentifications from a FeatureMap with FeatureMap.get_assigned_peptide_identifications().
+        A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
+        merged with the FeatureMap DataFrame with:
+        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
@@ -189,6 +200,18 @@ class FeatureMapDF(FeatureMap):
                 yield from fun(f)
 
         def extract_meta_data(f: Feature):
+            """Extracts feature meta data.
+            
+            Extracts information from a given feature with the requested meta values and, if requested,
+            the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)
+            of the best PeptideHit (first) assigned to that feature.
+
+            Parameters:
+            f (Feature): feature from which to extract the meta data
+
+            Yields:
+            tuple: tuple containing feature information, peptide information (optional) and meta values (optional)
+            """
             pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
             bb = f.getConvexHull().getBoundingBox2D()
                 
@@ -227,11 +250,16 @@ class FeatureMapDF(FeatureMap):
 
     def get_assigned_peptide_identifications(self):
         """Generates a list with peptide identifications assigned to a feature.
-        Adds 'ID_native_id' (feature spectrum id) and 'ID_filename' (primary MS run path of corresponding protein id)
-        as meta values to the peptide hits.
 
+        Adds 'ID_native_id' (feature spectrum id), 'ID_filename' (primary MS run path of corresponding ProteinIdentification)
+        and 'feature_id' (unique ID of corresponding Feature) as meta values to the peptide hits.
+        A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
+        merged with the FeatureMap DataFrame with:
+        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        
         Returns:
-        [PeptideIdentification]: list of PeptideIdentification objects"""
+        [PeptideIdentification]: list of PeptideIdentification objects
+        """
         result = []
         for f in self:
             for pep in f.getPeptideIdentifications():
