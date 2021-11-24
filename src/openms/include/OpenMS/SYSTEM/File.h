@@ -349,14 +349,14 @@ private:
     class TemporaryFiles_
     {
       public:
+        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         TemporaryFiles_();
         /// create a new filename and queue internally for deletion
-        const String& newFile();
+        String newFile();
 
         ~TemporaryFiles_();
       private:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
         std::mutex mtx_;
     };
