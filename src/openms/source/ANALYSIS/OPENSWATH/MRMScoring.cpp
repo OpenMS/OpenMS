@@ -705,20 +705,28 @@ namespace OpenSwath
       return mi_precursor_combined_matrix_;
     }
 
-    std::vector<std::vector<double>> MRMScoring::fillIntensity_(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids)
+    void MRMScoring::fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity)
     {
-      std::vector<std::vector<double>> intensity(ids.size());
+      intensity.resize(ids.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
         FeatureType fi = mrmfeature->getFeature(ids[i]);
         fi->getIntensity(intensity[i]);
       }
-      return intensity;
     }
 
-    void MRMScoring::computeRankVector_(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<unsigned int>>& ranks)
+    void MRMScoring::fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity)
     {
-      std::vector<std::vector<double>> intensity = fillIntensity_(mrmfeature, ids);
+      intensity.resize(ids.size());
+      for (std::size_t i = 0; i < intensity.size(); i++)
+      {
+        FeatureType fi = mrmfeature->getPrecursorFeature(ids[i]);
+        fi->getIntensity(intensity[i]);
+      }
+    }
+
+    void MRMScoring::computeRankVector_(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks)
+    {
       ranks.resize(intensity.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
@@ -728,8 +736,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
     {
+      std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec;
-      computeRankVector_(mrmfeature, native_ids, rank_vec);
+      fillIntensityFromFeature(mrmfeature, native_ids, intensity);
+      computeRankVector_(intensity, rank_vec);
 
       mi_matrix_.resize(native_ids.size(),native_ids.size());  
       for (std::size_t i = 0; i < native_ids.size(); i++)
@@ -743,9 +753,12 @@ namespace OpenSwath
     }
     void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2)
     { 
+      std::vector<std::vector<double>> intensityi, intensityj;
       std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
-      computeRankVector_(mrmfeature, native_ids_set1, rank_vec1);
-      computeRankVector_(mrmfeature, native_ids_set2, rank_vec2);
+      fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
+      fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
+      computeRankVector_(intensityi, rank_vec1);
+      computeRankVector_(intensityj, rank_vec2);
 
       mi_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
       for (std::size_t i = 0; i < native_ids_set1.size(); i++)
@@ -760,8 +773,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
     {
+      std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec;
-      computeRankVector_(mrmfeature, precursor_ids, rank_vec);
+      fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
+      computeRankVector_(intensity, rank_vec);
 
       mi_precursor_matrix_.resize(precursor_ids.size(),precursor_ids.size());
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
@@ -776,9 +791,12 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
     {
+      std::vector<std::vector<double>> intensityi, intensityj;
       std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
-      computeRankVector_(mrmfeature, precursor_ids, rank_vec1);
-      computeRankVector_(mrmfeature, native_ids, rank_vec2);
+      fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
+      fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
+      computeRankVector_(intensityi, rank_vec1);
+      computeRankVector_(intensityj, rank_vec2);
 
       mi_precursor_contrast_matrix_.resize(precursor_ids.size(), native_ids.size());
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
@@ -793,22 +811,26 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
     {
-      std::vector<String> combined_ids;
-      for (std::size_t i = 0; i < precursor_ids.size(); i++)
+      std::vector<std::vector<double>> intensityi, intensityj;
+      fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
+      fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
+      
+      std::vector<std::vector<double>> combined_intensity;
+      for (std::size_t i = 0; i < intensityi.size(); i++)
       {
-        combined_ids.push_back(precursor_ids[i]);
+        combined_intensity.push_back(intensityi[i]);
       }
-      for (std::size_t j = 0; j < native_ids.size(); j++)
+      for (std::size_t j = 0; j < intensityj.size(); j++)
       {
-        combined_ids.push_back(native_ids[j]);
+        combined_intensity.push_back(intensityj[j]);
       }
       std::vector<std::vector<unsigned int>> rank_vec;
-      computeRankVector_(mrmfeature, combined_ids, rank_vec);
+      computeRankVector_(combined_intensity, rank_vec);
 
-      mi_precursor_combined_matrix_.resize(combined_ids.size(), combined_ids.size());
-      for (std::size_t i = 0; i < combined_ids.size(); i++)
+      mi_precursor_combined_matrix_.resize(rank_vec.size(), rank_vec.size());
+      for (std::size_t i = 0; i < rank_vec.size(); i++)
       { 
-        for (std::size_t j = i; j < combined_ids.size(); j++)
+        for (std::size_t j = i; j < rank_vec.size(); j++)
         {
           // compute ranked mutual information
           double curr_mutual_score = Scoring::rankedMutualInformation(rank_vec[i], rank_vec[j]);
