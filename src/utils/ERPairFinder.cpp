@@ -237,7 +237,7 @@ protected:
     FeatureMap all_features;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if (it->->empty() || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
+      if (it->empty() || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
       {
         continue;
       }

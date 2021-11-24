@@ -346,7 +346,7 @@ public:
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {
-      return !this->getPeakData()->->empty() &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_ion_mobility") &&
              this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
     }
@@ -359,7 +359,7 @@ public:
     /// Check whether the current layer contains DIA (SWATH-MS) data
     bool isDIAData() const
     {
-      return !this->getPeakData()->->empty() &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_dia_data") &&
              this->getPeakData()->getMetaValue("is_dia_data").toBool();
     }
@@ -380,7 +380,7 @@ public:
     */
     bool chromatogram_flag_set() const
     {
-      return !this->getPeakData()->->empty() &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_chromatogram") &&
              this->getPeakData()->getMetaValue("is_chromatogram").toBool();
     }

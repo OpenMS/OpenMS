@@ -186,7 +186,7 @@ protected:
         writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
       }
-      if (ms1_it->->empty())
+      if (ms1_it->empty())
       {
         writeDebug_("No peaks in scan at RT=" + String(ms1_it->getRT()) + String(", skipping"), 1);
         continue;

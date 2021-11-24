@@ -533,8 +533,4 @@ namespace OpenMS
     data_->tmp_neighbors_.clear();
   }
 
-  bool operator<(const QTCluster& q1, const QTCluster& q2)
-  {
-    return q1.getCurrentQuality() < q2.getCurrentQuality(); 
-  }
 } // namespace OpenMS

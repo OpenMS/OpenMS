@@ -277,7 +277,7 @@ bool MSChromatogram::isSorted() const
 Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
 {
   //no peak => no search
-  if (size->empty())
+  if (empty())
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
   }

@@ -107,7 +107,7 @@ namespace OpenMS
 
       bool ms1 = false;
       double upper = -1, lower = -1, center = -1;
-      if (exp->->empty())
+      if (exp->empty())
       {
         std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << std::endl;
         continue;

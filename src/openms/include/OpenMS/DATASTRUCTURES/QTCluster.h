@@ -367,6 +367,4 @@ public:
       bool finalized_;
   };
 
-  // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS

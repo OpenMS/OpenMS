@@ -386,7 +386,7 @@ namespace OpenMS
       vector<String> split;
       it->split(',', split);
 
-      if (!it->->empty() && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)

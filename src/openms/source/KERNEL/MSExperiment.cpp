@@ -264,7 +264,7 @@ namespace OpenMS
           RangeManagerType::pos_range_.setMaxX(it->getRT());
         }
         //do not update mz and int when the spectrum is empty
-        if (it->->empty())
+        if (it->empty())
         {
           continue;
         }

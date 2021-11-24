@@ -171,7 +171,7 @@ protected:
       String fname = outfile_list[i];
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
-      if (swath_map->->empty() || (*swath_map)[0].getPrecursors().empty())
+      if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"

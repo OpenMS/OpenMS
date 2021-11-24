@@ -580,7 +580,7 @@ protected:
       vector<String> split;
       it->split(',', split);
 
-      if (!it->->empty() && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         if (split.size() < 2)
         {
