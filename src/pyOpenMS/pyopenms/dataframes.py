@@ -159,7 +159,7 @@ class FeatureMapDF(FeatureMap):
             if prot.getIdentifier() == pep_id.getIdentifier():
                 filenames = []
                 prot.getPrimaryMSRunPath(filenames)
-                if filenames:
+                if filenames and filenames[0] != '':
                     return filenames[0]
         return 'unknown'
     
