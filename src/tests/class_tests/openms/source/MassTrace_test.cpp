@@ -182,7 +182,7 @@ END_SECTION
 
 START_SECTION((const PeakType& operator[](const Size &mt_idx) const ))
 {
-  const MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
 
   double rt1 = test_mt_const[1].getRT();
   double mz1 = test_mt_const[1].getMZ();
@@ -340,7 +340,7 @@ END_SECTION
 
 START_SECTION((double getCentroidMZ() const ))
 {
-  MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
   double test_mt_cent_mz = test_mt_const.getCentroidMZ();
   TEST_REAL_SIMILAR(test_mt_cent_mz, 230.10188);
 }
@@ -349,7 +349,7 @@ END_SECTION
 /////
 START_SECTION((double getCentroidRT() const ))
 {
-  MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
   double test_mt_cent_rt = test_mt_const.getCentroidRT();
   TEST_REAL_SIMILAR(test_mt_cent_rt, 155.319906426507);
 }
@@ -393,7 +393,7 @@ END_SECTION
                           
 START_SECTION((double getCentroidSD() const ))
 {
-  MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
   double test_mt_sd = test_mt_const.getCentroidSD();
   TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
 }
@@ -404,7 +404,7 @@ END_SECTION
 
 START_SECTION((double getTraceLength() const ))
 {
-  const MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
 
   double mt_length = test_mt_const.getTraceLength();
 
@@ -439,7 +439,7 @@ END_SECTION
 
 START_SECTION((std::vector<double> getSmoothedIntensities()))
 {
-  std::vector<double> smoothed_vec = test_mt.getSmoothedIntensities();
+  const std::vector<double>& smoothed_vec = test_mt.getSmoothedIntensities();
 
   TEST_EQUAL(smoothed_vec.empty(), false);
   TEST_EQUAL(smoothed_vec.size(), smoothed_ints.size());
@@ -478,7 +478,7 @@ END_SECTION
 
 START_SECTION((double getMaxIntensity(bool) const ))
 {
-  const MassTrace test_mt_const(test_mt);
+  const MassTrace& test_mt_const(test_mt);
   double smoothed_maxint = test_mt_const.getMaxIntensity(true);
   TEST_REAL_SIMILAR(smoothed_maxint, 33000000.0);
 
@@ -491,7 +491,7 @@ END_SECTION
 
 START_SECTION((const std::vector<double>& getSmoothedIntensities() const))
 {
-  std::vector<double> smoothed_vec = test_mt.getSmoothedIntensities();
+  const std::vector<double>& smoothed_vec = test_mt.getSmoothedIntensities();
 
   TEST_EQUAL(smoothed_vec.empty(), false);
   TEST_EQUAL(smoothed_vec.size(), smoothed_ints.size());

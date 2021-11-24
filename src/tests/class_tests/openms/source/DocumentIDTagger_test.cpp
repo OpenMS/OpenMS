@@ -76,7 +76,7 @@ END_SECTION
 START_SECTION((DocumentIDTagger(const DocumentIDTagger &source)))
 {
   DocumentIDTagger tagme("SomeTOPPTool");
-  DocumentIDTagger tagme2(tagme);
+  const DocumentIDTagger& tagme2(tagme);
 
   TEST_EQUAL(tagme==tagme2, true)
 }
@@ -85,7 +85,7 @@ END_SECTION
 START_SECTION((DocumentIDTagger& operator=(const DocumentIDTagger &source)))
 {
   DocumentIDTagger tagme("SomeTOPPTool");
-	DocumentIDTagger tagme2 = tagme;
+	const DocumentIDTagger& tagme2 = tagme;
 	TEST_EQUAL(tagme==tagme2,true)
 }
 END_SECTION
@@ -93,9 +93,9 @@ END_SECTION
 START_SECTION((bool operator==(const DocumentIDTagger &source) const ))
 {
   DocumentIDTagger tagme("SomeTOPPTool");
-	DocumentIDTagger tagme2 = tagme;
+	const DocumentIDTagger& tagme2 = tagme;
 	TEST_EQUAL(tagme==tagme2, true)
-	DocumentIDTagger tagme3(tagme);
+	const DocumentIDTagger& tagme3(tagme);
 	TEST_EQUAL(tagme==tagme3, true)
 }
 END_SECTION

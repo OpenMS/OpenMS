@@ -95,7 +95,7 @@ START_SECTION(EmpiricalFormula(EmpiricalFormula&&) = default)
   EmpiricalFormula e = EmpiricalFormula("C4");
 
   EmpiricalFormula ef(e);
-  EmpiricalFormula ef2(e);
+  const EmpiricalFormula& ef2(e);
 
   TEST_NOT_EQUAL(ef, ef_empty)
 
@@ -154,7 +154,7 @@ START_SECTION(EmpiricalFormula& operator=(EmpiricalFormula&&) & = default)
   EmpiricalFormula e = EmpiricalFormula("C4");
 
   EmpiricalFormula ef(e);
-  EmpiricalFormula ef2(e);
+  const EmpiricalFormula& ef2(e);
   TEST_NOT_EQUAL(ef, ef_empty)
 
   // the move target should be equal, while the move source should be empty

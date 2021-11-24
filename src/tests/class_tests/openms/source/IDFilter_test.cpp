@@ -1030,7 +1030,7 @@ START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExpe
 {
   PeakMap experiment;
   vector<FASTAFile::FASTAEntry> proteins;
-  vector<PeptideIdentification> peptides = global_peptides;
+  const vector<PeptideIdentification>& peptides = global_peptides;
 
   proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "first desription",
                                            "LHASGITVTEIPVTATNFK"));

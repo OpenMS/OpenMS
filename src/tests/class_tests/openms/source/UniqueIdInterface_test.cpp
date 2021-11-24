@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION((UniqueIdInterface(const UniqueIdInterface &rhs)))
 {
   UniqueIdInterface uii1;
-  UniqueIdInterface uii2(uii1);
+  const UniqueIdInterface& uii2(uii1);
   // to be continued further below
   NOT_TESTABLE
 }

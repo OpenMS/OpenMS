@@ -750,7 +750,7 @@ namespace OpenMS
 
     // collect meta data:
     // intensities for all maps as given in handles; 0 if no handle is present for a map
-    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures()); // sorted by MapIndices
+    const ConsensusFeature::HandleSetType& ind_feats(cfeat.getFeatures()); // sorted by MapIndices
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)

@@ -692,13 +692,13 @@ private:
   {
     if (transition_exp_used.hasPeptide(id))
     {
-      const TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
+      const TargetedExperiment::Peptide& p = transition_exp_used.getPeptideByRef(id);
       if (p.hasCharge()) {prec_charge = p.getChargeState();}
       return p.sequence;
     }
     else if (transition_exp_used.hasCompound(id))
     {
-      const TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
+      const TargetedExperiment::Compound& c = transition_exp_used.getCompoundByRef(id);
       if (c.hasCharge()) {prec_charge = c.getChargeState();}
       return c.id;
     }

@@ -228,7 +228,7 @@ protected:
     // write input xml file
     File::TempDir dir(debug_level_ >= 2);
     String input_filename = dir.getPath() + "tandem_input.xml";
-    String tandem_input_filename = in;
+    const String& tandem_input_filename = in;
     String tandem_output_filename = dir.getPath() + "tandem_output.xml";
     String tandem_taxonomy_filename = dir.getPath() + "tandem_taxonomy.xml";
 

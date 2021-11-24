@@ -763,7 +763,7 @@ protected:
               auto acciter_inserted = iter_inserted.first->second.emplace(hit.getAccession());
               if (acciter_inserted.second)
               {
-                prot_ids[mzml_to_new_run_idx[original_file]].getHits().emplace_back(std::move(hit));
+                prot_ids[mzml_to_new_run_idx[original_file]].getHits().emplace_back(hit);
               }
             }
           }
@@ -855,7 +855,7 @@ protected:
 
         for (PeptideIdentification& pep : pep_ids)
         {
-          String run_id = pep.getIdentifier();
+          const String& run_id = pep.getIdentifier();
           if (!pep.hasRT() || !pep.hasMZ())
           {
             OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;

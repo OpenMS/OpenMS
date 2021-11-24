@@ -1381,7 +1381,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1403,7 +1403,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1425,7 +1425,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1447,7 +1447,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";

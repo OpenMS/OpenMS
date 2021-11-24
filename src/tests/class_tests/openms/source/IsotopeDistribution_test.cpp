@@ -142,7 +142,7 @@ END_SECTION
 START_SECTION(void set(const ContainerType &distribution))
   IsotopeDistribution iso1(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))), iso2;
   TEST_EQUAL(iso1 == iso2, false)
-  IsotopeDistribution::ContainerType container = iso1.getContainer();
+  const IsotopeDistribution::ContainerType& container = iso1.getContainer();
   iso2.set(container);
   TEST_EQUAL(iso1.getContainer() == iso2.getContainer(), true)
   TEST_EQUAL(iso1 == iso2, true)

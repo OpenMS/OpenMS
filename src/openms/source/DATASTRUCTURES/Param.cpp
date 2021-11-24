@@ -630,7 +630,7 @@ namespace OpenMS
         if (real_pathname != "")
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
-          std::string description_new = defaults.getSectionDescription(real_pathname);
+          const std::string& description_new = defaults.getSectionDescription(real_pathname);
           if (description_old == "")
           {
             //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
@@ -911,10 +911,10 @@ namespace OpenMS
   void Param::parseCommandLine(const int argc, const char** argv, const std::map<std::string, std::string>& options_with_one_argument, const std::map<std::string, std::string>& options_without_argument, const std::map<std::string, std::string>& options_with_multiple_argument, const std::string& misc, const std::string& unknown)
   {
     //determine misc key
-    std::string misc_key = misc;
+    const std::string& misc_key = misc;
 
     //determine unknown key
-    std::string unknown_key = unknown;
+    const std::string& unknown_key = unknown;
 
     //parse arguments
     std::string arg, arg1;
@@ -1410,7 +1410,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
         if (real_pathname != "")
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
-          std::string description_new = toMerge.getSectionDescription(real_pathname);
+          const std::string& description_new = toMerge.getSectionDescription(real_pathname);
           if (description_old == "")
           {
             setSectionDescription(real_pathname, description_new);

@@ -180,8 +180,8 @@ namespace OpenMS
   }
 
   ParamValue::ParamValue(ParamValue&& rhs) noexcept :
-    value_type_(std::move(rhs.value_type_)),
-    data_(std::move(rhs.data_))
+    value_type_(rhs.value_type_),
+    data_(rhs.data_)
   {
     // clean up rhs, take ownership of data_
     // NOTE: value_type_ == EMPTY_VALUE implies data_ is empty and can be reset

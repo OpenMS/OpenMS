@@ -87,7 +87,7 @@ END_SECTION
 
 START_SECTION(DBoundingBox(const DBoundingBox &rhs))
 	BB2 bb(DPosition<2>(1,2),DPosition<2>(3,4));
-	BB2 bb_copy(bb);
+	const BB2& bb_copy(bb);
 	TEST_REAL_SIMILAR(bb.minPosition()[0],bb_copy.minPosition()[0]);
 	TEST_REAL_SIMILAR(bb.minPosition()[1],bb_copy.minPosition()[1]);
 	TEST_REAL_SIMILAR(bb.maxPosition()[0],bb_copy.maxPosition()[0]);

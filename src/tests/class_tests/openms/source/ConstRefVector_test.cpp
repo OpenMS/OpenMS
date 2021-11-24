@@ -864,13 +864,13 @@ START_SECTION((template <class InputIterator> ConstRefVector(InputIterator f, In
 END_SECTION
 
 START_SECTION((bool operator==(const ConstRefVector &array) const))
-  ConstRefVector<PeakArrayType> pl2(pl);
+  const ConstRefVector<PeakArrayType>& pl2(pl);
   TEST_EQUAL(pl.size(), pl2.size())
   TEST_EQUAL(pl == pl2 , true)
 END_SECTION
 
 START_SECTION((bool operator!=(const ConstRefVector &array) const))
-  ConstRefVector<PeakArrayType> pl2(pl);
+  const ConstRefVector<PeakArrayType>& pl2(pl);
   TEST_EQUAL(pl.size(), pl2.size())
   TEST_EQUAL(pl != pl2 , false)
 END_SECTION

@@ -83,7 +83,7 @@ END_SECTION
 START_SECTION((ChargePair(const ChargePair &rhs)))
 {
 	ChargePair cp2(34,45, 4,5, cmp, 12.34, false);
-	ChargePair cp (cp2);
+	const ChargePair& cp (cp2);
 	TEST_EQUAL(cp.getElementIndex(0), 34);
 	TEST_EQUAL(cp.getElementIndex(1), 45);	
 	TEST_EQUAL(cp.getCharge(0), 4);
@@ -98,7 +98,7 @@ END_SECTION
 START_SECTION((ChargePair& operator=(const ChargePair &rhs)))
 {
 	ChargePair cp2(34,45, 4,5, cmp, 12.34, false);
-	ChargePair cp = cp2;
+	const ChargePair& cp = cp2;
 	TEST_EQUAL(cp.getElementIndex(0), 34);
 	TEST_EQUAL(cp.getElementIndex(1), 45);	
 	TEST_EQUAL(cp.getCharge(0), 4);

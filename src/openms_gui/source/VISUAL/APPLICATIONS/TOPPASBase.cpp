@@ -1328,7 +1328,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1346,7 +1346,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1364,7 +1364,7 @@ namespace OpenMS
     if (tv)
     {
       String text = tv->getName();
-      String type = tv->getType();
+      const String& type = tv->getType();
       if (type != "")
       {
         text += " (" + type + ")";
@@ -1384,7 +1384,7 @@ namespace OpenMS
 
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
   {
-    QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
+    const QString& text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
                         // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
 

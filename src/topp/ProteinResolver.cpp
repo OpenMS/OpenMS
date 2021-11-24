@@ -617,7 +617,7 @@ protected:
 
       for (int i = 0; i < list.size(); ++i)
       {
-        QFileInfo fileInfo = list.at(i);
+        const QFileInfo& fileInfo = list.at(i);
         input_list.push_back(fileInfo.absoluteFilePath());
       }
     }

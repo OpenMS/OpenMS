@@ -223,16 +223,16 @@ START_SECTION((DataValue(const DataValue&)))
   DataValue p9;
   DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
   DataValue p11(ListUtils::create<double>("1.2,2.3,3.4"));
-  DataValue copy_of_p1(p1);
-  DataValue copy_of_p3(p3);
-  DataValue copy_of_p4(p4);
-  DataValue copy_of_p5(p5);
-  DataValue copy_of_p6(p6);
-  DataValue copy_of_p7(p7);
-  DataValue copy_of_p8(p8);
-  DataValue copy_of_p9(p9);
-  DataValue copy_of_p10(p10);
-  DataValue copy_of_p11(p11);
+  const DataValue& copy_of_p1(p1);
+  const DataValue& copy_of_p3(p3);
+  const DataValue& copy_of_p4(p4);
+  const DataValue& copy_of_p5(p5);
+  const DataValue& copy_of_p6(p6);
+  const DataValue& copy_of_p7(p7);
+  const DataValue& copy_of_p8(p8);
+  const DataValue& copy_of_p9(p9);
+  const DataValue& copy_of_p10(p10);
+  const DataValue& copy_of_p11(p11);
   TEST_REAL_SIMILAR( (double) copy_of_p1, 1.23)
   TEST_REAL_SIMILAR( (float) copy_of_p3, 1.23)
   TEST_EQUAL( (Int) copy_of_p4, -3)

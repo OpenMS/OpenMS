@@ -934,7 +934,7 @@ p_src.setSectionDescription("test","sectiondesc");
 p_src.addTags("test:float", {"a", "b", "c"});
 
 START_SECTION((Param(const Param& rhs)))
-	Param p2(p_src);
+	const Param& p2(p_src);
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p_src.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")

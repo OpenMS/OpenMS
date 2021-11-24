@@ -100,7 +100,7 @@ START_SECTION((KDTreeFeatureMaps(const KDTreeFeatureMaps& rhs)))
 END_SECTION
 
 START_SECTION((KDTreeFeatureMaps& operator=(const KDTreeFeatureMaps& rhs)))
-  KDTreeFeatureMaps kd_data_2 = kd_data_1;
+  const KDTreeFeatureMaps& kd_data_2 = kd_data_1;
   TEST_EQUAL(kd_data_2.size(), kd_data_1.size())
   TEST_EQUAL(kd_data_2.size(), 2)
   TEST_EQUAL(kd_data_2.mz(0), kd_data_1.mz(0))

@@ -111,7 +111,7 @@ START_SECTION((bool empty() const))
 END_SECTION
 
 START_SECTION((MetaInfo(const MetaInfo& rhs)))
-	MetaInfo mi3(mi);
+	const MetaInfo& mi3(mi);
 	TEST_REAL_SIMILAR(double(mi3.getValue("cluster_id")),double(mi.getValue("cluster_id")))
 	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION

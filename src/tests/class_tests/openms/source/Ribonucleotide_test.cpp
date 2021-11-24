@@ -63,7 +63,7 @@ END_SECTION
 Ribonucleotide test_ribo("test", "T");
 
 START_SECTION(Ribonucleotide(const Ribonucleotide& ribonucleotide))
-  Ribonucleotide copy(test_ribo);
+  const Ribonucleotide& copy(test_ribo);
   TEST_EQUAL(copy, test_ribo)
 END_SECTION
 

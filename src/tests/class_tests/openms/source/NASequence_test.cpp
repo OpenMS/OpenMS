@@ -72,7 +72,7 @@ START_SECTION((NASequence(const NASequence&) = default))
 {
   // test Copy Constructor
   NASequence aaa = NASequence::fromString("AAA");
-  NASequence aaa2(aaa);
+  const NASequence& aaa2(aaa);
 
   TEST_EQUAL(aaa.size(), 3);
   TEST_EQUAL(aaa2.size(), 3);
@@ -127,7 +127,7 @@ END_SECTION
 START_SECTION((bool operator==(const NASequence& rhs) const))
 {
   NASequence aaa = NASequence::fromString("AAA");
-  NASequence aaa2(aaa);
+  const NASequence& aaa2(aaa);
   TEST_EQUAL(aaa.operator==(aaa2), true);
 }
 END_SECTION

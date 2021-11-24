@@ -348,7 +348,7 @@ namespace OpenMS
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
           }
-          const std::vector<Precursor> prec = s.getPrecursors();
+          const std::vector<Precursor>& prec = s.getPrecursors();
           double center = prec[0].getMZ();
           bool found = false;
           for (Size j = 0; j < known_window_boundaries.size(); j++)

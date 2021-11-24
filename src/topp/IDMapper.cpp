@@ -141,7 +141,7 @@ protected:
 
     addEmptyLine_();
     IDMapper mapper;
-    Param p = mapper.getParameters();
+    const Param& p = mapper.getParameters();
     registerDoubleOption_("rt_tolerance", "<value>", p.getValue("rt_tolerance"), "RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.\nTolerance is understood as 'plus or minus x', so the matching range increases by twice the given value.", false);
     setMinFloat_("rt_tolerance", 0.0);
     registerDoubleOption_("mz_tolerance", "<value>", p.getValue("mz_tolerance"), "m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.\nTolerance is understood as 'plus or minus x', so the matching range increases by twice the given value.", false);

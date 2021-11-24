@@ -213,7 +213,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   DoubleList elution_bounds(eb);
   elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
   std::vector<double> ei(5, 0.5); // 50% elution profile
-  DoubleList elution_ints(ei);
+  const DoubleList& elution_ints(ei);
   Feature f;
   f.setMetaValue("elution_profile_bounds", elution_bounds);
   f.setMetaValue("elution_profile_intensities", elution_ints);

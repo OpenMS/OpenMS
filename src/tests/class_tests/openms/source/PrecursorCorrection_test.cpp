@@ -180,7 +180,7 @@ END_SECTION
 
 START_SECTION((static void getPrecursors(const MSExperiment &exp, std::vector< Precursor > &precursors, std::vector< double > &precursors_rt, std::vector< Size > &precursor_scan_index)))
 {
-  MSExperiment getP_exp = exp;
+  const MSExperiment& getP_exp = exp;
   vector<Precursor> precursor;
   vector<double> rt;
   vector<Size> index;

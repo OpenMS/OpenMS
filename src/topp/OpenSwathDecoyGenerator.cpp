@@ -280,12 +280,12 @@ protected:
       if (separate)
       {
         OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
-        targeted_merged = std::move(targeted_decoy);
+        targeted_merged = targeted_decoy;
       }
       else
       {
         OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
-        targeted_merged = std::move(targeted_exp);
+        targeted_merged = targeted_exp;
         targeted_merged += std::move(targeted_decoy);
       }
 

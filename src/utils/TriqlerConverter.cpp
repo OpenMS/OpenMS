@@ -129,7 +129,7 @@ protected:
         // Experimental Design file
         const String arg_in_design = getStringOption_(param_in_design);
         const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
-        ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
+        const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
 
         ConsensusMap consensus_map;
         ConsensusXMLFile().load(arg_in, consensus_map);

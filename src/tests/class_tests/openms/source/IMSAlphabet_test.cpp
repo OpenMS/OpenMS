@@ -113,7 +113,7 @@ IMSAlphabet alphabet(elements);
 
 START_SECTION((IMSAlphabet(const IMSAlphabet &alphabet)))
 {
-  IMSAlphabet alphabet_copy(alphabet);
+  const IMSAlphabet& alphabet_copy(alphabet);
 
   TEST_EQUAL(alphabet_copy.size(), 3)
   TEST_EQUAL(alphabet_copy.getName(0), "hydrogen")

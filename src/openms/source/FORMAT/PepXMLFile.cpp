@@ -576,7 +576,7 @@ namespace OpenMS
       }
       for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = hit;
+        const PeptideHit& h = hit;
         const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 

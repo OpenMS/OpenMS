@@ -373,7 +373,7 @@ namespace OpenMS
     // locale setting
     out << pid.getDateTime().toString() << pid.getSearchEngineVersion();
     // search parameters
-    ProteinIdentification::SearchParameters sp = pid.getSearchParameters();
+    const ProteinIdentification::SearchParameters& sp = pid.getSearchParameters();
     out << sp << nl;
     for (const ProteinHit& hit : pid.getHits())
     {

@@ -51,7 +51,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 
 File::TempDir dir;
-const String path = dir.getPath();
+const String& path = dir.getPath();
 
 START_SECTION(MQEvidence())
 {

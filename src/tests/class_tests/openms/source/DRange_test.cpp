@@ -90,7 +90,7 @@ DRange<2> r(p1,p2);
 //do not modify this range, it is used in many tests
 
 START_SECTION(DRange(const DRange& range))
-	DRange<2> r2(r);
+	const DRange<2>& r2(r);
 	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
 	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
@@ -98,7 +98,7 @@ START_SECTION(DRange(const DRange& range))
 END_SECTION
 
 START_SECTION(DRange(const Base& range))
-	Internal::DIntervalBase<2> ib(r);
+	const Internal::DIntervalBase<2>& ib(r);
 	DRange<2> r2(ib);
 	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);
 	TEST_REAL_SIMILAR(r2.minPosition()[1],-2.0f);
@@ -107,7 +107,7 @@ START_SECTION(DRange(const Base& range))
 END_SECTION
 
 START_SECTION(DRange& operator=(const Base& rhs))
-	Internal::DIntervalBase<2> ib(r);
+	const Internal::DIntervalBase<2>& ib(r);
 	DRange<2> r2;
 	r2 = ib;
 	TEST_REAL_SIMILAR(r2.minPosition()[0],-1.0f);

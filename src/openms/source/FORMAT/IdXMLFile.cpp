@@ -603,7 +603,7 @@ namespace OpenMS
       // sequence
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
-      prot_hit_.setSequence(std::move(tmp));
+      prot_hit_.setSequence(tmp);
 
       last_meta_ = &prot_hit_;
 

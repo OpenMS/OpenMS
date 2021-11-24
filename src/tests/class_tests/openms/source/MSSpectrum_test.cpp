@@ -1206,7 +1206,7 @@ const MSSpectrum spec_test = [](){
 
 START_SECTION((Size findNearest(CoordinateType mz) const))
 {
-  MSSpectrum tmp = spec_test;
+  const MSSpectrum& tmp = spec_test;
 
   //test outside mass range
   TEST_EQUAL(tmp.findNearest(400.0),0);

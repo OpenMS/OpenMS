@@ -68,7 +68,7 @@ ClusterProxyKD proxy_1(10, 0.01, 4);
 ClusterProxyKD proxy_2(9, 0.001, 3);
 ClusterProxyKD proxy_3(9, 0.01, 2);
 ClusterProxyKD proxy_4(9, 0.01, 1);
-ClusterProxyKD proxy_5 = proxy_1;
+const ClusterProxyKD& proxy_5 = proxy_1;
 
 START_SECTION((ClusterProxyKD(const ClusterProxyKD& rhs)))
   ptr = new ClusterProxyKD(proxy_1);
@@ -80,7 +80,7 @@ START_SECTION((ClusterProxyKD(const ClusterProxyKD& rhs)))
 END_SECTION
 
 START_SECTION((ClusterProxyKD& operator=(const ClusterProxyKD& rhs)))
-  ClusterProxyKD proxy_5 = proxy_1;
+  const ClusterProxyKD& proxy_5 = proxy_1;
   TEST_EQUAL(proxy_5.getSize(), proxy_1.getSize());
   TEST_REAL_SIMILAR(proxy_5.getAvgDistance(), proxy_1.getAvgDistance());
   TEST_EQUAL(proxy_5.getCenterIndex(), proxy_1.getCenterIndex());

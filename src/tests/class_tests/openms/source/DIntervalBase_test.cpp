@@ -148,7 +148,7 @@ END_SECTION
 
 START_SECTION((DIntervalBase(const DIntervalBase& rhs)))
 	I2 tmp(p1,p2);
-	I2 tmp2(tmp);
+	const I2& tmp2(tmp);
 	TEST_EQUAL(tmp==tmp2,true);
 END_SECTION
 

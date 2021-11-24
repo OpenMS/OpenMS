@@ -160,7 +160,7 @@ private:
     if (section == "labels")
     {     
       MultiplexDeltaMassesGenerator generator;
-      Param p = generator.getParameters();
+      const Param& p = generator.getParameters();
       
       for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
       {

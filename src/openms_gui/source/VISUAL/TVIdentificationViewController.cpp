@@ -931,7 +931,7 @@ namespace OpenMS
     LayerData& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
-    AASequence aa_sequence = ph.getSequence();
+    const AASequence& aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
     Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();

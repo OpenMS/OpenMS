@@ -268,7 +268,7 @@ protected:
   String modifyNTermAASpecificSequence_(const String& seq)
   {
     String swap;
-    string modifiedSequence = seq;
+    const string& modifiedSequence = seq;
     vector<pair<String, char> > massShiftList;
 
     massShiftList.push_back(make_pair("-18.011", 'E'));

@@ -66,7 +66,7 @@ END_SECTION
 Histogram<float,float> d(0, 10, 1);
 
 START_SECTION((Histogram(const Histogram& histogram)))
-	Histogram<float, float> d2(d);
+	const Histogram<float, float>& d2(d);
 	TEST_EQUAL(d == d2, true)
 END_SECTION
 

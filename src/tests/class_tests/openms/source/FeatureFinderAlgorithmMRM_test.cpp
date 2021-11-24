@@ -78,7 +78,7 @@ START_SECTION((virtual void run()))
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
 	FeatureMap features, seeds;
-	Param ff_param(ptr->getParameters());
+	const Param& ff_param(ptr->getParameters());
 	ff.run("mrm", exp, features, ff_param, seeds);
 
 	TEST_EQUAL(exp.getChromatograms().size(), 3)

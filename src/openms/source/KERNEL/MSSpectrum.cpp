@@ -72,7 +72,7 @@ namespace OpenMS
       mda_tmp_float.reserve(float_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
+        mda_tmp_float.push_back(float_data_arrays_[i][indices[j]]);
       }
       std::swap(float_data_arrays_[i], mda_tmp_float);
     }
@@ -116,7 +116,7 @@ namespace OpenMS
       mda_tmp_int.reserve(integer_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
+        mda_tmp_int.push_back(integer_data_arrays_[i][indices[j]]);
       }
       std::swap(integer_data_arrays_[i], mda_tmp_int);
     }

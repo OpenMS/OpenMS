@@ -97,7 +97,7 @@ END_SECTION
 START_SECTION((void getParameters(Param& params) const))
 {
   TransformationModel tm;
-  Param p = tm.getParameters();
+  const Param& p = tm.getParameters();
   TEST_EQUAL(p.empty(), true)
 }
 END_SECTION

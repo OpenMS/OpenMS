@@ -172,7 +172,7 @@ public:
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = hit.getMetaValue(key);
+        const DataValue& found = hit.getMetaValue(key);
         if (found.isEmpty()) return false; // meta value "key" not set
         if (value.isEmpty()) return true; // "key" is set, value doesn't matter
         return found == value;
@@ -195,7 +195,7 @@ public:
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = hit.getMetaValue(key);
+        const DataValue& found = hit.getMetaValue(key);
         if (found.isEmpty()) return false; // meta value "key" not set
         return double(found) <= value;
       }

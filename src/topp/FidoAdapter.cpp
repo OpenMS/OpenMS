@@ -255,7 +255,7 @@ protected:
     for (const ProteinHit& hit : protein.getHits())
     {
       String target_decoy = hit.getMetaValue("target_decoy").toString();
-      String accession = hit.getAccession();
+      const String& accession = hit.getAccession();
       String sanitized = sanitized_accessions_.left.find(accession)->second;
       if (target_decoy == "target")
       {

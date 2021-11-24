@@ -161,7 +161,7 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))
-	Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+	const Map<String, ControlledVocabulary::CVTerm>& terms = cv.getTerms();
 	TEST_EQUAL(terms.size(), 6)
 	TEST_EQUAL(terms.has("OpenMS:1"), true)
 	TEST_EQUAL(terms.has("OpenMS:2"), true)

@@ -279,7 +279,7 @@ END_SECTION
 START_SECTION( const LinearInterpolation& getInterpolation() const )
 	TestModel tm;
 	InterpolationModel::LinearInterpolation interpol1;
-	InterpolationModel::LinearInterpolation interpol2 = tm.getInterpolation();
+	const InterpolationModel::LinearInterpolation& interpol2 = tm.getInterpolation();
 
 	// compare models
 	TEST_REAL_SIMILAR(interpol1.getScale(), interpol2.getScale());

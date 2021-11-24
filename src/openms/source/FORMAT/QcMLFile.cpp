@@ -1737,7 +1737,7 @@ namespace OpenMS
             }
             for (const Residue& z : tmp.getSequence())
             {
-              Residue res = z;
+              const Residue& res = z;
               String temp;
               if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
               {

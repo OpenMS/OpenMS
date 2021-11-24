@@ -293,7 +293,7 @@ namespace OpenMS
 
         // extract channel intensities and positions
         std::map<Int, double> intensityMap;
-        ConsensusFeature::HandleSetType features = cFeature.getFeatures();
+        const ConsensusFeature::HandleSetType& features = cFeature.getFeatures();
 
         for (ConsensusFeature::HandleSetType::const_iterator fIt = features.begin();
              fIt != features.end();

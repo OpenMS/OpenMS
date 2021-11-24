@@ -66,7 +66,7 @@ END_SECTION
 START_SECTION((ChromatogramTools(const ChromatogramTools &)))
 {
   ChromatogramTools tmp;
-	ChromatogramTools tmp2(tmp);
+	const ChromatogramTools& tmp2(tmp);
 	NOT_TESTABLE
 }
 END_SECTION

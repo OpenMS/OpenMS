@@ -757,7 +757,7 @@ START_SECTION(([EXTRA] const Param& getParam_()))
 	test_param.setValidStrings("param_flag", {"true","false"});
 
 	TOPPBaseTestParam temp(test_param);
-	Param result = temp.getParam(); // contains "test_param" + some default stuff
+	const Param& result = temp.getParam(); // contains "test_param" + some default stuff
 	for (Param::ParamIterator it = test_param.begin(); it != test_param.end(); ++it)
 	{
 		TEST_EQUAL(*it == result.getEntry(it.getName()), true);

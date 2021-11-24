@@ -505,7 +505,7 @@ namespace OpenMS
           new_hits.push_back(std::move(hit));
         }
       }
-      it->setHits(std::move(new_hits));
+      it->setHits(new_hits);
     }
   }
 

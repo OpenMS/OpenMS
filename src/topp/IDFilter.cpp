@@ -671,7 +671,7 @@ protected:
       auto checkMVs = [this, &meta_info](PeptideHit& ph)->bool
       {
         if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
-        DataValue v_data = ph.getMetaValue(meta_info[0]);
+        const DataValue& v_data = ph.getMetaValue(meta_info[0]);
         DataValue v_user;
         switch (v_data.valueType())
         {

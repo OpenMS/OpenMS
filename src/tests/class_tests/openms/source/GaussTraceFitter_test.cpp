@@ -278,7 +278,7 @@ END_SECTION
 
 START_SECTION((GaussTraceFitter(const GaussTraceFitter& other)))
 {
-  GTF gtf2(gaussian_trace_fitter);
+  const GTF& gtf2(gaussian_trace_fitter);
 
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getCenter(), gtf2.getCenter())
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getHeight(), gtf2.getHeight())
@@ -289,7 +289,7 @@ END_SECTION
 
 START_SECTION((GaussTraceFitter& operator=(const GaussTraceFitter& source)))
 {
-  GTF gtf3 = gaussian_trace_fitter;
+  const GTF& gtf3 = gaussian_trace_fitter;
 
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getCenter(), gtf3.getCenter())
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getHeight(), gtf3.getHeight())

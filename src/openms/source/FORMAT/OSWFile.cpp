@@ -304,7 +304,7 @@ namespace OpenMS
       {
         int id = Sql::extractInt(stmt, I_PROTID);
         accession = Sql::extractString(stmt, I_ACCESSION);
-        swath_result.addProtein(OSWProtein(std::move(accession), id, {}));
+        swath_result.addProtein(OSWProtein(accession, id, {}));
         rc = Sql::nextRow(stmt, rc); // next row
       }
     }
@@ -672,7 +672,7 @@ namespace OpenMS
           Sql::extractFloat(stmt, COLIDs::PRODUCT_MZ),
           Sql::extractChar(stmt, COLIDs::TYPE),
           Sql::extractInt(stmt, COLIDs::DECOY));
-        swath_result.addTransition(std::move(tr));
+        swath_result.addTransition(tr);
         rc = Sql::nextRow(stmt);
       }
       sqlite3_finalize(stmt);

@@ -108,7 +108,7 @@ START_SECTION((void filterPeakMap(PeakMap& exp) const))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 
-  PeakSpectrum spec = spec_ref;
+  const PeakSpectrum& spec = spec_ref;
 
 	PeakMap pm;
 	pm.addSpectrum(spec);

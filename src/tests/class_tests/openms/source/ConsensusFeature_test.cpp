@@ -388,7 +388,7 @@ START_SECTION((const HandleSetType& getFeatures() const))
   cons.insert(2,tmp_feature);
   const ConsensusFeature cons_copy(cons);
 
-  ConsensusFeature::HandleSetType group = cons_copy.getFeatures();
+  const ConsensusFeature::HandleSetType& group = cons_copy.getFeatures();
 
   ConsensusFeature::HandleSetType::const_iterator it = group.begin();
   TEST_EQUAL(it->getMapIndex(),2)

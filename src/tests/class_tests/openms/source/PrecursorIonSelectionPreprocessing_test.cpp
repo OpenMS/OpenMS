@@ -84,7 +84,7 @@ ptr->setParameters(param);
 ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),true);
 
 START_SECTION((const std::map<String,std::vector<double> >& getProtMasses() const))
-	std::map<String,std::vector<double> > prot_map = ptr->getProtMasses();
+	const std::map<String,std::vector<double> >& prot_map = ptr->getProtMasses();
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
@@ -99,7 +99,7 @@ END_SECTION
 
 
 START_SECTION(void dbPreprocessing(String db_path, bool save=true))
-	std::map<String,std::vector<double> > prot_map = ptr->getProtMasses();
+	const std::map<String,std::vector<double> >& prot_map = ptr->getProtMasses();
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 

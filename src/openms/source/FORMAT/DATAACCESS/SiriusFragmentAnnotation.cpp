@@ -94,7 +94,7 @@ namespace OpenMS
     annotated_spectra.reserve(native_ids_annotated_spectra.size());
     for (const auto& it : native_ids_annotated_spectra)
     {
-      annotated_spectra.emplace_back(std::move(it.second));
+      annotated_spectra.emplace_back(it.second);
     }
 
     return annotated_spectra;

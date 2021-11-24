@@ -279,7 +279,7 @@ START_SECTION((TransformationDescription(const TransformationDescription& rhs)))
 	TEST_EQUAL(td.getModelType(), td2.getModelType());
 	TEST_EQUAL(td.getDataPoints() == td2.getDataPoints(), true);
 	Param params = td.getModelParameters();
-	Param params2 = td2.getModelParameters();
+	const Param& params2 = td2.getModelParameters();
 	TEST_EQUAL(params, params2);
 }
 END_SECTION

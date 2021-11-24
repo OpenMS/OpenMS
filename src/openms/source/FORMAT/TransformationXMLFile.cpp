@@ -93,7 +93,7 @@ namespace OpenMS
        << "\">\n";
 
     // write parameters
-    Param params = transformation.getModelParameters();
+    const Param& params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
       if (it->value.valueType() != ParamValue::EMPTY_VALUE)

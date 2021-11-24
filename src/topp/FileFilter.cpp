@@ -455,7 +455,7 @@ protected:
     {
       return true; // not having the meta value means passing the test
     }
-    DataValue v_data = mi.getMetaValue(meta_info[0]);
+    const DataValue& v_data = mi.getMetaValue(meta_info[0]);
     DataValue v_user;
     if (v_data.valueType() == DataValue::STRING_VALUE)
     {

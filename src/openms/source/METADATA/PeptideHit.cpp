@@ -100,7 +100,7 @@ namespace OpenMS
     MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
     sequence_(std::move(source.sequence_)),
     score_(source.score_),
-    analysis_results_(std::move(source.analysis_results_)),
+    analysis_results_(source.analysis_results_),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(std::move(source.peptide_evidences_)),

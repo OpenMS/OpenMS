@@ -91,7 +91,7 @@ END_SECTION
 
 START_SECTION([CompNovoIdentificationBase::Permut] Permut(const Permut &rhs))
 	CompNovoIdentificationBase::Permut perm(it, 50.0);
-	CompNovoIdentificationBase::Permut copy(perm);
+	const CompNovoIdentificationBase::Permut& copy(perm);
 	TEST_EQUAL(perm.getScore(), copy.getScore())
 	TEST_EQUAL(*perm.getPermut(), *copy.getPermut())
 END_SECTION

@@ -200,16 +200,16 @@ START_TEST(ParamValue, "$Id$")
                     ParamValue p9;
                     ParamValue p10(vector<int>{1,2,3,4,5});
                     ParamValue p11(vector<double>{1.2,2.3,3.4});
-                    ParamValue copy_of_p1(p1);
-                    ParamValue copy_of_p3(p3);
-                    ParamValue copy_of_p4(p4);
-                    ParamValue copy_of_p5(p5);
-                    ParamValue copy_of_p6(p6);
-                    ParamValue copy_of_p7(p7);
-                    ParamValue copy_of_p8(p8);
-                    ParamValue copy_of_p9(p9);
-                    ParamValue copy_of_p10(p10);
-                    ParamValue copy_of_p11(p11);
+                    const ParamValue& copy_of_p1(p1);
+                    const ParamValue& copy_of_p3(p3);
+                    const ParamValue& copy_of_p4(p4);
+                    const ParamValue& copy_of_p5(p5);
+                    const ParamValue& copy_of_p6(p6);
+                    const ParamValue& copy_of_p7(p7);
+                    const ParamValue& copy_of_p8(p8);
+                    const ParamValue& copy_of_p9(p9);
+                    const ParamValue& copy_of_p10(p10);
+                    const ParamValue& copy_of_p11(p11);
                     TEST_REAL_SIMILAR( (double) copy_of_p1, 1.23)
                     TEST_REAL_SIMILAR( (float) copy_of_p3, 1.23)
                     TEST_EQUAL( (Int) copy_of_p4, -3)

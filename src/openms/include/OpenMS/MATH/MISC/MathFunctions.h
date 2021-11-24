@@ -141,11 +141,11 @@ namespace OpenMS
     {
       if (x >= T(0))
       {
-        return T(floor(x + T(0.5)));
+        return T(std::floor(x + T(0.5)));
       }
       else
       {
-        return T(ceil(x - T(0.5)));
+        return T(std::ceil(x - T(0.5)));
       }
     }
 

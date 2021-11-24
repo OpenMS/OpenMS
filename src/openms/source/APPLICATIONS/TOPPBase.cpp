@@ -957,7 +957,7 @@ namespace OpenMS
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    StringList valids = strings;
+    const StringList& valids = strings;
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)

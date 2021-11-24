@@ -74,7 +74,7 @@ END_SECTION
 START_SECTION((WeightWrapper(const WeightWrapper &source)))
 {
   WeightWrapper ww(WeightWrapper::AVERAGE);
-  WeightWrapper ww2(ww);
+  const WeightWrapper& ww2(ww);
 
   TEST_EQUAL(ww.getWeightMode(), ww2.getWeightMode())
 }

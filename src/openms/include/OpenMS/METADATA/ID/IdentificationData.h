@@ -199,7 +199,7 @@ namespace OpenMS
       identified_oligos_(std::move(other.identified_oligos_)),
       query_matches_(std::move(other.query_matches_)),
       query_match_groups_(std::move(other.query_match_groups_)),
-      current_step_ref_(std::move(other.current_step_ref_)),
+      current_step_ref_(other.current_step_ref_),
       // look-up tables:
       data_query_lookup_(std::move(other.data_query_lookup_)),
       parent_molecule_lookup_(std::move(other.parent_molecule_lookup_)),

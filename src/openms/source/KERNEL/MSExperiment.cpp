@@ -563,8 +563,8 @@ namespace OpenMS
     for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = ss.getPathToFile();
-      String filename = ss.getNameOfFile();
+      const String& path = ss.getPathToFile();
+      const String& filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {

@@ -67,7 +67,7 @@ namespace OpenMS
   Feature::Feature(Feature&& feature) noexcept :
     BaseFeature(std::move(feature)),
     convex_hulls_(std::move(feature.convex_hulls_)),
-    convex_hulls_modified_(std::move(feature.convex_hulls_modified_)),
+    convex_hulls_modified_(feature.convex_hulls_modified_),
     convex_hull_(std::move(feature.convex_hull_)),
     subordinates_(std::move(feature.subordinates_))
   {
@@ -204,7 +204,7 @@ namespace OpenMS
     BaseFeature::operator=(std::move(rhs));
     std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
     convex_hulls_           = std::move(rhs.convex_hulls_);
-    convex_hulls_modified_  = std::move(rhs.convex_hulls_modified_);
+    convex_hulls_modified_  = rhs.convex_hulls_modified_;
     convex_hull_            = std::move(rhs.convex_hull_);
     subordinates_           = std::move(rhs.subordinates_);
 

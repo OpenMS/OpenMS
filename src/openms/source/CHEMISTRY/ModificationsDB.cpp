@@ -196,7 +196,7 @@ namespace OpenMS
   {
     const ResidueModification* mod(nullptr);
 
-    String mod_name = mod_in.getFullId();
+    const String& mod_name = mod_in.getFullId();
 
     #pragma omp critical(OpenMS_ModificationsDB)
     {

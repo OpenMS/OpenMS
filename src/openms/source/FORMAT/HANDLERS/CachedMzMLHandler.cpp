@@ -273,7 +273,7 @@ namespace OpenMS::Internal
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    ExperimentalSettings qq = exp;
+    const ExperimentalSettings& qq = exp;
     MSExperiment out_exp;
     out_exp = qq;
     // std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy

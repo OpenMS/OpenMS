@@ -232,7 +232,7 @@ START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() co
   fixed_mods.insert("Phospho (T)");
   fixed_mods.insert("Phospho (Y)");
 
-  set<ModificationDefinition> mod_defs = mod_set1.getFixedModifications();
+  const set<ModificationDefinition>& mod_defs = mod_set1.getFixedModifications();
   TEST_EQUAL(mod_defs.size(), 3)
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
@@ -249,7 +249,7 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
   mods.insert("Phospho (S)");
   mods.insert("Carbamidomethyl (C)");
 
-  set<ModificationDefinition> mod_defs = mod_set1.getVariableModifications();
+  const set<ModificationDefinition>& mod_defs = mod_set1.getVariableModifications();
   TEST_EQUAL(mod_defs.size(), 2)
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {

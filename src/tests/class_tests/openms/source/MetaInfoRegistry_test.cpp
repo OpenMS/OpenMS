@@ -144,7 +144,7 @@ START_SECTION((String getUnit(const String& name) const))
 END_SECTION
 
 START_SECTION((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
-	MetaInfoRegistry mir2(mir);
+	const MetaInfoRegistry& mir2(mir);
   TEST_EQUAL(mir2.getIndex("testname"), 1024)
   TEST_EQUAL(mir2.getIndex("retention time"), 1025)
 	TEST_STRING_EQUAL(mir2.getName(1), "isotopic_range")

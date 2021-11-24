@@ -269,11 +269,11 @@ namespace OpenMS
 
     double fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
-    Residue res_n = peptide.getResidue(position);
-    Residue res_c = peptide.getResidue(position + 1);
+    const Residue& res_n = peptide.getResidue(position);
+    const Residue& res_c = peptide.getResidue(position + 1);
 
-    String res_n_string = res_n.getOneLetterCode();
-    String res_c_string = res_c.getOneLetterCode();
+    const String& res_n_string = res_n.getOneLetterCode();
+    const String& res_c_string = res_c.getOneLetterCode();
 
     Size num_aa = aa_to_index_.size();
     Int index = 1;

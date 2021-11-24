@@ -68,7 +68,7 @@ START_SECTION((MassDecomposition(const MassDecomposition &deco)))
 	TEST_EQUAL(md.getNumberOfMaxAA(), 200)
 	TEST_STRING_EQUAL(md.toString(), "C3 M4 S200")
 
-	MassDecomposition md2(md);
+	const MassDecomposition& md2(md);
 	TEST_EQUAL(md2.getNumberOfMaxAA(), 200)
 	TEST_STRING_EQUAL(md2.toString(), "C3 M4 S200")
 }

@@ -97,7 +97,7 @@ START_SECTION((KDTreeFeatureNode(const KDTreeFeatureNode& rhs)))
 END_SECTION
 
 START_SECTION((KDTreeFeatureNode& operator=(KDTreeFeatureNode const& rhs)))
-  KDTreeFeatureNode node_2 = node_1;
+  const KDTreeFeatureNode& node_2 = node_1;
   TEST_EQUAL(node_2.getIndex(), node_1.getIndex())
   TEST_REAL_SIMILAR(node_2[0], node_1[0])
   TEST_REAL_SIMILAR(node_2[1], node_1[1])

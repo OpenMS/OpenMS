@@ -98,7 +98,7 @@ public:
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "ContinuousWaveletTransformNumIntegration::transform: start " << begin_input->getMZ() << " until " << (end_input - 1)->getMZ() << std::endl;
 #endif
-      if (fabs(resolution - 1) < 0.0001)
+      if (std::fabs(resolution - 1) < 0.0001)
       {
         // resolution = 1 corresponds to the cwt at supporting points which have a distance corresponding to the minimal spacing in [begin_input,end_input)
         SignedSize n = distance(begin_input, end_input);

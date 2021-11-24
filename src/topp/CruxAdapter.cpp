@@ -363,7 +363,7 @@ protected:
       }
       params += debug_args;
 
-      String extra_args = concat;
+      const String& extra_args = concat;
       params += extra_args;
 
       params += " --mzid-output T --decoy-xml-output T ";

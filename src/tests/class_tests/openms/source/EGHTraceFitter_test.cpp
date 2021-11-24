@@ -280,7 +280,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter(const EGHTraceFitter& other)))
 {
-  EGHTraceFitter egh1(egh_trace_fitter);
+  const EGHTraceFitter& egh1(egh_trace_fitter);
 
   TEST_EQUAL(egh1.getCenter(),egh_trace_fitter.getCenter())
   TEST_EQUAL(egh1.getHeight(),egh_trace_fitter.getHeight())

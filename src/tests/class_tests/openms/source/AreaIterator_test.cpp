@@ -128,7 +128,7 @@ START_SECTION((AreaIterator(const AreaIterator &rhs)))
 	AI a1;
 	AI a2(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
 
-	AI a3(a2);
+	const AI& a3(a2);
 	TEST_EQUAL(a3==a1, false)
 	TEST_EQUAL(a3==a2, true)
 	

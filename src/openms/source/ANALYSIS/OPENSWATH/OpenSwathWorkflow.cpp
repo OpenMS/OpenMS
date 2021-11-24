@@ -492,7 +492,7 @@ namespace OpenMS
       FeatureMap featureFile;
       boost::shared_ptr<MSExperiment> empty_exp = boost::shared_ptr<MSExperiment>(new MSExperiment);
 
-      OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
+      const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used, 
                             feature_finder_param, trafo,
                             cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, true);

@@ -258,7 +258,7 @@ namespace OpenMS::Internal
             act_index_tuple.setCharge(charge);
           }
 
-          act_cons_element_.insert(std::move(act_index_tuple));
+          act_cons_element_.insert(act_index_tuple);
         }
       }
       act_cons_element_.getPosition() = pos_;

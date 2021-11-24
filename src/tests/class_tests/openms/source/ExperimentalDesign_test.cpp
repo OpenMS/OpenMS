@@ -99,7 +99,7 @@ END_SECTION
 
 START_SECTION((const MSFileSection& getMSFileSection() const ))
 {
-  ExperimentalDesign::MSFileSection fs = labelfree_unfractionated_design.getMSFileSection();
+  const ExperimentalDesign::MSFileSection& fs = labelfree_unfractionated_design.getMSFileSection();
 }
 END_SECTION
 
@@ -113,7 +113,7 @@ END_SECTION
 
 START_SECTION((const ExperimentalDesign::SampleSection& getSampleSection() const ))
 {
-  ExperimentalDesign::SampleSection ss = labelfree_unfractionated_design.getSampleSection();
+  const ExperimentalDesign::SampleSection& ss = labelfree_unfractionated_design.getSampleSection();
 }
 END_SECTION
 
@@ -288,9 +288,9 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   // Note: Factors are the same (correctness tested in ExperimentalDesign::SampleSection::getFactors())
   const auto lns = labelfree_unfractionated_design.getNumberOfSamples();
 
-  auto lss_tt = labelfree_unfractionated_design.getSampleSection();
-  auto lss_st = labelfree_unfractionated_single_table_design.getSampleSection();
-  auto lss_stns = labelfree_unfractionated_single_table_no_sample_column.getSampleSection();
+  const auto& lss_tt = labelfree_unfractionated_design.getSampleSection();
+  const auto& lss_st = labelfree_unfractionated_single_table_design.getSampleSection();
+  const auto& lss_stns = labelfree_unfractionated_single_table_no_sample_column.getSampleSection();
 
   // 12 samples (see getNumberOfSamples test)
   for (size_t sample = 1; sample <= lns; ++sample)
@@ -308,8 +308,8 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   }    
 
   const auto fns = fourplex_fractionated_design.getNumberOfSamples();
-  auto fss_tt = fourplex_fractionated_design.getSampleSection();
-  auto fss_st = fourplex_fractionated_single_table_design.getSampleSection();
+  const auto& fss_tt = fourplex_fractionated_design.getSampleSection();
+  const auto& fss_st = fourplex_fractionated_single_table_design.getSampleSection();
   // 8 samples (see getNumberOfSamples test)
   for (size_t sample = 1; sample <= fns; ++sample)
   {

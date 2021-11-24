@@ -260,7 +260,7 @@ namespace OpenMS
 
       const PeakMap& exp = *layer.getPeakData();
       float mz_origin = 0.0;
-      auto rt_area = area; // check overlap with chrom's RT
+      const auto& rt_area = area; // check overlap with chrom's RT
 
       int count {-1};
       for (const auto& chrom : exp.getChromatograms())
@@ -863,7 +863,7 @@ namespace OpenMS
       {
         //paint hull points
         ConvexHull2D hull = i->getConvexHull();
-        ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
+        const ConvexHull2D::PointArrayType& ch_points = hull.getHullPoints();
         QPolygon points;
         points.resize((int)ch_points.size());
 

@@ -89,15 +89,15 @@ namespace OpenMS
     name_(std::move(rhs.name_)),
     peptide_ref_(std::move(rhs.peptide_ref_)),
     compound_ref_(std::move(rhs.compound_ref_)),
-    library_intensity_(std::move(rhs.library_intensity_)),
-    decoy_type_(std::move(rhs.decoy_type_)),
-    precursor_mz_(std::move(rhs.precursor_mz_)),
-    precursor_cv_terms_(std::move(rhs.precursor_cv_terms_)),
+    library_intensity_(rhs.library_intensity_),
+    decoy_type_(rhs.decoy_type_),
+    precursor_mz_(rhs.precursor_mz_),
+    precursor_cv_terms_(rhs.precursor_cv_terms_),
     product_(std::move(rhs.product_)),
     intermediate_products_(std::move(rhs.intermediate_products_)),
     rts(std::move(rhs.rts)),
-    prediction_(std::move(rhs.prediction_)),
-    transition_flags_(std::move(rhs.transition_flags_))
+    prediction_(rhs.prediction_),
+    transition_flags_(rhs.transition_flags_)
   {
     rhs.precursor_cv_terms_ = nullptr;
     rhs.prediction_ = nullptr;
@@ -152,13 +152,13 @@ namespace OpenMS
       name_ = std::move(rhs.name_);
       peptide_ref_ = std::move(rhs.peptide_ref_);
       compound_ref_ = std::move(rhs.compound_ref_);
-      precursor_mz_ = std::move(rhs.precursor_mz_);
+      precursor_mz_ = rhs.precursor_mz_;
       intermediate_products_ = std::move(rhs.intermediate_products_);
       product_ = std::move(rhs.product_);
       rts = std::move(rhs.rts);
-      library_intensity_ = std::move(rhs.library_intensity_);
-      decoy_type_ = std::move(rhs.decoy_type_);
-      transition_flags_ = std::move(rhs.transition_flags_);
+      library_intensity_ = rhs.library_intensity_;
+      decoy_type_ = rhs.decoy_type_;
+      transition_flags_ = rhs.transition_flags_;
 
       // Move the ptr-based objects to the current objects and delete them in the rhs
       delete precursor_cv_terms_;
