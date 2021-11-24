@@ -40,6 +40,11 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataIdent.h>
 
 // QT
 #include <QPainter>
@@ -383,74 +388,69 @@ namespace OpenMS
     painter.restore();
   }
 
+
+  void augmentLayer(LayerDataBase* new_layer, const Param& param, const String& filename)
+  {
+    new_layer->param = param;
+    new_layer->filename = filename;
+    new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+  }
+
   bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
-    LayerData new_layer;
-    new_layer.param = param_;
-    new_layer.filename = filename;
-    new_layer.setName(QFileInfo(filename.toQString()).completeBaseName());
-    new_layer.setPeakData(map);
-    new_layer.setOnDiscPeakData(od_map);
-
     // both empty
-    if (!new_layer.getPeakData()->getChromatograms().empty() 
-     && !new_layer.getPeakData()->empty())
+    if (!map->getChromatograms().empty() 
+     && !map->empty())
     {
       // TODO : handle this case better
       OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
+    LayerDataBaseUPtr new_layer;
     // check which one is empty
-    if (!new_layer.getPeakData()->getChromatograms().empty() 
-      && new_layer.getPeakData()->empty())
+    if (!map->getChromatograms().empty() 
+      && map->empty())
     {
-      new_layer.type = LayerData::DT_CHROMATOGRAM;
+      new_layer.reset(new LayerDataChrom);
     }
     else
     {
-      new_layer.type = LayerData::DT_PEAK;
+      new_layer.reset(new LayerDataPeak);
     }
+    new_layer->setPeakData(map);
+    new_layer->setOnDiscPeakData(od_map);
     
+    augmentLayer(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
   bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
   {
-    LayerData new_layer;
-    new_layer.param = param_;
-    new_layer.filename = filename;
-    new_layer.setName(QFileInfo(filename.toQString()).completeBaseName());
-    new_layer.getFeatureMap() = map;
-    new_layer.type = LayerData::DT_FEATURE;
+    LayerDataBaseUPtr new_layer(new LayerDataFeature);
+    new_layer->getFeatureMap() = map;
 
+    augmentLayer(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
   bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    LayerData new_layer;
-    new_layer.param = param_;
-    new_layer.filename = filename;
-    new_layer.setName(QFileInfo(filename.toQString()).completeBaseName());
-    new_layer.getConsensusMap() = map;
-    new_layer.type = LayerData::DT_CONSENSUS;
+    LayerDataBaseUPtr new_layer(new LayerDataConsensus);
+    new_layer->getConsensusMap() = map;
 
+    augmentLayer(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(vector<PeptideIdentification> & peptides,
-                                const String & filename)
+  bool PlotCanvas::addLayer(vector<PeptideIdentification> & peptides, const String & filename)
   {
-    LayerData new_layer;
-    new_layer.param = param_;
-    new_layer.filename = filename;
-    new_layer.setName(QFileInfo(filename.toQString()).completeBaseName());
-    new_layer.peptides.swap(peptides);
-    new_layer.type = LayerData::DT_IDENT;
+    LayerDataBaseUPtr new_layer(new LayerDataIdent);
+    new_layer->peptides.swap(peptides);
 
+    augmentLayer(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_(); 
   }
@@ -477,7 +477,7 @@ namespace OpenMS
 
   void PlotCanvas::changeVisibility(Size i, bool b)
   {
-    LayerData& layer = getLayer(i);
+    LayerDataBase& layer = getLayer(i);
     if (layer.visible != b)
     {
       layer.visible = b;
@@ -488,7 +488,7 @@ namespace OpenMS
 
   void PlotCanvas::changeLayerFilterState(Size i, bool b)
   {
-    LayerData & layer = getLayer(i);
+    LayerDataBase& layer = getLayer(i);
     if (layer.filters.isActive() != b)
     {
       layer.filters.setActive(b);
@@ -510,7 +510,7 @@ namespace OpenMS
 
     for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)
     {
-      if (getLayer(layer_index).type == LayerData::DT_PEAK || getLayer(layer_index).type == LayerData::DT_CHROMATOGRAM)
+      if (getLayer(layer_index).type == LayerDataBase::DT_PEAK || getLayer(layer_index).type == LayerDataBase::DT_CHROMATOGRAM)
       {
         const ExperimentType & map = *getLayer(layer_index).getPeakData();
         if (map.getMinMZ() < m_min[mz_dim])
@@ -538,7 +538,7 @@ namespace OpenMS
           m_max[it_dim] = map.getMaxInt();
         }
       }
-      else if (getLayer(layer_index).type == LayerData::DT_FEATURE)
+      else if (getLayer(layer_index).type == LayerDataBase::DT_FEATURE)
       {
         const FeatureMapType & map = *getLayer(layer_index).getFeatureMap();
         if (map.getMin()[1] < m_min[mz_dim])
@@ -566,7 +566,7 @@ namespace OpenMS
           m_max[it_dim] = map.getMaxInt();
         }
       }
-      else if (getLayer(layer_index).type == LayerData::DT_CONSENSUS)
+      else if (getLayer(layer_index).type == LayerDataBase::DT_CONSENSUS)
       {
         const ConsensusMapType & map = *getLayer(layer_index).getConsensusMap();
         if (map.getMin()[1] < m_min[mz_dim])
@@ -594,7 +594,7 @@ namespace OpenMS
           m_max[it_dim] = map.getMaxInt();
         }
       }
-      else if (getLayer(layer_index).type == LayerData::DT_IDENT)
+      else if (getLayer(layer_index).type == LayerDataBase::DT_IDENT)
       {
         const vector<PeptideIdentification> & peptides =
           getLayer(layer_index).peptides;
@@ -783,8 +783,8 @@ namespace OpenMS
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
-    if (layer.type == LayerData::DT_PEAK)
+    const LayerDataBase& layer = getCurrentLayer();
+    if (layer.type == LayerDataBase::DT_PEAK)
     {
       const AreaType & area = getVisibleArea();
       const ExperimentType & peaks = *layer.getPeakData();
@@ -842,7 +842,7 @@ namespace OpenMS
         // do not use map.addSpectrum() here, otherwise empty spectra which did not pass the filters above will be added
       }
     }
-    else if (layer.type == LayerData::DT_CHROMATOGRAM)
+    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }
@@ -853,8 +853,8 @@ namespace OpenMS
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
-    if (layer.type == LayerData::DT_FEATURE)
+    const LayerDataBase& layer = getCurrentLayer();
+    if (layer.type == LayerDataBase::DT_FEATURE)
     {
       //copy meta data
       map.setIdentifier(layer.getFeatureMap()->getIdentifier());
@@ -884,8 +884,8 @@ namespace OpenMS
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
-    if (layer.type == LayerData::DT_CONSENSUS)
+    const LayerDataBase& layer = getCurrentLayer();
+    if (layer.type == LayerDataBase::DT_CONSENSUS)
     {
       //copy file descriptions
       map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
@@ -914,8 +914,8 @@ namespace OpenMS
   {
     peptides.clear();
 
-    const LayerData& layer = getCurrentLayer();
-    if (layer.type == LayerData::DT_IDENT)
+    const LayerDataBase& layer = getCurrentLayer();
+    if (layer.type == LayerDataBase::DT_IDENT)
     {
       // copy peptides, if visible
       for (vector<PeptideIdentification>::const_iterator it =
@@ -934,12 +934,12 @@ namespace OpenMS
 
   void PlotCanvas::showMetaData(bool modifiable, Int index)
   {
-    LayerData& layer = getCurrentLayer();
+    LayerDataBase& layer = getCurrentLayer();
 
     MetaDataBrowser dlg(modifiable, this);
     if (index == -1)
     {
-      if (layer.type == LayerData::DT_PEAK)
+      if (layer.type == LayerDataBase::DT_PEAK)
       {
         dlg.add(*layer.getPeakDataMuteable());
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
@@ -948,42 +948,42 @@ namespace OpenMS
           dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
         }
       }
-      else if (layer.type == LayerData::DT_FEATURE)
+      else if (layer.type == LayerDataBase::DT_FEATURE)
       {
         dlg.add(*layer.getFeatureMap());
       }
-      else if (layer.type == LayerData::DT_CONSENSUS)
+      else if (layer.type == LayerDataBase::DT_CONSENSUS)
       {
         dlg.add(*layer.getConsensusMap());
       }
-      else if (layer.type == LayerData::DT_CHROMATOGRAM)
+      else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
         //TODO CHROM
       }
-      else if (layer.type == LayerData::DT_IDENT)
+      else if (layer.type == LayerDataBase::DT_IDENT)
       {
         // TODO IDENT
       }
     }
     else     //show element meta data
     {
-      if (layer.type == LayerData::DT_PEAK)
+      if (layer.type == LayerDataBase::DT_PEAK)
       {
         dlg.add((*layer.getPeakDataMuteable())[index]);
       }
-      else if (layer.type == LayerData::DT_FEATURE)
+      else if (layer.type == LayerDataBase::DT_FEATURE)
       {
         dlg.add((*layer.getFeatureMap())[index]);
       }
-      else if (layer.type == LayerData::DT_CONSENSUS)
+      else if (layer.type == LayerDataBase::DT_CONSENSUS)
       {
         dlg.add((*layer.getConsensusMap())[index]);
       }
-      else if (layer.type == LayerData::DT_CHROMATOGRAM)
+      else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
         //TODO CHROM
       }
-      else if (layer.type == LayerData::DT_IDENT)
+      else if (layer.type == LayerDataBase::DT_IDENT)
       {
         // TODO IDENT
       }
@@ -1016,7 +1016,7 @@ namespace OpenMS
 
   void PlotCanvas::modificationStatus_(Size layer_index, bool modified)
   {
-    LayerData & layer = getLayer(layer_index);
+    LayerDataBase& layer = getLayer(layer_index);
     if (layer.modified != modified)
     {
       layer.modified = modified;
@@ -1038,7 +1038,7 @@ namespace OpenMS
                                                   const PeptideIdentification &
                                                   peptide) const
   {
-    if (getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ))
+    if (getLayerFlag(layer_index, LayerDataBase::I_PEPTIDEMZ))
     {
       const PeptideHit & hit = peptide.getHits().front();
       Int charge = hit.getCharge();
@@ -1050,56 +1050,53 @@ namespace OpenMS
     }
   }
 
-
-  /// adds a new layer and makes it the current layer
-
-  void LayerStack::addLayer(LayerData&& new_layer)
+  void LayerStack::addLayer(LayerDataBaseUPtr new_layer)
   {
     // insert after last layer of same type, 
     // if there is no such layer after last layer of previous types, 
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l)
-    { return l.type <= new_layer.type; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerDataBaseUPtr& l)
+    { return l->type <= new_layer->type; });
 
     auto where = layers_.insert(it.base(), std::move(new_layer));
     // update to index we just inserted into
     current_layer_ = where - layers_.begin();
   }
 
-  const LayerData& LayerStack::getLayer(const Size index) const
+  const LayerDataBase& LayerStack::getLayer(const Size index) const
   {
     if (index >= layers_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
     }
-    return layers_[index];
+    return *layers_[index].get();
   }
 
-  LayerData& LayerStack::getLayer(const Size index)
+  LayerDataBase& LayerStack::getLayer(const Size index)
   {
     if (index >= layers_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
     }
-    return layers_[index];
+    return *layers_[index].get();
   }
 
-  const LayerData& LayerStack::getCurrentLayer() const
+  const LayerDataBase& LayerStack::getCurrentLayer() const
   {
     if (current_layer_ >= layers_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
     }
-    return layers_[current_layer_];
+    return *layers_[current_layer_].get();
   }
 
-  LayerData& LayerStack::getCurrentLayer()
+  LayerDataBase& LayerStack::getCurrentLayer()
   {
     if (current_layer_ >= layers_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
     }
-    return layers_[current_layer_];
+    return *layers_[current_layer_].get();
   }
 
   void LayerStack::setCurrentLayer(Size index)

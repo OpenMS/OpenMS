@@ -618,3 +618,4 @@ namespace OpenMS
   OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream& os, const LayerDataBase& rhs);
 
 }// namespace OpenMS
+

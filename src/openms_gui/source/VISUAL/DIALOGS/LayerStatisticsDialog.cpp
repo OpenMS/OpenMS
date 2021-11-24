@@ -52,11 +52,11 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     
-    if (layer_data_.type == LayerData::DT_PEAK)
+    if (layer_data_.type == LayerDataBase::DT_PEAK)
     {
       computePeakStats_();
     }
-    else if (layer_data_.type == LayerData::DT_FEATURE)
+    else if (layer_data_.type == LayerDataBase::DT_FEATURE)
     {
       computeFeatureStats_();
 
@@ -103,7 +103,7 @@ namespace OpenMS
       ui_->table_->setItem(2, 3, item);
 
     }
-    else if (layer_data_.type == LayerData::DT_CONSENSUS)
+    else if (layer_data_.type == LayerDataBase::DT_CONSENSUS)
     {
       computeConsensusStats_();
 
@@ -169,7 +169,7 @@ namespace OpenMS
       ui_->table_->setItem(3, 3, item);
 
     }
-    else if (layer_data_.type == LayerData::DT_CHROMATOGRAM)
+    else if (layer_data_.type == LayerDataBase::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }
@@ -286,7 +286,7 @@ namespace OpenMS
     max_intensity_ = canvas_->getCurrentMaxIntensity();
     avg_intensity_ = 0;
     unsigned long divisor = 0;
-    for (LayerData::ExperimentType::ConstIterator it_rt = layer_data_.getPeakData()->begin(); it_rt != layer_data_.getPeakData()->end(); it_rt++)
+    for (LayerDataBase::ExperimentType::ConstIterator it_rt = layer_data_.getPeakData()->begin(); it_rt != layer_data_.getPeakData()->end(); it_rt++)
     {
       for (PeakIterator_ it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
       {

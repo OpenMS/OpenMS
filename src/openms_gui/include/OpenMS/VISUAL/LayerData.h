@@ -32,6 +32,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#error No not use this header...
+
 #pragma once
 
 // OpenMS_GUI config
