@@ -145,7 +145,7 @@ namespace OpenMS
   }
 
   ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(ReactionMonitoringTransition && rhs)
-  {
+ noexcept   {
     if (&rhs != this)
     {
       CVTermList::operator=(std::move(rhs));

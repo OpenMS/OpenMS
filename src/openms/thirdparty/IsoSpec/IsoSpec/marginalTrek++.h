@@ -74,7 +74,7 @@ class Marginal
     Marginal(const Marginal& other);
 
     //! Move constructor.
-    Marginal(Marginal&& other);
+    Marginal(Marginal&& other) noexcept ;
 
     //! Destructor.
     virtual ~Marginal();
