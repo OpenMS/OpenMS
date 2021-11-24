@@ -298,7 +298,7 @@ public:
       @param alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
-    static const String& getTemporaryFile(const String& alternative_file = "");
+    static String getTemporaryFile(const String& alternative_file = "");
 
     /**
       @brief Helper function to test if filenames provided in two StringLists match.
