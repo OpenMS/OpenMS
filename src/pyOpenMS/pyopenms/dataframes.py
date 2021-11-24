@@ -218,13 +218,14 @@ class FeatureMapDF(FeatureMap):
             vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values]
             
             if export_peptide_identifications:
-                pep_values = (None, None, None, None)
                 if len(pep) > 0:
                     ID_filename = self.__get_prot_id_filename_from_pep_id(pep[0])
                     hits = pep[0].getHits()
                     if len(hits) > 0:
                         besthit = hits[0]
                         pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, f.getMetaValue('spectrum_native_id'))
+                else:
+                    pep_values = (None, None, None, None)
             else:
                 pep_values = ()
 
@@ -256,7 +257,7 @@ class FeatureMapDF(FeatureMap):
         A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
         merged with the FeatureMap DataFrame with:
         merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
-        
+
         Returns:
         [PeptideIdentification]: list of PeptideIdentification objects
         """
@@ -269,6 +270,8 @@ class FeatureMapDF(FeatureMap):
                     hit.setMetaValue('ID_filename', self.__get_prot_id_filename_from_pep_id(pep))
                     if f.metaValueExists('spectrum_native_id'):
                         hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
+                    else:
+                        hit.setMetaValue('ID_native_id', 'unknown')
                     hits.append(hit)
                 pep.setHits(hits)
                 result.append(pep)
