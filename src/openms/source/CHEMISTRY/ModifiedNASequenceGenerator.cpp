@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h>
+
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 #include <vector>
 #include <map>
+#include <algorithm>
 
 using std::vector;
 using std::set;

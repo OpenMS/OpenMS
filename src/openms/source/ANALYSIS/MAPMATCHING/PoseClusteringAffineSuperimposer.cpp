@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
 
 // #define Debug_PoseClusteringAffineSuperimposer
 
@@ -413,7 +414,7 @@ namespace OpenMS
         }
         freq_cutoff = buffer[--index];   // note that we have index >= 1
       }
-    } while (0);
+    } while (false);
 
     // ***************************************************************************
     // apply freq_cutoff, setting smaller values to zero
@@ -611,7 +612,7 @@ namespace OpenMS
           freq_cutoff_high = buffer[--index]; // note that we have index >= 1
         }
       }
-    } while (0);
+    } while (false);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)

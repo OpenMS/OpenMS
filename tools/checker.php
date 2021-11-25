@@ -544,7 +544,6 @@ foreach ($files_todo as $f)
   $dont_load = array(
     "IsotopeCluster.h",
     "RangeUtils.h",
-    "ComparatorUtils.h",
     "StatisticFunctions.h",
     "KernelTraits.h",
     "StandardTypes.h",

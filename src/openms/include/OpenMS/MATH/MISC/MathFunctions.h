@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <boost/math/special_functions/gamma.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
@@ -315,20 +314,7 @@ namespace OpenMS
     }
     
     /**
-       @brief Return the ln(x!) of a value
-       
-       This functions comes handy when there are large factorials in a ratio formula.
-       
-       @param x an integer value
-       @return natural logarithm of factorial x
-    */
-    inline double factLn(UInt x)
-    {
-      return lgamma(double(x+1));
-    }
-
-    /**
-       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @p x
     */
     template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
@@ -372,7 +358,6 @@ namespace OpenMS
           std::swap(first[i], first[d(rng_)]);
         }
       }
-
 
       void seed(uint64_t val)
       {

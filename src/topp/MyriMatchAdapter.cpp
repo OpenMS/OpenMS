@@ -126,12 +126,24 @@ protected:
 
     bool operator<(const MyriMatchVersion& v) const
     {
-      if (myrimatch_major > v.myrimatch_major) return false;
-      else if (myrimatch_major < v.myrimatch_major) return true;
+      if (myrimatch_major > v.myrimatch_major)
+      {
+        return false;
+      }
+      else if (myrimatch_major < v.myrimatch_major)
+      {
+        return true;
+      }
       else
       {
-        if (myrimatch_minor > v.myrimatch_minor) return false;
-        else if (myrimatch_minor < v.myrimatch_minor) return true;
+        if (myrimatch_minor > v.myrimatch_minor)
+        {
+          return false;
+        }
+        else if (myrimatch_minor < v.myrimatch_minor)
+        {
+          return true;
+        }
         else
         {
           return myrimatch_patch < v.myrimatch_patch;
@@ -145,8 +157,10 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
-
+    if (nums.size() != 3)
+    {
+      return false;
+    }
     myrimatch_version_i.myrimatch_major = nums[0];
     myrimatch_version_i.myrimatch_minor = nums[1];
     myrimatch_version_i.myrimatch_patch = nums[2];
@@ -342,16 +356,22 @@ protected:
     // building parameter String
     StringList parameters;
 
-    if (getFlag_("ignoreConfigErrors")) parameters << "-ignoreConfigErrors";
-
+    if (getFlag_("ignoreConfigErrors"))
+    {
+      parameters << "-ignoreConfigErrors";
+    }
     // Common Identification engine options
     StringList static_mod_list;
     StringList dynamic_mod_list;
     translateModifications(static_mod_list, dynamic_mod_list);
     if (!static_mod_list.empty())
+    {
       parameters << "-StaticMods" << ListUtils::concatenate(static_mod_list, " ");
+    }
     if (!dynamic_mod_list.empty())
+    {
       parameters << "-DynamicMods" << ListUtils::concatenate(dynamic_mod_list, " ");
+    }
 
     parameters << "-ProteinDatabase"  << File::absolutePath(db_name);
 

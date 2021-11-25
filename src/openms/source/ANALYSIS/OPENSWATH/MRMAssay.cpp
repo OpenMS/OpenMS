@@ -33,7 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <boost/lexical_cast.hpp>
 #include <regex>
+#include <unordered_set>
 
 using namespace std;
 
@@ -817,7 +822,7 @@ namespace OpenMS
     }
     endProgress();
 
-    exp.setTransitions(transitions);
+    exp.setTransitions(std::move(transitions));
   }
 
   void MRMAssay::restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, const std::vector<std::pair<double, double> >& swathes)
@@ -870,17 +875,19 @@ namespace OpenMS
       // Append transition
       transitions.push_back(tr);
     }
-    endProgress();
 
-    exp.setTransitions(transitions);
+    exp.setTransitions(std::move(transitions));
+    endProgress();
   }
 
   void MRMAssay::detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     PeptideVectorType peptides;
-    std::vector<String> peptide_ids;
     ProteinVectorType proteins;
     TransitionVectorType transitions;
+
+    std::unordered_set<String> peptide_ids;
+    std::unordered_set<String> ProteinList;
 
     Map<String, TransitionVectorType> TransitionsMap;
 
@@ -897,9 +904,12 @@ namespace OpenMS
       TransitionsMap[tr.getPeptideRef()].push_back(tr);
     }
 
+    Size progress = 0;
+    startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
+      setProgress(++progress);
       // Ensure that all precursors have the minimum number of transitions
       if (m->second.size() >= (Size)min_transitions)
       {
@@ -927,7 +937,10 @@ namespace OpenMS
         {
           ReactionMonitoringTransition tr = *tr_it;
 
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          if (
+              (std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) &&
+               tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY &&
+               j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -942,26 +955,22 @@ namespace OpenMS
           transitions.push_back(tr);
 
           // Append transition_group_id to index
-          if (std::find(peptide_ids.begin(), peptide_ids.end(), tr.getPeptideRef()) == peptide_ids.end())
-          {
-            peptide_ids.push_back(tr.getPeptideRef());
-          }
+          peptide_ids.insert(tr.getPeptideRef());
         }
       }
     }
 
-    std::vector<String> ProteinList;
-    for (Size i = 0; i < exp.getPeptides().size(); ++i)
+    for (const auto& peptide : exp.getPeptides())
     {
-      TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
+      setProgress(++progress);
 
       // Check if peptide has any transitions left
-      if (std::find(peptide_ids.begin(), peptide_ids.end(), peptide.id) != peptide_ids.end())
+      if (peptide_ids.find(peptide.id) != peptide_ids.end())
       {
         peptides.push_back(peptide);
-        for (Size j = 0; j < peptide.protein_refs.size(); ++j)
+        for (const auto& protein_ref : peptide.protein_refs)
         {
-          ProteinList.push_back(peptide.protein_refs[j]);
+          ProteinList.insert(protein_ref);
         }
       }
       else
@@ -970,12 +979,12 @@ namespace OpenMS
       }
     }
 
-    for (Size i = 0; i < exp.getProteins().size(); ++i)
+    for (const auto& protein : exp.getProteins())
     {
-      OpenMS::TargetedExperiment::Protein protein = exp.getProteins()[i];
+      setProgress(++progress);
 
       // Check if protein has any peptides left
-      if (find(ProteinList.begin(), ProteinList.end(), protein.id) != ProteinList.end())
+      if (ProteinList.find(protein.id) != ProteinList.end())
       {
         proteins.push_back(protein);
       }
@@ -985,9 +994,11 @@ namespace OpenMS
       }
     }
 
-    exp.setTransitions(transitions);
-    exp.setPeptides(peptides);
-    exp.setProteins(proteins);
+    exp.setTransitions(std::move(transitions));
+    exp.setPeptides(std::move(peptides));
+    exp.setProteins(std::move(proteins));
+
+    endProgress();
   }
 
   void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp,

@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureHandle.h>" namespace "OpenMS":
         # FeatureHandleMutable_  asMutable() nogil except +
 
         UInt64 getMapIndex() nogil except + # wrap-doc:Returns the map index
-        void setMapIndex(UInt64 i) nogil except + # wrap-doc:Set the map index
+        void setMapIndex(UInt64 i) nogil except + # wrap-doc:Sets the map index
         void setCharge(Int charge) nogil except + # wrap-doc:Sets the charge
         Int getCharge() nogil except + # wrap-doc:Returns the charge
         void setWidth(float width) nogil except + # wrap-doc:Sets the width (FWHM)

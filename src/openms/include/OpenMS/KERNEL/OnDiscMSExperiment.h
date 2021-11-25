@@ -42,9 +42,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 
-
 #include <vector>
-#include <algorithm>
 #include <limits>
 
 #include <boost/shared_ptr.hpp>

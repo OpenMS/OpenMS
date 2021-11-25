@@ -34,8 +34,10 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <boost/math/special_functions/acosh.hpp>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
+#include <boost/math/special_functions/acosh.hpp>
 
 #ifdef DEBUG_DECONV
 #include <iostream>

@@ -32,8 +32,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
-    ctypedef libcpp_map[unsigned long int, ColumnHeader] ColumnHeaders "OpenMS::ConsensusMap::ColumnHeaders"
-    ctypedef libcpp_map[unsigned long int, ColumnHeader].iterator ColumnHeaders_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
+    ctypedef libcpp_map[UInt64, ColumnHeader] ColumnHeaders "OpenMS::ConsensusMap::ColumnHeaders"
+    ctypedef libcpp_map[UInt64, ColumnHeader].iterator ColumnHeaders_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
@@ -72,8 +72,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         ConsensusFeature & operator[](int) nogil except + #wrap-upper-limit:size()
         void push_back(ConsensusFeature spec) nogil except +
 
-        ConsensusMap appendRows(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new rows.
-        ConsensusMap appendColumns(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new columns.
+        ConsensusMap appendRows(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new rows
+        ConsensusMap appendColumns(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new columns
 
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clears all data and meta data
         void clear() nogil except +
@@ -97,7 +97,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         libcpp_vector[DataProcessing] getDataProcessing() nogil except + # wrap-doc:Returns a const reference to the description of the applied data processing
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:Sets the description of the applied data processing
 
-        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Set the file paths to the primary MS run (stored in ColumnHeaders)
+        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Sets the file paths to the primary MS run (stored in ColumnHeaders)
         void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
 

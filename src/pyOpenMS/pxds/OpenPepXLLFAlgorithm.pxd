@@ -13,6 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "Open
     cdef cppclass OpenPepXLLFAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
+        # wrap-doc:
+        #   Search for cross-linked peptide pairs in tandem MS spectra
         OpenPepXLLFAlgorithm() nogil except +
         OpenPepXLLFAlgorithm(OpenPepXLLFAlgorithm &) nogil except + # compiler
 

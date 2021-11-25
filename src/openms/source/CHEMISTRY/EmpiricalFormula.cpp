@@ -44,10 +44,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-
 #include <boost/math/special_functions/binomial.hpp>
 
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 

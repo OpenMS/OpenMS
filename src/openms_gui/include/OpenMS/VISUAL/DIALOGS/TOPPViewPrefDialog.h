@@ -62,7 +62,7 @@ namespace OpenMS
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog();
+      ~TOPPViewPrefDialog() override;
 
       /// initialize GUI values with these parameters
       void setParam(const Param& param);

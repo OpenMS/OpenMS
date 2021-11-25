@@ -111,11 +111,11 @@ private:
     void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
 
     /**
-     * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
+     * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
      * @param pep_id Peptide ID to be assigned.
      * @param types Result vector containing the names of the crosslink classes
      */
-    static void assignTypes_(PeptideHit& ph, StringList& types);
+    static void assignTypes_(PeptideHit& pep_id, StringList& types);
 
     /** Target counting as performed by the xProphet software package
      *

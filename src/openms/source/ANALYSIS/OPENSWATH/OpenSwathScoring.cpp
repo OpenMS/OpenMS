@@ -34,12 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
@@ -47,8 +46,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
-
-// basic file operations
 
 namespace OpenMS
 {
@@ -64,7 +61,7 @@ namespace OpenMS
       sorted_indices.emplace_back(*mz_it, i);
       ++mz_it;
     }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end());                
 
     // extract list of indices
     std::vector<Size> select_indices;
@@ -491,6 +488,7 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
+    native_ids.reserve(transitions.size());
     for (const auto& trans : transitions)
     {
       native_ids.push_back(trans.getNativeID());

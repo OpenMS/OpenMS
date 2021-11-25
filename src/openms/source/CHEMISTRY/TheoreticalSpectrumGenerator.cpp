@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 
 #include <unordered_set>
 
@@ -144,7 +145,17 @@ namespace OpenMS
     PeakSpectrum::StringDataArray* ion_names;
     PeakSpectrum::IntegerDataArray* charges;
 
-    bool charges_dynamic = false, ion_names_dynamic = false;
+    bool charges_dynamic = false;
+    bool ion_names_dynamic = false;
+
+    // Assure memory is freed even if an exception occurs.
+    RAIICleanup _(
+      [&]
+        {
+          if (charges_dynamic) delete charges;
+          if (ion_names_dynamic) delete ion_names;
+        }
+    );
 
     if (spectrum.getIntegerDataArrays().empty())
     {
@@ -211,9 +222,6 @@ namespace OpenMS
         spectrum.getStringDataArrays().push_back(std::move(*ion_names));
       }
     }
-
-    if (charges_dynamic) delete charges;
-    if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
 

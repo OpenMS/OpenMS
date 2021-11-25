@@ -63,7 +63,7 @@ public:
     SpectraTreeTab(QWidget * parent = nullptr);
 
     /// Destructor
-    ~SpectraTreeTab() = default;
+    ~SpectraTreeTab() override = default;
 
     /// docu in base class
     bool hasData(const LayerData* layer) override;

@@ -231,8 +231,10 @@ protected:
     }
 
     PeakMap exp;
-    if (raw_data != "") MzMLFile().load(raw_data, exp);
-
+    if (raw_data != "")
+    {
+      MzMLFile().load(raw_data, exp);
+    }
     //-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
@@ -282,11 +284,16 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (next_prec != "") f_file.store(next_prec, new_precursors);
+      if (next_prec != "")
+      {
+        f_file.store(next_prec, new_precursors);
+      }
     }
 
-    if (out != "") f_file.store(out, f_map);
-
+    if (out != "")
+    {
+      f_file.store(out, f_map);
+    }
     return EXECUTION_OK;
   }
 

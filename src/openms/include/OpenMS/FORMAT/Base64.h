@@ -144,10 +144,10 @@ public:
         @brief Decodes a Base64 string to a QByteArray
 
         @param in A String containing the Base64 encoded data
-        @param out A ByteArray containing the decoded data
+        @param base64_uncompressed A ByteArray containing the decoded data
         @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
-    static void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
+    static void decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression);
 
 private:
 

@@ -1085,7 +1085,7 @@ namespace OpenMS
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
     if (!val.empty())
     {
-      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << R"( type="string" name="fragment_annotation" value=")" << writeXMLEscape(val) << "\"/>" << "\n";
     }
   }
 

@@ -38,7 +38,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -46,10 +46,14 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtCore/QDir>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 #ifdef _OPENMP
+#include <omp.h>
 #endif
 
 namespace OpenMS
@@ -589,7 +593,7 @@ namespace OpenMS
           tmp.setMetaValue("trace_score", meta[0][peak]);
           seed_map.push_back(tmp);
         }
-        FeatureXMLFile().store(String("debug/seeds_") + String(c) + ".featureXML", seed_map);
+        FileHandler().storeFeatures(String("debug/seeds_") + String(c) + ".featureXML", seed_map);
       }
 
       ff_->endProgress();
@@ -686,7 +690,7 @@ namespace OpenMS
 
         // choose fitter
         double egh_tau = 0.0;
-        TraceFitter* fitter = chooseTraceFitter_(egh_tau);
+        std::shared_ptr<TraceFitter> fitter = chooseTraceFitter_(egh_tau);
 
         fitter->setParameters(trace_fitter_params);
         fitter->fit(traces);
@@ -764,10 +768,10 @@ namespace OpenMS
         // Extract some of the model parameters.
         if (egh_tau != 0.0)
         {
-          egh_tau = (static_cast<EGHTraceFitter*>(fitter))->getTau();
+          egh_tau = (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getTau();
           f.setMetaValue("EGH_tau", egh_tau);
-          f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter*>(fitter))->getHeight());
-          f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter*>(fitter))->getSigma());
+          f.setMetaValue("EGH_height", (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getHeight());
+          f.setMetaValue("EGH_sigma", (std::dynamic_pointer_cast<EGHTraceFitter>(fitter))->getSigma());
         }
 
         // Calculate the mass of the feature: maximum, average, monoisotopic
@@ -801,9 +805,6 @@ namespace OpenMS
         // - the model does not include the baseline, so we ignore it here
         // - as we scaled the isotope distribution to
         f.setIntensity(fitter->getArea() / getIsotopeDistribution_(f.getMZ()).max);
-
-        // we do not need the fitter anymore
-        delete fitter;
 
         //add convex hulls of mass traces
         for (Size j = 0; j < traces.size(); ++j)
@@ -1030,7 +1031,7 @@ namespace OpenMS
         abort_map.push_back(f);
       }
       abort_map.setUniqueId();
-      FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
+      FileHandler().storeFeatures("debug/abort_reasons.featureXML", abort_map);
 
       //store input map with calculated scores (without overall score)
       for (auto& s : map_)
@@ -1841,19 +1842,19 @@ namespace OpenMS
     return final;
   }
 
-  TraceFitter* FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
+  std::unique_ptr<TraceFitter> FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
   {
     // choose fitter
     if (param_.getValue("feature:rt_shape") == "asymmetric")
     {
       OPENMS_LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
       tau = -1.0;
-      return new EGHTraceFitter();
+      return std::make_unique<EGHTraceFitter>();
     }
     else // if (param_.getValue("feature:rt_shape") == "symmetric")
     {
       OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
-      return new GaussTraceFitter();
+      return std::make_unique<GaussTraceFitter>();
     }
   }
 
@@ -1896,7 +1897,7 @@ namespace OpenMS
     return final;
   }
 
-  void FeatureFinderAlgorithmPicked::cropFeature_(TraceFitter* fitter,
+  void FeatureFinderAlgorithmPicked::cropFeature_(std::shared_ptr<TraceFitter> fitter,
                                                   const MassTraces& traces,
                                                   MassTraces& new_traces)
   {
@@ -1992,7 +1993,7 @@ namespace OpenMS
     new_traces.baseline = traces.baseline;
   }
 
-  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(TraceFitter* fitter,
+  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(std::shared_ptr<TraceFitter> fitter,
                                                           MassTraces& feature_traces,
                                                           const double& seed_mz, const double& min_feature_score,
                                                           String& error_msg, double& fit_score, double& correlation, double& final_score)
@@ -2074,7 +2075,7 @@ namespace OpenMS
     return true;
   }
 
-  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(TraceFitter* fitter,
+  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(std::shared_ptr<TraceFitter> fitter,
                                                             const MassTraces& traces,
                                                             const MassTraces& new_traces,
                                                             bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,

@@ -19,13 +19,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
                bool active) nogil except +
 
         Int getCharge(UInt pairID) nogil except + # wrap-doc:Returns the charge (for element 0 or 1)
-        void setCharge(UInt pairID, Int e) nogil except + # wrap-doc:Set the charge (for element 0 or 1)
+        void setCharge(UInt pairID, Int e) nogil except + # wrap-doc:Sets the charge (for element 0 or 1)
     
         Size getElementIndex(UInt pairID) nogil except + # wrap-doc:Returns the element index (for element 0 or 1)
-        void setElementIndex(UInt pairID, Size e) nogil except + # wrap-doc:Set the element index (for element 0 or 1)
+        void setElementIndex(UInt pairID, Size e) nogil except + # wrap-doc:Sets the element index (for element 0 or 1)
     
         Compomer getCompomer() nogil except + # wrap-doc:Returns the Id of the compomer that explains the mass difference
-        void setCompomer( Compomer & compomer) nogil except + # wrap-doc:Set the compomer id
+        void setCompomer( Compomer & compomer) nogil except + # wrap-doc:Sets the compomer id
     
         double getMassDiff() nogil except + # wrap-doc:Returns the mass difference
         void setMassDiff(double mass_diff) nogil except + # wrap-doc:Sets the mass difference
@@ -35,4 +35,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
     
         bool isActive() nogil except + # wrap-doc:Is this pair realized?
         void setActive( bool active) nogil except +
-

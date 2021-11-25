@@ -298,6 +298,31 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::removeUnreferencedProteins(
+      ProteinIdentification& proteins,
+      const vector<PeptideIdentification>& peptides)
+  {
+    // collect accessions that are referenced by peptides for each ID run:
+    map<String, unordered_set<String> > run_to_accessions;
+    for (const PeptideIdentification& pep_it : peptides)
+    {
+      const String& run_id = pep_it.getIdentifier();
+      // extract protein accessions of each peptide hit:
+      for (const PeptideHit& hit_it : pep_it.getHits())
+      {
+        const set<String>& current_accessions =
+            hit_it.extractProteinAccessionsSet();
+
+        run_to_accessions[run_id].insert(current_accessions.begin(),
+                                         current_accessions.end());
+      }
+    }
+
+    const String& run_id = proteins.getIdentifier();
+    const unordered_set<String>& accessions = run_to_accessions[run_id];
+    struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+    keepMatchingItems(proteins.getHits(), acc_filter);
+  }
 
   void IDFilter::removeUnreferencedProteins(
     vector<ProteinIdentification>& proteins,
@@ -328,6 +353,7 @@ namespace OpenMS
     }
   }
 
+  //TODO write version where you look up in a specific run (e.g. first inference run
   void IDFilter::updateProteinReferences(
       ConsensusMap& cmap,
       bool remove_peptides_without_reference)
@@ -371,6 +397,48 @@ namespace OpenMS
 
     cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
+
+  void IDFilter::updateProteinReferences(
+      ConsensusMap& cmap,
+      const ProteinIdentification& ref_run,
+      bool remove_peptides_without_reference)
+  {
+    // collect valid protein accessions for each ID run:
+    unordered_set<String> accessions_avail;
+
+    for (const ProteinHit& hit : ref_run.getHits())
+    {
+      accessions_avail.insert(hit.getAccession());
+    }
+
+    // TODO could be refactored and pulled out
+    auto check_prots_avail = [&accessions_avail, &remove_peptides_without_reference]
+        (PeptideIdentification& pep_it) -> void
+      {
+          // const String& run_id = pep_it.getIdentifier();
+          const unordered_set<String>& accessions = accessions_avail;
+          struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
+          // check protein accessions of each peptide hit
+          for (PeptideHit& hit_it : pep_it.getHits())
+          {
+            // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
+            // can't use "keepMatchingItems":
+            vector<PeptideEvidence> evidences;
+            remove_copy_if(hit_it.getPeptideEvidences().begin(),
+                           hit_it.getPeptideEvidences().end(),
+                           back_inserter(evidences),
+                           not1(acc_filter));
+            hit_it.setPeptideEvidences(evidences);
+          }
+
+          if (remove_peptides_without_reference)
+          {
+            removeMatchingItems(pep_it.getHits(), HasNoEvidence());
+          }
+      };
+
+    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
+}
 
   void IDFilter::updateProteinReferences(
     vector<PeptideIdentification>& peptides,

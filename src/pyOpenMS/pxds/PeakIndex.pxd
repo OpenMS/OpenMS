@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
         void clear() nogil except + # wrap-doc:Invalidates the current index
         Feature getFeature(FeatureMap & map_) nogil except +
             # wrap-doc:
-                #   Access to the feature (or consensus feature) corresponding to this index
+                #   Returns the feature (or consensus feature) corresponding to this index
                 #   -----
                 #   This method is intended for arrays of features e.g. FeatureMap
                 #   -----
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
 
         Peak1D getPeak(MSExperiment & map_) nogil except +
             # wrap-doc:
-                #   Access to a peak corresponding to this index
+                #   Returns a peak corresponding to this index
                 #   -----
                 #   This method is intended for arrays of DSpectra e.g. MSExperiment
                 #   -----
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
 
         MSSpectrum getSpectrum(MSExperiment & map_) nogil except +
             # wrap-doc:
-                #   Access to a spectrum corresponding to this index
+                #   Returns a spectrum corresponding to this index
                 #   -----
                 #   This method is intended for arrays of DSpectra e.g. MSExperiment
                 #   -----

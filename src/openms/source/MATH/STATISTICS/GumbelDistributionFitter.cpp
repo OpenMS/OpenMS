@@ -65,56 +65,59 @@ namespace OpenMS::Math
       init_param_ = param;
     }
 
-    struct GumbelDistributionFunctor
+    namespace // anonymous namespace to prevent name clashes with GumbleMaxLikelihoodFitter
     {
-      int inputs() const { return m_inputs; }
-      int values() const { return m_values; }
-
-      GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
-      : m_inputs(dimensions), 
-        m_values(static_cast<int>(data->size())), 
-        m_data(data) 
+      struct GumbelDistributionFunctor
       {
-      }
+        int inputs() const { return m_inputs; }
+        int values() const { return m_values; }
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
-      {
-        double a = x(0); //location
-        double b = x(1); //scale
-
-        UInt i = 0;
-        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
+        : m_inputs(dimensions), 
+          m_values(static_cast<int>(data->size())), 
+          m_data(data) 
         {
-          double the_x = it->getX();
-          double z = exp((a - the_x) / b);
-          fvec(i) = (z * exp(-1 * z)) / b - it->getY();
         }
-        return 0;
-      }
-      // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
-      {
-        double a = x(0);
-        double b = x(1);
-        UInt i = 0;
-        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
-        {
-          double the_x = it->getX();
-          double z = exp((a - the_x) / b);
-          double f = z * exp(-1 * z);
-          double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
-          J(i,0) = part_dev_a;
-          double dev_z =  ((the_x - a) / pow(b, 2));
-          double cum = f * dev_z;
-          double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
-          J(i,1) = part_dev_b;
-        }
-        return 0;
-      }
 
-      const int m_inputs, m_values;
-      const std::vector<DPosition<2> >* m_data;
-    };
+        int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+        {
+          double a = x(0); //location
+          double b = x(1); //scale
+
+          UInt i = 0;
+          for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            double the_x = it->getX();
+            double z = exp((a - the_x) / b);
+            fvec(i) = (z * exp(-1 * z)) / b - it->getY();
+          }
+          return 0;
+        }
+        // compute Jacobian matrix for the different parameters
+        int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+        {
+          double a = x(0);
+          double b = x(1);
+          UInt i = 0;
+          for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            double the_x = it->getX();
+            double z = exp((a - the_x) / b);
+            double f = z * exp(-1 * z);
+            double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
+            J(i,0) = part_dev_a;
+            double dev_z =  ((the_x - a) / pow(b, 2));
+            double cum = f * dev_z;
+            double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
+            J(i,1) = part_dev_b;
+          }
+          return 0;
+        }
+
+        const int m_inputs, m_values;
+        const std::vector<DPosition<2> >* m_data;
+      };
+    }
 
     GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input)
     {

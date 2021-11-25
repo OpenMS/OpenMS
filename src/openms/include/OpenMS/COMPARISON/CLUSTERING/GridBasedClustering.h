@@ -49,7 +49,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -133,7 +133,7 @@ public:
     typedef GridBasedCluster::Rectangle Rectangle; // DBoundingBox<2>
     typedef ClusteringGrid::CellIndex CellIndex; // std::pair<int,int>
     typedef std::multiset<MinimumDistance>::const_iterator MultisetIterator;
-    typedef boost::unordered::unordered_multimap<int, MultisetIterator>::const_iterator NNIterator;
+    typedef std::unordered_multimap<int, MultisetIterator>::const_iterator NNIterator;
 
     /**
      * @brief initialises all data structures
@@ -480,13 +480,13 @@ private:
      * @brief reverse nearest neighbor lookup table
      * for finding out which clusters need to be updated faster
      */
-    boost::unordered::unordered_multimap<int, std::multiset<MinimumDistance>::const_iterator> reverse_nns_;
+    std::unordered_multimap<int, std::multiset<MinimumDistance>::const_iterator> reverse_nns_;
 
     /**
      * @brief cluster index to distance iterator lookup table
      * for finding out which clusters need to be updated faster
      */
-    boost::unordered::unordered_map<int, std::multiset<MinimumDistance>::const_iterator> distance_it_for_cluster_idx_;
+    std::unordered_map<int, std::multiset<MinimumDistance>::const_iterator> distance_it_for_cluster_idx_;
 
     /**
      * @brief initialises all data structures

@@ -32,6 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
@@ -43,6 +45,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -1448,6 +1451,64 @@ namespace OpenMS
     }
   }
 
+  void AASequence::setModification(Size index, const ResidueModification* modindb)
+  {
+    if (index >= peptide_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
+    }
+    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], modindb);
+  }
+
+  void AASequence::setModification(Size index, const ResidueModification& modification)
+  {
+    if (index >= peptide_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
+    }
+    const auto& db = ModificationsDB::getInstance();
+    const ResidueModification* modindb = db->searchModification(modification);
+    if (modindb == nullptr)
+    {
+      modindb = db->addNewModification_(modification);
+    }
+    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], modindb);
+  }
+
+  void AASequence::setModificationByDiffMonoMass(Size index, double diffMonoMass)
+  {
+    if (index >= peptide_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
+    }
+
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    bool multimatch = false;
+    // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
+    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    const ResidueModification* mod = mod_db->searchModificationsFast(peptide_[index]->getOneLetterCode() + diffMonoMassStr, multimatch);
+    const double tol = 0.002;
+    if (mod == nullptr)
+    {
+      mod = mod_db->getBestModificationByDiffMonoMass(diffMonoMass, tol, peptide_[index]->getOneLetterCode(), ResidueModification::ANYWHERE);
+    }
+    if (mod == nullptr)
+    {
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+                                                                        diffMonoMass,
+                                                                        true,
+                                                                        ResidueModification::ANYWHERE,
+                                                                        peptide_[index]);
+    }
+    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], mod);
+  }
+
+  void AASequence::setModification(Size index, const Residue* modification)
+  {
+    peptide_[index] = modification;
+  }
+
   void AASequence::setNTerminalModification(const String& modification)
   {
     if (modification.empty())
@@ -1519,6 +1580,28 @@ namespace OpenMS
     c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
   }
 
+  void AASequence::setCTerminalModification(const ResidueModification& mod)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    //TODO think again. Most functions here or in ModificationsDB only check for fullID
+    c_term_mod_ = mod_db->searchModification(mod);
+    if (c_term_mod_ == nullptr)
+    {
+      c_term_mod_ = mod_db->addNewModification_(mod);
+    }
+  }
+
+  void AASequence::setNTerminalModification(const ResidueModification& mod)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    //TODO think again. Most functions here or in ModificationsDB only check for fullID
+    n_term_mod_ = mod_db->searchModification(mod);
+    if (n_term_mod_ == nullptr)
+    {
+      n_term_mod_ = mod_db->addNewModification_(mod);
+    }
+  }
+
   void AASequence::setCTerminalModification(const ResidueModification* modification)
   {
     c_term_mod_ = modification;
@@ -1528,7 +1611,67 @@ namespace OpenMS
   {
     n_term_mod_ = modification;
   }
- 
+
+  void AASequence::setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term)
+  {
+    // since this method is called setCTerminalModification without further specification
+    // we have to look for both general terminus and Protein terminus.
+    // For backwards compatibility we look for the general terminus first
+    ResidueModification::TermSpecificity term = protein_term ? ResidueModification::PROTEIN_C_TERM : ResidueModification::C_TERM;
+    double tol = 0.002;
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    bool multimatch = false;
+    // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
+    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    // TODO make a distinction in the FullID about protein vs peptide term??
+    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
+    String residue = "";
+    if (n_term_mod_ == nullptr)
+    {
+        n_term_mod_ = ModificationsDB::getInstance()
+          ->getBestModificationByDiffMonoMass(diffMonoMass, tol, residue, term);
+    }
+    if (n_term_mod_ == nullptr)
+    {
+      
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+                                                                        diffMonoMass,
+                                                                        true,
+                                                                        term);
+    }
+  }
+
+  void AASequence::setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term)
+  {
+    // since this method is called setNTerminalModification without further specification
+    // we have to look for both general terminus and Protein terminus.
+    // For backwards compatibility we look for the general terminus first
+    ResidueModification::TermSpecificity term = protein_term ? ResidueModification::PROTEIN_N_TERM : ResidueModification::N_TERM;
+    double tol = 0.002;
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    bool multimatch = false;
+    // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
+    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    // TODO make a distinction in the FullID about protein vs peptide term??
+    const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
+    String residue = "";
+    if (n_term_mod_ == nullptr)
+    {
+        n_term_mod_ = ModificationsDB::getInstance()
+          ->getBestModificationByDiffMonoMass(diffMonoMass, tol, residue, term);
+    }
+    if (n_term_mod_ == nullptr)
+    {
+      
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      n_term_mod_ = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+                                                                        diffMonoMass,
+                                                                        true,
+                                                                        term);
+    }
+  }
+
   const String& AASequence::getNTerminalModificationName() const
   {
     if (n_term_mod_ == nullptr) return String::EMPTY;

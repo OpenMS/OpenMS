@@ -1096,6 +1096,7 @@ namespace OpenMS
       ControlledVocabulary cv;
       cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+      cv.loadFromOBO("QC", File::find("/CV/qc-cv-legacy.obo"));
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
@@ -2052,7 +2053,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     if (!xslt_ref.empty())
     {
-        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+        os << R"(<?xml-stylesheet type="text/xml" href="#)" << xslt_ref << "\"?>\n";
         os << "<!DOCTYPE catelog [\n"
            << "  <!ATTLIST xsl:stylesheet\n"
            << "  id  ID  #REQUIRED>\n"

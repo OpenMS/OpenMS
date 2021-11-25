@@ -201,7 +201,10 @@ protected:
     if (all_scores.empty())
     {
       writeLog_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
+      if (!ignore_bad_data)
+      {
+        return INPUT_FILE_EMPTY;
+      }
     }
 
     String out_plot = String(fit_algorithm.getValue("out_plot").toString()).trim();
@@ -230,7 +233,10 @@ protected:
       if (!return_value) 
       {
         writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-        if (!ignore_bad_data) { return UNEXPECTED_RESULT; }
+        if (!ignore_bad_data)
+        { 
+          return UNEXPECTED_RESULT;
+        }
       }
 
       if (return_value)
@@ -259,7 +265,10 @@ protected:
         if (unable_to_fit_data)
         {
           writeLog_(String("Unable to fit data for search engine: ") + engine);
-          if (!ignore_bad_data) return UNEXPECTED_RESULT;
+          if (!ignore_bad_data)
+          {
+            return UNEXPECTED_RESULT;
+          }
         }
         else if (data_might_not_be_well_fit) 
         {

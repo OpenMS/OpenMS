@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+
 namespace OpenMS
 {
   const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::sqrt2pi = sqrt(2.0 * Constants::PI);
