@@ -244,7 +244,7 @@ public:
     const LayerData* getCurrentLayer() const;
 
     /// Returns the active Layer data (0 if no layer is active)
-    LayerData* getCurrentLayer() const;
+    LayerData* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.

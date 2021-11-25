@@ -349,7 +349,7 @@ public:
     virtual void setFilters(const DataFilters & filters);
 
     /// Returns the mapping of m/z to axes
-    inline bool isMzToXAxis() const const
+    inline bool isMzToXAxis() const
     {
       return mz_to_x_axis_;
     }

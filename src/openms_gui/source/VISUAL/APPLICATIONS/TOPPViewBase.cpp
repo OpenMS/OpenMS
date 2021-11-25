@@ -1957,7 +1957,7 @@ namespace OpenMS
     return &(canvas->getCurrentLayer());
   }
 
-  LayerData* TOPPViewBase::getCurrentLayer() const
+  LayerData* TOPPViewBase::getCurrentLayer()
   {
     PlotCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
