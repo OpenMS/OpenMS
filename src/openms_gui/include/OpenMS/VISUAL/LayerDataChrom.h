@@ -40,30 +40,7 @@ namespace OpenMS
 {
 
   /**
-  @brief Class that stores the data for one layer
-
-  The data for a layer can be peak data, feature data (feature, consensus),
-  chromatogram or peptide identification data. 
-
-  For 2D and 3D data, the data is generally accessible through getPeakData()
-  while features are accessible through getFeatureMap() and getConsensusMap().
-  For 1D data, the current spectrum must be accessed through
-  getCurrentSpectrum().
-
-  Peak data is stored using a shared pointer to an MSExperiment data structure
-  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
-  the actual data may not be in memory as this is not efficient for large files
-  and therefore may have to be retrieved from disk on-demand. 
-
-  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
-  copy of the actual raw data and *different* from the one retrieved through
-  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
-  non-persistent and will be gone the next time the cache is updated.
-  Persistent changes can be applied to getPeakDataMuteable() and will be
-  available on the next cache update.
-
-  @note Layer is mainly used as a member variable of PlotCanvas which holds
-  a vector of LayerData objects.
+  @brief Class that stores the data for one layer of type Chromatogram
 
   @ingroup PlotWidgets
   */
@@ -78,10 +55,9 @@ public:
     /// no assignment operator (should not be needed)
     LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
     /// move Ctor
-    LayerDataChrom(LayerDataChrom&& ld) = default;
+    LayerDataChrom(LayerDataChrom&& ld) noexcept = default;
     /// move assignment
-    LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
-
+    LayerDataChrom& operator=(LayerDataChrom&& ld) noexcept = default;
   };
 
 } //namespace
