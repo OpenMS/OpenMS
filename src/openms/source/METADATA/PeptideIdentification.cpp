@@ -134,6 +134,11 @@ namespace OpenMS
     hits_ = hits;
   }
 
+  void PeptideIdentification::setHits(std::vector<PeptideHit>&& hits)
+  {
+    hits_ = hits;
+  }
+
   double PeptideIdentification::getSignificanceThreshold() const
   {
     return significance_threshold_;
