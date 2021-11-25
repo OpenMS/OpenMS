@@ -64,6 +64,14 @@ namespace OpenMS
     appropriate preprocessing steps (e.g. noise reduction and baseline
     subtraction), it might be also applied to low resolution data.
 
+    This implementation performs peak picking in a single dimension (m/z);
+    two-dimensional data such as ion mobility separated data needs additional
+    pre-processing. The current implementation treats these data as
+    one-dimensional data, performs peak picking in the m/z dimension and
+    reports the intensity weighted ion mobility of the picked peaks (which will
+    produce correct results if the data has been binned previously but
+    incorrect results if fully 2D data is provided as input).
+
     @htmlinclude OpenMS_PeakPickerHiRes.parameters
 
     @note The peaks must be sorted according to ascending m/z!
