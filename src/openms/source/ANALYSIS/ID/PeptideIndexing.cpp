@@ -842,8 +842,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<T>& proteins, std
 }
 
 // specialize templates here so they get instantiated only once (speeds up compile time and reduces memory usage)
-template PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_File>(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
-template PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_Vector>(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+template OPENMS_DLLAPI PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_File>(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+template OPENMS_DLLAPI PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_Vector>(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
 PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
 {
