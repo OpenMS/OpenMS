@@ -169,7 +169,7 @@ public:
 protected:
 
     template <typename ContainerType>
-    void pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
+    void pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true, int im_index = -1) const;
 
     // signal-to-noise parameter
     double signal_to_noise_;
