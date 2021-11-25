@@ -94,22 +94,87 @@ pp_hires.setParameters(param);
 
 START_SECTION((template <typename PeakType> void pick(const MSSpectrum& input, MSSpectrum& output) const))
 {
-  MSSpectrum tmp_spec;
-  pp_hires.pick(input[0], tmp_spec);
-#ifdef WRITE_REF_FILES
-  PeakMap tmp_exp = input;
-  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+
+  // test on dummy spectrum
   {
-    pp_hires.pick(input[scan_idx],tmp_spec);
-    tmp_exp[scan_idx] = tmp_spec;
+    PeakPickerHiRes pp_hires;
+    Param param;
+    param.setValue("signal_to_noise", 0.0);
+    pp_hires.setParameters(param);
+
+    MSSpectrum input, output;
+    input.emplace_back(100.0, 200);
+    input.emplace_back(100.01, 250);
+    input.emplace_back(100.02, 450);
+    input.emplace_back(100.03, 250);
+    input.emplace_back(100.04, 200);
+    pp_hires.pick(input, output);
+    TEST_EQUAL(output.size(), 1)
+    TEST_REAL_SIMILAR(output[0].getIntensity(), 450)
+    TEST_REAL_SIMILAR(output[0].getMZ(), 100.02)
   }
-  MzMLFile().store("./PeakPickerHiRes_orbitrap_sn1_out.mzML", tmp_exp);
+
+  // test on dummy ion mobility spectrum
+  {
+    PeakPickerHiRes pp_hires;
+    Param param;
+    param.setValue("signal_to_noise", 0.0);
+    pp_hires.setParameters(param);
+
+    MSSpectrum input, output;
+    input.emplace_back(100.0, 200);
+    input.emplace_back(100.01, 250);
+    input.emplace_back(100.02, 450);
+    input.emplace_back(100.03, 250);
+    input.emplace_back(100.04, 200);
+
+    input.getFloatDataArrays().resize(1);
+    input.getFloatDataArrays()[0].setName("Ion Mobility");
+    input.getFloatDataArrays()[0].push_back(100.0);
+    input.getFloatDataArrays()[0].push_back(150.0);
+    input.getFloatDataArrays()[0].push_back(150.0);
+    input.getFloatDataArrays()[0].push_back(150.0);
+    input.getFloatDataArrays()[0].push_back(100.0);
+
+    pp_hires.pick(input, output);
+    TEST_EQUAL(output.size(), 1)
+    TEST_REAL_SIMILAR(output[0].getIntensity(), 450)
+    TEST_REAL_SIMILAR(output[0].getMZ(), 100.02)
+
+    TEST_EQUAL(output.getFloatDataArrays().size(), 1)
+    TEST_EQUAL(output.getFloatDataArrays()[0].getName(), "Ion Mobility")
+    TEST_REAL_SIMILAR(output.getFloatDataArrays()[0][0], 135.1852) 
+    // weighted average
+    // TEST_REAL_SIMILAR(output.getFloatDataArrays()[0][0], (100*200 + 250*150 + 450*150 + 250*150 + 100*200) / (200 + 250 + 450 + 250 + 200) )
+
+    // different im array name
+    input.getFloatDataArrays()[0].setName("raw inverse reduced ion mobility array");
+    pp_hires.pick(input, output);
+    TEST_EQUAL(output.size(), 1)
+    TEST_EQUAL(output.getFloatDataArrays().size(), 1)
+    TEST_EQUAL(output.getFloatDataArrays()[0].getName(), "raw inverse reduced ion mobility array")
+    TEST_REAL_SIMILAR(output.getFloatDataArrays()[0][0], 135.1852) 
+  }
+
+  // Test on real data
+  {
+    MSSpectrum tmp_spec;
+    pp_hires.pick(input[0], tmp_spec);
+#ifdef WRITE_REF_FILES
+    PeakMap tmp_exp = input;
+    for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+    {
+      pp_hires.pick(input[scan_idx],tmp_spec);
+      tmp_exp[scan_idx] = tmp_spec;
+    }
+    MzMLFile().store("./PeakPickerHiRes_orbitrap_sn1_out.mzML", tmp_exp);
 #endif
 
-  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-  {
-    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
-    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+    for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+    {
+      TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+      TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+    }
   }
 }
 END_SECTION
