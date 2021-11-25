@@ -436,6 +436,7 @@ namespace OpenMS
                 indices.end(),
                 [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
 
+      sorted_subdirs.reserve(indices.size());
       for (const auto& index : indices)
       {
         sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));

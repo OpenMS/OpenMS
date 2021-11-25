@@ -1181,6 +1181,7 @@ namespace OpenMS
       }
     }
     vector<PeptideIdentification> new_peptide_ids_vector;
+    new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
