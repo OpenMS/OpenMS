@@ -351,7 +351,7 @@ namespace OpenMS
       {
         std::vector<String> valuesToHash{};
         valuesToHash.reserve(nonRepFacs.size());
-for (const String& fac : nonRepFacs)
+        for (const String& fac : nonRepFacs)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
         }
