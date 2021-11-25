@@ -187,6 +187,7 @@ public:
 
     /// sets the protein sequence
     void setSequence(const String & sequence);
+    void setSequence(String && sequence);
 
     /// sets the accession of the protein
     void setAccession(const String & accession);
