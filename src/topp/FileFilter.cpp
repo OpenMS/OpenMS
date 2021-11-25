@@ -175,6 +175,16 @@ private:
     return false;
   }
 
+  static void replacePrecursorCharge(MSExperiment& e, size_t charge_in, size_t charge_out)
+  {
+    for (auto& s : e.getSpectra())
+    {
+      for (auto& p : s.getPrecursors())
+      {
+        if (p.getCharge() == charge_in) p.setCharge(charge_out);
+      }
+    }
+  }
 
   static bool checkPeptideIdentification_(BaseFeature& feature,
                                           const bool remove_annotated_features,
@@ -377,6 +387,7 @@ protected:
     setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
     setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
+    registerStringOption_("spectra:replace_pc_charge", "in_charge:out_charge", ":", "Replaces in_charge with out_charge in all precursors.", false, false);
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
     registerStringOption_("feature:q", "[min]:[max]", ":", "Overall quality range to extract [0:1]", false);
@@ -547,8 +558,8 @@ protected:
     double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u;
 
     //initialize ranges
-    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = -1 * numeric_limits<double>::max();
-    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = numeric_limits<double>::max();
+    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
+    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
     String rt = getStringOption_("rt");
     String mz = getStringOption_("mz");
@@ -564,6 +575,7 @@ protected:
     String select_collision_energy = getStringOption_("spectra:select_collision_energy");
     String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
     String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
+    String replace_pc_charge = getStringOption_("spectra:replace_pc_charge");
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
@@ -623,6 +635,8 @@ protected:
       parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u);
       //select isolation window width
       parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
+      //parse precursor charge from in to out
+      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out)
     }
     catch (Exception::ConversionError& ce)
     {
@@ -863,6 +877,12 @@ protected:
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
+
+      // reannoate precursor charge if both range values are set
+      if (replace_pc_charge_in != -1 * numeric_limits<double>::max() && replace_pc_charge_out != numeric_limits<double>::max())
+      {
+        replacePrecursorCharge(exp, replace_pc_charge_in, replace_pc_charge_out);
+      }        
 
       //remove empty scans
       exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
