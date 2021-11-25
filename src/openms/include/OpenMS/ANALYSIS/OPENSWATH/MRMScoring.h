@@ -110,6 +110,10 @@ namespace OpenSwath
 
         /** @name Scores */
         //@{
+      //   void setValueGeneralXCorrMatrix(XCorrMatrixType& matrix, 
+      //                               const std::vector<std::vector<double>>& intensityi, 
+      //                               const std::vector<std::vector<double>>& intensityj);
+      
         /// Initialize the scoring object and building the cross-correlation matrix
         void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);
 
@@ -235,7 +239,7 @@ namespace OpenSwath
 
         void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
         void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
-        void computeRankVector_(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
+        void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
 
         /// Initialize the scoring object and building the MI matrix
         void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
@@ -275,27 +279,18 @@ namespace OpenSwath
         //@}
 
         /// contains max Peaks from xcorr_contrast_matrix_
-        OpenMS::Matrix<int> xcorr_contrast_matrix_max_peak_;
         OpenMS::Matrix<double > xcorr_contrast_matrix_max_peak_sec_;
         /// the precomputed cross correlation matrix of the MS1 trace
         XCorrMatrixType xcorr_precursor_matrix_;
 
-        /// contains max Peaks from xcorr_precursor_matrix_
-        OpenMS::Matrix<int> xcorr_precursor_matrix_max_peak_;
-        OpenMS::Matrix<double> xcorr_precursor_matrix_max_peak_sec_;
         /// the precomputed cross correlation against the MS1 trace
         XCorrMatrixType xcorr_precursor_contrast_matrix_;
         //@}
 
-        /// contains max Peaks from xcorr_precursor_contrast_matrix_
-        OpenMS::Matrix<int> xcorr_precursor_contrast_matrix_max_peak_;
-        OpenMS::Matrix<double > xcorr_precursor_contrast_matrix_max_peak_sec_;
         /// the precomputed cross correlation with the MS1 trace
         XCorrMatrixType xcorr_precursor_combined_matrix_;
         //@}
-        /// contains max Peaks from xcorr_precursor_combined_matrix_;
-        OpenMS::Matrix<int> xcorr_precursor_combined_matrix_max_peak_;
-        OpenMS::Matrix<double> xcorr_precursor_combined_matrix_max_peak_sec_;
+
         /// the precomputed mutual information matrix
 
         OpenMS::Matrix<double> mi_matrix_;
