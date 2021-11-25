@@ -881,7 +881,7 @@ protected:
       // reannoate precursor charge if both range values are set
       if (replace_pc_charge_in != -1 * numeric_limits<double>::max() && replace_pc_charge_out != numeric_limits<double>::max())
       {
-        replacePrecursorCharge(exp, replace_pc_charge_in, replace_pc_charge_out);
+        replacePrecursorCharge(exp, (int)replace_pc_charge_in, (int)replace_pc_charge_out);
       }        
 
       //remove empty scans
