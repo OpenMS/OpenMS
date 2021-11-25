@@ -175,13 +175,13 @@ private:
     return false;
   }
 
-  static void replacePrecursorCharge(MSExperiment& e, size_t charge_in, size_t charge_out)
+  static void replacePrecursorCharge(MSExperiment& e, int charge_in, int charge_out)
   {
     for (auto& s : e.getSpectra())
     {
       for (auto& p : s.getPrecursors())
       {
-        if (p.getCharge() == charge_in) p.setCharge(charge_out);
+        if (p.getCharge() == charge_in) { p.setCharge(charge_out); }
       }
     }
   }
@@ -555,7 +555,7 @@ protected:
     bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
 
     //ranges
-    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u;
+    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u, replace_pc_charge_in, replace_pc_charge_out;
 
     //initialize ranges
     mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
@@ -636,7 +636,7 @@ protected:
       //select isolation window width
       parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
       //parse precursor charge from in to out
-      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out)
+      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out);
     }
     catch (Exception::ConversionError& ce)
     {
