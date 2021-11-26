@@ -75,6 +75,15 @@ public:
            IdentificationData& id_data_ext,
            const String& spectra_file = "");
 
+  /// Version of run() for legacy identification formats
+  void run(FeatureMap& features,
+           const std::vector<PeptideIdentification>& peptides,
+           const std::vector<ProteinIdentification>& proteins,
+           const std::vector<PeptideIdentification>& peptides_ext,
+           const std::vector<ProteinIdentification>& proteins_ext,
+           const FeatureMap& seeds = FeatureMap(),
+           const String& spectra_file = "");
+
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
                     Size n_overlap_traces = 6);

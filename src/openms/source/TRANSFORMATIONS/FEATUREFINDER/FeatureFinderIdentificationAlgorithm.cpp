@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h> // for legacy "run" method
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
@@ -1766,4 +1767,28 @@ namespace OpenMS
       }
     }
   }
+
+
+  void FeatureFinderIdentificationAlgorithm::run(FeatureMap& features,
+                                                 const vector<PeptideIdentification>& peptides,
+                                                 const vector<ProteinIdentification>& proteins,
+                                                 const vector<PeptideIdentification>& peptides_ext,
+                                                 const vector<ProteinIdentification>& proteins_ext,
+                                                 const FeatureMap& seeds,
+                                                 const String& spectra_file) {
+    IdentificationData id_data, id_data_ext;
+    IdentificationDataConverter::importIDs(id_data, proteins, peptides);
+    if (!peptides_ext.empty())
+    {
+      IdentificationDataConverter::importIDs(id_data_ext, proteins_ext, peptides_ext);
+    }
+    if (!seeds.empty())
+    {
+      convertSeeds(seeds, id_data);
+    }
+
+    run(features, id_data, id_data_ext, spectra_file);
+    IdentificationDataConverter::exportFeatureIDs(features);
+  }
+
 }
