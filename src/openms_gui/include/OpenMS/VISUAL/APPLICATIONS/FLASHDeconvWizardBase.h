@@ -106,7 +106,6 @@ protected:
 
   private:
     Ui::FLASHDeconvWizardBase* ui;
-    
   }; //class
 
 } //namespace

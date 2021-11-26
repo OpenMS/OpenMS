@@ -138,29 +138,25 @@ protected:
               }else{
                   exist = false;
               }
-
           }
 
           if(exist){
-          if(line.hasPrefix("PRECURSOR_CHARGE")){
-            outs<< "PRECURSOR_CHARGE="<< (int)val[1]<<"\n";
-            continue;
-          }
-          if(line.hasPrefix("PRECURSOR_MASS")){
-              outs<< "PRECURSOR_MASS="<< val[0]<<"\n";
+            if(line.hasPrefix("PRECURSOR_CHARGE")){
+              outs<< "PRECURSOR_CHARGE="<< (int)val[1]<<"\n";
               continue;
-          }
+            }
+            if(line.hasPrefix("PRECURSOR_MASS")){
+                outs<< "PRECURSOR_MASS="<< val[0]<<"\n";
+                continue;
+            }
 
-          if(line.hasPrefix("PRECURSOR_INTENSITY")){
-              outs<< "PRECURSOR_INTENSITY="<< val[2]<<"\n";
-              continue;
+            if(line.hasPrefix("PRECURSOR_INTENSITY")){
+                outs<< "PRECURSOR_INTENSITY="<< val[2]<<"\n";
+                continue;
+            }
           }
-}
           outs<<line<<"\n";
-
-
       }
-
 
       logs.close();
       outs.close();

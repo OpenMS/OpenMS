@@ -110,7 +110,6 @@ namespace OpenMS
     monoisotopic_mass_ = nominator / intensity_;
     // auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
     //avgMass = monoisotopicMass + massDelta;
-
   }
 
   void PeakGroup::setSNR(const float snr)
@@ -236,11 +235,7 @@ namespace OpenMS
   {
     double mz_start = -1;
     double mz_end = -10;
-    if (abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_)
-    {
-
-    }
-    else
+    if (!(abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_))
     {
       for (auto &tmp_p:*this)
       {
@@ -260,7 +255,6 @@ namespace OpenMS
       }
     }
     return std::tuple<double, double>{mz_start, mz_end};
-
   }
 
   std::tuple<int, int> PeakGroup::getAbsChargeRange() const

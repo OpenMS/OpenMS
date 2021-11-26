@@ -79,8 +79,6 @@ namespace OpenMS
                            double *peakgroup_intensities
   )
   {
-
-
     if (pObject != nullptr)
     {
       pObject->getIsolationWindows(wstart,

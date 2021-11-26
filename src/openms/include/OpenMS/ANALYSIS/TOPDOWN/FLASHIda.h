@@ -119,7 +119,6 @@ namespace OpenMS
                              double *peakgroup_intensities);
 
   private:
-
     /// PeakGroup comparator for soring by QScore
     struct
     {

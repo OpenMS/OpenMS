@@ -23,7 +23,7 @@ usage() {
   Except for these options, other options corresponds to FLASHDeconv.
   "
 
-	exit -1
+	exit 0
 }
 
 # process output file options
@@ -138,7 +138,7 @@ fi
 # if in or out does not exist
 if [ ! -f "$in" ] && [ ! -d "$in" ]; then
 	echo "ERROR : $in does not exist."
-	exit -1
+	exit 0
 fi
 
 # check if out is file format or directory
@@ -163,7 +163,7 @@ fi
 # if in is directory but out is file
 if [ -d "$in" ] && [ $is_out_file = true ]; then
 	echo "ERROR: if [-in] is directory, [-out] should be directory."
-	exit -1
+	exit 0
 
 # if in is file
 elif [ -f "$in" ]; then

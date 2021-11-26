@@ -111,7 +111,6 @@ namespace OpenMS
       /// get index of most abundant isotope
       Size getApexIndex(const double mass) const;
 
-
       /// get mass difference between avg and mono masses
       double getAverageMassDelta(const double mass) const;
       /// get mass difference between most abundant mass and mono masses
@@ -155,7 +154,6 @@ namespace OpenMS
       bool operator>(const TopPicItem &a) const;
 
       bool operator==(const TopPicItem &other) const;
-
     };
 
 

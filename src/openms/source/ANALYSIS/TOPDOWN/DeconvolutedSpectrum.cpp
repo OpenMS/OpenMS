@@ -260,7 +260,6 @@ namespace OpenMS
                                         const double harmonic_factor,
                                         const double precursor_offset)//, fstream& fsm, fstream& fsp)
   {
-
     UInt ms_level = spec_.getMSLevel();
 
     if (ms_level > 1)

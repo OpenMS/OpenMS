@@ -128,7 +128,6 @@ protected:
     instream.close();
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char **argv)
