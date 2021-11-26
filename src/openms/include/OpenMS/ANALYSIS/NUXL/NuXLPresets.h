@@ -34,6 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+
 namespace OpenMS
 {
 
@@ -1391,6 +1394,10 @@ namespace OpenMS
     }
     else if (p == "RNA-DEB")
     {
+      // add special methionine loss
+      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
+      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
+
       if (p.hasSubstring("[high]"))
       {
         modifications = RNA_DEB_modifications_high;
@@ -1409,6 +1416,10 @@ namespace OpenMS
     }
     else if (p == "RNA-DEB Pase")
     {
+      // add special methionine loss
+      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
+      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
+
       modifications = RNA_DEB_PASE_modifications_high;
       fragment_adducts = RNA_DEB_PASE_fragments_high;
       can_cross_link = RNA_UCGA;
@@ -1427,6 +1438,10 @@ namespace OpenMS
     }
     else if (p == "RNA-NM")
     {
+      // add special methionine loss
+      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
+      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
+
       if (p.hasSubstring("[high]"))
       {
         modifications = RNA_NM_modifications_high;
@@ -1444,6 +1459,10 @@ namespace OpenMS
     }
     else if (p == "RNA-NM Pase")
     {
+      // add special methionine loss
+      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
+      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
+
       modifications = RNA_NM_PASE_modifications_high;
       fragment_adducts = RNA_NM_PASE_fragments_high; 
       can_cross_link = RNA_UCGA;

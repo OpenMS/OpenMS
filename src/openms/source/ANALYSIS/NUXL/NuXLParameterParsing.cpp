@@ -401,6 +401,16 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       ret.marker_ions.push_back({EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight()});
       ret.marker_ions.push_back({EmpiricalFormula("C5H5N5O"), "G'",  EmpiricalFormula("C5H5N5O").getMonoWeight()});
       ret.marker_ions.push_back({EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight()});
+
+      // for DEB
+      ret.marker_ions.push_back({EmpiricalFormula("C5H11O2S1"), "CH4S+DEB+H", EmpiricalFormula("C5H11O2S1").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H16N5O3S1"), "CH4S+DEB+G'", EmpiricalFormula("C10H16N5O3S1").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H16N5O2S1"), "CH4S+DEB+A'", EmpiricalFormula("C10H16N5O2S1").getMonoWeight()});
+
+      // for NM
+      ret.marker_ions.push_back({EmpiricalFormula("C6H14N1S1"), "CH4S+NM+H", EmpiricalFormula("C6H14N1S1").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C11H18N6O1S1"), "CH4S+NM+G'", EmpiricalFormula("C11H18N6O1S1").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C11H18N6S1"), "CH4S+NM+A'", EmpiricalFormula("C11H18N6S1").getMonoWeight()});
     }
     else // DNA
     {
