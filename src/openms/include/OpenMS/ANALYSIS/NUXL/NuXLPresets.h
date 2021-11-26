@@ -36,11 +36,12 @@
 
 namespace OpenMS
 {
+
   // MS1 (modifications) and MS2 (fragments) for the different protocols
   namespace NuXLPresets
   {
 
-  static constexpr std::array<const char*, 28> modifications_RNA_UV_PASE
+  static constexpr std::array<const char*, 28> modifications_RNA_UV_PASE_high
          {
           "U:", 
           "U:-H2O", 
@@ -121,7 +122,7 @@ namespace OpenMS
           "A:C10H10N5O4;A-NH3-HPO3",
           "A:C10H8N5O3;A-NH3-H3PO4"
         };
-  static constexpr std::array<const char*, 14> modifications_RNA_UV
+  static constexpr std::array<const char*, 14> modifications_RNA_UV_high
          {"U:", 
           "U:-H2O", 
 
@@ -188,7 +189,7 @@ namespace OpenMS
           "A:C10H8N5O3;A-NH3-H3PO4"
         };
 
-  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_PASE
+  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_PASE_high
       {   "S:",
           "S:-H2O",
           "S:-H2O-HPO3",
@@ -245,7 +246,7 @@ namespace OpenMS
           "A:C10H8N5O3;A-NH3-H3PO4"
       };    
 
-  static constexpr std::array<const char*, 3> modifications_RNA_UV_4SU
+  static constexpr std::array<const char*, 3> modifications_RNA_UV_4SU_high
       {   "S:",
           "S:-H2O",
           "S:-H2S"
@@ -301,7 +302,7 @@ namespace OpenMS
       };    
 
 
-  static constexpr std::array<const char*, 16> modifications_DNA_UV
+  static constexpr std::array<const char*, 16> modifications_DNA_UV_high
        {"T:",
         "T:-H2O",
 
@@ -375,7 +376,7 @@ namespace OpenMS
       	"d:C5H6O2;C5H9O6P-H3PO4"
       };
 
-  static constexpr std::array<const char*, 32> modifications_DNA_UV_PASE
+  static constexpr std::array<const char*, 32> modifications_DNA_UV_PASE_high
        {"T:",
         "T:-H2O",
         "T:-H3PO4",
@@ -465,7 +466,7 @@ namespace OpenMS
       	"d:C5H6O2;C5H9O6P-H3PO4"
       };
 
-  static constexpr std::array<const char*, 34> modifications_RNA_DEB_PASE
+  static constexpr std::array<const char*, 34> modifications_RNA_DEB_PASE_high
       {
         "U:+C4H6O2",
         "U:+C4H6O2-H2O",
@@ -561,7 +562,7 @@ namespace OpenMS
       };
 
 
-  static constexpr std::array<const char*, 17> modifications_RNA_DEB
+  static constexpr std::array<const char*, 17> modifications_RNA_DEB_high
       { "U:+C4H6O2",
         "U:+C4H6O2-H2O",
         "U:+C4H6O2-H2O-H2O",
@@ -639,7 +640,7 @@ namespace OpenMS
       };
 
 
-  static constexpr std::array<const char*, 19> modifications_DNA_DEB
+  static constexpr std::array<const char*, 19> modifications_DNA_DEB_high
        {
         "T:+C4H6O2",
         "T:+C4H6O2-H2O",
@@ -724,7 +725,7 @@ namespace OpenMS
       	"d:C5H6O2;C5H9O6P-H3PO4"
       };
 
-  static constexpr std::array<const char*, 38> modifications_DNA_DEB_PASE
+  static constexpr std::array<const char*, 38> modifications_DNA_DEB_PASE_high
        {
         "T:+C4H6O2",
         "T:+C4H6O2-HPO3",
@@ -829,7 +830,7 @@ namespace OpenMS
       };
 
 
-  static constexpr std::array<const char*, 34> modifications_RNA_NM_PASE
+  static constexpr std::array<const char*, 34> modifications_RNA_NM_PASE_high
        {"U:+C5H9N1",
         "U:+C5H9N1-HPO3",
         "U:+C5H9N1-H2O",
@@ -919,7 +920,7 @@ namespace OpenMS
       	"A:C15H18N5O6P1;NM+A-NH3-H2O"
       };
 
-  static constexpr std::array<const char*, 17> modifications_RNA_NM
+  static constexpr std::array<const char*, 17> modifications_RNA_NM_high
        {
         "U:+C5H9N1",
         "U:+C5H9N1-H2O-H2O",
@@ -993,7 +994,7 @@ namespace OpenMS
       	"A:C15H18N5O6P1;NM+A-NH3-H2O"
       };
 
-  static constexpr std::array<const char*, 19> modifications_DNA_NM
+  static constexpr std::array<const char*, 19> modifications_DNA_NM_high
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O-H2O",
         "T:+C5H9N1-H2O",
@@ -1074,7 +1075,7 @@ namespace OpenMS
       };
 
 
-  static constexpr std::array<const char*, 40> modifications_DNA_NM_PASE
+  static constexpr std::array<const char*, 40> modifications_DNA_NM_PASE_high
        {"T:+C5H9N1",
         "T:+C5H9N1-H2O",
         "T:+C5H9N1-HPO3",
@@ -1175,12 +1176,84 @@ namespace OpenMS
       	"d:C5H6O2;C5H9O6P-H3PO4"
     };
 
+  // medium
+  static constexpr std::array<const char*, 9> modifications_RNA_UV_medium
+         {"U:", 
+          "U:-H2O", 
+
+          "C:", 
+          "C:-H2O", 
+
+          "G:", 
+          "G:-H2O", 
+          "G:-NH3", 
+
+          "A:", 
+          "A:-NH3"
+          };
+
+  static constexpr std::array<const char*, 11> modifications_RNA_DEB_medium
+      { "U:+C4H6O2",
+        "U:+C4H6O2-H2O",
+
+        "G:+C4H6O2",
+        "G:+C4H6O2-H2O",
+        "G:+C4H6O2-NH3",
+
+        "C:+C4H6O2",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-NH3",
+
+        "A:+C4H6O2",
+        "A:+C4H6O2-H2O",
+        "A:+C4H6O2-NH3"
+      };
+
+  static constexpr std::array<const char*, 11> modifications_RNA_NM_medium
+      {
+        "U:+C5H9N1",
+        "U:+C5H9N1-H2O",
+
+        "G:+C5H9N1",
+        "G:+C5H9N1-H2O",
+        "G:+C5H9N1-NH3",
+
+        "C:+C5H9N1",
+        "C:+C5H9N1-H2O",
+        "C:+C5H9N1-NH3",
+
+        "A:+C5H9N1",
+        "A:+C5H9N1-H2O",
+        "A:+C5H9N1-NH3"
+      };
+
+  // low settings
+  static constexpr std::array<const char*, 4> modifications_RNA_NM_low
+       {
+        "U:+C5H9N1",
+        "G:+C5H9N1",
+        "C:+C5H9N1",
+        "A:+C5H9N1"
+      };
+
+  static constexpr std::array<const char*, 4> modifications_RNA_DEB_low
+      { "U:+C4H6O2",
+        "G:+C4H6O2",
+        "C:+C4H6O2",
+        "A:+C4H6O2"
+      };
+
+
     static constexpr std::array<const char*, 5> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P", "d=C5H9O6P"}; // the mono-phosphates and deoxyribosephosphate
     static constexpr std::array<const char*, 4> RNA_nucleotides {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
     static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
-    static constexpr std::array<const char*, 17> presets_names {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV Pase (U)", "RNA-UV Pase (UCGA)", "RNA-UV (4SU)", "RNA-UV Pase (4SU)", "DNA-UV", "DNA-UV Pase", "RNA-DEB", "RNA-DEB Pase", "DNA-DEB", "DNA-DEB Pase", "RNA-NM", "RNA-NM Pase", "DNA-NM", "DNA-NM Pase"};
+    static constexpr std::array<const char*, 23> presets_names {"none", 
+      "RNA-UV (U) [high]", "RNA-UV (UCGA) [high]", "RNA-UV Pase (U) [high]", "RNA-UV Pase (UCGA) [high]", "RNA-UV (4SU) [high]", "RNA-UV Pase (4SU) [high]", "DNA-UV [high]", "DNA-UV Pase [high]", "RNA-DEB [high]", "RNA-DEB Pase [high]", "DNA-DEB [high]", "DNA-DEB Pase [high]", "RNA-NM [high]", "RNA-NM Pase [high]", "DNA-NM [high]", "DNA-NM Pase [high]",
+      "RNA-UV (U) [medium]", "RNA-UV (UCGA) [medium]", "RNA-DEB [medium]", "RNA-NM [medium]", 
+      "RNA-DEB [low]", "RNA-NM [low]" 
+   };
 
   void getPresets(const String& p, 
     StringList& nucleotides, 
@@ -1213,144 +1286,182 @@ namespace OpenMS
     // initialize all StringLists from constexpr arrays
     // note: we do this here as this raises a logic error if e.g., size of the array doesn't match the reserved size.
     //       This can easily happen if a comma is omitted and two string literals on two lines joined
-    StringList RNA_UV_modifications(std::begin(modifications_RNA_UV), std::end(modifications_RNA_UV));
-    StringList RNA_UV_fragments(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
+    StringList RNA_UV_modifications_high(std::begin(modifications_RNA_UV_high), std::end(modifications_RNA_UV_high));
+    StringList RNA_UV_fragments_high(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
 
-    StringList RNA_UV_PASE_modifications(modifications_RNA_UV_PASE.begin(), modifications_RNA_UV_PASE.end());
-    StringList RNA_UV_PASE_fragments(fragments_RNA_UV_PASE.begin(), fragments_RNA_UV_PASE.end()); 
+    StringList RNA_UV_PASE_modifications_high(modifications_RNA_UV_PASE_high.begin(), modifications_RNA_UV_PASE_high.end());
+    StringList RNA_UV_PASE_fragments_high(fragments_RNA_UV_PASE.begin(), fragments_RNA_UV_PASE.end()); 
 
-    StringList DNA_UV_modifications(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
-    StringList DNA_UV_fragments(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
+    StringList DNA_UV_modifications_high(modifications_DNA_UV_high.begin(), modifications_DNA_UV_high.end());
+    StringList DNA_UV_fragments_high(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
 
-    StringList DNA_UV_PASE_modifications(modifications_DNA_UV_PASE.begin(), modifications_DNA_UV_PASE.end());
-    StringList DNA_UV_PASE_fragments(fragments_DNA_UV_PASE.begin(), fragments_DNA_UV_PASE.end());
+    StringList DNA_UV_PASE_modifications_high(modifications_DNA_UV_PASE_high.begin(), modifications_DNA_UV_PASE_high.end());
+    StringList DNA_UV_PASE_fragments_high(fragments_DNA_UV_PASE.begin(), fragments_DNA_UV_PASE.end());
 
-    StringList RNA_UV_4SU_modifications(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
-    StringList RNA_UV_4SU_fragments(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
+    StringList RNA_UV_4SU_modifications_high(modifications_RNA_UV_4SU_high.begin(), modifications_RNA_UV_4SU_high.end());
+    StringList RNA_UV_4SU_fragments_high(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
 
-    StringList RNA_UV_4SU_PASE_modifications(modifications_RNA_UV_4SU_PASE.begin(), modifications_RNA_UV_4SU_PASE.end());
-    StringList RNA_UV_4SU_PASE_fragments(fragments_RNA_UV_4SU_PASE.begin(), fragments_RNA_UV_4SU_PASE.end());
+    StringList RNA_UV_4SU_PASE_modifications_high(modifications_RNA_UV_4SU_PASE_high.begin(), modifications_RNA_UV_4SU_PASE_high.end());
+    StringList RNA_UV_4SU_PASE_fragments_high(fragments_RNA_UV_4SU_PASE.begin(), fragments_RNA_UV_4SU_PASE.end());
 
-    StringList RNA_DEB_modifications(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
-    StringList RNA_DEB_fragments(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
+    StringList RNA_DEB_modifications_high(modifications_RNA_DEB_high.begin(), modifications_RNA_DEB_high.end());
+    StringList RNA_DEB_fragments_high(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
 
-    StringList RNA_DEB_PASE_modifications(modifications_RNA_DEB_PASE.begin(), modifications_RNA_DEB_PASE.end());
-    StringList RNA_DEB_PASE_fragments(fragments_RNA_DEB_PASE.begin(), fragments_RNA_DEB_PASE.end());
+    StringList RNA_DEB_PASE_modifications_high(modifications_RNA_DEB_PASE_high.begin(), modifications_RNA_DEB_PASE_high.end());
+    StringList RNA_DEB_PASE_fragments_high(fragments_RNA_DEB_PASE.begin(), fragments_RNA_DEB_PASE.end());
 
-    StringList DNA_DEB_modifications(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
-    StringList DNA_DEB_fragments(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
+    StringList DNA_DEB_modifications_high(modifications_DNA_DEB_high.begin(), modifications_DNA_DEB_high.end());
+    StringList DNA_DEB_fragments_high(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
 
-    StringList DNA_DEB_PASE_modifications(modifications_DNA_DEB_PASE.begin(), modifications_DNA_DEB_PASE.end());
-    StringList DNA_DEB_PASE_fragments(fragments_DNA_DEB_PASE.begin(), fragments_DNA_DEB_PASE.end());
+    StringList DNA_DEB_PASE_modifications_high(modifications_DNA_DEB_PASE_high.begin(), modifications_DNA_DEB_PASE_high.end());
+    StringList DNA_DEB_PASE_fragments_high(fragments_DNA_DEB_PASE.begin(), fragments_DNA_DEB_PASE.end());
 
-    StringList RNA_NM_modifications(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
-    StringList RNA_NM_fragments(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
+    StringList RNA_NM_modifications_high(modifications_RNA_NM_high.begin(), modifications_RNA_NM_high.end());
+    StringList RNA_NM_fragments_high(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
 
-    StringList RNA_NM_PASE_modifications(modifications_RNA_NM_PASE.begin(), modifications_RNA_NM_PASE.end());
-    StringList RNA_NM_PASE_fragments(fragments_RNA_NM_PASE.begin(), fragments_RNA_NM_PASE.end()); 
+    StringList RNA_NM_PASE_modifications_high(modifications_RNA_NM_PASE_high.begin(), modifications_RNA_NM_PASE_high.end());
+    StringList RNA_NM_PASE_fragments_high(fragments_RNA_NM_PASE.begin(), fragments_RNA_NM_PASE.end()); 
 
-    StringList DNA_NM_modifications(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
-    StringList DNA_NM_fragments(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
+    StringList DNA_NM_modifications_high(modifications_DNA_NM_high.begin(), modifications_DNA_NM_high.end());
+    StringList DNA_NM_fragments_high(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
 
-    StringList DNA_NM_PASE_modifications(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
-    StringList DNA_NM_PASE_fragments(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
+    StringList DNA_NM_PASE_modifications_high(modifications_DNA_NM_PASE_high.begin(), modifications_DNA_NM_PASE_high.end());
+    StringList DNA_NM_PASE_fragments_high(fragments_DNA_NM_PASE.begin(), fragments_DNA_NM_PASE.end());
 
+    // medium
+    StringList RNA_UV_modifications_medium(std::begin(modifications_RNA_UV_medium), std::end(modifications_RNA_UV_medium));
+    StringList RNA_DEB_modifications_medium(modifications_RNA_DEB_medium.begin(), modifications_RNA_DEB_medium.end());
+    StringList RNA_NM_modifications_medium(modifications_RNA_NM_medium.begin(), modifications_RNA_NM_medium.end());
+
+    // low
+    StringList RNA_DEB_modifications_low(modifications_RNA_DEB_low.begin(), modifications_RNA_DEB_low.end());
+    StringList RNA_NM_modifications_low(modifications_RNA_NM_low.begin(), modifications_RNA_NM_low.end());
 
     const String RNA_U = "U";
     const String RNA_UCGA = "UCGA";
     const String DNA_TCGAd = "TCGAd";
 
-
     // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
     {
-      modifications = RNA_UV_modifications;
-      fragment_adducts = RNA_UV_fragments;
+      if (p.hasSubstring("[high]"))
+      {
+        modifications = RNA_UV_modifications_high;
+      }
+      else
+      { // medium
+        modifications = RNA_UV_modifications_medium;
+      }
+      fragment_adducts = RNA_UV_fragments_high;
       can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
     }
     else if (p == "RNA-UV Pase (U)" || p == "RNA-UV Pase (UCGA)")
     {
-      modifications = RNA_UV_PASE_modifications; 
-      fragment_adducts = RNA_UV_PASE_fragments;
+      modifications = RNA_UV_PASE_modifications_high; 
+      fragment_adducts = RNA_UV_PASE_fragments_high;
       can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
     }
     else if (p == "DNA-UV")
     {
-      modifications = DNA_UV_modifications;
-      fragment_adducts = DNA_UV_fragments;
+      modifications = DNA_UV_modifications_high;
+      fragment_adducts = DNA_UV_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-UV Pase")
     {
-      modifications = DNA_UV_PASE_modifications;
-      fragment_adducts = DNA_UV_PASE_fragments;
+      modifications = DNA_UV_PASE_modifications_high;
+      fragment_adducts = DNA_UV_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
     else if (p == "RNA-UV (4SU)")
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
-      modifications = RNA_UV_4SU_modifications;
-      fragment_adducts = RNA_UV_4SU_fragments;
+      modifications = RNA_UV_4SU_modifications_high;
+      fragment_adducts = RNA_UV_4SU_fragments_high;
       can_cross_link = "S";
     }
     else if (p == "RNA-UV Pase (4SU)")
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
-      modifications = RNA_UV_4SU_PASE_modifications;
-      fragment_adducts = RNA_UV_4SU_PASE_fragments;
+      modifications = RNA_UV_4SU_PASE_modifications_high;
+      fragment_adducts = RNA_UV_4SU_PASE_fragments_high;
       can_cross_link = "S";
     }
     else if (p == "RNA-DEB")
     {
-      modifications = RNA_DEB_modifications;
-      fragment_adducts = RNA_DEB_fragments;
+      if (p.hasSubstring("[high]"))
+      {
+        modifications = RNA_DEB_modifications_high;
+      }
+      else if (p.hasSubstring("[medium]"))
+      { 
+        modifications = RNA_DEB_modifications_medium;
+      }
+      else // low
+      {
+        modifications = RNA_DEB_modifications_low;
+      }
+     
+      fragment_adducts = RNA_DEB_fragments_high;
       can_cross_link = RNA_UCGA;
     }
     else if (p == "RNA-DEB Pase")
     {
-      modifications = RNA_DEB_PASE_modifications;
-      fragment_adducts = RNA_DEB_PASE_fragments;
+      modifications = RNA_DEB_PASE_modifications_high;
+      fragment_adducts = RNA_DEB_PASE_fragments_high;
       can_cross_link = RNA_UCGA;
     }
     else if (p == "DNA-DEB")
     {
-      modifications = DNA_DEB_modifications;
-      fragment_adducts = DNA_DEB_fragments;
+      modifications = DNA_DEB_modifications_high;
+      fragment_adducts = DNA_DEB_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-DEB Pase")
     {
-      modifications = DNA_DEB_PASE_modifications;
-      fragment_adducts = DNA_DEB_PASE_fragments;
+      modifications = DNA_DEB_PASE_modifications_high;
+      fragment_adducts = DNA_DEB_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
     else if (p == "RNA-NM")
     {
-      modifications = RNA_NM_modifications;
-      fragment_adducts = RNA_NM_fragments; 
+      if (p.hasSubstring("[high]"))
+      {
+        modifications = RNA_NM_modifications_high;
+      }
+      else if (p.hasSubstring("[medium]"))
+      { 
+        modifications = RNA_NM_modifications_medium;
+      }
+      else // low
+      {
+        modifications = RNA_NM_modifications_low;
+      }
+      fragment_adducts = RNA_NM_fragments_high; 
       can_cross_link = RNA_UCGA;
     }
     else if (p == "RNA-NM Pase")
     {
-      modifications = RNA_NM_PASE_modifications;
-      fragment_adducts = RNA_NM_PASE_fragments; 
+      modifications = RNA_NM_PASE_modifications_high;
+      fragment_adducts = RNA_NM_PASE_fragments_high; 
       can_cross_link = RNA_UCGA;
     }
     else if (p == "DNA-NM")
     {
-      modifications = DNA_NM_modifications;
-      fragment_adducts = DNA_NM_fragments;
+      modifications = DNA_NM_modifications_high;
+      fragment_adducts = DNA_NM_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
     else if (p == "DNA-NM Pase")
     {
-      modifications = DNA_NM_PASE_modifications;
-      fragment_adducts = DNA_NM_PASE_fragments;
+      modifications = DNA_NM_PASE_modifications_high;
+      fragment_adducts = DNA_NM_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
   }
   }
+
 }
 

@@ -5258,22 +5258,103 @@ static void scoreXLIons_(
       }
 #endif
 
-
-/*
-    // keep 10 bins with best 100 scores using priority queues
-    vector<LargestElements> best_score_per_bin(10, LargestElements(100));
-    for (size_t index = 0; index != peptide_ids.size(); ++index)
+/* 
+  if (generate_decoys) 
+  {
+    vector<double> decoy_scores;
+    for (auto& p : peptide_ids)
     {
-      size_t bin_index = 10.0 * index / (double)peptide_ids.size();
-      if (peptide_ids[index].getHits().empty()) continue;
-      if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target")
+      if (p.getHits().empty()) continue;
+      if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
       {
-        best_score_per_bin[bin_index].tryAdd(peptide_ids[index].getHits()[0].getScore());
+        decoy_scores.push_back(p.getHits()[0].getScore());
       }
     }
-*/
-    if (generate_decoys) 
+    std::sort(decoy_scores.begin(), decoy_scores.end());
+    
+    cout << "Collected: " << decoy_scores.size() << " decoy scores." << endl;
+    if (!decoy_scores.empty()) 
     {
+      for (auto& p : peptide_ids)
+      {
+        for (auto& h : p.getHits())
+        {
+          auto it = std::lower_bound(decoy_scores.begin(), decoy_scores.end(), h.getScore()); // TODO: doesn't consider score orientation
+          size_t distance = it - decoy_scores.begin(); // index in decoy_scores vector
+          double p = 1.0 - (double) distance / (double) decoy_scores.size();
+#          p = 1.0 - std::pow(1.0 - p, (double)h.getMetaValue("nr_candidates")); // Sidak correction
+          h.setScore(p); // note: several good target hits might get a score of 1.0 here
+        }
+      }
+    }
+
+    StringList scores_for_calibration;
+    scores_for_calibration
+       << "NuXL:mass_error_p"
+       << "NuXL:err"
+       << "NuXL:total_loss_score"
+       << "NuXL:modds"
+       << "NuXL:immonium_score"
+       << "NuXL:precursor_score"
+       << "NuXL:MIC"
+       << "NuXL:Morph"
+       << "NuXL:total_MIC"
+       << "NuXL:ladder_score"
+       << "NuXL:sequence_score"
+       << "NuXL:total_Morph"
+       << "NuXL:total_HS"
+       << "NuXL:tag_XLed"
+       << "NuXL:tag_unshifted"
+       << "NuXL:tag_shifted"
+       << "NuXL:explained_peak_fraction"
+       << "NuXL:theo_peak_fraction"
+       << "NuXL:wTop50"
+       << "NuXL:marker_ions_score"
+       << "NuXL:partial_loss_score"
+       << "NuXL:pl_MIC"
+       << "NuXL:pl_err"
+       << "NuXL:pl_Morph"
+       << "NuXL:pl_modds"
+       << "NuXL:pl_pc_MIC"
+       << "NuXL:pl_im_MIC"
+       << "NuXL:score"
+       << "nucleotide_mass_tags";
+
+    /// calibrate all relevant meta values
+    for (const auto& s : scores_for_calibration)
+    {
+      vector<double> decoy_scores;
+      for (auto& p : peptide_ids)
+      {
+        if (p.getHits().empty()) continue;
+        if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
+        {
+          decoy_scores.push_back((double)p.getHits()[0].getMetaValue(s));
+        }
+      }
+      std::sort(decoy_scores.begin(), decoy_scores.end());
+    
+      cout << "Collected: " << decoy_scores.size() << " decoy scores." << endl;
+      if (!decoy_scores.empty()) 
+      {
+        for (auto& p : peptide_ids)
+        {
+          for (auto& h : p.getHits())
+          {
+            auto it = std::lower_bound(decoy_scores.begin(), decoy_scores.end(), (double)h.getMetaValue(s)); // TODO: doesn't consider score orientation
+            size_t distance = it - decoy_scores.begin(); // index in decoy_scores vector
+            double p = 1.0 - (double) distance / (double) decoy_scores.size();
+ #           p = 1.0 - std::pow(1.0 - p, (double)h.getMetaValue("nr_candidates")); // Sidak correction
+            h.setMetaValue(s, p); // note: several good target hits might get a score of 1.0 here
+          }
+        }
+      }
+    }
+  }
+  */  
+
+  if (generate_decoys) 
+  {
       map<double, double, std::greater<double>> map_score2ppm;
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
@@ -5471,7 +5552,13 @@ static void scoreXLIons_(
           "NuXL:pl_pc_MIC", 
           "NuXL:pl_im_MIC", 
           "NuXL:score" };
-/*
+
+     vector<string> negative_weights_features = 
+        { "NuXL:err",
+          "variable_modifications",
+          "isotope_error" };
+ 
+/*Neutral?
        << "NuXL:err"
        << "NuXL:immonium_score"
        << "NuXL:precursor_score"
@@ -5490,7 +5577,7 @@ static void scoreXLIons_(
        << "nucleotide_mass_tags"
        << "n_theoretical_peaks";
 */
-      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features); // TODO: seems to work ... scales weights but no improvement
+      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features, negative_weights_features); // TODO: seems to work ... scales weights but no improvement
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 

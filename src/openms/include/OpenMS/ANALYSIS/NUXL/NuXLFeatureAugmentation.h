@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFeatureAugmentation.h>
 
+#include <stdexcept>
 #include <vector>
 
 namespace OpenMS
@@ -45,12 +46,25 @@ namespace OpenMS
   class OPENMS_DLLAPI NuXLFeatureAugmentation
   {
     public:
-      static void augment(std::vector<PeptideIdentification>& pep_ids, const std::vector<std::string>& positive_weights)
+      static void augment(std::vector<PeptideIdentification>& pep_ids, 
+      std::vector<std::string> positive_weights,
+      std::vector<std::string> negative_weights)
       {
         // only for XLs? because they are fewer?
         if (pep_ids.empty()) return;
 
         if (pep_ids[0].getHits().empty()) return;
+
+        // feature names may not intersect between postive/negative constrained
+        std::sort(positive_weights.begin(), positive_weights.end());
+        std::sort(negative_weights.begin(), negative_weights.end());
+        std::vector<std::string> v_intersection;
+ 
+        std::set_intersection(positive_weights.begin(), positive_weights.end(),
+                          negative_weights.begin(), negative_weights.end(),
+                          std::back_inserter(v_intersection));
+
+        if (!v_intersection.empty()) throw std::runtime_error("Positive and negative weights may not overlap.");
 
         // use first PSM as template
         auto p_template = pep_ids[0].getHits()[0];
@@ -98,11 +112,25 @@ namespace OpenMS
         }
 
         size_t c = 0;
-        // for each positive_weight feature, create one example with that feature set to large value
+        // for each positive_weight feature, create one example with that feature set to max value
         for (const auto& s : positive_weights) 
         {
           auto p = p_template;
           p.setMetaValue(s, maxima[s]); // set feature value to maximum of observed ones
+          std::vector<PeptideHit> phs;
+          phs.push_back(p);
+          PeptideIdentification pid = pep_ids[0];
+          pid.setRT(1e6 + c); // RT of augmented example
+          pid.setHits(phs);
+          pep_ids.push_back(pid);
+          ++c;
+        } 
+
+        // for each negative_weight feature, create one example with that feature set to min value
+        for (const auto& s : negative_weights) 
+        {
+          auto p = p_template;
+          p.setMetaValue(s, minima[s]); // set feature value to min of observed ones
           std::vector<PeptideHit> phs;
           phs.push_back(p);
           PeptideIdentification pid = pep_ids[0];
