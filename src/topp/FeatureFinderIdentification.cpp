@@ -231,7 +231,7 @@ protected:
     ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
     // if (candidates_in.empty())
-    {
+    // {
       String in = getStringOption_("in");
       String id = getStringOption_("id");
       String id_ext = getStringOption_("id_ext");
@@ -256,28 +256,23 @@ protected:
       features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
 
       // load IDs:
-      IdentificationData id_data, id_data_ext;
       if (id_type == FileTypes::OMS)
       {
+        IdentificationData id_data, id_data_ext;
         OMSFile(log_type_).load(id, id_data);
         if (!id_ext.empty()) OMSFile(log_type_).load(id_ext, id_data_ext);
+        // run feature detection:
+        ffid_algo.run(features, id_data, id_data_ext, in);
       }
       else // idXML input
       {
         vector<PeptideIdentification> peptides, peptides_ext;
         vector<ProteinIdentification> proteins, proteins_ext;
         IdXMLFile().load(id, proteins, peptides);
-        IdentificationDataConverter::importIDs(id_data, proteins, peptides);
-        if (!id_ext.empty())
-        {
-          IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-          IdentificationDataConverter::importIDs(id_data_ext, proteins_ext,
-                                                 peptides_ext);
-        }
+        if (!id_ext.empty()) IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+        // run feature detection:
+        ffid_algo.run(features, peptides, proteins, peptides_ext, proteins_ext);
       }
-
-      // run feature detection:
-      ffid_algo.run(features, id_data, id_data_ext, in);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();
@@ -300,7 +295,7 @@ protected:
       }
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
-    }
+    // }
     // else
     // {
     //   //-------------------------------------------------------------
@@ -325,7 +320,7 @@ protected:
     }
     else
     {
-      IdentificationDataConverter::exportFeatureIDs(features);
+      if (id_type == FileTypes::OMS) IdentificationDataConverter::exportFeatureIDs(features);
       FeatureXMLFile().store(out, features);
     }
 

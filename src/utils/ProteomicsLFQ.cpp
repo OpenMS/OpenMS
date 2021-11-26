@@ -1180,6 +1180,9 @@ protected:
         IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
       }
 
+      ffi.run(fm, peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, seeds, mz_file);
+
+        /*
       IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
 
@@ -1192,6 +1195,7 @@ protected:
 
       // convert IDs in feature map to Peptide-/ProteinIdentification:
       IdentificationDataConverter::exportFeatureIDs(fm);
+        */
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
