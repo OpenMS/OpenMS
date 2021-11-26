@@ -76,7 +76,7 @@ namespace OpenMS
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (const MSSpectrum& it : exp)
+    for (MSSpectrum& it : exp)
     {
       split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
