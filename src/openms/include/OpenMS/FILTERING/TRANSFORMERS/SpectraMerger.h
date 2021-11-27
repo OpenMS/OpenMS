@@ -299,13 +299,14 @@ namespace OpenMS
     }
 
     /**
-     * @brief check if mzs might be from the same mass
+     * @brief check if the first and second mzs might be from the same mass
      *
-     * @param mz1
-     * @param mz2
-     * @param tol_ppm
+     * @param mz1 the first m/z value
+     * @param mz2 the second m/z value
+     * @param tol_ppm tolerance in ppm
+     * @param max_c maximum possible charge value
      */
-    bool areMassMatch(double mz1, double mz2, double tol_ppm, int max_c)
+    bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
     {
       if (mz1 == mz2 || tol_ppm <= 0)
       {
@@ -313,8 +314,9 @@ namespace OpenMS
       }
 
       const int min_c = 1;
-      const int max_iso_diff = 5;
-      const double max_charge_diff_ratio = 3.0;
+      const int max_iso_diff = 5; // maximum charge difference  5 is more than enough
+      const double max_charge_diff_ratio = 3.0; // maximum ratio between charges (large / small charge)
+
       for (int c1 = min_c; c1 <= max_c; ++c1)
       {
         double mass1 = (mz1 - Constants::PROTON_MASS_U) * c1;
@@ -355,15 +357,8 @@ namespace OpenMS
      * @param average_type averaging type to be used ("gaussian" or "tophat")
      */
     template<typename MapType>
-    void average(MapType &exp, const String &average_type)
+    void average(MapType &exp, const String &average_type, int ms_level)
     {
-      // MS level to be averaged
-      int ms_level = param_.getValue("average_gaussian:ms_level");
-      if (average_type == "tophat")
-      {
-        ms_level = param_.getValue("average_tophat:ms_level");
-      }
-
       // spectrum type (profile, centroid or automatic)
       std::string spectrum_type = param_.getValue("average_gaussian:spectrum_type");
       if (average_type == "tophat")
@@ -391,9 +386,9 @@ namespace OpenMS
       range_scans = (range_scans - 1) / 2; // max. +/- <range_scans> scans from master spectrum
 
       AverageBlocks spectra_to_average_over;
-
       // loop over RT
       int n(0); // spectrum index
+      int cntr(0); // spectrum counter
       for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
       {
         if (Int(it_rt->getMSLevel()) == ms_level)
@@ -413,20 +408,23 @@ namespace OpenMS
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
               bool add = true;
-              if (ms_level >= 2 && it_rt->getPrecursors().size() > 0 && it_rt_2->getPrecursors().size() > 0)
+              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
+              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
+                  it_rt_2->getPrecursors().size() > 0)
               {
                 double mz1 = it_rt->getPrecursors()[0].getMZ();
                 double mz2 = it_rt_2->getPrecursors()[0].getMZ();
-                add = areMassMatch(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
+                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
               }
-              double weight = 1;
-              if (average_type == "gaussian")
-              {
-                weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
-              }
-              std::pair<Size, double> p(m, weight);
+
               if (add)
               {
+                double weight = 1;
+                if (average_type == "gaussian")
+                {
+                  weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
+                }
+                std::pair<Size, double> p(m, weight);
                 spectra_to_average_over[n].push_back(p);
               }
               ++steps;
@@ -460,20 +458,22 @@ namespace OpenMS
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
               bool add = true;
-              if (ms_level >= 2 && it_rt->getPrecursors().size() > 0 && it_rt_2->getPrecursors().size() > 0)
+              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
+              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
+                  it_rt_2->getPrecursors().size() > 0)
               {
                 double mz1 = it_rt->getPrecursors()[0].getMZ();
                 double mz2 = it_rt_2->getPrecursors()[0].getMZ();
-                add = areMassMatch(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
+                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
               }
-              double weight = 1;
-              if (average_type == "gaussian")
-              {
-                weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
-              }
-              std::pair<Size, double> p(m, weight);
               if (add)
               {
+                double weight = 1;
+                if (average_type == "gaussian")
+                {
+                  weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
+                }
+                std::pair<Size, double> p(m, weight);
                 spectra_to_average_over[n].push_back(p);
               }
               ++steps;
@@ -496,16 +496,26 @@ namespace OpenMS
             --m;
             --it_rt_2;
           }
-
+          ++cntr;
         }
         ++n;
       }
 
+      if (cntr == 0)
+      {
+        //return;
+        throw Exception::InvalidParameter(__FILE__,
+                                          __LINE__,
+                                          OPENMS_PRETTY_FUNCTION,
+                                          "Input mzML does not have any spectra of MS level specified by ms_level.");
+      }
       // normalize weights
       for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin();
+             it2 != it->second.end();
+             ++it2)
         {
           sum += it2->second;
         }

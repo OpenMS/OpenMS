@@ -157,7 +157,7 @@ namespace OpenMS
     //This is the main FLASHDeconv function in which deconvolution is performed.
     generatePeakGroupsFromSpectrum_();
 
-    for (auto &pg : deconvoluted_spectrum_)
+    for (auto &pg: deconvoluted_spectrum_)
     {
       sort(pg.begin(), pg.end());
       pg.setScanNumber(scan_number);
@@ -196,7 +196,7 @@ namespace OpenMS
     bin_width_.clear();
     tolerance_ = param_.getValue("tol");
 
-    for (double &j : tolerance_)
+    for (double &j: tolerance_)
     {
       j *= 1e-6;
       bin_width_.push_back(.5 / j);
@@ -324,7 +324,7 @@ namespace OpenMS
     mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
     double bin_width = bin_width_[ms_level_ - 1];
-    for (auto &p : log_mz_peaks_)
+    for (auto &p: log_mz_peaks_)
     {
       Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
       if (bi >= bin_number)
@@ -336,7 +336,7 @@ namespace OpenMS
 
       mz_bin_intensities[bi] += p.intensity;
     }
-    for (auto &p : log_mz_peaks_)
+    for (auto &p: log_mz_peaks_)
     {
       Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
       double delta = (p.logMz - getBinValue_(bi, mz_bin_min_value_, bin_width));
@@ -974,7 +974,7 @@ namespace OpenMS
         auto new_peaks = std::vector<LogMzPeak>();
         new_peaks.reserve(pg.size());
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           if (max_intensity < p.intensity)
           {
@@ -988,7 +988,7 @@ namespace OpenMS
         int max_charge = -1;
         std::vector<double> signal_power(current_max_charge_ + 1, .0);
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           p.isotopeIndex = round((p.getUnchargedMass() - t_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
           if (abs(t_mass - p.getUnchargedMass() + Constants::ISOTOPE_MASSDIFF_55K_U * p.isotopeIndex) >
@@ -1020,7 +1020,7 @@ namespace OpenMS
 
           pg.swap(new_peaks);
 
-          for (auto &p : pg)
+          for (auto &p: pg)
           {
             p.isotopeIndex -= min_off;
           }
@@ -1411,7 +1411,7 @@ namespace OpenMS
       std::vector<double> intensities;
       intensities.reserve(deconvoluted_spectrum_.size());
 
-      for (auto &pg : deconvoluted_spectrum_)
+      for (auto &pg: deconvoluted_spectrum_)
       {
         if (pg.getMonoMass() < current_min_mass_ || pg.getMonoMass() > current_max_mass_)
         {
@@ -1422,7 +1422,7 @@ namespace OpenMS
       sort(intensities.begin(), intensities.end());
     }
 
-    for (auto &peak_group : deconvoluted_spectrum_)
+    for (auto &peak_group: deconvoluted_spectrum_)
     {
       auto per_isotope_intensities = std::vector<double>(avg_.getMaxIsotopeIndex(), 0);
       auto per_abs_charge_intensities = std::vector<double>(charge_range, 0);
@@ -1574,7 +1574,7 @@ namespace OpenMS
 
     std::vector<double> iso_cos_scores;
     iso_cos_scores.reserve(deconvoluted_spectrum_.size());
-    for (auto &pg : deconvoluted_spectrum_)
+    for (auto &pg: deconvoluted_spectrum_)
     {
       iso_cos_scores.push_back(pg.getIsotopeCosine());
     }
@@ -1584,7 +1584,7 @@ namespace OpenMS
     auto new_peak_groups = std::vector<PeakGroup>();
     new_peak_groups.reserve(deconvoluted_spectrum_.size());
     double threshold = iso_cos_scores[iso_cos_scores.size() - current_max_mass_count];
-    for (auto &pg : deconvoluted_spectrum_)
+    for (auto &pg: deconvoluted_spectrum_)
     {
       if (new_peak_groups.size() > current_max_mass_count)
       {
@@ -1715,7 +1715,7 @@ namespace OpenMS
     //    double maxIntensity2 = -1;
     int max_intensity_iso_index = -1;
 
-    for (auto &p : pg)
+    for (auto &p: pg)
     {
       if (p.isotopeIndex < 0 || p.isotopeIndex >= max_isotope_count)
       {
@@ -1818,12 +1818,12 @@ namespace OpenMS
     std::vector<std::vector<float>> per_isotope_masses;
     int isotope_end_index = 0;
 
-    for (auto &p : pg)
+    for (auto &p: pg)
     {
       isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
     }
     per_isotope_masses = std::vector<std::vector<float>>(isotope_end_index + 1, std::vector<float>());
-    for (auto &p : pg)
+    for (auto &p: pg)
     {
       per_isotope_masses[p.isotopeIndex].push_back(p.getUnchargedMass());
     }
@@ -1835,7 +1835,7 @@ namespace OpenMS
       double average = n >= 2 ?
                        accumulate(v.begin(), v.end(), 0.0) / n :
                        pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;  //
-      for (float &t:v)
+      for (float &t: v)
       {
         diffs.push_back(pow(1e6 * (t - average) / average, 2.0));
       }
@@ -1847,7 +1847,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::setTargetMasses(const std::set<double> &masses, int ms_level)
   {
-    for (auto &m : masses)
+    for (auto &m: masses)
     {
 
       double mass_delta = avg_.getMostAbundantMassDelta(m);

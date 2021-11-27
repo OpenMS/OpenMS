@@ -87,7 +87,7 @@ namespace OpenMS
       tmpPeaks.swap(*this);
       reserve(tmpPeaks.size());
 
-      for (auto &p : tmpPeaks)
+      for (auto &p: tmpPeaks)
       {
         p.isotopeIndex -= offset;
         if (p.isotopeIndex < 0 || p.isotopeIndex >= max_isotope_index)
@@ -101,7 +101,7 @@ namespace OpenMS
     intensity_ = .0;
     double nominator = .0;
 
-    for (auto &p : *this)
+    for (auto &p: *this)
     {
       double pi = p.intensity + 1;
       intensity_ += pi;
@@ -237,7 +237,7 @@ namespace OpenMS
     double mz_end = -10;
     if (!(abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_))
     {
-      for (auto &tmp_p:*this)
+      for (auto &tmp_p: *this)
       {
         if (tmp_p.abs_charge != abs_charge)
         {

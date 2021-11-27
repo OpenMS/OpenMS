@@ -243,7 +243,7 @@ namespace OpenMS
     std::unordered_map<int, double> new_all_mass_rt_map_;
     std::unordered_map<int, double> new_mass_qscore_map_;
 
-    for (auto &item:mz_rt_map_)
+    for (auto &item: mz_rt_map_)
     {
       if (rt - item.second > rt_window_)
       {
@@ -254,7 +254,7 @@ namespace OpenMS
     new_mz_rt_map_.swap(mz_rt_map_);
     std::unordered_map<int, double>().swap(new_mz_rt_map_);
 
-    for (auto &item:mass_rt_map_)
+    for (auto &item: mass_rt_map_)
     {
       if (rt - item.second > rt_window_)
       {
@@ -265,7 +265,7 @@ namespace OpenMS
     new_mass_rt_map_.swap(mass_rt_map_);
     std::unordered_map<int, double>().swap(new_mass_rt_map_);
 
-    for (auto &item : all_mass_rt_map_)
+    for (auto &item: all_mass_rt_map_)
     {
       if (rt - item.second > rt_window_)
       {
@@ -283,7 +283,7 @@ namespace OpenMS
 
     for (int i = 0; i < 2; i++)
     { //
-      for (auto &pg : deconvoluted_spectrum_)
+      for (auto &pg: deconvoluted_spectrum_)
       {
 
         if (filtered_peakgroups.size() >= mass_count)

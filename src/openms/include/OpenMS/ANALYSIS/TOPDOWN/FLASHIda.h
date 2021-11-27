@@ -43,6 +43,9 @@ namespace OpenMS
 {
   /**
    * @brief FLASHIda class for real time deconvolution
+   * This class contains functions to perform deconvolution (by FLASHDeconvAlgorithm) for the spectrum received from Thermo iAPI.
+   * Also precursor selection is done in this class.
+   * The functions in this class are invoked in C# Thermo iAPI side through the functions in FLASHIdaBridgeFunctions class
    * @see FLASHIdaBridgeFunctions
    * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
    */

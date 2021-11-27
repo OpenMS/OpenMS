@@ -48,6 +48,11 @@ namespace OpenMS
 {
   /**
   @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
+  From MSSPectrum, this class outputs DeconvolutedSpectrum.
+  Deconvolution takes three steps:
+   i) decharging and select candidate masses - speed up via binning
+   ii) collecting isotopes from the candidate masses and deisotope - peak groups are defined here
+   iii) scoring and filter out low scoring masses (i.e., peak groups)
   @ingroup Topdown
 */
 

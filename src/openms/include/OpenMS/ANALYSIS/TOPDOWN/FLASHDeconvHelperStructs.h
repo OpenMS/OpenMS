@@ -43,8 +43,12 @@ namespace OpenMS
 {
   /**
    * @brief Wrapper struct for all the structs needed by the FLASHDeconv
-   *
-   * @see FLASHDeconv
+   * Three structures are defined: PrecalculatedAveragine, TopPicItem, and LogMzPeak
+   * i) PrecalculatedAveragine - to match observed isotopic envelope against theoretical one, theoretical envelope from
+   * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
+   * ii) TopPicItem - represent TopPic identification. Currently used for QScore training.
+   * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
+   * @see FLASHDeconvAlgorithm
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
@@ -113,6 +117,7 @@ namespace OpenMS
 
       /// get mass difference between avg and mono masses
       double getAverageMassDelta(const double mass) const;
+
       /// get mass difference between most abundant mass and mono masses
       double getMostAbundantMassDelta(const double mass) const;
     };

@@ -55,7 +55,14 @@ using namespace std;
   @page TOPP_FLASHDeconv TOPP_FLASHDeconv
 
   @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
-
+  FLASHDeconv takes mzML file as input and outputs deconvoluted feature list (.tsv) and
+  deconvoluted spectra files (.tsv, .mzML, .msalign, .ms1ft).
+  FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
+  Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
+  can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
+  for a certain period for precursor mass assignment in DeconvolutedSpectrum class.
+  In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
+  from FLASHIda runs and pass the parsed information to DeconvolutedSpectrum class.
 */
 
 

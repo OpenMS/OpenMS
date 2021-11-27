@@ -175,7 +175,7 @@ namespace OpenMS
         }
       }
 
-      for (auto &item : fv)
+      for (auto &item: fv)
       {
         f << item << ",";
       }
@@ -184,14 +184,14 @@ namespace OpenMS
       if (write_detail)
       {
         f << std::fixed << std::setprecision(2);
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           f << p.mz << " ";
         }
         f << ";,";
 
         f << std::fixed << std::setprecision(1);
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           f << p.intensity << " ";
         }
@@ -199,19 +199,19 @@ namespace OpenMS
         f << std::setprecision(-1);
 
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           f << p.getUnchargedMass() << " ";
         }
         f << ";,";
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           f << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
         f << ";,";
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           f << p.isotopeIndex << " ";
         }

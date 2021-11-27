@@ -46,7 +46,7 @@ namespace OpenMS
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    for (auto &pg : *this)
+    for (auto &pg: *this)
     {
       if (pg.empty())
       {
@@ -79,7 +79,7 @@ namespace OpenMS
       return;
     }
 
-    for (auto &pg : *this)
+    for (auto &pg: *this)
     {
       if (pg.empty())
       {
@@ -103,37 +103,37 @@ namespace OpenMS
       if (write_detail)
       {
         fs << std::fixed << std::setprecision(2);
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           fs << p.mz << " ";
         }
         fs << ";\t";
 
         fs << std::fixed << std::setprecision(1);
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           fs << p.intensity << " ";
         }
         fs << ";\t";
         fs << std::setprecision(-1);
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
         fs << ";\t";
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           fs << p.getUnchargedMass() << " ";
         }
         fs << ";\t";
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           fs << p.isotopeIndex << " ";
         }
         fs << ";\t";
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
           double mass_error =
@@ -184,12 +184,12 @@ namespace OpenMS
       fs << "\t";
       int isotope_end_index = 0;
 
-      for (auto &p : pg)
+      for (auto &p: pg)
       {
         isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
       }
       auto per_isotope_intensity = std::vector<double>(isotope_end_index + 1, .0);
-      for (auto &p : pg)
+      for (auto &p: pg)
       {
         per_isotope_intensity[p.isotopeIndex] += p.intensity;
       }
@@ -320,7 +320,7 @@ namespace OpenMS
     if (size() > topFD_max_peak_count_)// max peak count for TopPic = 500
     {
       isotope_scores.reserve(size());
-      for (auto &pg : *this)
+      for (auto &pg: *this)
       {
         isotope_scores.push_back(pg.getIsotopeCosine());
       }
@@ -330,7 +330,7 @@ namespace OpenMS
     }
 
     int size = 0;
-    for (auto &pg : *this)
+    for (auto &pg: *this)
     {
       if (pg.getIsotopeCosine() < isotope_score_threshold)
       {
@@ -391,7 +391,7 @@ namespace OpenMS
 
     for (auto &precursor: spec_.getPrecursors())
     {
-      for (auto &activation_method : precursor.getActivationMethods())
+      for (auto &activation_method: precursor.getActivationMethods())
       {
         activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
         if (!activation_method_.compare("HCID"))
@@ -427,7 +427,7 @@ namespace OpenMS
 
         if (map != precursor_map_for_real_time_acquisition.end())
         {
-          for (auto &smap : map->second)
+          for (auto &smap: map->second)
           {
             if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001)
             {
@@ -483,8 +483,8 @@ namespace OpenMS
                   }
                   double max_intensity = .0;
                   const LogMzPeak *tmp_precursor = nullptr;
-                 // double power = .0;
-                  for (auto &tmp_peak:pg)
+                  // double power = .0;
+                  for (auto &tmp_peak: pg)
                   {
                     if (tmp_peak.mz < start_mz)
                     {
@@ -574,7 +574,7 @@ namespace OpenMS
         //bool contained = true;
         //double power = 0;
         //double i_sum = 0;
-        for (auto &tmp_peak:pg)
+        for (auto &tmp_peak: pg)
         {
           if (tmp_peak.abs_charge != c)
           {

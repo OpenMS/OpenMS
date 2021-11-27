@@ -46,18 +46,26 @@ namespace OpenMS
     defaults_.setValue("mz_binning_width", 5.0, "minimum m/z distance for two data points (profile data) or peaks (centroided data) to be considered distinct. Closer data points or peaks will be merged.", {"advanced"});
     defaults_.setMinFloat("mz_binning_width", 0.0);
 
-    defaults_.setValue("mz_binning_width_unit", "ppm", "Unit in which the distance between two data points or peaks is given.", {"advanced"});
-    defaults_.setValidStrings("mz_binning_width_unit", {"Da","ppm"});
+    defaults_.setValue("mz_binning_width_unit",
+                       "ppm",
+                       "Unit in which the distance between two data points or peaks is given.",
+                       {"advanced"});
+    defaults_.setValidStrings("mz_binning_width_unit", {"Da", "ppm"});
 
-    defaults_.setValue("sort_blocks", "RT_ascending", "Sort blocks by <?> before merging them (useful for precursor order)", {"advanced"});
-    defaults_.setValidStrings("sort_blocks", {"RT_ascending","RT_descending"});
+    defaults_.setValue("sort_blocks",
+                       "RT_ascending",
+                       "Sort blocks by <?> before merging them (useful for precursor order)",
+                       {"advanced"});
+    defaults_.setValidStrings("sort_blocks", {"RT_ascending", "RT_descending"});
 
     // Gaussian average
     defaults_.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
     defaults_.setValidStrings("average_gaussian:spectrum_type", {"profile", "centroid", "automatic"});
     defaults_
-        .setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_gaussian:ms_level", 1);
+        .setValue("average_gaussian:ms_level",
+                  1,
+                  "If set to be 0, each MS level will be merged from 1 to max. Otherwise, average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_gaussian:ms_level", 0);
     defaults_.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
     defaults_.setMinFloat("average_gaussian:rt_FWHM", 0.0);
     defaults_.setMaxFloat("average_gaussian:rt_FWHM", 10e10);
@@ -80,18 +88,22 @@ namespace OpenMS
     defaults_.setValue("average_tophat:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
     defaults_.setValidStrings("average_tophat:spectrum_type", {"profile", "centroid", "automatic"});
     defaults_
-        .setValue("average_tophat:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_tophat:ms_level", 1);
+        .setValue("average_tophat:ms_level",
+                  1,
+                  "If set to be 0, each MS level will be merged from 1 to max. Otherwise, average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_tophat:ms_level", 0);
     defaults_.setValue("average_tophat:rt_range",
                        5.0,
                        "RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
     defaults_.setMinFloat("average_tophat:rt_range", 0.0);
     defaults_.setMaxFloat("average_tophat:rt_range", 10e10);
     defaults_.setValue("average_tophat:rt_unit", "scans", "Unit for RT range.");
-    defaults_.setValidStrings("average_tophat:rt_unit", {"scans","seconds"});
+    defaults_.setValidStrings("average_tophat:rt_unit", {"scans", "seconds"});
 
     // block merging
-    defaults_.setValue("block_method:ms_levels", ListUtils::create<Int>("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
+    defaults_.setValue("block_method:ms_levels",
+                       ListUtils::create<Int>("1"),
+                       "Merge spectra of this level. All spectra with other MS levels remain untouched.");
     defaults_.setMinInt("block_method:ms_levels", 1);
     defaults_.setValue("block_method:rt_block_size", 5, "Maximum number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);

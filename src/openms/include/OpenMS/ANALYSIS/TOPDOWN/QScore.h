@@ -44,8 +44,12 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   QScore : quality score for precursors. This class is being updated. For now, simply it calculate the QScore using a fixed weight vector. But afterwards, the training
-   part for the QScore should be added in here.
+@brief   QScore : quality score for PeakGroup. This class is being updated.
+   For now, simply it calculate the QScore using a fixed weight vector.
+   The vector is determined by logistric regression outside.
+   But afterwards, the training part for the QScore should be added in here.
+   Or other technique such as deep learning would be used.
+   This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
 @ingroup Topdown
 */
 

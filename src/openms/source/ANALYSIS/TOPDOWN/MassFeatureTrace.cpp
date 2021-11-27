@@ -72,7 +72,7 @@ namespace OpenMS
 
   MassFeatureTrace::~MassFeatureTrace()
   {
-    for (auto &item : peak_group_map_)
+    for (auto &item: peak_group_map_)
     {
       std::unordered_map<double, PeakGroup>().swap(item.second);
     }
@@ -95,12 +95,12 @@ namespace OpenMS
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
     int topid = 1;
-    for (auto &item : peak_group_map_)
+    for (auto &item: peak_group_map_)
     {
       double rt = item.first;
       MSSpectrum deconv_spec;
       deconv_spec.setRT(rt);
-      for (auto &pg : item.second)
+      for (auto &pg: item.second)
       {
         is_positive = pg.second.isPositive();
         auto crange = pg.second.getAbsChargeRange();
@@ -129,7 +129,7 @@ namespace OpenMS
 
     int charge_range = max_abs_charge - min_abs_charge + 1;
 
-    for (auto &mt : m_traces)
+    for (auto &mt: m_traces)
     {
       double max_qscore = .0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
@@ -152,7 +152,7 @@ namespace OpenMS
       double max_iso = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);
 
-      for (auto &p2 : mt)
+      for (auto &p2: mt)
       {
         auto &pg_map = peak_group_map_[p2.getRT()];
         auto &pg = pg_map[p2.getMZ()];
@@ -186,7 +186,7 @@ namespace OpenMS
           max_mass = pg.getMonoMass();
         }
 
-        for (auto &p : pg)
+        for (auto &p: pg)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
               p.abs_charge >= charge_range + min_abs_charge + 1)
@@ -232,7 +232,7 @@ namespace OpenMS
 
       double sum_intensity = .0;
 
-      for (auto &p : mt)
+      for (auto &p: mt)
       {
         sum_intensity += p.getIntensity();
       }
@@ -368,7 +368,7 @@ namespace OpenMS
 
           double sum_intensity = .0;
 
-          for (auto &p : mt)
+          for (auto &p: mt)
           {
             sum_intensity += p.getIntensity();
           }
@@ -388,7 +388,7 @@ namespace OpenMS
           double sum_intensity = .0;
           int min_feature_abs_charge = INT_MAX;
           int max_feature_abs_charge = INT_MIN;
-          for (auto &p : smt)
+          for (auto &p: smt)
           {
             sum_intensity += p.getIntensity();
             auto &pg_map = peak_group_map_[p.getRT()];
@@ -467,7 +467,7 @@ namespace OpenMS
 
       peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
       auto &sub_pg_map = peak_group_map_[rt];
-      for (auto &pg : deconvoluted_spectrum)
+      for (auto &pg: deconvoluted_spectrum)
       {
         sub_pg_map[pg.getMonoMass()] = pg;
       }
