@@ -357,8 +357,16 @@ namespace OpenMS
      * @param average_type averaging type to be used ("gaussian" or "tophat")
      */
     template<typename MapType>
-    void average(MapType &exp, const String &average_type, int ms_level)
+    void average(MapType &exp, const String &average_type, int ms_level = -1)
     {
+      if (ms_level < 0)
+      {
+        ms_level = param_.getValue("average_gaussian:ms_level");
+        if (average_type == "tophat")
+        {
+          ms_level = param_.getValue("average_tophat:ms_level");
+        }
+      }
       // spectrum type (profile, centroid or automatic)
       std::string spectrum_type = param_.getValue("average_gaussian:spectrum_type");
       if (average_type == "tophat")
