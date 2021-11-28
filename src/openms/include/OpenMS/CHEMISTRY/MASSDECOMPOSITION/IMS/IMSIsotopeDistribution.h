@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <iosfwd>
+#include <algorithm>
 
 #include <OpenMS/config.h>
 
