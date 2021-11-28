@@ -64,8 +64,6 @@ using namespace IsoSpec;
 
 namespace OpenMS
 {
-
-
   Iso _OMS_IsoFromParameters(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
@@ -154,10 +152,10 @@ namespace OpenMS
   double IsoSpecThresholdGeneratorWrapper::getIntensity() { return ITG->prob(); };
   double IsoSpecThresholdGeneratorWrapper::getLogIntensity() { return ITG->lprob(); };
 
+  // in this special case it needs to go in cpp file (see e.g., https://stackoverflow.com/questions/38242200/where-should-a-default-destructor-c11-style-go-header-or-cpp)
+  IsoSpecThresholdGeneratorWrapper::~IsoSpecThresholdGeneratorWrapper() = default; 
 
 //  --------------------------------------------------------------------------------
-
-
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
@@ -172,6 +170,8 @@ namespace OpenMS
   ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint))
   {};
 
+  IsoSpecTotalProbGeneratorWrapper::~IsoSpecTotalProbGeneratorWrapper() = default;
+
   bool IsoSpecTotalProbGeneratorWrapper::nextConf() { return ILG->advanceToNextConfiguration(); };
   Peak1D IsoSpecTotalProbGeneratorWrapper::getConf() { return Peak1D(ILG->mass(), ILG->prob()); };
   double IsoSpecTotalProbGeneratorWrapper::getMass() { return ILG->mass(); };
@@ -179,7 +179,6 @@ namespace OpenMS
   double IsoSpecTotalProbGeneratorWrapper::getLogIntensity() { return ILG->lprob(); };
 
 //  --------------------------------------------------------------------------------
-
 
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
@@ -191,6 +190,8 @@ namespace OpenMS
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
     IOG(std::make_unique<IsoSpec::IsoOrderedGenerator>(_OMS_IsoFromEmpiricalFormula(formula)))
   {};
+
+  IsoSpecOrderedGeneratorWrapper::~IsoSpecOrderedGeneratorWrapper() = default; // needs to be in cpp file because of incomplete types!
 
   bool IsoSpecOrderedGeneratorWrapper::nextConf() { return IOG->advanceToNextConfiguration(); };
   Peak1D IsoSpecOrderedGeneratorWrapper::getConf() { return Peak1D(IOG->mass(), IOG->prob()); };
@@ -221,7 +222,6 @@ namespace OpenMS
     absolute))
   {};
 
-
   IsotopeDistribution IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
@@ -240,6 +240,7 @@ namespace OpenMS
   }
 
   IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper() = default;
+  
 //  --------------------------------------------------------------------------------
 
 

@@ -241,7 +241,7 @@ public:
       **/
     IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula, double p);
 
-    ~IsoSpecTotalProbGeneratorWrapper() = default;
+    ~IsoSpecTotalProbGeneratorWrapper();
 
     bool nextConf() final;
     Peak1D getConf() final;
@@ -306,7 +306,7 @@ public:
       **/
   IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
-  ~IsoSpecThresholdGeneratorWrapper() = default;
+  ~IsoSpecThresholdGeneratorWrapper();
 
   bool nextConf() final;
   Peak1D getConf() final;
@@ -359,7 +359,7 @@ public:
       **/
   IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
-  ~IsoSpecOrderedGeneratorWrapper() = default;
+  ~IsoSpecOrderedGeneratorWrapper();
 
   inline bool nextConf() final;
   inline Peak1D getConf() final;
