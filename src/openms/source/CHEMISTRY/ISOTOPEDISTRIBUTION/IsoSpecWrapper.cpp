@@ -47,6 +47,8 @@
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
 
+#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
+
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -128,23 +130,29 @@ namespace OpenMS
     return _OMS_IsoFromParameters(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
   }
 
-
-
-
   IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), threshold, absolute)
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    threshold, 
+    absolute))
   {};
 
   IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute))
   {};
+
+  bool IsoSpecThresholdGeneratorWrapper::nextConf() { return ITG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecThresholdGeneratorWrapper::getConf() { return Peak1D(ITG->mass(), ITG->prob()); };
+  double IsoSpecThresholdGeneratorWrapper::getMass() { return ITG->mass(); };
+  double IsoSpecThresholdGeneratorWrapper::getIntensity() { return ITG->prob(); };
+  double IsoSpecThresholdGeneratorWrapper::getLogIntensity() { return ITG->lprob(); };
 
 
 //  --------------------------------------------------------------------------------
@@ -156,14 +164,19 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double total_prob_hint) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob_hint)
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob_hint))
   {};
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula,
                     double total_prob_hint) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint)
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint))
   {};
 
+  bool IsoSpecTotalProbGeneratorWrapper::nextConf() { return ILG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecTotalProbGeneratorWrapper::getConf() { return Peak1D(ILG->mass(), ILG->prob()); };
+  double IsoSpecTotalProbGeneratorWrapper::getMass() { return ILG->mass(); };
+  double IsoSpecTotalProbGeneratorWrapper::getIntensity() { return ILG->prob(); };
+  double IsoSpecTotalProbGeneratorWrapper::getLogIntensity() { return ILG->lprob(); };
 
 //  --------------------------------------------------------------------------------
 
@@ -172,12 +185,18 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities) :
-  IOG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities))
+   IOG(std::make_unique<IsoSpec::IsoOrderedGenerator>(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
   {};
 
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
-  IOG(_OMS_IsoFromEmpiricalFormula(formula))
+    IOG(std::make_unique<IsoSpec::IsoOrderedGenerator>(_OMS_IsoFromEmpiricalFormula(formula)))
   {};
+
+  bool IsoSpecOrderedGeneratorWrapper::nextConf() { return IOG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecOrderedGeneratorWrapper::getConf() { return Peak1D(IOG->mass(), IOG->prob()); };
+  double IsoSpecOrderedGeneratorWrapper::getMass() { return IOG->mass(); };
+  double IsoSpecOrderedGeneratorWrapper::getIntensity() { return IOG->prob(); };
+  double IsoSpecOrderedGeneratorWrapper::getLogIntensity() { return IOG->lprob(); };
 
 //  --------------------------------------------------------------------------------
 
@@ -187,25 +206,31 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), threshold, absolute)
-  {};
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    threshold, 
+    absolute))
+  {}
 
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const EmpiricalFormula& formula,
                     double threshold,
-                    bool absolute) :
-  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
+                    bool absolute) :                    
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromEmpiricalFormula(formula), 
+    threshold, 
+    absolute))
   {};
 
 
   IsotopeDistribution IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
-    distribution.reserve(ITG.count_confs());
+    distribution.reserve(ITG->count_confs());
 
-    ITG.reset();
+    ITG->reset();
 
-    while (ITG.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG.mass(), ITG.prob()));
+    while (ITG->advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
 
     IsotopeDistribution ID;
 
@@ -214,6 +239,7 @@ namespace OpenMS
     return ID;
   }
 
+  IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper() = default;
 //  --------------------------------------------------------------------------------
 
 
@@ -223,7 +249,12 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double _total_prob,
                     bool _do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, _total_prob),
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    1024, 
+    1024, 
+    true, 
+    _total_prob)),
   target_prob(_total_prob),
   do_p_trim(_do_p_trim)
   {};
@@ -231,11 +262,12 @@ namespace OpenMS
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
                     double _total_prob,
                     bool _do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, _total_prob),
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, _total_prob)),
   target_prob(_total_prob),
   do_p_trim(_do_p_trim)
   {};
 
+  IsoSpecTotalProbWrapper::~IsoSpecTotalProbWrapper() = default;
 
   IsotopeDistribution IsoSpecTotalProbWrapper::run()
   {
@@ -245,19 +277,19 @@ namespace OpenMS
 
     double acc_prob = 0.0;
 
-    while (acc_prob < target_prob && ILG.advanceToNextConfiguration())
+    while (acc_prob < target_prob && ILG->advanceToNextConfiguration())
     {
-        double p = ILG.prob();
+        double p = ILG->prob();
         acc_prob += p;
-        distribution.emplace_back(Peak1D(ILG.mass(), p));
+        distribution.emplace_back(Peak1D(ILG->mass(), p));
     }
 
     if (do_p_trim)
     {
         // the p_trim: extract the rest of the last layer, and perform quickselect
 
-        while (ILG.advanceToNextConfigurationWithinLayer())
-            distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+        while (ILG->advanceToNextConfigurationWithinLayer())
+            distribution.emplace_back(Peak1D(ILG->mass(), ILG->prob()));
 
         size_t start = 0;
         size_t end = distribution.size();
