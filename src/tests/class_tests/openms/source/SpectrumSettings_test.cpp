@@ -100,13 +100,13 @@ START_SECTION((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info))
 	AcquisitionInfo ai;
 	ai.setMethodOfCombination("test");
 	tmp.setAcquisitionInfo(ai);
-	TEST_EQUAL(tmp.getAcquisitionInfo().empty(), false);
+	TEST_EQUAL(tmp.getAcquisitionInfo() == AcquisitionInfo(), false);
 END_SECTION
 
 START_SECTION((const AcquisitionInfo& getAcquisitionInfo() const))
 	SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
-	TEST_EQUAL(tmp.getAcquisitionInfo().empty(), false);
+	TEST_EQUAL(tmp.getAcquisitionInfo() == AcquisitionInfo(), false);
 END_SECTION
 
 START_SECTION((SourceFile& getSourceFile()))

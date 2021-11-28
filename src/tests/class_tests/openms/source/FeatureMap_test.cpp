@@ -600,9 +600,12 @@ START_SECTION((void clear(bool clear_meta_data=true)))
 
 	map1.clear(false);
 	TEST_EQUAL(map1.size(),0)
-	TEST_EQUAL(map1.empty(),false)
+	TEST_EQUAL(map1 == FeatureMap(),false)
+	TEST_EQUAL(map1.empty(),true)
 
 	map1.clear(true);
+	TEST_EQUAL(map1.size(),0)
+	TEST_EQUAL(map1 == FeatureMap(),true)
 	TEST_EQUAL(map1.empty(),true)
 END_SECTION
 

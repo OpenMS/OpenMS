@@ -1084,10 +1084,11 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-    TEST_EQUAL(edit.empty(),false)
+  TEST_EQUAL(edit == MSExperiment(),false)
 
-    edit.clear(true);
+  edit.clear(true);
   TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSExperiment(),true)
 }
 END_SECTION
 

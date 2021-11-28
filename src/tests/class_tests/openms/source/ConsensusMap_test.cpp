@@ -631,10 +631,13 @@ START_SECTION((void clear(bool clear_meta_data = true)))
 	map1.getUnassignedPeptideIdentifications().resize(1);
 	
 	map1.clear(false);
-	TEST_EQUAL(map1.size(),0)
-	TEST_EQUAL(map1.empty(),false)
+	TEST_EQUAL(map1.size(), 0)
+	TEST_EQUAL(map1 == ConsensusMap(),false)
+  TEST_EQUAL(map1.empty(),true)
 
 	map1.clear(true);
+  TEST_EQUAL(map1.size(), 0)
+  TEST_EQUAL(map1 == ConsensusMap(),true)
 	TEST_EQUAL(map1.empty(),true)
 }
 END_SECTION
