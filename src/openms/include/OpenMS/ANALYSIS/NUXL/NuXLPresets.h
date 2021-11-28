@@ -1345,7 +1345,7 @@ namespace OpenMS
     const String DNA_TCGAd = "TCGAd";
 
     // set precursor + fragment adducts and cross-linked nucleotide
-    if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
+    if (p.hasPrefix("RNA-UV (U)") || p.hasPrefix("RNA-UV (UCGA)"))
     {
       if (p.hasSubstring("[high]"))
       {
@@ -1356,43 +1356,46 @@ namespace OpenMS
         modifications = RNA_UV_modifications_medium;
       }
       fragment_adducts = RNA_UV_fragments_high;
-      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
+      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA;
     }
-    else if (p == "RNA-UV Pase (U)" || p == "RNA-UV Pase (UCGA)")
+    else if (p.hasPrefix("RNA-UV Pase (U)") || p.hasPrefix("RNA-UV Pase (UCGA)"))
     {
       modifications = RNA_UV_PASE_modifications_high; 
       fragment_adducts = RNA_UV_PASE_fragments_high;
       can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
     }
-    else if (p == "DNA-UV")
+    else if (p == "DNA-UV [high]")
     {
       modifications = DNA_UV_modifications_high;
       fragment_adducts = DNA_UV_fragments_high;
       can_cross_link = DNA_TCGAd;
     }
-    else if (p == "DNA-UV Pase")
+    else if (p == "DNA-UV Pase [high]")
     {
       modifications = DNA_UV_PASE_modifications_high;
       fragment_adducts = DNA_UV_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
+      return;
     }
-    else if (p == "RNA-UV (4SU)")
+    else if (p.hasPrefix("RNA-UV (4SU)"))
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
       modifications = RNA_UV_4SU_modifications_high;
       fragment_adducts = RNA_UV_4SU_fragments_high;
       can_cross_link = "S";
+      return;
     }
-    else if (p == "RNA-UV Pase (4SU)")
+    else if (p.hasPrefix("RNA-UV Pase (4SU)"))
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
       modifications = RNA_UV_4SU_PASE_modifications_high;
       fragment_adducts = RNA_UV_4SU_PASE_fragments_high;
       can_cross_link = "S";
+      return;
     }
-    else if (p == "RNA-DEB")
+    else if (p.hasPrefix("RNA-DEB ["))
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
@@ -1413,8 +1416,9 @@ namespace OpenMS
      
       fragment_adducts = RNA_DEB_fragments_high;
       can_cross_link = RNA_UCGA;
+      return;
     }
-    else if (p == "RNA-DEB Pase")
+    else if (p.hasPrefix("RNA-DEB Pase ["))
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
@@ -1423,20 +1427,23 @@ namespace OpenMS
       modifications = RNA_DEB_PASE_modifications_high;
       fragment_adducts = RNA_DEB_PASE_fragments_high;
       can_cross_link = RNA_UCGA;
+      return;
     }
-    else if (p == "DNA-DEB")
+    else if (p == "DNA-DEB [high]")
     {
       modifications = DNA_DEB_modifications_high;
       fragment_adducts = DNA_DEB_fragments_high;
       can_cross_link = DNA_TCGAd;
+      return;
     }
-    else if (p == "DNA-DEB Pase")
+    else if (p == "DNA-DEB Pase [high]")
     {
       modifications = DNA_DEB_PASE_modifications_high;
       fragment_adducts = DNA_DEB_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
+      return;
     }
-    else if (p == "RNA-NM")
+    else if (p.hasPrefix("RNA-NM ["))
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
@@ -1456,8 +1463,9 @@ namespace OpenMS
       }
       fragment_adducts = RNA_NM_fragments_high; 
       can_cross_link = RNA_UCGA;
+      return;
     }
-    else if (p == "RNA-NM Pase")
+    else if (p.hasPrefix("RNA-NM Pase ["))
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
@@ -1466,18 +1474,21 @@ namespace OpenMS
       modifications = RNA_NM_PASE_modifications_high;
       fragment_adducts = RNA_NM_PASE_fragments_high; 
       can_cross_link = RNA_UCGA;
+      return;
     }
-    else if (p == "DNA-NM")
+    else if (p.hasPrefix("DNA-NM ["))
     {
       modifications = DNA_NM_modifications_high;
       fragment_adducts = DNA_NM_fragments_high;
       can_cross_link = DNA_TCGAd;
+      return;
     }
-    else if (p == "DNA-NM Pase")
+    else if (p.hasPrefix("DNA-NM Pase ["))
     {
       modifications = DNA_NM_PASE_modifications_high;
       fragment_adducts = DNA_NM_PASE_fragments_high;
       can_cross_link = DNA_TCGAd;
+      return;
     }
   }
   }

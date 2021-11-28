@@ -5258,6 +5258,69 @@ static void scoreXLIons_(
       }
 #endif
 
+/*
+  if (generate_decoys) 
+  {
+    struct td_count_
+    {
+      size_t targets = 0;
+      size_t decoys = 0;
+    };
+
+    map<std::string, td_count_> adduct2td_counts;
+    for (auto& p : peptide_ids)
+    {
+      if (p.getHits().empty()) continue;
+      bool isDecoy(false);
+      if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
+      {
+        isDecoy = true;
+      };
+      std::string s = p.getHits()[0].getMetaValue("NuXL:NA");
+      if (isDecoy) 
+      {
+        adduct2td_counts[s].decoys++;
+      }
+      else
+      {
+        adduct2td_counts[s].targets++;
+      }
+    }
+
+    map<std::string, int> adduct2td_diffs;
+    multimap<int, std::string> diffs2adducts;
+    //map<std::string, double> adduct2td_ratio;
+    for (const auto& [k, v] : adduct2td_counts)
+    {
+      adduct2td_diffs[k] = v.targets - v.decoys;
+      diffs2adducts.insert({v.targets - v.decoys, k});
+      //adduct2td_ratio[k] = (v.targets+1) / (v.decoys+1); // +1 to prevent division by zero
+      cout << "MS1 adduct, #targets, #decoys: " << v.targets << "\t" << v.decoys << endl;
+    }
+
+
+    for (const auto& [k, v] : diffs2adducts)
+    {
+      cout << "MS1 adduct,diff: " << v << "," << k << endl;
+    }
+
+    for (auto& p : peptide_ids)
+    {
+      auto& phs = p.getHits();
+
+      auto new_end = std::remove_if(phs.begin(), phs.end(),
+          [&adduct2td_diffs](const PeptideHit & ph) 
+        { 
+         std::string s = ph.getMetaValue("NuXL:NA");
+         return adduct2td_diffs[s] < 0; 
+        });
+      phs.erase(new_end, phs.end());
+    }
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+  }
+*/
+
+
 /* 
   if (generate_decoys) 
   {
