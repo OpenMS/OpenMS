@@ -802,7 +802,7 @@ namespace OpenMS
     targetedMatching(picked, cmp, features);
   }
 
-  void TargetedSpectraExtractor::storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const
+  void TargetedSpectraExtractor::constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const
   { 
     std::map<std::string, std::vector<const Feature*>> ms1_to_ms2;
     for (const auto& feature : ms2_features)
@@ -847,22 +847,12 @@ namespace OpenMS
       }
     }
 
-    TargetedExperiment t_exp;
     t_exp.setPeptides(peptides);
     t_exp.setTransitions(v_rmt_all);
 
     // validate
     OpenMS::TransitionTSVFile tsv_file;
     tsv_file.validateTargetedExperiment(t_exp);
-
-    // write traML
-    TraMLFile traml_file;
-    traml_file.store(filename, t_exp);
-
-    auto filename_csv = filename;
-    filename_csv = filename_csv + ".csv";
-    TransitionTSVFile transition_tsv_file;
-    transition_tsv_file.convertTargetedExperimentToTSV(filename_csv.c_str(), t_exp);
   }
 
   void TargetedSpectraExtractor::mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const

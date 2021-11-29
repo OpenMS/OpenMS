@@ -1147,15 +1147,9 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
   ms2_f1.setSubordinates(ms2_subs1);
   ms2_features.push_back(ms2_f1);
 
-  String output_filepath;
-  NEW_TMP_FILE(output_filepath)
   TargetedSpectraExtractor targeted_spectra_extractor;
-  targeted_spectra_extractor.storeSpectraTraML(output_filepath, ms1_features, ms2_features);
-
-  // read back the file
-  TraMLFile traml_file;
   TargetedExperiment t_exp;
-  traml_file.load(output_filepath, t_exp);
+  targeted_spectra_extractor.constructTransitionsList(ms1_features, ms2_features, t_exp);
 
   TEST_EQUAL(t_exp.getTransitions().size(), 1)
   const auto& transition = t_exp.getTransitions()[0];
