@@ -37,7 +37,6 @@
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 

@@ -414,7 +414,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
+  boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
     TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
@@ -502,7 +502,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
+  boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
     std::cerr << i << ":" << to_validate_list[i] << std::endl;

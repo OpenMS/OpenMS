@@ -499,8 +499,8 @@ namespace OpenMS::Internal
       logger_.startProgress(0, exp.getTransitions().size(), "storing TraML file");
       // int progress = 0;
 
-      os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
-      os << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
+      os << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
+      os << R"(<TraML version="1.0.0" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML1.0.0.xsd">)" << "\n";
 
       //--------------------------------------------------------------------------------------------
       // CV list
@@ -509,8 +509,8 @@ namespace OpenMS::Internal
 
       if (exp.getCVs().size() == 0)
       {
-        os << "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=\"unknown\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>" << "\n"
-           << "    <cv id=\"UO\" fullName=\"Unit Ontology\" version=\"unknown\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>" << "\n";
+        os << R"(    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>)" << "\n"
+           << R"(    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>)" << "\n";
       }
       else
       {
@@ -627,15 +627,15 @@ namespace OpenMS::Internal
           os << "    <Peptide id=\"" << writeXMLEscape(it->id) << "\" sequence=\"" << it->sequence << "\">" << "\n";
           if (it->hasCharge())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value=")" <<  it->getChargeState() << "\"/>\n";
           }
           if (it->getPeptideGroupLabel() != "")
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value=")" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
           if (it->getDriftTime() >= 0.0)
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << it->getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value=")" << it->getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
           }
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
@@ -682,7 +682,7 @@ namespace OpenMS::Internal
                 }
                 const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 const String& modname = rmod->getId();
-                os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
+                os << R"(        <cvParam cvRef="UNIMOD" accession="UNIMOD:)" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
 
@@ -719,21 +719,21 @@ namespace OpenMS::Internal
 
           if (it->hasCharge())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value=")" <<  it->getChargeState() << "\"/>\n";
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value=")" << 
             it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value=")" << 
             it->molecular_formula << "\"/>\n";
           }
           if (!it->smiles_string.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value=")" << 
             it->smiles_string << "\"/>\n";
           }
 
@@ -783,7 +783,7 @@ namespace OpenMS::Internal
           // Precursor occurs exactly once (is required according to schema).
           // CV term MS:1000827 MUST be supplied for the TransitionList path
           os << "      <Precursor>" << "\n";
-          os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<
+          os << R"(        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value=")" <<
             precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
           if (it->hasPrecursorCVTerms())
           {
@@ -830,7 +830,7 @@ namespace OpenMS::Internal
           // Special CV Params
           if (it->getLibraryIntensity() > -100)
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001226\" name=\"product ion intensity\" value=\"" <<  it->getLibraryIntensity() << "\"/>\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value=")" <<  it->getLibraryIntensity() << "\"/>\n";
           }
           if (it->getDecoyTransitionType() != ReactionMonitoringTransition::UNKNOWN)
           {
@@ -916,27 +916,27 @@ namespace OpenMS::Internal
       {
         if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::LOCAL)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value=")" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value=")" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value=")" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::HPINS)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard" value=")" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::IRT)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value=")" << rit->getRT() << "\"";
         }
         else
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
+          os << R"(          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value=")" << rit->getRT() << "\"";
         }
       }
 
@@ -1001,11 +1001,11 @@ namespace OpenMS::Internal
     {
       if (prod_it->hasCharge())
       {
-        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  prod_it->getChargeState() << "\"/>\n";
+        os << R"(        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value=")" <<  prod_it->getChargeState() << "\"/>\n";
       }
       if (prod_it->getMZ() > 0)
       {
-        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<  
+        os << R"(        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value=")" <<  
           prod_it->getMZ() << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
       }
       writeCVParams_(os, *prod_it, 4);
@@ -1020,12 +1020,12 @@ namespace OpenMS::Internal
           os << "          <Interpretation>" << "\n";
           if (inter_it->ordinal > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" << 
+            os << R"(            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value=")" << 
               (int)inter_it->ordinal << "\"/>\n";
           }
           if (inter_it->rank > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" << 
+            os << R"(            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value=")" << 
               (int)inter_it->rank << "\"/>\n";
           }
 

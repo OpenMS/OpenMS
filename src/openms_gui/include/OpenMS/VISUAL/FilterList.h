@@ -64,7 +64,7 @@ namespace OpenMS
     public:
       /// C'tor
       explicit FilterList(QWidget* parent);
-      ~FilterList();
+      ~FilterList() override;
 
     public slots:
       /// provide new filters to the widget

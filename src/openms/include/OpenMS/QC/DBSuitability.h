@@ -157,7 +157,7 @@ namespace OpenMS
     DBSuitability();
 
     /// Destructor
-    ~DBSuitability() = default;
+    ~DBSuitability() override = default;
 
     /// To test private member functions
     friend class DBSuitability_friend;

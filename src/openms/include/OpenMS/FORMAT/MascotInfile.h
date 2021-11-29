@@ -64,7 +64,7 @@ public:
     MascotInfile();
 
     /// constructor
-    virtual ~MascotInfile();
+    ~MascotInfile() override;
 
     /// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
     void store(const String & filename, const PeakSpectrum & spec, double mz, double retention_time, String search_title);

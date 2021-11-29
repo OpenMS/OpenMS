@@ -192,7 +192,7 @@ public:
     /// constructor
     ParamEditor(QWidget* parent = nullptr);
     /// destructor
-    virtual ~ParamEditor();
+    ~ParamEditor() override;
     
     /// load method for Param object
     void load(Param& param);

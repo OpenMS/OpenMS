@@ -70,7 +70,7 @@ public:
 
     /// Constructor
     TOPPASIOMappingDialog(TOPPASEdge * parent);
-    ~TOPPASIOMappingDialog();
+    ~TOPPASIOMappingDialog() override;
 
 public slots:
 

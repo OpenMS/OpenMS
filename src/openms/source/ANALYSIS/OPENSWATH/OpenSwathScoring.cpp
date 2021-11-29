@@ -38,7 +38,7 @@
 
 // scoring
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
@@ -488,6 +488,7 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
+    native_ids.reserve(transitions.size());
     for (const auto& trans : transitions)
     {
       native_ids.push_back(trans.getNativeID());

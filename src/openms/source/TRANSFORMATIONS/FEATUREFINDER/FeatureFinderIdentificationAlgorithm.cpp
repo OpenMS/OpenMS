@@ -45,8 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -191,7 +190,28 @@ namespace OpenMS
 
   void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
   {
-    ms_data_ = ms_data;
+    ms_data_ = ms_data; 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());    
+  }
+
+  void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
+  {
+    ms_data_ = std::move(ms_data); 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());    
   }
 
   PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
@@ -230,7 +250,8 @@ namespace OpenMS
     vector<PeptideIdentification> peptides_ext,
     vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds
+    const FeatureMap& seeds,
+    const String spectra_file
     )
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -241,6 +262,9 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
+
+    // annotate mzML file
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
@@ -438,7 +462,7 @@ namespace OpenMS
       // Really use for debug only
       createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, false);
       cout << "Writing debug.traml file." << endl;
-      TraMLFile().store("debug.traml", library_);
+      FileHandler().storeTransitions("debug.traml", library_);
       ref_rt_map.clear();
       library_.clear(true);
     }
@@ -585,7 +609,7 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     filterFeatures_(features, with_external_ids);

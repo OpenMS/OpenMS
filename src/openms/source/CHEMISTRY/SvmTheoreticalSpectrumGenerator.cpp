@@ -915,7 +915,7 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 

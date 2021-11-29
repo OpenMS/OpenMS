@@ -262,7 +262,7 @@ protected:
     mzml.load(in, ff_mident.getMSData());
 
     FeatureMap features;
-    ff_mident.run(table, features);
+    ff_mident.run(table, features, in);
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 

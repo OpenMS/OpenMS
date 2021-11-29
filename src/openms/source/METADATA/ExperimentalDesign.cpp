@@ -289,6 +289,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(factors.size());
         for (const String& fac : factors)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
@@ -349,6 +350,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(nonRepFacs.size());
         for (const String& fac : nonRepFacs)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));

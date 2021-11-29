@@ -973,20 +973,20 @@ namespace OpenMS::Internal
       (*this->cpro_id_)[0].getPrimaryMSRunPath(ms_runs);
       String ms_runs_string = ListUtils::concatenate(ms_runs, ",");
 
-      os << "<xquest_results xquest_version=\"OpenPepXL 1.0\" date=\"" << timestring <<
-               "\" author=\"Eugen Netz\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
+      os << R"(<xquest_results xquest_version="OpenPepXL 1.0" date=")" << timestring <<
+               R"(" author="Eugen Netz" tolerancemeasure_ms1=")" << precursor_mass_tolerance_unit  <<
                "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
                "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
                "\" crosslinkername=\"" << cross_link_name << "\" xlinkermw=\"" << cross_link_mass_light <<
                "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
-               "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
+               R"(" xlinktypes="1111" AArequired1=")" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
                "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
                "\" missed_cleavages=\"" << missed_cleavages <<
                "\" ntermxlinkable=\"" << ntermxlinkable << "\" CID_match2ndisotope=\"1" <<
                "\" variable_mod=\"" << variable_mods << "\" fixed_mod=\"" << fixed_mods <<
                "\" decoy_prefix=\"" << decoy_prefix << "\" decoy_string=\"" << decoy_string <<
                "\" charges=\"" << searched_charges << "\" run_path=\"" << ms_runs_string <<
-               "\" nocutatxlink=\"1\">" << std::endl;
+               R"(" nocutatxlink="1">)" << std::endl;
 
       String current_spectrum_light("");
       String current_spectrum_heavy("");

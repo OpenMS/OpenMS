@@ -660,7 +660,7 @@ protected:
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
       ofstream out(unique_usermod_name.c_str());
       out << "<?xml version=\"1.0\"?>" << "\n";
-      out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << "\n";
+      out << R"(<MSModSpecSet xmlns="http://www.ncbi.nlm.nih.gov" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.ncbi.nlm.nih.gov OMSSA.xsd">)" << "\n";
 
       UInt user_mod_count(1);
       for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
