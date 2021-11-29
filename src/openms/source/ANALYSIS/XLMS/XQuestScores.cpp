@@ -330,7 +330,7 @@ namespace OpenMS
     std::vector< double > results(maxshift * 2 + 1, 0);
 
     // return 0 = no correlation, when one of the spectra is empty
-    if (spec1.size() == 0 || spec2.size() == 0) {
+    if (spec1.empty() || spec2.empty()) {
       return results;
     }
 
@@ -388,7 +388,7 @@ namespace OpenMS
   double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance)
   {
     // return 0 = no correlation, when one of the spectra is empty
-    if (spec1.size() == 0 || spec2.size() == 0) {
+    if (spec1.empty() || spec2.empty()) {
       return 0.0;
     }
 

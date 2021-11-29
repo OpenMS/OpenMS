@@ -670,7 +670,7 @@ namespace OpenMS
           scan_index = i;   //store last scan index for next RT pixel
           break;
         }
-        if (map[i].getMSLevel() == 1 && map[i].size() > 0)
+        if (map[i].getMSLevel() == 1 && !map[i].empty())
         {
           scan_indices.push_back(i);
           peak_indices.push_back(map[i].MZBegin(mz_min) - map[i].begin());
@@ -843,8 +843,8 @@ namespace OpenMS
           layer.filters.passes(*i)
           )
       {
-        bool hasIdentifications = i->getPeptideIdentifications().size()>0
-                               && i->getPeptideIdentifications()[0].getHits().size()>0;
+        bool hasIdentifications = !i->getPeptideIdentifications().empty()
+                               && !i->getPeptideIdentifications()[0].getHits().empty();
         paintConvexHulls_(i->getConvexHulls(), hasIdentifications, painter);
       }
     }
@@ -877,8 +877,8 @@ namespace OpenMS
           points.setPoint(index, pos);
         }
         //cout << "Hull: " << hull << " Points: " << points.size()<<endl;
-        bool hasIdentifications = i->getPeptideIdentifications().size()>0
-                               && i->getPeptideIdentifications()[0].getHits().size()>0;
+        bool hasIdentifications = !i->getPeptideIdentifications().empty()
+                               && !i->getPeptideIdentifications()[0].getHits().empty();
         painter.setPen( hasIdentifications ? Qt::darkGreen : Qt::darkBlue );
         painter.drawPolygon(points);
       }
@@ -1792,15 +1792,15 @@ namespace OpenMS
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
       const PeptideIdentification* pis = nullptr;
-      if ( f && f->getPeptideIdentifications().size() > 0 )
+      if ( f && !f->getPeptideIdentifications().empty() )
       {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 )
+      else if ( cf && !cf->getPeptideIdentifications().empty() )
       {
         pis = &cf->getPeptideIdentifications()[0];
       }
-      if ( pis && pis->getHits().size() ) {
+      if ( pis && !pis->getHits().empty() ) {
           Size nHits = pis->getHits().size();
           for (Size j = 0; j < nHits; ++j)
           {

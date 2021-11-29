@@ -386,7 +386,7 @@ namespace OpenMS
 
     //add path suffix to all specified directories
     String path = File::path(filename);
-    if (path != "")
+    if (!path.empty())
     {
       for (String& str : directories)
       {
@@ -577,7 +577,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && String(p.getValue("temp_dir").toString()).trim() != "")
+    else if (p.exists("temp_dir") && !String(p.getValue("temp_dir").toString()).trim().empty())
     {
       dir = p.getValue("temp_dir").toString();
     }
@@ -597,7 +597,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir").toString()).trim() != "")
+    else if (p.exists("home_dir") && !String(p.getValue("home_dir").toString()).trim().empty())
     {
       dir = p.getValue("home_dir").toString();
     }

@@ -1712,7 +1712,7 @@ namespace OpenMS::Internal
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
             {
               xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::N_TERM);
-              if (mods.size() > 0)
+              if (!mods.empty())
               {
                 p += "\t\t<Modification location=\"0";
               }
@@ -1720,7 +1720,7 @@ namespace OpenMS::Internal
             else if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "C_TERM")
             {
               xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::C_TERM);
-              if (mods.size() > 0)
+              if (!mods.empty())
               {
                 p += "\t\t<Modification location=\"" + String(i + 2);
               }
@@ -1728,7 +1728,7 @@ namespace OpenMS::Internal
             else
             {
               xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, String(hit.getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
-              if (mods.size() > 0)
+              if (!mods.empty())
               {
                 p += "\t\t<Modification location=\"" + String(i + 1);
               }
@@ -1771,7 +1771,7 @@ namespace OpenMS::Internal
                 break;
               }
             }
-            if ( acc.empty() && (mods.size() > 0) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
+            if ( acc.empty() && (!mods.empty()) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
             {
               const ResidueModification* mod = xl_db->getModification( String(peptide_sequence[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
               acc = mod->getPSIMODAccession();

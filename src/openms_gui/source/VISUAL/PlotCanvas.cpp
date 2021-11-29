@@ -638,7 +638,7 @@ namespace OpenMS
     return snap_factors_[0];
   }
 
-  double PlotCanvas::getPercentageFactor()
+  double PlotCanvas::getPercentageFactor() const
   {
     return percentage_factor_;
   }

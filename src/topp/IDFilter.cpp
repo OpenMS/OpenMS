@@ -290,7 +290,7 @@ protected:
 
     // handle remove_meta
     StringList meta_info = getStringList_("remove_peptide_hits_by_metavalue");
-    bool remove_meta_enabled = (meta_info.size() > 0);
+    bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
       writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");

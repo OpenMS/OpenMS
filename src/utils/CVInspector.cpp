@@ -102,7 +102,7 @@ protected:
       String subterm_line;
       for (Size i = 0; i < 4 * indent; ++i) subterm_line += "&nbsp;";
       String description = child_term.description;
-      if (child_term.synonyms.size() != 0)
+      if (!child_term.synonyms.empty())
       {
         description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
       }
@@ -116,7 +116,7 @@ protected:
       {
         tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
       }
-      if (child_term.units.size() > 0)
+      if (!child_term.units.empty())
       {
         StringList units;
         for (set<String>::const_iterator u_it = child_term.units.begin(); u_it != child_term.units.end(); ++u_it)
@@ -125,7 +125,7 @@ protected:
         }
         tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
       }
-      if (child_term.xref_binary.size() > 0)
+      if (!child_term.xref_binary.empty())
       {
         StringList types;
         for (StringList::const_iterator u_it = child_term.xref_binary.begin(); u_it != child_term.xref_binary.end(); ++u_it)
@@ -134,7 +134,7 @@ protected:
         }
         tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
       }
-      if (tags.size() != 0)
+      if (!tags.empty())
       {
         subterm_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
@@ -167,7 +167,7 @@ protected:
     CVMappingFile().load(mapping_file, mappings);
 
     //store HTML version of mapping and CV
-    if (getStringOption_("html") != "")
+    if (!getStringOption_("html").empty())
     {
       TextFile file;
       file.addLine("<HTML>");
@@ -260,7 +260,7 @@ protected:
             const ControlledVocabulary::CVTerm& child_term = cv.getTerm(tit->getAccession());
 
             String description = child_term.description;
-            if (child_term.synonyms.size() != 0)
+            if (!child_term.synonyms.empty())
             {
               description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
             }
@@ -298,7 +298,7 @@ protected:
             {
               tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
             }
-            if (term.units.size() > 0)
+            if (!term.units.empty())
             {
               StringList units;
               for (set<String>::const_iterator u_it = term.units.begin(); u_it != term.units.end(); ++u_it)
@@ -307,7 +307,7 @@ protected:
               }
               tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
             }
-            if (term.xref_binary.size() > 0)
+            if (!term.xref_binary.empty())
             {
               StringList types;
               for (StringList::const_iterator u_it = term.xref_binary.begin(); u_it != term.xref_binary.end(); ++u_it)
@@ -317,7 +317,7 @@ protected:
               tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
             }
           }
-          if (tags.size() != 0)
+          if (!tags.empty())
           {
             term_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }

@@ -318,7 +318,7 @@ namespace OpenMS
   void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
-    if (spec.getPrecursors().size() > 0)
+    if (!spec.getPrecursors().empty())
     {
       precursor = spec.getPrecursors()[0];
     }

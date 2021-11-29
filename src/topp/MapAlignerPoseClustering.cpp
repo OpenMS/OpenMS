@@ -244,7 +244,7 @@ protected:
         f_fxml_tmp.load(in_files[i], map);
         if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
-        if (out_files.size())
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
@@ -264,7 +264,7 @@ protected:
         {
           algorithm.align(map, trafo);
         }
-        if (out_files.size())
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info

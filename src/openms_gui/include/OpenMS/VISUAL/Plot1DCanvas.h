@@ -132,7 +132,7 @@ public:
     void flipLayer(Size index);
 
     /// Returns whether this widget is currently in mirror mode
-    bool mirrorModeActive();
+    bool mirrorModeActive() const;
 
     /// Sets whether this widget is currently in mirror mode
     void setMirrorModeActive(bool b);
@@ -175,7 +175,7 @@ public:
     Size getAlignmentSize();
 
     /// Returns the score of the alignment
-    double getAlignmentScore();
+    double getAlignmentScore() const;
 
     /// Returns aligned_peaks_indices_
     std::vector<std::pair<Size, Size> > getAlignedPeaksIndices();

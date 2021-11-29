@@ -218,7 +218,7 @@ protected:
     for (Size i = 0; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
-      if (row.size() > 0)
+      if (!row.empty())
       {
         row[0] = String(filename_to_idx_map.at(row[0]));
 
@@ -443,7 +443,7 @@ protected:
         }
       }
 
-      if (all_protein_ids.size() == 0)
+      if (all_protein_ids.empty())
       {
         ProteinIdentification protid;
         all_protein_ids.push_back(protid);

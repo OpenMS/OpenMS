@@ -102,7 +102,7 @@ public:
       size_only_ = size_only;
     }
 
-    Size getSize()
+    Size getSize() const
     {
       return expected_size_;
     }

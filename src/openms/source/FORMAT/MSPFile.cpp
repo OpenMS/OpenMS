@@ -385,7 +385,7 @@ namespace OpenMS
 
     for (const MSSpectrum& it : exp)
     {
-      if (it.getPeptideIdentifications().size() > 0 && it.getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
       {
         PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
         String peptide;

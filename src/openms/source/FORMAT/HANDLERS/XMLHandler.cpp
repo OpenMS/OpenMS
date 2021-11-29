@@ -224,7 +224,7 @@ namespace OpenMS::Internal
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
     {
       std::set<String> s;
       for (const auto& p : prot_ids)

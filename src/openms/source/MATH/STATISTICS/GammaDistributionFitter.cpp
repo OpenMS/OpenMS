@@ -75,7 +75,7 @@ namespace OpenMS::Math
       {
       }
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
       {
 
         double b = x(0);
@@ -105,7 +105,7 @@ namespace OpenMS::Math
       }
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
       {
 
         double b = x(0);
@@ -145,7 +145,7 @@ namespace OpenMS::Math
       const std::vector<DPosition<2> >* m_data;
     };
 
-    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input)
+    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input) const
     {
       Eigen::VectorXd x_init(2);
       x_init << init_param_.b, init_param_.p;

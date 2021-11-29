@@ -398,7 +398,7 @@ namespace OpenMS
       double freq_intercept = scaling_hash_1.getData().front();
       double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
                           / scaling_histogram_crossing_slope;
-      if (!freq_slope || !buffer.size())
+      if (!freq_slope || buffer.empty())
       {
         // in fact these conditions are actually impossible, but let's be really sure ;-)
         freq_cutoff = 0;
@@ -576,7 +576,7 @@ namespace OpenMS
         double freq_intercept = rt_low_hash_.getData().front();
         double freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_low = 0;
@@ -597,7 +597,7 @@ namespace OpenMS
         double freq_intercept = rt_high_hash_.getData().front();
         double freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_high = 0;

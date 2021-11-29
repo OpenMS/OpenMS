@@ -81,7 +81,7 @@ namespace OpenMS
 
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
-                               OpenSwath::IDataFrameWriter* ivw)
+                               OpenSwath::IDataFrameWriter* ivw) const
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;

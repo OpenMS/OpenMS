@@ -182,7 +182,7 @@ protected:
     // null transformation.
     String trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
-    if (trafo_in.size() > 0)
+    if (!trafo_in.empty())
     {
       TransformationXMLFile trafoxml;
       String model_type = getStringOption_("model:type");
@@ -216,7 +216,7 @@ protected:
     mzmlfile.load(in, *exp.get());
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
-    if (file_list.size() == 0)
+    if (file_list.empty())
     {
       MRMFeatureFinderScoring featureFinder;
       featureFinder.setParameters(feature_finder_param);

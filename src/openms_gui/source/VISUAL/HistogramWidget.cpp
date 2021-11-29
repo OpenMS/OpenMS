@@ -81,12 +81,12 @@ namespace OpenMS
     delete(bottom_axis_);
   }
 
-  double HistogramWidget::getLeftSplitter()
+  double HistogramWidget::getLeftSplitter() const
   {
     return left_splitter_;
   }
 
-  double HistogramWidget::getRightSplitter()
+  double HistogramWidget::getRightSplitter() const
   {
     return right_splitter_;
   }
