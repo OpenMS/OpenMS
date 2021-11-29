@@ -679,10 +679,16 @@ namespace OpenMS
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type) const;
 
-    /// Helper function to merge scored processing results while updating references (to processing steps and score types)
-    void mergeScoredProcessingResults_(
-      ScoredProcessingResult& result, const ScoredProcessingResult& other,
-      const RefTranslator& trans);
+    /*!
+      @brief Helper function to merge scored processing results while updating references (to processing steps and score types)
+
+      @param result Instance that gets updated
+      @param other Instance to merge into @p result
+      @param trans Mapping of corresponding references between @p other and @p result
+    */
+    void mergeScoredProcessingResults_(ScoredProcessingResult& result,
+                                       const ScoredProcessingResult& other,
+                                       const RefTranslator& trans);
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
