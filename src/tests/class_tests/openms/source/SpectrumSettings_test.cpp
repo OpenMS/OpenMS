@@ -250,7 +250,8 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
-	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), false);  
+	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
+	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 	TEST_EQUAL(tmp2.getMetaValue("bla")=="bluff",true);
@@ -274,9 +275,10 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
 	TEST_EQUAL(tmp2.getPrecursors().size(), 1);
-	TEST_EQUAL(tmp2.getProducts().size(),1);	
+	TEST_EQUAL(tmp2.getProducts().size(), 1)
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
-	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), false);
+	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
+	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
