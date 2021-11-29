@@ -90,11 +90,11 @@ public:
     /// Copy constructor
     BaseFeature(const BaseFeature& feature) = default;
 
-    /// Move constructor 
+    /// Move constructor
     /// Note: can't be "noexcept = default" because of missing noexcept on some standard containers
     /// so we need to explicitly define it noexcept and provide an implementation.
     BaseFeature(BaseFeature&& feature) noexcept
-      : RichPeak2D(std::move(feature)) 
+      : RichPeak2D(std::move(feature))
     {
       quality_ = feature.quality_;
       charge_ = feature.charge_;
@@ -217,7 +217,11 @@ public:
     /// add an ID match (e.g. PSM) for this feature
     void addIDMatch(IdentificationData::ObservationMatchRef ref);
 
-    /// update ID referenes (primary ID, matches) for this feature
+    /*!
+      @brief Update ID references (primary ID, matches) for this feature
+
+      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+    */
     void updateIDReferences(const IdentificationData::RefTranslator& trans);
 
 protected:

@@ -183,7 +183,11 @@ public:
       return assignments;
     }
 
-    /// update ID referenes (primary ID, input matches) for this feature and any subfeatures
+    /*!
+      @brief Update ID references (primary ID, input matches) for this feature and any subfeatures
+
+      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+    */
     void updateAllIDReferences(const IdentificationData::RefTranslator& trans);
 
 protected:
