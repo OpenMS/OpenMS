@@ -244,9 +244,6 @@ namespace OpenMS
             ms2_feature.setIntensity(subordinate.getIntensity());
             ms2_feature.setMetaValue("transition_name", peptide_ref);
             ms2_features.push_back(ms2_feature);
-            // ========================
-            std::cout << "spectrum_rt " << spectrum_rt << ", " << peptide_ref << ":  feature rt:" << ms2_feature.getRT() << ", mz:" << ms2_feature.getMZ() << std::endl;
-            // ========================
           }
         }
       }
@@ -852,10 +849,6 @@ namespace OpenMS
 
     for (const auto& ms1_feature : ms1_features)
     {
-      //=====================================
-      float min_diff = 100000000.0f;
-      bool added_one = false;
-      //=====================================
       std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
       OpenMS::TargetedExperiment::Peptide peptide;
       peptide.id = peptide_ref;
@@ -866,13 +859,6 @@ namespace OpenMS
       for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
       {
         auto current_mz = ms2_feature->getMZ();
-        //=====================================
-        auto ms1_mz = ms1_feature.getMZ();
-        if (min_diff > (ms1_feature.getMZ() - current_mz))
-        {
-          min_diff = (ms1_feature.getMZ() - current_mz);
-        }
-        //=====================================
         if ((current_mz > min_fragment_mz_ && current_mz < max_fragment_mz_) &&
             (current_mz < ms1_feature.getMZ() + relative_allowable_product_mass_))
         {
@@ -888,15 +874,8 @@ namespace OpenMS
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
           v_rmt_all.push_back(rmt);
-          added_one = true;
         }
       }
-      //======================
-      if (!added_one)
-      {
-        std::cout << "No transition created for " << peptide_ref << ". min is: " << min_diff << std::endl;
-      }
-      //======================
     }
 
     t_exp.setPeptides(peptides);
