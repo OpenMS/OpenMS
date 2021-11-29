@@ -175,9 +175,14 @@ namespace OpenMS
   {
     if (id_matches_.empty()) // consider IDs in old format
     {
-      if (peptides_.empty()) return FEATURE_ID_NONE;
+      if (peptides_.empty())
+      {
+        return FEATURE_ID_NONE;
+      }
       if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+      {
         return FEATURE_ID_SINGLE;
+      }
       std::set<String> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
       {
@@ -188,20 +193,32 @@ namespace OpenMS
           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
         }
       }
-      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      if (seqs.size() == 1)
+      {
+        return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      }
       if (seqs.size() > 1)
+      {
         return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
-      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+      }
+      /*else if (seqs.size()==0)*/
+      return FEATURE_ID_NONE;   // very rare case of empty hits
     }
     else // consider IDs in new format
     {
-      if (id_matches_.size() == 1) return FEATURE_ID_SINGLE;
+      if (id_matches_.size() == 1)
+      {
+        return FEATURE_ID_SINGLE;
+      }
       // if there are multiple IDs, check if all are equal (to the first):
       auto it = id_matches_.begin();
       IdentificationData::IdentifiedMolecule molecule = (*it)->identified_molecule_var;
       for (++it; it != id_matches_.end(); ++it)
       {
-        if ((*it)->identified_molecule_var != molecule) return FEATURE_ID_MULTIPLE_DIVERGENT;
+        if ((*it)->identified_molecule_var != molecule)
+        {
+          return FEATURE_ID_MULTIPLE_DIVERGENT;
+        }
       }
       return FEATURE_ID_MULTIPLE_SAME;
     }
@@ -257,13 +274,13 @@ namespace OpenMS
 
   void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
   {
-    if (primary_id_ != boost::none)
+    if (primary_id_ != boost::none) // is feature annotated with a "primary ID"?
     {
       primary_id_ = trans.translate(*primary_id_);
     }
-    set<IdentificationData::ObservationMatchRef> matches;
+    set<IdentificationData::ObservationMatchRef> matches; // refs. to e.g. PSMs
     matches.swap(id_matches_);
-    for (auto item : matches)
+    for (const auto& item : matches)
     {
       id_matches_.insert(trans.translate(item));
     }

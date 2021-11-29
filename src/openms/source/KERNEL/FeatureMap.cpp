@@ -136,9 +136,7 @@ namespace OpenMS
 
   FeatureMap::FeatureMap(FeatureMap&& source) = default;
 
-  FeatureMap::~FeatureMap()
-  {
-  }
+  FeatureMap::~FeatureMap() = default;
 
   FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
   {

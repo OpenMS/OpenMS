@@ -236,8 +236,8 @@ namespace OpenMS
 
   void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
   {
-    updateIDReferences(trans);
-    for (Feature& sub : subordinates_)
+    updateIDReferences(trans); // update the feature itself (via BaseFeature method)
+    for (Feature& sub : subordinates_) // recursively update subordinate features
     {
       sub.updateAllIDReferences(trans);
     }
