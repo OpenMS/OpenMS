@@ -355,7 +355,9 @@ namespace OpenMS
      *
      * @param exp experimental data to be averaged
      * @param average_type averaging type to be used ("gaussian" or "tophat")
+     * @param ms_level targe MS level. If it is -1, ms_level will be determined by ms_level parameter.
      */
+
     template<typename MapType>
     void average(MapType &exp, const String &average_type, int ms_level = -1)
     {
