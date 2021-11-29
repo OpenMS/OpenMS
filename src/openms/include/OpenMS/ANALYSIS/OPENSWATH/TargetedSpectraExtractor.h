@@ -425,13 +425,13 @@ public:
     );
 
     /**
-      @brief store MS1 and the associated MS2 features
+      @brief compute transitions list from MS1 and the associated MS2 features
 
-      @param[in] filename the filename of the file to write
       @param[in] ms1_features the MS1 features
       @param[in] ms2_features the MS2 features
+      @param[out] t_exp the targeted experiment, containing the transitions
     */
-    void storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const;
+    void constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const;
 
     /**
       @brief store spectra in MSP format
