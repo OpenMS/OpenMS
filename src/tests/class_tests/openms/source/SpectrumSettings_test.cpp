@@ -250,7 +250,7 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
-	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
+	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
