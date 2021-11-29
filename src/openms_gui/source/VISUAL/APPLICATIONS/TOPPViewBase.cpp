@@ -2544,6 +2544,7 @@ namespace OpenMS
         FeatureMapSharedPtrType features = layer.getFeatureMap();
         ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
         ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
+        // if the layer provides identification data -> retrieve it
         vector<PeptideIdentification> peptides;
         if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
         {
