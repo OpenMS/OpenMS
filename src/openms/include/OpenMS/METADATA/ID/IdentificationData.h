@@ -84,6 +84,8 @@ namespace OpenMS
     This means only one item of such a type with a given key can be stored in an IdentificationData object.
     If items with an existing key are registered subsequently, attempts are made to merge new information (e.g. additional scores) into the existing entry.
 
+    @warning This class is not thread-safe while being modified.
+
     @ingroup Metadata
   */
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
