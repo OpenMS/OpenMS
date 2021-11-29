@@ -493,14 +493,23 @@ namespace OpenMS
 
   // represent seeds in IdentificationData format
   void FeatureFinderIdentificationAlgorithm::convertSeeds(
-    const FeatureMap& seeds, IdentificationData& id_data, Size n_overlap_traces)
+    const FeatureMap& seeds, IdentificationData& id_data,
+    const String& input_file, Size n_overlap_traces)
   {
     // TODO make sure that only assembled traces (more than one trace -> has a charge) are used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
 
     ID::ProcessingSoftware software("FeatureFinderIdentification", VersionInfo::getVersion());
     ID::ProcessingSoftwareRef sw_ref = id_data.registerProcessingSoftware(software);
-    ID::InputFile input(seeds.getLoadedFilePath());
+    ID::InputFile input(input_file);
+    if (input.name.empty())
+    {
+      input.name = seeds.getLoadedFilePath();
+    }
+    if (input.name.empty())
+    {
+      input.name = "UNKNOWN_SEEDS_INPUT";
+    }
     ID::InputFileRef file_ref = id_data.registerInputFile(input);
     ID::ProcessingStep step(sw_ref, {file_ref});
     ID::ProcessingStepRef step_ref = id_data.registerProcessingStep(step);
@@ -1784,7 +1793,7 @@ namespace OpenMS
     }
     if (!seeds.empty())
     {
-      convertSeeds(seeds, id_data);
+      convertSeeds(seeds, id_data, spectra_file);
     }
 
     run(features, id_data, id_data_ext, spectra_file);

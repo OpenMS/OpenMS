@@ -86,7 +86,7 @@ public:
 
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
-                    Size n_overlap_traces = 6);
+                    const String& input_file = "", Size n_overlap_traces = 6);
 
   // void runOnCandidates(FeatureMap& features);
 
