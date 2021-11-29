@@ -102,27 +102,27 @@ namespace OpenMS
       ObservationMatch& merge(const ObservationMatch& other)
       {
         ScoredProcessingResult::merge(other);
-        if (charge == 0) 
+        if (charge == 0)
         {
           charge = other.charge;
         }
         else if (charge != other.charge)
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ObservationMatch charge with conflicting value.", 
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Trying to overwrite ObservationMatch charge with conflicting value.",
                                         String(charge));
         }
 
-        if (!adduct_opt) 
+        if (!adduct_opt)
         {
           adduct_opt = other.adduct_opt;
         }
         else if (adduct_opt != other.adduct_opt)
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ObservationMatch adduct_opt with conflicting value.", 
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Trying to overwrite ObservationMatch adduct_opt with conflicting value.",
                                         (*adduct_opt)->getName());
         }
 
@@ -132,7 +132,8 @@ namespace OpenMS
       }
     };
 
-    // all matches for the same observation should be consecutive!
+    // all matches for the same observation should be consecutive, so make sure
+    // the observation is used as the first member in the composite key:
     typedef boost::multi_index_container<
       ObservationMatch,
       boost::multi_index::indexed_by<

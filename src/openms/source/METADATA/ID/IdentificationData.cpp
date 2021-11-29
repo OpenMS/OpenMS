@@ -243,10 +243,10 @@ namespace OpenMS
                              existing.merge(obs);
                            });
     }
-
+    // add address of new element to look-up table (for existence checks):
     observation_lookup_.insert(uintptr_t(&(*result.first)));
 
-    // @TODO: add processing step (currently not supported by Observation)
+    // @TODO: add processing step? (currently not supported by Observation)
     return result.first;
   }
 
@@ -338,7 +338,7 @@ namespace OpenMS
 
       for (const auto& group : groups.groups)
       {
-        checkScoreTypes_(group.scores);
+        checkScoreTypes_(group.scores); // are the score types registered?
 
         for (const auto& ref : group.parent_refs)
         {
@@ -820,21 +820,22 @@ namespace OpenMS
       updateAddressLookup_(parents_, parent_lookup_);
     }
 
-    // remove entries from parent sequence groups based on parent sequences:
+    // remove entries from parent sequence groups based on parent sequences
+    // (if a parent sequence doesn't exist anymore, remove it from any groups):
     bool warn = false;
-    for (auto& groups : parent_groups_)
+    for (auto& group_set : parent_groups_)
     {
-      for (auto group_it = groups.groups.begin();
-           group_it != groups.groups.end(); )
+      for (auto group_it = group_set.groups.begin();
+           group_it != group_set.groups.end(); )
       {
         Size old_size = group_it->parent_refs.size();
-        groups.groups.modify(group_it, [&](ParentGroup& group)
+        group_set.groups.modify(group_it, [&](ParentGroup& group)
         {
           removeFromSetIfNotHashed_(group.parent_refs, parent_lookup_);
         });
         if (group_it->parent_refs.empty())
         {
-          group_it = groups.groups.erase(group_it);
+          group_it = group_set.groups.erase(group_it);
         }
         else
         {
@@ -906,10 +907,14 @@ namespace OpenMS
       AppliedProcessingStep copy;
       if (applied.processing_step_opt)
       {
+        // need to reference a processing step in 'result', not the original one
+        // from 'other', so find the corresponding one:
         copy.processing_step_opt = trans.processing_step_refs.at(*applied.processing_step_opt);
       }
       for (const auto& pair : applied.scores)
       {
+        // need to reference a score type in 'result', not the original one from
+        // 'other', so find the corresponding one:
         ScoreTypeRef score_ref = trans.score_type_refs.at(pair.first);
         copy.scores[score_ref] = pair.second;
       }
@@ -922,6 +927,8 @@ namespace OpenMS
   IdentificationData::merge(const IdentificationData& other)
   {
     RefTranslator trans;
+    // incoming data (stored in IdentificationData) is guaranteed to be consistent,
+    // so no need to check for consistency again:
     no_checks_ = true;
     // input files:
     for (InputFileRef other_ref = other.getInputFiles().begin();
