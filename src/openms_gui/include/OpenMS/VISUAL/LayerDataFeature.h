@@ -70,6 +70,14 @@ namespace OpenMS
       return getFeatureMap()->getUnassignedPeptideIdentifications();
     }
 
+    virtual void setPeptideIds(const PepIds& ids) override
+    {
+      getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
+    }
+    virtual void setPeptideIds(PepIds&& ids) override
+    {
+      getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
+    }
   };
 
 }// namespace OpenMS

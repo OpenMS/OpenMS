@@ -889,11 +889,12 @@ namespace OpenMS
 
   void Plot2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
   {
-    bool show_labels = getLayerFlag(layer_index, LayerDataBase::I_LABELS);
+    // check if the layer implements the IPeptideIDs interface, i.e. does it have IDs?
     auto p = dynamic_cast <IPeptideIds*>(&getLayer(layer_index));
     if (p == nullptr) return;
 
     painter.setPen(Qt::darkRed);
+    bool show_labels = getLayerFlag(layer_index, LayerDataBase::I_LABELS);
 
     for (const auto& id : p->getPeptideIds())
     {

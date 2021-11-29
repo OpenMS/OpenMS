@@ -389,7 +389,7 @@ namespace OpenMS
   }
 
 
-  void augmentLayer(LayerDataBase* new_layer, const Param& param, const String& filename)
+  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename)
   {
     new_layer->param = param;
     new_layer->filename = filename;
@@ -420,7 +420,7 @@ namespace OpenMS
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
     
-    augmentLayer(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
@@ -430,7 +430,7 @@ namespace OpenMS
     LayerDataBaseUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = map;
 
-    augmentLayer(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
@@ -440,16 +440,16 @@ namespace OpenMS
     LayerDataBaseUPtr new_layer(new LayerDataConsensus);
     new_layer->getConsensusMap() = map;
 
-    augmentLayer(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
   bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename)
   {
-    LayerDataIdent* new_layer(new LayerDataIdent);
-    new_layer->getPeptideIds().swap(peptides);
-    augmentLayer(new_layer, param_, filename);
+    LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
+    new_layer->setPeptideIds(std::move(peptides));
+    setBaseLayerParameters(new_layer, param_, filename);
     layers_.addLayer(LayerDataBaseUPtr(new_layer));
     return finishAdding_(); 
   }

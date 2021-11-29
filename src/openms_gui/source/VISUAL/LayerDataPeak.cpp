@@ -39,10 +39,5 @@ using namespace std;
 namespace OpenMS
 {
 
-  namespace
-  {// internal linkage -- just to test instanciability
-    LayerDataPeak l_data;
-  }
-
 
 }// namespace OpenMS

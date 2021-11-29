@@ -70,11 +70,18 @@ namespace OpenMS
       return peptides_;
     }
 
+    virtual void setPeptideIds(const PepIds& ids) override
+    {
+      peptides_ = ids;
+    }
+    virtual void setPeptideIds(PepIds&& ids) override
+    {
+      peptides_ = std::move(ids);
+    }
 
   private:
     /// peptide identifications
     std::vector<PeptideIdentification> peptides_;
-
   };
 
 }// namespace OpenMS

@@ -38,10 +38,5 @@ using namespace std;
 
 namespace OpenMS
 {
-  
-  namespace { // internal linkage -- just to test instanciability
-    LayerDataChrom l_data;
-  }
-  
 
 } // namespace OpenMS

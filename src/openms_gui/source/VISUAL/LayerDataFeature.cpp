@@ -39,10 +39,4 @@ using namespace std;
 namespace OpenMS
 {
 
-  namespace
-  {// internal linkage -- just to test instanciability
-    LayerDataFeature l_data;
-  }
-
-
 }// namespace OpenMS

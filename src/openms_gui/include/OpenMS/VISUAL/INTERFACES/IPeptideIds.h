@@ -48,9 +48,13 @@ namespace OpenMS
   public:
     using PepIds = std::vector<PeptideIdentification>;
     
-    /// implement this function in derived classes
+    /// get the peptide IDs for this layer
     virtual const PepIds& getPeptideIds() const = 0;
     virtual PepIds& getPeptideIds() = 0;
+
+    /// overwrite the peptide IDs for this layer
+    virtual void setPeptideIds(const PepIds& ids) = 0;
+    virtual void setPeptideIds(PepIds&& ids) = 0;
   };
 
 }// namespace OpenMS
