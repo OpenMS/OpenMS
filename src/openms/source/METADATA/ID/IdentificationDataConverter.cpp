@@ -87,6 +87,11 @@ namespace OpenMS
       // @TODO: what to do with raw files if there's a different number?
       for (Size i = 0; i < spectrum_files.size(); ++i)
       {
+        if (spectrum_files[i].empty())
+        {
+          OPENMS_LOG_WARN << "Warning: spectrum file with no name - skipping" << endl;
+          continue;
+        }
         ID::InputFile input(spectrum_files[i]);
         if (match_files) input.primary_files.insert(primary_files[i]);
         ID::InputFileRef file_ref = id_data.registerInputFile(input);
