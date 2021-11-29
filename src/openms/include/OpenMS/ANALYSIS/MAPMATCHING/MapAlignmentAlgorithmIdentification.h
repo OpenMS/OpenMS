@@ -350,7 +350,7 @@ protected:
     /**
       @brief Helper function to find/define the score type for processing IdentificationData
 
-      @return Reference to the score type denoted by parameter @p score_type_
+      @return Reference to the score type denoted by algorithm parameter "score_type"
      */
     IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
 
