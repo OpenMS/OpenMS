@@ -44,18 +44,39 @@ namespace OpenMS
 {
   namespace Internal
   {
-    /// Helper class for loading .oms files (SQLite format)
+    /*!
+      @brief Helper class for loading .oms files (SQLite format)
+
+      This class encapsulates the SQLite database stored in a .oms file and allows to load data from it.
+    */
     class OMSFileLoad: public ProgressLogger
     {
     public:
-      using Key = qint64;
- 
+      using Key = qint64; ///< Type used for database keys
+
+      /*!
+        @brief Constructor
+
+        Opens the connection to the database file (in read-only mode).
+
+        @param filename Path to the .oms input file (SQLite database)
+        @param log_type Type of logging to use
+
+        @throw Exception::FailedAPICall Database cannot be opened
+      */
       OMSFileLoad(const String& filename, LogType log_type);
 
+      /*!
+        @brief Destructor
+
+        Closes the connection to the database file.
+      */
       ~OMSFileLoad();
 
+      /// Load data from database and populate an IdentificationData object
       void load(IdentificationData& id_data);
 
+      /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
 
     private:
@@ -122,6 +143,7 @@ namespace OpenMS
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
+      // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
       std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
       std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;

@@ -45,25 +45,66 @@ namespace OpenMS
 {
   namespace Internal
   {
-    // convenience functions:
+    /*!
+      @brief Check if a specified database table exists
+
+      @param db_name Name of the database (as used by Qt/QSqlDatabase)
+      @param table_name Name of the table to check
+
+      @return True if table exists, false if not
+    */
     bool tableExists_(const String& db_name, const String& table_name);
 
+    /*!
+      @brief Raise a more informative database error
+
+      Add context to an SQL error encountered by Qt and throw it as a FailedAPICall exception.
+
+      @param error The error that occurred
+      @param line Line in the code where error occurred
+      @param function Name of the function where error occurred
+      @param context Context for the error
+
+      @throw Exception::FailedAPICall Throw this exception
+    */
     void raiseDBError_(const QSqlError& error, int line,
                        const char* function, const String& context);
 
 
-    /// Helper class for storing .oms files (SQLite format)
+    /*!
+      @brief Helper class for storing .oms files (SQLite format)
+
+      This class encapsulates the SQLite database in a .oms file and allows to write data to it.
+    */
     class OMSFileStore: public ProgressLogger
     {
     public:
-      using Key = qint64;
+      using Key = qint64; ///< Type used for database keys
 
+       /*!
+        @brief Constructor
+
+        Deletes the output file if it exists, then creates an SQLite database in its place.
+        Opens the database and configures it for fast writing.
+
+        @param filename Path to the .oms output file (SQLite database)
+        @param log_type Type of logging to use
+
+        @throw Exception::FailedAPICall Database cannot be opened
+      */
       OMSFileStore(const String& filename, LogType log_type);
 
+      /*!
+        @brief Destructor
+
+        Closes the connection to the database file.
+      */
       ~OMSFileStore();
 
+      /// Write data from an IdentificationData object to database
       void store(const IdentificationData& id_data);
 
+      /// Write data from a FeatureMap object to database
       void store(const FeatureMap& features);
 
     private:
