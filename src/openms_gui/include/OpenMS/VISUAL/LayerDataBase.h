@@ -178,9 +178,9 @@ namespace OpenMS
     /// no assignment operator (should not be needed)
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
     /// move Ctor
-    LayerDataBase(LayerDataBase&& ld) noexcept = default;
+    LayerDataBase(LayerDataBase&& ld) = default;
     /// move assignment
-    LayerDataBase& operator=(LayerDataBase&& ld) noexcept = default;
+    LayerDataBase& operator=(LayerDataBase&& ld) = default;
     /// Dtor
     virtual ~LayerDataBase() = default;
 

@@ -55,9 +55,9 @@ namespace OpenMS
     /// no assignment operator (should not be needed)
     LayerDataConsensus& operator=(const LayerDataConsensus& ld) = delete;
     /// move Ctor
-    LayerDataConsensus(LayerDataConsensus&& ld) noexcept = default;
+    LayerDataConsensus(LayerDataConsensus&& ld) = default;
     /// move assignment
-    LayerDataConsensus& operator=(LayerDataConsensus&& ld) noexcept = default;
+    LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
   };
 
 }// namespace OpenMS

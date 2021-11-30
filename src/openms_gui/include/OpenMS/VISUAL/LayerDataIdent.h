@@ -56,9 +56,9 @@ namespace OpenMS
     /// no assignment operator (should not be needed)
     LayerDataIdent& operator=(const LayerDataIdent& ld) = delete;
     /// move Ctor
-    LayerDataIdent(LayerDataIdent&& ld) noexcept = default;
+    LayerDataIdent(LayerDataIdent&& ld) = default;
     /// move assignment
-    LayerDataIdent& operator=(LayerDataIdent&& ld) noexcept = default;
+    LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
     
     virtual const PepIds& getPeptideIds() const override

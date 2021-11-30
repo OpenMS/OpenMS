@@ -55,9 +55,9 @@ namespace OpenMS
     /// no assignment operator (should not be needed)
     LayerDataPeak& operator=(const LayerDataPeak& ld) = delete;
     /// move Ctor
-    LayerDataPeak(LayerDataPeak&& ld) noexcept = default;
+    LayerDataPeak(LayerDataPeak&& ld) = default;
     /// move assignment
-    LayerDataPeak& operator=(LayerDataPeak&& ld) noexcept = default;
+    LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
   };
 
 }// namespace OpenMS

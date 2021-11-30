@@ -55,9 +55,9 @@ public:
     /// no assignment operator (should not be needed)
     LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
     /// move Ctor
-    LayerDataChrom(LayerDataChrom&& ld) noexcept = default;
+    LayerDataChrom(LayerDataChrom&& ld) = default;
     /// move assignment
-    LayerDataChrom& operator=(LayerDataChrom&& ld) noexcept = default;
+    LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
   };
 
 } //namespace
