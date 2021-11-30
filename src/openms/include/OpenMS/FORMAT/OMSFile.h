@@ -52,7 +52,7 @@ namespace OpenMS
     explicit OMSFile(LogType log_type = LogType::NONE):
       log_type_(log_type)
     {
-      setLogType(log_type); // @TODO: move logging to OMSFileLoad
+      setLogType(log_type);
     }
 
     /** @brief Write out an IdentificationData object to SQL-based OMS file
