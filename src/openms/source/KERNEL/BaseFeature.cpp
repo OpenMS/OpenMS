@@ -245,7 +245,7 @@ namespace OpenMS
 
   void BaseFeature::clearPrimaryID()
   {
-    primary_id_ = boost::none;
+    primary_id_ = nullopt;
   }
 
 
@@ -274,7 +274,7 @@ namespace OpenMS
 
   void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
   {
-    if (primary_id_ != boost::none) // is feature annotated with a "primary ID"?
+    if (primary_id_ != nullopt) // is feature annotated with a "primary ID"?
     {
       primary_id_ = trans.translate(*primary_id_);
     }

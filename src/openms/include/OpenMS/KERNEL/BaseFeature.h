@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 namespace OpenMS
 {
@@ -239,7 +239,7 @@ protected:
     std::vector<PeptideIdentification> peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
-    boost::optional<IdentificationData::IdentifiedMolecule> primary_id_;
+    std::optional<IdentificationData::IdentifiedMolecule> primary_id_;
 
     /// set of observation matches (e.g. PSMs) with IDs for this feature
     std::set<IdentificationData::ObservationMatchRef> id_matches_;
