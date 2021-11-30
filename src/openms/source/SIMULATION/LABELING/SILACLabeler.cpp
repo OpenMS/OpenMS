@@ -132,7 +132,7 @@ namespace OpenMS
     }
 
     SimTypes::FeatureMapSim& medium_channel = features_to_simulate[1];
-    if (medium_channel.getProteinIdentifications().size() > 0)
+    if (!medium_channel.getProteinIdentifications().empty())
     {
       applyLabelToProteinHit_(medium_channel, medium_channel_arginine_label_, medium_channel_lysine_label_);
     }
@@ -141,7 +141,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
       SimTypes::FeatureMapSim& heavy_channel = features_to_simulate[2];
-      if (heavy_channel.getProteinIdentifications().size() > 0)
+      if (!heavy_channel.getProteinIdentifications().empty())
       {
         applyLabelToProteinHit_(heavy_channel, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
       }

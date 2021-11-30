@@ -534,13 +534,13 @@ namespace OpenMS
                   Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
 
                   // save new adduct candidate
-                  if (cmp_stripped.getComponent()[Compomer::LEFT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
                     CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
                     feature_adducts[i_RT].insert(cmp_left);
                   }
-                  if (cmp_stripped.getComponent()[Compomer::RIGHT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
                     CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
@@ -798,7 +798,7 @@ namespace OpenMS
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
+        if (!labels.empty())
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
         }
@@ -822,7 +822,7 @@ namespace OpenMS
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
+        if (!labels.empty())
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
         }
@@ -1191,7 +1191,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2)
+  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2) const
   {
     if (!enable_intensity_filter_)
       return true;

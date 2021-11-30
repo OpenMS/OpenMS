@@ -606,7 +606,7 @@ protected:
 
 
       // TODO Move to Modified Peptide Generator
-      if (arg_varmod_unimod.size() >= 1)
+      if (!arg_varmod_unimod.empty())
       {
         // String filter for terminal aminoacid modification, delete mod from String list, continue with other unimods
         std::vector< String > n_terminal_aa_mods;
@@ -714,7 +714,7 @@ protected:
       }
 
       // collect all unimod fixed modifications and specify deltamass for each aminoacid
-      if (arg_fixmod_unimod.size() >= 1)
+      if (!arg_fixmod_unimod.empty())
       {
         const ModifiedPeptideGenerator::MapToResidueType fixed_mod = ModifiedPeptideGenerator::getModifications(arg_fixmod_unimod);
         for (auto const & r : fixed_mod.val)

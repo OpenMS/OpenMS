@@ -647,7 +647,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
       double sn_score = 0;
-      if (signal_noise_estimators.size() == 0)
+      if (signal_noise_estimators.empty())
       {
         return 0;
       }
@@ -664,7 +664,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
       std::vector<double> sn_scores;
-      if (signal_noise_estimators.size() == 0)
+      if (signal_noise_estimators.empty())
       {
         return {};
       }

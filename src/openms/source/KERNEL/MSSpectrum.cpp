@@ -314,7 +314,7 @@ namespace OpenMS
   Size MSSpectrum::findNearest(MSSpectrum::CoordinateType mz) const
   {
     // no peak => no search
-    if (ContainerType::size() == 0)
+    if (empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
     }

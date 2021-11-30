@@ -537,7 +537,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerDataBase::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerDataBase::DT_PEAK)
     {
       return;
     }

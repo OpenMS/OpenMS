@@ -269,7 +269,7 @@ namespace OpenMS
     for (Size i = 0; i != seq.size(); ++i)
     {
       const Residue& r = seq[i];
-      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
+      const String aa = !r.getOneLetterCode().empty() ? r.getOneLetterCode() : "X";
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
@@ -398,7 +398,7 @@ namespace OpenMS
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
-    if (peptide_.size() >= 1)
+    if (!peptide_.empty())
     {
       // Initialize with the missing/additional protons
       EmpiricalFormula ef; // = EmpiricalFormula("H") * charge; ??
@@ -502,7 +502,7 @@ namespace OpenMS
       // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
       // standard internal residue including named modifications
       if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
-      if (e->getOneLetterCode() == "")
+      if (e->getOneLetterCode().empty())
       {
         tag_offset += e->getAverageWeight(Residue::Internal);
       }
@@ -522,7 +522,7 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
-    if (peptide_.size() >= 1)
+    if (!peptide_.empty())
     {
       double mono_weight(Constants::PROTON_MASS_U * charge);
 

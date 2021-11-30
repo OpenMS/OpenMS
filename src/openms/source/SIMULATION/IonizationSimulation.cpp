@@ -673,7 +673,7 @@ public:
     } // ! pragma
   }
 
-  bool IonizationSimulation::isFeatureValid_(const Feature& feature)
+  bool IonizationSimulation::isFeatureValid_(const Feature& feature) const
   {
     if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_) // remove feature
     {

@@ -332,7 +332,7 @@ public:
           typename TransitionExpT::Transition transition = (*trans_map[coord.id]);
 
           prec.setMZ(transition.getPrecursorMZ());
-          if (settings.getPrecursors().size() > 0)
+          if (!settings.getPrecursors().empty())
           {
             prec.setIsolationWindowLowerOffset(settings.getPrecursors()[0].getIsolationWindowLowerOffset());
             prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());

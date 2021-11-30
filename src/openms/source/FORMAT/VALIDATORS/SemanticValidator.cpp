@@ -421,7 +421,7 @@ namespace OpenMS::Internal
         ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
 
         // get value, if it exists
-        if (parsed_term.has_value && (parsed_term.value != "" || type == ControlledVocabulary::CVTerm::XSD_STRING))
+        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XSD_STRING))
         {
           String value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::NONE)

@@ -108,7 +108,7 @@ public:
         spectrum.getPrecursors()[0].setIntensity(pre_int);
         spectrum.getPrecursors()[0].setCharge(charge);
         spectrum.setRT(rt);
-        if (title != "")
+        if (!title.empty())
         {
           spectrum.setMetaValue("TITLE", title);
           title = "";
@@ -170,17 +170,17 @@ public:
     void setInstrument(const String & instrument);
 
     /// returns the number of allowed missed cleavages
-    UInt getMissedCleavages();
+    UInt getMissedCleavages() const;
     /// sets the number of allowed missed cleavages (default: 1)
     void setMissedCleavages(UInt missed_cleavages);
 
     /// returns the precursor mass tolerance
-    float getPrecursorMassTolerance();
+    float getPrecursorMassTolerance() const;
     /// sets the precursor mass tolerance in Da (default: 2.0)
     void setPrecursorMassTolerance(float precursor_mass_tolerance);
 
     /// returns the peak mass tolerance in Da
-    float getPeakMassTolerance();
+    float getPeakMassTolerance() const;
     /// sets the peak mass tolerance in Da (default: 1.0)
     void setPeakMassTolerance(float ion_mass_tolerance);
 

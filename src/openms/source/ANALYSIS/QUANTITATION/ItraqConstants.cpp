@@ -175,7 +175,7 @@ namespace OpenMS
   void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
   {
     static Map<Int, double> reporter_mass_exact;
-    if (reporter_mass_exact.size() == 0 && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
+    if (reporter_mass_exact.empty() && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
     {
       reporter_mass_exact[113] = 113.1078;
       reporter_mass_exact[114] = 114.1112;

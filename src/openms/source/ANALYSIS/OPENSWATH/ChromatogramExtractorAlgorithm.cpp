@@ -313,7 +313,7 @@ namespace OpenMS
       std::vector<double>::const_iterator int_it = int_arr->data.begin();
       std::vector<double>::const_iterator im_it;
 
-      if (sptr->getMZArray()->data.size() == 0)
+      if (sptr->getMZArray()->data.empty())
       {
         continue;
       }

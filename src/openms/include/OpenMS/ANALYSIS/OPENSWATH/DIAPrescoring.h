@@ -90,7 +90,7 @@ public:
     */
     void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw);
+                    OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 

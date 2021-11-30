@@ -84,7 +84,7 @@ public:
     */
     void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
         const OpenMS::TargetedExperiment& targeted_exp,
-        OpenMS::PeakMap& output);
+        OpenMS::PeakMap& output) const;
 
 protected:
 

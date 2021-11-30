@@ -821,7 +821,7 @@ namespace OpenMS
       // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
-      if (query_results.size() == 0) continue; // cannot happen if a 'not-found' dummy was added
+      if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
 
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
@@ -1116,7 +1116,7 @@ namespace OpenMS
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
-          bool single_intensity = (indiv_ints.size() == 0);
+          bool single_intensity = (indiv_ints.empty());
           if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
@@ -1145,7 +1145,7 @@ namespace OpenMS
           stdev_temp.set(0.0);
           std::vector<MzTabDouble> stdev_temp3;
 
-          if (indiv_ints.size() == 0)
+          if (indiv_ints.empty())
           {
             stdev_temp3.push_back(stdev_temp);
           }
@@ -1167,7 +1167,7 @@ namespace OpenMS
           stderr_temp2.set(0.0);
           std::vector<MzTabDouble> stderr_temp3;
 
-          if (indiv_ints.size() == 0)
+          if (indiv_ints.empty())
           {
             stderr_temp3.push_back(stderr_temp2);
           }

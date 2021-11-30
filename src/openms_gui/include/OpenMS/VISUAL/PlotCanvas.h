@@ -351,7 +351,7 @@ public:
     virtual void setFilters(const DataFilters & filters);
 
     /// Returns the mapping of m/z to axes
-    inline bool isMzToXAxis()
+    inline bool isMzToXAxis() const
     {
       return mz_to_x_axis_;
     }
@@ -484,7 +484,7 @@ public:
     double getSnapFactor();
 
     /// Returns the percentage factor
-    double getPercentageFactor();
+    double getPercentageFactor() const;
 
     /// Shows the preferences dialog of the active layer
     virtual void showCurrentLayerPreferences() = 0;

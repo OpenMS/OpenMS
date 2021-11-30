@@ -185,7 +185,7 @@ protected:
     // file type
     FileHandler file_handler;
     FileTypes::Type force_type;
-    if (getStringOption_("in_type").size() > 0)
+    if (!getStringOption_("in_type").empty())
     {
       force_type = FileTypes::nameToType(getStringOption_("in_type"));
     }
