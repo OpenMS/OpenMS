@@ -83,6 +83,7 @@ namespace OpenMS
     To ensure non-redundancy, many data types have a "key" (see table above) to which a uniqueness constraint applies.
     This means only one item of such a type with a given key can be stored in an IdentificationData object.
     If items with an existing key are registered subsequently, attempts are made to merge new information (e.g. additional scores) into the existing entry.
+    The details of this merging are handled in the @p merge function in each data class.
 
     @warning This class is not thread-safe while being modified.
 
