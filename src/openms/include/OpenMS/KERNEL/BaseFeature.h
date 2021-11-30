@@ -58,8 +58,8 @@ namespace OpenMS
   class OPENMS_DLLAPI BaseFeature : public RichPeak2D
   {
 public:
-    ///@name Type definitions
-    //@{
+    /// @name Type definitions
+    ///@{
     /// Type of quality values
     typedef float QualityType;
     /// Type of charge values
@@ -78,12 +78,10 @@ public:
     };
 
     static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    ///@}
 
-    //@}
-
-    /** @name Constructors and Destructor
-    */
-    //@{
+    /// @name Constructors and Destructor
+    ///@{
     /// Default constructor
     BaseFeature();
 
@@ -120,10 +118,10 @@ public:
 
     /// Destructor
     ~BaseFeature() override;
-    //@}
+    ///@}
 
     /// @name Quality methods
-    //@{
+    ///@{
     /// Non-mutable access to the overall quality
     QualityType getQuality() const;
     /// Set the overall quality
@@ -152,7 +150,7 @@ public:
       }
 
     };
-    //@}
+    ///@}
 
     /// Non-mutable access to the features width (full width at half max, FWHM)
     WidthType getWidth() const;
@@ -177,6 +175,8 @@ public:
     /// Inequality operator
     bool operator!=(const BaseFeature& rhs) const;
 
+    /// @name Functions for dealing with identifications in legacy format
+    ///@{
     /// returns a const reference to the PeptideIdentification vector
     const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
@@ -188,10 +188,13 @@ public:
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
+    ///@}
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
 
+    /// @name Functions for dealing with identifications in new format
+    ///@{
     /// has a primary ID (peptide, RNA, compound) been assigned?
     bool hasPrimaryID() const;
 
@@ -223,6 +226,7 @@ public:
       This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
     */
     void updateIDReferences(const IdentificationData::RefTranslator& trans);
+    ///@}
 
 protected:
 
