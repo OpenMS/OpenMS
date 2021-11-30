@@ -462,7 +462,7 @@ namespace OpenMS
     {
       max_rt = 1; // highest will be scaled to 1
 
-      //std::cerr << "min_rt: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
+      //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
       // normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
       double mt_5p = rt_sorted[rt_sorted.size() * 5 / 100];
       double mt_95p = rt_sorted[rt_sorted.size() * 95 / 100];

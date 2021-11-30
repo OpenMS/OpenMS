@@ -187,7 +187,6 @@ namespace OpenMS
     const String util_category = "Utilities";
 
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
-    util_map["AnalyzeFLASHIda"] = Internal::ToolDescription("AnalyzeFLASHIda", util_category);
     util_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
@@ -220,7 +219,6 @@ namespace OpenMS
     util_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
-    util_map["MzMLToMatlab"] = Internal::ToolDescription("MzMLToMatlab", util_category);
     util_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", util_category);
     util_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
@@ -232,7 +230,6 @@ namespace OpenMS
     util_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", util_category);
     util_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", "Targeted Experiments");
     //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
-    util_map["ParseMsAlign"] = Internal::ToolDescription("ParseMsAlign", util_category);
     util_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", util_category);
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);

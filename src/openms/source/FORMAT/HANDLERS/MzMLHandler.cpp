@@ -1992,7 +1992,7 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000422") //high-energy collision-induced dissociation
           {
-              chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
@@ -3930,18 +3930,18 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
       }
-        if (precursor.getActivationMethods().count(Precursor::SORI) != 0) {
-            os
-                    << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
-        }
-        if (precursor.getActivationMethods().count(Precursor::HCID) != 0) {
-            os
-                    << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
-        }
-        if (precursor.getActivationMethods().count(Precursor::LCID) != 0) {
-            os
-                    << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
-        }
+      if (precursor.getActivationMethods().count(Precursor::SORI) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
+      }
       if (precursor.getActivationMethods().count(Precursor::PHD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";

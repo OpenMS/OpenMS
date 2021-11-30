@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ namespace OpenMS
       /**
             @brief Constructor for Tagger
 
-            The parameter @p max_abs_charge_ should be >= @p min_abs_charge_.
+            The parameter @p max_charge_ should be >= @p min_charge_.
             Also @p max_tag_length should be >= @p min_tag_length.
 
             @param min_tag_length the minimal sequence tag length.
@@ -73,7 +73,7 @@ namespace OpenMS
 
             The parameter @p tags is filled with one string per sequence tag.
             It uses the standard residues from ResidueDB including
-            the fixed and variable modifications given to the constructor.
+            the fixed and variable modificatins given to the constructor.
 
             @param mzs a vector of mz values, containing the mz values from a centroided fragment spectrum.
             @param tags the vector of tags, that is filled with this function.
@@ -85,7 +85,7 @@ namespace OpenMS
 
             The parameter @p tags is filled with one string per sequence tag.
             It uses the standard residues from ResidueDB including
-            the fixed and variable modifications given to the constructor.
+            the fixed and variable modificatins given to the constructor.
 
             @param spec a centroided fragment spectrum.
             @param tags the vector of tags, that is filled with this function.
@@ -95,7 +95,7 @@ namespace OpenMS
       /**
             @brief Change the maximal charge considered by the tagger
 
-            Allows to change the maximal considered charge e.g. based on a spectra
+            Allows to change the maximal considered charge e.g. based on a spectrums
             precursor charge without calling the constructor multiple times.
 
             @param max_charge the new maximal charge.

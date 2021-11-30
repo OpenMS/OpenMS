@@ -6,8 +6,6 @@ set(sources_list_h
     DeconvolutedSpectrum.h
     FLASHDeconvAlgorithm.h
     FLASHDeconvHelperStructs.h
-    FLASHIda.h
-    FLASHIdaBridgeFunctions.h
     MassFeatureTrace.h
     PeakGroup.h
     QScore.h

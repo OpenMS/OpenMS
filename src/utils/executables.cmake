@@ -3,73 +3,69 @@ set(directory source/APPLICATIONS/UTILS)
 
 ### list all filenames of the directory here
 set(UTILS_executables
-    AccurateMassSearch
-    AnalyzeFLASHIda
-    AssayGeneratorMetabo
-    ClusterMassTraces
-    ClusterMassTracesByPrecursor
-    CVInspector
-    DatabaseFilter
-    DecoyDatabase
-    DeMeanderize
-    Digestor
-    DigestorMotif
-    Epifany
-    ERPairFinder
-    FeatureFinderMetaboIdent
-    FFEval
-    FilterTopPicResults
-    FuzzyDiff
-    IDDecoyProbability
-    IDExtractor
-    IDMassAccuracy
-    IDScoreSwitcher
-    IDSplitter
-    LabeledEval
-    MassCalculator
-    MetaboliteAdductDecharger
-    MetaboliteSpectralMatcher
-    MetaProSIP
-    MRMPairFinder
-    MSFraggerAdapter
-    MSSimulator
-    MSstatsConverter
-    MultiplexResolver
-    MzMLSplitter
-    MzMLToMatlab
-    NovorAdapter
-    NucleicAcidSearchEngine
-    OpenMSDatabasesInfo
-    OpenMSInfo
-    PeakPickerIterative
-    PSMFeatureExtractor
-    QCCalculator
-    QCEmbedder
-    QCExporter
-    QCExtractor
-    QCImporter
-    QCMerger
-    QCShrinker
-    ProteomicsLFQ
-    ParseMsAlign
-    RNADigestor
-    RNAMassCalculator
-    RNPxlXICFilter
-    RNPxlSearch
-    RTEvaluation
-    SemanticValidator
-    SequenceCoverageCalculator
-    SimpleSearchEngine
-    SiriusAdapter
-    SpecLibCreator
-    SpectraSTSearchAdapter
-    StaticModification
-    SvmTheoreticalSpectrumGeneratorTrainer
-    TICCalculator
-    TransformationEvaluation
-    TriqlerConverter
-    XMLValidator
-    )
+AccurateMassSearch
+AssayGeneratorMetabo
+ClusterMassTraces
+ClusterMassTracesByPrecursor
+CVInspector
+DatabaseFilter
+DecoyDatabase
+DeMeanderize
+Digestor
+DigestorMotif
+Epifany
+ERPairFinder
+FeatureFinderMetaboIdent
+FFEval
+FuzzyDiff
+IDDecoyProbability
+IDExtractor
+IDMassAccuracy
+IDScoreSwitcher
+IDSplitter
+LabeledEval
+MassCalculator
+MetaboliteAdductDecharger
+MetaboliteSpectralMatcher
+MetaProSIP
+MRMPairFinder
+MSFraggerAdapter
+MSSimulator
+MSstatsConverter
+MultiplexResolver
+MzMLSplitter
+NovorAdapter
+NucleicAcidSearchEngine
+OpenMSDatabasesInfo
+OpenMSInfo
+PeakPickerIterative
+PSMFeatureExtractor
+QCCalculator
+QCEmbedder
+QCExporter
+QCExtractor
+QCImporter
+QCMerger
+QCShrinker
+ProteomicsLFQ
+RNADigestor
+RNAMassCalculator
+RNPxlXICFilter
+RNPxlSearch
+RTEvaluation
+SemanticValidator
+SequenceCoverageCalculator
+SimpleSearchEngine
+SiriusAdapter
+SpecLibCreator
+SpectraSTSearchAdapter
+StaticModification
+SvmTheoreticalSpectrumGeneratorTrainer
+TICCalculator
+TransformationEvaluation
+TriqlerConverter
+XMLValidator
+)
 
 if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables

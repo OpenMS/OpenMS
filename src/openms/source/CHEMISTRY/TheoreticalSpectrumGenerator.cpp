@@ -256,15 +256,20 @@ namespace OpenMS
     // default with b and y ions
     Param theo_gen_settings = theo_gen.getParameters();
 
-    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID) {
-        theo_gen_settings.setValue("add_b_ions", "true");
-        theo_gen_settings.setValue("add_y_ions", "true");
-    } else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD) {
-        theo_gen_settings.setValue("add_c_ions", "true");
-        theo_gen_settings.setValue("add_z_ions", "true");
-        theo_gen_settings.setValue("add_b_ions", "false");
-        theo_gen_settings.setValue("add_y_ions", "false");
-    } else {
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    {
+      theo_gen_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_y_ions", "true");
+    }
+    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+    {
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+      theo_gen_settings.setValue("add_b_ions", "false");
+      theo_gen_settings.setValue("add_y_ions", "false");
+    }
+    else
+    {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
     }
 
