@@ -263,16 +263,16 @@ protected:
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
-    if (out_idXML.size() > 0)
+    if (!out_idXML.empty())
     {
       IdXMLFile().store(out_idXML, protein_ids, peptide_ids);
     }
-    if (out_mzIdentML.size() > 0)
+    if (!out_mzIdentML.empty())
     {
       MzIdentMLFile().store(out_mzIdentML, protein_ids, peptide_ids);
     }
 
-    if (out_xquest.size() > 0 || out_xquest_specxml.size() > 0)
+    if (!out_xquest.empty() || !out_xquest_specxml.empty())
     {
       vector<String> input_split_dir;
       vector<String> input_split;
@@ -280,11 +280,11 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
-      if (out_xquest.size() > 0)
+      if (!out_xquest.empty())
       {
         XQuestResultXMLFile().store(out_xquest, protein_ids, peptide_ids);
       }
-      if (out_xquest_specxml.size() > 0)
+      if (!out_xquest_specxml.empty())
       {
         XQuestResultXMLFile::writeXQuestXMLSpec(out_xquest_specxml, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
       }

@@ -75,10 +75,10 @@ public:
     ~HistogramWidget() override;
 
     /// Returns the value f the lower splitter
-    double getLeftSplitter();
+    double getLeftSplitter() const;
 
     /// Returns the value of the upper splitter
-    double getRightSplitter();
+    double getRightSplitter() const;
 
     /// Set axis legends
     void setLegend(const String & legend);

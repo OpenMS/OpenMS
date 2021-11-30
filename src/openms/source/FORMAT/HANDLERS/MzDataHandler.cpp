@@ -198,7 +198,7 @@ namespace OpenMS::Internal
       {
         String trimmed_transcoded_chars = transcoded_chars;
         trimmed_transcoded_chars.trim();
-        if (trimmed_transcoded_chars != "")
+        if (!trimmed_transcoded_chars.empty())
         {
           warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
         }
@@ -600,7 +600,7 @@ namespace OpenMS::Internal
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-      if (sm.getNumber() != "" || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
+      if (!sm.getNumber().empty() || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
 #pragma clang diagnostic pop
       {
         os << "\t\t\t<sampleDescription>\n";
@@ -613,12 +613,12 @@ namespace OpenMS::Internal
         os << "\t\t\t</sampleDescription>\n";
       }
 
-      if (cexp_->getSourceFiles().size() >= 1)
+      if (!cexp_->getSourceFiles().empty())
       {
         os << "\t\t\t<sourceFile>\n"
            << "\t\t\t\t<nameOfFile>" << cexp_->getSourceFiles()[0].getNameOfFile() << "</nameOfFile>\n"
            << "\t\t\t\t<pathToFile>" << cexp_->getSourceFiles()[0].getPathToFile() << "</pathToFile>\n";
-        if (cexp_->getSourceFiles()[0].getFileType() != "")
+        if (!cexp_->getSourceFiles()[0].getFileType().empty())
           os << "\t\t\t\t<fileType>" << cexp_->getSourceFiles()[0].getFileType() << "</fileType>\n";
         os << "\t\t\t</sourceFile>\n";
       }
@@ -632,7 +632,7 @@ namespace OpenMS::Internal
         os << "\t\t\t<contact>\n"
            << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
            << "\t\t\t\t<institution>" << cexp_->getContacts()[i].getInstitution() << "</institution>\n";
-        if (cexp_->getContacts()[i].getContactInfo() != "")
+        if (!cexp_->getContacts()[i].getContactInfo().empty())
           os << "\t\t\t\t<contactInfo>" << cexp_->getContacts()[i].getContactInfo() << "</contactInfo>\n";
         os << "\t\t\t</contact>\n";
       }
@@ -650,7 +650,7 @@ namespace OpenMS::Internal
       os << "\t\t<instrument>\n"
          << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
          << "\t\t\t<source>\n";
-      if (inst.getIonSources().size() >= 1)
+      if (!inst.getIonSources().empty())
       {
         writeCVS_(os, inst.getIonSources()[0].getInletType(), 11, "1000007", "InletType");
         writeCVS_(os, inst.getIonSources()[0].getIonizationMethod(), 10, "1000008", "IonizationType");
@@ -698,7 +698,7 @@ namespace OpenMS::Internal
       os << "\t\t\t</analyzerList>\n";
 
       os << "\t\t\t<detector>\n";
-      if (inst.getIonDetectors().size() >= 1)
+      if (!inst.getIonDetectors().empty())
       {
         writeCVS_(os, inst.getIonDetectors()[0].getType(), 13, "1000026", "DetectorType");
         writeCVS_(os, inst.getIonDetectors()[0].getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
@@ -711,7 +711,7 @@ namespace OpenMS::Internal
         warning(STORE, "The MzData format can store only one ion detector. Only the first one is stored!");
       }
       os << "\t\t\t</detector>\n";
-      if (inst.getVendor() != "" || inst.getModel() != "" || inst.getCustomizations() != "")
+      if (!inst.getVendor().empty() || !inst.getModel().empty() || !inst.getCustomizations().empty())
       {
         os << "\t\t\t<additional>\n";
         writeCVS_(os, inst.getVendor(), "1000030", "Vendor");
@@ -723,7 +723,7 @@ namespace OpenMS::Internal
       os << "\t\t</instrument>\n";
 
       //the data processing information of the first spectrum is used for the whole file
-      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if (cexp_->empty() || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
            << "\t\t\t<software>\n"
@@ -766,7 +766,7 @@ namespace OpenMS::Internal
 
       //---------------------------------------------------------------------------------------------------
       //ACTUAL DATA
-      if (cexp_->size() != 0)
+      if (!cexp_->empty())
       {
         //check if the nativeID of all spectra are numbers or numbers prefixed with 'spectrum='
         //If not we need to renumber all spectra.
@@ -792,7 +792,7 @@ namespace OpenMS::Internal
           {
             all_numbers = false;
             all_prefixed_numbers = false;
-            if (native_id != "")
+            if (!native_id.empty())
             {
               all_empty = false;
             }
@@ -850,7 +850,7 @@ namespace OpenMS::Internal
               Int acq_number = 0;
               try
               {
-                if (ac.getIdentifier() != "")
+                if (!ac.getIdentifier().empty())
                 {
                   acq_number =  ac.getIdentifier().toInt();
                 }
@@ -957,7 +957,7 @@ namespace OpenMS::Internal
           writeUserParam_(os, spec.getInstrumentSettings(), 6);
           os << "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 
-          if (spec.getPrecursors().size() != 0)
+          if (!spec.getPrecursors().empty())
           {
             Int precursor_ms_level = spec.getMSLevel() - 1;
             SignedSize precursor_id = -1;
@@ -983,7 +983,7 @@ namespace OpenMS::Internal
               os << "\t\t\t\t\t\t<activation>\n";
               if (precursor != Precursor())
               {
-                if (precursor.getActivationMethods().size() > 0)
+                if (!precursor.getActivationMethods().empty())
                 {
                   writeCVS_(os, *(precursor.getActivationMethods().begin()), 18, "1000044", "ActivationMethod", 7);
                 }
@@ -1434,7 +1434,7 @@ namespace OpenMS::Internal
         warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
       }
 
-      if (error != "")
+      if (!error.empty())
       {
         warning(LOAD, String("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
       }
@@ -1451,7 +1451,7 @@ namespace OpenMS::Internal
 
     inline void MzDataHandler::writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent) const
     {
-      if (value != "")
+      if (!value.empty())
       {
         os << String(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }

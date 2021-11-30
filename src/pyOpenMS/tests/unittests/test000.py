@@ -8,6 +8,7 @@ import os
 
 from pyopenms import String as s
 import numpy as np
+import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
@@ -2121,10 +2122,28 @@ def testFeatureXMLFile():
     f.setMetaValue(b'mv1', 1)
     f.setMetaValue(b'mv2', 2)
 
-    fm.push_back(f)
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
     fm.push_back(f)
 
-    assert fm.get_df(meta_values='all').shape == (2, 12)
+    f.setMetaValue('spectrum_native_id', 'spectrum=124')
+    fm.push_back(f)
+
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+
+    fm = pyopenms.FeatureMap()
+    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)

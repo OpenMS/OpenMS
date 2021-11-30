@@ -145,7 +145,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
     IdXMLFile().load(inputfile_name, protein_identifications, identifications);
-    if (sequences_file_name != "")
+    if (!sequences_file_name.empty())
     {
       FASTAFile().load(sequences_file_name, sequences);
     }

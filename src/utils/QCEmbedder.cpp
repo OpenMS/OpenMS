@@ -157,18 +157,18 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (target_file != "")
+    if (!target_file.empty())
     {
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
 
     QcMLFile qcmlfile;
-    if (in != "")
+    if (!in.empty())
     {
       qcmlfile.load(in);
     }
 
-    if (target_run == "")
+    if (target_run.empty())
     {
       //~ check if only one run in file
       std::vector<String> nas;
@@ -198,9 +198,9 @@ protected:
     at.id = String(UniqueIdGenerator::getUniqueId());
     at.cvRef = "QC"; //TODO assign right cv reference
 
-    if (plot_b64 != "" || tab != "")
+    if (!plot_b64.empty() || !tab.empty())
     {
-      if (plot_b64 != "")
+      if (!plot_b64.empty())
       {
         try
         {
@@ -216,7 +216,7 @@ protected:
         }
         at.binary = plot_b64;
       }
-      else if (tab != "")
+      else if (!tab.empty())
       {
         try
         {

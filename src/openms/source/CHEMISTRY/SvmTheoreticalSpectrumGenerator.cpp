@@ -731,12 +731,12 @@ namespace OpenMS
 
     if (add_metainfo)
     {
-      if (spectrum.getIntegerDataArrays().size() == 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
-      if (spectrum.getStringDataArrays().size() == 0)
+      if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
         spectrum.getStringDataArrays()[0].setName("IonNames");

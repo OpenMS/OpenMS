@@ -277,17 +277,17 @@ public slots:
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
     void openFilesByDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
-    void showGoToDialog();
+    void showGoToDialog() const;
     /// shows the preferences dialog
     void preferencesDialog();
     /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
-    void layerStatistics();
+    void layerStatistics() const;
     /// lets the user edit the meta data of a layer
     void editMetadata();
     /// gets called if a layer got activated
     void layerActivated();
     /// gets called when a layer changes in zoom
-    void layerZoomChanged();
+    void layerZoomChanged() const;
     /// link the zoom of individual windows
     void linkZoom();
     /// gets called if a layer got deactivated
@@ -342,29 +342,29 @@ public slots:
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
     /// Saves the whole current layer data
-    void saveLayerAll();
+    void saveLayerAll() const;
     /// Saves the visible layer data
-    void saveLayerVisible();
+    void saveLayerVisible() const;
     /// Toggles the grid lines
-    void toggleGridLines();
+    void toggleGridLines() const;
     /// Toggles the axis legends
-    void toggleAxisLegends();
+    void toggleAxisLegends() const;
     /// Toggles drawing of interesting MZs
-    void toggleInterestingMZs();
+    void toggleInterestingMZs() const;
     /// Shows current layer preferences
-    void showPreferences();
+    void showPreferences() const;
     /// dialog for inspecting database meta data
     void metadataFileDialog();
 
     /** @name Toolbar slots
     */
     //@{
-    void setDrawMode1D(int);
+    void setDrawMode1D(int) const;
     void setIntensityMode(int);
     void changeLayerFlag(bool);
     void changeLabel(QAction*);
     void changeUnassigned(QAction*);
-    void resetZoom();
+    void resetZoom() const;
     void toggleProjections();
     //@}
 
@@ -373,10 +373,10 @@ public slots:
     void openFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
+    void layerFilterVisibilityChange(bool) const;
 
     /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
-    void showSpectrumMetaData(int spectrum_index);
+    void showSpectrumMetaData(int spectrum_index) const;
 
 protected slots:
     /// slot for the finished signal of the TOPP tools execution

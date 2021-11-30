@@ -566,7 +566,7 @@ protected:
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
           for (auto pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
-            if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
+            if (alignment.empty() || alignment[align_index].second != spec_b_index)
               // ... add unaligned peak
             {
               consensus_spec.push_back(*pit);
@@ -577,7 +577,7 @@ protected:
               Size counter(0);
               Size copy_of_align_index(align_index);
 
-              while (alignment.size() > 0 && 
+              while (!alignment.empty() && 
                      copy_of_align_index < alignment.size() && 
                      alignment[copy_of_align_index].second == spec_b_index)
               {
@@ -585,7 +585,7 @@ protected:
                 ++counter;
               } // Count the number of peaks in a which correspond to a single b peak.
 
-              while (alignment.size() > 0 &&
+              while (!alignment.empty() &&
                      align_index < alignment.size() &&  
                      alignment[align_index].second == spec_b_index)
               {

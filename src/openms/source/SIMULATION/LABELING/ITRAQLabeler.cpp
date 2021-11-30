@@ -119,7 +119,7 @@ namespace OpenMS
     {
       channels = ListUtils::toStringList<std::string>(param_.getValue("isotope_correction_values_8plex"));
     }
-    if (channels.size() > 0)
+    if (!channels.empty())
     {
       ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type_, channels, isotope_corrections_);
     }

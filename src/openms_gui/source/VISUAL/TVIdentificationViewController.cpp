@@ -1150,7 +1150,7 @@ namespace OpenMS
     LayerDataBase& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     // Return if no valid peak layer attached
-    if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerDataBase::DT_PEAK)
+    if (current_layer.getPeakData()->empty() || current_layer.type != LayerDataBase::DT_PEAK)
     { 
       return;
     }

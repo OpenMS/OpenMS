@@ -251,7 +251,7 @@ protected:
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -275,7 +275,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

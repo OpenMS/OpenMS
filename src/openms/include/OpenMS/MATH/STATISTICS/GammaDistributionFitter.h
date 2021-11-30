@@ -94,7 +94,7 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points);
+      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points) const;
 
 protected:
 

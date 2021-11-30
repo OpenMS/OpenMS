@@ -280,7 +280,7 @@ namespace OpenMS
 
             case ParamValue::STRING_VALUE:
             case ParamValue::STRING_LIST:
-              if (it->valid_strings.size() != 0)
+              if (!it->valid_strings.empty())
               {
                 restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
               }
@@ -290,7 +290,7 @@ namespace OpenMS
               break;
           }
           // for files we store the restrictions as supported_formats
-          if (restrictions != "")
+          if (!restrictions.empty())
           {
             if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
             {

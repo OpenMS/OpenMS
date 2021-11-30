@@ -135,7 +135,7 @@ MSChromatogram::IntegerDataArrays &MSChromatogram::getIntegerDataArrays()
 }
 
 void MSChromatogram::sortByIntensity(bool reverse) {
-  if (float_data_arrays_.empty() && string_data_arrays_.size() && integer_data_arrays_.size())
+  if (float_data_arrays_.empty() && !string_data_arrays_.empty() && !integer_data_arrays_.empty())
   {
     if (reverse)
     {
@@ -277,7 +277,7 @@ bool MSChromatogram::isSorted() const
 Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
 {
   //no peak => no search
-  if (ContainerType::size() == 0)
+  if (empty())
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
   }

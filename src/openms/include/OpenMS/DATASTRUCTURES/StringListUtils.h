@@ -181,7 +181,7 @@ private:
         if (trim_) target_.trim();
       }
 
-      inline String getValue(const String& value)
+      inline String getValue(const String& value) const
       {
         if (trim_)
         {

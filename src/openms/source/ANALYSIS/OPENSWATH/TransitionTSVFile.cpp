@@ -351,7 +351,7 @@ namespace OpenMS
       String proteins;
       void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
       !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
-      if (proteins != "NA" && proteins != "")
+      if (proteins != "NA" && !proteins.empty())
       {
         proteins.split(';', mytransition.ProteinName);
       }
@@ -397,7 +397,7 @@ namespace OpenMS
       String uniprot_ids;
       void(!extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
       !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict));
-      if (uniprot_ids != "NA" && uniprot_ids != "")
+      if (uniprot_ids != "NA" && !uniprot_ids.empty())
       {
         uniprot_ids.split(';', mytransition.uniprot_id);
       }
@@ -839,7 +839,7 @@ namespace OpenMS
     if (tr_it->fragment_nr != -1 ||
         tr_it->fragment_mzdelta != -1 ||
         tr_it->fragment_modification < 0 ||
-        tr_it->fragment_type != "" )
+        !tr_it->fragment_type.empty() )
     {
       interpretation_set = true;
     }
@@ -928,7 +928,7 @@ namespace OpenMS
       // unknown means that we should write CV Term "1001240"
       interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
-    else if (tr_it->fragment_type == "")
+    else if (tr_it->fragment_type.empty())
     {
       // empty means that we have no information whatsoever
       interpretation.iontype = TargetedExperiment::IonType::Unannotated;
@@ -1260,7 +1260,7 @@ namespace OpenMS
         mytransition.precursor_charge = String(pep.getChargeState());
       }
       mytransition.peptide_group_label = "NA";
-      if (pep.getPeptideGroupLabel() != "")
+      if (!pep.getPeptideGroupLabel().empty())
       {
         mytransition.peptide_group_label = pep.getPeptideGroupLabel();
       }

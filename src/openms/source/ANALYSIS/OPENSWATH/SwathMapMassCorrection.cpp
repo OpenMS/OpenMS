@@ -146,6 +146,7 @@ namespace OpenMS
 
     std::vector<String> trgr_ids;
     std::map<std::string, double> pep_im_map;
+    trgr_ids.reserve(transition_group_map.size());
     for (const auto& trgroup_it : transition_group_map)
     {
       trgr_ids.push_back(trgroup_it.first);
