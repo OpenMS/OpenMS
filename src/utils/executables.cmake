@@ -4,6 +4,7 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
+AnalyzeFLASHIda
 AssayGeneratorMetabo
 ClusterMassTraces
 ClusterMassTracesByPrecursor
@@ -17,6 +18,7 @@ Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
 FFEval
+FilterTopPicResults
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
@@ -34,10 +36,12 @@ MSSimulator
 MSstatsConverter
 MultiplexResolver
 MzMLSplitter
+MzMLToMatlab
 NovorAdapter
 NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
+ParseMsAlign
 PeakPickerIterative
 PSMFeatureExtractor
 QCCalculator
