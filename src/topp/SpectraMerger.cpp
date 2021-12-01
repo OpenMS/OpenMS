@@ -130,6 +130,15 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
 
+    int max_ms_level = 1;
+    int min_ms_level = 0;
+    for (auto it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
+    {
+      int tmp_ms_level = it_rt->getMSLevel();
+      max_ms_level = max_ms_level < tmp_ms_level ? tmp_ms_level : max_ms_level;
+      min_ms_level = min_ms_level == 0 ? tmp_ms_level : (min_ms_level > tmp_ms_level ? tmp_ms_level : min_ms_level);
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -147,11 +156,33 @@ protected:
     }
     else if (merging_method == "average_gaussian")
     {
-      merger.average(exp, "gaussian");
+      int ms_level = merger.getParameters().getValue("average_gaussian:ms_level");
+      if (ms_level == 0)
+      {
+        for (int tmp_ms_level = min_ms_level; tmp_ms_level <= max_ms_level; tmp_ms_level++)
+        {
+          merger.average(exp, "gaussian", tmp_ms_level);
+        }
+      }
+      else
+      {
+        merger.average(exp, "gaussian", ms_level);
+      }
     }
     else if (merging_method == "average_tophat")
     {
-      merger.average(exp, "tophat");
+      int ms_level = merger.getParameters().getValue("average_tophat:ms_level");
+      if (ms_level == 0)
+      {
+        for (int tmp_ms_level = min_ms_level; tmp_ms_level <= max_ms_level; tmp_ms_level++)
+        {
+          merger.average(exp, "tophat", tmp_ms_level);
+        }
+      }
+      else
+      {
+        merger.average(exp, "tophat", ms_level);
+      }
     }
 
     //-------------------------------------------------------------
