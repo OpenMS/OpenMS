@@ -355,6 +355,15 @@ public:
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
 
+
+    void extractSpectra(
+        const MSExperiment& experiment,
+        const FeatureMap& ms1_features,
+        std::vector<MSSpectrum>& extracted_spectra,
+        FeatureMap& extracted_features,
+        const bool compute_features
+    ) const;
+    
     /**
       @brief Searches the spectral library for the top scoring candidates that
       match the input spectrum.

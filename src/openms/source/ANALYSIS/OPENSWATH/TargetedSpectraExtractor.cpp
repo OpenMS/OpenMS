@@ -680,6 +680,37 @@ namespace OpenMS
     extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features);
   }
 
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra,
+    FeatureMap& extracted_features,
+    const bool compute_features
+  ) const
+  {
+    // get the spectra from the experiment
+    const std::vector<MSSpectrum>& spectra = experiment.getSpectra();
+
+    // annotate spectra
+    std::vector<OpenMS::MSSpectrum> annotated_spectra;
+    OpenMS::FeatureMap ms2_features;
+    annotateSpectra(experiment.getSpectra(), ms1_features, ms2_features, annotated_spectra);
+
+    // pickSpectra
+    std::vector<MSSpectrum> picked_spectra(annotated_spectra.size());
+    for (Size i = 0; i < annotated_spectra.size(); ++i)
+    {
+      pickSpectrum(annotated_spectra[i], picked_spectra[i]);
+    }
+
+    // score and select
+    std::vector<OpenMS::MSSpectrum> scored_spectra;
+    scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
+
+    // select the best spectrum for each group of spectra having the same name
+    selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
+  }
+
   void TargetedSpectraExtractor::matchSpectrum(
     const MSSpectrum& input_spectrum,
     const Comparator& cmp,
