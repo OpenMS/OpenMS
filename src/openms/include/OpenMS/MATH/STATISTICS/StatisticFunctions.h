@@ -37,15 +37,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-// array_wrapper needs to be included before it is used
-// only in boost1.64+. See issue #2790
-#if OPENMS_BOOST_VERSION_MINOR >= 64
-#include <boost/serialization/array_wrapper.hpp>
-#endif
-#include <boost/function/function_base.hpp>
-#include <boost/lambda/casts.hpp>
-#include <boost/lambda/lambda.hpp>
-
 #include <iterator>
 #include <numeric>
 #include <algorithm>
@@ -574,8 +565,7 @@ namespace OpenMS
       }
       //sort
       std::sort(w_idx.begin(), w_idx.end(),
-                boost::lambda::ret<bool>((&boost::lambda::_1->*& std::pair<Size, Value>::second) < 
-                                         (&boost::lambda::_2->*& std::pair<Size, Value>::second)));
+                [](const auto& pair1, const auto& pair2) { return pair1.second < pair2.second; });
       //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
