@@ -60,6 +60,20 @@ namespace OpenMS
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
+    virtual void updateRanges() override
+    {
+      features_->updateRanges();
+    }
+
+    virtual float getMinIntensity() const override
+    {
+      return getFeatureMap()->getMinInt();
+    }
+
+    virtual float getMaxIntensity() const override
+    {
+      return getFeatureMap()->getMaxInt();
+    }
 
     virtual const PepIds& getPeptideIds() const override
     {

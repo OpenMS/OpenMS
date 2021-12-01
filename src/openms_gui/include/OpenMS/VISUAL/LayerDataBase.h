@@ -408,18 +408,15 @@ namespace OpenMS
     }
 
     /**
-    @brief Update ranges of all data structures
-
-    Updates ranges of all tracked data structures 
-    (spectra, chromatograms, features etc).
+      @brief Update ranges of the underlying data
     */
-    void updateRanges();
+    virtual void updateRanges() = 0;
 
     /// Returns the minimum intensity of the internal data, depending on type
-    float getMinIntensity() const;
+    virtual float getMinIntensity() const = 0;
 
     /// Returns the maximum intensity of the internal data, depending on type
-    float getMaxIntensity() const;
+    virtual float getMaxIntensity() const = 0;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
@@ -485,7 +482,7 @@ namespace OpenMS
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
     String getDecoratedName() const;
 
-  private:
+  protected:
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
 
