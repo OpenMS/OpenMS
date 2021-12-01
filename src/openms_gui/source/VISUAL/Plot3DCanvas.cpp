@@ -106,7 +106,7 @@ namespace OpenMS
 
   bool Plot3DCanvas::finishAdding_()
   {
-    if (layers_.getCurrentLayer().type != LayerData::DT_PEAK)
+    if (layers_.getCurrentLayer().type != LayerDataBase::DT_PEAK)
     {
       popIncompleteLayer_("This widget supports peak data only. Aborting!");
       return false;
@@ -198,7 +198,7 @@ namespace OpenMS
   void Plot3DCanvas::showCurrentLayerPreferences()
   {
     Internal::Plot3DPrefDialog dlg(this);
-    LayerData & layer = getCurrentLayer();
+    LayerDataBase& layer = getCurrentLayer();
 
 // cout << "IN: " << param_ << endl;
 
@@ -306,7 +306,7 @@ namespace OpenMS
 
   void Plot3DCanvas::saveCurrentLayer(bool visible)
   {
-    const LayerData & layer = getCurrentLayer();
+    const LayerDataBase& layer = getCurrentLayer();
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path").toString();

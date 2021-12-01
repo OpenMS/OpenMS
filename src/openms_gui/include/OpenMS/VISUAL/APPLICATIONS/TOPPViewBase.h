@@ -133,21 +133,21 @@ public:
     ///@name Type definitions
     //@{
     //Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     //Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     //Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     //Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     //Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     //Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     //Main on-disc managed data type (experiment)
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -215,7 +215,7 @@ public:
                  std::vector<PeptideIdentification>& peptides,
                  ExperimentSharedPtrType peak_map,
                  ODExperimentSharedPtrType on_disc_peak_map,
-                 LayerData::DataType data_type,
+                 LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
@@ -241,10 +241,10 @@ public:
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerData* getCurrentLayer() const;
+    const LayerDataBase* getCurrentLayer() const;
 
     /// Returns the active Layer data (0 if no layer is active)
-    LayerData* getCurrentLayer();
+    LayerDataBase* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.

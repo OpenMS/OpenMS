@@ -28,47 +28,60 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/TVControllerBase.h>
-#include <vector>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 namespace OpenMS
 {
-  class TOPPViewBase;
 
   /**
-  @brief Behavior of TOPPView in spectra view mode.
+  @brief Class that stores the data for one layer of type PeptideIdentifications
+
+  @ingroup PlotWidgets
   */
-  class TVSpectraViewController
-    : public TVControllerBase
+  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase, public IPeptideIds
   {
-    Q_OBJECT
+  public:
+    /// Default constructor
+    LayerDataIdent() :
+        LayerDataBase(LayerDataBase::DT_IDENT){};
+    /// no Copy-ctor (should not be needed)
+    LayerDataIdent(const LayerDataIdent& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerDataIdent& operator=(const LayerDataIdent& ld) = delete;
+    /// move Ctor
+    LayerDataIdent(LayerDataIdent&& ld) = default;
+    /// move assignment
+    LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
-public:
-    /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
+    
+    virtual const PepIds& getPeptideIds() const override
+    {
+      return peptides_;
+    }
+    virtual PepIds& getPeptideIds() override
+    {
+      return peptides_;
+    }
 
-public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
+    virtual void setPeptideIds(const PepIds& ids) override
+    {
+      peptides_ = ids;
+    }
+    virtual void setPeptideIds(PepIds&& ids) override
+    {
+      peptides_ = std::move(ids);
+    }
 
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+  private:
+    /// peptide identifications
+    std::vector<PeptideIdentification> peptides_;
   };
-}
+
+}// namespace OpenMS

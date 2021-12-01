@@ -261,18 +261,18 @@ namespace OpenMS
     } // PeakAnnotation cell clicked
   }
 
-  bool SpectraIDViewTab::hasData(const LayerData* layer)
+  bool SpectraIDViewTab::hasData(const LayerDataBase* layer)
   {
     // this is a very easy check.
     // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
     bool no_data = (layer == nullptr
-                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+                || (layer->type == LayerDataBase::DT_PEAK && layer->getPeakData()->empty())
+                || (layer->type == LayerDataBase::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
     return !no_data;
   }
 
-  void SpectraIDViewTab::updateEntries(LayerData* cl)
+  void SpectraIDViewTab::updateEntries(LayerDataBase* cl)
   {
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
@@ -280,7 +280,7 @@ namespace OpenMS
     updateEntries_(); // we need this extra function since its an internal slot
   }
 
-  LayerData* SpectraIDViewTab::getLayer()
+  LayerDataBase* SpectraIDViewTab::getLayer()
   {
     return layer_;
   }
@@ -537,7 +537,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerDataBase::DT_PEAK)
     {
       return;
     }

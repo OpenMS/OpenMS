@@ -539,7 +539,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); ++i)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerDataBase& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         if ((Int)layer.param.getValue("dot:shade_mode"))
@@ -623,7 +623,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      LayerData& layer = canvas_3d_.getLayer(i);
+      LayerDataBase& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         recalculateDotGradient_(layer);
@@ -1130,7 +1130,7 @@ namespace OpenMS
     }
   }
 
-  void Plot3DOpenGLCanvas::recalculateDotGradient_(LayerData& layer)
+  void Plot3DOpenGLCanvas::recalculateDotGradient_(LayerDataBase& layer)
   {
     layer.gradient.fromString(layer.param.getValue("dot:gradient"));
     switch (canvas_3d_.intensity_mode_)

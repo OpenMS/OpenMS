@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/VISUAL/DIATreeTab.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
@@ -112,7 +112,7 @@ namespace OpenMS
     connect(this, &QTabWidget::tabBarDoubleClicked, this, &DataSelectionTabs::tabBarDoubleClicked);
   }
 
-  LayerData* getCurrentLayerData(TOPPViewBase* tv)
+  LayerDataBase* getCurrentLayerData(TOPPViewBase* tv)
   {
     PlotCanvas* cc = tv->getActiveCanvas();
     if (cc == nullptr)

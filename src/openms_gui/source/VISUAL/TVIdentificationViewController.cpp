@@ -79,11 +79,11 @@ namespace OpenMS
   void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
-    if (layer.type == LayerData::DT_PEAK)
+    if (layer.type == LayerDataBase::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
       Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
@@ -169,13 +169,13 @@ namespace OpenMS
       tv_->updateFilterBar();
       tv_->updateMenu();
     }
-    // else if (layer.type == LayerData::DT_CHROMATOGRAM)
+    // else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
   void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
     if (current_layer.getCurrentSpectrum().empty())
     {
@@ -316,12 +316,12 @@ namespace OpenMS
 
     // lambda which returns the current layer
     // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
-    auto current_layer = [&]() -> LayerData& { return widget_1D->canvas()->getCurrentLayer(); };
+    auto current_layer = [&]() -> LayerDataBase& { return widget_1D->canvas()->getCurrentLayer(); };
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     current_layer().peptide_id_index = peptide_id_index;
     current_layer().peptide_hit_index = peptide_hit_index;
 
-    if (current_layer().type == LayerData::DT_PEAK)
+    if (current_layer().type == LayerDataBase::DT_PEAK)
     {
       UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
@@ -488,7 +488,7 @@ namespace OpenMS
           OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
-    // else if (current_layer().type == LayerData::DT_CHROMATOGRAM)
+    // else if (current_layer().type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
   // Helper function for text formatting
@@ -856,9 +856,9 @@ namespace OpenMS
 
   void TVIdentificationViewController::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
-    if (current_layer.type == LayerData::DT_PEAK)
+    if (current_layer.type == LayerDataBase::DT_PEAK)
     {
       const SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
@@ -898,7 +898,7 @@ namespace OpenMS
         current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
-    else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
+    else if (current_layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
 
     }
@@ -910,7 +910,7 @@ namespace OpenMS
     cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
 #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     const vector<Annotation1DItem*>& cas = temporary_annotations_;
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
     for (vector<Annotation1DItem*>::const_iterator it = cas.begin(); it != cas.end(); ++it)
@@ -928,7 +928,7 @@ namespace OpenMS
   void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     AASequence aa_sequence = ph.getSequence();
@@ -989,7 +989,7 @@ namespace OpenMS
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     vector<PeptideIdentification> p_dummy;
 
     // Block update events for identification widget
@@ -997,7 +997,7 @@ namespace OpenMS
     RAIICleanup cleanup([&](){spec_id_view_->ignore_update = false; });
 
     String layer_caption = aa_sequence.toString() + " (identification view)";
-    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
+    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
 
     // get layer index of new layer
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();
@@ -1117,7 +1117,7 @@ namespace OpenMS
   void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
-    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     #ifdef DEBUG_IDENTIFICATION_VIEW
           cout << "Removing peak annotations." << endl;
@@ -1147,10 +1147,10 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     // Return if no valid peak layer attached
-    if (current_layer.getPeakData()->empty() || current_layer.type != LayerData::DT_PEAK)
+    if (current_layer.getPeakData()->empty() || current_layer.type != LayerDataBase::DT_PEAK)
     { 
       return;
     }
@@ -1190,7 +1190,7 @@ namespace OpenMS
     }
 
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const MSSpectrum& current_spectrum = current_layer.getCurrentSpectrum();
 
     if (current_spectrum.empty())
@@ -1334,7 +1334,7 @@ namespace OpenMS
       return;
     }
     PlotCanvas* current_canvas = w->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     // find first MS2 spectrum with peptide identification and set current spectrum to it
@@ -1370,7 +1370,7 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
 
     // remove precursor labels, theoretical spectra and trigger repaint
-    LayerData& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     removeTemporaryAnnotations_(cl.getCurrentSpectrumIndex());
     removeTheoreticalSpectrumLayer_();
     cl.peptide_id_index = -1;

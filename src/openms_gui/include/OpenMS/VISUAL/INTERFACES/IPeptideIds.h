@@ -28,47 +28,33 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/TVControllerBase.h>
 #include <vector>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
-  class TOPPViewBase;
 
   /**
-  @brief Behavior of TOPPView in spectra view mode.
+  @brief Abstract base class which defines an interface for obtained PeptideIdentifications
   */
-  class TVSpectraViewController
-    : public TVControllerBase
+  class OPENMS_GUI_DLLAPI IPeptideIds
   {
-    Q_OBJECT
+  public:
+    using PepIds = std::vector<PeptideIdentification>;
+    
+    /// get the peptide IDs for this layer
+    virtual const PepIds& getPeptideIds() const = 0;
+    virtual PepIds& getPeptideIds() = 0;
 
-public:
-    /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
-
-public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
-
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+    /// overwrite the peptide IDs for this layer
+    virtual void setPeptideIds(const PepIds& ids) = 0;
+    virtual void setPeptideIds(PepIds&& ids) = 0;
   };
-}
+
+}// namespace OpenMS
