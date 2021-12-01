@@ -43,6 +43,7 @@
 #include <string>
 #include <utility>
 
+// Override IsoSpec's use of mmap whenever it is available
 #define ISOSPEC_GOT_SYSTEM_MMAN false
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
