@@ -35,6 +35,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -46,16 +47,16 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 
-// Override IsoSpec's use of mmap whenever it is available
-#define ISOSPEC_GOT_SYSTEM_MMAN false
-#define ISOSPEC_GOT_MMAN false
-#define ISOSPEC_BUILDING_OPENMS true
-
-#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
+// forward declarations
+namespace IsoSpec
+{
+class IsoLayeredGenerator;
+class IsoThresholdGenerator;
+class IsoOrderedGenerator;
+}
 
 namespace OpenMS
 {
-
   /**
     * @brief Interface for the IsoSpec algorithm - a generator of infinitely-resolved theoretical spectra.
     *
@@ -143,7 +144,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual inline ~IsoSpecGeneratorWrapper() {};
+    virtual ~IsoSpecGeneratorWrapper() = default;
   };
 
   /** @brief A convenience class for the IsoSpec algorithm - easier to use than the IsoSpecGeneratorWrapper classes.
@@ -175,7 +176,7 @@ public:
       **/
     virtual IsotopeDistribution run() = 0;
 
-    virtual inline ~IsoSpecWrapper() {};
+    virtual inline ~IsoSpecWrapper() = default;
   };
 
   //-------------------------------------------------------------------------- 
@@ -230,20 +231,24 @@ public:
              const std::vector<std::vector<double> >& isotopeProbabilities,
              double p);
 
+    // delete copy constructor
+    IsoSpecTotalProbGeneratorWrapper(const IsoSpecTotalProbGeneratorWrapper&) = delete;
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
     IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula, double p);
 
-    inline bool nextConf() final { return ILG.advanceToNextConfiguration(); };
-    inline Peak1D getConf() final { return Peak1D(ILG.mass(), ILG.prob()); };
-    inline double getMass() final { return ILG.mass(); };
-    inline double getIntensity() final { return ILG.prob(); };
-    inline double getLogIntensity() final { return ILG.lprob(); };
+    ~IsoSpecTotalProbGeneratorWrapper();
+
+    bool nextConf() final;
+    Peak1D getConf() final;
+    double getMass() final;
+    double getIntensity() final;
+    double getLogIntensity() final;
 
 protected:
-    IsoSpec::IsoLayeredGenerator ILG;
+    std::unique_ptr<IsoSpec::IsoLayeredGenerator> ILG;
   };
 
   /**
@@ -292,21 +297,26 @@ public:
              double threshold,
              bool absolute);
 
+  // delete copy constructor
+  IsoSpecThresholdGeneratorWrapper(const IsoSpecThresholdGeneratorWrapper&) = delete;
+
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
   IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
-  inline bool nextConf() final { return ITG.advanceToNextConfiguration(); };
-  inline Peak1D getConf() final { return Peak1D(ITG.mass(), ITG.prob()); };
-  inline double getMass() final { return ITG.mass(); };
-  inline double getIntensity() final { return ITG.prob(); };
-  inline double getLogIntensity() final { return ITG.lprob(); };
+  ~IsoSpecThresholdGeneratorWrapper();
+
+  bool nextConf() final;
+  Peak1D getConf() final;
+  double getMass() final;
+  double getIntensity() final;
+  double getLogIntensity() final;
 
 
 protected:
-  IsoSpec::IsoThresholdGenerator ITG;
+  std::unique_ptr<IsoSpec::IsoThresholdGenerator> ITG;
   };
 
   /**
@@ -342,20 +352,24 @@ public:
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities);
 
+  // delete copy constructor
+  IsoSpecOrderedGeneratorWrapper(const IsoSpecOrderedGeneratorWrapper&) = delete;
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
   IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
-  inline bool nextConf() final { return IOG.advanceToNextConfiguration(); };
-  inline Peak1D getConf() final { return Peak1D(IOG.mass(), IOG.prob()); };
-  inline double getMass() final { return IOG.mass(); };
-  inline double getIntensity() final { return IOG.prob(); };
-  inline double getLogIntensity() final { return IOG.lprob(); };
+  ~IsoSpecOrderedGeneratorWrapper();
+
+  inline bool nextConf() final;
+  inline Peak1D getConf() final;
+  inline double getMass() final;
+  inline double getIntensity() final;
+  inline double getLogIntensity() final;
 
 protected:
-  IsoSpec::IsoOrderedGenerator IOG;
+  std::unique_ptr<IsoSpec::IsoOrderedGenerator> IOG;
   };
 
   //-------------------------------------------------------------------------- 
@@ -406,6 +420,9 @@ public:
              const std::vector<std::vector<double> >& isotopeProbabilities,
              double p,
              bool do_p_trim = false);
+    
+    // delete copy constructor
+    IsoSpecTotalProbWrapper(const IsoSpecTotalProbWrapper&) = delete;
 
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
@@ -413,10 +430,12 @@ public:
       **/
     IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double p, bool do_p_trim = false);
 
+    ~IsoSpecTotalProbWrapper();
+
     IsotopeDistribution run() final;
 
 protected:
-    IsoSpec::IsoLayeredGenerator ILG;
+    std::unique_ptr<IsoSpec::IsoLayeredGenerator> ILG;
     const double target_prob;
     const bool do_p_trim;
   };
@@ -465,17 +484,21 @@ public:
              const std::vector<std::vector<double> >& isotopeProbabilities,
              double threshold,
              bool absolute);
-
+    
+    // delelte copy constructor
+    IsoSpecThresholdWrapper(const IsoSpecThresholdWrapper&) = delete;
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
     IsoSpecThresholdWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
+    ~IsoSpecThresholdWrapper();
+
     IsotopeDistribution run() final;
 
 protected:
-    IsoSpec::IsoThresholdGenerator ITG;
+    std::unique_ptr<IsoSpec::IsoThresholdGenerator> ITG;
 
   };
 
