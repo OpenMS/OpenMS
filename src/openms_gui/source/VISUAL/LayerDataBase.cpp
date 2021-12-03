@@ -70,55 +70,7 @@ namespace OpenMS
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
-  void LayerDataBase::updateRanges()
-  {
-    peak_map_->updateRanges();
-    features_->updateRanges();
-    consensus_map_->updateRanges();
-    // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
-    chromatogram_map_->updateRanges();
-    cached_spectrum_.updateRanges();
-  }
-
-  /// Returns the minimum intensity of the internal data, depending on type
-
-  float LayerDataBase::getMinIntensity() const
-  {
-    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      return getPeakData()->getMinInt();
-    }
-    else if (type == LayerDataBase::DT_FEATURE)
-    {
-      return getFeatureMap()->getMinInt();
-    }
-    else
-    {
-      return getConsensusMap()->getMinInt();
-    }
-  }
-
-  /// Returns the maximum intensity of the internal data, depending on type
-
-  float LayerDataBase::getMaxIntensity() const
-  {
-    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      return getPeakData()->getMaxInt();
-    }
-    else if (type == LayerDataBase::DT_FEATURE)
-    {
-      return getFeatureMap()->getMaxInt();
-    }
-    else
-    {
-      return getConsensusMap()->getMaxInt();
-    }
-  }
-
-
   /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-
   String LayerDataBase::getDecoratedName() const
   {
     String n = name_;

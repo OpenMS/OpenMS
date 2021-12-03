@@ -1237,6 +1237,12 @@ namespace OpenMS
 
   void TOPPViewBase::updateToolBar()
   {
+    tool_bar_1d_->hide();
+    tool_bar_2d_peak_->hide();
+    tool_bar_2d_feat_->hide();
+    tool_bar_2d_cons_->hide();
+    tool_bar_2d_ident_->hide();
+
     PlotWidget* w = getActivePlotWidget();
 
     if (w)
@@ -1261,17 +1267,12 @@ namespace OpenMS
 
       //show/hide toolbars and buttons
       tool_bar_1d_->show();
-      tool_bar_2d_peak_->hide();
-      tool_bar_2d_feat_->hide();
-      tool_bar_2d_cons_->hide();
-      tool_bar_2d_ident_->hide();
     }
 
     // 2D
     Plot2DWidget* w2 = getActive2DWidget();
     if (w2)
     {
-      tool_bar_1d_->hide();
       // check if there is a layer before requesting data from it
       if (w2->canvas()->getLayerCount() > 0)
       {
@@ -1280,9 +1281,6 @@ namespace OpenMS
         {
           dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
           tool_bar_2d_peak_->show();
-          tool_bar_2d_feat_->hide();
-          tool_bar_2d_cons_->hide();
-          tool_bar_2d_ident_->hide();
         }
         //feature draw modes
         else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
@@ -1291,26 +1289,17 @@ namespace OpenMS
           dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_HULL));
           dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_UNASSIGNED));
           dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label != LayerDataBase::L_NONE);
-          tool_bar_2d_peak_->hide();
           tool_bar_2d_feat_->show();
-          tool_bar_2d_cons_->hide();
-          tool_bar_2d_ident_->hide();
         }
         //consensus feature draw modes
         else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
         {
           dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::C_ELEMENTS));
-          tool_bar_2d_peak_->hide();
-          tool_bar_2d_feat_->hide();
           tool_bar_2d_cons_->show();
-          tool_bar_2d_ident_->hide();
         }
         else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_IDENT)
         {
           dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::I_PEPTIDEMZ));
-          tool_bar_2d_peak_->hide();
-          tool_bar_2d_feat_->hide();
-          tool_bar_2d_cons_->hide();
           tool_bar_2d_ident_->show();
         }
       }
@@ -1320,12 +1309,7 @@ namespace OpenMS
     Plot3DWidget* w3 = getActive3DWidget();
     if (w3)
     {
-      //show/hide toolbars and buttons
-      tool_bar_1d_->hide();
-      tool_bar_2d_peak_->hide();
-      tool_bar_2d_feat_->hide();
-      tool_bar_2d_cons_->hide();
-      tool_bar_2d_ident_->hide();
+      //show no toolbars and buttons
     }
   }
 
@@ -1431,7 +1415,6 @@ namespace OpenMS
 
   void TOPPViewBase::layerDeactivated()
   {
-
   }
 
   void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw, const String& caption)

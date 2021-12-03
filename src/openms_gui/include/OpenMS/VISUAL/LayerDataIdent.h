@@ -60,7 +60,21 @@ namespace OpenMS
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
-    
+    void updateRanges() override
+    {
+      // nothing to do...
+    }
+
+    float getMinIntensity() const override
+    {
+      return -1;
+    }
+
+    float getMaxIntensity() const override
+    {
+      return -1;
+    }
+
     virtual const PepIds& getPeptideIds() const override
     {
       return peptides_;

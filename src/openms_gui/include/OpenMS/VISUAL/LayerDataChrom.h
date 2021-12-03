@@ -58,6 +58,25 @@ public:
     LayerDataChrom(LayerDataChrom&& ld) = default;
     /// move assignment
     LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
+
+    void updateRanges() override
+    {
+      peak_map_->updateRanges();
+      // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
+      chromatogram_map_->updateRanges();
+      cached_spectrum_.updateRanges();
+    }
+
+    float getMinIntensity() const override
+    {
+      return getPeakData()->getMinInt();
+    }
+
+    float getMaxIntensity() const override
+    {
+      return getPeakData()->getMaxInt();
+    }
+
   };
 
 } //namespace

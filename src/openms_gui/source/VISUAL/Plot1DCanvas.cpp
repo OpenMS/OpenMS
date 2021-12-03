@@ -468,7 +468,7 @@ namespace OpenMS
           newHi = overall_data_range_.maxX();
           newLo = newHi - visible_area_.width();
         }
-        //chage data area
+        // change data area
         changeVisibleArea_(newLo, newHi);
         last_mouse_pos_ = p;
       }
@@ -695,10 +695,6 @@ namespace OpenMS
 
     //update range area
     recalculateRanges_(0, 2, 1);
-    double width = overall_data_range_.width();
-    overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
-    overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
-    overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 
     zoomClear_();
 
@@ -1260,10 +1256,7 @@ namespace OpenMS
 
     // update ranges
     recalculateRanges_(0, 2, 1);
-    double width = overall_data_range_.width();
-    overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
-    overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
-    overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
+
     resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 
     // warn if negative intensities are contained
@@ -1740,10 +1733,6 @@ namespace OpenMS
 
     //update ranges
     recalculateRanges_(0, 2, 1);
-    double width = overall_data_range_.width();
-    overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
-    overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
-    overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 
     resetZoom();
     modificationStatus_(i, false);
