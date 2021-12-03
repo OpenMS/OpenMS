@@ -843,16 +843,16 @@ protected:
     QImage buffer_;
 
     /// Stores the current action mode (Pick, Zoom, Translate)
-    ActionModes action_mode_;
+    ActionModes action_mode_ = AM_TRANSLATE;
 
     /// Stores the used intensity mode function
-    IntensityModes intensity_mode_;
+    IntensityModes intensity_mode_ = IM_NONE;
 
     /// Layer data
     LayerStack layers_;
 
     /// Stores the mapping of m/z
-    bool mz_to_x_axis_;
+    bool mz_to_x_axis_ = true;
 
     /**
         @brief Stores the currently visible area.
@@ -860,7 +860,7 @@ protected:
         Dimension 0 is the m/z dimension.@n
         Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).
     */
-    AreaType visible_area_;
+    AreaType visible_area_ = AreaType::empty;
 
     /**
         @brief Recalculates the overall_data_range_
@@ -880,15 +880,15 @@ protected:
         Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).@n
         Dimension 2 is the intensity dimension (2D and 3D view) or the RT dimension (1D view).
     */
-    DRange<3> overall_data_range_;
+    DRange<3> overall_data_range_ = DRange<3>::empty;
 
     /// Stores whether or not to show a grid.
-    bool show_grid_;
+    bool show_grid_ = true;
 
     /// The zoom stack.
     std::vector<AreaType> zoom_stack_;
     /// The current position in the zoom stack
-    std::vector<AreaType>::iterator zoom_pos_;
+    std::vector<AreaType>::iterator zoom_pos_ = zoom_stack_.end();
 
     /**
         @brief Updates the displayed data
@@ -905,10 +905,10 @@ protected:
     void modificationStatus_(Size layer_index, bool modified);
 
     /// Whether to recalculate the data in the buffer when repainting
-    bool update_buffer_;
+    bool update_buffer_ = false;
 
     /// Back-pointer to the enclosing spectrum widget
-    PlotWidget * spectrum_widget_;
+    PlotWidget* spectrum_widget_ = nullptr;
 
     /// start position of mouse actions
     QPoint last_mouse_pos_;
@@ -918,7 +918,7 @@ protected:
 
         In this mode all layers are scaled to the same maximum.
     */
-    double percentage_factor_;
+    double percentage_factor_ = 1.0;
 
     /**
         @brief Intensity scaling factor for 'snap to maximum intensity mode'.
@@ -927,16 +927,16 @@ protected:
 
         One entry per layer.
     */
-    std::vector<double> snap_factors_;
+    std::vector<double> snap_factors_ = {1.0};
 
     /// Rubber band for selected area
     QRubberBand rubber_band_;
 
     /// External context menu extension
-    QMenu* context_add_;
+    QMenu* context_add_ = nullptr;
 
     /// Flag that determines if timing data is printed to the command line
-    bool show_timing_;
+    bool show_timing_ = false;
 
     /// selected peak
     PeakIndex selected_peak_;

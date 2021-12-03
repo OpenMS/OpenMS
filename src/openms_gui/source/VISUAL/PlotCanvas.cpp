@@ -64,25 +64,7 @@ namespace OpenMS
   PlotCanvas::PlotCanvas(const Param & /*preferences*/, QWidget * parent) :
     QWidget(parent),
     DefaultParamHandler("PlotCanvas"),
-    buffer_(),
-    action_mode_(AM_TRANSLATE),
-    intensity_mode_(IM_NONE),
-    layers_(),
-    mz_to_x_axis_(true),
-    visible_area_(AreaType::empty),
-    overall_data_range_(DRange<3>::empty),
-    show_grid_(true),
-    zoom_stack_(),
-    zoom_pos_(zoom_stack_.end()),
-    update_buffer_(false),
-    spectrum_widget_(nullptr),
-    percentage_factor_(1.0),
-    snap_factors_(1, 1.0),
-    rubber_band_(QRubberBand::Rectangle, this),
-    context_add_(nullptr),
-    show_timing_(false),
-    selected_peak_(),
-    measurement_start_()
+    rubber_band_(QRubberBand::Rectangle, this)
   {
     //Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
@@ -111,7 +93,6 @@ namespace OpenMS
 
   PlotCanvas::~PlotCanvas()
   {
-    //cout << "DEST PlotCanvas" << endl;
   }
 
   void PlotCanvas::resizeEvent(QResizeEvent * /* e */)
