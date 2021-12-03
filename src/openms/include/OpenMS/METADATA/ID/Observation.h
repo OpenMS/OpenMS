@@ -75,12 +75,7 @@ namespace OpenMS
       Observation& merge(const Observation& other)
       {
         // merge meta info - existing entries may be overwritten:
-        std::vector<UInt> keys;
-        other.getKeys(keys);
-        for (const UInt key : keys)
-        {
-          setMetaValue(key, other.getMetaValue(key));
-        }
+        addMetaValues(other);
         rt = other.rt;
         mz = other.mz;
         return *this;
