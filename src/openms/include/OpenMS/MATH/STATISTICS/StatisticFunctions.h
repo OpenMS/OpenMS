@@ -37,9 +37,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <numeric>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -502,7 +503,7 @@ namespace OpenMS
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
 
-      return (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
+      return (tp * tn - fp * fn) / std::sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
     }
 
     /**
@@ -546,7 +547,7 @@ namespace OpenMS
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
-      return numerator / sqrt(denominator_a * denominator_b);
+      return numerator / std::sqrt(denominator_a * denominator_b);
     }
 
     /// Replaces the elements in vector @p w by their ranks
@@ -663,7 +664,7 @@ namespace OpenMS
         return 0;
       }
 
-      return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
+      return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
     }
 
     /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
