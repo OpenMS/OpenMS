@@ -623,12 +623,37 @@ namespace OpenMS
     {
       for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
       {
+        double rt = it->getRT();
+        double mz = it->getMZ();
+        double intensity = it->getIntensity();
+
         // update RT
-        Math::extendRange(minRT(), maxRT(), it->getRT());
+        if (rt < pos_range_.minPosition()[Peak2D::RT])
+        {
+          pos_range_.setMinX(rt);
+        }
+        if (rt > pos_range_.maxPosition()[Peak2D::RT])
+        {
+          pos_range_.setMaxX(rt);
+        }
         // update m/z
-        Math::extendRange(minMZ(), maxMZ(), it->getMZ());
+        if (mz < pos_range_.minPosition()[Peak2D::MZ])
+        {
+          pos_range_.setMinY(mz);
+        }
+        if (mz > pos_range_.maxPosition()[Peak2D::MZ])
+        {
+          pos_range_.setMaxY(mz);
+        }
         // update intensity
-        Math::extendRange(minInt(), maxInt(), (double)it->getIntensity());
+        if (intensity <  int_range_.minX())
+        {
+          int_range_.setMinX(intensity);
+        }
+        if (intensity > int_range_.maxX())
+        {
+          int_range_.setMaxX(intensity);
+        }
       }
     }
   }
