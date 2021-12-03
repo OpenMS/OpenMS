@@ -37,6 +37,9 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
+
 #include <QMouseEvent>
 #include <QKeyEvent>
 
