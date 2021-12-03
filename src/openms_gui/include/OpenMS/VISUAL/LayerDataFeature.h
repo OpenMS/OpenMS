@@ -60,35 +60,35 @@ namespace OpenMS
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
-    virtual void updateRanges() override
+    void updateRanges() override
     {
       features_->updateRanges();
     }
 
-    virtual float getMinIntensity() const override
+    float getMinIntensity() const override
     {
       return getFeatureMap()->getMinInt();
     }
 
-    virtual float getMaxIntensity() const override
+    float getMaxIntensity() const override
     {
       return getFeatureMap()->getMaxInt();
     }
 
-    virtual const PepIds& getPeptideIds() const override
+    const PepIds& getPeptideIds() const override
     {
       return getFeatureMap()->getUnassignedPeptideIdentifications();
     }
-    virtual PepIds& getPeptideIds() override
+    PepIds& getPeptideIds() override
     {
       return getFeatureMap()->getUnassignedPeptideIdentifications();
     }
 
-    virtual void setPeptideIds(const PepIds& ids) override
+    void setPeptideIds(const PepIds& ids) override
     {
       getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
     }
-    virtual void setPeptideIds(PepIds&& ids) override
+    void setPeptideIds(PepIds&& ids) override
     {
       getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
     }

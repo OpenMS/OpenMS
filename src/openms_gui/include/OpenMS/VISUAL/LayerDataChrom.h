@@ -59,7 +59,7 @@ public:
     /// move assignment
     LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
 
-    virtual void updateRanges() override
+    void updateRanges() override
     {
       peak_map_->updateRanges();
       // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
@@ -67,11 +67,12 @@ public:
       cached_spectrum_.updateRanges();
     }
 
-    virtual float getMinIntensity() const override
+    float getMinIntensity() const override
     {
       return getPeakData()->getMinInt();
     }
-    virtual float getMaxIntensity() const override
+
+    float getMaxIntensity() const override
     {
       return getPeakData()->getMaxInt();
     }

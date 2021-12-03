@@ -59,17 +59,17 @@ namespace OpenMS
     /// move assignment
     LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
-    virtual void updateRanges() override
+    void updateRanges() override
     {
       consensus_map_->updateRanges();
     }
 
-    virtual float getMinIntensity() const override
+    float getMinIntensity() const override
     {
       return getConsensusMap()->getMinInt();
     }
 
-    virtual float getMaxIntensity() const override
+    float getMaxIntensity() const override
     {
       return getConsensusMap()->getMaxInt();
     }

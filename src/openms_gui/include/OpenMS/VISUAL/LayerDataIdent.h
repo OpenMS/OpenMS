@@ -60,17 +60,17 @@ namespace OpenMS
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
-    virtual void updateRanges() override
+    void updateRanges() override
     {
       // nothing to do...
     }
 
-    virtual float getMinIntensity() const override
+    float getMinIntensity() const override
     {
       return -1;
     }
 
-    virtual float getMaxIntensity() const override
+    float getMaxIntensity() const override
     {
       return -1;
     }
