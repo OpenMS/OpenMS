@@ -1014,7 +1014,6 @@ namespace OpenMS
         ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
-      // @TODO: with C++17, 'map::extract' offers a better way to update keys
       trans.identified_peptide_refs[other_ref] = registerIdentifiedPeptide(copy);
     }
     // identified oligonucleotides:
@@ -1030,7 +1029,6 @@ namespace OpenMS
         ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
-     // @TODO: with C++17, 'map::extract' offers a better way to update keys
       trans.identified_oligo_refs[other_ref] = registerIdentifiedOligo(copy);
     }
     // identified compounds:
