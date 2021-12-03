@@ -468,7 +468,7 @@ namespace OpenMS
           newHi = overall_data_range_.maxX();
           newLo = newHi - visible_area_.width();
         }
-        //chage data area
+        // change data area
         changeVisibleArea_(newLo, newHi);
         last_mouse_pos_ = p;
       }
