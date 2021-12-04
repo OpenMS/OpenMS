@@ -278,7 +278,7 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
-    void removeHarmonicsPeakGroups_(const double tol);
+    void removeHarmonicsPeakGroups_();
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);

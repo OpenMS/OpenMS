@@ -1090,7 +1090,7 @@ namespace OpenMS
     scoreAndFilterPeakGroups_();
 
     removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
-    removeHarmonicsPeakGroups_(tolerance_[ms_level_ - 1]);
+    removeHarmonicsPeakGroups_();
 
     if (ms_level_ == 1)
     {
@@ -1597,7 +1597,7 @@ namespace OpenMS
     deconvoluted_spectrum_.swap(new_peak_groups);
   }
 
-  void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_(const double tol)
+  void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_()
   {
     std::map<double, std::set<int>> peak_to_pgs;
     std::set<int> to_remove_pgs;
