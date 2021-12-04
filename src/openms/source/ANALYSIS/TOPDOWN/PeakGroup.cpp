@@ -130,7 +130,6 @@ namespace OpenMS
     per_charge_snr_[abs_charge] = c_snr;
   }
 
-
   void PeakGroup::setChargePower(const int abs_charge, const double pwr)
   {
     if (max_abs_charge_ < abs_charge)
@@ -343,6 +342,16 @@ namespace OpenMS
     }
     return per_charge_snr_[abs_charge];
   }
+
+  float PeakGroup::getChargePower(const int abs_charge) const
+  {
+    if (per_charge_pwr_.size() <= abs_charge)
+    {
+      return 0;
+    }
+    return per_charge_pwr_[abs_charge];
+  }
+
 
   float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const
   {

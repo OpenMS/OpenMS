@@ -484,11 +484,6 @@ namespace OpenMS
 
     double bin_width = bin_width_[ms_level_ - 1];
 
-    // intensity ratio between consecutive charges should not exceed the factor.
-    const float factor = 5.0;
-    // intensity ratio between consecutive charges for possible harmonic should be within this factor
-    const float hfactor = 2.0;
-
     for (int i = mz_bin_index_reverse.size() - 1; i >= 0; i--)
     {
       mz_bin_index = mz_bin_index_reverse[i];
@@ -519,6 +514,10 @@ namespace OpenMS
         bool charge_not_continous = prev_charge - j != -1 && (prev_charge <= charge_range);
         bool pass_first_check = false;
 
+        // intensity ratio between consecutive charges should not exceed the factor.
+        float factor = abs_charge < 10 ? 10.0f : 2.0f + 80.0f / abs_charge;
+        // intensity ratio between consecutive charges for possible harmonic should be within this factor
+        float hfactor = factor / 2.0f;
         // intensity of previous charge
         // intensity ratio between current and previous charges
         float intensity_ratio = intensity / prev_intensity;
@@ -635,7 +634,7 @@ namespace OpenMS
           {
             mass_intensitites[mass_bin_index] += intensity;
             spc++;
-            //if (spc >= min_peak_cntr || spc >= abs_charge * .75) //
+            //if (spc >= min_peak_cntr || spc >= abs_charge * .5) //
             {
               mass_bins_[mass_bin_index] = true;
             }
@@ -782,6 +781,7 @@ namespace OpenMS
         abs_charge_ranges
             .setValue(1, max_index,
                       std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge_range));
+
         mass_bins_[max_index] = true;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
@@ -884,15 +884,14 @@ namespace OpenMS
           const double observed_mz = log_mz_peaks_[peak_index].mz;
           const double intensity = log_mz_peaks_[peak_index].intensity;
           double mz_diff = observed_mz - mz;
-
-          int tmp_i = (int) (.5 + mz_diff / iso_delta);
+          int tmp_i = (int) round(mz_diff / iso_delta);
 
           if (max_peak_intensity < intensity)
           {
             max_peak_intensity = intensity;
             max_mz = observed_mz;
           }
-          int tmp_i_for_stop = (int) (.5 + (observed_mz - max_mz) / iso_delta);;
+          int tmp_i_for_stop = (int) round((observed_mz - max_mz) / iso_delta);;
           if (tmp_i_for_stop > (int) right_index)
           {
             break;
@@ -927,14 +926,14 @@ namespace OpenMS
 
           //observedMz = mz + isof * i * d - d * mzDelta;
           double mz_diff = mz - observed_mz;
-          int tmp_i = (int) (.5 + mz_diff / iso_delta);
+          int tmp_i = (int) round(mz_diff / iso_delta);
 
           if (max_peak_intensity < intensity)
           {
             max_peak_intensity = intensity;
             max_mz = observed_mz;
           }
-          int tmp_i_for_stop = (int) (.5 + (max_mz - observed_mz) / iso_delta);;
+          int tmp_i_for_stop = (int) round((max_mz - observed_mz) / iso_delta);;
           if (tmp_i_for_stop > (int) left_index)
           {
             break;
@@ -960,14 +959,12 @@ namespace OpenMS
             max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
           }
         }
-
         pg.setChargePower(abs_charge, peak_pwr);
 
       }
 
       if (!pg.empty())
       {
-
         double max_intensity = -1.0;
         //double sum_intensity = .0;
         double t_mass = .0;
@@ -1093,6 +1090,7 @@ namespace OpenMS
     scoreAndFilterPeakGroups_();
 
     removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
+    removeHarmonicsPeakGroups_(tolerance_[ms_level_ - 1]);
 
     if (ms_level_ == 1)
     {
@@ -1599,6 +1597,78 @@ namespace OpenMS
     deconvoluted_spectrum_.swap(new_peak_groups);
   }
 
+  void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_(const double tol)
+  {
+    std::map<double, std::set<int>> peak_to_pgs;
+    std::set<int> to_remove_pgs;
+    std::vector<PeakGroup> filtered_pg_vec;
+    filtered_pg_vec.reserve(deconvoluted_spectrum_.size());
+
+    for (int i = 0; i < deconvoluted_spectrum_.size(); i++)
+    {
+      PeakGroup pg = deconvoluted_spectrum_[i];
+      for (auto &p: pg)
+      {
+        peak_to_pgs[p.mz].insert(i);
+      }
+    }
+
+    for (auto &e: peak_to_pgs)
+    {
+      auto pg_is = e.second;
+      if (pg_is.size() == 1)
+      {
+        continue;
+      }
+
+      for (auto i: pg_is)
+      {
+        double mass1 = deconvoluted_spectrum_[i].getMonoMass();
+        double snr1 = deconvoluted_spectrum_[i].getSNR();
+        for (auto j: pg_is)
+        {
+          double mass2 = deconvoluted_spectrum_[j].getMonoMass();
+          double snr2 = deconvoluted_spectrum_[j].getSNR();
+          if (mass1 <= mass2)
+          {
+            continue;
+          }
+
+          bool harmonic = false;
+          for (int hc = 2; hc <= 10; hc++)
+          {
+            if (abs(1.0 - mass1 / mass2 / hc) < 0.01)
+            {
+              harmonic = true;
+              break;
+            }
+          }
+
+          if (harmonic)
+          {
+            if (snr1 < snr2)
+            {
+              to_remove_pgs.insert(i);
+            }
+            else
+            {
+              to_remove_pgs.insert(j);
+            }
+          }
+        }
+      }
+    }
+
+    for (int i = 0; i < deconvoluted_spectrum_.size(); i++)
+    {
+      if (to_remove_pgs.find(i) != to_remove_pgs.end())
+      {
+        continue;
+      }
+      filtered_pg_vec.push_back(deconvoluted_spectrum_[i]);
+    }
+    deconvoluted_spectrum_.swap(filtered_pg_vec);
+  }
 
   void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(const double tol, const int iso_length)
   {

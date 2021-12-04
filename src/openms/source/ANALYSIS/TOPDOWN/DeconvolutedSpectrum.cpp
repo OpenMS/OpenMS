@@ -57,9 +57,10 @@ namespace OpenMS
     if (!precursor_peak_group_.empty() && !spec_.getPrecursors().empty())
     {
       Precursor precursor(spec_.getPrecursors()[0]);
-      precursor.setCharge((precursor_peak_group_.isPositive() ?
-                           precursor_peak_group_.getRepAbsCharge() :
-                           -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
+      //precursor.setCharge((precursor_peak_group_.isPositive() ?
+      //                     precursor_peak_group_.getRepAbsCharge() :
+      //                     -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
+      precursor.setCharge(mass_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() +
                       mass_charge * FLASHDeconvHelperStructs::getChargeMass(mass_charge >= 0));
       precursor.setIntensity(precursor_peak_group_.getIntensity());

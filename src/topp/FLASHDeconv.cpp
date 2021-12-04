@@ -775,10 +775,13 @@ protected:
 
       if (!out_mzml_file.empty())
       {
-        if (it->getMSLevel() == 1 || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        //if (it->getMSLevel() == 1)// || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        //{
+        if (!deconvoluted_spectrum.empty())
         {
           exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
         }
+        //}
       }
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(

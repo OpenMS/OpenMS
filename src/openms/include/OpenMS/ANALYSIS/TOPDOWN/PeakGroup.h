@@ -158,6 +158,9 @@ namespace OpenMS
     /// get per abs_charge SNR
     float getChargeSNR(const int abs_charge) const;
 
+    /// get per abs_charge power
+    float getChargePower(const int abs_charge) const;
+
     /// get per abs_charge isotope cosine
     float getChargeIsotopeCosine(const int abs_charge) const;
 
