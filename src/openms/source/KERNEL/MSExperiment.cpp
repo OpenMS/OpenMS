@@ -630,7 +630,7 @@ namespace OpenMS
   }
 
   /// sets the chromatogram list
-  void MSExperiment::setChromatograms(std::vector<MSChromatogram > && chromatograms)
+  void MSExperiment::setChromatograms(std::vector<MSChromatogram> && chromatograms)
   {
     chromatograms_ = std::move(chromatograms);
   }
