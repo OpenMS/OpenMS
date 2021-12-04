@@ -98,7 +98,7 @@ namespace OpenMS
 
   void ConsensusFeature::insert(const HandleSetType& handle_set)
   {
-    for (auto it = handle_set.cbegin(); it != handle_set.cend(); ++it)
+    for (auto& handle : handle_set)
     {
       insert(*it);
     }
