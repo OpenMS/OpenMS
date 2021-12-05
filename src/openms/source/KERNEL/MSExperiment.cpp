@@ -608,7 +608,7 @@ namespace OpenMS
 
   void MSExperiment::addSpectrum(MSSpectrum && spectrum)
   {
-    spectra_.emplace_back(std::move(spectrum));
+    spectra_.push_back(std::move(spectrum));
   }
 
   /// returns the spectrum list
