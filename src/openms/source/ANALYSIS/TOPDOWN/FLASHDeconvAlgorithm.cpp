@@ -515,7 +515,7 @@ namespace OpenMS
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        float factor = abs_charge < 10 ? 10.0f : 2.0f + 80.0f / abs_charge;
+        float factor = abs_charge < 10 ? 10.0f : 5.0f + 50.0f / abs_charge;
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
         float hfactor = factor / 2.0f;
         // intensity of previous charge
@@ -925,7 +925,7 @@ namespace OpenMS
           const double intensity = log_mz_peaks_[peak_index].intensity;
 
           //observedMz = mz + isof * i * d - d * mzDelta;
-          double mz_diff = mz - observed_mz;
+          double mz_diff = observed_mz - mz;
           int tmp_i = (int) round(mz_diff / iso_delta);
 
           if (max_peak_intensity < intensity)
@@ -1637,7 +1637,7 @@ namespace OpenMS
           bool harmonic = false;
           for (int hc = 2; hc <= 10; hc++)
           {
-            if (abs(1.0 - mass1 / mass2 / hc) < 0.01)
+            if (abs(1.0 - mass1 / mass2 / hc) < 0.001)
             {
               harmonic = true;
               break;

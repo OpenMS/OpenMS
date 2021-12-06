@@ -210,7 +210,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
-    const int low_charge_ = 5; // inclusive
+    const int low_charge_ = 6; // inclusive
 
     /// allowed maximum peak count per spectrum - intensity based.
     const int max_peak_count_ = 30000;
