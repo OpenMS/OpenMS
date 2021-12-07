@@ -137,7 +137,7 @@ protected:
       Filter for adding an edge only when the two features connected by it, fulfill the
       intensity criterion.
     **/
-    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2) const;
+    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const;
 
     /**
       @brief determines if we should test a putative feature charge

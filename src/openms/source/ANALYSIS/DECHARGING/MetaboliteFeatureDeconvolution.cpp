@@ -1258,7 +1258,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2) const
+  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
     if (!enable_intensity_filter_)
       return true;
