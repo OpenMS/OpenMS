@@ -178,7 +178,7 @@ namespace OpenMS
               }
               else
               {
-                if (target_decoy != "")
+                if (!target_decoy.empty())
                 {
                   throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
                 }
@@ -1130,7 +1130,7 @@ namespace OpenMS
 
 
   //TODO remove?
-  double FalseDiscoveryRate::applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
+  double FalseDiscoveryRate::applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff, UInt fpCutoff, double diffWeight) const
   {
     //TODO not yet supported (if ever)
     //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
@@ -1151,7 +1151,7 @@ namespace OpenMS
         rocN(scores_labels, fpCutoff) * (1 - diffWeight);
   }
 
-  double FalseDiscoveryRate::applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
+  double FalseDiscoveryRate::applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight) const
   {
     if (ids.getScoreType() != "Posterior Probability")
     {
@@ -1169,7 +1169,7 @@ namespace OpenMS
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
   }
 
-  double FalseDiscoveryRate::applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff, UInt fpCutoff, double diffWeight)
+  double FalseDiscoveryRate::applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff, UInt fpCutoff, double diffWeight) const
   {
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical(scores_labels, pepCutoff);

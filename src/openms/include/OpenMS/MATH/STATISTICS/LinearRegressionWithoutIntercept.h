@@ -74,7 +74,7 @@ namespace OpenMS
       /**
        * @brief returns the slope of the estimated regression line.
        */
-      double getSlope();
+      double getSlope() const;
 
       private:
       /**

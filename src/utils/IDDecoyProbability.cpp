@@ -127,9 +127,9 @@ protected:
     // either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
     String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
     bool combined(false);
-    if (fwd_in != "" && rev_in != "")
+    if (!fwd_in.empty() && !rev_in.empty())
     {
-      if (in != "")
+      if (!in.empty())
       {
         writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
         return ILLEGAL_PARAMETERS;
@@ -137,7 +137,7 @@ protected:
     }
     else
     {
-      if (in != "")
+      if (!in.empty())
       {
         combined = true;
       }

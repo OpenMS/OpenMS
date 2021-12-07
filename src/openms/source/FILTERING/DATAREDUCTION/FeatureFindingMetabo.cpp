@@ -674,7 +674,7 @@ namespace OpenMS
 
 
     double overlap(0.0);
-    if (overlap_rts.size() > 0)
+    if (!overlap_rts.empty())
     {
       double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
       overlap = std::fabs(end_rt - start_rt);

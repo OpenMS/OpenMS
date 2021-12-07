@@ -188,7 +188,7 @@ namespace OpenMS
     try
     {
       QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
-      if (tool_type_ != "")
+      if (!tool_type_.empty())
       {
         tmp_ini_file += tool_type_.toQString() + "_";
       }
@@ -200,7 +200,7 @@ namespace OpenMS
       QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
-      if (tool_type_ != "")
+      if (!tool_type_.empty())
       {
         args << "-type" << tool_type_.toQString();
       }

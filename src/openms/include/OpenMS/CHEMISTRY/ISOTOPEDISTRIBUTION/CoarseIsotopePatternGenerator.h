@@ -256,7 +256,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const;
 
     /**
        @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
@@ -311,7 +311,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+    IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const;
 
     /**
        @brief Calculate isotopic distribution for a fragment molecule

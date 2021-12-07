@@ -230,7 +230,7 @@ public:
     void setPrecursorMZSelectedIon(bool choice);
 
     /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
-    bool hasFilters();
+    bool hasFilters() const;
 
 private:
     bool metadata_only_;

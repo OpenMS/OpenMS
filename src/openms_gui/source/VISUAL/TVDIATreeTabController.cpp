@@ -56,10 +56,10 @@ namespace OpenMS
 {
 
 
-  typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-  typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
-  typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
-  typedef LayerData::OSWDataSharedPtrType OSWDataSharedPtrType;
+  typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
+  typedef LayerDataBase::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+  typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+  typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
 
   /// represents all the information we need from a layer
   /// We cannot use a full layer, because the original layer might get destroyed in the process...
@@ -71,7 +71,7 @@ namespace OpenMS
     String filename;
     String layername;
 
-    explicit MiniLayer(LayerData& layer)
+    explicit MiniLayer(LayerDataBase& layer)
     : full_chrom_exp_sptr(layer.getFullChromData()),
       ondisc_sptr(layer.getOnDiscPeakData()),
       annot_sptr(layer.getChromatogramAnnotation()),
@@ -170,7 +170,7 @@ namespace OpenMS
 
   void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
   {
-    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     MiniLayer ml(layer);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
     unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));

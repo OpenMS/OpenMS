@@ -77,7 +77,7 @@ public:
     /// check if upstream nodes are finished and call downstream nodes
     void run() override;
     /// Determines whether this merger is merging round based or merging all inputs into one list
-    bool roundBasedMode();
+    bool roundBasedMode() const;
     // documented in base class
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class

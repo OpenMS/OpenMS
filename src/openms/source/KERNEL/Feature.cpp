@@ -131,7 +131,7 @@ namespace OpenMS
       else
       {
         convex_hull_.clear();
-        if (convex_hulls_.size() > 0)
+        if (!convex_hulls_.empty())
         {
           /*
           -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined

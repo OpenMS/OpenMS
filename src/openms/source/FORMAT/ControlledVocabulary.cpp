@@ -208,7 +208,7 @@ namespace OpenMS
       line_wo_spaces.removeWhitespaces();
 
       //do nothing for empty lines
-      if (line == "")
+      if (line.empty())
       {
         continue;
       }
@@ -220,7 +220,7 @@ namespace OpenMS
         if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "") //store last term
+          if (!term.id.empty()) //store last term
           {
             terms_[term.id] = term;
           }
@@ -413,14 +413,14 @@ namespace OpenMS
           line_wo_spaces.trim();
           term.xref_binary.push_back(line_wo_spaces);
         }
-        else if (line != "")
+        else if (!line.empty())
         {
           term.unparsed.push_back(line);
         }
       }
     }
 
-    if (term.id != "") //store last term
+    if (!term.id.empty()) //store last term
     {
       terms_[term.id] = term;
     }
@@ -574,7 +574,7 @@ namespace OpenMS
     return cv;
   }
 
-  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case) const
   {
     if (!exists(id))
     {

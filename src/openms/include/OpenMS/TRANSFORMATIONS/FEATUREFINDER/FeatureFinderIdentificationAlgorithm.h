@@ -225,7 +225,7 @@ protected:
   void annotateFeaturesOneTarget_(FeatureMap& features, const String& target_id,
                                   Int charge, const std::vector<Size>& indexes);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -246,7 +246,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool>>& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

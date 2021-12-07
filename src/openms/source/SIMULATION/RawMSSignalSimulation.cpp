@@ -262,7 +262,7 @@ namespace OpenMS
     // contaminants:
     String contaminants_file = param_.getValue("contaminants:file").toString();
 
-    if (contaminants_file.trim().size() != 0)
+    if (!contaminants_file.trim().empty())
     {
       if (!File::readable(contaminants_file)) // look in OPENMS_DATA_PATH
       {
@@ -1203,7 +1203,7 @@ namespace OpenMS
   // TODO: add instrument specific sampling technique
   void RawMSSignalSimulation::compressSignals_(SimTypes::MSSimExperiment& experiment)
   {
-    if (experiment.size() < 1 || experiment[0].getInstrumentSettings().getScanWindows().size() < 1)
+    if (experiment.empty() || experiment[0].getInstrumentSettings().getScanWindows().empty())
     {
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

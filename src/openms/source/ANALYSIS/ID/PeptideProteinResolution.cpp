@@ -260,6 +260,7 @@ namespace OpenMS
         }
 
         vector<PeptideEvidence> newEv;
+        newEv.reserve(evToKeep.size());
         for (const auto& idx : evToKeep)
         {
           newEv.push_back(pepev[idx]);

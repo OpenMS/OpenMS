@@ -74,9 +74,9 @@ public:
   inline bool operator()(const Feature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }
@@ -107,9 +107,9 @@ public:
   inline bool operator()(const ConsensusFeature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }

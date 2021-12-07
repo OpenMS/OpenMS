@@ -809,7 +809,7 @@ protected:
           else
           {
             output << feat << String(feat.getQuality(0)) << String(feat.getQuality(1));
-            if (feat.getConvexHulls().size() > 0)
+            if (!feat.getConvexHulls().empty())
             {
               output << String(feat.getConvexHulls().begin()->getBoundingBox().minX())
                      << String(feat.getConvexHulls().begin()->getBoundingBox().maxX());

@@ -93,7 +93,7 @@ private:
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const double& value)
+      inline bool operator()(const double& value) const
       {
         return std::fabs(value - target_) < tolerance_;
       }

@@ -507,7 +507,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       os << "  <cvList>" << "\n";
 
-      if (exp.getCVs().size() == 0)
+      if (exp.getCVs().empty())
       {
         os << R"(    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>)" << "\n"
            << R"(    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>)" << "\n";
@@ -522,7 +522,7 @@ namespace OpenMS::Internal
       os << "  </cvList>" << "\n";
 
       // source file list
-      if (exp.getSourceFiles().size() > 0)
+      if (!exp.getSourceFiles().empty())
       {
         os << "  <SourceFileList>" << "\n";
         for (std::vector<SourceFile>::const_iterator it = exp.getSourceFiles().begin(); it != exp.getSourceFiles().end(); ++it)
@@ -540,7 +540,7 @@ namespace OpenMS::Internal
       }
 
       // contact list
-      if (exp.getContacts().size() > 0)
+      if (!exp.getContacts().empty())
       {
         os << "  <ContactList>" << "\n";
         for (std::vector<TargetedExperiment::Contact>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
@@ -554,7 +554,7 @@ namespace OpenMS::Internal
       }
 
       // publication list
-      if (exp.getPublications().size() > 0)
+      if (!exp.getPublications().empty())
       {
         os << "  <PublicationList>"  << "\n";
         for (std::vector<TargetedExperiment::Publication>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
@@ -568,7 +568,7 @@ namespace OpenMS::Internal
       }
 
       // instrument list
-      if (exp.getInstruments().size() > 0)
+      if (!exp.getInstruments().empty())
       {
         os << "  <InstrumentList>" << "\n";
         for (std::vector<TargetedExperiment::Instrument>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
@@ -582,7 +582,7 @@ namespace OpenMS::Internal
       }
 
       // software list
-      if (exp.getSoftware().size() > 0)
+      if (!exp.getSoftware().empty())
       {
         os << "  <SoftwareList>" << "\n";
         for (std::vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
@@ -598,7 +598,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // protein list
       //--------------------------------------------------------------------------------------------
-      if (exp.getProteins().size() > 0)
+      if (!exp.getProteins().empty())
       {
         os << "  <ProteinList>" << "\n";
         for (std::vector<TargetedExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
@@ -629,7 +629,7 @@ namespace OpenMS::Internal
           {
             os << R"(      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value=")" <<  it->getChargeState() << "\"/>\n";
           }
-          if (it->getPeptideGroupLabel() != "")
+          if (!it->getPeptideGroupLabel().empty())
           {
             os << R"(      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value=")" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
@@ -645,7 +645,7 @@ namespace OpenMS::Internal
             os << "      <ProteinRef ref=\"" << writeXMLEscape(*rit) << "\"/>" << "\n";
           }
 
-          if (it->mods.size() > 0)
+          if (!it->mods.empty())
           {
             for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator 
                 mit = it->mods.begin(); mit != it->mods.end(); ++mit)
@@ -692,7 +692,7 @@ namespace OpenMS::Internal
             }
           }
 
-          if (it->rts.size() > 0)
+          if (!it->rts.empty())
           {
             os << "      <RetentionTimeList>\n";
             for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
@@ -740,7 +740,7 @@ namespace OpenMS::Internal
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
-          if (it->rts.size() > 0)
+          if (!it->rts.empty())
           {
             os << "      <RetentionTimeList>\n";
             for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
@@ -758,7 +758,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // transition list
       //--------------------------------------------------------------------------------------------
-      if (exp.getTransitions().size() > 0)
+      if (!exp.getTransitions().empty())
       {
         int progress = 0;
 
@@ -769,12 +769,12 @@ namespace OpenMS::Internal
           os << "    <Transition";
           os << " id=\"" << writeXMLEscape(it->getName()) << "\"";
 
-          if (it->getPeptideRef() != "")
+          if (!it->getPeptideRef().empty())
           {
             os << " peptideRef=\"" << writeXMLEscape(it->getPeptideRef()) << "\"";
           }
 
-          if (it->getCompoundRef() != "")
+          if (!it->getCompoundRef().empty())
           {
             os << " compoundRef=\"" << writeXMLEscape(it->getCompoundRef()) << "\"";
           }
@@ -906,7 +906,7 @@ namespace OpenMS::Internal
     {
       const TargetedExperimentHelper::RetentionTime* rit = &rt;
       os << "        <RetentionTime";
-      if (rit->software_ref != "")
+      if (!rit->software_ref.empty())
       {
         os << " softwareRef=\"" << writeXMLEscape(rit->software_ref) << "\"";
       }
@@ -1099,7 +1099,7 @@ namespace OpenMS::Internal
     void TraMLHandler::writeConfiguration_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
     {
       os << "          <Configuration instrumentRef=\"" << writeXMLEscape(cit->instrument_ref) << "\"";
-      if (cit->contact_ref != "")
+      if (!cit->contact_ref.empty())
       {
         os << " contactRef=\"" << writeXMLEscape(cit->contact_ref) << "\"";
       }
@@ -1107,7 +1107,7 @@ namespace OpenMS::Internal
 
       writeCVParams_(os, *cit, 6);
       writeUserParam_(os, (MetaInfoInterface) * cit, 6);
-      if (cit->validations.size() != 0)
+      if (!cit->validations.empty())
       {
         for (std::vector<CVTermList>::const_iterator iit = cit->validations.begin(); iit != cit->validations.end(); ++iit)
         {
@@ -1150,7 +1150,7 @@ namespace OpenMS::Internal
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
           //values used in wrong places and wrong value types
           String value = cv_term.getValue().toString();
-          if (value != "")
+          if (!value.empty())
           {
             if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
             {
@@ -1292,12 +1292,12 @@ namespace OpenMS::Internal
         }
         else if (cv_term.getAccession() == "MS:1000902") // H-PINS
         {
-          if (cv_term.getValue().toString() != "") actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(cv_term.getValue().toString().toDouble());
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::HPINS;
         }
         else if (cv_term.getAccession() == "MS:1002005") // iRT
         {
-          if (cv_term.getValue().toString() != "") actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(cv_term.getValue().toString().toDouble());
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
         }
         // else if (cv_term.getAccession() == "MS:1000916") // RT lower offset

@@ -146,7 +146,7 @@ protected:
     }
     else if (algo_type == "quantile")
     {
-      if (acc_filter != "" || desc_filter != "")
+      if (!acc_filter.empty() || !desc_filter.empty())
       {
         OPENMS_LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
       }

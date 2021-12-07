@@ -192,7 +192,7 @@ protected:
       Size index = 0;
       while (chosen_ids.size() < number_of_peptides && index < indices.size())
       {
-        if (identifications[indices[index]].getHits().size() > 0 && find(chosen_ids.begin(), chosen_ids.end(), identifications[indices[index]].getHits()[0].getSequence().toString()) == chosen_ids.end())
+        if (!identifications[indices[index]].getHits().empty() && find(chosen_ids.begin(), chosen_ids.end(), identifications[indices[index]].getHits()[0].getSequence().toString()) == chosen_ids.end())
         {
           chosen_ids.push_back(identifications[indices[index]].getHits()[0].getSequence().toString());
           chosen_identifications.push_back(identifications[indices[index]]);

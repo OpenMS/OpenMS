@@ -104,7 +104,7 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt)
+  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt) const
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
   }
@@ -471,7 +471,7 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_.empty() ? "any" : selected_activation_) << std::endl;
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // walk through spectra and count the number of scans with valid activation method per MS-level
@@ -482,7 +482,7 @@ namespace OpenMS
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_ == "" || isValidActivation(*it))
+      if (selected_activation_.empty() || isValidActivation(*it))
       {
         ++ms_level[it->getMSLevel()];
       }

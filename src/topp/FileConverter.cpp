@@ -668,16 +668,16 @@ protected:
     }
     else if (out_type == FileTypes::EDTA)
     {
-      if (fm.size() > 0 && cm.size() > 0)
+      if (!fm.empty() && !cm.empty())
       {
         OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
-      if (fm.size() > 0)
+      if (!fm.empty())
       {
         EDTAFile().store(out, fm);
       }
-      else if (cm.size() > 0)
+      else if (!cm.empty())
       {
         EDTAFile().store(out, cm);
       }
