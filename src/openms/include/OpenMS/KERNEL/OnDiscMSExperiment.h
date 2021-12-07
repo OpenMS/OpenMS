@@ -91,7 +91,7 @@ public:
     {
       filename_ = filename;
       indexed_mzml_file_.openFile(filename);
-      if (filename != "" && !skipMetaData)
+      if (!filename.empty() && !skipMetaData)
       {
         loadMetaData_(filename);
       }

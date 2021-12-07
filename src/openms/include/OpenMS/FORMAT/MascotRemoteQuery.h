@@ -102,7 +102,7 @@ public slots:
 private slots:
 
     /// slot connected to QTimer (timeout_)
-    OPENMS_DLLAPI void timedOut();
+    OPENMS_DLLAPI void timedOut() const;
 
     /// slot connected to the QNetworkAccessManager::finished signal
     OPENMS_DLLAPI void readResponse(QNetworkReply* reply);

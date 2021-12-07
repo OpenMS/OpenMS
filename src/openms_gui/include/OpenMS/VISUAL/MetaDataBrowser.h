@@ -185,7 +185,7 @@ public:
     }
 
     /// Check if mode is editable or not
-    bool isEditable();
+    bool isEditable() const;
 
     /// Defines friend classes that can use the functionality of the subclasses.
     friend class ProteinIdentificationVisualizer;

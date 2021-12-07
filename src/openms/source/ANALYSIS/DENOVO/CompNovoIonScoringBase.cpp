@@ -166,7 +166,7 @@ namespace OpenMS
     CID_spec = CID_spec_new;
   }
 
-  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it)
+  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it) const
   {
     double it_pos(it->getPosition()[0]);
 

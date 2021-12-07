@@ -40,7 +40,7 @@
 namespace OpenMS
 {
 
-    void LevMarqFitter1D::optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
+    void LevMarqFitter1D::optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const
     {
       //TODO: this function is copy&paste from TraceFitter.h. Make a generic wrapper for
       //LM optimization

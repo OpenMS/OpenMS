@@ -386,7 +386,7 @@ namespace OpenMS
 
     //add path suffix to all specified directories
     String path = File::path(filename);
-    if (path != "")
+    if (!path.empty())
     {
       for (String& str : directories)
       {
@@ -577,7 +577,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && String(p.getValue("temp_dir").toString()).trim() != "")
+    else if (p.exists("temp_dir") && !String(p.getValue("temp_dir").toString()).trim().empty())
     {
       dir = p.getValue("temp_dir").toString();
     }
@@ -597,7 +597,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir").toString()).trim() != "")
+    else if (p.exists("home_dir") && !String(p.getValue("home_dir").toString()).trim().empty())
     {
       dir = p.getValue("home_dir").toString();
     }
@@ -797,7 +797,7 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  const String& File::getTemporaryFile(const String& alternative_file)
+  String File::getTemporaryFile(const String& alternative_file)
   {
     // take no action
     if (!alternative_file.empty())
@@ -814,12 +814,13 @@ namespace OpenMS
   {
   }
 
-  const String& File::TemporaryFiles_::newFile()
+  String File::TemporaryFiles_::newFile()
   {
     String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
     std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
-    return filenames_.back();
+    // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
+    return s; // uses RVO, so its efficient
   }
 
   File::TemporaryFiles_::~TemporaryFiles_()

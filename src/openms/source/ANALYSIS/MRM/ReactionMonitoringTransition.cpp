@@ -144,7 +144,7 @@ namespace OpenMS
     return *this;
   }
 
-  ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(ReactionMonitoringTransition && rhs)
+  ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(ReactionMonitoringTransition && rhs) noexcept
   {
     if (&rhs != this)
     {

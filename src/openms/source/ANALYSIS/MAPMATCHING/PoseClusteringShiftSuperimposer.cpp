@@ -402,7 +402,7 @@ namespace OpenMS
           double freq_intercept = shift_hash_.getData().front();
           double freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / double(buffer.size())
                                   / scaling_histogram_crossing_slope;
-          if (!freq_slope || !buffer.size())
+          if (!freq_slope || buffer.empty())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
             freq_cutoff_low = 0;

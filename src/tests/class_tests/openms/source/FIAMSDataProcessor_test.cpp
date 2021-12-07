@@ -138,7 +138,7 @@ END_SECTION
 START_SECTION((mergeAlongTime))
 {
     MSSpectrum output = fia_processor.mergeAlongTime(spectra);
-    TEST_EQUAL(output.size() > 0, true);
+    TEST_EQUAL(!output.empty(), true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
     TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
 }

@@ -279,7 +279,7 @@ namespace OpenMS
       DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
       if (!box.isEmpty())
       {
-        //update RT
+        // update RT
         if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
         {
           this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);

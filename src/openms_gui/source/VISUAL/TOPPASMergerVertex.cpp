@@ -74,7 +74,7 @@ namespace OpenMS
     return QRectF(-41, -41, 82, 82);
   }
 
-  bool TOPPASMergerVertex::roundBasedMode()
+  bool TOPPASMergerVertex::roundBasedMode() const
   {
     return round_based_mode_;
   }

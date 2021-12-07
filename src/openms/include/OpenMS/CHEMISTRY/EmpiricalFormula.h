@@ -248,7 +248,7 @@ public:
     bool hasElement(const Element* element) const;
 
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
-    bool contains(const EmpiricalFormula& ef);
+    bool contains(const EmpiricalFormula& ef) const;
 
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula& rhs) const;

@@ -366,7 +366,7 @@ public:
       const MSSpectrum& input_spectrum,
       const Comparator& cmp,
       std::vector<Match>& matches
-    );
+    ) const;
 
     /**
       @brief Compares a list of spectra against a spectral library and updates

@@ -76,7 +76,7 @@ namespace OpenMS
     }
 
     // easily remember whether we do weighting or not
-    weighting_ = (x_weight_ != "" || y_weight_ != ""); 
+    weighting_ = (!x_weight_.empty() || !y_weight_.empty()); 
   }
 
   TransformationModel::~TransformationModel()
@@ -230,7 +230,7 @@ namespace OpenMS
     {
       datum_weighted = 1/std::pow(datum,2);
     }
-    else if (weight == "")
+    else if (weight.empty())
     {
       datum_weighted = datum;
     }
@@ -270,7 +270,7 @@ namespace OpenMS
     {
       datum_weighted = std::sqrt(1/std::abs(datum));
     }
-    else if (weight == "")
+    else if (weight.empty())
     {
       datum_weighted = datum;
     }

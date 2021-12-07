@@ -201,7 +201,7 @@ loggamma_nominator(other.loggamma_nominator)
 
 
 // the move-constructor: used in the specialization of the marginal.
-Marginal::Marginal(Marginal&& other) :
+Marginal::Marginal(Marginal&& other) noexcept :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),

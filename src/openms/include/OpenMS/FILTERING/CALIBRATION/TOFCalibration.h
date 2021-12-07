@@ -178,7 +178,7 @@ private:
     }
 
     /// Calculate the mass value for a given flight time using the averaged coefficients of the quadratic fit.
-    inline double mQAv_(double ft)
+    inline double mQAv_(double ft) const
     {
       return a_ + ft * b_ + ft * ft * c_;
     }

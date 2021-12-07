@@ -74,7 +74,7 @@ public:
     /// assignment operator
     virtual ExtendedIsotopeModel & operator=(const ExtendedIsotopeModel & source);
 
-    UInt getCharge();
+    UInt getCharge() const;
 
     /// create new ExtendedIsotopeModel object (needed by Factory)
     static BaseModel<1> * create()

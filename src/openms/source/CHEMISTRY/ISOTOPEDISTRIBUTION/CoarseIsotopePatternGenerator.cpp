@@ -144,7 +144,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
 
@@ -229,7 +229,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 

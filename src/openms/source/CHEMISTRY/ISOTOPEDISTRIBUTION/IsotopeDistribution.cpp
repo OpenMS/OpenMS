@@ -200,7 +200,7 @@ namespace OpenMS
 
   void IsotopeDistribution::renormalize()
   {
-    if (distribution_.size() != 0)
+    if (!distribution_.empty())
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end

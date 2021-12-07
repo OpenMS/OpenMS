@@ -92,7 +92,7 @@ namespace OpenMS
 
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData& layer = cc->getLayer(i);
+      const LayerDataBase& layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
@@ -111,13 +111,13 @@ namespace OpenMS
       {  // 2D/3D map view
         switch (layer.type)
         {
-        case LayerData::DT_PEAK:
+        case LayerDataBase::DT_PEAK:
           item->setIcon(QIcon(":/peaks.png"));
           break;
-        case LayerData::DT_FEATURE:
+        case LayerDataBase::DT_FEATURE:
           item->setIcon(QIcon(":/convexhull.png"));
           break;
-        case LayerData::DT_CONSENSUS:
+        case LayerDataBase::DT_CONSENSUS:
           item->setIcon(QIcon(":/elements.png"));
           break;
         default:

@@ -74,7 +74,7 @@ class Marginal
     Marginal(const Marginal& other);
 
     //! Move constructor.
-    Marginal(Marginal&& other);
+    Marginal(Marginal&& other) noexcept ;
 
     //! Destructor.
     virtual ~Marginal();
@@ -119,7 +119,7 @@ class Marginal
     inline double getModeLProb() { ensureModeConf(); return mode_lprob; }
 
     //! Get the log-probability of the mode subisotopologue. Results undefined if ensureModeConf() wasn't called before.
-    inline double fastGetModeLProb() { return mode_lprob; }
+    inline double fastGetModeLProb() const { return mode_lprob; }
 
     //! The the probability of the mode subisotopologue.
     /*!

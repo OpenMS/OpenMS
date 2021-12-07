@@ -1042,10 +1042,13 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-    TEST_EQUAL(edit==MSChromatogram(),false)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),false)
 
-    edit.clear(true);
-  TEST_EQUAL(edit==MSChromatogram(),true)
+  edit.clear(true);
+  TEST_EQUAL(edit.size(),0)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),true)
 }
 END_SECTION
 

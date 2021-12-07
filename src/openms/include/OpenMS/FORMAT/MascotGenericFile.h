@@ -289,7 +289,7 @@ protected:
                   std::vector<String> split;
                   if (line.split('=', split))
                   {
-                    if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                    if (!split[1].empty()) spectrum.setMetaValue("TITLE", split[1]);
                   }
                 }
               }

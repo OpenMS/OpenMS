@@ -67,7 +67,7 @@ namespace OpenMS
   std::vector<float> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original)
   {
     //throw exception if cannot be legal clustering
-    if (tree.size() < 1)
+    if (tree.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }
@@ -342,7 +342,7 @@ namespace OpenMS
   std::vector<float> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage)
   {
     //throw exception if cannot be legal clustering
-    if (tree.size() < 1)
+    if (tree.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }

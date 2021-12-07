@@ -1093,19 +1093,19 @@ namespace OpenMS
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
     ParamValue pv = param_.getValue("penalties:position");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.pos = 0.;
     else
       penalties.pos = (float)pv;
 
     pv = param_.getValue("penalties:left_width");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.lWidth = 1.;
     else
       penalties.lWidth = (float)pv;
 
     pv = param_.getValue("penalties:right_width");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.rWidth = 1.;
     else
       penalties.rWidth = (float)pv;
@@ -1125,7 +1125,7 @@ namespace OpenMS
 
     UInt max_iteration;
     pv = param_.getValue("iterations");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       max_iteration = 15;
     else
       max_iteration = (UInt)pv;

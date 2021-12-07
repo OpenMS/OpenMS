@@ -175,7 +175,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
   {
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
@@ -193,7 +193,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
   {
-    if (pt_prot_map_.size() > 0)
+    if (!pt_prot_map_.empty())
     {
       if (pt_prot_map_.find(prot_id) != pt_prot_map_.end())
       {
@@ -1210,7 +1210,7 @@ namespace OpenMS
   double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {

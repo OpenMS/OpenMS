@@ -168,7 +168,7 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].size() > 0)
+    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].empty())
     {
       cached_spectrum_ = (*peak_map_)[current_spectrum_idx_];
     }
@@ -242,7 +242,7 @@ namespace OpenMS
     {
       return cached_spectrum_;
     }
-    if ((*peak_map_)[spectrum_idx].size() > 0)
+    if (!(*peak_map_)[spectrum_idx].empty())
     {
       return (*peak_map_)[spectrum_idx];
     }
@@ -625,7 +625,7 @@ namespace OpenMS
 
     // last protein ID must be from AccurateMassSearch (it gets appended there)
     String engine = "no protein identification section found";
-    if (fm.getProteinIdentifications().size() > 0)
+    if (!fm.getProteinIdentifications().empty())
     {
       engine = fm.getProteinIdentifications().back().getSearchEngine();
       if (engine == AccurateMassSearchEngine::search_engine_identifier)
