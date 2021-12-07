@@ -349,7 +349,15 @@ namespace OpenMS
 
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
-        id_data.registerObservationMatch(match);
+        try
+        {
+          id_data.registerObservationMatch(match);
+        }
+        catch (Exception::InvalidValue& error)
+        {
+          OPENMS_LOG_ERROR << "Error: failed to register observation match - skipping.\n"
+                           << "Message was: " << error.getMessage() << endl;
+        }
       }
     }
     progresslogger.endProgress();
