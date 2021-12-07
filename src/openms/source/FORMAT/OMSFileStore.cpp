@@ -1288,8 +1288,10 @@ namespace OpenMS::Internal
 
   void OMSFileStore::store(const IdentificationData& id_data)
   {
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
     startProgress(0, 13, "Writing identification data to file");
     // generally, create tables only if we have data to write - no empty ones!
+    db.transaction(); // avoid SQLite's "implicit transactions", improve runtime
     storeVersionAndDate_();
     nextProgress(); // 1
     storeInputFiles_(id_data);
@@ -1315,6 +1317,7 @@ namespace OpenMS::Internal
     storeAdducts_(id_data);
     nextProgress(); // 12
     storeObservationMatches_(id_data);
+    db.commit();
     endProgress();
     // @TODO: store input match groups
   }
@@ -1576,6 +1579,8 @@ namespace OpenMS::Internal
 
   void OMSFileStore::store(const FeatureMap& features)
   {
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    db.transaction(); // avoid SQLite's "implicit transactions", improve runtime
     if (features.getIdentificationData().empty())
     {
       storeVersionAndDate_();
@@ -1590,6 +1595,7 @@ namespace OpenMS::Internal
     storeDataProcessing_(features);
     nextProgress();
     storeFeatures_(features);
+    db.commit();
     endProgress();
   }
 }
