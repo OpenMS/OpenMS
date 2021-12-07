@@ -38,7 +38,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-class QSqlQuery;
+#include <QtSql/QSqlQuery>
+
 class QSqlError;
 
 namespace OpenMS
@@ -152,10 +153,8 @@ namespace OpenMS
       void createTableMetaInfo_(const String& parent_table,
                                 const String& key_column = "id");
 
-      QSqlQuery getQueryMetaInfo_(const String& parent_table);
-
-      void storeMetaInfo_(const MetaInfoInterface& info, Key parent_id,
-                          QSqlQuery& query);
+      void storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table,
+                          Key parent_id);
 
       void createTableAppliedProcessingStep_(const String& parent_table);
 
@@ -186,9 +185,8 @@ namespace OpenMS
             {
               createTableMetaInfo_(parent_table);
               table_created = true;
-              query = getQueryMetaInfo_(parent_table);
             }
-            storeMetaInfo_(element, Key(&element), query);
+            storeMetaInfo_(element, parent_table, Key(&element));
           }
         }
       }
@@ -223,9 +221,7 @@ namespace OpenMS
       void storeFeature_(const FeatureMap& features);
 
       void storeFeatureAndSubordinates_(
-        const Feature& feature, int& feature_id, int parent_id,
-        QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
-        QSqlQuery& query_match);
+        const Feature& feature, int& feature_id, int parent_id);
 
       /// check whether a predicate is true for any feature (or subordinate thereof) in a container
       template <class FeatureContainer, class Predicate>
@@ -246,6 +242,9 @@ namespace OpenMS
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
+
+      /// prepared queries for inserting data into different tables
+      std::map<std::string, QSqlQuery> prepared_queries_;
     };
   }
 }

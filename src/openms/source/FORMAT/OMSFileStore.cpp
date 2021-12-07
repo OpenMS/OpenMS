@@ -39,7 +39,6 @@
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
-#include <QtSql/QSqlQuery>
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
 
@@ -204,6 +203,12 @@ namespace OpenMS::Internal
       "value TEXT, "                                                    \
       "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
     // @TODO: add support for units
+    // prepare query for inserting data:
+    query.prepare("INSERT INTO DataValue VALUES ("           \
+                  "NULL, "                                   \
+                  ":data_type, "                             \
+                  ":value)");
+    prepared_queries_["DataValue"] = query;
   }
 
 
@@ -211,13 +216,12 @@ namespace OpenMS::Internal
   {
     // this assumes the "DataValue" table exists already!
     // @TODO: split this up and make several tables for different types?
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO DataValue VALUES (" \
-                  "NULL, "                         \
-                  ":data_type, "                   \
-                  ":value)");
-    // @TODO: cache the prepared query between function calls somehow?
-    if (!value.isEmpty()) // use NULL as the type for empty values
+    QSqlQuery& query = prepared_queries_["DataValue"];
+    if (value.isEmpty()) // use NULL as the type for empty values
+    {
+      query.bindValue(":data_type", QVariant(QVariant::Int));
+    }
+    else
     {
       query.bindValue(":data_type", int(value.valueType()) + 1);
     }
@@ -241,19 +245,30 @@ namespace OpenMS::Internal
                  // does this constrain "name" if "accession" is NULL?
                  "UNIQUE (accession, name)");
     // @TODO: add support for unit and value
-  }
-
-
-  OMSFileStore::Key OMSFileStore::storeCVTerm_(const CVTerm& cv_term)
-  {
-    // this assumes the "CVTerm" table exists already!
+    // prepare query for inserting data:
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT OR IGNORE INTO CVTerm VALUES ("   \
                   "NULL, "                                  \
                   ":accession, "                            \
                   ":name, "                                 \
                   ":cv_identifier_ref)");
-    if (!cv_term.getAccession().empty()) // use NULL for empty accessions
+    prepared_queries_["CVTerm"] = query;
+    // alternative query if CVTerm already exists:
+    query.prepare("SELECT id FROM CVTerm "                          \
+                  "WHERE accession = :accession AND name = :name");
+    prepared_queries_["CVTerm_2"] = query;
+  }
+
+
+  OMSFileStore::Key OMSFileStore::storeCVTerm_(const CVTerm& cv_term)
+  {
+    // this assumes the "CVTerm" table exists already!
+    QSqlQuery& query = prepared_queries_["CVTerm"];
+    if (cv_term.getAccession().empty()) // use NULL for empty accessions
+    {
+      query.bindValue(":accession", QVariant(QVariant::String));
+    }
+    else
     {
       query.bindValue(":accession", cv_term.getAccession().toQString());
     }
@@ -270,19 +285,22 @@ namespace OpenMS::Internal
       return query.lastInsertId().toLongLong();
     }
     // else: insert has failed, record must already exist - get the key:
-    query.prepare("SELECT id FROM CVTerm "                          \
-                  "WHERE accession = :accession AND name = :name");
-    if (!cv_term.getAccession().empty()) // use NULL for empty accessions
+    QSqlQuery& alt_query = prepared_queries_["CVTerm_2"];
+    if (cv_term.getAccession().empty()) // use NULL for empty accessions
     {
-      query.bindValue(":accession", cv_term.getAccession().toQString());
+      alt_query.bindValue(":accession", QVariant(QVariant::String));
     }
-    query.bindValue(":name", cv_term.getName().toQString());
-    if (!query.exec() || !query.next())
+    else
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+      alt_query.bindValue(":accession", cv_term.getAccession().toQString());
+    }
+    alt_query.bindValue(":name", cv_term.getName().toQString());
+    if (!alt_query.exec() || !alt_query.next())
+    {
+      raiseDBError_(alt_query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error querying database");
     }
-    return query.value(0).toLongLong();
+    return alt_query.value(0).toLongLong();
   }
 
 
@@ -292,36 +310,33 @@ namespace OpenMS::Internal
     if (!tableExists_(db_name_, "DataValue")) createTableDataValue_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
+    String table = parent_table + "_MetaInfo";
     createTable_(
-      parent_table + "_MetaInfo",
+      table,
       "parent_id INTEGER NOT NULL, "                            \
       "name TEXT NOT NULL, "                                    \
       "data_value_id INTEGER NOT NULL, "                        \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
       "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
       "UNIQUE (parent_id, name)");
-  }
-
-
-  QSqlQuery OMSFileStore::getQueryMetaInfo_(const String& parent_table)
-  {
-    String table = parent_table + "_MetaInfo";
+    // prepare query for inserting data:
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
                   ":parent_id, "                                    \
                   ":name, "                                         \
                   ":data_value_id)");
-    return query;
+    prepared_queries_[table] = query;
   }
 
 
   void OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info,
-                                    Key parent_id, QSqlQuery& query)
+                                    const String& parent_table,
+                                    Key parent_id)
   {
     if (info.isMetaEmpty()) return;
 
-    // this assumes the "..._MetaInfo" and "DataValue" tables exist already,
-    // and the query has been prepared using "getQueryMetaInfo_"!
+    // this assumes the "..._MetaInfo" and "DataValue" tables exist already!
+    QSqlQuery& query = prepared_queries_[parent_table + "_MetaInfo"];
     query.bindValue(":parent_id", parent_id);
     // this is inefficient, but MetaInfoInterface doesn't support iteration:
     vector<String> info_keys;
@@ -342,8 +357,9 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableAppliedProcessingStep_(const String& parent_table)
   {
+    String table = parent_table + "_AppliedProcessingStep";
     createTable_(
-      parent_table + "_AppliedProcessingStep",
+      table,
       "parent_id INTEGER NOT NULL, "                                    \
       "processing_step_id INTEGER, "                                    \
       "processing_step_order INTEGER NOT NULL, "                        \
@@ -353,10 +369,18 @@ namespace OpenMS::Internal
       "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
       "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id), "      \
       "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
-    // @TODO: add constraint that "processing_step_id" and "score_type_id"
-    // can't both be NULL
+    // @TODO: add constraint that "processing_step_id" and "score_type_id" can't both be NULL
     // @TODO: add constraint that "processing_step_order" must match "..._id"?
     // @TODO: normalize table? (splitting into multiple tables is awkward here)
+    // prepare query for inserting data:
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
+                  ":parent_id, "                                    \
+                  ":processing_step_id, "                           \
+                  ":processing_step_order, "                        \
+                  ":score_type_id, "                                \
+                  ":score)");
+    prepared_queries_[table] = query;
   }
 
 
@@ -365,15 +389,7 @@ namespace OpenMS::Internal
     const String& parent_table, Key parent_id)
   {
     // this assumes the "..._AppliedProcessingStep" table exists already!
-    String table = parent_table + "_AppliedProcessingStep";
-
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
-                  ":parent_id, "                                    \
-                  ":processing_step_id, "                           \
-                  ":processing_step_order, "                        \
-                  ":score_type_id, "                                \
-                  ":score)");
+    QSqlQuery& query = prepared_queries_[parent_table + "_AppliedProcessingStep"];
     query.bindValue(":parent_id", parent_id);
     query.bindValue(":processing_step_order", int(step_order));
     if (step.processing_step_opt)
@@ -382,13 +398,19 @@ namespace OpenMS::Internal
                       Key(&(**step.processing_step_opt)));
       if (step.scores.empty()) // insert processing step information only
       {
+        query.bindValue(":score_type_id", QVariant(QVariant::Int)); // NULL
+        query.bindValue(":score", QVariant(QVariant::Double)); // NULL
         if (!query.exec())
         {
           raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                         "error inserting data");
         }
       }
-    } // else: use NULL for missing processing step reference
+    }
+    else // use NULL for missing processing step reference
+    {
+      query.bindValue(":processing_step_id", QVariant(QVariant::Int));
+    }
     for (const auto& score_pair : step.scores)
     {
       query.bindValue(":score_type_id", Key(&(*score_pair.first)));
@@ -509,7 +531,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
       query.prepare(
-        "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("  \
+        "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("      \
         ":software_id, "                                                \
         ":score_type_id, "                                              \
         ":score_type_order)");
@@ -914,6 +936,13 @@ namespace OpenMS::Internal
       "identifier TEXT NOT NULL, "                                      \
       "UNIQUE (molecule_type_id, identifier), "                         \
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
+    // prepare query for inserting data:
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_IdentifiedMolecule VALUES ("          \
+                  ":id, "                                               \
+                  ":molecule_type_id, "                                 \
+                  ":identifier)");
+    prepared_queries_["ID_IdentifiedMolecule"] = query;
   }
 
 
@@ -925,6 +954,9 @@ namespace OpenMS::Internal
     {
       createTableIdentifiedMolecule_();
     }
+    QSqlQuery& query_molecule = prepared_queries_["ID_IdentifiedMolecule"];
+    query_molecule.bindValue(":molecule_type_id",
+                             int(ID::MoleculeType::COMPOUND) + 1);
 
     createTable_(
       "ID_IdentifiedCompound",
@@ -934,16 +966,7 @@ namespace OpenMS::Internal
       "smile TEXT, "                                                    \
       "inchi TEXT, "                                                    \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
-
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query_molecule(db);
-    query_molecule.prepare("INSERT INTO ID_IdentifiedMolecule VALUES (" \
-                           ":id, "                                      \
-                           ":molecule_type_id, "                        \
-                           ":identifier)");
-    query_molecule.bindValue(":molecule_type_id",
-                             int(ID::MoleculeType::COMPOUND) + 1);
-    QSqlQuery query_compound(db);
+    QSqlQuery query_compound(QSqlDatabase::database(db_name_));
     query_compound.prepare("INSERT INTO ID_IdentifiedCompound VALUES (" \
                            ":molecule_id, "                             \
                            ":formula, "                                 \
@@ -986,12 +1009,8 @@ namespace OpenMS::Internal
     {
       createTableIdentifiedMolecule_();
     }
+    QSqlQuery& query = prepared_queries_["ID_IdentifiedMolecule"];
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_IdentifiedMolecule VALUES (" \
-                  ":id, "                                      \
-                  ":molecule_type_id, "                        \
-                  ":identifier)");
     bool any_parent_matches = false;
     // store peptides:
     query.bindValue(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
@@ -1055,6 +1074,16 @@ namespace OpenMS::Internal
       "UNIQUE (molecule_id, parent_id, start_pos, end_pos), "           \
       "FOREIGN KEY (parent_id) REFERENCES ID_ParentSequence (id), "     \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
+    // prepare query for inserting data:
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_ParentMatch VALUES ("         \
+                  ":molecule_id, "                              \
+                  ":parent_id, "                                \
+                  ":start_pos, "                                \
+                  ":end_pos, "                                  \
+                  ":left_neighbor, "                            \
+                  ":right_neighbor)");
+    prepared_queries_["ID_ParentMatch"] = query;
   }
 
 
@@ -1062,14 +1091,7 @@ namespace OpenMS::Internal
                                          Key molecule_id)
   {
     // this assumes the "ID_ParentMatch" table exists already!
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_ParentMatch VALUES (" \
-                  ":molecule_id, "                              \
-                  ":parent_id, "                                \
-                  ":start_pos, "                                \
-                  ":end_pos, "                                  \
-                  ":left_neighbor, "                            \
-                  ":right_neighbor)");
+    QSqlQuery& query = prepared_queries_["ID_ParentMatch"];
     // @TODO: cache the prepared query between function calls somehow?
     query.bindValue(":molecule_id", molecule_id);
     for (const auto& pair : matches)
@@ -1299,10 +1321,9 @@ namespace OpenMS::Internal
 
 
   void OMSFileStore::storeFeatureAndSubordinates_(
-    const Feature& feature, int& feature_id, int parent_id,
-    QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
-    QSqlQuery& query_match)
+    const Feature& feature, int& feature_id, int parent_id)
   {
+    QSqlQuery& query_feat = prepared_queries_["FEAT_Feature"];
     query_feat.bindValue(":id", feature_id);
     query_feat.bindValue(":rt", feature.getRT());
     query_feat.bindValue(":mz", feature.getMZ());
@@ -1334,11 +1355,12 @@ namespace OpenMS::Internal
       raiseDBError_(query_feat.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
-    storeMetaInfo_(feature, feature_id, query_meta);
+    storeMetaInfo_(feature, "FEAT_Feature", feature_id);
     // store convex hulls:
     const vector<ConvexHull2D>& hulls = feature.getConvexHulls();
     if (!hulls.empty())
     {
+      QSqlQuery& query_hull = prepared_queries_["FEAT_ConvexHull"];
       query_hull.bindValue(":feature_id", feature_id);
       for (uint i = 0; i < hulls.size(); ++i)
       {
@@ -1361,6 +1383,7 @@ namespace OpenMS::Internal
     // store ID input items:
     if (!feature.getIDMatches().empty())
     {
+      QSqlQuery& query_match = prepared_queries_["FEAT_ObservationMatch"];
       query_match.bindValue(":feature_id", feature_id);
       for (ID::ObservationMatchRef ref : feature.getIDMatches())
       {
@@ -1377,8 +1400,7 @@ namespace OpenMS::Internal
     ++feature_id; // variable is passed by reference, so effect is global
     for (const Feature& sub : feature.getSubordinates())
     {
-      storeFeatureAndSubordinates_(sub, feature_id, parent_id,
-                                   query_feat, query_meta, query_hull, query_match);
+      storeFeatureAndSubordinates_(sub, feature_id, parent_id);
     }
   }
 
@@ -1404,30 +1426,28 @@ namespace OpenMS::Internal
                  "FOREIGN KEY (subordinate_of) REFERENCES FEAT_Feature (id), " \
                  "CHECK (id > subordinate_of)"); // check to prevent cycles
 
-    QSqlQuery query_feat(QSqlDatabase::database(db_name_));
-    query_feat.prepare("INSERT INTO FEAT_Feature VALUES (" \
-                       ":id, "                             \
-                       ":rt, "                             \
-                       ":mz, "                             \
-                       ":intensity, "                      \
-                       ":charge, "                         \
-                       ":width, "                          \
-                       ":overall_quality, "                \
-                       ":rt_quality, "                     \
-                       ":mz_quality, "                     \
-                       ":unique_id, "                      \
-                       ":primary_molecule_id, "            \
-                       ":subordinate_of)");
-    QSqlQuery query_meta;
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO FEAT_Feature VALUES ("      \
+                  ":id, "                                  \
+                  ":rt, "                                  \
+                  ":mz, "                                  \
+                  ":intensity, "                           \
+                  ":charge, "                              \
+                  ":width, "                               \
+                  ":overall_quality, "                     \
+                  ":rt_quality, "                          \
+                  ":mz_quality, "                          \
+                  ":unique_id, "                           \
+                  ":primary_molecule_id, "                 \
+                  ":subordinate_of)");
+    prepared_queries_["FEAT_Feature"] = query;
     // any meta infos on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.isMetaEmpty();
     }))
     {
       createTableMetaInfo_("FEAT_Feature");
-      query_meta = getQueryMetaInfo_("FEAT_Feature");
     }
-    QSqlQuery query_hull(QSqlDatabase::database(db_name_));
     // any convex hulls on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.getConvexHulls().empty();
@@ -1440,14 +1460,14 @@ namespace OpenMS::Internal
                    "point_x REAL, "                                     \
                    "point_y REAL, "                                     \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id)");
-      query_hull.prepare("INSERT INTO FEAT_ConvexHull VALUES (" \
-                         ":feature_id, "                        \
-                         ":hull_index, "                        \
-                         ":point_index, "                       \
-                         ":point_x, "                           \
-                         ":point_y)");
+      query.prepare("INSERT INTO FEAT_ConvexHull VALUES ("      \
+                    ":feature_id, "                             \
+                    ":hull_index, "                             \
+                    ":point_index, "                            \
+                    ":point_x, "                                \
+                    ":point_y)");
+      prepared_queries_["FEAT_ConvexHull"] = query;
     }
-    QSqlQuery query_match(QSqlDatabase::database(db_name_));
     // any ID observations on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.getIDMatches().empty();
@@ -1458,17 +1478,17 @@ namespace OpenMS::Internal
                    "observation_match_id INTEGER NOT NULL, "            \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
                    "FOREIGN KEY (observation_match_id) REFERENCES ID_ObservationMatch (id)");
-      query_match.prepare("INSERT INTO FEAT_ObservationMatch VALUES (" \
-                          ":feature_id, "                              \
-                          ":observation_match_id)");
+      query.prepare("INSERT INTO FEAT_ObservationMatch VALUES (" \
+                    ":feature_id, "                              \
+                    ":observation_match_id)");
+      prepared_queries_["FEAT_ObservationMatch"] = query;
     }
 
     // features and their subordinates are stored in DFS-like order:
     int feature_id = 0;
     for (const Feature& feat : features)
     {
-      storeFeatureAndSubordinates_(feat, feature_id, -1, query_feat,
-                                   query_meta, query_hull, query_match);
+      storeFeatureAndSubordinates_(feat, feature_id, -1);
       nextProgress();
     }
   }
@@ -1501,8 +1521,7 @@ namespace OpenMS::Internal
     if (!features.isMetaEmpty())
     {
       createTableMetaInfo_("FEAT_MapMetaData", "unique_id");
-      QSqlQuery query_meta = getQueryMetaInfo_("FEAT_MapMetaData");
-      storeMetaInfo_(features, qint64(features.getUniqueId()), query_meta);
+      storeMetaInfo_(features, "FEAT_MapMetaData", qint64(features.getUniqueId()));
     }
   }
 
