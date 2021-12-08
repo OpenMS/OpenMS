@@ -84,6 +84,7 @@ namespace OpenMS
 
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
+    boost::regex re_retention_time("^Retention Time: (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
     boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
@@ -121,8 +122,13 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName( String(m[1]) );
+        spectrum.setName(String(m[1]));
         spectrum.setMetaValue("is_valid", 1);
+      }
+      // Retention Time
+      else if (boost::regex_search(line, m, re_retention_time))
+      {
+        spectrum.setRT(std::stod(m[1]));
       }
       // Specific case of NIST's exported msp
       else if (boost::regex_search(line, m, re_cas_nist))
@@ -163,6 +169,7 @@ namespace OpenMS
       if (spectrum.size())// we will not store spectrum with no peaks
       {
         output_file << "Name: " << spectrum.getName() << '\n';
+        output_file << "Retention Time: " << spectrum.getRT() << '\n';
         const auto& synonyms = spectrum.getMetaValue("Synon");
         if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
