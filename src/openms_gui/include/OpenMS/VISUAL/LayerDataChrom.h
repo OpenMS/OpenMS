@@ -69,12 +69,12 @@ public:
 
     float getMinIntensity() const override
     {
-      return getPeakData()->getMinInt();
+      return getPeakData()->getMinIntensity();
     }
 
     float getMaxIntensity() const override
     {
-      return getPeakData()->getMaxInt();
+      return getPeakData()->getMaxIntensity();
     }
 
   };

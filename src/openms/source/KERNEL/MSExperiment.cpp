@@ -60,7 +60,7 @@ namespace OpenMS
 
   /// Constructor
   MSExperiment::MSExperiment() :
-    RangeManagerType(),
+    RangeManagerContainerType(),
     ExperimentalSettings(),
     ms_levels_(),
     total_size_(0)
@@ -68,7 +68,7 @@ namespace OpenMS
 
   /// Copy constructor
   MSExperiment::MSExperiment(const MSExperiment & source) :
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     ExperimentalSettings(source),
     ms_levels_(source.ms_levels_),
     total_size_(source.total_size_),
@@ -83,7 +83,7 @@ namespace OpenMS
     {
       return *this;
     }
-    RangeManagerType::operator=(source);
+    RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
     ms_levels_ = source.ms_levels_;
@@ -98,7 +98,7 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  MSExperiment & MSExperiment::operator=(const ExperimentalSettings & source)
+  MSExperiment& MSExperiment::operator=(const ExperimentalSettings & source)
   {
     ExperimentalSettings::operator=(source);
     return *this;
@@ -226,15 +226,15 @@ namespace OpenMS
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
-    //clear MS levels
+    // clear MS levels
     ms_levels_.clear();
 
-    //reset mz/rt/int range
+    // reset mz/rt/int range
     this->clearRanges();
-    //reset point count
+    // reset point count
     total_size_ = 0;
 
-    //empty
+    // empty
     if (spectra_.empty() && chromatograms_.empty())
     {
       return;
@@ -254,64 +254,18 @@ namespace OpenMS
         // calculate size
         total_size_ += it->size();
 
-        //rt
-        if (it->getRT() < RangeManagerType::pos_range_.minX())
-        {
-          RangeManagerType::pos_range_.setMinX(it->getRT());
-        }
-        if (it->getRT() > RangeManagerType::pos_range_.maxX())
-        {
-          RangeManagerType::pos_range_.setMaxX(it->getRT());
-        }
-        //do not update mz and int when the spectrum is empty
-        if (it->empty())
-        {
-          continue;
-        }
+        // ranges
         it->updateRanges();
+        this->extend(*it);
 
-        //mz
-        if (it->getMin()[0] < RangeManagerType::pos_range_.minY())
-        {
-          RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
-        }
-        if (it->getMax()[0] > RangeManagerType::pos_range_.maxY())
-        {
-          RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
-        }
-        //int
-        if (it->getMinInt() < RangeManagerType::int_range_.minX())
-        {
-          RangeManagerType::int_range_.setMinX(it->getMinInt());
-        }
-        if (it->getMaxInt() > RangeManagerType::int_range_.maxX())
-        {
-          RangeManagerType::int_range_.setMaxX(it->getMaxInt());
-        }
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)
       {
         if (!it->getPrecursors().empty())
         {
-          double pc_rt = it->getRT();
-          if (pc_rt < RangeManagerType::pos_range_.minX())
-          {
-            RangeManagerType::pos_range_.setMinX(pc_rt);
-          }
-          if (pc_rt > RangeManagerType::pos_range_.maxX())
-          {
-            RangeManagerType::pos_range_.setMaxX(pc_rt);
-          }
-          double pc_mz = it->getPrecursors()[0].getMZ();
-          if (pc_mz < RangeManagerType::pos_range_.minY())
-          {
-            RangeManagerType::pos_range_.setMinY(pc_mz);
-          }
-          if (pc_mz > RangeManagerType::pos_range_.maxY())
-          {
-            RangeManagerType::pos_range_.setMaxY(pc_mz);
-          }
+          this->extendRT(it->getRT());
+          this->extendMZ(it->getPrecursors()[0].getMZ());
         }
 
       }
@@ -335,77 +289,44 @@ namespace OpenMS
         continue;
       }
 
-      // update MZ
-      if (cp.getMZ() < RangeManagerType::pos_range_.minY())
-      {
-        RangeManagerType::pos_range_.setMinY(cp.getMZ());
-      }
-      if (cp.getMZ() > RangeManagerType::pos_range_.maxY())
-      {
-        RangeManagerType::pos_range_.setMaxY(cp.getMZ());
-      }
-      // do not update RT and intensity if the chromatogram is empty
-      if (cp.empty())
-      {
-        continue;
-      }
       total_size_ += cp.size();
 
+      // update ranges
       cp.updateRanges();
-
-      // RT
-      if (cp.getMin()[0] < RangeManagerType::pos_range_.minX())
-      {
-        RangeManagerType::pos_range_.setMinX(cp.getMin()[0]);
-      }
-      if (cp.getMax()[0] > RangeManagerType::pos_range_.maxX())
-      {
-        RangeManagerType::pos_range_.setMaxX(cp.getMax()[0]);
-      }
-      // int
-      if (cp.getMinInt() < RangeManagerType::int_range_.minX())
-      {
-        RangeManagerType::int_range_.setMinX(cp.getMinInt());
-      }
-      if (cp.getMaxInt() > RangeManagerType::int_range_.maxX())
-      {
-        RangeManagerType::int_range_.setMaxX(cp.getMaxInt());
-      }
+      this->extend(cp);
     }
   }
 
   /// returns the minimal m/z value
   MSExperiment::CoordinateType MSExperiment::getMinMZ() const
   {
-    return RangeManagerType::pos_range_.minPosition()[1];
+    return RangeManagerType::getMinMZ();
   }
 
   /// returns the maximal m/z value
   MSExperiment::CoordinateType MSExperiment::getMaxMZ() const
   {
-    return RangeManagerType::pos_range_.maxPosition()[1];
+    return RangeManagerType::getMaxMZ();
   }
 
   /// returns the minimal retention time value
   MSExperiment::CoordinateType MSExperiment::getMinRT() const
   {
-    return RangeManagerType::pos_range_.minPosition()[0];
+    return RangeManagerType::getMinRT();
   }
 
   /// returns the maximal retention time value
   MSExperiment::CoordinateType MSExperiment::getMaxRT() const
   {
-    return RangeManagerType::pos_range_.maxPosition()[0];
+    return RangeManagerType::getMaxRT();
   }
 
   /**
-  @brief Returns RT and m/z range the data lies in.
-
-  RT is dimension 0, m/z is dimension 1
+    @brief Returns RT, m/z and intensity range the data lies in.
   */
-  const MSExperiment::AreaType& MSExperiment::getDataRange() const
+  const MSExperiment::RangeManagerType& MSExperiment::getDataRange() const
   {
-    return RangeManagerType::pos_range_;
+    return *this;
   }
 
   /// returns the total number of peaks

@@ -66,12 +66,12 @@ namespace OpenMS
 
     float getMinIntensity() const override
     {
-      return getConsensusMap()->getMinInt();
+      return getConsensusMap()->getMinIntensity();
     }
 
     float getMaxIntensity() const override
     {
-      return getConsensusMap()->getMaxInt();
+      return getConsensusMap()->getMaxIntensity();
     }
   };
 

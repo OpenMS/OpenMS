@@ -67,12 +67,12 @@ namespace OpenMS
 
     float getMinIntensity() const override
     {
-      return getFeatureMap()->getMinInt();
+      return getFeatureMap()->getMinIntensity();
     }
 
     float getMaxIntensity() const override
     {
-      return getFeatureMap()->getMaxInt();
+      return getFeatureMap()->getMaxIntensity();
     }
 
     const PepIds& getPeptideIds() const override

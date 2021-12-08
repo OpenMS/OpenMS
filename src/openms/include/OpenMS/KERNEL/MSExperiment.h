@@ -36,7 +36,6 @@
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -75,7 +74,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI MSExperiment :
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public ExperimentalSettings
   {
 
@@ -90,13 +89,15 @@ public:
     /// Chromatogram peak type
     typedef ChromatogramPeakT ChromatogramPeakType;
     /// Area type
-    typedef DRange<2> AreaType;
+    //typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    /// RangeManager type
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -452,7 +453,7 @@ public:
 
       RT is dimension 0, m/z is dimension 1
     */
-    const AreaType& getDataRange() const;
+    const RangeManagerType& getDataRange() const;
 
     /// returns the total number of peaks
     UInt64 getSize() const;
@@ -494,7 +495,7 @@ public:
 
     //@}
 
-    /// Resets all internal values
+    /// Clear all internal data (spectra, ranges, metadata)
     void reset();
 
     /**

@@ -305,21 +305,9 @@ namespace OpenMS
     percentage_factor_ = 1.0;
     if (intensity_mode_ == IM_PERCENTAGE)
     {
-      if (layer.type == LayerDataBase::DT_PEAK && layer.getPeakData()->getMaxInt() > 0.0)
+      if (layer.getMaxIntensity() > 0.0)
       {
-        percentage_factor_ = overall_data_range_.maxPosition()[2] / layer.getPeakData()->getMaxInt();
-      }
-      else if (layer.type == LayerDataBase::DT_FEATURE && layer.getFeatureMap()->getMaxInt() > 0.0)
-      {
-        percentage_factor_ = overall_data_range_.maxPosition()[2] / layer.getFeatureMap()->getMaxInt();
-      }
-      else if (layer.type == LayerDataBase::DT_CONSENSUS && layer.getConsensusMap()->getMaxInt() > 0.0)
-      {
-        percentage_factor_ = overall_data_range_.maxPosition()[2] / layer.getConsensusMap()->getMaxInt();
-      }
-      else if (layer.type == LayerDataBase::DT_CHROMATOGRAM && layer.getConsensusMap()->getMaxInt() > 0.0)
-      {
-        //TODO CHROM not sure if needed here
+        percentage_factor_ = overall_data_range_.maxPosition()[2] / layer.getMaxIntensity();
       }
     }
 
@@ -1242,7 +1230,7 @@ namespace OpenMS
         popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
-      if ((getCurrentLayer().getPeakData()->getSize() == 0) && (!getCurrentLayer().getPeakData()->getDataRange().isEmpty()))
+      if ((getCurrentLayer().getPeakData()->getSize() == 0) && (getCurrentLayer().getPeakData()->hasRange() != HasRangeType::NONE))
       {
         setLayerFlag(LayerDataBase::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }

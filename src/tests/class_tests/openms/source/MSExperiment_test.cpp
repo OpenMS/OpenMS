@@ -447,13 +447,10 @@ START_SECTION((UInt64 getSize() const ))
 }
 END_SECTION
 
-START_SECTION((const AreaType& getDataRange() const))
+START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getDataRange() const))
 {
   PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
-    TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
-    TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
-    TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
+  TEST_EQUAL(tmp.getDataRange().hasRange() == HasRangeType::NONE, true)
 }
 END_SECTION
 
@@ -498,61 +495,60 @@ START_SECTION((virtual void updateRanges()))
   tmp.updateRanges(); //second time to check the initialization
 
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-10.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
-    TEST_EQUAL(tmp.getMSLevels().size(),2)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getMSLevels()[1],3)
-    TEST_EQUAL(tmp.getSize(),4)
-    tmp.updateRanges();
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -10.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
+  TEST_EQUAL(tmp.getMSLevels().size(),2)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getMSLevels()[1],3)
+  TEST_EQUAL(tmp.getSize(),4)
+  tmp.updateRanges();
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-10.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -10.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-    TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[1],5.0)
-    TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[1],10.0)
-    TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[0],30.0)
-    TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[0],50.0)
+  TEST_REAL_SIMILAR(tmp.getDataRange().getMinMZ(), 5.0)
+  TEST_REAL_SIMILAR(tmp.getDataRange().getMaxMZ(), 10.0)
+  TEST_REAL_SIMILAR(tmp.getDataRange().getMinRT(), 30.0)
+  TEST_REAL_SIMILAR(tmp.getDataRange().getMaxRT(), 50.0)
 
-    TEST_EQUAL(tmp.getMSLevels().size(),2)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getMSLevels()[1],3)
+  TEST_EQUAL(tmp.getMSLevels().size(),2)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getMSLevels()[1],3)
 
-    TEST_EQUAL(tmp.getSize(),4)
+  TEST_EQUAL(tmp.getSize(),4)
 
-    //Update for MS level 1
+  //Update for MS level 1
 
-    tmp.updateRanges(1);
+  tmp.updateRanges(1);
   tmp.updateRanges(1);
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
-    tmp.updateRanges(1);
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
+  TEST_EQUAL(tmp.getMSLevels().size(),1)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getSize(),2)
+  tmp.updateRanges(1);
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
+  TEST_EQUAL(tmp.getMSLevels().size(),1)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getSize(),2)
 
-    //test with only one peak
-
-    PeakMap tmp2;
+  // test with only one peak
+  PeakMap tmp2;
   MSSpectrum s2;
   Peak1D p2;
 
@@ -564,19 +560,19 @@ START_SECTION((virtual void updateRanges()))
 
   tmp2.updateRanges();
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
-    tmp2.updateRanges(1);
+  tmp2.updateRanges(1);
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
 }
 END_SECTION
@@ -623,28 +619,27 @@ START_SECTION((void updateRanges(Int ms_level)))
   tmp.updateRanges(1);
   tmp.updateRanges(1);
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
-    tmp.updateRanges(1);
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(),-7.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
+  TEST_EQUAL(tmp.getMSLevels().size(),1)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getSize(),2)
+  tmp.updateRanges(1);
   TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-    TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
-    TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
+  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
+  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
+  TEST_EQUAL(tmp.getMSLevels().size(),1)
+  TEST_EQUAL(tmp.getMSLevels()[0],1)
+  TEST_EQUAL(tmp.getSize(),2)
 
-    //test with only one peak
-
-    PeakMap tmp2;
+  //test with only one peak
+  PeakMap tmp2;
   MSSpectrum s2;
   Peak1D p2;
 
@@ -656,11 +651,11 @@ START_SECTION((void updateRanges(Int ms_level)))
 
   tmp2.updateRanges(1);
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
-    TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinIntensity(),-5.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(),-5.0)
+  TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
 }
 END_SECTION
@@ -1057,17 +1052,16 @@ START_SECTION((void swap(MSExperiment &from)))
   exp1.swap(exp2);
 
   TEST_EQUAL(exp1.getComment(),"")
-    TEST_EQUAL(exp1.size(),0)
-    TEST_REAL_SIMILAR(exp1.getMinInt(),DRange<1>().minPosition()[0])
-    TEST_EQUAL(exp1.getMSLevels().size(),0)
-    TEST_EQUAL(exp1.getSize(),0);
+  TEST_EQUAL(exp1.size(),0)
+  TEST_EQUAL(exp1.getDataRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(exp1.getMSLevels().size(),0)
+  TEST_EQUAL(exp1.getSize(),0);
 
   TEST_EQUAL(exp2.getComment(),"stupid comment")
-    TEST_EQUAL(exp2.size(),1)
-    TEST_REAL_SIMILAR(exp2.getMinInt(),0.5)
-    TEST_EQUAL(exp2.getMSLevels().size(),1)
-    TEST_EQUAL(exp2.getSize(),2);
-
+  TEST_EQUAL(exp2.size(),1)
+  TEST_REAL_SIMILAR(exp2.getMinIntensity(), 0.5)
+  TEST_EQUAL(exp2.getMSLevels().size(),1)
+  TEST_EQUAL(exp2.getSize(),2);
 }
 END_SECTION
 

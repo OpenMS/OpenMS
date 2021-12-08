@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -42,39 +42,22 @@
 
 ///////////////////////////
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 
-class RM
-  : public RangeManager<2>
+// test with additional Mobility (should always be empty)
+using RangeMType = RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+using RangeMTypeInt = RangeManager<RangeIntensity>;
+using RangeMTypeMzInt = RangeManager<RangeMZ, RangeIntensity>;
+
+class RM : public RangeMType
 {
-  public:
-    RM()
-      : RangeManager<2>()
-    {
-
-    }
-
-    RM(const RM& rhs)
-      : RangeManager<2>(rhs)
-    {
-
-    }
-
-    RM& operator = (const RM& rhs)
-    {
-      if (this==&rhs) return *this;
-
-      RangeManager<2>::operator=(rhs);
-
-      return *this;
-    }
-
+  public:       
     bool operator == (const RM& rhs) const
     {
-      return
-        RangeManager<2>::operator==(rhs);
-        ;
+      return RangeMType::operator==(rhs);
     }
 
     bool operator != (const RM& rhs) const
@@ -103,7 +86,12 @@ class RM
       vec.push_back(tmp);
 
       clearRanges();
-      updateRanges_(vec.begin(), vec.end());
+      for (const auto& peak : vec)
+      {
+        extendRT(peak.getRT());
+        extendMZ(peak.getMZ());
+        extendIntensity(peak.getIntensity());
+      }
     }
 
     virtual void updateRanges2()
@@ -117,9 +105,13 @@ class RM
       vec.push_back(tmp);
 
       clearRanges();
-      updateRanges_(vec.begin(), vec.end());
+      for (const auto& peak : vec)
+      {
+        extendRT(peak.getRT());
+        extendMZ(peak.getMZ());
+        extendIntensity(peak.getIntensity());
+      }
     }
-
 }; // class RM
 
 START_TEST(RangeManager, "RangeManager")
@@ -129,29 +121,37 @@ START_TEST(RangeManager, "RangeManager")
 
 RM* ptr;
 RM* nullPointer = nullptr;
-START_SECTION((RangeManager()))
+START_SECTION((RangeMType()))
   ptr = new RM();
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((virtual ~RangeManager()))
+START_SECTION((~RangeMType()))
   delete ptr;
 END_SECTION
 
-START_SECTION((const PositionType& getMin() const))
-  TEST_EQUAL(RM().getMin(), RM::PositionType::maxPositive())
+START_SECTION((double getMinMZ() const))
+  TEST_EQUAL(RM().getMinMZ(), std::numeric_limits<double>::max())
 END_SECTION
 
-START_SECTION((const PositionType& getMax() const))
-  TEST_EQUAL(RM().getMax(), RM::PositionType::minNegative())
+START_SECTION((double getMaxMZ() const))
+  TEST_EQUAL(RM().getMaxMZ(), -std::numeric_limits<double>::max())
 END_SECTION
 
-START_SECTION((double getMinInt() const ))
-  TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<double>::max())
+START_SECTION((double getMinIntensity() const))
+TEST_EQUAL(RM().getMinIntensity(), std::numeric_limits<double>::max())
 END_SECTION
 
-START_SECTION((double getMaxInt() const ))
-  TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<double>::max())
+START_SECTION((double getMaxIntensity() const))
+TEST_EQUAL(RM().getMaxIntensity(), -std::numeric_limits<double>::max())
+END_SECTION
+
+START_SECTION((double getMinMobility() const))
+TEST_EQUAL(RM().getMinMobility(), std::numeric_limits<double>::max())
+END_SECTION
+
+START_SECTION((double getMaxMobility() const))
+TEST_EQUAL(RM().getMaxMobility(), -std::numeric_limits<double>::max())
 END_SECTION
 
 START_SECTION((virtual void updateRanges()=0))
@@ -160,51 +160,111 @@ START_SECTION((virtual void updateRanges()=0))
   rm.updateRanges();
   rm.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
-  TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_EQUAL(rm.RangeRT::isEmpty(), false)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_EQUAL(rm.RangeMZ::isEmpty(), false)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
+  TEST_EQUAL(rm.RangeIntensity::isEmpty(), false)
+  TEST_EQUAL(rm.getMinMobility(), std::numeric_limits<double>::max())
+  TEST_EQUAL(rm.getMaxMobility(), -std::numeric_limits<double>::max())
+  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
 
   //test with only one point
   rm.updateRanges2(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMax()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMax()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxInt(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 1.0)
 END_SECTION
+
+
+START_SECTION(HasRangeType hasRange() const)
+  RM rm;
+  TEST_EQUAL(rm.hasRange() == HasRangeType::NONE, true);
+  rm.updateRanges();
+  TEST_EQUAL(rm.hasRange() == HasRangeType::SOME, true);
+  rm.extendMobility(56.4);
+  TEST_EQUAL(rm.hasRange() == HasRangeType::ALL, true);
+END_SECTION
+
+START_SECTION(template<typename... RangeBasesOther>
+              void extend(const RangeManager<RangeBasesOther...>& rhs))
+  RM rm;
+  rm.updateRanges();
+  RangeMTypeMzInt mid;
+  mid.assign(rm); // assigns only overlapping dimensions
+  TEST_REAL_SIMILAR(mid.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(mid.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(mid.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(mid.getMaxIntensity(), 47110.0)
+
+  RangeMTypeInt small;
+  small.extendIntensity(123456.7);
+  mid.extend(small);
+  TEST_REAL_SIMILAR(mid.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(mid.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(mid.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(mid.getMaxIntensity(), 123456.7)
+  END_SECTION
 
 START_SECTION((void clearRanges()))
   RM rm;
   rm.updateRanges();
-  TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
-  TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
+  TEST_EQUAL(rm.RangeRT::isEmpty(), false)
+  TEST_EQUAL(rm.RangeMZ::isEmpty(), false)
+  TEST_EQUAL(rm.RangeIntensity::isEmpty(), false)
+  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
 
   rm.clearRanges();
-  TEST_EQUAL(RM().getMin(), RM::PositionType::maxPositive())
-  TEST_EQUAL(RM().getMax(), RM::PositionType::minNegative())
-  TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<double>::max())
+  TEST_EQUAL(rm.getMinRT(), std::numeric_limits<double>::max())
+  TEST_EQUAL(rm.getMaxRT(), -std::numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), -numeric_limits<double>::max())
+  TEST_EQUAL(rm.RangeRT::isEmpty(), true)
+  TEST_EQUAL(rm.RangeMZ::isEmpty(), true)
+  TEST_EQUAL(rm.RangeIntensity::isEmpty(), true)
+  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
 END_SECTION
+
+
+START_SECTION(void printRange(std::ostream& out) const)
+  RM rm;
+  rm.extendRT(1.0);
+  rm.extendMZ(2.0);
+  rm.extendIntensity(3.0);
+  rm.extendMobility(4.0);
+  stringstream ss;
+  rm.printRange(ss);
+  TEST_EQUAL(ss.str(), "rt: [1, 1]\n"
+                       "mz: [2, 2]\n"
+                       "intensity: [3, 3]\n"
+                       "mobility: [4, 4]\n");
+END_SECTION
+
 
 START_SECTION((RangeManager(const RangeManager& rhs)))
   RM rm0;
   rm0.updateRanges();
   RM rm(rm0);
-  TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
-  TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
 END_SECTION
 
 START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
@@ -212,12 +272,12 @@ START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
   rm0.updateRanges();
   RM rm;
   rm = rm0;
-  TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
-  TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
-  TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
-  TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
 END_SECTION
 
 START_SECTION((bool operator == (const RangeManager& rhs) const))
