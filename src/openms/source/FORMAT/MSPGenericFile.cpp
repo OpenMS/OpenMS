@@ -170,7 +170,6 @@ namespace OpenMS
       {
         output_file << "Name: " << spectrum.getName() << '\n';
         output_file << "Retention Time: " << spectrum.getRT() << '\n';
-		
         const auto& synonyms = spectrum.getMetaValue("Synon");
         if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
