@@ -486,8 +486,6 @@ namespace OpenMS
      header.emplace_back(String("abundance_assay[") + String(a.first) + String("]"));
    }
 
-   //TODO:  opt_{identifier}_*
-
    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
    n_columns = header.size();
    return ListUtils::concatenate(header, "\t");
@@ -513,8 +511,7 @@ namespace OpenMS
       s.emplace_back(feature_abundance.second.toCellString());
     }
 
-    // TODO: add optional columns
-    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }
@@ -602,6 +599,7 @@ namespace OpenMS
     StringList out;
     generateMzTabMMetaDataSection_(mztab_m.getMetaData(), out);
 
+    // TODO: add opt_ to mztab-m summary
     std::vector<String> optional_columns;
 
     size_t n_sml_header_columns = 0;
@@ -623,10 +621,10 @@ namespace OpenMS
     }
 
     size_t n_smf_header_columns = 0;
-    std::vector<String> smf_optional_columns;
+
     out.emplace_back("");
     out.emplace_back(generateMzTabMSmallMoleculeFeatureHeader_(mztab_m.getMetaData(),
-                                                               optional_columns,
+                                                               mztab_m.getMSmallMoleculeFeatureOptionalColumnNames(),
                                                                n_smf_header_columns));
 
     size_t n_smf_section_columns = 0;
@@ -634,7 +632,7 @@ namespace OpenMS
     for (const auto& smf_row : feature_section)
     {
       out.emplace_back(generateMzTabMSmallMoleculeFeatureSectionRow_(smf_row,
-                                                                     optional_columns,
+                                                                     mztab_m.getMSmallMoleculeFeatureOptionalColumnNames(),
                                                                      n_smf_section_columns));
 
       OPENMS_POSTCONDITION(n_smf_header_columns == n_smf_section_columns,
@@ -642,10 +640,9 @@ namespace OpenMS
     }
 
     size_t n_sme_header_columns = 0;
-    std::vector<String> sme_optional_columns;
     out.emplace_back("");
     out.emplace_back(generateMzTabMSmallMoleculeEvidenceHeader_(mztab_m.getMetaData(),
-                                                                sme_optional_columns,
+                                                                mztab_m.getMSmallMoleculeEvidenceOptionalColumnNames(),
                                                                 n_sme_header_columns));
 
     size_t n_sme_section_columns = 0;
@@ -653,7 +650,7 @@ namespace OpenMS
     for (const auto& sme_row : evidence_section)
     {
       out.emplace_back(generateMzTabMSmallMoleculeEvidenceSectionRow_(sme_row,
-                                                                      optional_columns,
+                                                                      mztab_m.getMSmallMoleculeEvidenceOptionalColumnNames(),
                                                                       n_sme_section_columns));
 
       OPENMS_POSTCONDITION(n_sme_header_columns == n_sme_section_columns,
@@ -668,6 +665,27 @@ namespace OpenMS
       tmp_out.addLine(*it);
     }
     tmp_out.store(filename);
+  }
+
+  void MzTabMFile::addOptionalColumnsToSectionRow_(const std::vector<String>& column_names, const std::vector<MzTabOptionalColumnEntry>& column_entries, StringList& output) const
+  {
+    for (std::vector<String>::const_iterator it = column_names.begin(); it != column_names.end(); ++it)
+    {
+      bool found = false;
+      for (Size i = 0; i != column_entries.size(); ++i)
+      {
+        if (column_entries[i].first == *it)
+        {
+          output.push_back(column_entries[i].second.toCellString());
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+      {
+        output.push_back(MzTabString("null").toCellString());
+      }
+    }
   }
 
 }

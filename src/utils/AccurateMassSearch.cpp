@@ -181,8 +181,6 @@ protected:
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      // annotate output with data processing info
-      // addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
       if (file_ann.hasSuffix("featureXML"))
       {
@@ -208,20 +206,18 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      // annotate output with data processing info
-      // addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       if (!file_ann.empty())
       {
         ConsensusXMLFile().store(file_ann, ms_cons_map);
       }
     }
 
-    if(mztabm && !(filetype == FileTypes::CONSENSUSXML))
+    if(mztabm && !(filetype == FileTypes::CONSENSUSXML))  // works for FeatureMap only (featureXML input)
     {
       MzTabMFile mztabm_file;
       mztabm_file.store(out, mztabm_output);
     }
-    else // currently works for FeatureMap (featureXML input)
+    else
     {
       MzTabFile mztab_file;
       mztab_file.store(out, mztab_output);

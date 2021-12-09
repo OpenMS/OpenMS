@@ -249,7 +249,9 @@ namespace OpenMS
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getMSmallMoleculeEvidenceOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys,
+                                             std::vector<MzTabOptionalColumnEntry>& opt,
+                                             const String& id, const MetaInfoInterface& meta);
 
   /**
   * @brief Export metabolite identifications to MzTabM
@@ -271,6 +273,40 @@ namespace OpenMS
     std::vector<String> sme_optional_column_names_;
 
     static String getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref);
+
+    static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
+                                         std::set<String>& feature_user_value_keys,
+                                         std::set<String>& observationmatch_user_value_keys,
+                                         std::set<String>& compound_user_value_keys);
+
+    template <class ForwardIterator>
+    static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)
+    {
+      while (first!=last)
+      {
+        first->substitute(' ', '_');
+        ++first;
+      }
+    }
+
+    static void replaceWhiteSpaces_(std::set<String>& keys)
+    {
+      std::set<String> tmp_keys;
+      auto first = keys.begin();
+      while (first != keys.end())
+      {
+        String s = *first;
+        s.substitute(' ', '_');
+        tmp_keys.insert(std::move(s));
+        ++first;
+      }
+      std::swap(keys, tmp_keys);
+    }
+
   };
 
 } // namespace OpenMS
+
+
+
+

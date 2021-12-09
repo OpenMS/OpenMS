@@ -119,6 +119,40 @@ namespace OpenMS
     }
   }
 
+  void MzTabM::getFeatureMapMetaValues_(const FeatureMap& feature_map,
+                                        std::set<String>& feature_user_value_keys,
+                                        std::set<String>& observationmatch_user_value_keys,
+                                        std::set<String>& compound_user_value_keys)
+  {
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      // feature section optional columns
+      const Feature& f = feature_map[i];
+      std::vector<String> keys;
+      f.getKeys(keys);
+      replaceWhiteSpaces_(keys.begin(), keys.end());
+      feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      auto match_refs = f.getIDMatches();
+      for (const IdentificationDataInternal::ObservationMatchRef& match_ref : match_refs)
+      {
+        // feature section optional columns
+        std::vector<String> obsm_keys;
+        match_ref->getKeys(obsm_keys);
+        replaceWhiteSpaces_(obsm_keys.begin(), obsm_keys.end());
+        observationmatch_user_value_keys.insert(obsm_keys.begin(), obsm_keys.end());
+
+        // evidence section optional columns
+        IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
+        IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
+        std::vector<String> compound_keys;
+        compound_ref->getKeys(compound_keys);
+        replaceWhiteSpaces_(compound_keys.begin(), compound_keys.end());
+        compound_user_value_keys.insert(compound_keys.begin(), compound_keys.end());
+      }
+    }
+  }
+
   // FeatureMap with associated identification data
   MzTabM MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map)
   {
@@ -128,6 +162,16 @@ namespace OpenMS
     // extract identification data from FeatureMap
     // has to be passed as const & if not the references might change!
     const IdentificationData& id_data = feature_map.getIdentificationData();
+
+    // extract MetaValues from FeatureMap
+    std::set<String> feature_user_value_keys;
+    std::set<String> observationmatch_user_value_keys;
+    std::set<String> compound_user_value_keys;
+    MzTabM::getFeatureMapMetaValues_(feature_map, feature_user_value_keys, observationmatch_user_value_keys, compound_user_value_keys);
+
+    // ####################################################
+    // MzTabMetaData
+    // ####################################################
 
     std::regex reg_backslash{R"(\\)"};
     UInt64 local_id = feature_map.getUniqueId();
@@ -175,12 +219,11 @@ namespace OpenMS
     // contact mail (not mandatory)
     // uri (not mandatory)
     // ext. study uri (not mandatory)
-    // quantification_method (mandatory)
 
+    // quantification_method (mandatory)
     MzTabParameter quantification_method;
     quantification_method.setNull(true);
     std::map<String, std::vector<String>> action_software_name;
-    // TODO: are the actions decoupled or is that the other way round?!
     for (const auto& step : id_data.getProcessingSteps())
     {
       IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
@@ -480,6 +523,10 @@ namespace OpenMS
                       << "Please check if the ProcessingActions are set correctly!" << std::endl;
     }
 
+    // ####################################################
+    //
+    // ####################################################
+
     int feature_section_entry_counter = 1;
     int evidence_section_entry_counter = 1;
     for (auto& f : feature_map) // iterate over features and fill all sections
@@ -509,8 +556,7 @@ namespace OpenMS
         smf.rt_end.setNull(true); // TODO: haw to get that information in the future
         smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
-        // TODO: how do we add opt_ columns check MzTab
-        // TODO: based on the additional MetaValues with are at the feautre level?!
+        addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
 
         smfs.emplace_back(smf);
         ++feature_section_entry_counter;
@@ -560,7 +606,9 @@ namespace OpenMS
             sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
-          // TODO: How to add opt_ columns
+
+          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, String("global"), *match_ref);
+          addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_, String("global"), *compound_ref);
 
           evidence_id_ref_per_adduct[adduct].emplace_back(evidence_section_entry_counter);
           evidence_section_entry_counter += 1;
@@ -595,7 +643,8 @@ namespace OpenMS
           smf.rt_start.setNull(true); // TODO: how to get that information in the future
           smf.rt_end.setNull(true); // TODO: haw to get that information in the future
           smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
-          // TODO: how do we add opt_ columns check MzTab
+
+          addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
 
           smfs.emplace_back(smf);
           ++feature_section_entry_counter;
@@ -652,7 +701,8 @@ namespace OpenMS
       sml.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;
       sml.small_molecule_abundance_study_variable[1].setNull(true);
       sml.small_molecule_abundance_variation_study_variable[1].setNull(true);
-      // TODO: How to add opt cols_
+      // TODO: How to add opt cols_ from feature and evidence section?
+
 
       smls.emplace_back(sml);
     }
