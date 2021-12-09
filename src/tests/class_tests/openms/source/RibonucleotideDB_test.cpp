@@ -101,7 +101,6 @@ START_SECTION(EmpiricalFormula getBaselossFormula())
   TEST_EQUAL(EmpiricalFormula("C5H10O4") == dna->getBaselossFormula(), true);
   const Ribonucleotide* rnam = ptr->getRibonucleotide("Um");
   TEST_EQUAL(EmpiricalFormula("C6H12O5") == rnam->getBaselossFormula(), true);
-
 }
 END_SECTION
 
