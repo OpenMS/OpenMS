@@ -172,6 +172,16 @@ namespace OpenMS
     return (*peak_map_)[spectrum_idx];
   }
 
+  float LayerDataBase::getMinIntensity() const
+  {
+    return getRange().getMinIntensity();
+  }
+
+  float LayerDataBase::getMaxIntensity() const
+  {
+    return getRange().getMaxIntensity();
+  }
+
   void LayerDataBase::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached

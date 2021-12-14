@@ -447,10 +447,10 @@ START_SECTION((UInt64 getSize() const ))
 }
 END_SECTION
 
-START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getDataRange() const))
+START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getRange() const))
 {
   PeakMap tmp;
-  TEST_EQUAL(tmp.getDataRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(tmp.getRange().hasRange() == HasRangeType::NONE, true)
 }
 END_SECTION
 
@@ -512,10 +512,10 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-  TEST_REAL_SIMILAR(tmp.getDataRange().getMinMZ(), 5.0)
-  TEST_REAL_SIMILAR(tmp.getDataRange().getMaxMZ(), 10.0)
-  TEST_REAL_SIMILAR(tmp.getDataRange().getMinRT(), 30.0)
-  TEST_REAL_SIMILAR(tmp.getDataRange().getMaxRT(), 50.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMinMZ(), 5.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMaxMZ(), 10.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMinRT(), 30.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMaxRT(), 50.0)
 
   TEST_EQUAL(tmp.getMSLevels().size(),2)
   TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -1053,7 +1053,7 @@ START_SECTION((void swap(MSExperiment &from)))
 
   TEST_EQUAL(exp1.getComment(),"")
   TEST_EQUAL(exp1.size(),0)
-  TEST_EQUAL(exp1.getDataRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(exp1.getRange().hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(exp1.getMSLevels().size(),0)
   TEST_EQUAL(exp1.getSize(),0);
 

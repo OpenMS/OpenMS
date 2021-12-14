@@ -144,6 +144,26 @@ START_SECTION(bool isEmpty() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
+START_SECTION(bool contains(const double value) const)
+  RangeBase b(4, 6);
+  TEST_EQUAL(b.contains(5), true)
+  TEST_EQUAL(b.contains(3), false)
+  TEST_EQUAL(b.contains(7), false)
+  RangeBase empty;
+  TEST_EQUAL(empty.contains(5), false)
+END_SECTION
+
+START_SECTION(bool contains(const RangeBase& inner_range) const)
+  RangeBase b(2, 6), inner1(2,4), inner2(3,4), inner3(4,6), over1(1,4), over2(3,7), outer(1,7);
+  TEST_EQUAL(b.contains(inner1), true)
+  TEST_EQUAL(b.contains(inner2), true)
+  TEST_EQUAL(b.contains(inner3), true)
+  TEST_EQUAL(b.contains(over1), false)
+  TEST_EQUAL(b.contains(over2), false)
+  TEST_EQUAL(b.contains(outer), false)
+  TEST_EQUAL(outer.contains(b), true)
+END_SECTION
+
 START_SECTION(void setMin(const double min))
   RangeBase b(4, 6);
   b.setMin(5);
@@ -298,6 +318,38 @@ START_SECTION(HasRangeType hasRange() const)
 END_SECTION
 
 START_SECTION(template<typename... RangeBasesOther>
+              bool containsAll(const RangeManager<RangeBasesOther...>& rhs) const)
+  RM rm;
+  rm.updateRanges();
+  RM outer = rm;
+  TEST_EQUAL(rm.containsAll(outer), true);
+  TEST_EQUAL(outer.containsAll(rm), true);
+  outer.scaleBy(1.1);
+  TEST_EQUAL(rm.containsAll(outer), false);
+  TEST_EQUAL(outer.containsAll(rm), true);
+  outer.scaleBy(0.5);
+  TEST_EQUAL(rm.containsAll(outer), true);
+  TEST_EQUAL(outer.containsAll(rm), false);
+  
+  outer = rm;
+  // empty dimensions in the rhs are considered contained
+  outer.extendMobility(56.4); // rm.mobility is empty
+  TEST_EQUAL(rm.containsAll(outer), false);
+  TEST_EQUAL(outer.containsAll(rm), true);
+  // empty dimensions do not count
+  outer.RangeMZ::scaleBy(0.5); // mz range is smaller
+  rm.RangeMZ::clear();         // but now does not count anymore
+  TEST_EQUAL(rm.containsAll(outer), false); // due to mobility from above
+  TEST_EQUAL(outer.containsAll(rm), true);
+
+  // no ranges overlap...
+  RangeManager<RangeRT, RangeMZ> rmz;
+  RangeManager<RangeIntensity, RangeMobility> im;
+  TEST_EXCEPTION(Exception::InvalidRange, rmz.containsAll(im))
+
+END_SECTION
+
+START_SECTION(template<typename... RangeBasesOther>
               void extend(const RangeManager<RangeBasesOther...>& rhs))
   RM rm;
   rm.updateRanges();
@@ -328,6 +380,14 @@ START_SECTION(void scaleBy(const double factor))
   TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0 - (47109.0/2))
   TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0 + (47109.0/2))
   TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
+
+  // scaling a dimension where min == max does nothing
+  RangeManager<RangeRT, RangeMZ> rtmz;
+  rtmz.extendMZ(100);
+  rtmz.extendRT(50);
+  auto copy = rtmz;
+  rtmz.scaleBy(2.0);
+  TEST_EQUAL(rtmz, copy)
 
   // scaling empty dimensions does nothing
   RM rm_empty, rm_empty2;

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm> // for min/max
 #include <cassert>
@@ -504,20 +505,26 @@ namespace OpenMS
     }
 
     /// Are all dimensions of @p rhs (which overlap with this Range) contained in this range?
-    /// If a dimension overlaps but is empty in at least one Range, it is ignored.
+    /// An empty dimension is considered contained in the other dimension (even if that one is empty as well).
+    /// If only all overlapping dimensions are empty, true is returned.
+    /// @throws Exception::InvalidRange if no dimensions overlap
     template<typename... RangeBasesOther>
-    bool containsAll(const RangeManager<RangeBasesOther...>& rhs)
+    bool containsAll(const RangeManager<RangeBasesOther...>& rhs) const
     {
       bool contained = true; // assume rhs is contained, until proven otherwise
+      bool has_overlap = false;
       for_each_base([&](auto* base) {
         using T_BASE = std::decay_t<decltype(*base)>;
         if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
         {
-          if (base->isEmpty() || ((T_BASE&) rhs).isEmpty()) return;
+          has_overlap = true; // at least one dimension overlaps
+          if (((T_BASE&)rhs).isEmpty()) return;
           if (base->contains((T_BASE&) rhs)) return;
           contained = false;
         }
       });
+      if (!has_overlap) throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+
       return contained;
     }
 
