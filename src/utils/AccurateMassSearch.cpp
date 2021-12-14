@@ -119,16 +119,16 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-                        Param getSubsectionDefaults_(const String& /*section*/) const override
-                        {
-                          Param p = AccurateMassSearchEngine().getDefaults();
-                          // remove params which are already registered at top level (see registerOptionsAndFlags_())
-                          p.remove("db:mapping");
-                          p.remove("db:struct");
-                          p.remove("positive_adducts");
-                          p.remove("negative_adducts");
-                          return p;
-                        }
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    Param p = AccurateMassSearchEngine().getDefaults();
+    // remove params which are already registered at top level (see registerOptionsAndFlags_())
+    p.remove("db:mapping");
+    p.remove("db:struct");
+    p.remove("positive_adducts");
+    p.remove("negative_adducts");
+    return p;
+  }
 
   ExitCodes main_(int, const char**) override
   {
