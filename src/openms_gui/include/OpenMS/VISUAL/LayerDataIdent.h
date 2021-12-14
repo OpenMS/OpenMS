@@ -65,14 +65,16 @@ namespace OpenMS
       // nothing to do...
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return -1;
-    }
-
-    float getMaxIntensity() const override
-    {
-      return -1;
+      RangeAllType r;
+      for (const PeptideIdentification& pep : peptides_)
+      {
+        r.extendRT(pep.getRT());
+        r.extendMZ(pep.getMZ());
+      }
+      r.extendIntensity(0);
+      return r;
     }
 
     virtual const PepIds& getPeptideIds() const override

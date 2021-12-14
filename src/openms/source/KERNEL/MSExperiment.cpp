@@ -321,14 +321,6 @@ namespace OpenMS
     return RangeManagerType::getMaxRT();
   }
 
-  /**
-    @brief Returns RT, m/z and intensity range the data lies in.
-  */
-  const MSExperiment::RangeManagerType& MSExperiment::getDataRange() const
-  {
-    return *this;
-  }
-
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
   {

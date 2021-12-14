@@ -154,7 +154,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    void updateRanges()
+    void updateRanges() override
     {
       clearRanges();
       for (const auto& peak : (ContainerType&) *this)

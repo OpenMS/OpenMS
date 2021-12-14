@@ -64,14 +64,11 @@ namespace OpenMS
       consensus_map_->updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getConsensusMap()->getMinIntensity();
-    }
-
-    float getMaxIntensity() const override
-    {
-      return getConsensusMap()->getMaxIntensity();
+      RangeAllType r;
+      r.assign(*getConsensusMap());
+      return r;
     }
   };
 

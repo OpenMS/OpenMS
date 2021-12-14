@@ -66,14 +66,28 @@ namespace OpenMS
         throw "Invalid initialization of range";
     }
 
+    /// make the range empty, i.e. isEmpty() will be true
     void clear()
     {
       *this = RangeBase(); // overwrite with fresh instance
     }
 
+    /// is the range empty (i.e. default constructed or cleared using clear())?
     bool isEmpty() const
     { // invariant: only possible when default constructed or clear()'ed
       return min_ > max_; 
+    }
+
+    /// is @p value within [min, max]?
+    bool contains(const double value) const
+    {
+      return min_ <= value && value <= max_;
+    }
+
+    /// is the range @p r within [min, max]?
+    bool contains(const RangeBase& inner_range) const
+    {
+      return contains(inner_range.min_) && contains(inner_range.max_);
     }
 
     /** @name Accessors for min and max
@@ -123,6 +137,25 @@ namespace OpenMS
     {
       min_ = std::min(min_, value);
       max_ = std::max(max_, value);
+    }
+
+    /**
+       @brief Scale the range of the dimension by a @p factor. A factor > 1 increases the range; factor < 1 decreases it.
+
+       Let d = max - min; then min = min - d*(factor-1)/2,
+       i.e. scale(1.5) extends the range by 25% on each side.
+ 
+       Scaling an empty range will not have any effect.
+
+       @param factor The multiplier to increase the range by
+    */
+    void scaleBy(const double factor)
+    {
+      if (isEmpty()) return;
+      const double dist = max_ - min_;
+      const double extension = dist * (factor - 1) / 2;
+      min_ -= extension;
+      max_ += extension;
     }
 
     void assign(const RangeBase& rhs)
@@ -428,6 +461,14 @@ namespace OpenMS
       }
     }
 
+    /// calls RangeBase::scale() for each dimension
+    void scaleBy(const double factor)
+    {
+      for_each_base([&](auto* base) {
+        base->scaleBy(factor);
+      });
+    }
+
     /// obtain a range dimension at runtime using @p dim
     RangeBase& getRangeForDim(MSDim dim)
     {
@@ -460,6 +501,24 @@ namespace OpenMS
         default:
           return HasRangeType::SOME;
       }
+    }
+
+    /// Are all dimensions of @p rhs (which overlap with this Range) contained in this range?
+    /// If a dimension overlaps but is empty in at least one Range, it is ignored.
+    template<typename... RangeBasesOther>
+    bool containsAll(const RangeManager<RangeBasesOther...>& rhs)
+    {
+      bool contained = true; // assume rhs is contained, until proven otherwise
+      for_each_base([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>;
+        if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
+        {
+          if (base->isEmpty() || ((T_BASE&) rhs).isEmpty()) return;
+          if (base->contains((T_BASE&) rhs)) return;
+          contained = false;
+        }
+      });
+      return contained;
     }
 
     /// Resets all ranges
@@ -507,14 +566,29 @@ namespace OpenMS
     return out;
   }
 
-  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface.
+  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface 
+  /// and provides a 'getRange()' member which saves casting to a range type manually
   template <typename ...RangeBases>
   class RangeManagerContainer
     : public RangeManager<RangeBases...>
   {
+    public:
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.
     virtual void updateRanges() = 0;
+
+    /// get range of current data (call updateRanges() before to ensure the range is accurate)
+    const RangeManager<RangeBases...>& getRange() const
+    {
+      return (RangeManager<RangeBases...>&) *this;
+    }
+
+    /// get mutable range, provided for efficiency reasons (avoid updateRanges(), if only minor changes were made)
+    RangeManager<RangeBases...>& getRange()
+    {
+      return (RangeManager<RangeBases...>&)*this;
+    }
+    
   };
 
 }  // namespace OpenMS

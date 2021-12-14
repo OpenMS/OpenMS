@@ -119,6 +119,109 @@ START_TEST(RangeManager, "RangeManager")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+// tests for RangeBase
+
+START_SECTION(RangeBase())
+  RangeBase b;
+  TEST_EQUAL(b.isEmpty(), true)
+END_SECTION
+
+START_SECTION(RangeBase(const double min, const double max))
+  RangeBase b(4, 6);
+  TEST_EQUAL(b.isEmpty(), false)
+  TEST_EQUAL(b.getMin(), 4)
+  TEST_EQUAL(b.getMax(), 6)
+END_SECTION
+
+START_SECTION(void clear())
+  RangeBase b(4, 6);
+  TEST_EQUAL(b.isEmpty(), false)
+  b.clear();
+  TEST_EQUAL(b.isEmpty(), true)
+END_SECTION
+
+START_SECTION(bool isEmpty() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(void setMin(const double min))
+  RangeBase b(4, 6);
+  b.setMin(5);
+  TEST_EQUAL(b.getMin(), 5)
+  b.setMin(7);// also increases max
+  TEST_EQUAL(b.getMin(), 7)
+  TEST_EQUAL(b.getMax(), 7);
+END_SECTION
+
+START_SECTION(void setMax(const double max))
+  RangeBase b(4, 6);
+  b.setMax(5);
+  TEST_EQUAL(b.getMax(), 5)
+  b.setMax(2);// also decreases min
+  TEST_EQUAL(b.getMin(), 2)
+  TEST_EQUAL(b.getMax(), 2);
+END_SECTION
+
+START_SECTION(double getMin() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(double getMax() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(void extend(const RangeBase& other))
+  RangeBase b(4, 6);
+  RangeBase other(1, 8);  
+  b.extend(other);
+  TEST_EQUAL(b.getMin(), 1)
+  TEST_EQUAL(b.getMax(), 8)
+END_SECTION
+
+/// extend the range such that it includes the given @p value
+START_SECTION(void extend(const double value))
+  RangeBase b(4, 6);
+  b.extend(1);
+  TEST_EQUAL(b.getMin(), 1)
+  TEST_EQUAL(b.getMax(), 6)
+  RangeBase b2(4, 6);
+  b2.extend(8);
+  TEST_EQUAL(b2.getMin(), 4)
+  TEST_EQUAL(b2.getMax(), 8)
+  RangeBase b3(4, 6);
+  b3.extend(5);
+  TEST_EQUAL(b3.getMin(), 4)
+  TEST_EQUAL(b3.getMax(), 6)
+END_SECTION
+
+START_SECTION(void scaleBy(const double factor))
+  RangeBase b(4, 6);
+  b.scaleBy(10); // diff is 2, so extend distance to 20, by increase of 9 on each side
+  TEST_EQUAL(b.getMin(), 4-9)
+  TEST_EQUAL(b.getMax(), 6+9)
+
+  // scaling empty ranges does nothing
+  RangeBase empty1, empty2;
+  empty1.scaleBy(10);
+  TEST_EQUAL(empty1, empty2)
+END_SECTION
+
+START_SECTION(void assign(const RangeBase& rhs))
+  RangeBase b(4, 6), empty;
+  empty.assign(b);
+  TEST_EQUAL(empty.getMin(), 4)
+  TEST_EQUAL(empty.getMax(), 6)
+END_SECTION
+
+START_SECTION(bool operator==(const RangeBase& rhs) const)
+  RangeBase b(4, 6), empty;
+  TEST_EQUAL(b == empty, false)
+  TEST_EQUAL(b == b, true)
+  TEST_EQUAL(empty == empty, true)
+END_SECTION
+
+
+
 RM* ptr;
 RM* nullPointer = nullptr;
 START_SECTION((RangeMType()))
@@ -212,7 +315,42 @@ START_SECTION(template<typename... RangeBasesOther>
   TEST_REAL_SIMILAR(mid.getMaxMZ(), 1300.0)
   TEST_REAL_SIMILAR(mid.getMinIntensity(), 1.0)
   TEST_REAL_SIMILAR(mid.getMaxIntensity(), 123456.7)
-  END_SECTION
+END_SECTION
+
+START_SECTION(void scaleBy(const double factor))
+  RM rm;
+  rm.updateRanges();
+  rm.scaleBy(2);
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0-49)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0+49)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0-400)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0+400)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0 - (47109.0/2))
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0 + (47109.0/2))
+  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
+
+  // scaling empty dimensions does nothing
+  RM rm_empty, rm_empty2;
+  rm_empty.scaleBy(4);
+  TEST_EQUAL(rm_empty, rm_empty2)
+END_SECTION
+
+START_SECTION(RangeBase& getRangeForDim(MSDim dim))
+  RM rm;
+  rm.updateRanges();
+  auto rt = rm.getRangeForDim(MSDim::RT);
+  auto mz = rm.getRangeForDim(MSDim::MZ);
+  auto in = rm.getRangeForDim(MSDim::INT);
+  auto im = rm.getRangeForDim(MSDim::IM);
+  TEST_REAL_SIMILAR(rt.getMin(), 2.0)
+  TEST_REAL_SIMILAR(mz.getMin(), 500.0)
+  TEST_REAL_SIMILAR(rt.getMax(), 100.0)
+  TEST_REAL_SIMILAR(mz.getMax(), 1300.0)
+  TEST_REAL_SIMILAR(in.getMin(), 1.0)
+  TEST_REAL_SIMILAR(in.getMax(), 47110.0)
+  TEST_EQUAL(rt.isEmpty(), false)
+  TEST_EQUAL(im.isEmpty(), true)
+END_SECTION
 
 START_SECTION((void clearRanges()))
   RM rm;

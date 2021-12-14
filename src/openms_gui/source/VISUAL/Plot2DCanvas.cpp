@@ -2972,7 +2972,7 @@ namespace OpenMS
       }
 
       // update gradient if the min/max intensity changes
-      if (tmp.getIntensity() < current_layer.getFeatureMap()->getMinInt() || tmp.getIntensity() > current_layer.getFeatureMap()->getMaxInt())
+      if (!current_layer.getFeatureMap()->getRange().RangeIntensity::contains(tmp.getIntensity()))
       {
         current_layer.getFeatureMap()->updateRanges();
         recalculateRanges_(0, 1, 2);
@@ -2999,20 +2999,19 @@ namespace OpenMS
     {
       layer.getFeatureMap()->push_back((*map)[j]);
     }
-    //update the layer and overall ranges (if necessary)
-    RangeManager<2>::PositionType min_pos_old = layer.getFeatureMap()->getMin();
-    RangeManager<2>::PositionType max_pos_old = layer.getFeatureMap()->getMax();
-    double min_int_old = layer.getFeatureMap()->getMinInt();
-    double max_int_old = layer.getFeatureMap()->getMaxInt();
+    // update the layer and overall ranges (if necessary)
+    auto old_range = layer.getFeatureMap()->getRange();
     layer.getFeatureMap()->updateRanges();
-    if (min_pos_old > layer.getFeatureMap()->getMin() || max_pos_old < layer.getFeatureMap()->getMax())
+    if (!old_range.RangeIntensity::contains(layer.getFeatureMap()->getRangeForDim(MSDim::INT)))
+    {
+      intensityModeChange_();
+    }
+    // clear intensity range and compare the remaining dimensions
+    old_range.RangeIntensity::clear();
+    if (!old_range.containsAll(layer.getFeatureMap()->getRange()))
     {
       recalculateRanges_(0, 1, 2);
       resetZoom(true);
-    }
-    if (min_int_old > layer.getFeatureMap()->getMinInt() || max_int_old < layer.getFeatureMap()->getMaxInt())
-    {
-      intensityModeChange_();
     }
   }
 
@@ -3021,26 +3020,25 @@ namespace OpenMS
     LayerDataBase& layer = layers_.getLayer(i);
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_CONSENSUS, "Plot2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");
     //reserve enough space
-    layer.getConsensusMap()->reserve(layer.getFeatureMap()->size() + map->size());
+    layer.getConsensusMap()->reserve(layer.getConsensusMap()->size() + map->size());
     //add features
     for (Size j = 0; j < map->size(); ++j)
     {
       layer.getConsensusMap()->push_back((*map)[j]);
     }
-    //update the layer and overall ranges (if necessary)
-    RangeManager<2>::PositionType min_pos_old = layer.getConsensusMap()->getMin();
-    RangeManager<2>::PositionType max_pos_old = layer.getConsensusMap()->getMax();
-    double min_int_old = layer.getConsensusMap()->getMinInt();
-    double max_int_old = layer.getConsensusMap()->getMaxInt();
+    // update the layer and overall ranges (if necessary)
+    auto old_range = layer.getConsensusMap()->getRange();
     layer.getConsensusMap()->updateRanges();
-    if (min_pos_old > layer.getConsensusMap()->getMin() || max_pos_old < layer.getConsensusMap()->getMax())
+    if (!old_range.RangeIntensity::contains(layer.getConsensusMap()->getRangeForDim(MSDim::INT)))
+    {
+      intensityModeChange_();
+    }
+    // clear intensity range and compare the remaining dimensions
+    old_range.RangeIntensity::clear();
+    if (!old_range.containsAll(layer.getConsensusMap()->getRange()))
     {
       recalculateRanges_(0, 1, 2);
       resetZoom(true);
-    }
-    if (min_int_old > layer.getConsensusMap()->getMinInt() || max_int_old < layer.getConsensusMap()->getMaxInt())
-    {
-      intensityModeChange_();
     }
   }
 

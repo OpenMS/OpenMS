@@ -448,13 +448,6 @@ public:
     /// returns the maximal retention time value
     CoordinateType getMaxRT() const;
 
-    /**
-      @brief Returns RT and m/z range the data lies in.
-
-      RT is dimension 0, m/z is dimension 1
-    */
-    const RangeManagerType& getDataRange() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
