@@ -105,3 +105,4 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
 
+        int getPrecursorSpectrum(int zero_based_index) nogil except + # wrap-doc: Returns the index of the precursor spectrum for spectrum at index @p zero_based_index

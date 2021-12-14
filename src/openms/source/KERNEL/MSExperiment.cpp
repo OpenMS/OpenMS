@@ -640,6 +640,16 @@ namespace OpenMS
     return spectra_.end();
   }
 
+  // same as above but easier to wrap in python
+  int MSExperiment::getPrecursorSpectrum(int zero_based_index) const
+  {
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getPrecursorSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin(); 
+  }
+
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {

@@ -1007,27 +1007,57 @@ START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
   exp[4].setMSLevel(2);
 
   TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.begin(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.begin()+2,true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.begin()+2,true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.begin(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.begin()+2,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.begin()+2,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
 
-    exp[0].setMSLevel(2);
+  exp[0].setMSLevel(2);
   exp[1].setMSLevel(1);
   exp[2].setMSLevel(1);
   exp[3].setMSLevel(1);
   exp[4].setMSLevel(1);
 
   TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
-    TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
-
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
 }
 END_SECTION
+
+START_SECTION((int getPrecursorSpectrum(int zero_based_index) const))
+{
+  PeakMap exp;
+  exp.resize(10);
+  exp[0].setMSLevel(1);
+  exp[1].setMSLevel(2);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(2);
+  exp[4].setMSLevel(2);
+
+  TEST_EQUAL(exp.getPrecursorSpectrum(0) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(1) == 0,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(2) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(3) == 2,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(4) == 2,true)
+
+  exp[0].setMSLevel(2);
+  exp[1].setMSLevel(1);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(1);
+  exp[4].setMSLevel(1);
+
+  TEST_EQUAL(exp.getPrecursorSpectrum(0) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(1) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(2) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(3) == -1,true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(4) == -1,true)
+}
+END_SECTION
+
 
 START_SECTION((bool clearMetaDataArrays()))
 {
