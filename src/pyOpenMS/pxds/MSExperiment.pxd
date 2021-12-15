@@ -13,10 +13,10 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManager2):
+    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
         # wrap-inherits:
         #   ExperimentalSettings
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #
         # wrap-doc:
         #   In-Memory representation of a mass spectrometry experiment.

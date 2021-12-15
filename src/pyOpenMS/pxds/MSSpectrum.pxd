@@ -9,10 +9,10 @@ from SpectrumSettings cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum(SpectrumSettings, RangeManager1):
+    cdef cppclass MSSpectrum(SpectrumSettings, RangeManagerMzInt):
         # wrap-inherits:
         #  SpectrumSettings
-        #  RangeManager1
+        #  RangeManagerMzInt
         #
         # wrap-doc:
         #   The representation of a 1D spectrum.
