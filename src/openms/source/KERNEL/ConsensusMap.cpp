@@ -619,6 +619,9 @@ namespace OpenMS
     // enlarge the range by the internal points of each feature
     for (const auto& cf : (privvec&) *this)
     {
+      extendRT(cf.getRT());
+      extendMZ(cf.getMZ());
+      extendIntensity(cf.getIntensity());
       for (const auto& handle : cf.getFeatures())
       {
         extendRT(handle.getRT());
