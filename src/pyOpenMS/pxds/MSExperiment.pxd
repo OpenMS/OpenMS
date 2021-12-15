@@ -75,11 +75,6 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +
 
-        double getMinMZ() nogil except + # wrap-doc:Returns the minimal m/z value
-        double getMaxMZ() nogil except + # wrap-doc:Returns the maximal m/z value
-        double getMinRT() nogil except + # wrap-doc:Returns the minimal retention time value
-        double getMaxRT() nogil except + # wrap-doc:Returns the maximal retention time value
-
         # Size of experiment
         UInt64 getSize() nogil except + # wrap-doc:Returns the total number of peaks
         int size() nogil except +
