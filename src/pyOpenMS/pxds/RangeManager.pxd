@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         double getMaxMZ() nogil except + # wrap-doc:Returns the maximum m/z
         double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
         double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
-        void clearRanges() nogil except + # wrap-doc: resets all range dimensions as empty
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
 
     cdef cppclass RangeManagerMzInt "OpenMS::RangeManager<RangeMZ, RangeIntensity>":
         # wrap-ignore
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         double getMaxMZ() nogil except + # wrap-doc:Returns the maximum m/z
         double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
         double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
-        void clearRanges() nogil except + # wrap-doc: resets all range dimensions as empty
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
 
     cdef cppclass RangeManagerRtInt "OpenMS::RangeManager<RangeRT, RangeIntensity>":
         # wrap-ignore
@@ -37,4 +37,4 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         double getMaxRT() nogil except + # wrap-doc:Returns the maximum RT
         double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
         double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
-        void clearRanges() nogil except + # wrap-doc: resets all range dimensions as empty
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
