@@ -59,12 +59,14 @@ namespace OpenMS
   public:
     /// Ctor: initialize with empty range
     RangeBase() = default;
-    /// set min and max; if min > max, then an exception will be thrown
+    
+    /// set min and max
+    /// @throws Exception::InvalidRange if min > max
     RangeBase(const double min, const double max) :
         min_(min), max_(max)
     {
       if (min_ > max_)
-        throw "Invalid initialization of range";
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid initialization of range");
     }
 
     /// make the range empty, i.e. isEmpty() will be true
@@ -389,10 +391,15 @@ namespace OpenMS
     @brief Handles the management of a multidimensional range, e.g. RangeMZ and RangeIntensity for spectra.
 
     Instanciate it with the dimensions which are supported/required, e.g.
-    <tt>RangeManager<RangeRT, RangeMZ> range_spec</tt> for a spectrum and use the stronly typed features, such as
+    <tt>RangeManager<RangeRT, RangeMZ> range_spec</tt> for a spectrum and use the strongly typed features, such as
     range_spec.getMaxRT()/setMaxRT(500.0) or range_spec.extend(RangeMZ{100, 1500});
 
     Use RangeManagerContainer as a base class for all peak and feature containers like MSSpectrum, MSExperiment and FeatureMap.
+
+    The implementation uses non-virtual multiple inheritance using variadic templates. Each dimension, e.g. RangeRT, is inherited from, thus
+    all members of the base class become accessible in the RangeManager, e.g. ::getMaxRT().
+    Operations (e.g. assignment, or extension of ranges) across RangeManagers with a different, yet overlapping set of base classes
+    is enabled using fold expressions and constexpr evaluations, which are resolved at compile time (see for_each_base_ member function).
 
   */
   template<typename... RangeBases>
@@ -405,21 +412,24 @@ namespace OpenMS
     bool operator==(const RangeManager& rhs) const
     {
       bool equal = true;
-      for_each_base([&](auto* base) {
-        using T_BASE = std::decay_t<decltype(*base)>;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
         equal &= ((T_BASE&) rhs == (T_BASE&) *this);
       });
       return equal;
     }
 
 
-
+    /// copy all overlapping dimensions from @p rhs to this instance.
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to copy from
+    /// @return true if one or more dimensions overlapped
     template <typename... RangeBasesOther>
     bool assignUnsafe(const RangeManager<RangeBasesOther...>& rhs)
     {
       bool found = false;
-      for_each_base([&](auto* base) {
-        using T_BASE = std::decay_t<decltype(*base)>;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
         if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
         {
           base->assign((T_BASE&) rhs);
@@ -429,21 +439,30 @@ namespace OpenMS
 
       return found;
     }
+
+    /// copy all overlapping dimensions from @p rhs to this instance.
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to copy from
+    /// @throw Exception::InvalidRange if no dimensions overlapped
     template<typename... RangeBasesOther>
     void assign(const RangeManager<RangeBasesOther...>& rhs)
     {
       if (!assignUnsafe(rhs))
       {
-        throw "No assignment took place (no dimensions in common!);";
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION , "No assignment took place (no dimensions in common!);");
       }
     }                 
 
+    /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to extend from
+    /// @return false if no dimensions overlapped
     template<typename... RangeBasesOther>
     bool extendUnsafe(const RangeManager<RangeBasesOther...>& rhs)
     {
       bool found = false;
-      for_each_base([&](auto* base) {
-        using T_BASE = std::decay_t<decltype(*base)>;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
         if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
         {
           base->extend((T_BASE&) rhs);
@@ -453,19 +472,23 @@ namespace OpenMS
       return found;
     }
 
+    /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to extend from
+    /// @throw Exception::InvalidRange if no dimensions overlapped
     template<typename... RangeBasesOther>
     void extend(const RangeManager<RangeBasesOther...>& rhs)
     {
       if (!extendUnsafe(rhs))
       {
-        throw "No assignment took place (no dimensions in common!);";
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No assignment took place (no dimensions in common!);");
       }
     }
 
     /// calls RangeBase::scale() for each dimension
     void scaleBy(const double factor)
     {
-      for_each_base([&](auto* base) {
+      for_each_base_([&](auto* base) {
         base->scaleBy(factor);
       });
     }
@@ -475,8 +498,8 @@ namespace OpenMS
     {
       RangeBase* r_base = nullptr;
 
-      static_for_each_base([&](auto* base) {
-        using Base = std::decay_t<decltype(*base)>;
+      static_for_each_base_([&](auto* base) {
+        using Base = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
         if (base->DIM == dim)
           r_base = (Base*) this;
       });
@@ -490,7 +513,7 @@ namespace OpenMS
     {
       constexpr size_t total{sizeof...(RangeBases)};// total number of bases
       size_t count{0};
-      for_each_base([&](auto* base) {
+      for_each_base_([&](auto* base) {
         count += !base->isEmpty();
       });
       switch (count)
@@ -513,8 +536,8 @@ namespace OpenMS
     {
       bool contained = true; // assume rhs is contained, until proven otherwise
       bool has_overlap = false;
-      for_each_base([&](auto* base) {
-        using T_BASE = std::decay_t<decltype(*base)>;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
         if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
         {
           has_overlap = true; // at least one dimension overlaps
@@ -531,7 +554,7 @@ namespace OpenMS
     /// Resets all ranges
     void clearRanges()
     {
-      for_each_base([&](auto* base) {
+      for_each_base_([&](auto* base) {
         base->clear();
       });
     }
@@ -539,28 +562,28 @@ namespace OpenMS
     /// print each dimension (base classes) to a stream
     void printRange(std::ostream& out) const
     {
-      for_each_base([&](auto* base) {
+      for_each_base_([&](auto* base) {
         out << *base;
       });
     }
 
   protected:
-    /// use fold expression to iterate over all RangeBases of RangeManager and apply a lambda for each one
+    /// use fold expression to iterate over all RangeBases of RangeManager and apply a lambda (Visitor) for each one
     template<typename Visitor>
-    void for_each_base(Visitor&& visitor)
+    void for_each_base_(Visitor&& visitor)
     {
       (void(visitor(static_cast<RangeBases*>(this))), ...);
     }
     /// .. and a const version
     template<typename Visitor>
-    void for_each_base(Visitor&& visitor) const
+    void for_each_base_(Visitor&& visitor) const
     {
       (void(visitor(static_cast<const RangeBases*>(this))), ...);
     }
 
-    /// use fold expression to iterate over all RangeBases of RangeManager and apply a lambda for each one for static members
+    /// use fold expression to iterate over all RangeBases of RangeManager and apply a lambda (Visitor) for each one (for static members)
     template<typename Visitor>
-    static void static_for_each_base(Visitor&& visitor)
+    static void static_for_each_base_(Visitor&& visitor)
     {
       (void(visitor(static_cast<const RangeBases*>(nullptr))), ...);
     }

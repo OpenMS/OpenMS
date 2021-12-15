@@ -73,7 +73,6 @@ namespace OpenMS
         r.extendRT(pep.getRT());
         r.extendMZ(pep.getMZ());
       }
-      r.extendIntensity(0);
       return r;
     }
 

@@ -88,8 +88,6 @@ public:
     typedef PeakT PeakType;
     /// Chromatogram peak type
     typedef ChromatogramPeakT ChromatogramPeakType;
-    /// Area type
-    //typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks

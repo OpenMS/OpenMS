@@ -131,6 +131,8 @@ START_SECTION(RangeBase(const double min, const double max))
   TEST_EQUAL(b.isEmpty(), false)
   TEST_EQUAL(b.getMin(), 4)
   TEST_EQUAL(b.getMax(), 6)
+
+  TEST_EXCEPTION(Exception::InvalidRange, RangeBase(6, 3))
 END_SECTION
 
 START_SECTION(void clear())

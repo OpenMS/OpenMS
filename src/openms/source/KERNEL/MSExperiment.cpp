@@ -255,9 +255,9 @@ namespace OpenMS
         total_size_ += it->size();
 
         // ranges
+        this->extendRT(it->getRT()); // RT
         it->updateRanges();
-        this->extend(*it);
-
+        this->extend(*it);           // m/z and intensity from spectrum's range
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)
@@ -267,7 +267,6 @@ namespace OpenMS
           this->extendRT(it->getRT());
           this->extendMZ(it->getPrecursors()[0].getMZ());
         }
-
       }
 
     }
