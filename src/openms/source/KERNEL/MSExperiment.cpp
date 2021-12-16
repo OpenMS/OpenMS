@@ -240,7 +240,7 @@ namespace OpenMS
       return;
     }
 
-    //update
+    // update
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
     {
       if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
@@ -290,9 +290,11 @@ namespace OpenMS
 
       total_size_ += cp.size();
 
-      // update ranges
+      // ranges
+      this->extendMZ(cp.getMZ());// MZ
       cp.updateRanges();
-      this->extend(cp);
+      this->extend(cp);// RT and intensity from chroms's range
+
     }
   }
 

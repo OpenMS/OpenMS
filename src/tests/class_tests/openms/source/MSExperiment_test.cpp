@@ -574,6 +574,40 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
+  // test ranges with a chromatogram
+  MSChromatogram chrom1, chrom2;
+  ChromatogramPeak cp1, cp2, cp3;
+  cp1.setRT(0.3);
+  cp1.setIntensity(10.0f);
+  cp2.setRT(0.2);
+  cp2.setIntensity(10.2f);
+  cp3.setRT(0.1);
+  cp3.setIntensity(10.4f);
+
+  Product prod1;
+  prod1.setMZ(100.0);
+  chrom1.setProduct(prod1);
+  chrom1.push_back(cp1);
+  chrom1.push_back(cp2);
+
+  Product prod2;
+  prod2.setMZ(80.0);
+  chrom2.setProduct(prod2);
+  chrom2.push_back(cp2);
+  chrom2.push_back(cp3);
+
+  vector<MSChromatogram> chroms;
+  chroms.push_back(chrom1);
+  chroms.push_back(chrom2);
+  tmp2.setChromatograms(chroms);
+  
+  tmp2.updateRanges();
+  TEST_REAL_SIMILAR(tmp2.getMinMZ(), 5.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxMZ(), 100.0)
+  TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), 10.4)
+  TEST_REAL_SIMILAR(tmp2.getMinRT(), 0.1)
+  TEST_REAL_SIMILAR(tmp2.getMaxRT(), 30.0)
 }
 END_SECTION
 
