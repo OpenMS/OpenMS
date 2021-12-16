@@ -472,7 +472,7 @@ protected:
         // open on-disc experiments
         if (map_index2file_index.find(map_index) == map_index2file_index.end())
         {
-          specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index]); // open on-disc experiment
+          specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index], true); // open on-disc experiment and skip meta-data
           map_index2file_index[map_index] = num_msmaps_cached;
           ++num_msmaps_cached;
         }
