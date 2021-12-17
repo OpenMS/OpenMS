@@ -112,6 +112,18 @@ namespace OpenMS
     //avgMass = monoisotopicMass + massDelta;
   }
 
+  bool PeakGroup::isSignalMZ(const double mz, const double tol) const
+  {
+    for (auto &p: *this)
+    {
+      if (abs(p.mz - mz) < p.mz * tol * 1e-6)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void PeakGroup::setSNR(const float snr)
   {
     snr_ = snr;

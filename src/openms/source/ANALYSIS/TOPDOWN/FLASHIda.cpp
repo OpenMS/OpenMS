@@ -88,12 +88,13 @@ namespace OpenMS
     fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
-    fd_defaults.setValue("min_isotope_cosine", DoubleList{.85, .85});
+    fd_defaults.setValue("min_isotope_cosine", DoubleList{.9, .9});
 
     fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
+    tol_ = inputs["tol"];
     fd_defaults.setValue("rt_window", rt_window_);
-    fd_defaults.setValue("min_peaks", IntList{3, 3}); // more sensitive
+    fd_defaults.setValue("min_peaks", IntList{4, 3}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -323,7 +324,87 @@ namespace OpenMS
           {
             continue;
           }
-        }/* else if (mz_rt_map_.find(mz) != mz_rt_map_.end() ||
+        }
+
+        // here crawling isolation windows max_isolation_window_half_
+        auto ospec = deconvoluted_spectrum_.getOriginalSpectrum();
+        Size index = ospec.findNearest(mz);
+        int tindexl = index;
+        int tindexr = index + 1;
+        double lmz = -1.0, rmz = -1.0;
+
+        double sig_pwr = .0;
+        double noise_pwr = .0;
+        bool lkeep = true;
+        bool rkeep = false;
+        auto pmz_range = pg.getMzRange(charge);
+        double pmzl = std::get<0>(pmz_range);
+        double pmzr = std::get<1>(pmz_range);
+
+        while (lkeep || rkeep)
+        {
+          if (tindexl < 0 || ospec[tindexl].getMZ() < mz - max_isolation_window_half_)// left side done
+          {
+            lkeep = false;
+          }
+          else
+          {
+            if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+            {
+              sig_pwr += pg.getIntensity() * pg.getIntensity();
+            }
+            else
+            {
+              noise_pwr += pg.getIntensity() * pg.getIntensity();
+            }
+          }
+          if (tindexr >= ospec.size() || ospec[tindexr].getMZ() > mz + max_isolation_window_half_)// right side done
+          {
+            rkeep = false;
+          }
+          else
+          {
+            if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+            {
+              sig_pwr += pg.getIntensity() * pg.getIntensity();
+            }
+            else
+            {
+              noise_pwr += pg.getIntensity() * pg.getIntensity();
+            }
+          }
+
+          tindexl--;
+          tindexr++;
+
+          if (ospec[tindexr].getMZ() < pmzr + min_isolation_window_half_)
+          {
+            continue;
+          }
+
+          if (ospec[tindexl].getMZ() > pmzl - min_isolation_window_half_)
+          {
+            continue;
+          }
+
+          if (sig_pwr / noise_pwr < snr_threshold_)
+          {
+            break;
+          }
+          else
+          {
+            lmz = ospec[tindexl + 1].getMZ();
+            rmz = ospec[tindexr - 1].getMZ();
+          }
+        }
+
+        if (lmz < 0 || rmz < 0)
+        {
+          continue;
+        }
+
+
+        /* else if (mz_rt_map_.find(mz) != mz_rt_map_.end() ||
                            current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     qscore = qscore_threshold_;
                     charge = 0;
@@ -382,6 +463,9 @@ namespace OpenMS
         }
         filtered_peakgroups.push_back(pg);
         trigger_charges.push_back(charge);
+        trigger_left_isolation_mzs_.push_back(lmz);
+        trigger_right_isolation_mzs_.push_back(rmz);
+
         // current_selected_masses.insert(nominal_mass - 1);
         current_selected_mzs.insert(mz);
         // current_selected_masses.insert(nominal_mass + 1);
@@ -1085,11 +1169,13 @@ break;
       min_charges[i] = std::get<0>(cr);
       max_charges[i] = std::get<1>(cr);
 
-      auto mz_range =
-          charges[i] == peakgroup.getRepAbsCharge() ? peakgroup.getMaxQScoreMzRange() : peakgroup.getMzRange(
-              charges[i]);
-      wstart[i] = std::get<0>(mz_range) - min_isolation_window_half_;
-      wend[i] = std::get<1>(mz_range) + min_isolation_window_half_;
+      //auto mz_range =
+      //    charges[i] == peakgroup.getRepAbsCharge() ? peakgroup.getMaxQScoreMzRange() : peakgroup.getMzRange(
+      //        charges[i]);
+
+
+      wstart[i] = trigger_left_isolation_mzs_[i];  //std::get<0>(mz_range) - min_isolation_window_half_;
+      wend[i] = trigger_right_isolation_mzs_[i]; //std::get<1>(mz_range) + min_isolation_window_half_;
 
       qscores[i] = QScore::getQScore(&peakgroup, charges[i]);
       // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());

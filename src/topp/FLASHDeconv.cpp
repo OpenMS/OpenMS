@@ -439,15 +439,6 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
-    //DoubleList iso_mzs = getDoubleList_("isobaric_mz");
-
-    // int iso_option = getIntOption_("isobaric_labeling_option");
-    //if (iso_option == 1)// fix later..
-    //{
-    // iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-    //iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-    //}
-
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -532,7 +523,7 @@ protected:
         in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
     int current_max_ms_level = 0;
-
+    double expected_identification_count = .0;
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
     // spectrum number with at least one deconvoluted mass per ms level per input file
     auto qspec_cntr = std::vector<int>(max_ms_level, 0);
@@ -731,7 +722,6 @@ protected:
       {
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
-
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it,
                                                               precursor_specs,
                                                               scan_number,
@@ -740,27 +730,13 @@ protected:
       if (it->getMSLevel() > 1 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvoluted_spectrum.getPrecursorPeakGroup();
+        if (deconvoluted_spectrum.getPrecursorPeakGroup().getChargeSNR(deconvoluted_spectrum.getPrecursorCharge()) >
+            topFD_SNR_threshold)
+        {
+          expected_identification_count += deconvoluted_spectrum.getPrecursorPeakGroup().getQScore();
+        }
       }
 
-      /*
-            for (auto &pg: deconvoluted_spectrum)
-            {
-              if(pg.getIsotopeCosine()<0.99) continue;
-              if(std::get<0>(pg.getAbsChargeRange()) <=10 &&  std::get<1>(pg.getAbsChargeRange()) >=40 ){
-                for (int c = std::get<0>(pg.getAbsChargeRange()) ; c <= std::get<1>(pg.getAbsChargeRange())  ; ++c)
-                {
-                  auto mzr = pg.getMzRange(c);
-                  auto itr = it->MZBegin(std::get<0>(mzr));
-                  std::cout<<"iso"<<c<<"=[";
-                  while(itr->getMZ() < std::get<1>(mzr)){
-                    cout<<itr->getMZ() * c << "," <<itr->getIntensity()<<";";
-                    itr++;
-                  }
-                  std::cout<<"];\n";
-                }
-              }
-            }
-      */
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
           && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
@@ -811,42 +787,6 @@ protected:
       mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
 
       DoubleList iso_intensities;
-      /*
-            if (ms_level> 1 && !iso_mzs.empty())
-            {
-              if (iso_option == 1)
-              {
-                if (deconvoluted_spectrum.getActivation_method() == "ETD")
-                {
-                  iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-                }
-                else
-                {
-                  iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-                }
-              }
-
-              int current_ch = 0;
-              iso_intensities = DoubleList(iso_mzs.size(), 0.0);
-              for (auto &peak: *it)
-              {
-                if (current_ch >= iso_mzs.size())
-                {
-                  break;
-                }
-                if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-                {
-                  continue;
-                }
-                if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-                {
-                  current_ch++;
-                  continue;
-                }
-                iso_intensities[current_ch] += peak.getIntensity();
-              }
-            }*/
-
       if (out_spec_streams.size() > ms_level - 1)
       {
         deconvoluted_spectrum
@@ -928,6 +868,11 @@ protected:
                       << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr
                       << " ms (Wall)] --"
                       << endl;
+    }
+
+    if (expected_identification_count > 0)
+    {
+      OPENMS_LOG_INFO << "Expected number of PrSMs: " << expected_identification_count << endl;
     }
 
     #ifdef DEBUG_EXTRA_PARAMTER

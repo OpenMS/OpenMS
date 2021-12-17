@@ -389,7 +389,6 @@ namespace OpenMS
     double start_mz = 0;
     double end_mz = 0;
     //int target_precursor_scan = -1;
-
     for (auto &precursor: spec_.getPrecursors())
     {
       for (auto &activation_method: precursor.getActivationMethods())
@@ -409,7 +408,6 @@ namespace OpenMS
                precursor.getIsolationWindowUpperOffset() :
                precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
     }
-
     if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty())
     {
       for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
@@ -465,7 +463,7 @@ namespace OpenMS
 
                 auto o_spec = precursor_spectrum.getOriginalSpectrum();
                 auto spec_iterator = o_spec.PosBegin(start_mz);
-                while (spec_iterator->getMZ() < end_mz)
+                while (spec_iterator != o_spec.end() && spec_iterator->getMZ() < end_mz)
                 {
                   double intensity = spec_iterator->getIntensity();
                   spec_iterator++;
@@ -531,11 +529,13 @@ namespace OpenMS
                   precursor_peak_group_ = pg;
                 }
               }
+
               return true;
             }
           }
         }
       }
+
       return false;
     }
 
@@ -549,16 +549,15 @@ namespace OpenMS
       {
         continue;
       }
-
       auto o_spec = precursor_spectrum.getOriginalSpectrum();
       auto spec_iterator = o_spec.PosBegin(start_mz);
+
       // double total_power = .0;
-      while (spec_iterator->getMZ() < end_mz)
+      while (spec_iterator != o_spec.end() && spec_iterator->getMZ() < end_mz)
       {
         //total_power += spec_iterator->getIntensity() * spec_iterator->getIntensity();
         spec_iterator++;
       }
-
       for (auto &pg: precursor_spectrum)
       {
         //std::sort(pg.begin(),pg.end());

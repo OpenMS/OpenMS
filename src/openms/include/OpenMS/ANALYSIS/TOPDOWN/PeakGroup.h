@@ -101,6 +101,9 @@ namespace OpenMS
     void updateMassesAndIntensity(const int offset = 0,
                                   const int max_isotope_index = 0);
 
+    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
+    bool isSignalMZ(const double mz, const double tol) const;
+
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
 

@@ -145,7 +145,6 @@ namespace OpenMS
     current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
     current_max_mass_ = deconvoluted_spectrum_.getCurrentMaxMass(max_mass_);
     current_min_mass_ = deconvoluted_spectrum_.getCurrentMinMass(min_mass_);
-
     //set universal pattern filter and harmonic pattern filters
     setFilters_();
     //LogMzPeaks are generated from raw peaks
@@ -156,7 +155,6 @@ namespace OpenMS
     }
     //This is the main FLASHDeconv function in which deconvolution is performed.
     generatePeakGroupsFromSpectrum_();
-
     for (auto &pg: deconvoluted_spectrum_)
     {
       sort(pg.begin(), pg.end());
@@ -1332,7 +1330,7 @@ namespace OpenMS
         }
       }
     }
-
+    offset = final_offset;
     return getCosine_(per_isotope_intensities,
                       min_isotope_index,
                       max_isotope_index,
@@ -1442,7 +1440,7 @@ namespace OpenMS
       int offset = 0;
       double cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group[0].getUnchargedMass(),
                                                             per_isotope_intensities,
-                                                            offset, avg_, false);
+                                                            offset, avg_, true);
       peak_group.setIsotopeCosine(cos);
 
       if (peak_group.empty() ||

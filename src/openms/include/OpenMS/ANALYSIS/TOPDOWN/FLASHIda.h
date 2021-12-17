@@ -166,6 +166,9 @@ namespace OpenMS
     DeconvolutedSpectrum deconvoluted_spectrum_;
     /// peakGroup charges to be triggered
     std::vector<int> trigger_charges;
+    /// peakGroup charges to be triggered
+    std::vector<int> trigger_left_isolation_mzs_;
+    std::vector<int> trigger_right_isolation_mzs_;
 
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd_;
@@ -180,7 +183,9 @@ namespace OpenMS
     /// how many masses will be selected per ms level? - determined from C# side
     IntList mass_count_;
     /// minimum isolation window width divided by two
-    double min_isolation_window_half_ = .6;
+    const double min_isolation_window_half_ = .6;
+    /// maximum isolation window width divided by two
+    const double max_isolation_window_half_ = 4.0;
 
     /// maps for global targeting
     std::map<int, std::vector<double>> target_nominal_masses_;
@@ -188,5 +193,8 @@ namespace OpenMS
 
     /// precursor SNR threshold
     double snr_threshold_ = 1.0;
+
+    /// mass tolerance
+    DoubleList tol_;
   };
 }
