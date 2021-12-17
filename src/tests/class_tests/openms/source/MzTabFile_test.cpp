@@ -76,7 +76,7 @@ END_SECTION
 START_SECTION(void store(const String& filename, MzTab& mzTab) )
 {
   std::vector<String> files_to_test;
-  files_to_test.push_back("MzTabFile_SILAC.mzTab");
+  files_to_test.push_back("MzTabFileuni_SILAC.mzTab");
   files_to_test.push_back("MzTabFile_SILAC2.mzTab");
   files_to_test.push_back("MzTabFile_labelfree.mzTab");
   files_to_test.push_back("MzTabFile_iTRAQ.mzTab");

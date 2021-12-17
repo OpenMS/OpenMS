@@ -2442,7 +2442,6 @@ namespace OpenMS
     // @TODO: load input match groups
   }
 
-
   void OMSFile::OMSFileLoad::loadMapMetaData_(FeatureMap& features)
   {
     if (!tableExists_(db_name_, "FEAT_MapMetaData")) return;

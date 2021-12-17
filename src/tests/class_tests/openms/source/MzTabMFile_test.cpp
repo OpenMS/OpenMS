@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg$
+// $Maintainer: Oliver Alka$
+// $Authors: Oliver Alka$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -37,7 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzTabMFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -62,6 +64,12 @@ END_SECTION
 
 START_SECTION(void store(const String& filename, MzTabM& mztab_m))
     {
+      FeatureMap feature_map;
+      MzTabM mztabm;
+      // the feature map should have an identification data object attached!
+      OMSFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearch_MzTabM_in_1.oms"), feature_map);
+      mztabm.exportFeatureMapToMzTabM(feature_map);
+      MzTabMFile().store("/Users/alka/Desktop/AMS_ID_test/unit_test/test_wIDC_output.mztab", mztabm);
     }
 END_SECTION
 

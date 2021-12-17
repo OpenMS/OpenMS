@@ -197,7 +197,7 @@ public:
 
     /**
        @brief Return the primary ID (peptide, RNA, compound) assigned to this feature.
-
+id
        @throw Exception::MissingInformation if no ID was assigned
     */
     const IdentificationData::IdentifiedMolecule& getPrimaryID() const;

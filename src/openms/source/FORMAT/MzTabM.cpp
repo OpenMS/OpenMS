@@ -140,7 +140,17 @@ namespace OpenMS
         std::vector<String> obsm_keys;
         match_ref->getKeys(obsm_keys);
         replaceWhiteSpaces_(obsm_keys.begin(), obsm_keys.end());
-        observationmatch_user_value_keys.insert(obsm_keys.begin(), obsm_keys.end());
+
+        // remove "IDConverter_trace" metadata from the ObservationMatch
+        // introduced by the IdentificationDataConverter
+        // since it leads to convolution of IDConverter_trace_* optional columns
+        for (const auto& key : obsm_keys)
+        {
+          if (!key.hasSubstring("IDConverter_trace"))
+          {
+            observationmatch_user_value_keys.insert(key);
+          }
+        }
 
         // evidence section optional columns
         IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
@@ -160,8 +170,10 @@ namespace OpenMS
     MzTabMMetaData m_meta_data;
 
     // extract identification data from FeatureMap
-    // has to be passed as const & if not the references might change!
     const IdentificationData& id_data = feature_map.getIdentificationData();
+
+    OPENMS_PRECONDITION(!id_data.empty(),
+                        "The FeatureMap has to have a non empty IdentificationData object attached!")
 
     // extract MetaValues from FeatureMap
     std::set<String> feature_user_value_keys;
@@ -553,7 +565,7 @@ namespace OpenMS
         smf.charge = MzTabInteger(f.getCharge());
         smf.retention_time = MzTabDouble(f.getRT());
         smf.rt_start.setNull(true); // TODO: how to get that information in the future
-        smf.rt_end.setNull(true); // TODO: haw to get that information in the future
+        smf.rt_end.setNull(true); // TODO: how to get that information in the future
         smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
         addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
@@ -605,7 +617,7 @@ namespace OpenMS
             ++score_counter; //starts at 1 anyway
             sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
           }
-          sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used.
+          sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
           addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, String("global"), *match_ref);
           addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_, String("global"), *compound_ref);
@@ -640,8 +652,8 @@ namespace OpenMS
           smf.exp_mass_to_charge = MzTabDouble(f.getMZ());
           smf.charge = MzTabInteger(f.getCharge());
           smf.retention_time = MzTabDouble(f.getRT());
-          smf.rt_start.setNull(true); // TODO: how to get that information in the future
-          smf.rt_end.setNull(true); // TODO: haw to get that information in the future
+          smf.rt_start.setNull(true);
+          smf.rt_end.setNull(true);
           smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
           addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
@@ -681,7 +693,9 @@ namespace OpenMS
         chemical_name.emplace_back(current_row_it->chemical_name);
         uri.emplace_back(current_row_it->uri);
         MzTabString cm = current_row_it->chemical_formula;
-        theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight()); //TODO: is that correct?
+        // TODO: is that correct or should that be the neutral weight?
+        // TODO: I think that might be the weight with an [M+H]1+ adduct?
+        theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight());
         adducts.emplace_back(current_row_it->adduct);
       }
       sml.database_identifier.set(database_identifier);
@@ -701,8 +715,6 @@ namespace OpenMS
       sml.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;
       sml.small_molecule_abundance_study_variable[1].setNull(true);
       sml.small_molecule_abundance_variation_study_variable[1].setNull(true);
-      // TODO: How to add opt cols_ from feature and evidence section?
-
 
       smls.emplace_back(sml);
     }

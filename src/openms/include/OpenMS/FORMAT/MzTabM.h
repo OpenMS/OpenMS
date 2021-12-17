@@ -218,7 +218,7 @@ namespace OpenMS
 
     const MzTabMMetaData& getMetaData() const;
 
-    void setMetaData(const MzTabMMetaData& m_md); // TODO: check if the metadata section is the same or if additional / other stuff is needed as well
+    void setMetaData(const MzTabMMetaData& m_md);
 
     const MzTabMSmallMoleculeSectionRows& getMSmallMoleculeSectionRows() const;
 

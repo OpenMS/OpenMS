@@ -46,7 +46,6 @@ namespace OpenMS
 
   void MzTabMFile::generateMzTabMMetaDataSection_(const MzTabMMetaData& md, StringList& sl) const
   {
-    std::cout << "run metadata generation" << std::endl;
     sl.push_back(String("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString()); // mandatory
     sl.push_back(String("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString()); // mandatory
 
@@ -357,7 +356,7 @@ namespace OpenMS
     }
 
     sl.push_back(String("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
-    // TODO: Have to check if feature section is reported?
+
     sl.push_back(String("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
 
     sl.push_back(String("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
@@ -578,10 +577,7 @@ namespace OpenMS
 
     s.emplace_back(row.rank.toCellString());
 
-    // TODO: opt_{identifier}_*
-
-    // TODO: add optional columns
-    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }

@@ -582,6 +582,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
+    FeatureMap fmap_id_only;
     IdentificationData& id = fmap.getIdentificationData();
     IdentificationData::InputFileRef file_ref;
     IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
@@ -637,12 +638,8 @@ namespace OpenMS
       search_param.database_version = database_version_;
       search_param.setMetaValue("database_location", database_location_);
 
-      // TODO: is it possible to not get the default value?
-      // search_param.precursor_mass_tolerance = AccurateMassSearchEngine.getValue("mass_error_value");
-      // auto ppm = AccurateMassSearchEngine.getValue("mass_error_unit") = ppm ? true : false;
-      // search_param.precursor_tolerance_ppm = ppm;
-      search_param.precursor_mass_tolerance = 5.0;
-      search_param.precursor_tolerance_ppm = true;
+      search_param.precursor_mass_tolerance = this->mass_error_value_;
+      search_param.precursor_tolerance_ppm = this->mass_error_unit_ == "ppm" ? true : false;
       IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
 
       // file has been processed by software performing a specific processing action.      
@@ -680,6 +677,7 @@ namespace OpenMS
       if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
+      std::cout << "is_dummy: " << is_dummy << std::endl;
 
       if (iso_similarity_ && !is_dummy)
       {
@@ -700,6 +698,7 @@ namespace OpenMS
       }
 
       overall_results.push_back(query_results);
+
       if (legacyID_)
       {
         annotate_(query_results, fmap[i]);
@@ -710,7 +709,22 @@ namespace OpenMS
       }
     }
 
-    if (legacyID_)
+    // copy to transfer the IdentificationData
+    //fmap_id_only = fmap;
+
+    // have to reattach IdentificationData to new (filtered) FeatureMap
+    //for (const auto& f : fmap_id_only)
+    //{
+    //  std::cout << "f.getUniqueID(): " << f.getUniqueId() << "f.getPrimaryID(): " << f.getPrimaryID() << "f.getIDMatches().size(): " << f.getIDMatches().size() << std::endl;
+    //}
+
+    //IdentificationData id_data_test = fmap_id_only.getIdentificationData();
+    //if (id_data_test.empty())
+    //{
+    //  std::cout << "There seems to be something wrong!" << std::endl;
+    //}
+
+    if(legacyID_)
     {
       // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
       fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
@@ -718,7 +732,7 @@ namespace OpenMS
       fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
       fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
     }
-    else
+    else // only need it for featureXML?!
     {
       // add the identification data to the featureXML
       // to allow featureXML export (without the use of legacy_ID)
@@ -742,11 +756,9 @@ namespace OpenMS
     {
       exportMzTabM_(fmap, 1, mztabm_out);
     }
-
     return;
   }
 
-  // TODO: check the function and add the corresponding id data structures
   void AccurateMassSearchEngine::addMatchesToID_(
     IdentificationData& id,
     const std::vector<AccurateMassSearchResult>& amr,
@@ -762,6 +774,17 @@ namespace OpenMS
 
     for (const AccurateMassSearchResult& r : amr)
     {
+      // TODO: filtering of features with no id - does not work here
+      // TODO: iterating over all features in the feautreMap without removing the
+      // TODO: ones without ID
+      // continue if feature does not have an ID attached
+      // std::cout << "!keep_unidentified_masses_: " << !keep_unidentified_masses_ << std::endl;
+      // std::cout << "r.getMatchingHMDBids().size() == 0: " <<  r.getMatchingHMDBids().size() << std::endl;
+      // if (!keep_unidentified_masses_ && r.getMatchingHMDBids().size() == 0)
+      // {
+      //  continue;
+      // }
+
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
       {
         if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
@@ -791,7 +814,6 @@ namespace OpenMS
         const String& inchi_key = entry->second[2];
         std::vector<String> names = {name}; // to fit legacy format - MetaValue
         std::vector<String> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
-        // TODO: or have an additional column for possible database, where is that stored?
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         name,

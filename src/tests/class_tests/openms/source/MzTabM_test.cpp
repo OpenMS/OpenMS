@@ -37,6 +37,8 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzTabM.h>
+#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
 
 START_TEST(MzTabM, "$Id$")
@@ -343,11 +345,14 @@ START_TEST(MzTabM, "$Id$")
     END_SECTION
 
     // Identificationdata
-    START_SECTION(MzTabM::exportIdentificationDataToMzTabM(const IdentificationData& id_data))
+    START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map))
         {
-          // TODO: Save OMS file from AccurateMassSearch
-          // TODO: Load OMS file
-          // TODO: fill mztab data strucutre wiht oms file
+          FeatureMap feature_map;
+          MzTabM mztabm;
+          // the feature map should have an identification data object attached!
+          OMSFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearch_MzTabM_in_1.oms"), feature_map);
+          IdentificationDataConverter::importFeatureIDs(feature_map);
+          mztabm.exportFeatureMapToMzTabM(feature_map);
           // TODO: Test some of the fields!
         }
     END_SECTION
