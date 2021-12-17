@@ -29,6 +29,4 @@ jobs:
       uses: DoozyX/clang-format-lint-action@v0.12
       with:
         source: ${{ steps.changed-files.outputs.all_modified_files }}
-
-
         clangFormatVersion: 12
