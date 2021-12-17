@@ -301,7 +301,6 @@ protected:
       {
         plog.setProgress(++progress); // thread safe progress counter
       }
-
     }
 
     plog.endProgress();
