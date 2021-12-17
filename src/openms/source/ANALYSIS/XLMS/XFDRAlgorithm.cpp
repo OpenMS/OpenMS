@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,7 +102,7 @@ using namespace OpenMS;
     // Loop through the peptides, apply filter, and assign cross-link types
     for (PeptideIdentification& pep_id : peptide_ids)
     {
-      if (pep_id.getHits().size() < 1)
+      if (pep_id.getHits().empty())
       {
         continue;
       }
@@ -309,7 +309,7 @@ using namespace OpenMS;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       PeptideIdentification &pep_id = peptide_ids[i];
-      if (pep_id.getHits().size() < 1)
+      if (pep_id.getHits().empty())
       {
         continue;
       }
@@ -320,7 +320,7 @@ using namespace OpenMS;
 
       for (PeptideHit& ph : pep_hits)
       {
-        // Set the minScore and MaxScore attribute depending on the input data
+        // Set the minScore and maxScore attribute depending on the input data
         const double score = ph.getScore();
 
         // Set score boundaries
@@ -474,7 +474,7 @@ using namespace OpenMS;
 
   void XFDRAlgorithm::fdr_xprophet_(std::map< String, Math::Histogram<> > & cum_histograms,
                     const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
-                    std::vector< double > & fdr, bool mono)
+                    std::vector< double > & fdr, bool mono) const
   {
     // Determine whether targetclass, decoyclass, and fulldecoyclass are present in the histogram map
     bool targetclass_present = cum_histograms.find(targetclass) != cum_histograms.end();

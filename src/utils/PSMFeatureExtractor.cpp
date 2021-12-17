@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -257,10 +257,26 @@ protected:
         PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    else if (search_engine == "MS-GF+") PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MS-GF+") 
+    {
+      PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Mascot") 
+    {
+      PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "XTandem") 
+    {
+      PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Comet") 
+    {
+      PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "MSFragger") 
+    {
+      PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    }
     else
     {
       OPENMS_LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;

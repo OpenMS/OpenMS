@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,14 +85,17 @@ START_SECTION((static void registerChildren()))
   ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
   AverageLinkage* avl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cfp) , avl_nullPointer)
+  delete cfp;
 
   cfp = Factory<ClusterFunctor>::create("SingleLinkage");
   SingleLinkage* sl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cfp) , sl_nullPointer)
+  delete cfp;
 
   cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
   CompleteLinkage* cl_nullPointer = nullptr;
   TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cfp) , cl_nullPointer)
+  delete cfp;
 }
 END_SECTION
 

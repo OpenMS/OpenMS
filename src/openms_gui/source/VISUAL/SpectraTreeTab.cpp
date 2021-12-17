@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,7 +208,10 @@ namespace OpenMS
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
     // show the first selected item
-    if (selected.size() > 0) itemSelectionChange_(selected.first(), selected.first());
+    if (selected.size() > 0)
+    {
+      itemSelectionChange_(selected.first(), selected.first());
+    }
   }
 
   void SpectraTreeTab::itemDoubleClicked_(QTreeWidgetItem* current)
@@ -285,16 +288,18 @@ namespace OpenMS
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
-  bool SpectraTreeTab::hasData(const LayerData* layer)
+  bool SpectraTreeTab::hasData(const LayerDataBase* layer)
   {
-    if (layer == nullptr) return false;
-
-    bool is_peak = layer->type == LayerData::DT_PEAK && !(layer->chromatogram_flag_set());
-    bool is_chrom = layer->type == LayerData::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
+    if (layer == nullptr)
+    {
+      return false;
+    }
+    bool is_peak = layer->type == LayerDataBase::DT_PEAK && !(layer->chromatogram_flag_set());
+    bool is_chrom = layer->type == LayerDataBase::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
     return is_peak || is_chrom;
   }
 
-  void SpectraTreeTab::updateEntries(LayerData* layer)
+  void SpectraTreeTab::updateEntries(LayerDataBase* layer)
   {
     if (layer == nullptr)
     {
@@ -306,7 +311,7 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& cl = *layer;
+    LayerDataBase& cl = *layer;
 
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
@@ -317,7 +322,7 @@ namespace OpenMS
     bool more_than_one_spectrum = true;
 
     // Branch if the current layer is a spectrum
-    if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
+    if (cl.type == LayerDataBase::DT_PEAK  && !(cl.chromatogram_flag_set()))
     {
       spectra_treewidget_->clear();
 
@@ -432,9 +437,9 @@ namespace OpenMS
     }
     // Branch if the current layer is a chromatogram (either indicated by its
     // type or by the flag which is set).
-    else if (cl.type == LayerData::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
+    else if (cl.type == LayerDataBase::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
     {
-      LayerData::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set() // if set, the actual full data is in getChromatogramData; the peakdata only contains a single spec
+      LayerDataBase::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set() // if set, the actual full data is in getChromatogramData; the peakdata only contains a single spec
                                                      ? cl.getChromatogramData()
                                                      : cl.getPeakData());
       
@@ -592,21 +597,24 @@ namespace OpenMS
   }
 
 
-  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerData::DataType& current_type) const
+  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const
   {
     exp.clear(true);
     QTreeWidgetItem* item = spectra_treewidget_->currentItem();
-    if (item == nullptr) return false;
+    if (item == nullptr)
+    {
+      return false;
+    }
     // getting the index works for PEAK and CHROM data
     int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
     if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
     { // we currently show chromatogram data
-      current_type = LayerData::DT_CHROMATOGRAM;
+      current_type = LayerDataBase::DT_CHROMATOGRAM;
       exp.addChromatogram(last_peakmap_->getChromatograms()[index]);
     }
     else
     {
-      current_type = LayerData::DT_PEAK;
+      current_type = LayerDataBase::DT_PEAK;
       exp.addSpectrum(last_peakmap_->getSpectra()[index]);
     }
     return true;

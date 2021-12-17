@@ -16,8 +16,8 @@
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-fix-hendrik-idfile-integration-2021-03-05"/>
-				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-idfile-integration-2021-11-09"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
@@ -174,7 +174,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/alka/Documents/work/software/openms/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_2" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -203,7 +203,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/alka/Documents/work/software/openms/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" spectrum_reference="spectrum=2927" >
@@ -387,11 +387,11 @@
 		<UserParam type="int" name="map_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
-		<map id="0" name="/Users/alka/Documents/work/software/openms/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="7276556891837796968" label="label-free" size="0">
+		<map id="0" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="7276556891837796968" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="1" name="/Users/alka/Documents/work/software/openms/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="17287849381738438716" label="label-free" size="0">
+		<map id="1" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="17287849381738438716" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>

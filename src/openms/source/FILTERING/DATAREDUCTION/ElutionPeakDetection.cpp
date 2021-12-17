@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ namespace OpenMS
   }
 
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
-                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
+                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const
   {
     std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 

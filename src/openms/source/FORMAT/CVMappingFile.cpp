@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -194,7 +194,7 @@ namespace OpenMS
 
       String use_term_name;
       optionalAttributeAsString_(use_term_name, attributes, "useTermName");
-      if (use_term_name != "")
+      if (!use_term_name.empty())
       {
         term.setUseTermName(DataValue(use_term_name).toBool());
       }
@@ -206,7 +206,7 @@ namespace OpenMS
 
       String is_repeatable;
       optionalAttributeAsString_(is_repeatable, attributes, "isRepeatable");
-      if (is_repeatable != "")
+      if (!is_repeatable.empty())
       {
         term.setIsRepeatable(DataValue(is_repeatable).toBool());
       }

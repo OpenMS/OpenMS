@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -395,7 +395,6 @@ namespace OpenMS
         continue;
       }
 
-
       // get potential hits as indices in masskey_table
       double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
 
@@ -403,7 +402,7 @@ namespace OpenMS
       // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
       // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
       // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
-      // (the other approach is to precompute m/z values for all combinations of adducts, charges and DB entries -- too much)
+      // (the other approach is to pre-compute m/z values for all combinations of adducts, charges and DB entries -- too much)
       double diff_mz;
       // check if mass error window is given in ppm or Da
       if (mass_error_unit_ == "ppm")
@@ -675,6 +674,7 @@ namespace OpenMS
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
       if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
+      
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
       std::cout << "is_dummy: " << is_dummy << std::endl;
@@ -750,7 +750,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
 
-    exportMzTab_(overall_results, 1, mztab_out);
+    exportMzTab_(overall_results, 1, mztab_out, file_locations);
 
     if (!legacyID_) // export to mztab-m only works with featuremap including the identification data structure.
     {
@@ -857,33 +857,31 @@ namespace OpenMS
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
-    for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
-         it_row != amr.end();
-         ++it_row)
+    for (const AccurateMassSearchResult& result : amr)
     {
       PeptideHit hit;
-      hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
+      hit.setMetaValue("identifier", result.getMatchingHMDBids());
       StringList names;
-      for (Size i = 0; i < it_row->getMatchingHMDBids().size(); ++i)
+      for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
       { // mapping ok?
-        if (!hmdb_properties_mapping_.count(it_row->getMatchingHMDBids()[i]))
+        if (!hmdb_properties_mapping_.count(result.getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
-        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(it_row->getMatchingHMDBids()[i]);
+        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(result.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
         names.push_back(entry->second[0]);
       }
-      hit.setCharge(it_row->getCharge());
+      hit.setCharge(result.getCharge());
       hit.setMetaValue("description", names);
-      hit.setMetaValue("modifications", it_row->getFoundAdduct());
-      hit.setMetaValue("chemical_formula", it_row->getFormulaString());
-      hit.setMetaValue("mz_error_ppm", it_row->getMZErrorPPM());
-      hit.setMetaValue("mz_error_Da", it_row->getObservedMZ() - it_row->getCalculatedMZ());
+      hit.setMetaValue("modifications", result.getFoundAdduct());
+      hit.setMetaValue("chemical_formula", result.getFormulaString());
+      hit.setMetaValue("mz_error_ppm", result.getMZErrorPPM());
+      hit.setMetaValue("mz_error_Da", result.getObservedMZ() - result.getCalculatedMZ());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }
@@ -904,9 +902,15 @@ namespace OpenMS
     ConsensusMap::ColumnHeaders fd_map = cmap.getColumnHeaders();
     Size num_of_maps = fd_map.size();
 
+    // corresponding file locations
+    std::vector<String> file_locations;
+    for (const auto& fd : fd_map)
+    {
+      file_locations.emplace_back(fd.second.filename);
+    }
+
     // map for storing overall results
     QueryResultsTable overall_results;
-
     for (Size i = 0; i < cmap.size(); ++i)
     {
       std::vector<AccurateMassSearchResult> query_results;
@@ -920,17 +924,17 @@ namespace OpenMS
     cmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
-    exportMzTab_(overall_results, num_of_maps, mztab_out);
+    exportMzTab_(overall_results, num_of_maps, mztab_out, file_locations);
     return;
   }
 
   // FeatureMap with IdentificationData attached!
-void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
-{
-  mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);
-}
+  void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
+  {
+    mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);
+  }
 
-  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const
+  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const
   {
     if (overall_results.empty())
     {
@@ -947,16 +951,18 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
 
     md.description.fromCellString("Result summary from accurate mass search.");
 
-    // Set mandatory meta data. This is required so we fill in a pseudo score for accurate mass search
+    // Set meta data
     MzTabParameter search_engine_score;
-    search_engine_score.fromCellString("[,,AccurateMassSearchScore,]");
+    search_engine_score.fromCellString("[,,MassErrorPPMScore,]");
+
     md.smallmolecule_search_engine_score[1] = search_engine_score;
 
-    // Since we don't have information on experimental design we just assume one source file that is not further specified ("null")
-    MzTabMSRunMetaData run_md;
-    MzTabString null_location;
-    run_md.location = null_location;
-    md.ms_run[1] = run_md;
+    for (size_t i = 0; i != file_locations.size(); ++i)
+    {
+      MzTabMSRunMetaData run_md;
+      run_md.location.set(file_locations[i]);
+      md.ms_run[i + 1] = run_md; // +1 due to start at 1 in MzTab
+    }
 
     // do not use overall_results.begin()->at(0).getIndividualIntensities().size(); since the first entry might be empty (no hit)
     Size n_study_variables = number_of_maps;
@@ -982,6 +988,8 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
+      // std::cout << tab_it->first << std::endl;
+
       for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
       {
         std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
@@ -1071,15 +1079,22 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
           search_engines.fromCellString("[,,AccurateMassSearch,]");
           mztab_row_record.search_engine = search_engines;
 
+          // same score for all files since it used the mass-to-charge of the ConsensusFeature
+          // for identification -> set as best_search_engine_score
+          mztab_row_record.best_search_engine_score[1] = MzTabDouble((*tab_it)[hit_idx].getMZErrorPPM());
+
+          // set search_engine_score per hit -> null
           MzTabDouble null_score;
-          mztab_row_record.best_search_engine_score[1] = null_score; // set null
-          mztab_row_record.search_engine_score_ms_run[1][1] = null_score; // set null
+          for (size_t i = 0; i != number_of_maps; ++i) // start from one since it is already filled.
+          {
+            mztab_row_record.search_engine_score_ms_run[1][i] = null_score;
+          }
 
           // check if we deal with a feature or consensus feature
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
-          bool single_intensity = (indiv_ints.size() == 0);
+          bool single_intensity = (indiv_ints.empty());
           if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
@@ -1108,7 +1123,7 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
           stdev_temp.set(0.0);
           std::vector<MzTabDouble> stdev_temp3;
 
-          if (indiv_ints.size() == 0)
+          if (indiv_ints.empty())
           {
             stdev_temp3.push_back(stdev_temp);
           }
@@ -1130,7 +1145,7 @@ void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size 
           stderr_temp2.set(0.0);
           std::vector<MzTabDouble> stderr_temp3;
 
-          if (indiv_ints.size() == 0)
+          if (indiv_ints.empty())
           {
             stderr_temp3.push_back(stderr_temp2);
           }

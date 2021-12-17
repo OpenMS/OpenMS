@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,12 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
@@ -107,17 +107,17 @@ namespace OpenMS
     ConsensusMap map;
     
     // loop over peaks
-    for (std::vector<MultiplexFilteredPeak>::const_iterator it_peak = result_.begin(); it_peak < result_.end(); ++it_peak)
+    for (const MultiplexFilteredPeak& peak : result_)
     {
       ConsensusFeature consensus;
       
-      consensus.setRT(it_peak->getRT());
-      consensus.setMZ(it_peak->getMZ());
+      consensus.setRT(peak.getRT());
+      consensus.setMZ(peak.getMZ());
       consensus.setIntensity(1.0);
       consensus.setCharge(1);
       consensus.setQuality(1.0);
       
-      std::multimap<size_t, MultiplexSatelliteCentroided > satellites = it_peak->getSatellites();
+      std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
       int count = 0;
       
       // loop over satellites
@@ -161,8 +161,7 @@ namespace OpenMS
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map.setExperimentType("label-free");
 
-    ConsensusXMLFile file;
-    file.store(debug_out, map);
+    FileHandler().storeConsensusFeatures(debug_out, map);
   }
 
 }

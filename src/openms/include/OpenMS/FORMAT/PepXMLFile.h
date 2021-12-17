@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,6 +127,9 @@ public:
 
     /// sets the preferred variable modifications
     void setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods);
+
+    /// sets if during load, unknown scores should be parsed
+    void setParseUnknownScores(bool parse_unknown_scores);
 
 protected:
 
@@ -259,6 +262,9 @@ private:
     /// Does the file have decoys (e.g. from Comet's internal decoy search)
     bool has_decoys_{};
 
+    /// Also parse unknown scores as metavalues?
+    bool parse_unknown_scores_{};
+
     /// In case it has decoys, what is the prefix?
     String decoy_prefix_;
 
@@ -287,8 +293,11 @@ private:
     /// Sequence of the current peptide hit
     String current_sequence_;
 
-    /// RT and m/z of current PeptideIdentification
+    /// RT and m/z of current PeptideIdentification (=spectrum)  
     double rt_{}, mz_{};
+
+    /// 1-based scan nr. of current PeptideIdentification (=spectrum). Scannr is usually from the start_scan attribute
+    Size scannr_{};
 
     /// Precursor ion charge
     Int charge_{};
@@ -332,5 +341,7 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
+
+    //static std::vector<int> getIsotopeErrorsFromIntSetting_(int intSetting);
   };
 } // namespace OpenMS

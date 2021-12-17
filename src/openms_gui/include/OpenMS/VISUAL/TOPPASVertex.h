@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -230,11 +230,11 @@ public:
     /// Checks if all tools in the subtree below this node are finished
     TOPPASVertex::SUBSTREESTATUS getSubtreeStatus() const;
     /// Returns whether the vertex has been marked already (during topological sort)
-    bool isTopoSortMarked();
+    bool isTopoSortMarked() const;
     /// (Un)marks the vertex (during topological sort)
     void setTopoSortMarked(bool b);
     /// Returns the topological sort number
-    UInt getTopoNr();
+    UInt getTopoNr() const;
     /// Sets the topological sort number (overridden in tool and output vertices)
     virtual void setTopoNr(UInt nr);
     /// Resets the status
@@ -243,7 +243,7 @@ public:
     /// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
     virtual void markUnreachable();
     /// Returns whether this node is reachable
-    bool isReachable();
+    bool isReachable() const;
     /// Returns whether this node has already been processed during the current pipeline execution
     bool isFinished() const;
     /// run the tool (either ToolVertex, Merger, or OutputNode)
@@ -274,7 +274,7 @@ public:
 
 
     /// check if all upstream nodes are finished
-    bool allInputsReady();
+    bool allInputsReady() const;
 
 
 public slots:

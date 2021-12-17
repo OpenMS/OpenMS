@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -237,7 +237,10 @@ protected:
       else
       { 
         const vector<PeptideHit>& hits = pep.getHits();
-        if (hits.empty()) continue;
+        if (hits.empty())
+        {
+          continue;
+        }
         for (const PeptideHit& h : hits)
         {
           pep_a[it->second].insertHit(h);
@@ -308,8 +311,8 @@ protected:
       // contain less elements
       if (k*batch_size + batch_size > exp.size()) 
       {
-          end_itr = exp.end();
-          current_batch.resize(exp.size() - k*batch_size);
+        end_itr = exp.end();
+        current_batch.resize(exp.size() - k*batch_size);
       }
 
       // copy elements from the input range to the sub-vector        

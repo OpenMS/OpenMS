@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,6 +31,8 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
+
+#error No not use this header...
 
 #pragma once
 
@@ -346,7 +348,7 @@ public:
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {
-      return this->getPeakData()->size() > 0 &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_ion_mobility") &&
              this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
     }
@@ -359,7 +361,7 @@ public:
     /// Check whether the current layer contains DIA (SWATH-MS) data
     bool isDIAData() const
     {
-      return this->getPeakData()->size() > 0 &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_dia_data") &&
              this->getPeakData()->getMetaValue("is_dia_data").toBool();
     }
@@ -380,7 +382,7 @@ public:
     */
     bool chromatogram_flag_set() const
     {
-      return this->getPeakData()->size() > 0 &&
+      return !this->getPeakData()->empty() &&
              this->getPeakData()->metaValueExists("is_chromatogram") &&
              this->getPeakData()->getMetaValue("is_chromatogram").toBool();
     }
@@ -392,7 +394,7 @@ public:
     }
 
     /// remove the chromatogram flag
-    void remove_chromatogram_flag()
+    void remove_chromatogram_flag() const
     {
       if (this->chromatogram_flag_set())
       {
@@ -570,7 +572,7 @@ private:
   protected:
     /// loads the ID data from @p filename and calls Layer::annotate.
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
 
   /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
@@ -587,7 +589,7 @@ private:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
   
   /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
@@ -604,7 +606,7 @@ private:
   protected:
     /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const override;
   };
 
   /// Print the contents to a stream.

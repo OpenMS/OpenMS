@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,7 +238,7 @@ public:
     }*/
 
     // number of header files and input files must be identical
-    if (in_header.size() > 0 && in.size() != in_header.size())
+    if (!in_header.empty() && in.size() != in_header.size())
     {
       OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
@@ -290,7 +290,7 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram tic = exp.getTIC();
+        MSChromatogram tic = exp.calculateTIC();
         MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
@@ -315,10 +315,13 @@ public:
         pp.setParameters(p);
         pp.pick(tic_gf, tics_pp);
 
-        if (tics_pp.size())
+        if (!tics_pp.empty())
         {
           OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
-          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
+          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp)
+          {
+            OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
+          }
         }
         else
         {
@@ -356,33 +359,33 @@ public:
         // all other lines with positive RT values are copied unaffected
         //do not allow doubles
         std::set<double> mz_doubles;
-        for (ConsensusMap::Iterator cit = cm_local.begin(); cit != cm_local.end(); ++cit)
+        for (ConsensusFeature& cf : cm_local)
         {
-          if (cit->getRT() < 0)
+          if (cf.getRT() < 0)
           {
-            if (mz_doubles.find(cit->getMZ()) == mz_doubles.end())
+            if (mz_doubles.find(cf.getMZ()) == mz_doubles.end())
             {
-              mz_doubles.insert(cit->getMZ());
+              mz_doubles.insert(cf.getMZ());
             }
             else
             {
-              OPENMS_LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
+              OPENMS_LOG_INFO << "Found duplicate m/z entry (" << cf.getMZ() << ") for auto-rt. Skipping ..." << std::endl;
               continue;
             }
 
             ConsensusMap cm_RT_multiplex;
-            for (MSSpectrum::ConstIterator itp = tics_pp.begin(); itp != tics_pp.end(); ++itp)
+            for (const Peak1D& pk : tics_pp)
             {
-              ConsensusFeature f = *cit;
-              f.setRT(itp->getMZ());
+              ConsensusFeature f = cf;
+              f.setRT(pk.getMZ());
               cm.push_back(f);
             }
 
           }
           else
           { // default feature with no auto-rt
-            OPENMS_LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
-            cm.push_back(*cit);
+            OPENMS_LOG_INFO << "copying feature with RT " << cf.getRT() << std::endl;
+            cm.push_back(cf);
           }
         }
 
@@ -482,7 +485,10 @@ public:
                          String(max_peak.getIntensity());
       }
 
-      if (not_found) OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found)
+      {
+        OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      }
     }
 
     //-------------------------------------------------------------

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -157,7 +157,7 @@ protected:
   bool resolve_ambiguous_mods_;
 
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -340,7 +340,7 @@ protected:
       : min_size_(min_size), max_size_(max_size)
     {
     }
-    bool operator()(const NASequence& s) { return (s.size() < min_size_ || s.size() > max_size_); }
+    bool operator()(const NASequence& s) const { return (s.size() < min_size_ || s.size() > max_size_); }
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula
@@ -803,8 +803,7 @@ protected:
 
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref =
-      id_data.findScoreType("hyperscore");
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");

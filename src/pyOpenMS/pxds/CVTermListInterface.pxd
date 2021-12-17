@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/CVTermListInterface.h>" namespace "OpenMS":
         #  MetaInfoInterface
 
         CVTermListInterface() nogil except +
-        CVTermListInterface(CVTermListInterface) nogil except +
+        CVTermListInterface(CVTermListInterface &) nogil except +
 
         bool operator==(CVTermListInterface & rhs) nogil except +
         bool operator!=(CVTermListInterface & rhs) nogil except +
@@ -27,11 +27,11 @@ cdef extern from "<OpenMS/METADATA/CVTermListInterface.h>" namespace "OpenMS":
         void replaceCVTerms(libcpp_vector[ CVTerm ] & cv_terms, const String & accession) nogil except +
         # void replaceCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) nogil except +
 
-        void consumeCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) nogil except +
+        void consumeCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) nogil except + # wrap-doc:Merges the given map into the member map, no duplicate checking
         Map[ String, libcpp_vector[ CVTerm ] ]  getCVTerms() nogil except +
 
 
-        void addCVTerm(CVTerm & term) nogil except +
-        bool hasCVTerm(const String & accession) nogil except +
+        void addCVTerm(CVTerm & term) nogil except + # wrap-doc:Adds a CV term
+        bool hasCVTerm(const String & accession) nogil except + # wrap-doc:Checks whether the term has a value
         bool empty() nogil except +
 

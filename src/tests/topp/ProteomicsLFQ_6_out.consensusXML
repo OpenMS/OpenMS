@@ -56,8 +56,8 @@
 				<UserParam type="string" name="MSGFPlusAdapter:1:test" value="false"/>
 				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-fix-sc-2020-11-21"/>
-				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-feat-BPIonCXML-2021-09-27"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
@@ -361,7 +361,7 @@
 			<ProteinHit id="PH_41" accession="P00761|TRYP_PIG" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</ProteinIdentification>
@@ -470,7 +470,7 @@
 			<ProteinHit id="PH_57" accession="O76013|KRT36_HUMAN" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</ProteinIdentification>
@@ -546,7 +546,7 @@
 			<ProteinHit id="PH_62" accession="P00761|TRYP_PIG" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</ProteinIdentification>
@@ -640,7 +640,7 @@
 			<ProteinHit id="PH_73" accession="O76013|KRT36_HUMAN" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</ProteinIdentification>
@@ -716,7 +716,7 @@
 			<ProteinHit id="PH_78" accession="P02769|ALBU_BOVIN" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</ProteinIdentification>
@@ -789,7 +789,7 @@
 			<ProteinHit id="PH_82" accession="P02769|ALBU_BOVIN" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</ProteinIdentification>
@@ -2387,27 +2387,27 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
-		<map id="0" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="1" label="label-free" size="0">
+		<map id="0" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="1" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="1" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="2" label="label-free" size="0">
+		<map id="1" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="2" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="2" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="3" label="label-free" size="0">
+		<map id="2" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="3" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="3" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="4" label="label-free" size="0">
+		<map id="3" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="4" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="4" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="5" label="label-free" size="0">
+		<map id="4" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="5" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="5" name="/home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="6" label="label-free" size="0">
+		<map id="5" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="6" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>

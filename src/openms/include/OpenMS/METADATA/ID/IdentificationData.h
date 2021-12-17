@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 #include <OpenMS/METADATA/ID/ObservationMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -83,6 +83,9 @@ namespace OpenMS
     To ensure non-redundancy, many data types have a "key" (see table above) to which a uniqueness constraint applies.
     This means only one item of such a type with a given key can be stored in an IdentificationData object.
     If items with an existing key are registered subsequently, attempts are made to merge new information (e.g. additional scores) into the existing entry.
+    The details of this merging are handled in the @p merge function in each data class.
+
+    @warning This class is not thread-safe while being modified.
 
     @ingroup Metadata
   */
@@ -178,7 +181,7 @@ namespace OpenMS
     using ParentGroupSets =
       IdentificationDataInternal::ParentGroupSets;
 
-    using AddressLookup = boost::unordered_set<uintptr_t>;
+    using AddressLookup = std::unordered_set<uintptr_t>;
 
     /// structure that maps references of corresponding objects after copying
     struct RefTranslator {
@@ -254,7 +257,7 @@ namespace OpenMS
     IdentificationData(const IdentificationData& other);
 
     /// Move constructor
-    IdentificationData(IdentificationData&& other):
+    IdentificationData(IdentificationData&& other) noexcept :
       input_files_(std::move(other.input_files_)),
       processing_softwares_(std::move(other.processing_softwares_)),
       processing_steps_(std::move(other.processing_steps_)),
@@ -677,10 +680,16 @@ namespace OpenMS
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type) const;
 
-    /// Helper function to merge scored processing results while updating references (to processing steps and score types)
-    void mergeScoredProcessingResults_(
-      ScoredProcessingResult& result, const ScoredProcessingResult& other,
-      const RefTranslator& trans);
+    /*!
+      @brief Helper function to merge scored processing results while updating references (to processing steps and score types)
+
+      @param result Instance that gets updated
+      @param other Instance to merge into @p result
+      @param trans Mapping of corresponding references between @p other and @p result
+    */
+    void mergeScoredProcessingResults_(ScoredProcessingResult& result,
+                                       const ScoredProcessingResult& other,
+                                       const RefTranslator& trans);
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure

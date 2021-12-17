@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <iosfwd>
 #include <map>
 #include <set>
-#include <algorithm>
 #include <string>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -249,7 +248,7 @@ public:
     bool hasElement(const Element* element) const;
 
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
-    bool contains(const EmpiricalFormula& ef);
+    bool contains(const EmpiricalFormula& ef) const;
 
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula& rhs) const;

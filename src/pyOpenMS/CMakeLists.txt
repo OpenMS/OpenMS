@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -71,18 +71,18 @@ message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} 
 if(WIN32)
     if(SKIP_WIN_COMPILERCHECK)
         message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
-    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ))
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" OR ${PY_VERSION} STREQUAL "3.9" ))
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} VERSION_GREATER_EQUAL "3.5" ))
+        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions")
+        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions")
         message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
-        message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
+        message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
     # Try to find MSVS runtime libs
@@ -153,7 +153,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 18, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 2))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -168,7 +168,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.18.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.2 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -292,11 +292,6 @@ file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
-# SuperHirn
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirnd.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirn.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
 
 #------------------------------------------------------------------------------
 # copy/configure files
@@ -354,9 +349,23 @@ set(LIBRARIES_EXTEND "")
 set(LIBRARY_DIRS_EXTEND "")
 
 if (WITH_CRAWDAD)
-  set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
-  set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
-  set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
+  set(INCLUDE_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${CRAWDAD_INCLUDE_DIRS}/msmat ${INCLUDE_DIRS_EXTEND})
+  set(LIBRARIES_EXTEND "Crawdad" ${LIBRARIES_EXTEND})
+  set(LIBRARY_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${LIBRARY_DIRS_EXTEND})
+endif()
+
+if (MT_ENABLE_OPENMP)
+  find_package(OpenMP COMPONENTS CXX)
+endif()
+if (OpenMP_FOUND)
+  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
+# Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
+# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+# Might need regular updates..
+# foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
+#   list(APPEND LIBRARIES_EXTEND ${LIB})
+#   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
+# endforeach()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -372,6 +381,7 @@ endif()
 if(NOT WIN32)
   find_boost(regex) ## variables are not global -> find again
   find_package(XercesC)
+
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
@@ -379,16 +389,18 @@ if(NOT WIN32)
   # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
+
+  
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
   # We would need something recursive
   #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
-
-  file(GENERATE
-       OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
-       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 endif()
 
+file(GENERATE
+     OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
+     INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
+       
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
@@ -440,7 +452,6 @@ exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABL
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
-  ${SuperHirn_INCLUDE_DIRECTORIES}
   ${QT_INCLUDE_DIR}
 )
 
@@ -451,13 +462,13 @@ set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 add_custom_target(
   prepare_pyopenms_libs
-  DEPENDS OpenMS SuperHirn
+  DEPENDS OpenMS
 )
 
 # assemble the libraries
 
 # copy the direct dependencies
-set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo SuperHirn)
+set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
 
 foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
 	add_custom_command(
@@ -563,7 +574,7 @@ ENDIF()
 ###########################################################################
 
 # Original test using the "run_nose.py" script, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we dont see which tests
+# => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 
 
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 class QLineEdit;
 class QComboBox;
@@ -63,13 +63,13 @@ public:
     SpectraTreeTab(QWidget * parent = nullptr);
 
     /// Destructor
-    ~SpectraTreeTab() = default;
+    ~SpectraTreeTab() override = default;
 
     /// docu in base class
-    bool hasData(const LayerData* layer) override;
+    bool hasData(const LayerDataBase* layer) override;
 
     /// refresh the table using data from @p cl
-    void updateEntries(LayerData* cl) override;
+    void updateEntries(LayerDataBase* cl) override;
     
     /// remove all visible data
     void clear() override;
@@ -78,7 +78,7 @@ public:
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
     /// If no spectrum/chrom is selected, false is returned and @p exp is empty
     /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
-    bool getSelectedScan(MSExperiment& exp, LayerData::DataType& current_type) const;
+    bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
 
 signals:
     void spectrumSelected(int);

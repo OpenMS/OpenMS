@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
 
     cdef cppclass CV:
-        CV(CV) nogil except +
+        CV(CV &) nogil except +
         CV(String new_id, String new_fullname, String new_version, String new_URI)  nogil except +
 
         String id
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         Protein() nogil except +
-        Protein(Protein) nogil except +
+        Protein(Protein &) nogil except +
 
         String id
         String sequence
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         RetentionTime() nogil except +
-        RetentionTime(RetentionTime) nogil except +
+        RetentionTime(RetentionTime &) nogil except +
 
         String software_ref
         RTUnit retention_time_unit
@@ -81,7 +81,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         Compound() nogil except +
-        Compound(Compound) nogil except +
+        Compound(Compound &) nogil except +
         bool operator==(Compound & rhs) nogil except +
 
         String id
@@ -90,20 +90,20 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         double theoretical_mass
         libcpp_vector[ RetentionTime ] rts
 
-        void setChargeState(int charge) nogil except +
-        int getChargeState() nogil except +
-        bool hasCharge() nogil except +
-        double getRetentionTime() nogil except +
-        bool hasRetentionTime() nogil except +
-        RTType getRetentionTimeType() nogil except +
-        RTUnit getRetentionTimeUnit() nogil except +
+        void setChargeState(int charge) nogil except + # wrap-doc:Sets the peptide or compound charge state
+        int getChargeState() nogil except + # wrap-doc:Returns the peptide or compound charge state
+        bool hasCharge() nogil except + # wrap-doc:Whether peptide or compound has set charge state
+        double getRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        bool hasRetentionTime() nogil except + # wrap-doc:Check whether compound or peptide has an annotated retention time
+        RTType getRetentionTimeType() nogil except + # wrap-doc:Get compound or peptide retentiontime type
+        RTUnit getRetentionTimeUnit() nogil except + # wrap-doc:Get compound or peptide retentiontime type
 
     cdef cppclass Peptide(CVTermList):
         # wrap-inherits:
         #    CVTermList
 
         Peptide() nogil except +
-        Peptide(Peptide) nogil except +
+        Peptide(Peptide &) nogil except +
 
         # members
         libcpp_vector[RetentionTime] rts
@@ -113,23 +113,23 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String sequence
         libcpp_vector[TargetedExperiment_Modification] mods
 
-        void setPeptideGroupLabel(String label) nogil except +
-        String getPeptideGroupLabel() nogil except +
+        void setPeptideGroupLabel(String label) nogil except + # wrap-doc:Sets the peptide group label
+        String getPeptideGroupLabel() nogil except + # wrap-doc:Get the peptide group label
 
-        void setChargeState(int charge) nogil except +
-        int getChargeState() nogil except +
-        bool hasCharge() nogil except +
-        double getRetentionTime() nogil except +
-        bool hasRetentionTime() nogil except +
-        RTType getRetentionTimeType() nogil except +
-        RTUnit getRetentionTimeUnit() nogil except +
+        void setChargeState(int charge) nogil except + # wrap-doc:Sets the peptide or compound charge states
+        int getChargeState() nogil except + # wrap-doc:Returns the peptide or compound charge state
+        bool hasCharge() nogil except + # wrap-doc:Whether product has set charge state
+        double getRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        bool hasRetentionTime() nogil except + # wrap-doc:Gets compound or peptide retention time
+        RTType getRetentionTimeType() nogil except + # wrap-doc:Get compound or peptide retentiontime type
+        RTUnit getRetentionTimeUnit() nogil except + # wrap-doc:Get compound or peptide retentiontime unit (minute/seconds)
 
     cdef cppclass Contact(CVTermList):
         # wrap-inherits:
         #    CVTermList
 
         Contact() nogil except +
-        Contact(Contact) nogil except + #wrap-ignore
+        Contact(Contact &) nogil except + # compiler
         String id
         bool operator==(Contact & rhs) nogil except +
 
@@ -138,14 +138,14 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         Publication() nogil except +
-        Publication(Publication) nogil except + #wrap-ignore
+        Publication(Publication &) nogil except + # compiler
         String id
         bool operator==(Publication & rhs) nogil except +
 
 
     cdef cppclass TargetedExperiment_Instrument "OpenMS::TargetedExperimentHelper::Instrument":
         TargetedExperiment_Instrument() nogil except +
-        TargetedExperiment_Instrument(TargetedExperiment_Instrument) nogil except + #wrap-ignore
+        TargetedExperiment_Instrument(TargetedExperiment_Instrument &) nogil except + # compiler
         String id
         bool operator==(TargetedExperiment_Instrument & rhs) nogil except +
 
@@ -180,7 +180,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         Prediction() nogil except +
-        Prediction(Prediction) nogil except + #wrap-ignore
+        Prediction(Prediction &) nogil except + # compiler
         bool operator==(Prediction & rhs) nogil except +
 
         String software_ref
@@ -189,7 +189,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass TargetedExperiment_Interpretation "OpenMS::TargetedExperimentHelper::Interpretation":
         TargetedExperiment_Interpretation() nogil except +
-        TargetedExperiment_Interpretation(TargetedExperiment_Interpretation) nogil except + #wrap-ignore
+        TargetedExperiment_Interpretation(TargetedExperiment_Interpretation &) nogil except + # compiler
 
         unsigned char ordinal
         unsigned char rank
@@ -226,7 +226,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         #    CVTermList
 
         TraMLProduct() nogil except +
-        TraMLProduct(TraMLProduct) nogil except + #wrap-ignore
+        TraMLProduct(TraMLProduct &) nogil except + # compiler
         bool operator==(TraMLProduct & rhs) nogil except +
 
         void setMZ(double mz) nogil except +
@@ -247,7 +247,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass TargetedExperiment_Modification "OpenMS::TargetedExperimentHelper::Peptide::Modification":
         TargetedExperiment_Modification() nogil except +
-        TargetedExperiment_Modification(TargetedExperiment_Modification) nogil except +
+        TargetedExperiment_Modification(TargetedExperiment_Modification &) nogil except +
 
         # members
         double avg_mass_delta

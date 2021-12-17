@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -313,7 +313,7 @@ namespace OpenMS
     vector<String> mod_names;
     const ResidueModification* mod = r->getModification();
 
-    mod_names.push_back(mod->getId());
+    if (!mod->getId().empty()) mod_names.push_back(mod->getId()); // for user-defined mods
     mod_names.push_back(mod->getFullName());
     mod_names.push_back(mod->getFullId());
 
@@ -324,11 +324,11 @@ namespace OpenMS
 
     vector<String> names;
     // add name to lookup
-    if (r->getName() != "") 
+    if (!r->getName().empty()) 
     {
       names.push_back(r->getName());
     }
-    // add all synonymes to lookup
+    // add all synonyms to lookup
     for (const String & s : r->getSynonyms())
     {
       names.push_back(s);
@@ -351,13 +351,13 @@ namespace OpenMS
     residue_names_[r->getName()] = r;
 
     // add tree letter code to residue_names_
-    if (r->getThreeLetterCode() != "")
+    if (!r->getThreeLetterCode().empty())
     {
       residue_names_[r->getThreeLetterCode()] = r;
     }
 
     // add one letter code to residue_names_
-    if (r->getOneLetterCode() != "")
+    if (!r->getOneLetterCode().empty())
     {
       residue_names_[r->getOneLetterCode()] = r;
     }
@@ -393,7 +393,7 @@ namespace OpenMS
       // that if it is present in residue_mod_names_ then we have seen it
       // before and can directly grab it. If its not present, we may have as
       // unmodified residue in residue_names_ but need to create a new entry as
-      // modified residue. If the residue itself is unknow, we will throw (see
+      // modified residue. If the residue itself is unknown, we will throw (see
       // below).
       const auto& rm_entry = residue_mod_names_.find(res_name);
       if (rm_entry == residue_mod_names_.end())
@@ -452,6 +452,70 @@ namespace OpenMS
     else if (!mod_found)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification not found: ", modification);
+    }
+    
+    return res;
+  }
+
+  const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const ResidueModification* mod)
+  {
+    OPENMS_PRECONDITION(mod != nullptr, "Mod cannot be nullptr")
+    OPENMS_PRECONDITION(mod->getTermSpecificity() == ResidueModification::ANYWHERE, "Mod's term specificity needs to be ANYWHERE to attach it to Residues");
+    OPENMS_PRECONDITION(mod->getOrigin() == residue->getOneLetterCode()[0], "Mod's AA origin needs to match residues one-letter-code");
+    // search if the mod already exists
+    const String & res_name = residue->getName();
+    Residue* res{};
+    bool residue_found(true);
+    #pragma omp critical (ResidueDB)
+    {
+      // Perform a single lookup of the residue name in our database, we assume
+      // that if it is present in residue_mod_names_ then we have seen it
+      // before and can directly grab it. If its not present, we may have as
+      // unmodified residue in residue_names_ but need to create a new entry as
+      // modified residue. If the residue itself is unknown, we will throw (see
+      // below).
+      const auto& rm_entry = residue_mod_names_.find(res_name);
+      if (rm_entry == residue_mod_names_.end())
+      {
+        if (residue_names_.find(res_name) == residue_names_.end())
+        {
+          residue_found = false;
+        }
+      }
+
+      if (residue_found)
+      {
+
+        // check if modification in ResidueDB
+        if (mod != nullptr)
+        {
+          // check if modified residue is already present in ResidueDB
+          bool found = false;
+          if (rm_entry != residue_mod_names_.end())
+          {
+            const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
+            const auto& inner = rm_entry->second.find(id);
+            if (inner != rm_entry->second.end())
+            {
+              res = const_cast<Residue*>(inner->second);
+              found = true;
+            }
+          }
+          if (!found)
+          {
+            // create and register this modified residue
+            res = new Residue(*residue_names_.at(res_name));
+            res->setModification(mod);
+            addResidue_(res);            
+          }
+        }
+      }
+    }
+
+    // throwing (uncaught) exceptions needs to happen outside of critical section (see OpenMP reference manual)
+    if (!residue_found)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue not found: ", res_name);
     }
     
     return res;

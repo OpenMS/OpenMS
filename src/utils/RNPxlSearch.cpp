@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
@@ -47,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -54,6 +54,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -562,7 +563,7 @@ protected:
                       Size max_variable_mods_per_peptide,
                       const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm,
-                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
+                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts) const
   {
     assert(exp.size() == annotated_hits.size());
 

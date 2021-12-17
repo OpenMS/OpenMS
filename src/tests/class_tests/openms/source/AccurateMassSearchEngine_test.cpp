@@ -1,8 +1,6 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -306,16 +304,14 @@ sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 
-// TODO: reactivate
-
-/*
-START_SECTION((void run(FeatureMap&, MzTab&) const))
+START_SECTION((void run(FeatureMap&, MzTab&, MzTabM&) const))
 {
   FeatureMap exp_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
   {
     MzTab test_mztab;
-    ams_feat_test.run(exp_fm, test_mztab);
+    MzTabM test_mztabm;
+    ams_feat_test.run(exp_fm, test_mztab, test_mztabm);
 
     // test annotation of input
     String tmp_file;
@@ -340,7 +336,8 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     FeatureMap exp_fm2;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
     MzTab test_mztab2;
-    ams_feat_test2.run(exp_fm2, test_mztab2);
+    MzTabM test_mztabm2;
+    ams_feat_test2.run(exp_fm2, test_mztab2, test_mztabm2);
 
     String tmp_mztab_file2;
     NEW_TMP_FILE(tmp_mztab_file2);
@@ -349,8 +346,6 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
   }
 }
 END_SECTION
-*/
-
 
 
 START_SECTION((void run(ConsensusMap&, MzTab&) const))
@@ -372,13 +367,13 @@ START_SECTION((void run(ConsensusMap&, MzTab&) const))
   TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_consensusXML.mzTab")), true);
 END_SECTION
 
-// TODO: reactivate
-/*START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
+START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
   FeatureMap exp_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
   FeatureMap fm_p = exp_fm;
   AccurateMassSearchEngine ams;
   MzTab mzt;
+  MzTabM mztm;
   Param p;
   p.setValue("ionization_mode","auto");
   p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
@@ -386,16 +381,16 @@ END_SECTION
   ams.setParameters(p);
   ams.init();
 
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' has no scan_polarity meta value
   fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' scan_polarity meta value wrong
 
   fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
-  ams.run(fm_p, mzt);
+  ams.run(fm_p, mzt, mztm);
 
   fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
-  ams.run(fm_p, mzt);
-END_SECTION*/
+  ams.run(fm_p, mzt, mztm);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

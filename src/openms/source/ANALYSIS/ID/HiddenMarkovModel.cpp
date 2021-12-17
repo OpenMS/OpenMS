@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <fstream>
+#include <iostream>
 
 // #define SIMPLE_DEBUG2
 // #undef  SIMPLE_DEBUG2
@@ -210,15 +211,15 @@ namespace OpenMS
     Map<HMMState *, vector<HMMState *> > transitions;
 
     ofstream out(filename.c_str());
-    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+    out << R"(<?xml version="1.0" encoding="UTF-8"?>)" << endl;
 
-    out << "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns/graphml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " <<
+    out << R"(<graphml xmlns="http://graphml.graphdrawing.org/xmlns/graphml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" )" <<
     "xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/graphml http://www.yworks.com/xml/schema/graphml/1.0/ygraphml.xsd\" " <<
     "xmlns:y=\"http://www.yworks.com/xml/graphml\">" << endl;
 
-    out << "<key id=\"d0\" for=\"node\" yfiles.type=\"nodegraphics\"/>" << endl;
-    out << "<key id=\"d1\" for=\"edge\" yfiles.type=\"edgegraphics\"/>" << endl;
-    out << "  <graph id=\"G\" edgedefault=\"directed\">" << endl;
+    out << R"(<key id="d0" for="node" yfiles.type="nodegraphics"/>)" << endl;
+    out << R"(<key id="d1" for="edge" yfiles.type="edgegraphics"/>)" << endl;
+    out << R"(  <graph id="G" edgedefault="directed">)" << endl;
     for (set<HMMState *>::const_iterator it = states.begin(); it != states.end(); ++it)
     {
       out << "    <node id=\"" << (*it)->getName() << "\">" << endl;
@@ -242,7 +243,7 @@ namespace OpenMS
     {
       for (vector<HMMState *>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
       {
-        out << "    <edge source=\"" << it->first->getName() << "\" target=\"" << (*it1)->getName() << "\" directed=\"true\">" << endl;
+        out << "    <edge source=\"" << it->first->getName() << "\" target=\"" << (*it1)->getName() << R"(" directed="true">)" << endl;
         out << "      <data key=\"d1\">" << endl;
         out << "        <y:PolyLineEdge>" << endl;
         out << "          <y:EdgeLabel>" << getTransitionProbability_(it->first, *it1) << "</y:EdgeLabel>" << endl;

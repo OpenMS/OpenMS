@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,6 +87,11 @@ namespace OpenMS
       // @TODO: what to do with raw files if there's a different number?
       for (Size i = 0; i < spectrum_files.size(); ++i)
       {
+        if (spectrum_files[i].empty())
+        {
+          OPENMS_LOG_WARN << "Warning: spectrum file with no name - skipping" << endl;
+          continue;
+        }
         ID::InputFile input(spectrum_files[i]);
         if (match_files) input.primary_files.insert(primary_files[i]);
         ID::InputFileRef file_ref = id_data.registerInputFile(input);
@@ -148,7 +153,7 @@ namespace OpenMS
           {
             // note: protein referenced from indistinguishable group was already registered
             ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
-            OPENMS_POSTCONDITION("Protein ID referenced from indistinguishable group is missing.", ref !=id_data.getParentSequences().end()); 
+            OPENMS_POSTCONDITION("Protein ID referenced from indistinguishable group is missing.", ref !=id_data.getParentSequences().end());
             new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
@@ -179,7 +184,7 @@ namespace OpenMS
           {
             // note: protein referenced from general protein group was already registered
             ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
-            OPENMS_POSTCONDITION("Protein ID referenced from general protein group is missing.", ref !=id_data.getParentSequences().end()); 
+            OPENMS_POSTCONDITION("Protein ID referenced from general protein group is missing.", ref !=id_data.getParentSequences().end());
             new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
@@ -344,7 +349,15 @@ namespace OpenMS
 
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
-        id_data.registerObservationMatch(match);
+        try
+        {
+          id_data.registerObservationMatch(match);
+        }
+        catch (Exception::InvalidValue& error)
+        {
+          OPENMS_LOG_ERROR << "Error: failed to register observation match - skipping.\n"
+                           << "Message was: " << error.getMessage() << endl;
+        }
       }
     }
     progresslogger.endProgress();

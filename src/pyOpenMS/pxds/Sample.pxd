@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         Sample() nogil except +
-        Sample(Sample) nogil except + # wrap-ignore
+        Sample(Sample &) nogil except +
 
         #returns the sample name (default: "")
         String getName() nogil except +
@@ -23,49 +23,49 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         #sets the sample name
         void setOrganism(String organism) nogil except +
 
-        # returns the sample number (default: "")
-        String getNumber() nogil except +
-        # sets the sample number (e.g. sample ID)
-        void setNumber(String number) nogil except +
+        
+        String getNumber() nogil except + # wrap-doc:Returns the sample number
+        
+        void setNumber(String number) nogil except + # wrap-doc:Sets the sample number (e.g. sample ID)
 
-        # returns the comment (default: "")
-        String getComment() nogil except +
-        # sets the comment (may contain newline characters)
-        void setComment(String comment) nogil except +
+        
+        String getComment() nogil except + # wrap-doc:Returns the comment (default "")
+        
+        void setComment(String comment) nogil except + # wrap-doc:Sets the comment (may contain newline characters)
 
-        # returns the state of aggregation (default: SAMPLENULL)
-        SampleState getState() nogil except +
-        # sets the state of aggregation
-        void setState(SampleState state) nogil except +
+        
+        SampleState getState() nogil except + # wrap-doc:Returns the state of aggregation (default SAMPLENULL)
+        
+        void setState(SampleState state) nogil except + # wrap-doc:Sets the state of aggregation
 
-        # returns the mass (in gram) (default: 0.0)
-        double getMass() nogil except +
-        # sets the mass (in gram)
-        void setMass(double mass) nogil except +
+        
+        double getMass() nogil except + # wrap-doc:Returns the mass (in gram) (default 0.0)
+        
+        void setMass(double mass) nogil except + # wrap-doc:Sets the mass (in gram)
 
-        # returns the volume (in ml) (default: 0.0)
-        double getVolume() nogil except +
-        # sets the volume (in ml)
-        void setVolume(double volume) nogil except +
+        
+        double getVolume() nogil except + # wrap-doc:Returns the volume (in ml) (default 0.0)
+        
+        void setVolume(double volume) nogil except + # wrap-doc:Sets the volume (in ml)
 
-        # returns the concentration (in g/l) (default: 0.0)
-        double getConcentration() nogil except +
-        # sets the concentration (in g/l)
-        void setConcentration(double concentration) nogil except +
+        
+        double getConcentration() nogil except + # wrap-doc:Returns the concentration (in g/l) (default 0.0)
+        
+        void setConcentration(double concentration) nogil except + # wrap-doc:Sets the concentration (in g/l)
 
-        # returns a reference to the vector of subsamples that were combined to create this sample
-        libcpp_vector[Sample] getSubsamples() nogil except +
-        # sets the vector of subsamples that were combined to create this sample
-        void setSubsamples(libcpp_vector[Sample] subsamples) nogil except +
+        
+        libcpp_vector[Sample] getSubsamples() nogil except + # wrap-doc:Returns a reference to the vector of subsamples that were combined to create this sample
+        
+        void setSubsamples(libcpp_vector[Sample] subsamples) nogil except + # wrap-doc:Sets the vector of subsamples that were combined to create this sample
 
         # Since SampleTreatment is abstract, we cant wrap it
         ## void addTreatment(SampleTreatment treatment, Int before_position = -1) nogil except +
         ## SampleTreatment getTreatment(UInt position) nogil except +
 
-        # brief removes the sample treatment at the given position
-        void removeTreatment(UInt position) nogil except +
-        # returns the number of sample treatments
-        Int countTreatments() nogil except +
+        
+        void removeTreatment(UInt position) nogil except + # wrap-doc:Brief removes the sample treatment at the given position
+        
+        Int countTreatments() nogil except + # wrap-doc:Returns the number of sample treatments
 
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 

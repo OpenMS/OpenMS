@@ -26,8 +26,8 @@
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-fix-hendrik-idfile-integration-2021-05-18"/>
-				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.7.0-pre-idfile-integration-2021-11-09"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
@@ -230,7 +230,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_2" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -271,7 +271,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_3" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -300,7 +300,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_4" date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -353,7 +353,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_5" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -382,7 +382,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_6" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
@@ -399,7 +399,7 @@
 				<UserParam type="float" name="OMSSA_score" value="0.0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.832153320312" RT="1607.2958984375" spectrum_reference="spectrum=2475" >
@@ -826,27 +826,27 @@
 		<UserParam type="int" name="map_index" value="5"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
-		<map id="0" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="15027506391878784060" label="label-free" size="0">
+		<map id="0" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="15027506391878784060" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="1" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="14130253622452166680" label="label-free" size="0">
+		<map id="1" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="14130253622452166680" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="2" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="11206333836908580887" label="label-free" size="0">
+		<map id="2" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="11206333836908580887" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="1"/>
 		</map>
-		<map id="3" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="4113955404983071398" label="label-free" size="0">
+		<map id="3" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="4113955404983071398" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="4" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="11227370222830281840" label="label-free" size="0">
+		<map id="4" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="11227370222830281840" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>
-		<map id="5" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="15971820422553646598" label="label-free" size="0">
+		<map id="5" name="/home/pancake/software/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="15971820422553646598" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="2"/>
 		</map>

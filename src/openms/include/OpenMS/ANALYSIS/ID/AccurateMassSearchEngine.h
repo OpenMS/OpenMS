@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/AdductInfo.h>
+
 
 #include <iosfwd>
 #include <vector>
@@ -255,7 +256,7 @@ private:
         if (map[0].metaValueExists("scan_polarity"))
         {
           StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
-          if (pols.size() == 1 && pols[0].size() > 0)
+          if (pols.size() == 1 && !pols[0].empty())
           {
             pols[0].toLower();
             if (pols[0] == "positive" || pols[0] == "negative")
@@ -280,7 +281,7 @@ private:
         OPENMS_LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
       }
 
-      if (ion_mode_detect_msg.size() > 0)
+      if (!ion_mode_detect_msg.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
       }
@@ -314,10 +315,7 @@ private:
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    // void AccurateMassSearchEngine::exportMzTabM_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTabM& mztabm_out) const;
-
-
-    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const;
+    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
 
     void exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const;
 

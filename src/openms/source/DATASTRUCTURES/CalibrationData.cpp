@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -160,7 +160,10 @@ namespace OpenMS
 
   int CalibrationData::getGroup( Size i ) const
   {
-    if (!data_[i].metaValueExists("peakgroup")) { return -1; }
+    if (!data_[i].metaValueExists("peakgroup"))
+    { 
+      return -1;
+    }
     return data_[i].getMetaValue("peakgroup");
   }
 
@@ -176,7 +179,10 @@ namespace OpenMS
 
     Size i = std::distance(data_.begin(), lower_bound(data_.begin(), data_.end(), rt_left, RichPeak2D::PositionLess()));
     Size ie = std::distance(data_.begin(), upper_bound(data_.begin(), data_.end(), rt_right, RichPeak2D::PositionLess()));
-    if (i==ie) return cd;
+    if (i == ie)
+    {
+      return cd;
+    }
 
     double rt = (rt_left + rt_right) / 2;
 
@@ -193,7 +199,10 @@ namespace OpenMS
           mz_ref = getRefMZ(j);
         }
       }
-      if (ints.empty()) { continue; } // no data points for this peak group in this RT range
+      if (ints.empty())
+      { 
+        continue; // no data points for this peak group in this RT range
+      }
       double int_median = Math::median(ints.begin(), ints.end());
       cd.insertCalibrationPoint(rt, Math::median(mzs.begin(), mzs.end()), int_median, mz_ref, log(int_median));
     }

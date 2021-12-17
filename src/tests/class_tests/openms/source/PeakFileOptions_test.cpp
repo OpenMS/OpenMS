@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -207,7 +207,7 @@ START_SECTION((void clearMSLevels()))
 	// now clear the ms levels
 	tmp.clearMSLevels();
 	TEST_EQUAL(tmp.hasMSLevels(), false);
-	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
+	TEST_EQUAL(tmp.getMSLevels().empty(),true);
 END_SECTION
 
 START_SECTION((bool hasMSLevels() const))
@@ -228,7 +228,7 @@ END_SECTION
 
 START_SECTION((const vector<Int>& getMSLevels() const))
 	PeakFileOptions tmp;
-	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
+	TEST_EQUAL(tmp.getMSLevels().empty(),true);
 END_SECTION
 
 START_SECTION(Size getMaxDataPoolSize() const)

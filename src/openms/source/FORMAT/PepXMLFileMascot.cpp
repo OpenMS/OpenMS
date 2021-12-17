@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -181,11 +181,11 @@ namespace OpenMS
       }
 
       // fixed modifications
-      for (vector<String>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
+      for (const String& it : fixed_modifications_)
       {
         // e.g. Carboxymethyl (C)
         vector<String> mod_split;
-        it->split(' ', mod_split);
+        it.split(' ', mod_split);
         if (mod_split.size() == 2)
         {
           if (mod_split[1] == "(C-term)")
@@ -216,7 +216,7 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
+          error(LOAD, String("Cannot parse fixed modification '") + it + "'");
         }
       }
 

@@ -17,8 +17,8 @@
 #ifndef __MIToolbox_H
 #define __MIToolbox_H
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #define BASE_TWO 2.0
 #define BASE_E M_E
@@ -29,8 +29,8 @@ typedef unsigned int uint;
 
 // #ifdef COMPILE_C
   #define C_IMPLEMENTATION
-  #include <stdio.h>
-  #include <stdlib.h>
+  #include <cstdio>
+  #include <cstdlib>
   #define CALLOC_FUNC(a,b) calloc(a,b)
   #define FREE_FUNC(a) free(a)
 // #elif defined(COMPILE_R)

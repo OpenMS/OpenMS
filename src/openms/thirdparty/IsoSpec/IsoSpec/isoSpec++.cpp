@@ -137,7 +137,7 @@ marginals(nullptr)
     }
 }
 
-Iso::Iso(Iso&& other) :
+Iso::Iso(Iso&& other) noexcept :
 disowned(other.disowned),
 dimNumber(other.dimNumber),
 isotopeNumbers(other.isotopeNumbers),

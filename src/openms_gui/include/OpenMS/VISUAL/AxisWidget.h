@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ public:
     void setMargin(UInt size);
 
     /// returns the margin
-    UInt margin();
+    UInt margin() const;
 
     /// enable the display of the legend (default true)
     void showLegend(bool show_legend);
@@ -96,19 +96,19 @@ public:
     const String & getLegend();
 
     /// returns the currently used grid lines
-    const GridVector & gridLines();
+    const GridVector & gridLines() const;
 
     /// sets the axis to logarithmic scale
     void setLogScale(bool is_log);
 
     /// returns true if the axis has logarithmic scale
-    bool isLogScale();
+    bool isLogScale() const;
 
     /// set true to display the axis label in inverse order (left to right or bottom to top)
     void setInverseOrientation(bool inverse_orientation);
 
     /// returns if the axis label is displayed in inverse order
-    bool hasInverseOrientation();
+    bool hasInverseOrientation() const;
 
     /// set true to allow for shortened numbers (with k/M/G units) on the axis label
     void setAllowShortNumbers(bool short_nums);

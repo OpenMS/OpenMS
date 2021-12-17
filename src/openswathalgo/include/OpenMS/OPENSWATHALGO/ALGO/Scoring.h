@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,6 @@
 #include <vector>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
-#include <boost/lambda/casts.hpp>
-#include <boost/lambda/lambda.hpp>
 
 namespace OpenSwath
 {
@@ -117,11 +115,11 @@ public:
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
     /// NOTE: this replaces calcxcorr 
     OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                                                   std::vector<double>& data2, const int& maxdelay, const int& lag);
+                                                                   std::vector<double>& data2, const int maxdelay, const int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
     OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                                                  const std::vector<double>& data2, const int& maxdelay, const int& lag);
+                                                                  const std::vector<double>& data2, const int maxdelay, const int lag);
 
     /// Find best peak in an cross-correlation (highest apex)
     OPENSWATHALGO_DLLAPI XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType & array);

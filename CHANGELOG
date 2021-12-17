@@ -1,3 +1,5 @@
+
+
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
@@ -9,26 +11,72 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.0                                        ----
+------------------------------------------------------------------------------------------
+
+- Deisotoping algorithm using KL
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.7 (in development)                       ----
+----                                OpenMS 2.7                                        ----
 ------------------------------------------------------------------------------------------
+
+General:
+- OpenMS now expects a compiler that supports C17
+- Config storage path on linux changed to ~/.config/
+- Some documentation improvements to pyOpenMS https://pyopenms.readthedocs.io/en/latest/
+- PyOpenMS checks if `OPENMS_DATA_PATH` environment variable is set, before setting to default value
 
 Adapters/Third-party support:
-- Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+- Added support for SIRIUS 4.9.0
 - Added basic Triqler export
-- ParamEditor with more convenient StringList editing  (#5135)
-- TOPPAS: add a `recent files` submenu
-- removed InspectAdapter
+- Improved NOVOR support
+- Improved MSFragger support
+- Removed Inspect support
+- Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+
+What's new:
+- Add some support for integrating spectral information when conducting DDA metabolomics experiments
+- SimpleSearchEngine and algorithm: Additional spectrum features for percolator added
+- FeatureFinderMetaboIdent: Targeted feature extraction is now also available from pyOpenMS
+- AssayGeneratorMetabo: Added SIRIUS 4.9.0 support, allowing internal decoy generation and added internal feature linking support
+- QCCalculator: export in mzQC file format is now available
+
+New Tools:
+- OpenMSDatabasesInfo -- Prints the content of OpenMS' enzyme and modification databases to TSV (UTIL)
+- TriqlerConverter -- Converter to input for Triqler (UTIL)
+
+Removed Tools:
+- FeatureFinderSuperHirn -- Finds mass spectrometric features in mass spectra (TOPP)
+- InspectAdapter -- Annotates MS/MS spectra using Inspect (TOPP)
 
 Further fixes:
-- support for GLPK 5.x (#5127)
+- Support for GLPK 5.x (#5127)
+- IPF (identification of peptidoforms): add a check for terminal residue modification when generating theoretical peptidoforms
+- Reduced build times on Windows
+- Reduced AddressSanitizer warnings
 
 File formats:
 - Exporter for MSP files
+- Improved support for reading NIST MSP files
 
 Dependencies:
-- Promoted SeqAn v1 to C17. Moved from contrib to main source tree as it is not officially maintained anymore.
+- Promoted SeqAn v1 to C17. Moved Seqan from contrib to main source tree (as it is not officially maintained anymore).
+
+Library:
+- Removed Elements.xml and Residues.xml. Hard-coded elements and residues for better performance/startup times.
+- Moved algorithm of FeatureFinderMetaboIdent into library
+- Added support for isotopic labelling experiments (MDV) 
+- Removed SuperHirn library
+
+GUI tools:
+- TOPPView: Various bug fixes
+- TOPPView: Dynamic detection of tools in TOPPView upon startup
+- TOPPView: Improved DIA data browsing
+- TOPPAS: add a `recent files` submenu
+- ParamEditor: with more convenient StringList editing
+- SwathWizard: Allow opening in TOPPView
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
@@ -87,6 +135,7 @@ Various:
 - Some further clarifications, standardization/consolidation of outputs formats/consistency
 - Continued fixes/improvement of documentation
 - Removed deprecated version of PeakPickerHiRes (LowMemPeakPickerHiResRandomAccess and LowMemPeakPickerHiRes). Their functionality can be accessed through options of PeakPickerHiRes
+- moved the config storage location for unix installations to comply with X Display Group (freedesktop.org) guidelines.
 
 
 ------------------------------------------------------------------------------------------

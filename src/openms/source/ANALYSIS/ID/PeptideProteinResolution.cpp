@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
 
-    // I dont think we need to assume sortedness here
+    // I don't think we need to assume sortedness here
     //if (!skip_sort) sort(groups.begin(), groups.end());
 
     std::unordered_set<std::string> decoy_accs;
@@ -128,12 +128,10 @@ namespace OpenMS
     }
 
     // Go through PeptideIDs
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end();
-         ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
 
-      vector<PeptideHit>& hits = pep_it->getHits();
+      vector<PeptideHit>& hits = pep.getHits();
       if (!hits.empty())
       {
         PeptideHit& best_hit = hits[0];
@@ -236,13 +234,19 @@ namespace OpenMS
           evToKeep = grpIdxToEvIdx[*toResolve->begin()];
           if (toResolve->size() > 1)
           {
-           OPENMS_LOG_INFO << "Resolution: Peptide " << pep_it->getHits()[0].getSequence().toString() << " had groups:" << std::endl;
+           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:" << std::endl;
 
            OPENMS_LOG_INFO << "tgt: ";
-            for (const auto& g : bestNonDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestNonDecoyGrpTie)
+            {
+              OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            }
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "dec: ";
-            for (const auto& g : bestDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestDecoyGrpTie)
+            {
+              OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            }
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << std::endl;
           }
@@ -256,6 +260,7 @@ namespace OpenMS
         }
 
         vector<PeptideEvidence> newEv;
+        newEv.reserve(evToKeep.size());
         for (const auto& idx : evToKeep)
         {
           newEv.push_back(pepev[idx]);
@@ -709,7 +714,7 @@ namespace OpenMS
     size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
     ambiguity_grp.probability = origin_groups[best_grp_index].probability;
     
-    // copy group indices so we can reasily reorder them for tie resolution
+    // copy group indices so we can reorder them for tie resolution
     vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
 
     // groups are currently only sorted by probability.

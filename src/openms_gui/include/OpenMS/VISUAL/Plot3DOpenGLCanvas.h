@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 namespace OpenMS
 {
   class Plot3DCanvas;
-  class LayerData;
+  class LayerDataBase;
 
   /**
       @brief OpenGL Canvas for 3D-visualization of map data
@@ -81,7 +81,7 @@ public:
 
         Destroys the OpenGLWidget and all associated data.
     */
-    virtual ~Plot3DOpenGLCanvas();
+    ~Plot3DOpenGLCanvas() override;
 
     ///virtual function provided from QGLWidget
     void initializeGL() override;
@@ -148,7 +148,7 @@ protected:
     double scaledIntensity_(float intensity, Size layer_index);
     
     /// recalculates the dot gradient interpolation values.
-    void recalculateDotGradient_(LayerData& layer);
+    void recalculateDotGradient_(LayerDataBase& layer);
     ///calculate the ticks for the gridlines
     void calculateGridLines_();
 

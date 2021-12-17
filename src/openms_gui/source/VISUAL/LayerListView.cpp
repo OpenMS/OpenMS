@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,10 +74,15 @@ namespace OpenMS
 
     spectrum_widget_ = active_widget;
     // during program exit, this could be called after PlotWidgets are gone
-    if (spectrum_widget_ == nullptr) return;
-
+    if (spectrum_widget_ == nullptr)
+    {
+      return;
+    }
     PlotCanvas* cc = spectrum_widget_->canvas();
-    if (cc == nullptr) return;
+    if (cc == nullptr)
+    {
+      return;
+    }
 
     // determine if this is a 1D view (for text color)
     bool is_1d_view = (dynamic_cast<Plot1DCanvas*>(cc) != nullptr);
@@ -87,7 +92,7 @@ namespace OpenMS
 
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData& layer = cc->getLayer(i);
+      const LayerDataBase& layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
@@ -106,13 +111,13 @@ namespace OpenMS
       {  // 2D/3D map view
         switch (layer.type)
         {
-        case LayerData::DT_PEAK:
+        case LayerDataBase::DT_PEAK:
           item->setIcon(QIcon(":/peaks.png"));
           break;
-        case LayerData::DT_FEATURE:
+        case LayerDataBase::DT_FEATURE:
           item->setIcon(QIcon(":/convexhull.png"));
           break;
-        case LayerData::DT_CONSENSUS:
+        case LayerDataBase::DT_CONSENSUS:
           item->setIcon(QIcon(":/elements.png"));
           break;
         default:
@@ -157,8 +162,10 @@ namespace OpenMS
   void LayerListView::contextMenuEvent(QContextMenuEvent* event)
   {
     QListWidgetItem* item = this->itemAt(event->pos());
-    if (!item) return;
-
+    if (!item)
+    {
+      return;
+    }
     int layer_idx = this->row(item);
     QMenu* context_menu = new QMenu(this);
     

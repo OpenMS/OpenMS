@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,31 +66,45 @@ public:
      @param features Output feature map
      @param id_data Primary ("internal") identifications as targets for feature detection
      @param id_data_ext Additional ("external") identifications as targets for feature detection
+     @param spectra_file Fall-back value for setting @p primaryMSRunPath in the output (by default set based on the MS data being processed)
 
      External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
   */
   void run(FeatureMap& features,
            IdentificationData& id_data,
-           IdentificationData& id_data_ext);
+           IdentificationData& id_data_ext,
+           const String& spectra_file = "");
+
+  /// Version of run() for legacy identification formats
+  void run(FeatureMap& features,
+           const std::vector<PeptideIdentification>& peptides,
+           const std::vector<ProteinIdentification>& proteins,
+           const std::vector<PeptideIdentification>& peptides_ext,
+           const std::vector<ProteinIdentification>& proteins_ext,
+           const FeatureMap& seeds = FeatureMap(),
+           const String& spectra_file = "");
 
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
-                    Size n_overlap_traces = 6);
+                    const String& input_file = "", Size n_overlap_traces = 6);
 
   // void runOnCandidates(FeatureMap& features);
 
-  PeakMap& getMSData() { return ms_data_; }
-  const PeakMap& getMSData() const { return ms_data_; }
+  PeakMap& getMSData();
+  const PeakMap& getMSData() const;
 
-  PeakMap& getChromatograms() { return chrom_data_; }
-  const PeakMap& getChromatograms() const { return chrom_data_; }
+  /// @brief set the MS data used for feature detection
+  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  PeakMap& getChromatograms();
+  const PeakMap& getChromatograms() const;
 
-  // @TODO: how does this work if the library is cleared between chunks?
-  TargetedExperiment& getLibrary() { return combined_library_; }
-  const TargetedExperiment& getLibrary() const { return combined_library_; }
+  ProgressLogger& getProgressLogger();
+  const ProgressLogger& getProgressLogger() const;
+
+  TargetedExperiment& getLibrary();
+  const TargetedExperiment& getLibrary() const;
 
 protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -211,7 +225,7 @@ protected:
   void annotateFeaturesOneTarget_(FeatureMap& features, const String& target_id,
                                   Int charge, const std::vector<Size>& indexes);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -232,7 +246,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool>>& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

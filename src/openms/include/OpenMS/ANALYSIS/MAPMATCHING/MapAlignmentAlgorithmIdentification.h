@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -350,7 +350,7 @@ protected:
     /**
       @brief Helper function to find/define the score type for processing IdentificationData
 
-      @return Reference to the score type denoted by parameter @p score_type_
+      @return Reference to the score type denoted by algorithm parameter "score_type"
      */
     IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
 

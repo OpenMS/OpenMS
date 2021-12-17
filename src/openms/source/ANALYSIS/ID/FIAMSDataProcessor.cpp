@@ -166,7 +166,7 @@ namespace OpenMS {
   MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum& input) {
     SignalToNoiseEstimatorMedianRapid sne(param_.getValue("sne:window"));
     MSSpectrum output;
-    if (input.size() == 0) {
+    if (input.empty()) {
       return output;
     }
     std::vector<double> mzs, intensities;

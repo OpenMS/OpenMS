@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
 
     cached_consumer->setExpectedSize(2,0);
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
 
     cached_consumer->consumeSpectrum(exp.getSpectrum(0));
 
@@ -177,11 +177,11 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
 
     cached_consumer->setExpectedSize(2,0);
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
 
     cached_consumer->consumeSpectrum(exp.getSpectrum(0));
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
     TEST_EQUAL(exp.getSpectrum(0) == first_spectrum, true)
 
     delete cached_consumer;

@@ -8,6 +8,7 @@ import os
 
 from pyopenms import String as s
 import numpy as np
+import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
@@ -855,6 +856,17 @@ def testConsensusMap():
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
+    
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+    intydf = m.get_intensity_df()
+    metadf = m.get_metadata_df()
+    assert intydf.shape[0] == 2
+    assert metadf.shape[0] == 2
 
     assert m == m
     assert not m != m
@@ -1481,32 +1493,6 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-     FeatureFinderAlgorithmSH.getDefaults
-     FeatureFinderAlgorithmSH.getName
-     FeatureFinderAlgorithmSH.getParameters
-     FeatureFinderAlgorithmSH.getProductName
-     FeatureFinderAlgorithmSH.setName
-     FeatureFinderAlgorithmSH.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -1807,17 +1793,6 @@ def testFeatureFinderAlgorithmPicked():
 
     assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-
-    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
 
 @report
 def testFeatureFinderAlgorithmIsotopeWavelet():
@@ -2132,6 +2107,44 @@ def testFeatureXMLFile():
 
     fm = pyopenms.FeatureMap()
     fm.setUniqueIds()
+
+    f = pyopenms.Feature()
+    f.setMZ(200)
+    f.setCharge(1)
+    f.setRT(10)
+    f.setIntensity(10000)
+    f.setOverallQuality(10)
+
+    ch = pyopenms.ConvexHull2D()
+    ch.setHullPoints(np.asarray([[8,199],[12,201]], dtype='f'))
+    f.setConvexHulls([ch])
+
+    f.setMetaValue(b'mv1', 1)
+    f.setMetaValue(b'mv2', 2)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
+    fm.push_back(f)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=124')
+    fm.push_back(f)
+
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+
+    fm = pyopenms.FeatureMap()
+    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
@@ -2244,6 +2257,49 @@ def testIdXMLFile():
     """
     assert pyopenms.IdXMLFile().load is not None
     assert pyopenms.IdXMLFile().store is not None
+
+@report
+def test_peptide_identifications_to_df():
+    peps = []
+
+    p = pyopenms.PeptideIdentification()
+    p.setRT(1243.56)
+    p.setMZ(440.0)
+    p.setScoreType("ScoreType")
+    p.setHigherScoreBetter(False)
+    p.setIdentifier("IdentificationRun1")
+
+    h = pyopenms.PeptideHit()
+    h.setScore(1.0)
+    h.setCharge(2)
+    h.setMetaValue("StringMetaValue", "Value")
+    h.setMetaValue("IntMetaValue", 2)
+    e1 = pyopenms.PeptideEvidence()
+    e1.setProteinAccession("sp|Accession1")
+    e1.setStart(123)
+    e1.setEnd(141)
+    e2 = pyopenms.PeptideEvidence()
+    e2.setProteinAccession("sp|Accession2")
+    e2.setStart(12)
+    e2.setEnd(24)
+    h.setPeptideEvidences([e1, e2])
+    p.insertHit(h)
+
+    peps.append(p)
+
+    p1 = pyopenms.PeptideIdentification()
+    p1.setRT(1243.56)
+    p1.setMZ(240.0)
+    p1.setScoreType("ScoreType")
+    p1.setHigherScoreBetter(False)
+    p1.setIdentifier("IdentificationRun2")
+
+    peps.append(p1)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
 @report
 def testPepXMLFile():
@@ -2818,6 +2874,8 @@ def testMSExperiment():
      MSExperiment.removeMetaValue
      MSExperiment.getSize
      MSExperiment.isSorted
+     MSExperiment.get2DPeakDataLong
+     MSExperiment.get_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2849,10 +2907,22 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    mse.addSpectrum(pyopenms.MSSpectrum())
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mse.addSpectrum(spec)
     assert mse.size() == 1
 
     assert mse[0] is not None
+
+    mse.updateRanges()
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape[0] == 2
+    assert mz.shape[0] == 2
+    assert inty.shape[0] == 2
+
 
     assert isinstance(list(mse), list)
 
@@ -2866,6 +2936,22 @@ def testMSExperiment():
 
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
+
+    exp = pyopenms.MSExperiment()
+    for i in range(3):
+        s = pyopenms.MSSpectrum()
+        s.setRT(i)
+        s.setMSLevel(1)
+
+        for mz in (500, 600):
+            p = pyopenms.Peak1D()
+            p.setMZ(mz + i)
+            p.setIntensity(i + 10)
+            s.push_back(p)
+
+        exp.addSpectrum(s)
+
+    assert exp.get_df().shape == (3,3)
 
 
 @report

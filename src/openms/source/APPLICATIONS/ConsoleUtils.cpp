@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,8 +71,10 @@ namespace OpenMS
     // avoid calling this function more than once
     static bool been_here = false;
     if (been_here)
+    {
       return console_width_;
-
+    }
+    
     been_here = true;
 
     // determine column width of current console
@@ -161,7 +163,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < input.size(); )
     {
-      String line = input.substr(i, result.size() == 0 ? line_len : short_line_len); // first line has full length
+      String line = input.substr(i, result.empty() ? line_len : short_line_len); // first line has full length
       Size advance_size = line.size();
       if (line.hasSubstring("\n"))
       {
@@ -171,13 +173,16 @@ namespace OpenMS
           line = line.substr(1);
           ++advance_size;
         } // advance by # of \n's
-        if (line.hasSubstring("\n")) line = line.prefix('\n');
+        if (line.hasSubstring("\n"))
+        {
+          line = line.prefix('\n');
+        }
         advance_size += line.size(); // + actual chars
       }
 
       // check if we are using the full length and split a word at the same time
       // cut a little earlier in that case for nicer looks
-      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
+      if (line.size() ==  (result.empty() ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');
         if (last_word.length() < 4)
@@ -188,8 +193,8 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no indentation
-      String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
+      String s_intend = (result.empty() ? "" : String(indentation, ' ')); // first line no indentation
+      String r = s_intend + (result.empty() ? line : line.trim()); // intended lines get trimmed
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
     if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
@@ -199,7 +204,7 @@ namespace OpenMS
       result.push_back((String(indentation, ' ') + String("..."))); //.fillRight(' ',(UInt) line_len));
       result.push_back(last);
     }
-    // remove last " " from last line to prevent automatic linebreak
+    // remove last " " from last line to prevent automatic line break
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
     return ListUtils::concatenate(result, "\n");
   }

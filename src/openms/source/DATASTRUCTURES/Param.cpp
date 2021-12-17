@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -84,7 +85,7 @@ namespace OpenMS
   {
     if (value.valueType() == ParamValue::STRING_VALUE)
     {
-      if (valid_strings.size() != 0)
+      if (!valid_strings.empty())
       {
         bool ok = false;
         if (std::find(valid_strings.begin(), valid_strings.end(), value) != valid_strings.end())
@@ -116,7 +117,7 @@ namespace OpenMS
       {
         str_value = ls_value[i];
 
-        if (valid_strings.size() != 0)
+        if (!valid_strings.empty())
         {
           bool ok = false;
           if (std::find(valid_strings.begin(), valid_strings.end(), str_value) != valid_strings.end())
@@ -222,8 +223,9 @@ namespace OpenMS
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
     if (name != rhs.name || entries.size() != rhs.entries.size() || nodes.size() != rhs.nodes.size())
+    {
       return false;
-
+    }
     //order of sections / entries should not matter
     for (size_t i = 0; i < entries.size(); ++i)
     {
@@ -279,7 +281,7 @@ namespace OpenMS
         NodeIterator it = findNode(prefix);
         if (it == nodes.end()) //subnode not found
         {
-            return nullptr;
+          return nullptr;
         }
         //recursively call findNode for the rest of the path
         std::string new_name = local_name.substr(it->name.size() + 1);
@@ -292,12 +294,16 @@ namespace OpenMS
         for (size_t i = 0; i < nodes.size(); ++i)
         {
             if (nodes[i].name.compare(0, local_name.size(), local_name) == 0)
-                return this;
+            {
+              return this;
+            }
         }
         for (size_t i = 0; i < entries.size(); ++i)
         {
             if (entries[i].name.compare(0, local_name.size(), local_name) == 0)
-                return this;
+            {
+            return this;
+            }
         }
         return nullptr;
     }
@@ -307,11 +313,15 @@ namespace OpenMS
   {
     ParamNode* parent = findParentOf(local_name);
     if (parent == nullptr)
+    {
       return nullptr;
+    }
 
     EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
+    {
       return nullptr;
+    }
 
     return &(*it);
   }
@@ -354,7 +364,7 @@ namespace OpenMS
       {
         it->insert(*it2);
       }
-      if (it->description == "" || node.description != "") //replace description if not empty in new node
+      if (it->description.empty() || !node.description.empty()) //replace description if not empty in new node
       {
         it->description = node.description;
       }
@@ -403,7 +413,7 @@ namespace OpenMS
     {
       it->value = entry.value;
       it->tags = entry.tags;
-      if (it->description == "" || entry.description != "") //replace description if not empty in new entry
+      if (it->description.empty() || !entry.description.empty()) //replace description if not empty in new entry
       {
         it->description = entry.description;
       }
@@ -565,7 +575,7 @@ namespace OpenMS
   void Param::setDefaults(const Param& defaults, const std::string& prefix, bool showMessage)
   {
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       if (prefix2.back() != ':')
       {
@@ -617,11 +627,11 @@ namespace OpenMS
           pathname.resize(pathname.size() - it2->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.length() - 1); //remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = defaults.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
             //std::cerr << "## " << description_new << std::endl;
@@ -831,12 +841,12 @@ namespace OpenMS
   {
     //determine prefix
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       //prefix2.ensureLastChar(':');
       if (prefix2.back() != ':')
       {
-          prefix2.append(1, ':');
+        prefix2.append(1, ':');
       }
     }
 
@@ -855,11 +865,14 @@ namespace OpenMS
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
       if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
       if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      {
         arg1_is_option = true;
-
+      }
       //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << std::endl;
 
       //flag (option without text argument)
@@ -918,11 +931,14 @@ namespace OpenMS
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
       if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
       if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      {
         arg1_is_option = true;
-
+      }
 
       //with multiple argument
       if (options_with_multiple_argument.find(arg) != options_with_multiple_argument.end())
@@ -942,7 +958,9 @@ namespace OpenMS
             sl.push_back(arg1);
             ++j;
             if (j < argc)
+            {
               arg1 = argv[j];
+            }
           }
 
           root_.insert(ParamEntry("", sl, ""), options_with_multiple_argument.find(arg)->second);
@@ -1018,7 +1036,7 @@ namespace OpenMS
         os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
       os  << it->name << "\" -> \"" << it->value << '"';
-      if (it->description != "")
+      if (!it->description.empty())
       {
         os << " (" << it->description << ")";
       }
@@ -1046,9 +1064,10 @@ namespace OpenMS
   {
     //Extract right parameters
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
-      if (prefix2.back() != ':') {
+      if (prefix2.back() != ':') 
+      {
           prefix2 += ':';
       }
     }
@@ -1062,46 +1081,78 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
+        {
           OPENMS_LOG_WARN << " in '" << prefix2 << "'";
+        }
         OPENMS_LOG_WARN << "!" << std::endl;
       }
 
       //different types
       ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix2 + it.getName());
       if (default_value == nullptr)
+      {
         continue;
+      }
       if (default_value->value.valueType() != it->value.valueType())
       {
         std::string d_type;
         if (default_value->value.valueType() == ParamValue::STRING_VALUE)
+        {
           d_type = "string";
+        }
         if (default_value->value.valueType() == ParamValue::STRING_LIST)
+        {
           d_type = "string list";
+        }
         if (default_value->value.valueType() == ParamValue::EMPTY_VALUE)
+        {
           d_type = "empty";
+        }
         if (default_value->value.valueType() == ParamValue::INT_VALUE)
+        {
           d_type = "integer";
+        }
         if (default_value->value.valueType() == ParamValue::INT_LIST)
+        {
           d_type = "integer list";
+        }
         if (default_value->value.valueType() == ParamValue::DOUBLE_VALUE)
+        {
           d_type = "float";
+        }
         if (default_value->value.valueType() == ParamValue::DOUBLE_LIST)
+        {
           d_type = "float list";
+        }
         std::string p_type;
         if (it->value.valueType() == ParamValue::STRING_VALUE)
+        {
           p_type = "string";
+        }
         if (it->value.valueType() == ParamValue::STRING_LIST)
+        {
           p_type = "string list";
+        }
         if (it->value.valueType() == ParamValue::EMPTY_VALUE)
+        {
           p_type = "empty";
+        }
         if (it->value.valueType() == ParamValue::INT_VALUE)
+        {
           p_type = "integer";
+        } 
         if (it->value.valueType() == ParamValue::INT_LIST)
+        {
           p_type = "integer list";
+        }
         if (it->value.valueType() == ParamValue::DOUBLE_VALUE)
+        {
           p_type = "float";
+        }
         if (it->value.valueType() == ParamValue::DOUBLE_LIST)
+        {
           p_type = "float list";
+        }
 
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
       }
@@ -1356,11 +1407,11 @@ OPENMS_THREAD_CRITICAL(oms_log)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.size() - 1);//remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = toMerge.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             setSectionDescription(real_pathname, description_new);
           }
@@ -1451,8 +1502,9 @@ OPENMS_THREAD_CRITICAL(oms_log)
   Param::ParamIterator& Param::ParamIterator::operator++()
   {
     if (root_ == nullptr)
+    {
       return *this;
-
+    }
     trace_.clear();
     while (true)
     {

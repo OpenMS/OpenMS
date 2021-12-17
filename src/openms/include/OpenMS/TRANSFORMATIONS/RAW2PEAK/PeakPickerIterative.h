@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,7 +166,7 @@ private:
     */
     void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt) const
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -287,14 +287,14 @@ private:
 public:
 
     /*
-     * This will pick one single spectrum. The PeakPickerHiRes is used to
-     * generate seeds, these seeds are then used to re-center the mass and
-     * compute peak width and integrated intensity of the peak.
-     *
-     * Finally, other peaks that would fall within the primary peak are
-     * discarded
-     *
-     * The output are the remaining peaks.
+      This will pick one single spectrum. The PeakPickerHiRes is used to
+      generate seeds, these seeds are then used to re-center the mass and
+      compute peak width and integrated intensity of the peak.
+     
+      Finally, other peaks that would fall within the primary peak are
+      discarded
+     
+      The output are the remaining peaks.
     */
     void pick(const MSSpectrum& input, MSSpectrum& output)
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,6 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <algorithm>
 #include <exception>
 #include <vector>
 
@@ -225,6 +224,8 @@ public:
 
     OPENMS_DLLAPI void swap(FeatureMap& from);
 
+    /// @name Functions for dealing with identifications in legacy format
+    ///@{
     /// non-mutable access to the protein identifications
     OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
@@ -242,6 +243,7 @@ public:
 
     /// sets the unassigned peptide identifications
     OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    ///@}
 
     /// returns a const reference to the description of the applied data processing
     OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
@@ -308,11 +310,23 @@ public:
 
     OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
+    /// @name Functions for dealing with identifications in new format
+    ///@{
+    /*!
+      @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
+
+      Only top-level features are considered, i.e. no subordinates.
+
+      @see BaseFeature::getIDMatches()
+    */
     OPENMS_DLLAPI std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
 
+    /// Immutable access to the contained identification data
     OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
 
+    /// Mutable access to the contained identification data
     OPENMS_DLLAPI IdentificationData& getIdentificationData();
+    ///@}
 
 protected:
     /// protein identifications

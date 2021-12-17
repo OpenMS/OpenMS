@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //QT
@@ -62,25 +62,27 @@ namespace OpenMS
 {
   class PlotWidget;
 
+  using LayerDataBaseUPtr = std::unique_ptr<LayerDataBase>;
 
   /**
     A class to manage a stack of layers as shown in the layer widget in TOPPView.
-    The order of layers is automatically determined based on LayerData::type (in short: peak data below, ID data on top).
+    The order of layers is automatically determined based on LayerDataBase::type (in short: peak data below, ID data on top).
 
   */
   class LayerStack
   {
     public:
       /// adds a new layer and makes it the current layer
-      void addLayer(LayerData&& new_layer);
+      /// @param new_layer Takes ownership of the layer!
+      void addLayer(LayerDataBaseUPtr new_layer);
 
-      const LayerData& getLayer(const Size index) const;
+      const LayerDataBase& getLayer(const Size index) const;
 
-      LayerData& getLayer(const Size index);
+      LayerDataBase& getLayer(const Size index);
 
-      const LayerData& getCurrentLayer() const;
+      const LayerDataBase& getCurrentLayer() const;
 
-      LayerData& getCurrentLayer();
+      LayerDataBase& getCurrentLayer();
 
       /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
       void setCurrentLayer(Size index);
@@ -96,7 +98,7 @@ namespace OpenMS
       void removeCurrentLayer();
   
   protected:
-      std::vector<LayerData> layers_;
+      std::vector<LayerDataBaseUPtr> layers_;
   private:
       Size current_layer_ = -1;
   };
@@ -113,7 +115,7 @@ namespace OpenMS
       derived from PlotCanvas. A spectrum canvas can display multiple data
       layers at the same time (see layers_ member variable).
 
-      The actual data to be displayed is stored as a vector of LayerData
+      The actual data to be displayed is stored as a vector of LayerDataBase
       objects which hold the actual data.  It also stores information about the
       commonly used constants such as ActionModes or IntensityModes.
 
@@ -141,20 +143,20 @@ public:
     //@{
 
     /// Main data type (experiment)
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
-    typedef LayerData::OSWDataSharedPtrType OSWDataSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+    typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
     /// Main data type (features)
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
     /// Main data type (consensus features)
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     /// Main managed data type (consensus features)
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     /// Spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
@@ -266,23 +268,23 @@ public:
     }
 
     /// returns the layer data with index @p index
-    inline const LayerData& getLayer(Size index) const
+    inline const LayerDataBase& getLayer(Size index) const
     {
       return layers_.getLayer(index);
     }
     /// returns the layer data with index @p index
-    inline LayerData& getLayer(Size index)
+    inline LayerDataBase& getLayer(Size index)
     {
       return layers_.getLayer(index);
     }
 
     /// returns the layer data of the active layer
-    inline const LayerData& getCurrentLayer() const
+    inline const LayerDataBase& getCurrentLayer() const
     {
       return layers_.getCurrentLayer();
     }
     /// returns the layer data of the active layer
-    inline LayerData& getCurrentLayer()
+    inline LayerDataBase& getCurrentLayer()
     {
       return layers_.getCurrentLayer();
     }
@@ -294,25 +296,25 @@ public:
     }
 
     /// returns a layer flag of the current layer
-    bool getLayerFlag(LayerData::Flags f) const
+    bool getLayerFlag(LayerDataBase::Flags f) const
     {
       return getLayerFlag(layers_.getCurrentLayerIndex(), f);
     }
 
     /// sets a layer flag of the current layer
-    void setLayerFlag(LayerData::Flags f, bool value)
+    void setLayerFlag(LayerDataBase::Flags f, bool value)
     {
       setLayerFlag(layers_.getCurrentLayerIndex(), f, value);
     }
 
     /// returns a layer flag of the layer @p layer
-    bool getLayerFlag(Size layer, LayerData::Flags f) const
+    bool getLayerFlag(Size layer, LayerDataBase::Flags f) const
     {
       return layers_.getLayer(layer).flags.test(f);
     }
 
     /// sets a layer flag of the layer @p layer
-    void setLayerFlag(Size layer, LayerData::Flags f, bool value)
+    void setLayerFlag(Size layer, LayerDataBase::Flags f, bool value)
     {
       //abort if there are no layers
       if (layers_.empty()) return;
@@ -322,7 +324,7 @@ public:
       update();
     }
 
-    inline void setLabel(LayerData::LabelType label)
+    inline void setLabel(LayerDataBase::LabelType label)
     {
       //abort if there are no layers
       if (layers_.empty()) return;
@@ -347,7 +349,7 @@ public:
     virtual void setFilters(const DataFilters & filters);
 
     /// Returns the mapping of m/z to axes
-    inline bool isMzToXAxis()
+    inline bool isMzToXAxis() const
     {
       return mz_to_x_axis_;
     }
@@ -480,7 +482,7 @@ public:
     double getSnapFactor();
 
     /// Returns the percentage factor
-    double getPercentageFactor();
+    double getPercentageFactor() const;
 
     /// Shows the preferences dialog of the active layer
     virtual void showCurrentLayerPreferences() = 0;
@@ -839,16 +841,16 @@ protected:
     QImage buffer_;
 
     /// Stores the current action mode (Pick, Zoom, Translate)
-    ActionModes action_mode_;
+    ActionModes action_mode_ = AM_TRANSLATE;
 
     /// Stores the used intensity mode function
-    IntensityModes intensity_mode_;
+    IntensityModes intensity_mode_ = IM_NONE;
 
     /// Layer data
     LayerStack layers_;
 
     /// Stores the mapping of m/z
-    bool mz_to_x_axis_;
+    bool mz_to_x_axis_ = true;
 
     /**
         @brief Stores the currently visible area.
@@ -856,7 +858,7 @@ protected:
         Dimension 0 is the m/z dimension.@n
         Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).
     */
-    AreaType visible_area_;
+    AreaType visible_area_ = AreaType::empty;
 
     /**
         @brief Recalculates the overall_data_range_
@@ -876,15 +878,15 @@ protected:
         Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).@n
         Dimension 2 is the intensity dimension (2D and 3D view) or the RT dimension (1D view).
     */
-    DRange<3> overall_data_range_;
+    DRange<3> overall_data_range_ = DRange<3>::empty;
 
     /// Stores whether or not to show a grid.
-    bool show_grid_;
+    bool show_grid_ = true;
 
     /// The zoom stack.
     std::vector<AreaType> zoom_stack_;
     /// The current position in the zoom stack
-    std::vector<AreaType>::iterator zoom_pos_;
+    std::vector<AreaType>::iterator zoom_pos_ = zoom_stack_.end();
 
     /**
         @brief Updates the displayed data
@@ -901,13 +903,10 @@ protected:
     void modificationStatus_(Size layer_index, bool modified);
 
     /// Whether to recalculate the data in the buffer when repainting
-    bool update_buffer_;
-
-    /// Changes the size of the paint buffer to the currently required size
-    void adjustBuffer_();
+    bool update_buffer_ = false;
 
     /// Back-pointer to the enclosing spectrum widget
-    PlotWidget * spectrum_widget_;
+    PlotWidget* spectrum_widget_ = nullptr;
 
     /// start position of mouse actions
     QPoint last_mouse_pos_;
@@ -917,7 +916,7 @@ protected:
 
         In this mode all layers are scaled to the same maximum.
     */
-    double percentage_factor_;
+    double percentage_factor_ = 1.0;
 
     /**
         @brief Intensity scaling factor for 'snap to maximum intensity mode'.
@@ -926,16 +925,16 @@ protected:
 
         One entry per layer.
     */
-    std::vector<double> snap_factors_;
+    std::vector<double> snap_factors_ = {1.0};
 
     /// Rubber band for selected area
     QRubberBand rubber_band_;
 
     /// External context menu extension
-    QMenu* context_add_;
+    QMenu* context_add_ = nullptr;
 
     /// Flag that determines if timing data is printed to the command line
-    bool show_timing_;
+    bool show_timing_ = false;
 
     /// selected peak
     PeakIndex selected_peak_;

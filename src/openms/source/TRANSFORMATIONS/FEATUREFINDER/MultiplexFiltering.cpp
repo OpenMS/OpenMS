@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -586,12 +586,12 @@ namespace OpenMS
         }
         
         // It is well possible that no corresponding satellite peaks exist, in which case the filter fails.
-        if ((intensities_1.size() == 0) || (intensities_2.size() == 0))
+        if ((intensities_1.empty()) || (intensities_2.empty()))
         {
           return false;
         }
         
-        // calculate correlation between peak insities in peptides 1 and 2
+        // calculate correlation between peak intensities in peptides 1 and 2
         double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
 

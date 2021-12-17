@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -210,7 +210,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //acquisition
   //---------------------------------------------------------------------------
   TEST_EQUAL(e[0].getAcquisitionInfo().size(), 0)
-  ABORT_IF(e[0].getAcquisitionInfo().size() != 0);
+  ABORT_IF(!e[0].getAcquisitionInfo().empty());
   TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size() != 2);

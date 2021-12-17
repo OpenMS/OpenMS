@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -162,7 +162,7 @@ public:
                                                   TargetedExperimentT& selected_transitions,
                                                   double min_upper_edge_dist)
     {
-      if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
+      if (exp.empty() || exp[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << exp.getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map? "

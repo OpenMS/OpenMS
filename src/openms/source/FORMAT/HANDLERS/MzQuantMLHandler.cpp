@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
@@ -81,7 +80,7 @@ namespace OpenMS
         to_ignore.insert("StudyVariable"); // .
         to_ignore.insert("Assay_refs"); // .
 
-        to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices rows
+        to_ignore.insert("FeatureList"); // we only need to see the features and data matrices rows
         to_ignore.insert("AssayList"); // we only need to see the assays
         to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
         to_ignore.insert("SoftwareList"); // we only need to see the Softwares
@@ -172,7 +171,7 @@ namespace OpenMS
         ExperimentalSettings es;
         es.setLoadedFilePath(attributeAsString_(attributes, "location"));
         current_files_[current_id_].push_back(es);
-        //here would be the place to start looking for additional experimentalsettings readin
+        //here would be the place to start looking for additional experimental settings reading
       }
       else if (tag_ == "Assay")
       {
@@ -184,7 +183,7 @@ namespace OpenMS
         }
         current_id_ = attributeAsString_(attributes, "rawFilesGroup_ref");
         current_assay_.raw_files_ = current_files_[current_id_];
-        //TODO CVhandling
+        //TODO CV handling
       }
       else if (tag_ == "Modification")
       {
@@ -198,7 +197,7 @@ namespace OpenMS
           {
             current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
           }
-          //TODO CVhandling
+          //TODO CV handling
         }
         else
         {
@@ -345,7 +344,7 @@ namespace OpenMS
       {
         String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
-        if (transcoded_chars2 != "")
+        if (!transcoded_chars2.empty())
           warning(LOAD, "MzQuantMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
       }
     }
@@ -497,7 +496,7 @@ namespace OpenMS
           }
           cm.push_back(cf_cf_obj_[it->second]);
         }
-        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
+        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after data matrix f_cf_ids_ get cleared so we know here.
         {
           msq_->addConsensusMap(cm);
         }
@@ -540,7 +539,7 @@ namespace OpenMS
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         }
         //values used in wrong places and wrong value types
-        if (value != "")
+        if (!value.empty())
         {
           if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
           {
@@ -628,14 +627,21 @@ namespace OpenMS
       {
         //TODO
         if (accession == "MOD:01522")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("114", double(114)));
+        }
         else if (accession == "MOD:01523")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("115", double(115)));
+        }
         else if (accession == "MOD:01524")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("116", double(116)));
+        }
         else if (accession == "MOD:01525")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("117", double(117)));
-
+        }
       }
       else
         warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
@@ -661,7 +667,7 @@ namespace OpenMS
         data_value = DataValue(value);
       }
 
-      if (parent_parent_tag == "")
+      if (parent_parent_tag.empty())
       {
         //~ TODO: dummy
         warning(LOAD, String("The user param '") + name + "' used in tag '" + parent_tag + "' has no valid grand parent.'");
@@ -676,7 +682,7 @@ namespace OpenMS
       }
       else if (parent_tag == "Software")
       {
-        if (value == "")
+        if (value.empty())
         {
           current_sws_[current_id_].setName(name);
         }
@@ -725,7 +731,7 @@ namespace OpenMS
 
       //---header---
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\" id=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\" version=\"1.0.0\"" << " creationDate=\"" << DateTime::now().get() << "\">\n";
+      os << R"(<MzQuantML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd" xmlns="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3" id="OpenMS_)" << String(UniqueIdGenerator::getUniqueId()) << R"(" version="1.0.0")" << " creationDate=\"" << DateTime::now().get() << "\">\n";
 
       //---CVList---
       os << "<CvList>\n";
@@ -787,14 +793,14 @@ namespace OpenMS
       String idfile_tag, idfile_ref, searchdb_ref;
 
       std::vector<DataProcessing> pl = cmsq_->getDataProcessingList();
-      for (std::vector<DataProcessing>::const_iterator dit = pl.begin(); dit != pl.end(); ++dit)
+      for (const DataProcessing& dit : pl)
       {
         //~ for (std::vector<DataProcessing>::const_iterator dit = cmsq_->getDataProcessingList().begin(); dit != cmsq_->getDataProcessingList().end(); ++dit) // soome wierd bug is making this impossible resulting in segfault - to tired to work this one out right now
-        if (dit->getSoftware().getName() == "IDMapper" && !cmsq_->getConsensusMaps().front().getProteinIdentifications().empty())
+        if (dit.getSoftware().getName() == "IDMapper" && !cmsq_->getConsensusMaps().front().getProteinIdentifications().empty())
         {
           searchdb_ref = "sdb_" + String(UniqueIdGenerator::getUniqueId());
           idfile_ref = "idf_" + String(UniqueIdGenerator::getUniqueId());
-          String idfile_name = dit->getMetaValue("parameter: id");
+          String idfile_name = dit.getMetaValue("parameter: id");
 
           idfile_tag += "\t\t<IdentificationFiles>\n";
           idfile_tag += "\t\t\t<IdentificationFile id=\"" + idfile_ref + "\" name=\"" + idfile_name + "\" location=\"" + idfile_name + "\" searchDatabase_ref=\"" + searchdb_ref + "\"/>\n";
@@ -805,13 +811,13 @@ namespace OpenMS
 
         String sw_ref;
         sw_ref = "sw_" + String(UniqueIdGenerator::getUniqueId());
-        softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\">\n";
-        writeCVParams_(softwarelist_tag, dit->getSoftware().getCVTerms(), UInt(3)); // TODO fix up the tools with their cvparams and make them write it in the softwarelist!
-        if (dit->getSoftware().getCVTerms().empty())
+        softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit.getSoftware().getVersion()) + "\">\n";
+        writeCVParams_(softwarelist_tag, dit.getSoftware().getCVTerms(), UInt(3)); // TODO fix up the tools with their cvparams and make them write it in the softwarelist!
+        if (dit.getSoftware().getCVTerms().empty())
         {
-          softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
+          softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit.getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "ITRAQAnalyzer") // tool does not exist any more. replace by IsobaricAnalyzer?
+        if (dit.getSoftware().getName() == "ITRAQAnalyzer") // tool does not exist any more. replace by IsobaricAnalyzer?
         {
           softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
@@ -819,7 +825,7 @@ namespace OpenMS
         ++order_d;
         dataprocessinglist_tag += "\t\t<DataProcessing id=\"dp_" + String(UniqueIdGenerator::getUniqueId()) + "\" software_ref=\"" + sw_ref + "\" order=\"" + String(order_d) + "\">\n";
         Size order_c = 0;
-        for (std::set<DataProcessing::ProcessingAction>::const_iterator pit = dit->getProcessingActions().begin(); pit != dit->getProcessingActions().end(); ++pit)
+        for (const DataProcessing::ProcessingAction& pit : dit.getProcessingActions())
         {
           //~ TODO rewrite OpenMS::DataProcessing
           //~ TODO add CVTermList/MetaInfoInterfaceObject to DataProcessing and ParamGroup/Order to "ProcessingAction" or document implicit ordering
@@ -827,7 +833,7 @@ namespace OpenMS
           dataprocessinglist_tag += "\t\t\t<ProcessingMethod order=\"" + String(order_c) + "\">\n";
           //~ writeUserParam_(dataprocessinglist_tag, pit->getUserParams(), UInt(4));  //writeUserParam_(String& s, const MetaInfoInterface& meta, UInt indent)
           //~ writeCVParams_(dataprocessinglist_tag, (pit->getCVParams.getCVTerms(), UInt(4));  //writeCVParams_(String& s, const Map< String, std::vector < CVTerm > > & , UInt indent)
-          dataprocessinglist_tag += "\t\t\t\t<userParam name=\"" + String(DataProcessing::NamesOfProcessingAction[*pit]) + "\" value=\"" + String(dit->getSoftware().getName()) + "\" />\n";
+          dataprocessinglist_tag += "\t\t\t\t<userParam name=\"" + String(DataProcessing::NamesOfProcessingAction[pit]) + "\" value=\"" + String(dit.getSoftware().getName()) + "\" />\n";
           dataprocessinglist_tag += "\t\t\t</ProcessingMethod>\n";
         }
         dataprocessinglist_tag += "\t\t</DataProcessing>\n";
@@ -844,12 +850,12 @@ namespace OpenMS
       {
       case 0:
         //~ register ratio elements in numden_r_ids_ and r_r_obj_
-        for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
+        for (const ConsensusMap& mit : cmsq_->getConsensusMaps())
         {
           //~ std::vector< std::vector<UInt64> > cmid;
-          for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
+          for (const ConsensusFeature& cit : mit)
           {
-            std::vector<ConsensusFeature::Ratio> rv = cit->getRatios();
+            std::vector<ConsensusFeature::Ratio> rv = cit.getRatios();
             //~ for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = cit->getRatios().begin(); rit != cit->getRatios().end(); ++rit)
             for (Size i = 0; i < rv.size(); ++i)
             {
@@ -895,10 +901,10 @@ namespace OpenMS
       // ---Ratios tag---
 
       String glob_rfgr;
-      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its rawfilegroup
+      // ---Assay & StudyVariables---  each  "channel" gets its assay - each assay its raw file group
       String assay_xml("\t<AssayList id=\"assaylist1\">\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
       std::map<String, String> files;
-      for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
+      for (const MSQuantifications::Assay& ait : cmsq_->getAssays())
       {
         String rfgr, ar, vr;
         rfgr = String(UniqueIdGenerator::getUniqueId());
@@ -907,20 +913,20 @@ namespace OpenMS
         String rgs;
         bool group_exists = true;
         rgs += "\t\t<RawFilesGroup id=\"rfg_" + rfgr + "\">\n";
-        for (std::vector<ExperimentalSettings>::const_iterator iit = ait->raw_files_.begin(); iit != ait->raw_files_.end(); ++iit)
+        for (const ExperimentalSettings& iit : ait.raw_files_)
         {
-          if (files.find(iit->getLoadedFilePath()) == files.end())
+          if (files.find(iit.getLoadedFilePath()) == files.end())
           {
             group_exists = false;
             glob_rfgr = rfgr; //TODO remove that when real rawfile grouping is done
             UInt64 rid = UniqueIdGenerator::getUniqueId();
-            files.insert(std::make_pair(iit->getLoadedFilePath(), rfgr));
-            rgs += "\t\t\t<RawFile id=\"r_" + String(rid)  + "\" location=\"" + iit->getLoadedFilePath() + "\"/>\n";
+            files.insert(std::make_pair(iit.getLoadedFilePath(), rfgr));
+            rgs += "\t\t\t<RawFile id=\"r_" + String(rid)  + "\" location=\"" + iit.getLoadedFilePath() + "\"/>\n";
             // TODO write proteowizards sourcefiles (if there is any mentioning of that in the mzml) into OpenMS::ExperimentalSettings of the exp
           }
           else
           {
-            rfgr = String(files.find(iit->getLoadedFilePath())->second);
+            rfgr = String(files.find(iit.getLoadedFilePath())->second);
           }
           //~ what about the other experimentalsettings?
         }
@@ -931,13 +937,13 @@ namespace OpenMS
           inputfiles_xml += rgs;
         }
 
-        assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_ref=\"rfg_" + rfgr + "\">\n";
+        assay_xml += "\t\t<Assay id=\"a_" + String(ait.uid_)  + "\" rawFilesGroup_ref=\"rfg_" + rfgr + "\">\n";
         assay_xml += "\t\t\t<Label>\n";
 
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0:
-          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait.mods_.begin(); lit != ait.mods_.end(); ++lit)
           {
             String cv_acc, cv_name;
             switch ((int)std::floor(lit->second + (double)0.5)) //delta >! 0
@@ -971,7 +977,7 @@ namespace OpenMS
         {
           //~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
           //~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
-          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait.mods_.begin(); lit != ait.mods_.end(); ++lit)
           {
             assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
             String cv_acc, cv_name;
@@ -1018,7 +1024,7 @@ namespace OpenMS
 
         // for SILACAnalyzer/IsobaricAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ/TMT
         study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"noname\">\n";
-        study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
+        study_xml += "\t\t\t<Assay_refs>a_" + String(ait.uid_) + "</Assay_refs>\n";
         study_xml += "\t</StudyVariable>\n";
       }
       assay_xml += "\t</AssayList>\n";
@@ -1037,12 +1043,12 @@ namespace OpenMS
       std::vector<std::vector<float> > f2i;
       String peptide_xml, feature_xml = "";
       feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
-      for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
+      for (const ConsensusMap& mit : cmsq_->getConsensusMaps())
       {
         std::vector<std::vector<UInt64> > cmid;
-        for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
+        for (const ConsensusFeature& cit : mit)
         {
-          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
+          const ConsensusFeature::HandleSetType& feature_handles = cit.getFeatures();
           switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
           {
           case 0: //ms1label
@@ -1070,7 +1076,7 @@ namespace OpenMS
           {
             std::vector<float> fi;
             fid.push_back(UniqueIdGenerator::getUniqueId());
-            feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit->getRT()) + "\" mz=\"" + String(cit->getMZ()) + "\" charge=\"" + String(cit->getCharge()) + "\"/>\n";
+            feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit.getRT()) + "\" mz=\"" + String(cit.getMZ()) + "\" charge=\"" + String(cit.getCharge()) + "\"/>\n";
             //~ std::vector<UInt64> cidvec;
             //~ cidvec.push_back(fid.back());
             for (std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); fit != feature_handles.end(); ++fit)
@@ -1114,9 +1120,9 @@ namespace OpenMS
       case 1: //ms2label
       {
         feature_xml += String("\t\t<MS2AssayQuantLayer id=\"ms2ql_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001847\" name=\"reporter ion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>");
-        for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
+        for (const MSQuantifications::Assay& ait : cmsq_->getAssays())
         {
-          feature_xml += String("a_") + String(ait->uid_) + String(" ");
+          feature_xml += String("a_") + String(ait.uid_) + String(" ");
         }
         feature_xml += String("</ColumnIndex>\n\t\t\t<DataMatrix>\n");
         for (Size i = 0; i < fid.size(); ++i)
@@ -1187,10 +1193,10 @@ namespace OpenMS
 
             std::map<String, String> r_values;
             std::vector<ConsensusFeature::Ratio> temp_ratios = cmsq_->getConsensusMaps()[k][i].getRatios();
-            for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = temp_ratios.begin(); rit != temp_ratios.end(); ++rit)
+            for (const ConsensusFeature::Ratio& rit : temp_ratios)
             {
-              String rd = rit->numerator_ref_ + rit->denominator_ref_;
-              r_values.insert(std::make_pair(rd, String(rit->ratio_value_)));
+              String rd = rit.numerator_ref_ + rit.denominator_ref_;
+              r_values.insert(std::make_pair(rd, String(rit.ratio_value_)));
             }
             std::vector<String> dis;
             //TODO insert missing ratio_refs into r_values with value "-1"
@@ -1258,13 +1264,13 @@ namespace OpenMS
       String inden((size_t)indent, '\t');
       for (std::map<String, std::vector<CVTerm> >::const_iterator jt = cvl.begin(); jt != cvl.end(); ++jt)
       {
-        for (std::vector<CVTerm>::const_iterator kt =  (*jt).second.begin(); kt !=  (*jt).second.end(); ++kt)
+        for (const CVTerm& kt :  (*jt).second)
         {
           s += inden;
-          s += "<cvParam cvRef=\"" + kt->getCVIdentifierRef() + "\" accession=\"" + (*jt).first + "\" name=\"" + kt->getName();
-          if (kt->hasValue())
+          s += "<cvParam cvRef=\"" + kt.getCVIdentifierRef() + "\" accession=\"" + (*jt).first + "\" name=\"" + kt.getName();
+          if (kt.hasValue())
           {
-            s += "\" value=\"" + kt->getValue().toString() + "\"/>\n"; // value is OpenMS::DataValue
+            s += "\" value=\"" + kt.getValue().toString() + "\"/>\n"; // value is OpenMS::DataValue
           }
           else
           {
@@ -1325,23 +1331,23 @@ namespace OpenMS
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (const FeatureMap& fat : fm)
       {
-        for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
+        for (const Feature& fit : fat)
         {
           fid.push_back(UniqueIdGenerator::getUniqueId());
           idvec.push_back(fid.back());
-          fin.push_back(fit->getIntensity());
-          fwi.push_back(fit->getWidth());
-          fqu.push_back(fit->getOverallQuality());
-          feature_xml += String(indentation_level, '\t') + "<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
+          fin.push_back(fit.getIntensity());
+          fwi.push_back(fit.getWidth());
+          fqu.push_back(fit.getOverallQuality());
+          feature_xml += String(indentation_level, '\t') + "<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit.getRT()) + "\" mz=\"" + String(fit.getMZ()) + "\" charge=\"" + String(fit.getCharge()) + "\">\n";
           //~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
           //~ feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
           feature_xml += String(indentation_level, '\t') + "</Feature>\n";
-          for (std::vector<ConvexHull2D>::const_iterator cit = fit->getConvexHulls().begin(); cit != fit->getConvexHulls().end(); ++cit)
+          for (const ConvexHull2D& cit : fit.getConvexHulls())
           {
             feature_xml += String(indentation_level, '\t') + "\t<MassTrace>";
-            feature_xml += String(cit->getBoundingBox().minX()) + " " + String(cit->getBoundingBox().minY()) + " " + String(cit->getBoundingBox().maxX()) + " " + String(cit->getBoundingBox().maxY());
+            feature_xml += String(cit.getBoundingBox().minX()) + " " + String(cit.getBoundingBox().minY()) + " " + String(cit.getBoundingBox().maxX()) + " " + String(cit.getBoundingBox().maxY());
             feature_xml += "</MassTrace>\n";
           }
         }
@@ -1412,5 +1418,4 @@ namespace OpenMS
       //~ os << indent << "\t\t</feature>\n";
     }
 
-  } //namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS  //namespace Internal

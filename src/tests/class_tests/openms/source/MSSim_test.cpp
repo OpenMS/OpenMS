@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,9 +74,9 @@ public:
   inline bool operator()(const Feature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }
@@ -107,9 +107,9 @@ public:
   inline bool operator()(const ConsensusFeature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }
@@ -435,16 +435,14 @@ START_SECTION((void getMS2Identifications(vector<ProteinIdentification>& protein
   // we assume that there is at least ms2 spectrum that is a mixture of two peptides
   bool is_mixture = false;
 
-  for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-      pep_it != peptides.end();
-      ++pep_it)
+  for(PeptideIdentification& pep : peptides)
   {
-    is_mixture |= pep_it->getHits().size() > 1;
+    is_mixture |= pep.getHits().size() > 1;
 
     double score = 0.0;
-    for(Size i = 0; i < pep_it->getHits().size(); ++i)
+    for(Size i = 0; i < pep.getHits().size(); ++i)
     {
-      score += pep_it->getHits()[i].getScore();
+      score += pep.getHits()[i].getScore();
     }
     // for each PeptideIdentification the sum of scores should be == 1
     TEST_REAL_SIMILAR(score, 1.0)

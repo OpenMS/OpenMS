@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,14 +43,14 @@ namespace OpenMS
 
   SqMassFile::~SqMassFile() {}
 
-  void SqMassFile::load(const String& filename, MapType& map)
+  void SqMassFile::load(const String& filename, MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.readExperiment(map);
   }
 
-  void SqMassFile::store(const String& filename, MapType& map)
+  void SqMassFile::store(const String& filename, MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, map.getSqlRunID());
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -58,7 +58,7 @@ namespace OpenMS
     sql_mass.writeExperiment(map);
   }
 
-  void SqMassFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */)
+  void SqMassFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename_in, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);

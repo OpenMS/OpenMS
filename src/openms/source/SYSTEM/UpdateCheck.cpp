@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QtCore/QDateTime>
+#include <QtCore/QTimer>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -73,26 +74,42 @@ namespace OpenMS
     platform = "Win";
 #elif __APPLE__
     platform = "Mac";
-#else
+#elif __linux__
     platform = "Linux";
+#elif __unix__
+    platform = "Unix";
+#else
+    platform = "unknown";
 #endif
 
     // write to tmp + userid folder
 
     // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
     String tool_version_string;
+    String config_path;
+    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+    if (getenv("XDG_CONFIG_HOME"))
+    {
+      config_path = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
+    }
+    else
+    {
+      config_path = File::getOpenMSHomePath() + "/.config/OpenMS";
+    }
+    #else
+    config_path =  File::getOpenMSHomePath() + "/.OpenMS";
+    #endif
     tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
 
-    String version_file_name = File::getOpenMSHomePath() + "/.OpenMS/" + tool_name + ".ver";
+    String version_file_name = config_path + "/" + tool_name + ".ver";
 
     // create version file if it doesn't exist yet
     bool first_run(false);
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      String home_path = File::getOpenMSHomePath();
-      String dirname = home_path + "/.OpenMS";
-      QDir dir(dirname.toQString());
+      QDir dir(config_path.toQString());
 
       if (!dir.exists())
       {

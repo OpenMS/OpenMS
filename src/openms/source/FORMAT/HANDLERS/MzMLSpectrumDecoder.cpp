@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,12 +50,12 @@ namespace OpenMS
       bool x_precision_64, bool int_precision_64)
   {
     // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
-    if ((data[x_index].ints_32.size() > 0) || (data[x_index].ints_64.size() > 0))
+    if ((!data[x_index].ints_32.empty()) || (!data[x_index].ints_64.empty()))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding m/z or RT array as integer is not allowed!");
     }
-    if ((data[int_index].ints_32.size() > 0) || (data[int_index].ints_64.size() > 0))
+    if ((!data[int_index].ints_32.empty()) || (!data[int_index].ints_64.empty()))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding intensity array as integer is not allowed!");
@@ -274,7 +274,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& spectrum)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& spectrum) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
@@ -310,7 +310,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& chromatogram)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& chromatogram) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
@@ -346,7 +346,7 @@ namespace OpenMS
     }
   }
 
-  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data)
+  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
@@ -396,7 +396,7 @@ namespace OpenMS
     return sptr;
   }
 
-  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data)
+  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ END_SECTION
 START_SECTION(void store(const String& filename, MzTab& mzTab) )
 {
   std::vector<String> files_to_test;
-  files_to_test.push_back("MzTabFileuni_SILAC.mzTab");
+  files_to_test.push_back("MzTabFile_SILAC.mzTab");
   files_to_test.push_back("MzTabFile_SILAC2.mzTab");
   files_to_test.push_back("MzTabFile_labelfree.mzTab");
   files_to_test.push_back("MzTabFile_iTRAQ.mzTab");

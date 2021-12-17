@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,10 @@ protected:
     {
       if (ms_levels_.empty()) //auto mode
       {
-        if (s.getType() == SpectrumSettings::CENTROID) return;
+        if (s.getType() == SpectrumSettings::CENTROID)
+        {
+          return;
+        }
       }
       else if (!ListUtils::contains(ms_levels_, s.getMSLevel()))
       {
@@ -236,7 +239,7 @@ protected:
     PeakMap ms_exp_raw;
     mz_data_file.load(in, ms_exp_raw);
 
-    if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
+    if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";

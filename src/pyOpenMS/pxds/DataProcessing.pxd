@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
         #     MetaInfoInterface
 
         DataProcessing()  nogil except +
-        DataProcessing(DataProcessing) nogil except + # wrap-ignore
+        DataProcessing(DataProcessing &) nogil except +
 
         void setProcessingActions(libcpp_set[ProcessingAction]) nogil except +
         libcpp_set[ProcessingAction] getProcessingActions() nogil except +

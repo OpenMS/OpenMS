@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ namespace OpenMS
     if (manager_) {delete manager_;}
   }
 
-  void MascotRemoteQuery::timedOut()
+  void MascotRemoteQuery::timedOut() const
   {
     OPENMS_LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
   }
@@ -116,7 +116,7 @@ namespace OpenMS
     // 5. Mascot 2.4: read result, check for redirect (function "readResponse")
     // 6. Mascot 2.4: request redirected (caching) page (function "getResults")
     // (5. and 6. can happen multiple times - keep following redirects)
-    // 7. Mascot 2.4: read result, check if caching's done (function "readResponse")
+    // 7. Mascot 2.4: read result, check if caching is done (function "readResponse")
     // 8. Mascot 2.4: request results again (function "getResults")
     // 9. read results, which should now contain the XML (function "readResponse")
     //
@@ -537,7 +537,7 @@ namespace OpenMS
     }
 
     // Successful login? fire off the search
-    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
+    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfully', but that might change...
     {
       OPENMS_LOG_INFO << "Login successful!" << std::endl;
       execQuery();
@@ -559,7 +559,7 @@ namespace OpenMS
       // <A HREF="../cgi/master_results.pl?file=../data/20100728/F018032.dat">Click here to see Search Report</A>
       QString response(new_bytes);
 
-      QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
+      QRegExp rx(R"(file=(.+/\d+/\w+\.dat))");
       rx.setMinimal(true);
       rx.indexIn(response);
       dat_file_path_ = rx.cap(1);
@@ -699,7 +699,7 @@ namespace OpenMS
 
   bool MascotRemoteQuery::hasError() const
   {
-    return error_message_ != "";
+    return !error_message_.empty();
   }
 
   const String& MascotRemoteQuery::getErrorMessage() const
@@ -719,9 +719,10 @@ namespace OpenMS
 #endif
     server_path_ = param_.getValue("server_path").toString();
     //MascotRemoteQuery_test
-    if (server_path_ != "")
+    if (!server_path_.empty())
+    {
       server_path_ = "/" + server_path_;
-
+    }
     host_name_ = param_.getValue("hostname").toString();
     
     use_ssl_ = param_.getValue("use_ssl").toBool();
@@ -762,7 +763,7 @@ namespace OpenMS
       proxy.setPassword(proxy_password.toQString());
 
       String proxy_username(param_.getValue("proxy_username").toString());
-      if (proxy_username != "")
+      if (!proxy_username.empty())
       {
         proxy.setUser(proxy_username.toQString());
       }
@@ -800,9 +801,14 @@ namespace OpenMS
   QUrl MascotRemoteQuery::buildUrl_(std::string path)
   {
     String protocol;
-    if (use_ssl_) protocol = "https";
-    else protocol = "http";
-
+    if (use_ssl_)
+    {
+      protocol = "https";
+    }
+    else
+    {
+      protocol = "http";
+    }
     return QUrl(String(protocol + "://" + host_name_ + path).c_str());
   }
 

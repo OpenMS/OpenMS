@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -368,7 +371,10 @@ namespace OpenMS
       sum += totals[i + 2 * LEN];
       smoothed[i] = sum / (2 * LEN + 1);
       sum -= totals[i];
-      if (smoothed[i] > smoothed[max_index]) max_index = i;
+      if (smoothed[i] > smoothed[max_index])
+      {
+        max_index = i;
+      }
       // OPENMS_LOG_DEBUG << smoothed[i] << std::endl;
     }
     OPENMS_LOG_DEBUG << "Maximum at index " << max_index << std::endl;
@@ -385,7 +391,9 @@ namespace OpenMS
     // find RT values where intensity is at half-maximum:
     index = static_cast<Int>(max_index);
     while ((index > 0) && (smoothed[index] > height_ * 0.5))
+    {
       --index;
+    }
     double left_height = smoothed[index];
     it = total_intensities.begin();
     std::advance(it, index);
@@ -394,7 +402,9 @@ namespace OpenMS
               << std::endl;
     index = static_cast<Int>(max_index);
     while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5))
+    {
       ++index;
+    }
     double right_height = smoothed[index];
     it = total_intensities.end();
     std::advance(it, index - Int(N));
@@ -413,8 +423,10 @@ namespace OpenMS
 
     tau_ = -1 / log_alpha * (B - A);
     //EGH function fails when tau==0
-    if (tau_ == 0) tau_ = std::numeric_limits<double>::epsilon();
-
+    if (tau_ == 0)
+    {
+      tau_ = std::numeric_limits<double>::epsilon();
+    }
     OPENMS_LOG_DEBUG << "tau: " << tau_ << std::endl;
     sigma_ = sqrt(-0.5 / log_alpha * B * A);
     OPENMS_LOG_DEBUG << "sigma: " << sigma_ << std::endl;

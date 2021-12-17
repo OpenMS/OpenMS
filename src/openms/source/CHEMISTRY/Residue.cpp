@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -108,7 +109,6 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    String ion("-ion");
     switch (res_type)
     {
     case Residue::Full:
@@ -124,25 +124,46 @@ namespace OpenMS
       return "C-terminal";
 
     case Residue::AIon:
-      return "a" + ion;
+      return "a-ion";
 
     case Residue::BIon:
-      return "b" + ion;
+      return "b-ion";
 
     case Residue::CIon:
-      return "c" + ion;
+      return "c-ion";
 
     case Residue::XIon:
-      return "x" + ion;
+      return "x-ion";
 
     case Residue::YIon:
-      return "y" + ion;
+      return "y-ion";
 
     case Residue::ZIon:
-      return "z" + ion;
+      return "z-ion";
+
+    case Residue::Precursor:
+      return "precursor-ion";
+
+    case Residue::BIonMinusH20:
+      return "b-H2O-ion";
+
+    case Residue::YIonMinusH20:
+      return "y-H2O-ion";
+
+    case Residue::BIonMinusNH3:
+      return "B-NH3-ion";
+
+    case Residue::YIonMinusNH3:
+      return "y-NH3-ion";
+
+    case Residue::NonIdentified:
+      return "Non-identified ion";
+
+    case Residue::Unannotated:
+      return "unannotated";
 
     default:
-      cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
+      cerr << "Error: Residue::getResidueTypeName - residue type has no name. The developer should add a residue name to Residue.cpp" << endl;
     }
     return "";
   }
@@ -464,7 +485,7 @@ namespace OpenMS
       updated_formula = true;
       setFormula(getFormula() + mod->getDiffFormula());
     }
-    else if (mod->getFormula() != "")
+    else if (!mod->getFormula().empty())
     {
       updated_formula = true;
       String formula = mod->getFormula();
@@ -497,6 +518,42 @@ namespace OpenMS
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+    setModification(mod);
+  }
+
+  void Residue::setModification(const ResidueModification& mod)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    //TODO think again. Most functions here or in ModificationsDB only check for fullID
+    const ResidueModification* modindb = mod_db->searchModification(mod);
+    if (modindb == nullptr)
+    {
+      modindb = mod_db->addNewModification_(mod);
+    }
+    setModification(modindb);
+  }
+
+  void Residue::setModificationByDiffMonoMass(double diffMonoMass)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    bool multimatch = false;
+    // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
+    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    const ResidueModification* mod = mod_db->searchModificationsFast(one_letter_code_ + diffMonoMassStr, multimatch);
+    const double tol = 0.002;
+    if (mod == nullptr)
+    {
+      mod = mod_db->getBestModificationByDiffMonoMass(diffMonoMass, tol, one_letter_code_, ResidueModification::ANYWHERE);
+    }
+    if (mod == nullptr)
+    {
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+                                                                        diffMonoMass,
+                                                                        true,
+                                                                        ResidueModification::ANYWHERE,
+                                                                        this);
+    }
     setModification(mod);
   }
 

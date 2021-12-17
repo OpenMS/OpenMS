@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ public:
     MSPGenericFile(const String& filename, MSExperiment& library);
 
     /// Destructor
-    ~MSPGenericFile() = default;
+    ~MSPGenericFile() override = default;
 
     /// Get the class' default parameters
     void getDefaultParameters(Param& params);
@@ -105,7 +105,7 @@ public:
   
   private:
     /// Overrides `DefaultParamHandler`'s method
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       Validate and add a spectrum to a spectral library

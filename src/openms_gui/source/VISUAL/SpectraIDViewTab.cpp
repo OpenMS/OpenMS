@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,8 +141,10 @@ namespace OpenMS
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
-    if (row < 0 || column < 0) return;
-
+    if (row < 0 || column < 0)
+    {
+      return;
+    }
     if (row >= table_widget_->rowCount()
         ||  column >= table_widget_->columnCount())
     {
@@ -259,18 +261,18 @@ namespace OpenMS
     } // PeakAnnotation cell clicked
   }
 
-  bool SpectraIDViewTab::hasData(const LayerData* layer)
+  bool SpectraIDViewTab::hasData(const LayerDataBase* layer)
   {
     // this is a very easy check.
     // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
     bool no_data = (layer == nullptr
-                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+                || (layer->type == LayerDataBase::DT_PEAK && layer->getPeakData()->empty())
+                || (layer->type == LayerDataBase::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
     return !no_data;
   }
 
-  void SpectraIDViewTab::updateEntries(LayerData* cl)
+  void SpectraIDViewTab::updateEntries(LayerDataBase* cl)
   {
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
@@ -278,7 +280,7 @@ namespace OpenMS
     updateEntries_(); // we need this extra function since its an internal slot
   }
 
-  LayerData* SpectraIDViewTab::getLayer()
+  LayerDataBase* SpectraIDViewTab::getLayer()
   {
     return layer_;
   }
@@ -304,9 +306,15 @@ namespace OpenMS
       return;
     }
 
-    if (ignore_update) { return; }
+    if (ignore_update)
+    { 
+      return; 
+    }
 
-    if (!isVisible()) { return; }
+    if (!isVisible())
+    { 
+      return;
+    }
 
     int restore_spec_index = layer_->getCurrentSpectrumIndex();
 
@@ -375,11 +383,16 @@ namespace OpenMS
       const vector<Precursor> & precursors = spectrum.getPrecursors();
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
-      if (ms_level != 2 && id_count == 0) { continue; }
+      if (ms_level != 2 && id_count == 0)
+      { 
+        continue;
+      }
 
       // skip
-      if (hide_no_identification_->isChecked() && id_count == 0)  { continue; }
-
+      if (hide_no_identification_->isChecked() && id_count == 0) 
+      { 
+        continue;
+      }
       // set row background color
       QColor bg_color = (id_count == 0 ? Qt::white : Qt::green);
 
@@ -410,7 +423,10 @@ namespace OpenMS
 
             // sequence
             String seq = ph.getSequence().toString();
-            if (seq.empty()) seq = ph.getMetaValue("label");
+            if (seq.empty())
+            {
+              seq = ph.getMetaValue("label");
+            }
             table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
             // accession
@@ -423,7 +439,7 @@ namespace OpenMS
             bool selected(false);
             if (ph.metaValueExists("selected"))
             {
-               selected = ph.getMetaValue("selected").toString() == "true";
+              selected = ph.getMetaValue("selected").toString() == "true";
             }
             table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
 
@@ -521,7 +537,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerDataBase::DT_PEAK)
     {
       return;
     }

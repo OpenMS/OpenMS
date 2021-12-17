@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,7 +144,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
 
@@ -165,6 +165,60 @@ namespace OpenMS
     return result;
   }
 
+  // static
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge)
+  {
+    IsotopeDistribution result;
+    result.resize(num_peaks);
+
+    // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
+    double factor = mass / 1800.0;
+
+    // for k=0, non-normalized value is always 1
+    result[0] = Peak1D(mass, 1.0f);
+
+    float curr_intensity = 1.0f;
+    for (UInt k = 1; k < num_peaks; ++k) // result[0] is always 1 anyway
+    {
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
+      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U / charge),
+                         curr_intensity != curr_intensity ? 0.0f : curr_intensity);
+    }
+
+    result.renormalize();
+
+    return result;
+  }
+
+  std::vector<double> CoarseIsotopePatternGenerator::approximateIntensities(double mass, UInt num_peaks)
+  {
+    std::vector<double> result(num_peaks, 1.0);
+
+    // lambda * mass. Lambda is the parameter of Poisson distribution. Value (1/1800) taken from Bellew et al
+    double factor = mass / 1800.0;
+    double curr_intensity = 1.0;
+    double sum = 1.0; // result[0] is always factor^0/1 = 1, which is the reason why we start the loop at 1
+
+    for (UInt k = 1; k < num_peaks; ++k)
+    {
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
+      result[k] = curr_intensity != curr_intensity ? 0.0: curr_intensity;
+      sum += result[k];
+    }
+
+    // normalize
+    for (UInt k = 0; k != result.size(); ++k)
+    {
+      result[k] /= sum;
+    }
+
+    return result;
+  }
+
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 7, 0, 1);
@@ -175,7 +229,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
@@ -372,7 +426,7 @@ namespace OpenMS
     //
     // We want to calculate the probability the fragment will be isotope x given that we isolated precursors M0,M+1,M+2
     //
-    // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // bayes' theorem
+    // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // Bayes' theorem
     //        = P(fi=0) * (P(pi=0|fi=0) + P(pi=1|fi=0) + P(pi=2|fi=0)) / (P(pi=0) + P(pi=1) + P(pi=2))  // mutually exclusive events
     //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2)) / (P(pi=0) + P(pi=1) + P(pi=2))                 // The only way pi=x|fi=y, is if ci=x-y
     //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2))                                                 // ignore normalization for now

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -65,12 +65,12 @@ namespace OpenMS
     ~SpectraIDViewTab() override = default;
 
     // docu in base class
-    bool hasData(const LayerData* layer) override;
+    bool hasData(const LayerDataBase* layer) override;
 
     /// set layer data and create table anew; if given a nullptr, behaves as clear()
-    void updateEntries(LayerData* model) override;
+    void updateEntries(LayerDataBase* model) override;
     /// get layer data
-    LayerData* getLayer();
+    LayerDataBase* getLayer();
 
     /// clears all visible data from table widget and voids the layer
     void clear() override;
@@ -93,7 +93,7 @@ namespace OpenMS
    /// partially fill the bottom-most row  
    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
 
-    LayerData* layer_ = nullptr;
+    LayerDataBase* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;

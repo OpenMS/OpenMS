@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,6 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -87,7 +85,7 @@ double getPosStepWidth() const;
 bool isInPackage(double pos) const;
 
 /**
- * @brief returns interpolated intensity @ position pos
+ * @brief returns interpolated intensity position `pos`
  */
 double eval(double pos) const;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -198,7 +198,7 @@ namespace OpenMS
           diff = -diff;
         if (max_shift > diff)
           max_shift = diff;
-      } while (0);
+      } while (false);
 
       const Int shift_buckets_num_half = 4 + (Int) ceil((max_shift) / shift_bucket_size);
       const Int shift_buckets_num = 1 + 2 * shift_buckets_num_half;
@@ -228,7 +228,7 @@ namespace OpenMS
       setProgress(++actual_progress);
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
-    } while (0);   // (the extra syntax helps with code folding in eclipse!)
+    } while (false);   // (the extra syntax helps with code folding in eclipse!)
     setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
@@ -322,7 +322,7 @@ namespace OpenMS
 
         } // k
       } // i
-    } while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
+    } while (false);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 30));
 
@@ -402,7 +402,7 @@ namespace OpenMS
           double freq_intercept = shift_hash_.getData().front();
           double freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / double(buffer.size())
                                   / scaling_histogram_crossing_slope;
-          if (!freq_slope || !buffer.size())
+          if (!freq_slope || buffer.empty())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
             freq_cutoff_low = 0;
@@ -417,7 +417,7 @@ namespace OpenMS
             freq_cutoff_low = buffer[--index]; // note that we have index >= 1
           }
         }
-      } while (0);
+      } while (false);
       setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
@@ -480,7 +480,7 @@ namespace OpenMS
       }
       setProgress(80);
 
-    } while (0);
+    } while (false);
 
     //************************************************************************************
     // Estimate transform

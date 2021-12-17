@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ struct SIPPeptide
 
   vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambiguously
 
   double mz_theo = -1.; ///< theoretical mz
 
@@ -454,7 +454,7 @@ public:
     String col_labels_string;
     col_labels_string.concatenate(col_labels.begin(), col_labels.end(), "\",\"");
 
-    current_script.addLine("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
+    current_script.addLine(R"(heatmap.2(mdat, dendrogram="none", col=colorRampPalette(c("black","red")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=)" + labRowString + ",labCol=c(\"" + col_labels_string + R"("),trace="none", density.info="none"))");
 
     current_script.addLine("tmp<-dev.off()");
     current_script.store(tmp_path + "/" + script_filename);
@@ -579,7 +579,7 @@ public:
     // peptide heat map plot
     current_script.addLine(String("<h1>") + "peptide heat map</h1>");
     String peptide_heatmap_plot_filename = String("heatmap_peptide") + file_suffix + String(".") + file_extension;
-    current_script.addLine("<p> <img src=\"" + peptide_heatmap_plot_filename + "\" alt=\"graphic\"></p>");
+    current_script.addLine("<p> <img src=\"" + peptide_heatmap_plot_filename + R"(" alt="graphic"></p>)");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
@@ -680,11 +680,11 @@ public:
 
       // spectrum plot
       String spectrum_filename = String("spectrum") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
-      current_script.addLine("<p> <img src=\"" + spectrum_filename + "\" alt=\"graphic\"></p>");
+      current_script.addLine("<p> <img src=\"" + spectrum_filename + R"(" alt="graphic"></p>)");
 
       // score plot
       String score_filename = String("scores") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
-      current_script.addLine("<p> <img src=\"" + score_filename + "\" alt=\"graphic\"></p>");
+      current_script.addLine("<p> <img src=\"" + score_filename + R"(" alt="graphic"></p>)");
     }
     current_script.addLine("\n</body>\n</html>");
     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");

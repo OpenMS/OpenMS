@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
         #   getName().c_str()
 
         Ribonucleotide() nogil except +
-        Ribonucleotide(Ribonucleotide) nogil except + # wrap-ignore
+        Ribonucleotide(Ribonucleotide &) nogil except +
 
         # detailed constructor
         Ribonucleotide(String name,
@@ -36,68 +36,46 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
                 EmpiricalFormula baseloss_formula) nogil except +
 
  
-        # return the short name
-        String getCode() nogil except +
+        String getCode() nogil except + # wrap-doc:Returns the short name
 
-        # set the short name
-        void setCode(String code) nogil except +
+        void setCode(String code) nogil except + # wrap-doc:Sets the short name
 
-        # sets the name of the ribonucleotide
-        void setName(String name) nogil except +
+        void setName(String name) nogil except + # wrap-doc:Sets the name of the ribonucleotide
 
-        # returns the name of the ribonucleotide
-        String getName() nogil except +
+        String getName() nogil except + # wrap-doc:Returns the name of the ribonucleotide
 
-        # set empirical formula of the ribonucleotide (must be full, with N and C-terminus)
-        void setFormula(EmpiricalFormula formula) nogil except +
+        void setFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets empirical formula of the ribonucleotide (must be full, with N and C-terminus)
 
-        # returns the empirical formula of the residue
-        EmpiricalFormula getFormula() nogil except +
+        EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the empirical formula of the residue
 
-        # sets average mass of the ribonucleotide
-        void setAvgMass(double avg_mass) nogil except +
+        void setAvgMass(double avg_mass) nogil except + # wrap-doc:Sets average mass of the ribonucleotide
 
-        # returns average mass of the ribonucleotide
-        double getAvgMass() nogil except +
+        double getAvgMass() nogil except + # wrap-doc:Returns average mass of the ribonucleotide
 
-        # sets monoisotopic mass of the ribonucleotide
-        void setMonoMass(double mono_mass) nogil except +
+        void setMonoMass(double mono_mass) nogil except + # wrap-doc:Sets monoisotopic mass of the ribonucleotide
 
-        # returns monoisotopic mass of the ribonucleotide
-        double getMonoMass() nogil except +
+        double getMonoMass() nogil except + # wrap-doc:Returns monoisotopic mass of the ribonucleotide
 
-        # return the new code
-        String getNewCode() nogil except +
+        String getNewCode() nogil except + # wrap-doc:Returns the new code
 
-        # set the new code
-        void setNewCode(String code) nogil except +
+        void setNewCode(String code) nogil except + # wrap-doc:Sets the new code
 
-        # Get the code of the unmodified base (e.g., "A", "C", ...)
-        char getOrigin() nogil except +
+        char getOrigin() nogil except + # wrap-doc:Returns the code of the unmodified base (e.g., "A", "C", ...)
 
-        # Set the code of the unmodified base (e.g., "A", "C", ...)
-        void setOrigin(char origin) nogil except +
+        void setOrigin(char origin) nogil except + # wrap-doc:Sets the code of the unmodified base (e.g., "A", "C", ...)
 
-        # Set the HTML (RNAMods) code
-        void setHTMLCode(String html_code) nogil except +
+        void setHTMLCode(String html_code) nogil except + # wrap-doc:Sets the HTML (RNAMods) code
 
-        # Get the HTML (RNAMods) code
-        String getHTMLCode() nogil except +
+        String getHTMLCode() nogil except + # wrap-doc:Returns the HTML (RNAMods) code
 
-        # Set the terminal specificity
-        void setTermSpecificity(TermSpecificityNuc term_spec) nogil except +
+        void setTermSpecificity(TermSpecificityNuc term_spec) nogil except + # wrap-doc:Sets the terminal specificity
 
-        # Get the terminal specificity
-        TermSpecificityNuc getTermSpecificity() nogil except +
+        TermSpecificityNuc getTermSpecificity() nogil except + # wrap-doc:Returns the terminal specificity
 
-        # Get sum formula after loss of the nucleobase
-        EmpiricalFormula getBaselossFormula() nogil except +
+        EmpiricalFormula getBaselossFormula() nogil except + # wrap-doc:Returns sum formula after loss of the nucleobase
 
-        # Set sum formula after loss of the nucleobase
-        void setBaselossFormula(EmpiricalFormula formula) nogil except +
+        void setBaselossFormula(EmpiricalFormula formula) nogil except + # wrap-doc:Sets sum formula after loss of the nucleobase
 
-        # equality operator
-        bool operator==(Ribonucleotide & ribonucleotide) nogil except +
+        bool operator==(Ribonucleotide & ribonucleotide) nogil except + # wrap-doc:Equality operator
 
-        # true if the ribonucleotide is a modified one
-        bool isModified() nogil except +
+        bool isModified() nogil except + # wrap-doc:True if the ribonucleotide is a modified one

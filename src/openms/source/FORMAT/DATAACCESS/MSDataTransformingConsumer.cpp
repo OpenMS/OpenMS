@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,6 +85,9 @@ namespace OpenMS
       void MSDataTransformingConsumer::setExperimentalSettings(const OpenMS::ExperimentalSettings& es)
       { 
         // apply the given function to it (unless nullptr)
-        if (lambda_exp_settings_) lambda_exp_settings_(es);        
+        if (lambda_exp_settings_)
+        {
+          lambda_exp_settings_(es);
+        }        
       }
 } // namespace OpenMS

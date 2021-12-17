@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
@@ -46,6 +47,8 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -78,16 +81,21 @@ namespace OpenMS
     String basename = File::basename(filename), tmp;
     // special rules for "double extensions":
     if (basename.hasSuffix(".pep.xml"))
+    {
       return FileTypes::PEPXML;
-
+    }
     if (basename.hasSuffix(".prot.xml"))
+    {
       return FileTypes::PROTXML;
-
+    }
     if (basename.hasSuffix(".xquest.xml"))
+    {
       return FileTypes::XQUESTXML;
-
+    }
     if (basename.hasSuffix(".spec.xml"))
+    {
       return FileTypes::SPECXML;
+    }
     try
     {
       tmp = basename.suffix('.');
@@ -120,8 +128,10 @@ namespace OpenMS
 
   String FileHandler::stripExtension(const String& filename)
   {
-    if (!filename.has('.')) return filename;
-
+    if (!filename.has('.'))
+    {
+      return filename;
+    }
     // we don't just search for the last '.' and remove the suffix, because this could be wrong, e.g. bla.mzML.gz would become bla.mzML
     auto type = getTypeByFileName(filename);
     auto s_type = FileTypes::typeToName(type);
@@ -173,8 +183,14 @@ namespace OpenMS
       return FileTypes::Type::UNKNOWN;
     }
 
-    if (t_file != FileTypes::Type::UNKNOWN) return t_file;
-    else return t_req;
+    if (t_file != FileTypes::Type::UNKNOWN)
+    {
+      return t_file;
+    }
+    else
+    {
+      return t_req;
+    }
   }
 
   FileTypes::Type FileHandler::getTypeByContent(const String& filename)
@@ -285,79 +301,98 @@ namespace OpenMS
 
     //mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML"))
+    {
       return FileTypes::MZXML;
-
+    }
     //mzData (all lines)
     if (all_simple.hasSubstring("<mzData"))
+    { 
       return FileTypes::MZDATA;
-
+    }
     //mzML (all lines)
     if (all_simple.hasSubstring("<mzML"))
+    {
       return FileTypes::MZML;
-
+    }
     //"analysisXML" aka. mzid (all lines)
     if (all_simple.hasSubstring("<MzIdentML"))
+    {
       return FileTypes::MZIDENTML;
-
+    }
     //mzq (all lines)
     if (all_simple.hasSubstring("<qcML"))
+    {
       return FileTypes::MZQUANTML;
-
+    }
     //subject to change!
     if (all_simple.hasSubstring("<MzQualityMLType"))
+    {
       return FileTypes::QCML;
-
+    }
     //pepXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
+    {
       return FileTypes::PEPXML;
-
+    }
     //protXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
+    {
       return FileTypes::PROTXML;
-
+    }
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap"))
+    {
       return FileTypes::FEATUREXML;
-
+    }
     //idXML (all lines)
     if (all_simple.hasSubstring("<IdXML"))
+    {
       return FileTypes::IDXML;
-
+    }
     //consensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML"))
+    {
       return FileTypes::CONSENSUSXML;
-
+    }
     //TOPPAS (all lines)
     if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\""))
+    {
       return FileTypes::TOPPAS;
-
+    }
     //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
     if (all_simple.hasSubstring("<PARAMETERS"))
+    {
       return FileTypes::INI;
-
+    }
     //TrafoXML (all lines)
     if (all_simple.hasSubstring("<TrafoXML"))
+    {
       return FileTypes::TRANSFORMATIONXML;
-
+    }
     //GelML (all lines)
     if (all_simple.hasSubstring("<GelML"))
+    {
       return FileTypes::GELML;
-
+    }
     //traML (all lines)
     if (all_simple.hasSubstring("<TraML"))
+    {
       return FileTypes::TRAML;
-
+    }
     //OMSSAXML file
     if (all_simple.hasSubstring("<MSResponse"))
+    {
       return FileTypes::OMSSAXML;
-
+    }
     //MASCOTXML file
     if (all_simple.hasSubstring("<mascot_search_results"))
+    {
       return FileTypes::MASCOTXML;
-
+    }
     if (all_simple.hasPrefix("{"))
+    {
       return FileTypes::JSON;
-
+    }
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
     {
@@ -371,19 +406,26 @@ namespace OpenMS
           ++i;
         }
         else if (complete_file[i].trim().hasPrefix("#"))
+        {
           ++i;
+        }
         else
+        {
           break;
+        }
       }
       if (bigger_than > 0)
+      {
         return FileTypes::FASTA;
+      }
     }
 
     // PNG file (to be really correct, the first eight bytes of the file would
     // have to be checked; see e.g. the Wikipedia article)
     if (first_line.substr(1, 3) == "PNG")
+    {
       return FileTypes::PNG;
-
+    }
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
@@ -417,7 +459,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA;
+      }
     }
 
     //DTA2D
@@ -436,7 +480,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA2D;
+      }
     }
 
     // MGF (Mascot Generic Format)
@@ -458,7 +504,7 @@ namespace OpenMS
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))
     {
-      if (all_simple.size() > 0 && all_simple[0] == 'H')
+      if (!all_simple.empty() && all_simple[0] == 'H')
       {
         return FileTypes::MS2;
       }
@@ -582,6 +628,68 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       return false;
     }
 
+    return true;
+  }
+
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map)
+  {
+    //determine file type
+    FileTypes::Type type;
+    try
+    {
+      type = getType(filename);
+    }
+    catch ( Exception::FileNotFound& )
+    {
+      return false;
+    }
+
+    //store right file
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureXMLFile().store(filename, map);
+    }
+    else if (type == FileTypes::TSV)
+    {
+      MsInspectFile().store(filename, map);
+    }
+    else if (type == FileTypes::PEPLIST)
+    {
+      SpecArrayFile().store(filename, map);
+    }
+    else if (type == FileTypes::KROENIK)
+    {
+      KroenikFile().store(filename, map);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
+  {
+    ConsensusXMLFile().store(filename, map);
+    return true;
+  }
+
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
+  {
+    ConsensusXMLFile().load(filename, map);
+    return true;
+  }
+
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
+  {
+    IdXMLFile().load(filename, additional_proteins, additional_peptides);
+    return true;
+  }
+
+  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
+  {
+    TraMLFile().store(filename, library);
     return true;
   }
 

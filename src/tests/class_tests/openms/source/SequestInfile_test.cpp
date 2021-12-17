@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -344,7 +344,7 @@ END_SECTION
 
 
 START_SECTION(void setDatabase(const String& database))
-	file.setDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta");
+	file.setDatabase(R"(\\bude\langwisc\sequest_test\Analysis.mzXML.fasta)");
 	TEST_STRING_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
 END_SECTION
 

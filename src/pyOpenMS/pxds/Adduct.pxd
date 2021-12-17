@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
     cdef cppclass Adduct:
   
         Adduct() nogil except +
-        Adduct(Adduct) nogil except + 
+        Adduct(Adduct &) nogil except + # compiler
   
         Adduct(Int charge) nogil except +
         Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, String label) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,13 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp> // cannot remove this since tests fail otherwise
 
 // #define DEBUG_MRMASSAY
 
@@ -75,7 +73,7 @@ public:
     MRMAssay(); // empty, no members
 
     /// Destructor
-    ~MRMAssay();
+    ~MRMAssay() override;
     //@}
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
@@ -203,7 +201,7 @@ public:
     @brief Filters decoy transitions, which do not have respective target transition
            based on the transitionID.
 
-           References between targets and decoys will be constructed based on the transitionsID
+           References between targets and decoys will be constructed based on the transitionID
            and the "_decoy_" string. For example:
 
            target: 84_CompoundName_[M+H]+_88_22

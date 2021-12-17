@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -210,8 +210,10 @@ namespace OpenMS
     static const double z_ion_offset = a_ion_offset;
 
     MSSpectrum spectrum;
-    if (oligo.empty()) return spectrum;
-
+    if (oligo.empty())
+    {
+      return spectrum;
+    }
     double three_prime_mass = 0.0, five_prime_mass = 0.0;
     if (oligo.getThreePrimeMod() != nullptr)
     {
@@ -374,7 +376,7 @@ namespace OpenMS
     }
     else if (max_charge * min_charge < 0)
     {
-      // Signs don't match - we need to quit and thow error here to avoid messing up for loops below
+      // Signs don't match - we need to quit and throw error here to avoid messing up for loops below
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "min. and max. charge must both be either positive or negative");
     }
     if (abs(max_charge) < abs(min_charge))

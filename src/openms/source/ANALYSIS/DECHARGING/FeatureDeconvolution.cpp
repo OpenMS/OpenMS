@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,19 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
-//DEBUG:
-#include <fstream>
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1
 #ifdef DC_DEVEL
+#include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #endif
 
 using namespace std;
@@ -373,7 +373,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);
@@ -414,7 +414,7 @@ namespace OpenMS
       { // ** RT-window
 
         // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
+        // use sorted structure and use 2nd start--1st end / 1st start--2nd end
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
@@ -476,7 +476,7 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)
                 }
                 else
                 {
@@ -534,13 +534,13 @@ namespace OpenMS
                   Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
 
                   // save new adduct candidate
-                  if (cmp_stripped.getComponent()[Compomer::LEFT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
                     CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
                     feature_adducts[i_RT].insert(cmp_left);
                   }
-                  if (cmp_stripped.getComponent()[Compomer::RIGHT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
                     CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
@@ -743,7 +743,7 @@ namespace OpenMS
     // write groups to consensusXML (with type="charge_groups")
 
     // **find cliques from pairs
-    // find which featureIdx maps to which consensusFeatureIdx
+    // find which featureId maps to which consensusFeatureId
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
@@ -798,7 +798,7 @@ namespace OpenMS
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
+        if (!labels.empty())
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
         }
@@ -822,7 +822,7 @@ namespace OpenMS
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
+        if (!labels.empty())
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
         }
@@ -874,7 +874,7 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
+            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {
@@ -1039,8 +1039,7 @@ namespace OpenMS
     FeatureMap fm_missing;
     cl.suggestMissingFeatures(fm_out, cons_map, fm_missing);
 
-    FeatureXMLFile fmf;
-    fmf.store("fm_missing.featureXML", fm_missing);
+    FileHandler.storeFeatures("fm_missing.featureXML", fm_missing);
 #endif
 
     cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
@@ -1192,7 +1191,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2)
+  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
     if (!enable_intensity_filter_)
       return true;
@@ -1262,13 +1261,13 @@ namespace OpenMS
     Size ladders_with_odd(0);
 
     // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
-    for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (const ConsensusFeature& cfeature : cons_map)
     {
-      if (it->size() == 1)
+      if (cfeature.size() == 1)
         continue;
 
       ++ladders_total;
-      IntList charges = it->getMetaValue("distinct_charges");
+      IntList charges = cfeature.getMetaValue("distinct_charges");
 
       for (Size i = 0; i < charges.size(); ++i)
       {
@@ -1289,6 +1288,5 @@ namespace OpenMS
     }
 
   }
-
 
 }

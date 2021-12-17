@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 namespace OpenMS
 {
@@ -58,8 +58,8 @@ namespace OpenMS
   class OPENMS_DLLAPI BaseFeature : public RichPeak2D
   {
 public:
-    ///@name Type definitions
-    //@{
+    /// @name Type definitions
+    ///@{
     /// Type of quality values
     typedef float QualityType;
     /// Type of charge values
@@ -78,23 +78,21 @@ public:
     };
 
     static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    ///@}
 
-    //@}
-
-    /** @name Constructors and Destructor
-    */
-    //@{
+    /// @name Constructors and Destructor
+    ///@{
     /// Default constructor
     BaseFeature();
 
     /// Copy constructor
     BaseFeature(const BaseFeature& feature) = default;
 
-    /// Move constructor 
+    /// Move constructor
     /// Note: can't be "noexcept = default" because of missing noexcept on some standard containers
     /// so we need to explicitly define it noexcept and provide an implementation.
     BaseFeature(BaseFeature&& feature) noexcept
-      : RichPeak2D(std::move(feature)) 
+      : RichPeak2D(std::move(feature))
     {
       quality_ = feature.quality_;
       charge_ = feature.charge_;
@@ -120,10 +118,10 @@ public:
 
     /// Destructor
     ~BaseFeature() override;
-    //@}
+    ///@}
 
     /// @name Quality methods
-    //@{
+    ///@{
     /// Non-mutable access to the overall quality
     QualityType getQuality() const;
     /// Set the overall quality
@@ -152,7 +150,7 @@ public:
       }
 
     };
-    //@}
+    ///@}
 
     /// Non-mutable access to the features width (full width at half max, FWHM)
     WidthType getWidth() const;
@@ -177,6 +175,8 @@ public:
     /// Inequality operator
     bool operator!=(const BaseFeature& rhs) const;
 
+    /// @name Functions for dealing with identifications in legacy format
+    ///@{
     /// returns a const reference to the PeptideIdentification vector
     const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
@@ -188,10 +188,13 @@ public:
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
+    ///@}
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
 
+    /// @name Functions for dealing with identifications in new format
+    ///@{
     /// has a primary ID (peptide, RNA, compound) been assigned?
     bool hasPrimaryID() const;
 
@@ -217,8 +220,13 @@ id
     /// add an ID match (e.g. PSM) for this feature
     void addIDMatch(IdentificationData::ObservationMatchRef ref);
 
-    /// update ID referenes (primary ID, matches) for this feature
+    /*!
+      @brief Update ID references (primary ID, matches) for this feature
+
+      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+    */
     void updateIDReferences(const IdentificationData::RefTranslator& trans);
+    ///@}
 
 protected:
 
@@ -235,7 +243,7 @@ protected:
     std::vector<PeptideIdentification> peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
-    boost::optional<IdentificationData::IdentifiedMolecule> primary_id_;
+    std::optional<IdentificationData::IdentifiedMolecule> primary_id_;
 
     /// set of observation matches (e.g. PSMs) with IDs for this feature
     std::set<IdentificationData::ObservationMatchRef> id_matches_;

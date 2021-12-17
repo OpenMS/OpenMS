@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,23 +37,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-// array_wrapper needs to be included before it is used
-// only in boost1.64+. See issue #2790
-#if OPENMS_BOOST_VERSION_MINOR >= 64
-#include <boost/serialization/array_wrapper.hpp>
-#endif
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/covariance.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/statistics/variates/covariate.hpp>
-#include <boost/function/function_base.hpp>
-#include <boost/lambda/casts.hpp>
-#include <boost/lambda/lambda.hpp>
-
-#include <iterator>
 #include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <numeric>
 
 namespace OpenMS
 {
@@ -516,7 +503,7 @@ namespace OpenMS
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
 
-      return (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
+      return (tp * tn - fp * fn) / std::sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
     }
 
     /**
@@ -560,7 +547,7 @@ namespace OpenMS
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
-      return numerator / sqrt(denominator_a * denominator_b);
+      return numerator / std::sqrt(denominator_a * denominator_b);
     }
 
     /// Replaces the elements in vector @p w by their ranks
@@ -579,8 +566,7 @@ namespace OpenMS
       }
       //sort
       std::sort(w_idx.begin(), w_idx.end(),
-                boost::lambda::ret<bool>((&boost::lambda::_1->*& std::pair<Size, Value>::second) < 
-                                         (&boost::lambda::_2->*& std::pair<Size, Value>::second)));
+                [](const auto& pair1, const auto& pair2) { return pair1.second < pair2.second; });
       //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
@@ -678,7 +664,7 @@ namespace OpenMS
         return 0;
       }
 
-      return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
+      return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
     }
 
     /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.

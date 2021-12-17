@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -268,9 +268,9 @@ protected:
     //ISD group descriptor";
     out << "MSD_group" << "ISD_group" << "Protein_indices" << "Peptide_indices" << "#Peptides_MSD" << "#Proteins_ISD" << "ProteinIDs_ISD" << endl;
 
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (const ProteinResolver::ResolverResult& prot : result)
     {
-      const ProteinResolver::ResolverResult& res = *iter;
+      const ProteinResolver::ResolverResult& res = prot;
       const vector<ProteinResolver::ISDGroup>* isd_groups = res.isds;
       const vector<ProteinResolver::MSDGroup>* msd_groups = res.msds;
 
@@ -287,16 +287,25 @@ protected:
           for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
           {
             protein_indices += (*prot)->index; //fasta_entry->identifier;
-            if (prot != --(msd->proteins.end())) protein_indices += ";";
+            if (prot != --(msd->proteins.end()))
+            {
+              protein_indices += ";";
+            }
           }
           out << protein_indices;
           //pep index
           String peptide_indices = "";
           for (list<ProteinResolver::PeptideEntry*>::const_iterator peps = msd->peptides.begin(); peps != msd->peptides.end(); ++peps)
           {
-            if (!(*peps)->experimental) continue;
+            if (!(*peps)->experimental)
+            {
+              continue;
+            }
             peptide_indices +=  (*peps)->index; //identifications[(*peps)->peptide_identification].getHits()[(*pep)->peptide_hit].getSequence().toString();
-            if (peps != --(msd->peptides.end())) peptide_indices += ";";
+            if (peps != --(msd->peptides.end()))
+            {
+              peptide_indices += ";";
+            }
           }
           out << peptide_indices;
           //Peptides in MSD
@@ -308,7 +317,10 @@ protected:
           for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = isd->proteins.begin(); prot != isd->proteins.end(); ++prot)
           {
             prots_ISD += (*prot)->fasta_entry->identifier;
-            if (prot != --(isd->proteins.end())) prots_ISD += ";";
+            if (prot != --(isd->proteins.end()))
+            {
+              prots_ISD += ";";
+            }
           }
           out << prots_ISD;
           out << endl;
@@ -321,9 +333,9 @@ protected:
   {
     out << "MSD_group" << "ISD_group" << "Protein_indices" << "Protein_ID" << "Peptide_sequence" << "Var_mods" << "Peptide_MW" << "Score" << "Charge" << "RT" << "MZ" << endl;
 
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (const ProteinResolver::ResolverResult& prot : result)
     {
-      const ProteinResolver::ResolverResult& res = *iter;
+      const ProteinResolver::ResolverResult& res = prot;
       const vector<Size>* reindexed_peptides = res.reindexed_peptides;
       const vector<ProteinResolver::PeptideEntry>* peptides = res.peptide_entries;
 
@@ -338,7 +350,10 @@ protected:
         for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_indices += (*prot)->index;
-          if (prot != --(peptide_entry->proteins.end())) protein_indices += ";";
+          if (prot != --(peptide_entry->proteins.end()))
+          {
+            protein_indices += ";";
+          }
         }
         out << protein_indices;
         //Protein ID
@@ -346,7 +361,10 @@ protected:
         for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_ID += (*prot)->fasta_entry->identifier;
-          if (prot != --(peptide_entry->proteins.end())) protein_ID += ";";
+          if (prot != --(peptide_entry->proteins.end()))
+          {
+            protein_ID += ";";
+          }
         }
         out << protein_ID;
         //peptide sequence
@@ -354,7 +372,7 @@ protected:
         {
           const vector<PeptideIdentification>& identifications =  *res.peptide_identification;
           const PeptideIdentification& pi = ProteinResolver::getPeptideIdentification(identifications, peptide_entry);
-          if (pi.getHits().size() == 0)
+          if (pi.getHits().empty())
           {
             // this should not happen...
             std::cerr << "PeptideEntry " << peptide_entry->sequence << " from " << peptide_entry->origin << " with  " << peptide_entry->intensity << " has no hits!\n";
@@ -406,9 +424,9 @@ protected:
   {
     out << "MSD_group" << "ISD_group" << "Peptide_indices" << "Protein_index" << "Protein_ID" << "#Peptides_per_Protein" << "Prot_MW" << "Coverage" << endl;
 
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (const ProteinResolver::ResolverResult& prot : result)
     {
-      const ProteinResolver::ResolverResult& res = *iter;
+      const ProteinResolver::ResolverResult& res = prot;
       const vector<Size>* reindexed_proteins = res.reindexed_proteins;
       const vector<ProteinResolver::ProteinEntry>* proteins = res.protein_entries;
 
@@ -456,9 +474,9 @@ protected:
 
   void writeStatistics_(SVOutStream& out, const vector<ProteinResolver::ResolverResult>& result)
   {
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (const ProteinResolver::ResolverResult& prot : result)
     {
-      const ProteinResolver::ResolverResult& res = *iter;
+      const ProteinResolver::ResolverResult& res = prot;
       const vector<ProteinResolver::ISDGroup>* isd_groups = res.isds;
       const vector<ProteinResolver::MSDGroup>* msd_groups = res.msds;
 
@@ -591,7 +609,7 @@ protected:
       dir.setSorting(QDir::Name | QDir::IgnoreCase);
       QFileInfoList list = dir.entryInfoList();
 
-      if (list.size() == 0)
+      if (list.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
