@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
+  void LayerDataIdent::computeStats(LayerStatistics& visitor) const
+  {
+    // nothing to compute here...
+  }
 }// namespace OpenMS

@@ -32,11 +32,15 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h> 
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
+  void LayerDataConsensus::computeStats(LayerStatistics& visitor) const
+  {
+    visitor.computeConsensusMapStats(*consensus_map_);
+  }
 }// namespace OpenMS

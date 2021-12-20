@@ -72,6 +72,8 @@ namespace OpenMS
       r.assign(*peak_map_);
       return r;
     }
+
+    void computeStats(LayerStatistics& visitor) const override;
   };
 
 }// namespace OpenMS

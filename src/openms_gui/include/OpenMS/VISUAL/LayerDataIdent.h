@@ -76,6 +76,8 @@ namespace OpenMS
       return r;
     }
 
+    void computeStats(LayerStatistics& visitor) const override;
+
     virtual const PepIds& getPeptideIds() const override
     {
       return peptides_;

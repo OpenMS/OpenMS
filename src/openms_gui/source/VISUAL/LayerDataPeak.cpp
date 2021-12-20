@@ -33,11 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
+  void LayerDataPeak::computeStats(LayerStatistics& visitor) const
+  {
+    visitor.computePeakMapStats(*peak_map_);
+  }
 
 }// namespace OpenMS

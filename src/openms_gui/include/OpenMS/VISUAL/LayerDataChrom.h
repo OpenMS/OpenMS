@@ -73,6 +73,9 @@ public:
       r.assign(*getPeakData());
       return r;
     }
+
+    void computeStats(LayerStatistics& visitor) const override;
+
   };
 
 } //namespace

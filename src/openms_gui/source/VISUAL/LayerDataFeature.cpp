@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
+  void LayerDataFeature::computeStats(LayerStatistics& visitor) const
+  {
+    visitor.computeFeatureMapStats(*features_);
+  }
 }// namespace OpenMS
