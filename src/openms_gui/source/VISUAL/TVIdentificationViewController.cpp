@@ -953,12 +953,12 @@ namespace OpenMS
     p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
     p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
 
-    p.setValue("a_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-    p.setValue("b_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-    p.setValue("c_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-    p.setValue("x_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-    p.setValue("y_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-    p.setValue("z_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+    p.setValue("a_intensity", current_spectrum.getMaxIntensity() * (double)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+    p.setValue("b_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+    p.setValue("c_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+    p.setValue("x_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+    p.setValue("y_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+    p.setValue("z_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
     p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
 
     p.setValue("add_a_ions", tv_params.getValue("preferences:idview:show_a_ions"), "Add peaks of a-ions to the spectrum");
@@ -1038,11 +1038,10 @@ namespace OpenMS
 
       // zoom to maximum visible area in real data (as theoretical might be much larger and therefor squeezes the interesting part)
       DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-      double delta_mz = max_mz - min_mz;
-      visible_area.setMin(min_mz - 0.1 * delta_mz);
-      visible_area.setMax(max_mz + 0.1 * delta_mz);
+      auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
+      spec_range.scaleBy(1.2);
+      visible_area.setMinX(spec_range.getMinMZ());
+      visible_area.setMaxX(spec_range.getMaxMZ());
 
       tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
@@ -1291,11 +1290,10 @@ namespace OpenMS
 
     // zoom visible area to real data range:
     DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-    double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-    double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-    double delta_mz = max_mz - min_mz;
-    visible_area.setMin(min_mz - 0.1 * delta_mz);
-    visible_area.setMax(max_mz + 0.1 * delta_mz);
+    auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
+    spec_range.scaleBy(1.2);
+    visible_area.setMinX(spec_range.getMinMZ());
+    visible_area.setMaxX(spec_range.getMaxMZ());
     tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
     tv_->updateLayerBar();

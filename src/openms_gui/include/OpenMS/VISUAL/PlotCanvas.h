@@ -172,6 +172,7 @@ public:
     ///Types of Ranges/Areas
     typedef DRange<2> AreaType;
 
+    using RangeType = RangeManager<RangeRT, RangeMZ, RangeIntensity>;
 
     /// Mouse action modes
     enum ActionModes

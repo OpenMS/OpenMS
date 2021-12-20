@@ -82,7 +82,7 @@ namespace OpenMS
   class ConsensusMap : // no OPENMS_DLLAPI here, since the class is derived from an STL class - we do not want parts of the STL lib in OpenMS.lib, since it will cause linker errors
     private std::vector<ConsensusFeature>,
     public MetaInfoInterface,
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
     public UniqueIdInterface,
     public UniqueIdIndexer<ConsensusMap>,
@@ -154,7 +154,8 @@ public:
     //@{
     typedef ConsensusFeature FeatureType;
     typedef std::vector<ConsensusFeature> Base;
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;

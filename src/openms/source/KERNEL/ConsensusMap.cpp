@@ -48,7 +48,7 @@ namespace OpenMS
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<ConsensusMap>(),
@@ -63,7 +63,7 @@ namespace OpenMS
   ConsensusMap::ConsensusMap(const ConsensusMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<ConsensusMap>(source),
@@ -82,7 +82,7 @@ namespace OpenMS
   ConsensusMap::ConsensusMap(Base::size_type n) :
     Base(n),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     column_description_(),
@@ -102,7 +102,7 @@ namespace OpenMS
 
     Base::operator=(source);
     MetaInfoInterface::operator=(source);
-    RangeManagerType::operator=(source);
+    RangeManagerContainerType::operator=(source);
     DocumentIdentifier::operator=(source);
     UniqueIdInterface::operator=(source);
     column_description_ = source.column_description_;
@@ -119,7 +119,7 @@ namespace OpenMS
     ConsensusMap empty_map;
 
     // reset these:
-    RangeManagerType::operator=(empty_map);
+    RangeManagerContainerType::operator=(empty_map);
 
     if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
     {
@@ -616,44 +616,17 @@ namespace OpenMS
   void ConsensusMap::updateRanges()
   {
     clearRanges();
-    updateRanges_(begin(), end());
-
     // enlarge the range by the internal points of each feature
-    for (Size i = 0; i < size(); ++i)
+    for (const auto& cf : (privvec&) *this)
     {
-      for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
+      extendRT(cf.getRT());
+      extendMZ(cf.getMZ());
+      extendIntensity(cf.getIntensity());
+      for (const auto& handle : cf.getFeatures())
       {
-        double rt = it->getRT();
-        double mz = it->getMZ();
-        double intensity = it->getIntensity();
-
-        // update RT
-        if (rt < pos_range_.minPosition()[Peak2D::RT])
-        {
-          pos_range_.setMinX(rt);
-        }
-        if (rt > pos_range_.maxPosition()[Peak2D::RT])
-        {
-          pos_range_.setMaxX(rt);
-        }
-        // update m/z
-        if (mz < pos_range_.minPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMinY(mz);
-        }
-        if (mz > pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMaxY(mz);
-        }
-        // update intensity
-        if (intensity <  int_range_.minX())
-        {
-          int_range_.setMinX(intensity);
-        }
-        if (intensity > int_range_.maxX())
-        {
-          int_range_.setMaxX(intensity);
-        }
+        extendRT(handle.getRT());
+        extendMZ(handle.getMZ());
+        extendIntensity(handle.getIntensity());
       }
     }
   }

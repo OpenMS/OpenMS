@@ -66,13 +66,11 @@ namespace OpenMS
       cached_spectrum_.updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getPeakData()->getMinInt();
-    }
-    float getMaxIntensity() const override
-    {
-      return getPeakData()->getMaxInt();
+      RangeAllType r;
+      r.assign(*peak_map_);
+      return r;
     }
   };
 

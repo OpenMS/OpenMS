@@ -65,14 +65,11 @@ namespace OpenMS
       features_->updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getFeatureMap()->getMinInt();
-    }
-
-    float getMaxIntensity() const override
-    {
-      return getFeatureMap()->getMaxInt();
+      RangeAllType r;
+      r.assign(*getFeatureMap());
+      return r;
     }
 
     const PepIds& getPeptideIds() const override
