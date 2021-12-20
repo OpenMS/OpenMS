@@ -43,6 +43,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <numeric>
 
@@ -581,18 +582,24 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    FeatureMap fmap_id_only;
+    //FeatureMap fmap_id_only;
     IdentificationData& id = fmap.getIdentificationData();
     IdentificationData::InputFileRef file_ref;
     IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
     IdentificationData::ScoreTypeRef mass_error_Da_score_ref;
     IdentificationData::ProcessingStepRef step_ref;
 
+    StringList ms_run_paths;
+    fmap.getPrimaryMSRunPath(ms_run_paths);
+
+    // set identifier for FeatureMap if missing (mandatory for OMS output)
+    if (fmap.getIdentifier().empty())
+    {
+      fmap.setIdentifier(File::basename(ms_run_paths[0]));
+    }
+
     if (!legacyID_)
     {
-      StringList ms_run_paths;
-      fmap.getPrimaryMSRunPath(ms_run_paths);
-
       // register input file
       IdentificationData::InputFile file(ms_run_paths[0]);
       file_ref = id.registerInputFile(file);
@@ -677,7 +684,6 @@ namespace OpenMS
       
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
-      std::cout << "is_dummy: " << is_dummy << std::endl;
 
       if (iso_similarity_ && !is_dummy)
       {
