@@ -113,7 +113,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); }
 
     //! The move constructor.
-    Iso(Iso&& other);
+    Iso(Iso&& other) noexcept ;
 
     /* We're not exactly following standard copy and assign semantics with Iso objects, so delete the default assign constructor just in case, so noone tries to use it. Copy ctor declared below. */
     Iso& operator=(const Iso& other) = delete;

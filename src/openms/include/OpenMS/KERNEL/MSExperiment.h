@@ -512,6 +512,13 @@ public:
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 
+    /**
+      @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned.
+    */
+    int getPrecursorSpectrum(int zero_based_index) const;
+
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);
 
