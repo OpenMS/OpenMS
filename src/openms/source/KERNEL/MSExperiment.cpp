@@ -294,7 +294,6 @@ namespace OpenMS
       this->extendMZ(cp.getMZ());// MZ
       cp.updateRanges();
       this->extend(cp);// RT and intensity from chroms's range
-
     }
   }
 

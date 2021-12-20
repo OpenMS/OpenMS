@@ -87,7 +87,7 @@ namespace OpenMS
       return min_ <= value && value <= max_;
     }
 
-    /// is the range @p r within [min, max]?
+    /// is the range @p inner_range within [min, max]?
     bool contains(const RangeBase& inner_range) const
     {
       return contains(inner_range.min_) && contains(inner_range.max_);
@@ -225,6 +225,18 @@ namespace OpenMS
     {
       extend(value);
     }
+
+    /// is @p value within [min, max]?
+    bool containsRT(const double value) const
+    {
+      return RangeBase::contains(value);
+    }
+
+    /// is the range @p inner_range within [min, max] of this range?
+    bool containsRT(const RangeBase& inner_range) const
+    {
+      return RangeBase::contains(inner_range);
+    }
   };
   
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeRT& range);
@@ -276,6 +288,18 @@ namespace OpenMS
     {
       extend(value);
     }
+
+    /// is @p value within [min, max]?
+    bool containsMZ(const double value) const
+    {
+      return RangeBase::contains(value);
+    }
+
+    /// is the range @p inner_range within [min, max] of this range?
+    bool containsMZ(const RangeBase& inner_range) const
+    {
+      return RangeBase::contains(inner_range);
+    }
   };
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeMZ& range);
 
@@ -325,57 +349,81 @@ namespace OpenMS
     {
       extend(value);
     }
+
+    /// is @p value within [min, max]?
+    bool containsIntensity(const double value) const
+    {
+      return RangeBase::contains(value);
+    }
+
+    /// is the range @p inner_range within [min, max] of this range?
+    bool containsIntensity(const RangeBase& inner_range) const
+    {
+      return RangeBase::contains(inner_range);
+    }
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeIntensity& range);
 
-  struct OPENMS_DLLAPI RangeMobility : public RangeBase {
+  struct OPENMS_DLLAPI RangeMobility : public RangeBase
+  {
+    const static MSDim DIM = MSDim::IM;
 
-      const static MSDim DIM = MSDim::IM;
+    RangeMobility() = default;
+    RangeMobility(const double min, const double max) :
+        RangeBase(min, max)
+    {
+    }
 
-      RangeMobility() = default;
-      RangeMobility(const double min, const double max) :
-          RangeBase(min, max)
-      {
-      }
-
-      /** @name Accessors for min and max
+    /** @name Accessors for min and max
       
-          We use accessors, to keep range consistent (i.e. ensure that min <= max)
-      */
-      ///@{
+        We use accessors, to keep range consistent (i.e. ensure that min <= max)
+    */
+    ///@{
 
-      /// sets the minimum (and the maximum, if uninitialized)
-      void setMinMobility(const double min)
-      {
-        setMin(min);
-      }
+    /// sets the minimum (and the maximum, if uninitialized)
+    void setMinMobility(const double min)
+    {
+      setMin(min);
+    }
 
-      /// sets the maximum (and the minimum, if uninitialized)
-      void setMaxMobility(const double max)
-      {
-        setMax(max);
-      }
+    /// sets the maximum (and the minimum, if uninitialized)
+    void setMaxMobility(const double max)
+    {
+      setMax(max);
+    }
 
-      /// only useful if isEmpty() returns false
-      double getMinMobility() const
-      {
-        return min_;
-      }
+    /// only useful if isEmpty() returns false
+    double getMinMobility() const
+    {
+      return min_;
+    }
 
-      /// only useful if isEmpty() returns false
-      double getMaxMobility() const
-      {
-        return max_;
-      }
-      ///@}
+    /// only useful if isEmpty() returns false
+    double getMaxMobility() const
+    {
+      return max_;
+    }
+    ///@}
 
-      /// extend the range such that it includes the given @p value
-      void extendMobility(const double value)
-      {
-        extend(value);
-      }
-    };
+    /// extend the range such that it includes the given @p value
+    void extendMobility(const double value)
+    {
+      extend(value);
+    }
+
+    /// is @p value within [min, max]?
+    bool containsMobility(const double value) const
+    {
+      return RangeBase::contains(value);
+    }
+
+    /// is the range @p inner_range within [min, max] of this range?
+    bool containsMobility(const RangeBase& inner_range) const
+    {
+      return RangeBase::contains(inner_range);
+    }
+  };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeMobility& range);
   
