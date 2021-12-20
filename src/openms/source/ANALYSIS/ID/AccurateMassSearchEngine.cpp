@@ -582,7 +582,6 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    //FeatureMap fmap_id_only;
     IdentificationData& id = fmap.getIdentificationData();
     IdentificationData::InputFileRef file_ref;
     IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
@@ -715,20 +714,11 @@ namespace OpenMS
       }
     }
 
-    // copy to transfer the IdentificationData
-    //fmap_id_only = fmap;
-
-    // have to reattach IdentificationData to new (filtered) FeatureMap
-    //for (const auto& f : fmap_id_only)
-    //{
-    //  std::cout << "f.getUniqueID(): " << f.getUniqueId() << "f.getPrimaryID(): " << f.getPrimaryID() << "f.getIDMatches().size(): " << f.getIDMatches().size() << std::endl;
-    //}
-
-    //IdentificationData id_data_test = fmap_id_only.getIdentificationData();
-    //if (id_data_test.empty())
-    //{
-    //  std::cout << "There seems to be something wrong!" << std::endl;
-    //}
+    // filter FeatureMap to only have entries with PrimaryID attached
+    if (!keep_unidentified_masses_)
+    {
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
+    }
 
     if(legacyID_)
     {
@@ -780,17 +770,6 @@ namespace OpenMS
 
     for (const AccurateMassSearchResult& r : amr)
     {
-      // TODO: filtering of features with no id - does not work here
-      // TODO: iterating over all features in the feautreMap without removing the
-      // TODO: ones without ID
-      // continue if feature does not have an ID attached
-      // std::cout << "!keep_unidentified_masses_: " << !keep_unidentified_masses_ << std::endl;
-      // std::cout << "r.getMatchingHMDBids().size() == 0: " <<  r.getMatchingHMDBids().size() << std::endl;
-      // if (!keep_unidentified_masses_ && r.getMatchingHMDBids().size() == 0)
-      // {
-      //  continue;
-      // }
-
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
       {
         if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
@@ -994,8 +973,6 @@ namespace OpenMS
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
-      // std::cout << tab_it->first << std::endl;
-
       for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
       {
         std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
