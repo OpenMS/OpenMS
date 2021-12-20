@@ -86,10 +86,10 @@ public:
     Annotation1DItem * getItemAt(const QPoint & pos) const;
 
     /// Selects the item at @p pos on the canvas, if it exists.
-    void selectItemAt(const QPoint & pos);
+    void selectItemAt(const QPoint & pos) const;
 
     /// Deselects the item at @p pos on the canvas, if it exists.
-    void deselectItemAt(const QPoint & pos);
+    void deselectItemAt(const QPoint & pos) const;
 
     /// Selects all items
     void selectAll();

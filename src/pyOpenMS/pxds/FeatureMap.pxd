@@ -14,12 +14,12 @@ from MSExperiment cimport *
 
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #   MetaInfoInterface
         #
         # wrap-instances:

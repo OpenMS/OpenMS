@@ -157,7 +157,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
 
   sequence = pep.sequence;
-  if (pep.protein_refs.size() > 0)
+  if (!pep.protein_refs.empty())
   {
     // For now just take the first one, assuming the protein name is the id
     protein_name = pep.protein_refs[0];
@@ -184,7 +184,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 
   // handle decoy tag
-  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && peptide_transition_map[peptide_ref].size() > 0)
+  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && !peptide_transition_map[peptide_ref].empty())
   {
     const ReactionMonitoringTransition *transition = peptide_transition_map[peptide_ref][0];
 #if 1
@@ -447,7 +447,7 @@ protected:
     String locale_before = String(OpenMS::Internal::OpenMS_locale);
     feature_file.load(file_list[0], feature_map);
     setlocale(LC_ALL, locale_before.c_str());
-    if (feature_map.getIdentifier().size() == 0)
+    if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");
     }
@@ -484,12 +484,12 @@ protected:
     for (Size i = 1; i < file_list.size(); ++i)
     {
       feature_file.load(file_list[i], feature_map);
-      if (feature_map.getIdentifier().size() == 0)
+      if (feature_map.getIdentifier().empty())
       {
         feature_map.setIdentifier("run" + (String)i);
       }
 
-      if (feature_map.size() < 1)
+      if (feature_map.empty())
       {
         continue;
       }

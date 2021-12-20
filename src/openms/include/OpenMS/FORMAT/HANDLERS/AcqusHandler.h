@@ -68,13 +68,13 @@ public:
       virtual ~AcqusHandler();
 
       /// Conversion from index to MZ ratio using internal calibration params
-      double getPosition(Size index);
+      double getPosition(Size index) const;
 
       /// Read param as string
       String getParam(const String & param);
 
       /// Get size of spectrum
-      Size getSize();
+      Size getSize() const;
 
 private:
       /// Private default constructor

@@ -112,7 +112,7 @@ namespace OpenMS::Internal
 
     }
 
-    void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time)
+    void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const
     {
       StringList xquest_datetime_string_split;
       StringUtils::split(xquest_datetime_string,' ', xquest_datetime_string_split);
@@ -287,7 +287,7 @@ namespace OpenMS::Internal
             double mod_mass = double(DataValue(variable_mod_split[1]));
             std::vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.01, variable_mod_split[0]);
-            if (mods.size() > 0)
+            if (!mods.empty())
             {
               variable_mod_list.push_back(mods[0]);
             }
@@ -313,7 +313,7 @@ namespace OpenMS::Internal
 
         // change the default decoy string, if the parameter is given
         String current_decoy_string;
-        if (this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string") && current_decoy_string.size() > 0)
+        if (this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string") && !current_decoy_string.empty())
         {
           this->decoy_string_ = current_decoy_string;
         }
@@ -341,7 +341,7 @@ namespace OpenMS::Internal
           monolink_masses_string = ListUtils::create<String>(monolink_masses_string_raw);
         }
 
-        if (monolink_masses_string.size() > 0)
+        if (!monolink_masses_string.empty())
         {
           DoubleList monolink_masses;
           for (String monolink_string : monolink_masses_string)
@@ -360,7 +360,7 @@ namespace OpenMS::Internal
         this->cross_linker_name_ = this->attributeAsString_(attributes, "crosslinkername");
         search_params.setMetaValue("cross_link:name", DataValue(this->cross_linker_name_));
         String iso_shift = this->attributeAsString_(attributes, "cp_isotopediff");
-        if (iso_shift.size() > 0)
+        if (!iso_shift.empty())
         {
           search_params.setMetaValue("cross_link:mass_isoshift", iso_shift.toDouble());
         }
@@ -560,7 +560,7 @@ namespace OpenMS::Internal
 
         if (xlink_type_string == "monolink")
         {
-          if (mods.size() > 0)
+          if (!mods.empty())
           {
             bool mod_set = false;
             for (const String& mod : mods)
@@ -973,20 +973,20 @@ namespace OpenMS::Internal
       (*this->cpro_id_)[0].getPrimaryMSRunPath(ms_runs);
       String ms_runs_string = ListUtils::concatenate(ms_runs, ",");
 
-      os << "<xquest_results xquest_version=\"OpenPepXL 1.0\" date=\"" << timestring <<
-               "\" author=\"Eugen Netz\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
+      os << R"(<xquest_results xquest_version="OpenPepXL 1.0" date=")" << timestring <<
+               R"(" author="Eugen Netz" tolerancemeasure_ms1=")" << precursor_mass_tolerance_unit  <<
                "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
                "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
                "\" crosslinkername=\"" << cross_link_name << "\" xlinkermw=\"" << cross_link_mass_light <<
                "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
-               "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
+               R"(" xlinktypes="1111" AArequired1=")" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
                "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
                "\" missed_cleavages=\"" << missed_cleavages <<
                "\" ntermxlinkable=\"" << ntermxlinkable << "\" CID_match2ndisotope=\"1" <<
                "\" variable_mod=\"" << variable_mods << "\" fixed_mod=\"" << fixed_mods <<
                "\" decoy_prefix=\"" << decoy_prefix << "\" decoy_string=\"" << decoy_string <<
                "\" charges=\"" << searched_charges << "\" run_path=\"" << ms_runs_string <<
-               "\" nocutatxlink=\"1\">" << std::endl;
+               R"(" nocutatxlink="1">)" << std::endl;
 
       String current_spectrum_light("");
       String current_spectrum_heavy("");
@@ -994,7 +994,7 @@ namespace OpenMS::Internal
       for (const auto& current_pep_id : *cpep_id_)
       {
         std::vector< PeptideHit > pep_hits = current_pep_id.getHits();
-        if (pep_hits.size() < 1)
+        if (pep_hits.empty())
         {
           continue;
         }
@@ -1012,7 +1012,7 @@ namespace OpenMS::Internal
 
           if (new_spectrum)
           {
-            if (current_spectrum_light.size() > 0)
+            if (!current_spectrum_light.empty())
             {
               os << "</spectrum_search>" << std::endl;
             }

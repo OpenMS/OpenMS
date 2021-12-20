@@ -286,7 +286,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             Peak1D peak;
             float mz = String(iter->str()).toFloat();
@@ -295,7 +295,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             float ity = String(iter->str()).toFloat();
             peak.setIntensity(ity);
@@ -385,7 +385,7 @@ namespace OpenMS
 
     for (const MSSpectrum& it : exp)
     {
-      if (it.getPeptideIdentifications().size() > 0 && it.getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
       {
         PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
         String peptide;

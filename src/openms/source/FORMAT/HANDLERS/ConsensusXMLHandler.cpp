@@ -42,9 +42,7 @@
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const String& filename) :
     XMLHandler("", "1.7"),
@@ -207,19 +205,19 @@ namespace Internal
     else if (tag == "centroid")
     {
       tmp_str = attributeAsString_(attributes, "rt");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         pos_[Peak2D::RT] = asDouble_(tmp_str);
       }
 
       tmp_str = attributeAsString_(attributes, "mz");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         pos_[Peak2D::MZ] = asDouble_(tmp_str);
       }
 
       tmp_str = attributeAsString_(attributes, "it");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         it_ = asDouble_(tmp_str);
       }
@@ -231,13 +229,13 @@ namespace Internal
       UniqueIdInterface tmp_unique_id_interface;
 
       tmp_str = attributeAsString_(attributes, "map");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         tmp_unique_id_interface.setUniqueId(tmp_str);
         UInt64 map_index = tmp_unique_id_interface.getUniqueId();
 
         tmp_str = attributeAsString_(attributes, "id");
-        if (tmp_str != "")
+        if (!tmp_str.empty())
         {
           tmp_unique_id_interface.setUniqueId(tmp_str);
           UInt64 unique_id = tmp_unique_id_interface.getUniqueId();
@@ -274,7 +272,7 @@ namespace Internal
       //check file version against schema version
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
-      if (file_version == "")
+      if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
@@ -515,7 +513,7 @@ namespace Internal
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(std::move(accession_string));
         }
@@ -637,7 +635,7 @@ namespace Internal
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
     // file id
-    if (consensus_map.getIdentifier() != "")
+    if (!consensus_map.getIdentifier().empty())
     {
       os << " document_id=\"" << consensus_map.getIdentifier() << "\"";
     }
@@ -646,7 +644,7 @@ namespace Internal
     {
       os << " id=\"cm_" << consensus_map.getUniqueId() << "\"";
     }
-    if (consensus_map.getExperimentType() != "")
+    if (!consensus_map.getExperimentType().empty())
     {
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
@@ -993,5 +991,4 @@ namespace Internal
     }
   }
 
-} // namespace Internal
 } // namespace OpenMS

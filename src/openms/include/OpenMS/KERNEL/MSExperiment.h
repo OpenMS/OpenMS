@@ -36,7 +36,6 @@
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -75,7 +74,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI MSExperiment :
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public ExperimentalSettings
   {
 
@@ -89,14 +88,14 @@ public:
     typedef PeakT PeakType;
     /// Chromatogram peak type
     typedef ChromatogramPeakT ChromatogramPeakType;
-    /// Area type
-    typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    /// RangeManager type
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -447,13 +446,6 @@ public:
     /// returns the maximal retention time value
     CoordinateType getMaxRT() const;
 
-    /**
-      @brief Returns RT and m/z range the data lies in.
-
-      RT is dimension 0, m/z is dimension 1
-    */
-    const AreaType& getDataRange() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
@@ -494,7 +486,7 @@ public:
 
     //@}
 
-    /// Resets all internal values
+    /// Clear all internal data (spectra, ranges, metadata)
     void reset();
 
     /**
@@ -519,6 +511,13 @@ public:
       If there is no precursor scan the past-the-end iterator is returned.
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
+
+    /**
+      @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned.
+    */
+    int getPrecursorSpectrum(int zero_based_index) const;
 
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);

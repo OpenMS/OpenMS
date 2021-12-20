@@ -504,7 +504,7 @@ namespace OpenMS
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))
     {
-      if (all_simple.size() > 0 && all_simple[0] == 'H')
+      if (!all_simple.empty() && all_simple[0] == 'H')
       {
         return FileTypes::MS2;
       }

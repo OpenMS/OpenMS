@@ -315,20 +315,20 @@ START_SECTION((virtual void updateRanges()))
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(s.getMaxInt(),2)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],10)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 2)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),10)
+  TEST_REAL_SIMILAR(s.getMinMZ(),2)
 
   //test with only one peak
 
   s.clear(true);
   s.push_back(p1);
   s.updateRanges();
-  TEST_REAL_SIMILAR(s.getMaxInt(),1)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],2)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),2)
+  TEST_REAL_SIMILAR(s.getMinMZ(),2)
 }
 END_SECTION
 
@@ -1398,10 +1398,12 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-  TEST_EQUAL(edit==MSSpectrum(),false)
+  TEST_EQUAL(edit == MSSpectrum(),false)
+  TEST_EQUAL(edit.empty(),true)
 
   edit.clear(true);
-  TEST_EQUAL(edit==MSSpectrum(),true)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSSpectrum(),true)
 }
 END_SECTION
 

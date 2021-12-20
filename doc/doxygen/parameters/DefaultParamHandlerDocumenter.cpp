@@ -192,7 +192,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
   }
-  f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
+  f << R"(<table border="1" style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" width="100%" cellpadding="4">)" << endl;
   f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -249,7 +249,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         type += " list";
 
       //restrictions
-      if (it->valid_strings.size() != 0)
+      if (!it->valid_strings.empty())
       {
         String valid_strings;
         valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");

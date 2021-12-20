@@ -593,7 +593,7 @@ protected:
     ProteinIdentification::SearchParameters search_params;
 
     String error = parseLuciphorOutput_(out, l_psms, lookup);
-    if (error != "")
+    if (!error.empty())
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
       writeLog_(error);

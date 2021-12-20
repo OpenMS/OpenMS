@@ -105,7 +105,7 @@ namespace OpenMS
   FeatureMap::FeatureMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
@@ -118,7 +118,7 @@ namespace OpenMS
   FeatureMap::FeatureMap(const FeatureMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
@@ -254,33 +254,24 @@ namespace OpenMS
 
   void FeatureMap::updateRanges()
   {
-    this->clearRanges();
-    updateRanges_(this->begin(), this->end());
+    clearRanges();
+    for (const auto& f : (privvec&) *this)
+    {
+      extendRT(f.getRT());
+      extendMZ(f.getMZ());
+      extendIntensity(f.getIntensity());
+    }
 
-    //enlarge the range by the convex hull points
+    // enlarge the range by the convex hull points
     for (Size i = 0; i < this->size(); ++i)
     {
-      DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
+      const DBoundingBox<2>& box = this->operator[](i).getConvexHull().getBoundingBox();
       if (!box.isEmpty())
       {
-        //update RT
-        if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
-        }
-        if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
-        }
-        //update m/z
-        if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
-        }
-        if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
-        }
+        extendRT(box.minPosition()[Peak2D::RT]);
+        extendRT(box.maxPosition()[Peak2D::RT]);
+        extendMZ(box.minPosition()[Peak2D::MZ]);
+        extendMZ(box.maxPosition()[Peak2D::MZ]);
       }
     }
   }

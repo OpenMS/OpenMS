@@ -130,7 +130,7 @@ private:
 
         @param rt The retention time to check.
       */
-      bool followUpValid(const double rt);
+      bool followUpValid(const double rt) const;
     };
 
     /// The used quantitation method (itraq4plex, tmt6plex,..).

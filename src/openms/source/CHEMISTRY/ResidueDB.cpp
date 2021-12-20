@@ -325,7 +325,7 @@ namespace OpenMS
 
     vector<String> names;
     // add name to lookup
-    if (r->getName() != "") 
+    if (!r->getName().empty()) 
     {
       names.push_back(r->getName());
     }
@@ -352,13 +352,13 @@ namespace OpenMS
     residue_names_[r->getName()] = r;
 
     // add tree letter code to residue_names_
-    if (r->getThreeLetterCode() != "")
+    if (!r->getThreeLetterCode().empty())
     {
       residue_names_[r->getThreeLetterCode()] = r;
     }
 
     // add one letter code to residue_names_
-    if (r->getOneLetterCode() != "")
+    if (!r->getOneLetterCode().empty())
     {
       residue_names_[r->getOneLetterCode()] = r;
     }

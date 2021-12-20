@@ -317,7 +317,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    if (feature_out != "")
+    if (!feature_out.empty())
     {
       FeatureXMLFile().store(feature_out, all_features);
     }

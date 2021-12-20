@@ -195,9 +195,9 @@ protected:
   {
     os << "Ranges:"
        << '\n'
-       << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << " sec (" << String::number((map.getMax()[Peak2D::RT] - map.getMin()[Peak2D::RT]) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
+       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
@@ -205,17 +205,17 @@ protected:
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMin()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMinRT(), 2) << '\n'
        << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMax()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
        << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMin()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
        << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
        << "general: ranges: intensity: min"
-       << '\t' << String::number(map.getMinInt(), 2) << '\n'
+       << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
-       << '\t' << String::number(map.getMaxInt(), 2) << '\n';
+       << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
   }
 
   template <class T>

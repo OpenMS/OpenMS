@@ -116,12 +116,12 @@ public:
     }
 
     void setGaussianParameters(double mu, double sigma);
-    double getGaussMu()
+    double getGaussMu() const
     {
       return mu_;
     }
 
-    double getGaussSigma()
+    double getGaussSigma() const
     {
       return sigma_;
     }
