@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>
