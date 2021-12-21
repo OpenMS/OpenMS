@@ -197,6 +197,7 @@ namespace OpenMS
         result.addSpectrum(std::move(in[k]));
       }
     }
+    result.ExperimentalSettings::operator=(in);
     in.clear(); // TODO: @cbielow. What about exp meta values?
     return result;
   }
