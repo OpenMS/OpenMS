@@ -136,8 +136,8 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
   {
   public:
-    MzTabInteger sml_identifier; ///< The small molecule’s identifier.
-    MzTabIntegerList smf_id_refs; ///< References to all the features on which quantification has been based.
+    MzTabString sml_identifier; ///< The small molecule’s identifier.
+    MzTabStringList smf_id_refs; ///< References to all the features on which quantification has been based.
     MzTabStringList database_identifier; ///< Names of the used databases.
     MzTabStringList chemical_formula; ///< Potential chemical formula of the reported compound.
     MzTabStringList smiles; ///< Molecular structure in SMILES format.
@@ -160,8 +160,8 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMSmallMoleculeFeatureSectionRow
   {
   public:
-    MzTabInteger smf_identifier; ///< Within file unique identifier for the small molecule feature.
-    MzTabIntegerList sme_id_refs; ///< Reference to the identification evidence.
+    MzTabString smf_identifier; ///< Within file unique identifier for the small molecule feature.
+    MzTabStringList sme_id_refs; ///< Reference to the identification evidence.
     MzTabInteger sme_id_ref_ambiguity_code; ///< Ambiguity in identifications.
     MzTabString adduct; ///< Adduct
     MzTabParameter isotopomer; ///< If de-isotoping has not been performed, then the isotopomer quantified MUST be reported here.
@@ -178,7 +178,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabMSmallMoleculeEvidenceSectionRow
   {
   public:
-    MzTabInteger sme_identifier; ///< Within file unique identifier for the small molecule evidence result.
+    MzTabString sme_identifier; ///< Within file unique identifier for the small molecule evidence result.
     MzTabString evidence_input_id; ///< Within file unique identifier for the input data used to support this identification e.g. fragment spectrum, RT and m/z pair.
     MzTabString database_identifier; ///< The putative identification for the small molecule sourced from an external database.
     MzTabString chemical_formula; ///< The putative molecular formula.

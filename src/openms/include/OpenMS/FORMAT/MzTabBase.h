@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka, Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Oliver Alka $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -91,6 +91,11 @@ public:
     void setInf();
 
     ~MzTabDouble() = default;
+
+    bool operator<(const MzTabDouble& rhs) const;
+
+    bool operator==(const MzTabDouble& rhs) const;
+
 protected:
     double value_;
     MzTabCellStateType state_;

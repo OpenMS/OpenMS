@@ -734,7 +734,7 @@ namespace OpenMS
       // to allow featureXML export (without the use of legacy_ID)
       // been transferred from the previous data stored within
       // the feature.
-      IdentificationDataConverter::exportFeatureIDs(fmap, false);
+      // IdentificationDataConverter::exportFeatureIDs(fmap, false);
     }
 
     if (fmap.empty())

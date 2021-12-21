@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka, Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Oliver Alka $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzTabBase.h>
@@ -838,6 +838,16 @@ namespace OpenMS
     {
       set(lower.toDouble());
     }
+  }
+
+  bool MzTabDouble::operator<(const MzTabDouble& rhs) const
+  {
+    return this->value_ < rhs.value_;
+  }
+
+  bool MzTabDouble::operator==(const MzTabDouble& rhs) const
+  {
+    return this->value_ == rhs.value_;
   }
 
   bool MzTabDoubleList::isNull() const

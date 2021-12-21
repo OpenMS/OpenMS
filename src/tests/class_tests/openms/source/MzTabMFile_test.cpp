@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzTabMFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
@@ -56,6 +57,7 @@ START_SECTION(MzTabMFile())
       TEST_NOT_EQUAL(ptr, null_ptr)
     }
 END_SECTION
+
 START_SECTION(~MzTabFile())
     {
       delete ptr;
@@ -66,10 +68,16 @@ START_SECTION(void store(const String& filename, MzTabM& mztab_m))
     {
       FeatureMap feature_map;
       MzTabM mztabm;
-      // the feature map should have an identification data object attached!
-      OMSFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearch_MzTabM_in_1.oms"), feature_map);
-      mztabm.exportFeatureMapToMzTabM(feature_map);
-      MzTabMFile().store("/Users/alka/Desktop/AMS_ID_test/unit_test/test_wIDC_output.mztab", mztabm);
+
+      OMSFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.oms"), feature_map);
+
+      mztabm = MzTabM::exportFeatureMapToMzTabM(feature_map);
+
+      String mztabm_tmpfile;
+      NEW_TMP_FILE(mztabm_tmpfile);
+      MzTabMFile().store(mztabm_tmpfile, mztabm);
+
+      TEST_FILE_SIMILAR(mztabm_tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabMFile_output_1.mztab"));
     }
 END_SECTION
 

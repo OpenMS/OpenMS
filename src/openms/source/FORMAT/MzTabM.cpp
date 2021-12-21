@@ -476,7 +476,7 @@ namespace OpenMS
         {
           ++software_score_counter;
           m_meta_data.id_confidence_measure[software_score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
-          id_score_refs.emplace_back(score_type_ref); // TODO: ISSUE: score_type_ref from here are not correct - used for evidence level information
+          id_score_refs.emplace_back(score_type_ref);
         }
       }
     }
@@ -487,8 +487,6 @@ namespace OpenMS
     m_meta_data.ms_run[1] = meta_ms_run;
     m_meta_data.assay[1] = meta_ms_assay;
     m_meta_data.study_variable[1] = meta_ms_study_variable;
-
-    mztabm.setMetaData(m_meta_data);
 
     // iterate over features and construct the feature, summary and evidence section
     MzTabMSmallMoleculeSectionRows smls;
@@ -522,7 +520,7 @@ namespace OpenMS
       if (identification_software == "MetaboliteSpectralMatcher")
       {
         ControlledVocabulary::CVTerm cvterm;
-        cvterm = cv.getTermByName("TOPP SpecLibSearcher"); // TODO: add correct term! spectral library matching
+        cvterm = cv.getTermByName("TOPP SpecLibSearcher");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 2;
       }
@@ -547,8 +545,8 @@ namespace OpenMS
       if (match_refs.empty()) // features without identification
       {
         MzTabMSmallMoleculeFeatureSectionRow smf;
-        smf.smf_identifier = MzTabInteger(feature_section_entry_counter);
-        std::vector<MzTabInteger> corresponding_evidences;
+        smf.smf_identifier = MzTabString(feature_section_entry_counter);
+        std::vector<MzTabString> corresponding_evidences;
         smf.sme_id_refs.setNull(true);
         if (f.metaValueExists("adducts"))
         {
@@ -586,7 +584,7 @@ namespace OpenMS
           IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
           IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
 
-          sme.sme_identifier = MzTabInteger(evidence_section_entry_counter);
+          sme.sme_identifier = MzTabString(evidence_section_entry_counter);
           sme.evidence_input_id = MzTabString("mass=" + String(f.getMZ()) + ",rt=" + String(f.getRT()));
           sme.database_identifier = MzTabString(compound_ref->identifier);
           sme.chemical_formula = MzTabString(compound_ref->formula.toString());
@@ -607,7 +605,7 @@ namespace OpenMS
           sp_ref.setMSFile(1);
           sp_ref.setSpecRef(match_ref->observation_ref->data_id);
           sme.spectra_ref = sp_ref;
-          // TODO: ISSUE: Would make sense to have the identification method per ID
+          // TODO: Would make sense to have the identification method per ID
           // TODO: That does work with the AppliedProcessingSteps per Compound!
           sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
           sme.ms_level = ms_level;
@@ -632,8 +630,8 @@ namespace OpenMS
         for (const auto& epa : evidence_id_ref_per_adduct)
         {
           MzTabMSmallMoleculeFeatureSectionRow smf;
-          smf.smf_identifier = MzTabInteger(feature_section_entry_counter);
-          std::vector<MzTabInteger> corresponding_evidences;
+          smf.smf_identifier = MzTabString(feature_section_entry_counter);
+          std::vector<MzTabString> corresponding_evidences;
           for (const auto& evidence : epa.second)
           {
             corresponding_evidences.emplace_back(evidence);
@@ -683,7 +681,7 @@ namespace OpenMS
       std::vector<MzTabString> uri;
       std::vector<MzTabDouble> theoretical_neutral_mass;
       std::vector<MzTabString> adducts;
-      for (const MzTabInteger& evidence : smf.sme_id_refs.get())
+      for (const MzTabString & evidence : smf.sme_id_refs.get())
       {
         const auto& current_row_it = std::find_if(smes.begin(), smes.end(), [&evidence] (const MzTabMSmallMoleculeEvidenceSectionRow& sme) { return sme.sme_identifier.get() == evidence.get(); });
         database_identifier.emplace_back(current_row_it->database_identifier);
@@ -693,8 +691,6 @@ namespace OpenMS
         chemical_name.emplace_back(current_row_it->chemical_name);
         uri.emplace_back(current_row_it->uri);
         MzTabString cm = current_row_it->chemical_formula;
-        // TODO: is that correct or should that be the neutral weight?
-        // TODO: I think that might be the weight with an [M+H]1+ adduct?
         theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight());
         adducts.emplace_back(current_row_it->adduct);
       }
@@ -706,7 +702,7 @@ namespace OpenMS
       sml.uri.set(uri);
       sml.theoretical_neutral_mass.set(theoretical_neutral_mass);
       sml.adducts.set(adducts);
-      // TODO: IdentificationData::ComoundRef store reliablity information
+      // TODO: IdentificationData::ComoundRef store reliability information
       sml.reliability = MzTabString("2"); // putatively annotated compound
       // TODO: e.g. use best search_engine score
       // TODO: How to decide best id confidence measure
@@ -718,6 +714,8 @@ namespace OpenMS
 
       smls.emplace_back(sml);
     }
+
+    mztabm.setMetaData(m_meta_data);
     mztabm.setMSmallMoleculeEvidenceSectionRows(smes);
     mztabm.setMSmallMoleculeFeatureSectionRows(smfs);
     mztabm.setMSmallMoleculeSectionRows(smls);
