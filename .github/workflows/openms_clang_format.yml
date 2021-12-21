@@ -26,6 +26,7 @@ jobs:
 
 # Perform linting
     - name: Use clang format linting
+      if: steps.changed-files.outputs.files_changed == 'true'
       uses: DoozyX/clang-format-lint-action@v0.13
       with:
         source: ${{ steps.changed-files.outputs.all_modified_files }}
