@@ -70,6 +70,8 @@ namespace OpenMS
       r.assign(*getConsensusMap());
       return r;
     }
+
+    void computeStats(LayerStatistics& visitor) const override;
   };
 
 }// namespace OpenMS

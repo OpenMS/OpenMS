@@ -2972,7 +2972,7 @@ namespace OpenMS
       }
 
       // update gradient if the min/max intensity changes
-      if (!current_layer.getFeatureMap()->getRange().RangeIntensity::contains(tmp.getIntensity()))
+      if (!current_layer.getFeatureMap()->getRange().containsIntensity(tmp.getIntensity()))
       {
         current_layer.getFeatureMap()->updateRanges();
         recalculateRanges_(0, 1, 2);
@@ -3002,7 +3002,7 @@ namespace OpenMS
     // update the layer and overall ranges (if necessary)
     auto old_range = layer.getFeatureMap()->getRange();
     layer.getFeatureMap()->updateRanges();
-    if (!old_range.RangeIntensity::contains(layer.getFeatureMap()->getRangeForDim(MSDim::INT)))
+    if (!old_range.containsIntensity(layer.getFeatureMap()->getRangeForDim(MSDim::INT)))
     {
       intensityModeChange_();
     }
@@ -3029,7 +3029,7 @@ namespace OpenMS
     // update the layer and overall ranges (if necessary)
     auto old_range = layer.getConsensusMap()->getRange();
     layer.getConsensusMap()->updateRanges();
-    if (!old_range.RangeIntensity::contains(layer.getConsensusMap()->getRangeForDim(MSDim::INT)))
+    if (!old_range.containsIntensity(layer.getConsensusMap()->getRangeForDim(MSDim::INT)))
     {
       intensityModeChange_();
     }

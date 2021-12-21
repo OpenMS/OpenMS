@@ -72,6 +72,8 @@ namespace OpenMS
       return r;
     }
 
+    void computeStats(LayerStatistics& visitor) const override;
+
     const PepIds& getPeptideIds() const override
     {
       return getFeatureMap()->getUnassignedPeptideIdentifications();
