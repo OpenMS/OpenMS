@@ -68,16 +68,16 @@ Nat Methods 17, 905–908 (2020). https://doi.org/10.1038/s41592-020-0933-6
 See the FBMN workflow documentation here (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/)
 
 In brief, after running an OpenMS "metabolomics" pipeline, the GNPSExport, together with the TextExporter TOPP tool, can be used
-on the consensusXML file and corresponding mzML files to generate the files needed for FBMN on GNPS.
+on the consensusXML file and the mzML files to generate the files needed for FBMN.
 These two files are:
 
 	- The MS/MS spectral data file (.MGF format) which is generated  with the GNPSExport util.
 	- The feature quantification table (.TXT format) which is generated with the TextExport util.
 
 For each consensusElement in the consensusXML file, the GNPSExport produces one representative consensus
-MS/MS spectrum (named peptide annotation in OpenMS jargon) outputted in the MS/MS spectral file (.MGF file).
-Several modes for the generation of the consensus MS/MS spectrum are available and described below.
-Note that these parameters are defined in the GNPSExport INI parameters file.
+MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file).
+An example command is available and described below.
+Note that the parameters for the spectral file generation are defined in the GNPSExport INI parameters file, [available with that link](openms_gnpsexport/GNPSExport.ini)).
 
 Representative command:
 @code
@@ -85,8 +85,8 @@ GNPSExport -ini iniFile-GNPSExport.ini -in_cm filefilter.consensusXML -in_mzml i
 @endcode
 
 Requirements:
-	- The IDMapper has to be run on the featureXML files, in order to associate MS2 scan(s) (peptide annotation) with each
-	feature, using a peptide annotation file (idXML). Even in untargeted metabolomics/proteomics, an empty idXML or mzid (peptide annotation format) file is needed as an input. 
+	- The IDMapper needs to be run on the featureXML files in order to associate MS2 scan(s) (peptide annotations) with each
+	feature for FBMN. An empty idXML or mzid (peptide annotation format) file is needed as an input.
 	- The FileFilter has to be run on the consensusXML file, prior to the GNPSExport, in order to remove consensusElements
 	without MS2 scans (peptide annotation).
 
