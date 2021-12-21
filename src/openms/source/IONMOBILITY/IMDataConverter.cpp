@@ -198,7 +198,7 @@ namespace OpenMS
       }
     }
     result.ExperimentalSettings::operator=(in);
-    in.clear(); // TODO: @cbielow. What about exp meta values?
+    in.clear(true);
     return result;
   }
 

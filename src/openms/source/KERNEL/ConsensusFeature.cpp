@@ -100,15 +100,15 @@ namespace OpenMS
   {
     for (auto& handle : handle_set)
     {
-      insert(*it);
+      insert(handle);
     }
   }
 
   void ConsensusFeature::insert(HandleSetType&& handle_set)
   {
-    for (auto it = handle_set.begin(); it != handle_set.end(); ++it)
+    for (auto& handle : handle_set)
     {
-      insert(std::move(*it));
+      insert(std::move(handle));
     }
   }
 

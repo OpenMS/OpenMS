@@ -75,10 +75,6 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::~ConsensusMap()
-  {
-  }
-
   ConsensusMap::ConsensusMap(Base::size_type n) :
     Base(n),
     MetaInfoInterface(),
