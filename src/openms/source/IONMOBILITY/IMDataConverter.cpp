@@ -185,7 +185,7 @@ namespace OpenMS
       // collapse for scans that actually have a float data array).
       if (in[k].containsIMData())
       {
-        MSExperiment frame = IMDataConverter::splitByIonMobility(in[k], number_of_bins); // TODO: @cbielow why no move version? e.g., for spec meta values
+        MSExperiment frame = IMDataConverter::splitByIonMobility(std::move(in[k]), number_of_bins);
         // move into result
         for (auto&& spec : frame)
         {
