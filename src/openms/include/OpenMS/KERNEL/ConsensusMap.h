@@ -177,7 +177,7 @@ public:
     OPENMS_DLLAPI ConsensusMap(const ConsensusMap& source);
 
     /// Destructor
-    OPENMS_DLLAPI ~ConsensusMap() override = default;
+    OPENMS_DLLAPI ~ConsensusMap() override;
 
     /// Creates a ConsensusMap with n elements
     OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
