@@ -65,15 +65,24 @@ namespace OpenMS
     subsamples_(source.subsamples_)
   {
     // delete old treatments
-    for (auto& it : treatments_) delete it;
+    for (auto& it : treatments_)
+    {
+      delete it;
+    }
     treatments_.clear();
     // copy treatments
-    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
+    for (const auto & it : source.treatments_)
+    {
+      treatments_.push_back(it->clone());
+    }
   }
 
   Sample::~Sample()
   {
-    for (auto& it : treatments_) delete it;
+    for (auto& it : treatments_)
+    {
+      delete it;
+    }
   }
 
   Sample & Sample::operator=(const Sample & source)
@@ -95,11 +104,16 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
 
     // delete old treatments
-    for (auto& it : treatments_) delete it;
+    for (auto& it : treatments_)
+    {
+      delete it;
+    }
     treatments_.clear();
     // copy treatments
-    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
-
+    for (const auto& it : source.treatments_)
+    {
+      treatments_.push_back(it->clone());
+    }
     return *this;
   }
 

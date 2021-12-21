@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -69,7 +70,7 @@ namespace OpenMS
   */
   struct Citation
   {
-    std::string authors;    ///< list of authors in AMA style, i.e. `<surname>` `<initials>`, ...
+    std::string authors;    ///< list of authors in AMA style, i.e. "surname initials", ...
     std::string title;      ///< title of article
     std::string when_where; ///< suggested format: journal. year; volume, issue: pages
     std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k

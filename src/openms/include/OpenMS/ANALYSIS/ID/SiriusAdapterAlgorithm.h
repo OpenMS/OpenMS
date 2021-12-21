@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <unordered_map>
 #include <QString>
@@ -68,14 +67,14 @@ namespace OpenMS
       bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); }
       int getIsotopePatternIterations() const { return  preprocessing.getValue("isotope_pattern_iterations"); }
 
-      /*
-       * Accessors for Sirius Parameters
+      /**
+       * @brief Accessors for Sirius Parameters
        */
 
       int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
 
       /**
-       * Updates all parameters that already exist in this DefaultParamHandler
+       * @brief Updates all parameters that already exist in this DefaultParamHandler
        * with the values provided by the input param object.
        *
        * @param param The Param object supplying updated parameter values. Keys that exist in the param
@@ -84,7 +83,7 @@ namespace OpenMS
       void updateExistingParameter(const Param &param);
 
       /**
-       * Checks whether this DefaultParamHandler has a ParamEntry with the provided name.
+       * @brief Checks whether this DefaultParamHandler has a ParamEntry with the provided name.
        * @param name The name of the ParamEntry that should be checked for its existence in this DefaultParamHandler
        * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
        */
@@ -152,7 +151,7 @@ namespace OpenMS
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
                                FeatureMapping::FeatureMappingInfo& fm_info,
-                               FeatureMapping::FeatureToMs2Indices& feature_mapping);
+                               FeatureMapping::FeatureToMs2Indices& feature_mapping) const;
 
       /**
       @brief logs number of features and spectra used
@@ -165,7 +164,7 @@ namespace OpenMS
       */
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                   const MSExperiment& spectra);
+                                   const MSExperiment& spectra) const;
 
       /**
       @brief Call SIRIUS with QProcess

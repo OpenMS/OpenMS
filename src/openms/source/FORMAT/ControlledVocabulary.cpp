@@ -208,9 +208,10 @@ namespace OpenMS
       line_wo_spaces.removeWhitespaces();
 
       //do nothing for empty lines
-      if (line == "")
+      if (line.empty())
+      {
         continue;
-
+      }
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -219,7 +220,7 @@ namespace OpenMS
         if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "") //store last term
+          if (!term.id.empty()) //store last term
           {
             terms_[term.id] = term;
           }
@@ -292,7 +293,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -309,7 +312,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String unit_name = line.suffix('!').trim();
             if (!checkName_(unit_id, unit_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -408,14 +413,14 @@ namespace OpenMS
           line_wo_spaces.trim();
           term.xref_binary.push_back(line_wo_spaces);
         }
-        else if (line != "")
+        else if (!line.empty())
         {
           term.unparsed.push_back(line);
         }
       }
     }
 
-    if (term.id != "") //store last term
+    if (!term.id.empty()) //store last term
     {
       terms_[term.id] = term;
     }
@@ -569,11 +574,12 @@ namespace OpenMS
     return cv;
   }
 
-  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case) const
   {
     if (!exists(id))
+    {
       return true; //what?!
-
+    }
     String parent_name = name;
     String real_parent_name = getTerm(id).name;
 

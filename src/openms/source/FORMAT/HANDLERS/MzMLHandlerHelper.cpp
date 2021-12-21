@@ -38,10 +38,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/Base64.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     void MzMLHandlerHelper::warning(int mode, const String & msg, UInt line, UInt column)
     {
       String error_message_;
@@ -66,19 +65,19 @@ namespace OpenMS
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::LINEAR)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::PIC)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002747" name="MS-Numpress positive integer compression followed by zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::SLOF)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />)";
       }
     }
     else
@@ -86,23 +85,23 @@ namespace OpenMS
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
         // default
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::LINEAR)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::PIC)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::SLOF)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />)";
       }
     }
     // default
-    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+    return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os,
@@ -236,11 +235,17 @@ namespace OpenMS
         double unit_multiplier = bindata.unit_multiplier;
         if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_64)
         {
-          for (auto& it : bindata.floats_64) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_64)
+          {
+            it = it * unit_multiplier;
+          }
         }
         else if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_32)
         {
-          for (auto& it : bindata.floats_32) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_32)
+          {
+            it = it * unit_multiplier;
+          }
         }
       }
       else if (bindata.data_type == BinaryData::DT_INT)
@@ -404,5 +409,4 @@ namespace OpenMS
   }
 
 
-  }
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

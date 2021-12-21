@@ -32,9 +32,11 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -348,7 +350,7 @@ namespace OpenMS
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
-  bool MassExplainer::compomerValid_(const Compomer& cmp)
+  bool MassExplainer::compomerValid_(const Compomer& cmp) const
   {
     // probability ok?
     if (cmp.getLogP() < thresh_p_)

@@ -42,7 +42,6 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
 #include <xercesc/dom/DOM.hpp>

@@ -50,10 +50,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
@@ -167,16 +166,24 @@ namespace OpenMS
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
       {
         if (errno == ENOENT) // errno declared by include file errno.h
+        {
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
+        }
         else if (errno == ENOTDIR)
+        {
           throw (runtime_error("A component of the path is not a directory."));
+        }
         // On MSVC 2008, the ELOOP constant is not declared and thus introduces a compile error
         //else if (errno == ELOOP)
         //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
+        {
           throw (runtime_error("Permission denied."));
+        }
         else if (errno == ENAMETOOLONG)
+        {
           throw (runtime_error("File can not be read."));
+        }
       }
 
       // Configure DOM parser.
@@ -237,7 +244,10 @@ namespace OpenMS
 
         // 1. DataCollection {1,1}
         DOMNodeList* spectraDataElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectraData"));
-        if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes"));
+        if (spectraDataElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectraData nodes"));
+        }
         parseInputElements_(spectraDataElements);
 
         // 1.2. SearchDatabase {0,unbounded}
@@ -250,12 +260,18 @@ namespace OpenMS
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
         DOMNodeList* spectrumIdentificationElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentification"));
-        if (spectrumIdentificationElements->getLength() == 0) throw(runtime_error("No SpectrumIdentification nodes"));
+        if (spectrumIdentificationElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentification nodes"));
+        }
         parseSpectrumIdentificationElements_(spectrumIdentificationElements);
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
         DOMNodeList* spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentificationProtocol"));
-        if (spectrumIdentificationProtocolElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        if (spectrumIdentificationProtocolElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        }
         parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
@@ -275,7 +291,10 @@ namespace OpenMS
 
         // 6.1 SpectrumIdentificationList {0,1}
         DOMNodeList* spectrumIdentificationListElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentificationList"));
-        if (spectrumIdentificationListElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationList nodes"));
+        if (spectrumIdentificationListElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentificationList nodes"));
+        }
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
         // 6.2 ProteinDetection {0,1}
@@ -423,10 +442,13 @@ namespace OpenMS
           DOMLSSerializer* serializer = ((DOMImplementationLS*)impl)->createLSSerializer();
           // serializer gets prettyprint and stuff
           if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true))
+          {
             serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true);
+          }
           if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+          {
             serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-
+          }
 //              // optionally implement DOMErrorHandler (e.g. MyDOMErrorHandler) and set it to the serializer
 //              DOMErrorHandler* errHandler = new myDOMErrorHandler();
 //              serializer->getDomConfig()->setParameter(XMLUni::fgDOMErrorHandler, myErrorHandler);
@@ -594,7 +616,7 @@ namespace OpenMS
         }
 
         // Add unit *after* creating the term
-        if (unitAcc != "")
+        if (!unitAcc.empty())
         {
           if (unitAcc.hasPrefix("UO:"))
           {
@@ -717,7 +739,7 @@ namespace OpenMS
             }
             child = child->getNextElementSibling();
           }
-          if (acc != "")
+          if (!acc.empty())
           {
             DBSequence temp_struct = {seq, dbref, acc, cvs};
             db_sq_map_.insert(make_pair(id, temp_struct));
@@ -1864,7 +1886,7 @@ namespace OpenMS
 
       std::vector<String> unique_peptides;
       unique_peptides.push_back(peptides[alpha[0]]);
-      if (beta.size() > 0)
+      if (!beta.empty())
       {
         unique_peptides.push_back(peptides[beta[0]]);
       }
@@ -3045,6 +3067,5 @@ namespace OpenMS
       }
       return sp;
     }
-
-  } //namespace Internal
-} // namespace OpenMS
+ 
+} // namespace OpenMS   //namespace Internal

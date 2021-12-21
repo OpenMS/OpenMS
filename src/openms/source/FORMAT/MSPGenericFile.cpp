@@ -196,9 +196,15 @@ namespace OpenMS
       for (const auto& peak : spectrum)
       {
         output_file << peak.getPos() << ":" << peak.getIntensity() << " ";
-        if ((++peak_counter % 5) == 0) output_file << '\n';
+        if ((++peak_counter % 5) == 0)
+        {
+          output_file << '\n';
+        }
       }
-      if ((peak_counter % 5) != 0) output_file << '\n';
+      if ((peak_counter % 5) != 0)
+      {
+        output_file << '\n';
+      }
       // separator
       output_file << '\n';
     }
@@ -211,8 +217,10 @@ namespace OpenMS
     MSExperiment& library
   )
   {
-    if (static_cast<int>(spectrum.getMetaValue("is_valid")) == 0) return;
-
+    if (static_cast<int>(spectrum.getMetaValue("is_valid")) == 0)
+    {
+      return;
+    }
     // Check that required metadata (Name, Num Peaks) is present
     // Num Peaks is checked later in the code (when verifying for the number of points parsed)
     if (spectrum.getName().empty())
@@ -240,14 +248,14 @@ namespace OpenMS
           "The number of points parsed does not coincide with `Num Peaks`.");
       }
 
-      if (synonyms_.size())
+      if (!synonyms_.empty())
       {
         String synon;
         for (const String& s : synonyms_)
         {
           synon += s + synonyms_separator_;
         }
-        if (synon.size())
+        if (!synon.empty())
         {
           synon.pop_back();
         }

@@ -87,15 +87,19 @@ public:
   /// default constructor
   FeatureFinderAlgorithmMetaboIdent();
 
-  /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
-  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features);
+  /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature.
+  /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
+  /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
+  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, String spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
   /// @brief Set spectra
-  void setMSData(const PeakMap& m) { ms_data_ = m; } // needed because pyOpenMS can't wrap the non-const reference version
+  void setMSData(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
+
+  void setMSData(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }
@@ -230,7 +234,7 @@ protected:
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<String, double> target_rts_; ///< RTs of targets (assays)
   
-  size_t n_shared_;
+  size_t n_shared_ = 0;
 };
 
 } // namespace OpenMS

@@ -128,7 +128,7 @@ namespace OpenMS
   }
 
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
-                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
+                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const
   {
     std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 

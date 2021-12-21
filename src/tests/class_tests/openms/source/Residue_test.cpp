@@ -307,6 +307,18 @@ START_SECTION(void setModification(const String& name))
 	e_ptr->setModification("Oxidation");
 	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
 	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
+	e_ptr->setOneLetterCode("C"); // TODO Why do we allow setting of the OneLetterCode?? This should be const after construction!
+	// TODO Shouldn't the modification be re-checked or deleted if the OneLetterCode changes???
+END_SECTION
+
+START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
+	e_ptr->setModificationByDiffMonoMass(-1000000);
+	TEST_EQUAL(e_ptr->getModificationName(), "")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "C[-1.0e06]")
+	e_ptr->setOneLetterCode("M"); // we need M for the next mod to be findable
+	e_ptr->setModificationByDiffMonoMass(15.9949);
+	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 

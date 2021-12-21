@@ -117,13 +117,21 @@ namespace OpenMS
   void PlotWidget::correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area)
   {
     if (area.maxX() > canvas()->getDataRange().maxX())
+    {
       area.setMaxX(canvas()->getDataRange().maxX());
+    }
     if (area.minX() < canvas()->getDataRange().minX())
+    {
       area.setMinX(canvas()->getDataRange().minX());
+    }
     if (area.maxY() > canvas()->getDataRange().maxY())
+    {
       area.setMaxY(canvas()->getDataRange().maxY());
+    }
     if (area.minY() < canvas()->getDataRange().minY())
+    {
       area.setMinY(canvas()->getDataRange().minY());
+    }
   }
 
   Int PlotWidget::getActionMode() const
@@ -322,7 +330,7 @@ namespace OpenMS
     for (UInt l = 0; l < canvas()->getLayerCount(); ++l)
     {
       //modified => ask if it should be saved
-      const LayerData& layer = canvas()->getLayer(l);
+      const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
         QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);

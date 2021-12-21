@@ -39,8 +39,6 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -87,7 +85,7 @@ double getPosStepWidth() const;
 bool isInPackage(double pos) const;
 
 /**
- * @brief returns interpolated intensity @ position pos
+ * @brief returns interpolated intensity position `pos`
  */
 double eval(double pos) const;
 

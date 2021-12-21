@@ -142,7 +142,7 @@ public:
     //@{
     //Sets if data should be compressed when writing
     void setCompression(bool compress);
-    //returns @c true, if data should be compressed when writing
+    /// returns @c true, if data should be compressed when writing
     bool getCompression() const;
     //@}
 
@@ -230,7 +230,7 @@ public:
     void setPrecursorMZSelectedIon(bool choice);
 
     /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
-    bool hasFilters();
+    bool hasFilters() const;
 
 private:
     bool metadata_only_;

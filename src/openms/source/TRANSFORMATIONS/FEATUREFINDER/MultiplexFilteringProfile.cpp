@@ -40,6 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <sstream>
+
 //#define DEBUG
 
 using namespace std;
@@ -131,9 +133,9 @@ namespace OpenMS
     
     // construct navigators for all spline spectra
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
-    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
       navigators.push_back(nav);
     }
     
@@ -159,7 +161,7 @@ namespace OpenMS
         size_t idx_rt = &it_rt - &exp_centroided_white_[0];
         
         // skip empty spectra
-        if (it_rt.size() == 0 || boundaries_[idx_rt].size() == 0 || exp_spline_profile_[idx_rt].size() == 0)
+        if (it_rt.empty() || boundaries_[idx_rt].empty() || exp_spline_profile_[idx_rt].size() == 0)
         {
           continue;
         }
@@ -425,7 +427,7 @@ namespace OpenMS
         }
 
         // It is well possible that no corresponding satellite peaks exist, in which case the filter fails.
-        if ((intensities_1.size() == 0) || (intensities_2.size() == 0))
+        if ((intensities_1.empty()) || (intensities_2.empty()))
         {
           return false;
         }

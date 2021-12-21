@@ -66,7 +66,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
     Plot2DWidget(const Param & preferences, QWidget * parent = nullptr);

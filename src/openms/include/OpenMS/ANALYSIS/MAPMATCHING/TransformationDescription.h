@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 
 namespace OpenMS
@@ -164,7 +164,7 @@ public:
     TransformationStatistics getStatistics() const;
 
     /// Print summary statistics for the transformation
-    void printSummary(std::ostream& os = std::cout) const;
+    void printSummary(std::ostream& os) const;
 
 protected:
     /// Data points

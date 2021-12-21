@@ -42,6 +42,8 @@
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 //OpenSWATH classes
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 
@@ -334,7 +336,7 @@ namespace OpenMS
           String quant_component_name = quant_methods_it->second.getComponentName();
           String quant_IS_component_name = quant_methods_it->second.getISName();
           String quant_feature_name = quant_methods_it->second.getFeatureName();
-          if (quant_IS_component_name != "")
+          if (!quant_IS_component_name.empty())
           {
             // look up the internal standard for the component
             bool IS_found = false;

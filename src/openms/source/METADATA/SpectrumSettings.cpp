@@ -93,11 +93,14 @@ namespace OpenMS
     std::vector<UInt> keys;
     rhs.getKeys(keys);
     for (Size i = 0; i < keys.size(); ++i)
+    {
       setMetaValue(keys[i], rhs.getMetaValue(keys[i]));
-
+    }
 
     if (type_ != rhs.type_)
+    {
       type_ = UNKNOWN;                       // only keep if both are equal
+    }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
     //instrument_settings_ == rhs.instrument_settings_  // keep

@@ -133,21 +133,21 @@ public:
     ///@name Type definitions
     //@{
     //Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     //Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     //Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     //Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     //Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     //Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     //Main on-disc managed data type (experiment)
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -215,7 +215,7 @@ public:
                  std::vector<PeptideIdentification>& peptides,
                  ExperimentSharedPtrType peak_map,
                  ODExperimentSharedPtrType on_disc_peak_map,
-                 LayerData::DataType data_type,
+                 LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
@@ -241,10 +241,10 @@ public:
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerData* getCurrentLayer() const;
+    const LayerDataBase* getCurrentLayer() const;
 
     /// Returns the active Layer data (0 if no layer is active)
-    LayerData* getCurrentLayer();
+    LayerDataBase* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
@@ -277,17 +277,17 @@ public slots:
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
     void openFilesByDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
-    void showGoToDialog();
+    void showGoToDialog() const;
     /// shows the preferences dialog
     void preferencesDialog();
     /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
-    void layerStatistics();
+    void layerStatistics() const;
     /// lets the user edit the meta data of a layer
     void editMetadata();
     /// gets called if a layer got activated
     void layerActivated();
     /// gets called when a layer changes in zoom
-    void layerZoomChanged();
+    void layerZoomChanged() const;
     /// link the zoom of individual windows
     void linkZoom();
     /// gets called if a layer got deactivated
@@ -342,29 +342,29 @@ public slots:
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
     /// Saves the whole current layer data
-    void saveLayerAll();
+    void saveLayerAll() const;
     /// Saves the visible layer data
-    void saveLayerVisible();
+    void saveLayerVisible() const;
     /// Toggles the grid lines
-    void toggleGridLines();
+    void toggleGridLines() const;
     /// Toggles the axis legends
-    void toggleAxisLegends();
+    void toggleAxisLegends() const;
     /// Toggles drawing of interesting MZs
-    void toggleInterestingMZs();
+    void toggleInterestingMZs() const;
     /// Shows current layer preferences
-    void showPreferences();
+    void showPreferences() const;
     /// dialog for inspecting database meta data
     void metadataFileDialog();
 
     /** @name Toolbar slots
     */
     //@{
-    void setDrawMode1D(int);
+    void setDrawMode1D(int) const;
     void setIntensityMode(int);
     void changeLayerFlag(bool);
     void changeLabel(QAction*);
     void changeUnassigned(QAction*);
-    void resetZoom();
+    void resetZoom() const;
     void toggleProjections();
     //@}
 
@@ -373,10 +373,10 @@ public slots:
     void openFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
+    void layerFilterVisibilityChange(bool) const;
 
     /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
-    void showSpectrumMetaData(int spectrum_index);
+    void showSpectrumMetaData(int spectrum_index) const;
 
 protected slots:
     /// slot for the finished signal of the TOPP tools execution

@@ -34,11 +34,13 @@
 //
 
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;
@@ -269,8 +271,10 @@ namespace OpenMS
         for (Size f = 0; f != features.size(); ++f)
         {
           // feature  is incompatible if believe_charge is set and charges don't match
-          if (believe_charge && features[f].getCharge() != pc_charge) continue;
-
+          if (believe_charge && features[f].getCharge() != pc_charge)
+          {
+            continue;
+          }
           // check if precursor/MS2 position overlap with feature
           if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
           {

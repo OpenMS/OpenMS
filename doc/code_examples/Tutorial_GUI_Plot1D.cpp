@@ -33,7 +33,7 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,8 +49,8 @@ Int main(int argc, const char ** argv)
   PeakMap exp;
   exp.resize(1);
   DTAFile().load(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", exp[0]);
-  LayerData::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
-  LayerData::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
+  LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
+  LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   Plot1DWidget * widget = new Plot1DWidget(Param(), nullptr);
   widget->canvas()->addLayer(exp_sptr, on_disc_exp_sptr);
   widget->show();

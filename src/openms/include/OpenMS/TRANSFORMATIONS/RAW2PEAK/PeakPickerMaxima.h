@@ -114,7 +114,7 @@ public:
     void findMaxima(const std::vector<double>& mz_array,
         const std::vector<double>& int_array,
         std::vector<PeakCandidate>& pc,
-        bool check_spacings = true);
+        bool check_spacings = true) const;
 
     /**
       @brief Will pick peaks in a spectrum

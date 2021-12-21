@@ -34,9 +34,7 @@
 
 #pragma once
 
-
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <map>
 
@@ -56,7 +54,7 @@ public:
     ///Default constructor
     AbsoluteQuantitationMethodFile() = default;
     ///Destructor
-    ~AbsoluteQuantitationMethodFile() = default;
+    ~AbsoluteQuantitationMethodFile() override = default;
 
     /**
       @brief Loads an AbsoluteQuantitationMethod file.

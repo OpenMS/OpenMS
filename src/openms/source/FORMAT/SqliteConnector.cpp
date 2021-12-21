@@ -184,9 +184,7 @@ namespace OpenMS
     sqlite3_finalize(stmt);
   }
 
-  namespace Internal
-  {
-    namespace SqliteHelper
+  namespace Internal::SqliteHelper
     {
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
@@ -342,7 +340,6 @@ namespace OpenMS
       }
 
     }
-  }
 
 }
 

@@ -94,10 +94,6 @@ namespace OpenMS
     }
   }
 
-  TransformationModelLinear::~TransformationModelLinear()
-  {
-  }
-
   double TransformationModelLinear::evaluate(double value) const
   {
     if (!weighting_) 

@@ -57,16 +57,16 @@ namespace OpenMS
   void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
-    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
     unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
 
-    if (layer.type == LayerData::DT_CHROMATOGRAM)
+    if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
       // set layer name
       String caption = layer.getName() + "[" + index + "]";
@@ -83,7 +83,7 @@ namespace OpenMS
       DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
       w->canvas()->setVisibleArea(visible_area.swapDimensions());
     }
-    else if (layer.type == LayerData::DT_PEAK)
+    else if (layer.type == LayerDataBase::DT_PEAK)
     {
       String caption = layer.getName();
 
@@ -132,7 +132,7 @@ namespace OpenMS
 
     // show multiple spectra together is only used for chromatograms directly
     // where multiple (SRM) traces are shown together
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
@@ -144,7 +144,7 @@ namespace OpenMS
 
     for (const auto& index : indices)
     {
-      if (layer.type == LayerData::DT_CHROMATOGRAM)
+      if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
         // set layer name
         caption += String(" [") + index + "];";
@@ -181,7 +181,7 @@ namespace OpenMS
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
-    LayerData& layer = widget_1d->canvas()->getCurrentLayer();
+    LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -219,10 +219,15 @@ namespace OpenMS
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
-
-    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
+    if (widget_1d == nullptr)
+    {
+      return;
+    }
+    if (widget_1d->canvas()->getLayerCount() == 0)
+    {
+      return;
+    }
+    const LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.

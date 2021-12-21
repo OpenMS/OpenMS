@@ -36,16 +36,13 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -135,7 +132,7 @@ public:
       @param[in] transitions transitions from a TargetedExperiment
       @param[in] init_template_values Boolean indicating whether to initialize the template values based on the first sample
     */
-    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values);
+    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values) const;
 
     /**
       @brief Transfer the lower and upper bound values for the calculated concentrations
@@ -157,7 +154,7 @@ public:
         to estimate the PercentRSD for.  The PercentRSD values will be stored in the upper bound parameter of the filter_template
       @param[in] transitions transitions from a TargetedExperiment
     */
-    void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
+    void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const;
 
     /**
       @brief Estimate the background interference level based on the average values from Blank samples.
@@ -169,7 +166,7 @@ public:
         to estimate the PercentInterference.  The average values will be stored in the upper bound parameter of the filter_template
       @param[in] transitions transitions from a TargetedExperiment
     */
-    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
+    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const;
 
     /**
       @brief Calculates the ion ratio between two transitions

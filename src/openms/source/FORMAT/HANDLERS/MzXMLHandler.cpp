@@ -41,10 +41,8 @@
 #include <atomic>
 #include <stack>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     // class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
     struct IndexPos
@@ -153,8 +151,9 @@ namespace OpenMS
 
       //Skip all tags until the the next scan
       if (skip_spectrum_ && tag != "scan")
+      {
         return;
-
+      }
       if (tag == "msRun")
       {
         Int count = 0;
@@ -268,8 +267,9 @@ namespace OpenMS
         nesting_level_++;
 
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         // check if the scan is in the desired MS / RT range
         UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
         if (ms_level == 0)
@@ -354,7 +354,7 @@ namespace OpenMS
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
-        if (type == "")
+        if (type.empty())
         {
           //unknown/unset => do nothing here => no warning in the end
         }
@@ -366,9 +366,13 @@ namespace OpenMS
         else if (type == "Full")
         {
           if (ms_level > 1)
+          {
             spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          }
           else
+          {
             spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          }
         }
         else if (type == "SIM")
         {
@@ -422,7 +426,7 @@ namespace OpenMS
 
         tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_phone_);
-        if (tmp != "")
+        if (!tmp.empty())
         {
           exp_->getContacts().back().setMetaValue("#phone", tmp);
         }
@@ -494,9 +498,10 @@ namespace OpenMS
       {
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
-        if (name == "")
+        if (name.empty())
+        {
           return;
-
+        }
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
@@ -519,9 +524,10 @@ namespace OpenMS
       {
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
-        if (name == "")
+        if (name.empty())
+        {
           return;
-
+        }
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
@@ -569,8 +575,9 @@ namespace OpenMS
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)
+      {
         return;
-
+      }
       if (open_tags_.back() == "peaks")
       {
         //chars may be split to several chunks => concatenate them
@@ -616,7 +623,7 @@ namespace OpenMS
         {
           spectrum_data_.back().spectrum.setComment(transcoded_chars);
         }
-        else if (transcoded_chars.trim() != "")
+        else if (!transcoded_chars.trim().empty())
         {
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
@@ -624,7 +631,7 @@ namespace OpenMS
       else
       {
         String transcoded_chars = sm_.convert(chars);
-        if (transcoded_chars.trim() != "")
+        if (!transcoded_chars.trim().empty())
         {
           warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
@@ -638,14 +645,16 @@ namespace OpenMS
       for (Size s = 0; s < cexp_->size(); s++)
       {
         const SpectrumType& spec = (*cexp_)[s];
-        if (spec.size() != 0)
+        if (!spec.empty())
+        {
           ++count_tmp_;
+        }
       }
       if (count_tmp_ == 0) ++count_tmp_;
 
       logger_.startProgress(0, cexp_->size(), "storing mzXML file");
       double min_rt(0), max_rt(0);
-      if (cexp_->size() > 0)
+      if (!cexp_->empty())
       {
         min_rt = cexp_->begin()->getRT();
         max_rt = (cexp_->end() - 1)->getRT();
@@ -696,7 +705,7 @@ namespace OpenMS
       //----------------------------------------------------------------------------------------
       //instrument
       //----------------------------------------------------------------------------------------
-      if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
+      if (cexp_->getInstrument() != Instrument() || !cexp_->getContacts().empty())
       {
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
@@ -745,18 +754,18 @@ namespace OpenMS
           os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
-        if (cexp_->getContacts().size() > 0)
+        if (!cexp_->getContacts().empty())
         {
           const ContactPerson& cont = cexp_->getContacts()[0];
 
           os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() << "\"";
 
-          if (cont.getEmail() != "")
+          if (!cont.getEmail().empty())
           {
             os << " email=\"" << cont.getEmail() << "\"";
           }
 
-          if (cont.getURL() != "")
+          if (!cont.getURL().empty())
           {
             os << " URI=\"" << cont.getURL() << "\"";
           }
@@ -781,7 +790,7 @@ namespace OpenMS
       //----------------------------------------------------------------------------------------
       // data processing (the information of the first spectrum is assigned to the whole file)
       //----------------------------------------------------------------------------------------
-      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if (cexp_->empty() || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
           << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
@@ -852,7 +861,7 @@ namespace OpenMS
         {
           all_numbers = false;
           all_prefixed_numbers = false;
-          if (native_id != "")
+          if (!native_id.empty())
           {
             all_empty = false;
           }
@@ -942,8 +951,10 @@ namespace OpenMS
           type = "Full";
           warning(STORE, String("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
         }
-        if (!type.empty()) os << " scanType=\""<< type << "\"";
-
+        if (!type.empty())
+        {
+          os << " scanType=\""<< type << "\"";
+        }
         // filter line
         if (spec.metaValueExists("filter string"))
         {
@@ -954,7 +965,10 @@ namespace OpenMS
        
         // retention time
         os << " retentionTime=\"";
-        if (spec.getRT() < 0) os << "-";
+        if (spec.getRT() < 0)
+        {
+          os << "-";
+        }
         os << "PT" << std::fabs(spec.getRT()) << "S\"";
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
@@ -1051,7 +1065,7 @@ namespace OpenMS
         }
         else
         {
-          s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
+          s_peaks = R"(<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" )";
         }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
         { // internal check against inadvertently removing line breaks above!
@@ -1079,7 +1093,7 @@ namespace OpenMS
         }
 
         writeUserParam_(os, spec, ms_level + 2);
-        if (spec.getComment() != "")
+        if (!spec.getComment().empty())
         {
           os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
         }
@@ -1295,5 +1309,5 @@ namespace OpenMS
       String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
       cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
     }
-  }
-}
+} //namespace OpenMS //namespace Internal
+

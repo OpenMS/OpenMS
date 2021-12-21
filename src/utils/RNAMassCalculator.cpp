@@ -305,13 +305,13 @@ protected:
       sv_out << "sequence" << "charge" << "mass" << "mass-to-charge" << "formula" << endl;
     }
 
-    if ((in.size() > 0) && (in_seq.size() > 0))
+    if ((!in.empty()) && (!in_seq.empty()))
     {
       OPENMS_LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
-    if (in.size() > 0)
+    if (!in.empty())
     {
       readFile_(in, charges);
     }

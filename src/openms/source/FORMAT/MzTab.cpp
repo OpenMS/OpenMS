@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/MzTab.h>
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
@@ -41,7 +43,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -1679,16 +1680,22 @@ namespace OpenMS
     addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
 
     const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-    if (pep_ids.empty()) { return row; }
+    if (pep_ids.empty())
+    {
+      return row;
+    }
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
-    for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    for (const PeptideIdentification& it : pep_ids)
     {
-      all_hits.insert(all_hits.end(), it->getHits().begin(), it->getHits().end());
+      all_hits.insert(all_hits.end(), it.getHits().begin(), it.getHits().end());
     }
 
-    if (all_hits.empty()) { return row; }
+    if (all_hits.empty())
+    { 
+      return row;
+    }
 
     // create new peptide id object to assist in sorting
     PeptideIdentification new_pep_id = pep_ids[0];
@@ -2044,7 +2051,10 @@ namespace OpenMS
     const vector<PeptideHit>& phs = pid.getHits();
 
     // add the row and continue to next PepID, if the current one was an empty one
-    if (phs.empty()) { return row; }
+    if (phs.empty())
+    { 
+      return row;
+    }
 
     /////// Information that does require a peptide hit ///////
     PeptideHit current_ph;
@@ -2608,7 +2618,10 @@ Not sure how to handle these:
             return ph.getAccession() == a;
           }
         );
-        if (it == proteins.end()) { continue; }
+        if (it == proteins.end())
+        { 
+          continue;
+        }
         Size protein_index = std::distance(proteins.begin(), it);
         group2prot[idx].insert(protein_index);
       }

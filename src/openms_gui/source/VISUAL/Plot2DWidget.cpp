@@ -69,7 +69,7 @@ namespace OpenMS
     grid_->setRowStretch(1, 3);
 
     PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     MSSpectrum dummy_spec;
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);
@@ -187,7 +187,7 @@ namespace OpenMS
     }
     Histogram<> tmp(min, max, (max - min) / 500.0);
 
-    if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
+    if (canvas_->getCurrentLayer().type == LayerDataBase::DT_PEAK)
     {
       for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
       {
@@ -201,7 +201,7 @@ namespace OpenMS
         }
       }
     }
-    else if (canvas_->getCurrentLayer().type == LayerData::DT_FEATURE)
+    else if (canvas_->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
     {
       for (Plot2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
       {
@@ -223,74 +223,87 @@ namespace OpenMS
   {
     Histogram<> tmp;
 
-    if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
+    if (canvas_->getCurrentLayer().type == LayerDataBase::DT_PEAK)
     {
       //determine min and max of the data
       float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
-          if (it->getName() == name)
+          continue;
+        }
+        //float arrays
+        for (const OpenMS::DataArrays::FloatDataArray& fdat : s_it->getFloatDataArrays())
+        {
+          if (fdat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < fdat.size(); ++i)
             {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
+              if (fdat[i] < min)
+              {
+                min = fdat[i];
+              }
+              if (fdat[i] > max)
+              {
+                max = fdat[i];
+              }
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& dat : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
+              if (dat[i] < min)
+              {
+                min = dat[i];
+              }
+              if (dat[i] > max)
+              {
+                max = dat[i];
+              }
             }
             break;
           }
         }
       }
       if (min >= max)
+      {
         return tmp;
-
+      }
       //create histogram
       tmp.reset(min, max, (max - min) / 500.0);
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
-          if (it->getName() == name)
+          continue;
+        }
+        //float arrays
+        for (const OpenMS::DataArrays::FloatDataArray& dat : s_it->getFloatDataArrays())
+        {
+          if (dat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < dat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc(dat[i]);
             }
             break;
           }
         }
         //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
+        for (const OpenMS::DataArrays::IntegerDataArray& idat : s_it->getIntegerDataArrays())
         {
-          if (it->getName() == name)
+          if (idat.getName() == name)
           {
-            for (Size i = 0; i < it->size(); ++i)
+            for (Size i = 0; i < idat.size(); ++i)
             {
-              tmp.inc((*it)[i]);
+              tmp.inc(idat[i]);
             }
             break;
           }
@@ -307,9 +320,13 @@ namespace OpenMS
         {
           float value = it->getMetaValue(name);
           if (value < min)
+          {
             min = value;
+          }
           if (value > max)
+          {
             max = value;
+          }
         }
       }
       //create histogram
@@ -353,7 +370,7 @@ namespace OpenMS
   //  projection above the 2D area
   void Plot2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
 
     // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
     projection_horz_->canvas()->mzToXAxis(true);
@@ -390,7 +407,7 @@ namespace OpenMS
   // projection on the right side of the 2D area
   void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
     projection_vert_->canvas()->mzToXAxis(false);
     projection_vert_->canvas()->setSwappedAxis(true);
@@ -441,7 +458,7 @@ namespace OpenMS
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
     goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     // feature numbers only for consensus&feature maps
-    goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerData::DT_FEATURE || canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS);
+    goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
     //execute
     if (goto_dialog.exec())
     {
@@ -449,7 +466,10 @@ namespace OpenMS
       {
         goto_dialog.fixRange();
         PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
+        if (goto_dialog.checked())
+        {
+          correctAreaToObeyMinMaxRanges_(area);
+        }
         canvas()->setVisibleArea(area);
       }
       else
@@ -460,10 +480,14 @@ namespace OpenMS
         uid.setUniqueId(feature_id);
 
         Size feature_index(-1); // TODO : not use -1
-        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        {
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
-        else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        }
+        else if (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
+        {
           feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         if (feature_index == Size(-1)) // UID does not exist
         {
           try
@@ -477,14 +501,14 @@ namespace OpenMS
         }
 
         //check if the feature index exists
-        if ((canvas()->getCurrentLayer().type == LayerData::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
-           || (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
+        if ((canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
+           || (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
           return;
         }
         //display feature with a margin
-        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
         {
           const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();

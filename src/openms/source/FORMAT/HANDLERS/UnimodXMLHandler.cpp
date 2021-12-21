@@ -38,10 +38,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const String& filename) :
       XMLHandler(filename, "2.0"),
@@ -124,7 +123,10 @@ namespace OpenMS
 
         was_valid_peptide_modification_ = true;
         term_specs_.push_back(position);
-        if (site.size() > 1) site = "X"; // C-term/N-term
+        if (site.size() > 1)
+        {
+          site = "X"; // C-term/N-term
+        }
         sites_.push_back(site[0]);
         return;
       }
@@ -165,7 +167,7 @@ namespace OpenMS
         }
 
         String formula;
-        if (isotope != "")
+        if (!isotope.empty())
         {
           formula = '(' + isotope + ')' + tmp_symbol + String(num);
         }
@@ -237,5 +239,4 @@ namespace OpenMS
       // nothing to do here
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS    // namespace Internal

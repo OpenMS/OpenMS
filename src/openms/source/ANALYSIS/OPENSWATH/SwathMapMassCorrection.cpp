@@ -34,13 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
-// Classes
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
-
-// Functions
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
@@ -116,9 +114,9 @@ namespace OpenMS
 
   void SwathMapMassCorrection::correctIM(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
-    TransformationDescription& im_trafo,
-    const OpenSwath::LightTargetedExperiment& targeted_exp)
+    TransformationDescription& im_trafo)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
@@ -148,6 +146,7 @@ namespace OpenMS
 
     std::vector<String> trgr_ids;
     std::map<std::string, double> pep_im_map;
+    trgr_ids.reserve(transition_group_map.size());
     for (const auto& trgroup_it : transition_group_map)
     {
       trgr_ids.push_back(trgroup_it.first);
@@ -161,7 +160,7 @@ namespace OpenMS
     std::vector<double> exp_im;
     std::vector<double> theo_im;
 #ifdef _OPENMP
-#pragma omp parallel for 
+#pragma omp parallel for
 #endif
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
     {
@@ -187,8 +186,8 @@ namespace OpenMS
       // calibrating transitions (fragment m/z values) from the spectrum
       // Note that we are not using light clones of the underlying data here,
       // so access to the data needs to be in a critical section.
-      OpenSwath::SpectrumPtr sp;
       OpenSwath::SpectrumPtr sp_ms1;
+      OpenSwath::SpectrumPtr sp_ms2;
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -199,7 +198,7 @@ namespace OpenMS
         }
         else
         {
-          sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
         }
       }
 
@@ -216,7 +215,7 @@ namespace OpenMS
         DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
 
         // Check that the spectrum really has a drift time array
-        if (sp->getDriftTimeArray() == nullptr)
+        if (sp_ms2->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
           for (const auto& m : used_maps)
@@ -227,7 +226,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateDriftSpectrum(sp_ms2, left, right, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -276,7 +275,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateDriftSpectrum(sp_ms1, left, right, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -327,8 +326,8 @@ namespace OpenMS
 
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
-    std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenSwath::LightTargetedExperiment& targeted_exp)
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;

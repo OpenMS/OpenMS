@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -55,12 +57,9 @@
 
 #include <QFileInfo>
 
-namespace OpenMS
+namespace OpenMS::Internal::ClassTest
 {
-  namespace Internal
-  {
-    namespace ClassTest
-    {
+
       bool all_tests = true;
       bool equal_files;
       bool newline = false;
@@ -91,10 +90,6 @@ namespace OpenMS
       std::vector<std::string> tmp_file_list;
       std::vector<UInt> failed_lines_list;
       StringList whitelist;
-    }
-
-    namespace ClassTest
-    {
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
@@ -443,8 +438,7 @@ namespace OpenMS
         }
       }
 
-      bool
-      isRealSimilar(long double number_1, long double number_2)
+      bool isRealSimilar(long double number_1, long double number_2)
       {
         // Note: The original version of the stuff below was copied from
         // FuzzyStringComparator and then heavily modified for ClassTest.
@@ -571,8 +565,7 @@ namespace OpenMS
         }
       }
 
-      void
-      testStringEqual(const char* /*file*/, int line,
+      void testStringEqual(const char* /*file*/, int line,
                       const std::string& string_1,
                       const char* string_1_stringified,
                       const std::string& string_2,
@@ -684,7 +677,4 @@ namespace OpenMS
 
         return result;
       }
-
-    }
-  }
 }

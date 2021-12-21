@@ -37,10 +37,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     PTMXMLHandler::PTMXMLHandler(map<String, pair<String, String> > & ptm_informations, const String & filename) :
       XMLHandler(filename, ""),
       ptm_informations_(ptm_informations)
@@ -96,6 +95,4 @@ namespace OpenMS
         }
       }
     }
-
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

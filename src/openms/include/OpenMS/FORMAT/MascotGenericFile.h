@@ -224,7 +224,7 @@ protected:
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Reached end of file. Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
               }
             }
             else if (line.hasPrefix("PEPMASS")) // parse precursor position
@@ -289,7 +289,7 @@ protected:
                   std::vector<String> split;
                   if (line.split('=', split))
                   {
-                    if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                    if (!split[1].empty()) spectrum.setMetaValue("TITLE", split[1]);
                   }
                 }
               }

@@ -261,7 +261,10 @@ namespace OpenMS
       }
       else if (line.hasPrefix("Num peaks:") || line.hasPrefix("NumPeaks:"))
       {
-        if (line.hasPrefix("NumPeaks:")) {spectrast_format = true;}
+        if (line.hasPrefix("NumPeaks:"))
+        {
+          spectrast_format = true;
+        }
 
         if (!inst_type_correct)
         {
@@ -283,7 +286,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             Peak1D peak;
             float mz = String(iter->str()).toFloat();
@@ -292,7 +295,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             float ity = String(iter->str()).toFloat();
             peak.setIntensity(ity);
@@ -380,22 +383,22 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+    for (const MSSpectrum& it : exp)
     {
-      if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
       {
-        PeptideHit hit = *it->getPeptideIdentifications().begin()->getHits().begin();
+        PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
         String peptide;
-        for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
+        for (const Residue& pit : hit.getSequence())
         {
-          if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+          if (pit.isModified() && pit.getOneLetterCode() == "M" &&
+              fabs(pit.getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
             peptide += "M(O)"; // TODO why are we writing specifically only oxidations?
           }
           else
           {
-            peptide += pit->getOneLetterCode();
+            peptide += pit.getOneLetterCode();
           }
         }
         out << "Name: " << peptide << "/" << hit.getCharge() << "\n";
@@ -441,24 +444,24 @@ namespace OpenMS
           out << " Mods=0";
         }
         out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
-        out << "Num peaks: " << it->size() << "\n";
+        out << "Num peaks: " << it.size() << "\n";
 
         // normalize to 10,000
-        PeakSpectrum rich_spec = *it;
+        PeakSpectrum rich_spec = it;
         double max_int(0);
-        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        for (const Peak1D& sit : rich_spec)
         {
-          if (sit->getIntensity() > max_int)
+          if (sit.getIntensity() > max_int)
           {
-            max_int = sit->getIntensity();
+            max_int = sit.getIntensity();
           }
         }
 
         if (max_int != 0)
         {
-          for (PeakSpectrum::Iterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+          for (Peak1D& sit : rich_spec)
           {
-            sit->setIntensity(sit->getIntensity() / max_int * 10000.0);
+            sit.setIntensity(sit.getIntensity() / max_int * 10000.0);
           }
         }
         else
@@ -477,9 +480,9 @@ namespace OpenMS
         }
 
         Size k = 0;
-        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        for (const Peak1D& sit : rich_spec)
         {
-          out << sit->getPosition()[0] << "\t" << sit->getIntensity() << "\t";
+          out << sit.getPosition()[0] << "\t" << sit.getIntensity() << "\t";
           if (ion_name >= 0)
           {
             out << "\"" << rich_spec.getStringDataArrays()[ion_name][k] << "\"";

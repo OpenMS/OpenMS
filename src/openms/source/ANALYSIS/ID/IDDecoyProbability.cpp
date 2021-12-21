@@ -78,7 +78,7 @@ namespace OpenMS
     for (PeptideIdentification& pep : ids)
     {
       String score_type = pep.getScoreType();
-      if (pep.getHits().size() > 0)
+      if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits = pep.getHits();
         for (PeptideHit& pit : hits)
@@ -131,7 +131,7 @@ namespace OpenMS
     for (PeptideIdentification& pep : fwd_ids)
     {
       String score_type = pep.getScoreType();
-      if (pep.getHits().size() > 0)
+      if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits = pep.getHits();
         for (PeptideHit& pit : hits)
@@ -161,7 +161,7 @@ namespace OpenMS
     // get the reverse scores
     for (const PeptideIdentification& pep : rev_ids)
     {
-      if (pep.getHits().size() > 0)
+      if (!pep.getHits().empty())
       {
         for (const PeptideHit& pit : pep.getHits())
         {
@@ -376,7 +376,7 @@ namespace OpenMS
     // calculate the probabilities and write them to the IDs
     for (const PeptideIdentification& pep : ids)
     {
-      if (pep.getHits().size() > 0)
+      if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits;
         String score_type = pep.getScoreType() + "_score";

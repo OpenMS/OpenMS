@@ -64,7 +64,7 @@ public:
     FIAMSDataProcessor();
 
     /// Default destructor
-    ~FIAMSDataProcessor() = default;
+    ~FIAMSDataProcessor() override = default;
 
     /// Copy constructor
     FIAMSDataProcessor(const FIAMSDataProcessor& cp) = default;

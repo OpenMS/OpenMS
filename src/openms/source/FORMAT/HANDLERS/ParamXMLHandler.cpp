@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
       XMLHandler(filename, version),
@@ -144,11 +143,11 @@ namespace OpenMS
                 val.split('-', parts); //for downward compatibility
               if (parts.size() == 2)
               {
-                if (parts[0] != "")
+                if (!parts[0].empty())
                 {
                   param_.setMinInt(name, parts[0].toInt());
                 }
-                if (parts[1] != "")
+                if (!parts[1].empty())
                 {
                   param_.setMaxInt(name, parts[1].toInt());
                 }
@@ -167,14 +166,16 @@ namespace OpenMS
             {
               val.split(':', parts);
               if (parts.size() != 2)
+              {
                 val.split('-', parts); //for downward compatibility
+              }
               if (parts.size() == 2)
               {
-                if (parts[0] != "")
+                if (!parts[0].empty())
                 {
                   param_.setMinFloat(name, parts[0].toDouble());
                 }
-                if (parts[1] != "")
+                if (!parts[1].empty())
                 {
                   param_.setMaxFloat(name, parts[1].toDouble());
                 }
@@ -212,7 +213,7 @@ namespace OpenMS
         //parse description
         String description;
         optionalAttributeAsString_(description, attributes, "description");
-        if (description != "")
+        if (!description.empty())
         {
           description.substitute("#br#", "\n");
         }
@@ -303,8 +304,10 @@ namespace OpenMS
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "") file_version = "1.0";
-
+        if (file_version.empty())
+        {
+          file_version = "1.0";
+        }
         VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
         VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
 
@@ -348,14 +351,16 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinInt(list_.name, parts[0].toInt());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxInt(list_.name, parts[1].toInt());
               }
@@ -373,14 +378,16 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinFloat(list_.name, parts[0].toDouble());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxFloat(list_.name, parts[1].toDouble());
               }
@@ -401,5 +408,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

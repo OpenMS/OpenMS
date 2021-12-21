@@ -41,8 +41,10 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -186,23 +188,23 @@ private:
     double last_mz = peaks.at(0).getMZ();
     double sum_mz = 0, sum_intensity = 0;
     int count = 0;
-    for (auto spec_iter = peaks.begin(); spec_iter != peaks.end(); ++spec_iter)
+    for (auto& spec : peaks)
     {
-      if (count > 0 && spec_iter->getMZ() - last_mz > bin_width)
+      if (count > 0 && spec.getMZ() - last_mz > bin_width)
       {
         if (sum_intensity > 0)
         {
           Peak1D curr(sum_mz/count, sum_intensity/count);
           binned_peaks.push_back(curr);
         }
-        last_mz = spec_iter->getMZ();
+        last_mz = spec.getMZ();
         sum_mz = 0;
         sum_intensity = 0;
         count = 0;
       }
 
-      sum_mz += spec_iter->getMZ();
-      sum_intensity += spec_iter->getIntensity();
+      sum_mz += spec.getMZ();
+      sum_intensity += spec.getIntensity();
       count += 1;
     }
     if (count > 0)
@@ -229,9 +231,9 @@ private:
     for (unsigned long i = 0; i < exp.getSpectra().size(); ++i)
     {
       MSExperiment::SpectrumType &spec = exp.getSpectrum(i);
-      for (auto spec_iter = spec.begin(); spec_iter != spec.end(); ++spec_iter)
+      for (auto& spec : spec)
       {
-        Peak1D curr(spec_iter->getMZ(), spec_iter->getIntensity());
+        Peak1D curr(spec.getMZ(), spec.getIntensity());
         flat_spectra.push_back(curr);
       }
     }
@@ -296,9 +298,9 @@ private:
     if (output_file.is_open())
     {
       output_file << setprecision(4) << fixed;
-      for (auto peak_iter = peaks.begin(); peak_iter != peaks.end(); ++peak_iter)
+      for (auto& peak : peaks)
       {
-        output_file << peak_iter->getMZ() << "\t" << peak_iter->getIntensity() << "\n";
+        output_file << peak.getMZ() << "\t" << peak.getIntensity() << "\n";
       }
 
       output_file << "END IONS" << "\n" << endl;
@@ -414,7 +416,6 @@ protected:
     ProgressLogger progress_logger;
     progress_logger.setLogType(log_type_);
 
-
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -423,18 +424,13 @@ protected:
     ConsensusMap consensus_map;
     consensus_file.load(consensus_file_path, consensus_map);
 
-
     //-------------------------------------------------------------
-    // preprocessing: allocate memory
+    // open on-disc data (=spectra are only loaded on demand to safe memory)
     //-------------------------------------------------------------
-    // max_msmap_cache = std::min(max_msmap_cache, static_cast<int>(mzml_file_paths.size()));
-    int max_msmap_cache = static_cast<int>(mzml_file_paths.size());
-    MzMLFile *mzml_files = new MzMLFile[max_msmap_cache];
-    MSExperiment *specs_list = new MSExperiment[max_msmap_cache];
+    vector<OnDiscMSExperiment> specs_list(mzml_file_paths.size(), OnDiscMSExperiment());
 
-    map<int,int> msmaps_cached; // <K, V> = <map_index, mzml_files index>
+    map<size_t, size_t> map_index2file_index; // <K, V> = <map_index, file_index>
     Size num_msmaps_cached = 0;
-
 
     //-------------------------------------------------------------
     // write output (+ merge computations)
@@ -444,16 +440,15 @@ protected:
     {
       progress_logger.setProgress(cons_i);
 
-      const ConsensusFeature &feature = consensus_map[cons_i];
+      const ConsensusFeature& feature = consensus_map[cons_i];
 
-      // determine feature's charge
-      BaseFeature::ChargeType charge = feature.getCharge();
-      for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();\
-            feature_iter != feature.end(); ++feature_iter)
-      {
-        if (feature_iter->getCharge() > charge)
+      // determine feature's charge as maximum feature handle charge
+      int charge = feature.getCharge();
+      for (auto& fh : feature)
+      { 
+        if (fh.getCharge() > charge)
         {
-          charge = feature_iter->getCharge();
+          charge = fh.getCharge();
         }
       }
 
@@ -470,29 +465,23 @@ protected:
       }
 
       // validate all peptide annotation maps have been loaded
-      for (vector<pair<int,int>>::iterator pepts_iter=pepts.begin(); pepts_iter!=pepts.end(); pepts_iter++)
+      for (const auto& pep : pepts)
       {
-        int map_index = pepts_iter->first;
+        int map_index = pep.first;
 
-        // load missing MzMLFile files + MSExperiment specs
-        if (msmaps_cached.find(map_index) == msmaps_cached.end())
+        // open on-disc experiments
+        if (map_index2file_index.find(map_index) == map_index2file_index.end())
         {
-          MzMLFile mzmlfile;
-          mzml_files[num_msmaps_cached] = mzmlfile;
-
-          MSExperiment exp;
-          specs_list[num_msmaps_cached] = exp;
-          mzml_files[num_msmaps_cached].load(mzml_file_paths[map_index], specs_list[num_msmaps_cached]);
-
-          msmaps_cached[map_index] = num_msmaps_cached;
-          num_msmaps_cached += 1;
+          specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index], false); // open on-disc experiment and load meta-data
+          map_index2file_index[map_index] = num_msmaps_cached;
+          ++num_msmaps_cached;
         }
       }
 
       // identify most intense spectrum
-      const int best_mapi = (pepts[0]).first;
-      const int best_speci = (pepts[0]).second;
-      auto best_spec = specs_list[msmaps_cached[best_mapi]][best_speci];
+      const int best_mapi = pepts[0].first;
+      const int best_speci = pepts[0].second;
+      auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
 
       // write block output header
       writeMSMSBlockHeader_(
@@ -522,7 +511,7 @@ protected:
         {
           int map_index = pept.first;
           int spec_index = pept.second;
-          auto test_spec = specs_list[msmaps_cached[map_index]][spec_index];
+          auto test_spec = specs_list[map_index2file_index[map_index]][spec_index];
 
           BinnedSpectrum binned_spectrum(test_spec, bin_width, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
@@ -552,9 +541,6 @@ protected:
     }
 
     output_file.close();
-
-    delete [] mzml_files;
-    delete [] specs_list;
 
     return EXECUTION_OK;
   }

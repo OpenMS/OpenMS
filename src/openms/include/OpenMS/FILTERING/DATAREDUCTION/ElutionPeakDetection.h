@@ -142,7 +142,7 @@ public:
      *
     */
     void findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
-                          std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins);
+                          std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const;
 
     /// adds smoothed_intensities to internal data of @p mt
     void smoothData(MassTrace& mt, int win_size) const;

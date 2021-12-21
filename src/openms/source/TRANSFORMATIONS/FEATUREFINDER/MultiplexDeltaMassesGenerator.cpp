@@ -41,6 +41,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 
 using namespace std;
 
@@ -66,10 +67,10 @@ namespace OpenMS
     fillLabelMasterList_();
 
     // set user parameters
-    for (std::vector<MultiplexDeltaMassesGenerator::Label>::const_iterator it = label_master_list_.begin(); it != label_master_list_.end(); ++it)
+    for (const MultiplexDeltaMassesGenerator::Label& multi : label_master_list_)
     {
-      defaults_.setValue(it->short_name, it->delta_mass, it->description);
-      defaults_.setMinFloat(it->short_name, 0);
+      defaults_.setValue(multi.short_name, multi.delta_mass, multi.description);
+      defaults_.setMinFloat(multi.short_name, 0);
     }
     defaultsToParam_();
   }
@@ -86,10 +87,10 @@ namespace OpenMS
     fillLabelMasterList_();
 
     // generate short/long label mappings
-    for (std::vector<MultiplexDeltaMassesGenerator::Label>::const_iterator it = label_master_list_.begin(); it != label_master_list_.end(); ++it)
+    for (const MultiplexDeltaMassesGenerator::Label& multi : label_master_list_)
     {
-      label_short_long_.insert(make_pair(it->short_name, it->long_name));
-      label_long_short_.insert(make_pair(it->long_name, it->short_name));
+      label_short_long_.insert(make_pair(multi.short_name, multi.long_name));
+      label_long_short_.insert(make_pair(multi.long_name, multi.short_name));
     }
 
     // split the labels_ string

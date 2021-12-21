@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -484,7 +485,7 @@ namespace OpenMS
       updated_formula = true;
       setFormula(getFormula() + mod->getDiffFormula());
     }
-    else if (mod->getFormula() != "")
+    else if (!mod->getFormula().empty())
     {
       updated_formula = true;
       String formula = mod->getFormula();
@@ -517,6 +518,42 @@ namespace OpenMS
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+    setModification(mod);
+  }
+
+  void Residue::setModification(const ResidueModification& mod)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    //TODO think again. Most functions here or in ModificationsDB only check for fullID
+    const ResidueModification* modindb = mod_db->searchModification(mod);
+    if (modindb == nullptr)
+    {
+      modindb = mod_db->addNewModification_(mod);
+    }
+    setModification(modindb);
+  }
+
+  void Residue::setModificationByDiffMonoMass(double diffMonoMass)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    bool multimatch = false;
+    // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
+    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    const ResidueModification* mod = mod_db->searchModificationsFast(one_letter_code_ + diffMonoMassStr, multimatch);
+    const double tol = 0.002;
+    if (mod == nullptr)
+    {
+      mod = mod_db->getBestModificationByDiffMonoMass(diffMonoMass, tol, one_letter_code_, ResidueModification::ANYWHERE);
+    }
+    if (mod == nullptr)
+    {
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+                                                                        diffMonoMass,
+                                                                        true,
+                                                                        ResidueModification::ANYWHERE,
+                                                                        this);
+    }
     setModification(mod);
   }
 

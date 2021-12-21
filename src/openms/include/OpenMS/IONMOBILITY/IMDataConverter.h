@@ -109,7 +109,7 @@ namespace OpenMS
         @param exp The input experiment with multiple spectra per frame
         @param result The output spectra collapsed to a single spectrum per frame
 
-        @note: this requires that spectra from the same frame have the same RT ("scan start time")
+        @note This requires that spectra from the same frame have the same RT ("scan start time")
 
         @throws Exception::InvalidValue if any spectrum has both a single drift time AND a IM-float data array (see IMTypes::determineIMFormat)
       */
@@ -119,11 +119,15 @@ namespace OpenMS
         @brief Convert from a Unit to a CV term and annotate is as the FDA's name. This is not very accurate (since we cannot decide if its 'raw' or 'binned' IM data),
                but it allows to reconstruct the unit from the IM float-data array which is annotated with this term.
   
-        We use the following mapping:
-          for milliseconds: id: MS:1002816 ! mean ion mobility array
-          for VSSC data:    id: MS:1003008 ! raw inverse reduced ion mobility array
+        <table>
+        <caption>This is the mapping</caption>
+        <tr><th>Unit                           <th>CV term
+        <tr><td>DriftTimeUnit::MILLISECOND     <td>MS:1002816 ! mean ion mobility array
+        <tr><td>DriftTimeUnit::VSSC            <td>MS:1003008 ! raw inverse reduced ion mobility array
+        </table>
     
-        For anything else (e.g. FAIMS-Compensation voltage) we throw.
+        For any other unit  (e.g. FAIMS-Compensation voltage) we throw, since the PSI CV does not 
+        (and should not?) have CV terms for other IM units in ion mobility arrays.
 
         @param[out] fda The FDA to be annotated as an IM array
         @param[in] unit The unit of the IM measurement
@@ -133,14 +137,23 @@ namespace OpenMS
       static void setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit);
 
       /**
-        @brief Checks if the @p fda is an ion-mobility array and if so, returns the unit (either milliseconds or VSSC)
+        @brief Checks if the @p fda is an ion-mobility array and if so, returns the unit (either MILLISECOND or VSSC, or NONE)
         
         The name of the @p fda should correspond to a value set by setIMUnit(), but all CV names of child terms of 
         'MS:1002893 ! ion mobility array' are accepted.
+        
+        <table>
+        <caption>This is the current mapping (all of which return true)</caption>
+        <tr><th>CV term                                             <th>Unit
+        <tr><td>MS:1002816 ! mean ion mobility array                <td>DriftTimeUnit::MILLISECOND
+        <tr><td>MS:1003008 ! raw inverse reduced ion mobility array <td>DriftTimeUnit::VSSC
+        <tr><td>MS:1002893 ! ion mobility array **                  <td>DriftTimeUnit::NONE
+        </table>
+        @p **) or a child term, which is not one of the terms used above.
 
         @param[in] fda Input array, which is tested for its name
-        @param[out] unit if @p fda is an IM array, the @p unit will contain the IM unit (undefined otherwise)
-        @return true if @p fda is a IM array, false otherwise
+        @param[out] unit If @p fda is an IM array, the @p unit will contain the IM unit (undefined otherwise)
+        @return True if @p fda is an IM array, false otherwise
       */
       static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit);
     };

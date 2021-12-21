@@ -14,12 +14,12 @@ from MSExperiment cimport *
 
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #   MetaInfoInterface
         #
         # wrap-instances:
@@ -47,10 +47,10 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         void sortByIntensity() nogil except + # wrap-doc:Sorts the peaks according to ascending intensity
         void sortByIntensity(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending intensity. Order is reversed if argument is `true` ( reverse = true )
-        void sortByPosition() nogil except + # wrap-doc:Sort features by position. Lexicographical comparison (first RT then m/z) is done
-        void sortByRT() nogil except + # wrap-doc:Sort features by RT position
-        void sortByMZ() nogil except + # wrap-doc:Sort features by m/z position
-        void sortByOverallQuality() nogil except + # wrap-doc:Sort features by ascending overall quality. Order is reversed if argument is `true` ( reverse = true )
+        void sortByPosition() nogil except + # wrap-doc:Sorts features by position. Lexicographical comparison (first RT then m/z) is done
+        void sortByRT() nogil except + # wrap-doc:Sorts features by RT position
+        void sortByMZ() nogil except + # wrap-doc:Sorts features by m/z position
+        void sortByOverallQuality() nogil except + # wrap-doc:Sorts features by ascending overall quality. Order is reversed if argument is `true` ( reverse = true )
 
         void swap(FeatureMap &) nogil except + 
         void swapFeaturesOnly(FeatureMap swapfrom) nogil except + # wrap-doc:Swaps the feature content (plus its range information) of this map 
@@ -73,9 +73,9 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:Sets the description of the applied data processing
 
-        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except + # wrap-doc:Set the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
-        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Get the file path to the first MS run
+        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except + # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
+        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the file path to the first MS run
 
         libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)
         libcpp_vector[Feature].iterator end()   nogil except +    # wrap-iter-end:__iter__(Feature)

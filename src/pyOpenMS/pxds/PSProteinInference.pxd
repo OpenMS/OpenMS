@@ -9,6 +9,8 @@ from LPWrapper cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "OpenMS":
     
     cdef cppclass PSProteinInference "OpenMS::PSProteinInference":
+        # wrap-doc:
+        # This class implements protein inference for the precursor ion selection strategies
         PSProteinInference() nogil except +
         PSProteinInference(PSProteinInference &) nogil except + # compiler
         Size findMinimalProteinList(libcpp_vector[ PeptideIdentification ] & peptide_ids) nogil except +

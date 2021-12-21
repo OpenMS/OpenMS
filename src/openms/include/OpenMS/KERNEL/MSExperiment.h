@@ -36,7 +36,6 @@
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -75,7 +74,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI MSExperiment :
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public ExperimentalSettings
   {
 
@@ -89,14 +88,14 @@ public:
     typedef PeakT PeakType;
     /// Chromatogram peak type
     typedef ChromatogramPeakT ChromatogramPeakType;
-    /// Area type
-    typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    /// RangeManager type
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -348,6 +347,43 @@ public:
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<std::vector<float>>& mz, 
+      std::vector<std::vector<float>>& intensity) const
+    {
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t) 
+        {
+          t = it.getRT();
+          rt.emplace_back(t);
+          mz.resize(mz.size() + 1); 
+          rt.resize(rt.size() + 1);
+          intensity.resize(intensity.size() + 1);
+        }
+        mz.back().emplace_back(it->getMZ());
+        intensity.back().emplace_back(it->getIntensity());
+      }
+    }
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<float>& mz, 
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.emplace_back(it.getRT());
+        mz.emplace_back(it->getMZ());
+        intensity.emplace_back(it->getIntensity());
+      }
+    }
+
+
     /**
       @brief Fast search for spectrum range begin
 
@@ -410,13 +446,6 @@ public:
     /// returns the maximal retention time value
     CoordinateType getMaxRT() const;
 
-    /**
-      @brief Returns RT and m/z range the data lies in.
-
-      RT is dimension 0, m/z is dimension 1
-    */
-    const AreaType& getDataRange() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
@@ -457,7 +486,7 @@ public:
 
     //@}
 
-    /// Resets all internal values
+    /// Clear all internal data (spectra, ranges, metadata)
     void reset();
 
     /**
@@ -482,6 +511,13 @@ public:
       If there is no precursor scan the past-the-end iterator is returned.
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
+
+    /**
+      @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned.
+    */
+    int getPrecursorSpectrum(int zero_based_index) const;
 
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);

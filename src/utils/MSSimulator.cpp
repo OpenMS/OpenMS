@@ -249,13 +249,13 @@ protected:
     //-------------------------------------------------------------
 
     // check if at least one output file is
-    if (getStringOption_("out") == "" &&
-        getStringOption_("out_pm") == "" &&
-        getStringOption_("out_fm") == "" &&
-        getStringOption_("out_cm") == "" &&
-        getStringOption_("out_lcm") == "" &&
-        getStringOption_("out_cntm") == "" &&
-        getStringOption_("out_id") == "")
+    if (getStringOption_("out").empty() &&
+        getStringOption_("out_pm").empty() &&
+        getStringOption_("out_fm").empty() &&
+        getStringOption_("out_cm").empty() &&
+        getStringOption_("out_lcm").empty() &&
+        getStringOption_("out_cntm").empty() &&
+        getStringOption_("out_id").empty())
     {
       OPENMS_LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
       return MISSING_PARAMETERS;
@@ -292,28 +292,28 @@ protected:
     writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));
 
     String outputfile_name = getStringOption_("out");
-    if (outputfile_name != "")
+    if (!outputfile_name.empty())
     {
       writeLog_(String("Storing simulated raw data in: ") + outputfile_name);
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
     }
 
     String pxml_out = getStringOption_("out_pm");
-    if (pxml_out != "")
+    if (!pxml_out.empty())
     {
       writeLog_(String("Storing simulated peak/centroided data in: ") + pxml_out);
       MzMLFile().store(pxml_out, ms_simulation.getPeakMap());
     }
 
     String fxml_out = getStringOption_("out_fm");
-    if (fxml_out != "")
+    if (!fxml_out.empty())
     {
       writeLog_(String("Storing simulated features in: ") + fxml_out);
       FeatureXMLFile().store(fxml_out, ms_simulation.getSimulatedFeatures());
     }
 
     String cxml_out = getStringOption_("out_cm");
-    if (cxml_out != "")
+    if (!cxml_out.empty())
     {
       writeLog_(String("Storing charged consensus features in: ") + cxml_out);
 
@@ -326,7 +326,7 @@ protected:
     }
 
     String lcxml_out = getStringOption_("out_lcm");
-    if (lcxml_out != "")
+    if (!lcxml_out.empty())
     {
       writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
 
@@ -343,19 +343,25 @@ protected:
     }
 
     String cntxml_out = getStringOption_("out_cntm");
-    if (cntxml_out != "")
+    if (!cntxml_out.empty())
     {
       writeLog_(String("Storing simulated contaminant features in: ") + cntxml_out);
       FeatureXMLFile().store(cntxml_out, ms_simulation.getContaminants());
     }
 
     String id_out = getStringOption_("out_id");
-    if (id_out != "")
+    if (!id_out.empty())
     {
       writeLog_(String("Storing ground-truth peptide IDs in: ") + id_out);
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       ms_simulation.getIdentifications(proteins, peptides);
+      String origin = !outputfile_name.empty() ? outputfile_name : pxml_out;
+      if (origin.empty())
+      {
+        origin = "SIMULATED";
+      }
+      proteins[0].setPrimaryMSRunPath({origin});
       IdXMLFile().store(id_out, proteins, peptides);
     }
 

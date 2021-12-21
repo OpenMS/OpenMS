@@ -170,7 +170,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -178,7 +178,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -224,7 +224,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -235,7 +235,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }
@@ -365,7 +365,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -373,7 +373,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -429,7 +429,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -440,7 +440,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }
@@ -864,7 +864,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -872,7 +872,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -965,7 +965,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -976,7 +976,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }

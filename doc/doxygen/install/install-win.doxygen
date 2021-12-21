@@ -325,7 +325,7 @@
       cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
       \endcode
       
-      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]\bin\Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]/bin/Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
       \code
       cd <build-tree>
       build.bat - r

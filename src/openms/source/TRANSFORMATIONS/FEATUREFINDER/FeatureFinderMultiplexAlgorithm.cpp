@@ -236,7 +236,7 @@ namespace OpenMS
     return list;
   }
 
-  void FeatureFinderMultiplexAlgorithm::correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide)
+  void FeatureFinderMultiplexAlgorithm::correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const
   {
     // determine ratios through linear regression
     // (In most labelled mass spectrometry experiments, the fold change i.e. ratio and not the individual peptide intensities
@@ -677,8 +677,10 @@ namespace OpenMS
             }
           }
 
-          if (intensity_sum <= 0) continue;
-
+          if (intensity_sum <= 0)
+          {
+            continue;
+          }
           rt /= intensity_sum;
           mz /= intensity_sum;
 
@@ -724,9 +726,9 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (Feature& feat : features)
           {
-            feature_map_.push_back(*it);
+            feature_map_.push_back(feat);
           }
         }
 
@@ -883,9 +885,9 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (Feature& feat : features)
           {
-            feature_map_.push_back(*it);
+            feature_map_.push_back(feat);
           }
         }
 

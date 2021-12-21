@@ -45,12 +45,14 @@
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
 #include <cmath>
-#include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+// TODO: move this to cpp and use STL once it is available in clang
+#include <boost/math/special_functions/bessel.hpp>
 
 // This code has quite a few strange things in it triggering warnings which
 // clutters the rest of the diagnostics
@@ -288,7 +290,7 @@ protected:
 
     /** @brief Computes a linear (intensity) interpolation.
         * @param mz_a The m/z value of the point left to the query.
-        * @param mz_a The intensity value of the point left to the query.
+        * @param intens_a The intensity value of the point left to the query.
         * @param mz_pos The query point.
         * @param mz_b The m/z value of the point right to the query.
         * @param intens_b The intensity value of the point left to the query. */

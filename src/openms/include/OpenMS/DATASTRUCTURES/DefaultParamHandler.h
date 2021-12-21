@@ -143,7 +143,7 @@ public:
     * @param key_prefix  Will be added in front of the parameter name for the meta value key.
     *                    If the prefix isn't empty and doesn't end with a colon one will be added.
     */
-    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");
 
 protected:
     /**

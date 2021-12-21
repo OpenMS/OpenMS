@@ -43,7 +43,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
         IsotopeDistribution getIsotopeDistribution() nogil except + # wrap-doc:Returns the isotope distribution of the element
 
         # set the name of the element
-        void setName(String name) nogil except + # wrap-doc:Set the name of the element
+        void setName(String name) nogil except + # wrap-doc:Sets the name of the element
 
         # returns the name of the element
         String getName() nogil except + # wrap-doc:Returns the name of the element

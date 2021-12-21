@@ -44,10 +44,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-
 #include <boost/math/special_functions/binomial.hpp>
 
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -358,7 +358,7 @@ namespace OpenMS
     return formula_.find(element) != formula_.end();
   }
 
-  bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
+  bool EmpiricalFormula::contains(const EmpiricalFormula& ef) const
   {
     for (const auto& it : ef)
     {
@@ -518,7 +518,7 @@ namespace OpenMS
 
     // split the formula
     vector<String> splitter;
-    if (formula.size() > 0)
+    if (!formula.empty())
     {
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
@@ -529,7 +529,7 @@ namespace OpenMS
           if ((isupper(formula[i]) && (!is_isotope || is_symbol))
              || formula[i] == '(')
           {
-            if (split != "")
+            if (!split.empty())
             {
               splitter.push_back(split);
               is_isotope = false;
@@ -579,7 +579,7 @@ namespace OpenMS
       }
 
       SignedSize num(1);
-      if (number != "")
+      if (!number.empty())
       {
         num = number.toInt();
       }

@@ -5,6 +5,7 @@ name: pyopenms-wheels
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'Release*'
@@ -105,7 +106,7 @@ jobs:
             pip install -U pip
             pip install -U autowrap
             pip install -U nose
-            pip install -U numpy==1.19.3
+            pip install -U numpy
             pip install -U wheel
 
             echo $CURRENT_PYTHON_EXECUTABLE
@@ -177,9 +178,16 @@ jobs:
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
+          cd .. 
+
+    - name: Load contrib and build OpenMP
+      run: |
+          git clone https://github.com/OpenMS/contrib.git
+          cd contribbld
+          cmake -DBUILD_TYPE=OPENMP -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 ../contrib
 
     - name: Fix contrib install names
-      shell: bash 
+      shell: bash
       run: |
           for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
           do
@@ -191,6 +199,10 @@ jobs:
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
+          # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
+          # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+          export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
+          export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
           pushd $Qt5_Dir/include
@@ -208,7 +220,7 @@ jobs:
           mkdir bld
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS
 
           # Search for the latest 4 main python versions in the repository pkgs/main
@@ -233,6 +245,7 @@ jobs:
             pip install -U nose
             pip install -U numpy
             pip install -U wheel
+            pip install -U pandas
 
             #conda deactivate
 
@@ -254,8 +267,17 @@ jobs:
 
           done
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       name: Upload artifacts
+      if: always()
+      with:
+        name: ${{ runner.os }}-buildfiles
+        path: |
+          bld/CMakeCache.txt
+          bld/pyOpenMS/env.py
+        
+    - uses: actions/upload-artifact@v1
+      name: Upload wheels
       with:
         name: ${{ runner.os }}-wheels
         path: bld/pyopenms_whls
@@ -284,9 +306,6 @@ jobs:
     - name: Build on manylinux2014
       shell: bash
       run: |
-            ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
-            patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
-
             # build an array based the python versions in /opt/python
             py_paths=()
             for PYBIN in /opt/python/cp*
@@ -412,6 +431,11 @@ jobs:
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
           echo "Testing python version $CURRENT_VERSION"
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
+          if [[ "$CURRENT_WHL" == '' ]]; then
+
+            continue
+
+          fi
           echo "Found wheel $CURRENT_WHL : Testing.."
 
           # pip install all the stuff
@@ -456,8 +480,8 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to nightly PyPI
-      if: "!contains(github.ref, 'Release')"
+    - name: Publish package to nightly PyPI (warning, somehow also can publish to general package)
+      if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__

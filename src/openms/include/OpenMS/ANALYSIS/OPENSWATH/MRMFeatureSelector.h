@@ -286,7 +286,7 @@ public:
   {
 public:
     MRMFeatureSelector_test() = default;
-    ~MRMFeatureSelector_test() = default;
+    ~MRMFeatureSelector_test() override = default;
 
     void constructTargTransList_(
       const FeatureMap& features,

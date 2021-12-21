@@ -74,7 +74,7 @@ namespace OpenMS
     return QRectF(-41, -41, 82, 82);
   }
 
-  bool TOPPASMergerVertex::roundBasedMode()
+  bool TOPPASMergerVertex::roundBasedMode() const
   {
     return round_based_mode_;
   }
@@ -101,8 +101,10 @@ namespace OpenMS
   void TOPPASMergerVertex::run()
   {
     //check if everything ready
-    if (!isUpstreamFinished())  return;
-
+    if (!isUpstreamFinished()) 
+    {
+      return;
+    }
     RoundPackages pkg;
     String error_msg("");
     bool success = buildRoundPackages(pkg, error_msg);
