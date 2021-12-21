@@ -95,7 +95,7 @@ private:
     QLineEdit* spectra_search_box_ = nullptr;
     QComboBox* spectra_combo_box_ = nullptr;
     TreeView* spectra_treewidget_ = nullptr;
-    LayerData* layer_ = nullptr;
+    LayerDataBase* layer_ = nullptr;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
     /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
