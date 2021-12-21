@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -220,7 +220,7 @@ protected:
     catch (Exception::MissingInformation& e)
     {
       OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information:\n"
-      << e.getMessage();
+      << e.what();
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -248,10 +248,10 @@ protected:
     }
 
     // update protein groupings if necessary:
-    for (auto prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
+    for (auto& prot : prot_ids)
     {
-      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
-                                                 prot_it->getHits());
+      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
+                                                 prot.getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
@@ -260,7 +260,7 @@ protected:
       }
 
       valid = IDFilter::updateProteinGroups(
-        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+        prot.getIndistinguishableProteins(), prot.getHits());
 
       if (!valid)
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
@@ -160,7 +165,7 @@ private:
   {
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
 
     try
     {
@@ -171,7 +176,7 @@ private:
       if (getFlag_("force"))
       {
         OPENMS_LOG_ERROR
-          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "Error: alignment failed. Details:\n" << err.what()
           << "\nSince 'force' is set, processing will continue using 'identity' transformations."
           << endl;
         model_type = "identity";
@@ -183,10 +188,9 @@ private:
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
-      for (vector<TransformationDescription>::iterator it =
-             transformations.begin(); it != transformations.end(); ++it)
+      for (TransformationDescription& tra : transformations)
       {
-        it->fitModel(model_type, model_params);
+        tra.fitModel(model_type, model_params);
       }
     }
   }
@@ -261,7 +265,7 @@ private:
   void registerOptionsAndFlags_() override
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
@@ -278,7 +282,7 @@ private:
     }
     if (section == "model")
     {
-      return TOPPMapAlignerBase::getModelDefaults("b_spline");
+      return MapAlignerBase::getModelDefaults("b_spline");
     }
 
     return Param(); // this shouldn't happen
@@ -299,6 +303,11 @@ private:
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
+    if (input_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerIdentification." << std::endl;
+    }   
+
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
     FileTypes::Type in_type = FileHandler::getType(input_files[0]);

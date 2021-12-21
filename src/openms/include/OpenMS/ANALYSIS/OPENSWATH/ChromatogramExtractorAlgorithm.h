@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,6 +96,7 @@ public:
      * dimension in Th or ppm (e.g. a window of 50 ppm means an extraction of
      * 25 ppm on either side)
      * @param ppm Whether mz_extraction_window is in ppm or in Th
+     * @param im_extraction_window Full window width (i.e. twice the tolerance) for IM extraction. Must be positive.
      * @param filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
@@ -117,7 +118,7 @@ public:
      * @param mz_start Start of the spectrum (m/z coordinates)
      * @param mz_it Current m/z position (will be modified)
      * @param mz_end End of the spectrum (m/z coordinates)
-     * @param int_int Current intensity position (will be modified)
+     * @param int_it Current intensity position (will be modified)
      * @param mz Target m/z for the current ion
      * @param integrated_intensity Resulting intensity (will be overwritten)
      * @param mz_extraction_window Extracts a window of this size in m/z
@@ -151,8 +152,8 @@ public:
      * @param mz_start Start of the spectrum (m/z coordinates)
      * @param mz_it Current m/z position (will be modified)
      * @param mz_end End of the spectrum (m/z coordinates)
-     * @param int_int Current intensity position (will be modified)
-     * @param im_int Current ion mobility position (will be modified)
+     * @param int_it Current intensity position (will be modified)
+     * @param im_it Current ion mobility position (will be modified)
      * @param mz Target m/z for the current ion
      * @param im Target ion mobility for the current ion
      * @param integrated_intensity Resulting intensity (will be overwritten)

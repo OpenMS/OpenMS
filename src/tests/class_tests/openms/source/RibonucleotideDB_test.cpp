@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,6 +92,15 @@ START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const String& seq))
   TEST_STRING_EQUAL(ribo->getCode(), "m1Am");
   TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotidePrefix("blam1A"));
+}
+END_SECTION
+
+START_SECTION(EmpiricalFormula getBaselossFormula())
+{
+  const Ribonucleotide* dna = ptr->getRibonucleotide("dT");
+  TEST_EQUAL(EmpiricalFormula("C5H10O4") == dna->getBaselossFormula(), true);
+  const Ribonucleotide* rnam = ptr->getRibonucleotide("Um");
+  TEST_EQUAL(EmpiricalFormula("C6H12O5") == rnam->getBaselossFormula(), true);
 }
 END_SECTION
 

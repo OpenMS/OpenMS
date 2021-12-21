@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,8 +115,7 @@ public:
     /// Set the overall quality
     void setQuality(QualityType q);
     /// Compare by quality
-    struct QualityLess :
-      std::binary_function<BaseFeature, BaseFeature, bool>
+    struct QualityLess
     {
       bool operator()(const BaseFeature& left, const BaseFeature& right) const
       {
@@ -172,6 +171,9 @@ public:
 
     /// sets the PeptideIdentification vector
     void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
+
+    /// sorts PeptideIdentifications, assuming they have the same scoreType.
+    void sortPeptideIdentifications();
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;

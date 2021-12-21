@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,10 +71,15 @@ namespace OpenMS
     bool had_enough = false;
     while (getLine(is, str) && !had_enough)
     {
-      if (trim_lines) str.trim();
+      if (trim_lines)
+      {
+        str.trim();
+      }
       // skip? (only after trimming!)
-      if (skip_empty_lines && str.empty()) continue;
-
+      if (skip_empty_lines && str.empty())
+      {
+        continue;
+      }
       buffer_.push_back(str);
       if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
       {
@@ -95,22 +100,22 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    for (Iterator it = buffer_.begin(); it != buffer_.end(); ++it)
+    for (const String& it : buffer_)
     {
-      if (it->hasSuffix("\n"))
+      if (it.hasSuffix("\n"))
       {
-        if (it->hasSuffix("\r\n"))
+        if (it.hasSuffix("\r\n"))
         {
-          os << it->chop(2) << "\n";
+          os << it.chop(2) << "\n";
         }
         else
         {
-          os << *it;
+          os << it;
         }
       }
       else
       {
-        os << *it << "\n";
+        os << it << "\n";
       }
     }
     os.close();
@@ -128,6 +133,7 @@ namespace OpenMS
     { // the stream has an error
       return is;
     }
+
     std::streambuf* sb = is.rdbuf();
 
     for (;;)

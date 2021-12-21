@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
@@ -161,10 +163,10 @@ private:
 
   void registerOptionsAndFlags_() override
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML",
-                                                 REF_NONE);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_("featureXML",
+                                                            REF_NONE);
     registerSubsection_("algorithm", "Algorithm parameters section");
-    registerStringOption_("copy_data", "String", "true", "When aligning a large dataset with many files, load the input files twice and bypass copying.", false, false);
+    registerStringOption_("copy_data", "String", "true", "Copy data (faster, more memory required) or reload data (slower, less memory required) when aligning many files.", false, false);
     setValidStrings_("copy_data", {"true","false"});
   }
 
@@ -181,8 +183,10 @@ private:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------

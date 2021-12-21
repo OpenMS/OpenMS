@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,13 +73,13 @@ namespace OpenMS
   }
 
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode)
   {
     String error_msg;
-    return run(exe, args, working_dir, verbose, error_msg);
+    return run(exe, args, working_dir, verbose, error_msg, io_mode);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode)
   {
     error_msg.clear();
     if (!working_dir.isEmpty())
@@ -87,19 +87,41 @@ namespace OpenMS
       qp_->setWorkingDirectory(working_dir);
     }
 
-    if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
+    if (verbose)
+    {
+      callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
+    }
+    // Map IO_MODE enum value to QIODevice value
+    QIODevice::OpenModeFlag mode;
+    switch (io_mode)
+    {
+      case IO_MODE::NO_IO:
+        mode = QIODevice::NotOpen;
+        break;
+      case IO_MODE::READ_ONLY:
+        mode = QIODevice::ReadOnly;
+        break;
+      case IO_MODE::WRITE_ONLY:
+        mode = QIODevice::WriteOnly;
+        break;
+      default:
+        mode = QIODevice::ReadWrite;
+    }
 
-    qp_->start(exe, args);
+    qp_->start(exe, args, mode);
     if (!(qp_->waitForStarted()))
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::FAILED_TO_START;
     }
     while (qp_->state() == QProcess::Running)
     {
       QCoreApplication::processEvents();
-      if (qp_->waitForReadyRead(50)) // wait 50msecs. Small enough to have the GUI repaint when switching windows
+      if (qp_->waitForReadyRead(50)) // wait 50ms. Small enough to have the GUI repaint when switching windows
       {
         processStdOut_();
         processStdErr_();
@@ -109,17 +131,26 @@ namespace OpenMS
     if (qp_->exitStatus() != QProcess::NormalExit)
     {
       error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::CRASH;
     }
     else if (qp_->exitCode() != 0)
     {
       error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
-      if (verbose) callbackStdErr_(error_msg + '\n');
+      if (verbose)
+      {
+        callbackStdErr_(error_msg + '\n');
+      }
       return RETURNSTATE::NONZERO_EXIT;
     }
     
-    if (verbose) callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    if (verbose)
+    {
+      callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
+    }
     return RETURNSTATE::SUCCESS;
   }
 
@@ -129,10 +160,12 @@ namespace OpenMS
     //std::cout << s << "\n";
     callbackStdOut_(s);
   }
+
   void ExternalProcess::processStdErr_()
   {
     String s(QString(qp_->readAllStandardError()));
     //std::cout << s << "\n";
     callbackStdErr_(s);
   }
-} // ns OpenMS
+
+} // namespace OpenMS

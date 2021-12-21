@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
@@ -71,12 +72,12 @@ namespace OpenMS
     defaults_.setValue("isotope_correction", "true", "Enable isotope correction (highly recommended). "
                                                      "Note that you need to provide a correct isotope correction matrix "
                                                      "otherwise the tool will fail or produce invalid results.");
-    defaults_.setValidStrings("isotope_correction", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("isotope_correction", {"true","false"});
 
     defaults_.setValue("normalization", "false", "Enable normalization of channel intensities with respect to the reference channel. "
                                                  "The normalization is done by using the Median of Ratios (every channel / Reference). "
                                                  "Also the ratio of medians (from any channel and reference) is provided as control measure!");
-    defaults_.setValidStrings("normalization", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("normalization", {"true","false"});
 
     defaultsToParam_();
   }

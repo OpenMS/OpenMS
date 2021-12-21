@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,12 +78,16 @@ END_SECTION
 
 START_SECTION(static void registerChildren())
   PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
+  delete c1;
   c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
 	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
-  c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
+	delete c1;
+	c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
 	TEST_EQUAL(c1->getName(), "ZhangSimilarityScore")
+	delete c1;
 	c1 = Factory<PeakSpectrumCompareFunctor>::create("SteinScottImproveScore");
 	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
+	delete c1;
 END_SECTION
 
 START_SECTION(static const String getProductName())

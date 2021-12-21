@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -133,8 +135,9 @@ namespace OpenMS
   MassExplainer& MassExplainer::operator=(const MassExplainer& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
-
+    }
     explanations_ = rhs.explanations_;
     adduct_base_ = rhs.adduct_base_;
     q_min_ = rhs.q_min_;
@@ -161,9 +164,13 @@ namespace OpenMS
     for (AdductsType::const_iterator it = adduct_base_.begin(); it != adduct_base_.end(); ++it)
     {
       if (it->getCharge() == 0)
+      {
         adduct_neutral.push_back(*it);
+      }
       else
+      {
         adduct_charged.push_back(*it);
+      }
     }
 
     // calculate some initial boundaries that can be used to shorten the enumeration process
@@ -229,7 +236,9 @@ namespace OpenMS
     for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       if (compomerValid_(explanations_[ci]))
+      {
         valids_only.push_back(explanations_[ci]);
+      }
     }
     explanations_.swap(valids_only);
 
@@ -341,22 +350,26 @@ namespace OpenMS
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
-  bool MassExplainer::compomerValid_(const Compomer& cmp)
+  bool MassExplainer::compomerValid_(const Compomer& cmp) const
   {
     // probability ok?
     if (cmp.getLogP() < thresh_p_)
+    {
       return false;
-
+    }
     // limit the net charge by the maximal span of co-features
     if (abs(cmp.getNetCharge()) >= max_span_)
+    {
       return false;
-
+    }
     if (cmp.getNegativeCharges() > q_max_)
+    {
       return false;
-
+    }
     if (cmp.getPositiveCharges() > q_max_)
+    {
       return false;
-
+    }
     //TODO include mass?
     //if (abs(cmp.mass_) > mass_max_) return false;
 

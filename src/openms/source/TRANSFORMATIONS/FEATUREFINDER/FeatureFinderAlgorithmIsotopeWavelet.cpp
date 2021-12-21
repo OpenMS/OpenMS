@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,23 +53,23 @@ namespace OpenMS
                                                          "Depending on the dynamic range of your spectra, suitable value ranges include: -1, [0:10], and if your data "
                                                          "features even very high intensity values, t can also adopt values up to around 30. "
                                                          "Please note that this parameter is not of an integer type, s.t. you can also use t:=0.1, e.g.");
-    this->defaults_.setValue("intensity_type", "ref", "Determines the intensity type returned for the identified features. 'ref' (default) returns the sum of the intensities of each isotopic peak within an isotope pattern. 'trans' refers to the intensity of the monoisotopic peak within the wavelet transform. 'corrected' refers also to the transformed intensity with an attempt to remove the effects of the convolution. While the latter ones might be preferable for qualitative analyses, 'ref' might be the best option to obtain quantitative results. Please note that intensity values might be spoiled (in particular for the option 'ref'), as soon as patterns overlap (see also the explanations given in the class documentation of FeatureFinderAlgorihtmIsotopeWavelet).", ListUtils::create<String>("advanced"));
-    this->defaults_.setValidStrings("intensity_type", ListUtils::create<String>("ref,trans,corrected"));
+    this->defaults_.setValue("intensity_type", "ref", "Determines the intensity type returned for the identified features. 'ref' (default) returns the sum of the intensities of each isotopic peak within an isotope pattern. 'trans' refers to the intensity of the monoisotopic peak within the wavelet transform. 'corrected' refers also to the transformed intensity with an attempt to remove the effects of the convolution. While the latter ones might be preferable for qualitative analyses, 'ref' might be the best option to obtain quantitative results. Please note that intensity values might be spoiled (in particular for the option 'ref'), as soon as patterns overlap (see also the explanations given in the class documentation of FeatureFinderAlgorihtmIsotopeWavelet).", {"advanced"});
+    this->defaults_.setValidStrings("intensity_type", {"ref","trans","corrected"});
 
     this->defaults_.setValue("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
-                                                   "potential peptide masses are checked for plausibility. In addition, a heuristic correcting potential mass shifts induced by the wavelet is applied.", ListUtils::create<String>("advanced"));
-    this->defaults_.setValidStrings("check_ppm", ListUtils::create<String>("true,false"));
+                                                   "potential peptide masses are checked for plausibility. In addition, a heuristic correcting potential mass shifts induced by the wavelet is applied.", {"advanced"});
+    this->defaults_.setValidStrings("check_ppm", {"true","false"});
 
     this->defaults_.setValue("hr_data", "false", "Must be true in case of high-resolution data, i.e. "
                                                  "for spectra featuring large m/z-gaps (present in FTICR and Orbitrap data, e.g.). Please check "
                                                  "a single MS scan out of your recording, if you are unsure.");
-    this->defaults_.setValidStrings("hr_data", ListUtils::create<String>("true,false"));
+    this->defaults_.setValidStrings("hr_data", {"true","false"});
 
     this->defaults_.setValue("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
-                                                              "subsequent scans where a pattern must occur to be considered as a feature.", ListUtils::create<String>("advanced"));
+                                                              "subsequent scans where a pattern must occur to be considered as a feature.", {"advanced"});
     this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
     this->defaults_.setValue("sweep_line:rt_interleave", 1, "Defines the maximum number of "
-                                                            "scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", ListUtils::create<String>("advanced"));
+                                                            "scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", {"advanced"});
     this->defaults_.setMinInt("sweep_line:rt_interleave", 0);
 
     this->defaultsToParam_();
@@ -158,8 +158,8 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmIsotopeWavelet::run()
   {
-    double max_mz = this->map_->getMax()[1];
-    double min_mz = this->map_->getMin()[1];
+    double max_mz = this->map_->getMaxMZ();
+    double min_mz = this->map_->getMinMZ();
 
     Size max_size = 0;
 
@@ -305,9 +305,9 @@ namespace OpenMS
     RT_votes_cutoff_ = this->param_.getValue("sweep_line:rt_votes_cutoff");
     RT_interleave_ = this->param_.getValue("sweep_line:rt_interleave");
     IsotopeWavelet::setMaxCharge(max_charge_);
-    check_PPMs_ = ((String)(this->param_.getValue("check_ppm")) == "true");
-    hr_data_ = ((String)(this->param_.getValue("hr_data")) == "true");
-    intensity_type_ = ((String)(this->param_.getValue("intensity_type")));
+    check_PPMs_ = this->param_.getValue("check_ppm").toBool();
+    hr_data_ = this->param_.getValue("hr_data").toBool();
+    intensity_type_ = this->param_.getValue("intensity_type").toString();
   }
 
 }

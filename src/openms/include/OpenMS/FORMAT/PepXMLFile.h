@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -122,6 +122,15 @@ public:
       keep_native_name_ = keep;
     }
 
+    /// sets the preferred fixed modifications
+    void setPreferredFixedModifications(const std::vector<const ResidueModification*>& mods);
+
+    /// sets the preferred variable modifications
+    void setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods);
+
+    /// sets if during load, unknown scores should be parsed
+    void setParseUnknownScores(bool parse_unknown_scores);
+
 protected:
 
     /// Docu in base class
@@ -153,6 +162,13 @@ private:
       std::vector<String> errors_;
       const ResidueModification* registered_mod_;
 
+      const ResidueModification* lookupModInPreferredMods_(const std::vector<const ResidueModification*>& preferred_fixed_mods,
+                                                           const String& aminoacid,
+                                                           double massdiff,
+                                                           const String& description,
+                                                           const ResidueModification::TermSpecificity term_spec,
+                                                           double tolerance);
+
       public:
       AminoAcidModification() = delete;
 
@@ -162,7 +178,10 @@ private:
       /// since we use them ambiguously
       AminoAcidModification(
           const String& aminoacid, const String& massdiff, const String& mass,
-          String variable, const String& description, String terminus, const String& protein_terminus);
+          String variable, const String& description, String terminus, const String& protein_terminus,
+          const std::vector<const ResidueModification*>& preferred_fixed_mods,
+          const std::vector<const ResidueModification*>& preferred_var_mods,
+          double tolerance);
 
       AminoAcidModification(const AminoAcidModification& rhs) = default;
 
@@ -243,6 +262,9 @@ private:
     /// Does the file have decoys (e.g. from Comet's internal decoy search)
     bool has_decoys_{};
 
+    /// Also parse unknown scores as metavalues?
+    bool parse_unknown_scores_{};
+
     /// In case it has decoys, what is the prefix?
     String decoy_prefix_;
 
@@ -271,8 +293,11 @@ private:
     /// Sequence of the current peptide hit
     String current_sequence_;
 
-    /// RT and m/z of current PeptideIdentification
+    /// RT and m/z of current PeptideIdentification (=spectrum)  
     double rt_{}, mz_{};
+
+    /// 1-based scan nr. of current PeptideIdentification (=spectrum). Scannr is usually from the start_scan attribute
+    Size scannr_{};
 
     /// Precursor ion charge
     Int charge_{};
@@ -292,11 +317,19 @@ private:
     /// The modifications of the current peptide hit (position is 1-based)
     std::vector<std::pair<const ResidueModification*, Size> > current_modifications_;
 
-    /// Fixed aminoacid modifications
+    /// Fixed aminoacid modifications as parsed from the header
     std::vector<AminoAcidModification> fixed_modifications_;
 
-    /// Variable aminoacid modifications
+    /// Variable aminoacid modifications as parsed from the header
     std::vector<AminoAcidModification> variable_modifications_;
+
+    /// Fixed modifications that should be preferred when parsing the header
+    /// (e.g. when pepXML was produced through an adapter)
+    std::vector<const ResidueModification*> preferred_fixed_modifications_;
+
+    /// Variable modifications that should be preferred when parsing the header
+    /// (e.g. when pepXML was produced through an adapter)
+    std::vector<const ResidueModification*> preferred_variable_modifications_;
 
     //@}
 
@@ -308,6 +341,7 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
-  };
 
+    //static std::vector<int> getIsotopeErrorsFromIntSetting_(int intSetting);
+  };
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,7 +151,7 @@ namespace OpenMS
 
     bool ExperimentalDesignFile::isOneTableFile_(const TextFile& text_file)
     {
-      // To dermine if we have a *separate* sample table, we check if a row is present
+      // To determine if we have a *separate* sample table, we check if a row is present
       // that contains "Sample" but no "Fraction_Group".
       for (String s : text_file)
       {
@@ -220,7 +220,7 @@ namespace OpenMS
           has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
           has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
      
-          // readd label column to end of header
+          // read label column to end of header
           if (!has_label)
           {
             size_t hs = fs_column_header_to_index.size();
@@ -228,7 +228,7 @@ namespace OpenMS
             cells.push_back("Label");
           }
 
-          // readd sample column to end of header
+          // read sample column to end of header
           if (!has_sample)
           {
             size_t hs = fs_column_header_to_index.size();
@@ -251,14 +251,14 @@ namespace OpenMS
         }
         else if (state == RUN_CONTENT)
         {
-          // readd label column as we already did in the header
+          // read label column as we already did in the header
           if (!has_label) { cells.push_back("1"); }
 
           // Assign label, fall back to 1 if column is missing
           int label = cells[fs_column_header_to_index["Label"]].toInt();
           int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
           int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
-                    // readd sample column
+                    // read sample column
           if (!has_sample) 
           {
             int sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 

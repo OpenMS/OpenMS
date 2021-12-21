@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 {
     TEST_EQUAL(output_mt.size(), 1);
 
-    if (output_mt.size() > 0)
+    if (!output_mt.empty())
     {
         TEST_EQUAL(output_mt[0].getLabel(), "T1");
 
@@ -150,7 +150,7 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
 {
   std::vector<Size> maxes, mins;
 
-  if (output_mt.size() > 0)
+  if (!output_mt.empty())
   {
     MassTrace mt(output_mt[0]);
 
@@ -189,7 +189,7 @@ START_SECTION((double computeMassTraceNoise(const MassTrace &)))
 {
     TEST_EQUAL(output_mt.size(), 1);
     
-    ABORT_IF(output_mt.size() == 0)
+    ABORT_IF(output_mt.empty())
     double est_noise(test_epd.computeMassTraceNoise(output_mt[0]));
 
     //TEST_REAL_SIMILAR(est_noise, 515.297);//using lowess and GSL

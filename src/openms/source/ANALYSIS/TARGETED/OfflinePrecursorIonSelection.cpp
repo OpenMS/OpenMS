@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,10 +51,10 @@ namespace OpenMS
     defaults_.setMinFloat("mz_isolation_window", 0.);
 
     defaults_.setValue("exclude_overlapping_peaks", "false", "If true, overlapping or nearby peaks (within 'min_mz_peak_distance') are excluded for selection.");
-    defaults_.setValidStrings("exclude_overlapping_peaks", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("exclude_overlapping_peaks", {"true","false"});
 
     defaults_.setValue("Exclusion:use_dynamic_exclusion", "false", "If true dynamic exclusion is applied.");
-    defaults_.setValidStrings("Exclusion:use_dynamic_exclusion", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("Exclusion:use_dynamic_exclusion", {"true","false"});
 
     defaults_.setValue("Exclusion:exclusion_time", 100., "The time (in seconds) a feature is excluded.");
     defaults_.setMinFloat("Exclusion:exclusion_time", 0.);
@@ -93,7 +93,6 @@ namespace OpenMS
     opis_param.remove("max_list_size");
     ilp_wrapper.setParameters(opis_param);
     ilp_wrapper.setLPSolver(solver_);
-    // std::cout << "nun die inclusion liste erstellen"<<std::endl;
     // std::cout << param_.getValue("ms2_spectra_per_rt_bin") <<std::endl;
     // std::cout << param_.getValue("ProteinBasedInclusion:max_list_size") <<std::endl;
     ilp_wrapper.createAndSolveILPForInclusionListCreation(pisp, param_.getValue("ms2_spectra_per_rt_bin"),
@@ -316,7 +315,7 @@ namespace OpenMS
 
     for (Size s = 0; s < xics.size(); ++s)
     {
-      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, double> >());
+      sort(xics[s].begin(), xics[s].end(), [](auto& left, auto& right){return left.second < right.second;});
     }
   }
 

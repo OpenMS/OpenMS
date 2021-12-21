@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,17 +74,17 @@ namespace OpenMS
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
       StringList substrings;
-      it.getName().split(':', substrings);
+      String(it.getName()).split(':', substrings);
       if (substrings.size() != 2 ||
           substrings.back() != "url_list" ||
-          (it->value).valueType() != DataValue::STRING_LIST)
+          (it->value).valueType() != ParamValue::STRING_LIST)
       {
         std::cerr << "Invalid file format." << std::endl;
         return;
       }
 
       QString key = (substrings[0]).toQString();
-      StringList url_list = (it->value);
+      StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
@@ -108,12 +108,12 @@ namespace OpenMS
     {
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
-      StringList url_list;
+      std::vector<std::string> url_list;
       foreach(const TOPPASResource &res, resource_list)
       {
-        url_list.push_back(String(res.getURL().toString()));
+        url_list.push_back(String(res.getURL().toString().toStdString()));
       }
-      save_param.setValue(key + ":url_list", DataValue(url_list));
+      save_param.setValue(key + ":url_list", url_list);
     }
 
     ParamXMLFile paramFile;

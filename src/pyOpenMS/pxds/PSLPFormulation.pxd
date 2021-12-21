@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
         #  DefaultParamHandler
 
         PSLPFormulation() nogil except +
-        PSLPFormulation(PSLPFormulation) nogil except + #wrap-ignore
+        PSLPFormulation(PSLPFormulation &) nogil except + # compiler
 
         void createAndSolveILPForKnownLCMSMapFeatureBased(
             FeatureMap & features,
@@ -29,10 +29,20 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
             libcpp_set[ int ] & charges_set,
             UInt ms2_spectra_per_rt_bin,
             libcpp_vector[ int ] & solution_indices) nogil except + 
+                # wrap-doc:
+                #   Encode ILP formulation for a given LC-MS map, but unknown protein sample
+                #   -----
+                #   :param features: FeatureMap with all possible precursors
+                #   :param experiment: Input raw data
+                #   :param variable_indices: Assignment of feature indices and ILP variables
+                #   :param mass_ranges: Feature borders as indices in the raw data
+                #   :param charges_set: Allowed charge states
+                #   :param ms2_spectra_per_rt_bin: Allowed number of precursors per rt bin
+                #   :param solution_indices: Indices of ILP variables that are in the optimal solution
 
         void createAndSolveILPForInclusionListCreation(
             PrecursorIonSelectionPreprocessing & preprocessing,
-            UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap & precursors, bool solve_ILP) nogil except +
+            UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap & precursors, bool solve_ILP) nogil except + # wrap-doc:Find a set of precursors, so that the protein coverage is maximal and that the number of precursors per bin is not exceeded
 
         void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(FeatureMap & features, MSExperiment & experiment, 
             libcpp_vector[ IndexTriple ] & variable_indices, libcpp_vector[ int ] & solution_indices, 
@@ -59,7 +69,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
                                Feature & new_feature, libcpp_map[ String, Size ] & protein_variable_index_map,
                                libcpp_map[ String, libcpp_set[ String ] ] & prot_id_counter) nogil except + # wrap-ignore
 
-        void solveILP(libcpp_vector[ int ] & solution_indices) nogil except +
+        void solveILP(libcpp_vector[ int ] & solution_indices) nogil except + # wrap-doc:Solve the ILP
 
         void setLPSolver(SOLVER solver) nogil except +
 

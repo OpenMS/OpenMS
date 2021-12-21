@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,14 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <Eigen/Core>
-#include <unsupported/Eigen/NonLinearOptimization>
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    class Matrix;
+    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+}
 
 #include <vector>
 

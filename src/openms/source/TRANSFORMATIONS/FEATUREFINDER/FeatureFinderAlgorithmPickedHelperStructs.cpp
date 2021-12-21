@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,8 +71,10 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmPickedHelperStructs::MassTrace::updateMaximum()
   {
-    if (peaks.empty()) return;
-
+    if (peaks.empty())
+    {
+      return;
+    }
     max_rt = peaks.begin()->first;
     max_peak = peaks.begin()->second;
 
@@ -121,8 +123,10 @@ namespace OpenMS
   bool FeatureFinderAlgorithmPickedHelperStructs::MassTraces::isValid(double seed_mz, double trace_tolerance)
   {
     //Abort if too few traces were found
-    if (this->size() < 2) return false;
-
+    if (this->size() < 2)
+    {
+      return false;
+    }
     //Abort if the seed was removed
     for (Size j = 0; j < this->size(); ++j)
     {
@@ -136,7 +140,7 @@ namespace OpenMS
 
   Size FeatureFinderAlgorithmPickedHelperStructs::MassTraces::getTheoreticalmaxPosition() const
   {
-    if (!this->size())
+    if (this->empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one trace to determine the theoretical maximum trace!");
     }
@@ -156,7 +160,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmPickedHelperStructs::MassTraces::updateBaseline()
   {
-    if (this->size() == 0)
+    if (this->empty())
     {
       baseline = 0.0;
       return;
@@ -181,7 +185,7 @@ namespace OpenMS
 
   std::pair<double, double> FeatureFinderAlgorithmPickedHelperStructs::MassTraces::getRTBounds() const
   {
-    if (!this->size())
+    if (this->empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one trace to determine the RT boundaries!");
     }
@@ -194,8 +198,14 @@ namespace OpenMS
       for (Size j = 0; j < this->at(i).peaks.size(); ++j)
       {
         double rt = this->at(i).peaks[j].first;
-        if (rt > max) max = rt;
-        if (rt < min) min = rt;
+        if (rt > max)
+        {
+          max = rt;
+        }
+        if (rt < min)
+        {
+          min = rt;
+        }
       }
     }
     return std::make_pair(min, max);

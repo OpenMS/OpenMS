@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 #include <boost/bind.hpp>
@@ -152,14 +153,14 @@ namespace OpenMS
   void IonizationSimulation::setDefaultParams_()
   {
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", {"MALDI","ESI"});
 
-    defaults_.setValue("esi:ionized_residues", ListUtils::create<String>("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization");
-    StringList valid_ionized_residues = ListUtils::create<String>("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
+    defaults_.setValue("esi:ionized_residues", std::vector<std::string>{"Arg","Lys","His"}, "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization");
+    std::vector<std::string> valid_ionized_residues = {"Ala","Cys","Asp","Glu","Phe","Gly","His","Ile","Lys","Leu","Met","Asn","Pro","Gln","Arg","Sec","Ser","Thr","Val","Trp","Tyr"};
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
-    defaults_.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1"), "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
+    defaults_.setValue("esi:charge_impurity", std::vector<std::string>{"H+:1"}, "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
 
-    defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given a certain 'charge_impurity' constraints), but no '3H+, 2H+Na+, 3Na+'", ListUtils::create<String>("advanced"));
+    defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given a certain 'charge_impurity' constraints), but no '3H+, 2H+Na+, 3Na+'", {"advanced"});
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
@@ -176,7 +177,7 @@ namespace OpenMS
 
   void IonizationSimulation::updateMembers_()
   {
-    String type = param_.getValue("ionization_type");
+    const std::string& type = param_.getValue("ionization_type");
     if (type == "ESI")
     {
       ionization_type_ = ESI;
@@ -193,16 +194,18 @@ namespace OpenMS
 
     // get basic residues from params
     basic_residues_.clear();
-    StringList basic_residues = param_.getValue("esi:ionized_residues");
-    for (StringList::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
+    const std::vector<std::string>& basic_residues = param_.getValue("esi:ionized_residues");
+    for (std::vector<std::string>::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
     {
       basic_residues_.insert(*it);
     }
 
     // parse possible ESI adducts
-    StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
+    StringList esi_charge_impurity = ListUtils::toStringList<std::string>(param_.getValue("esi:charge_impurity"));
     if (esi_charge_impurity.empty())
+    {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    }
     StringList components;
     max_adduct_charge_ = 0;
     // reset internal state:
@@ -214,7 +217,9 @@ namespace OpenMS
     {
       esi_charge_impurity[i].split(':', components);
       if (components.size() != 2)
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
+      }
       // determine charge of adduct (by # of '+')
       Size l_charge = components[0].size(); //FIXME only works for + charge
       l_charge -= components[0].remove('+').size();
@@ -267,10 +272,11 @@ public:
     std::transform(esi_impurity_probabilities_.begin(),
                    esi_impurity_probabilities_.end(),
                    std::back_inserter(weights),
-                   boost::bind(std::multiplies<double>(), _1, 10));
+                   [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
     for (size_t i = 0; i < weights.size(); ++i)
+    {
       std::cout << "weights[" << i << "]: " << weights[i] << std::endl;
-
+    }
     // map for charged features
     SimTypes::FeatureMapSim copy_map = features;
     // but leave meta information & other stuff intact
@@ -347,7 +353,7 @@ public:
         }
 
 
-        // precompute random numbers:
+        // pre-compute random numbers:
         prec_rndbin.resize(abundance);
         {
           boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
@@ -374,7 +380,7 @@ public:
           // currently we might also loose some molecules here (which is ok?)
           // sample charge state from binomial
 
-          charge = prec_rndbin[j]; // get precomputed rnd
+          charge = prec_rndbin[j]; // get pre-computed rnd
 
           if (charge == 0)
           {
@@ -483,8 +489,14 @@ public:
       // merge thread results
 #pragma omp critical (OPENMS_IONSIM_ESI_FINAL)
       {
-        for (auto& e : t_features) copy_map.push_back(e);
-        for (auto& e : t_charge_consensus) charge_consensus.push_back(e);
+        for (auto& e : t_features)
+        {
+          copy_map.push_back(e);
+        }
+        for (auto& e : t_charge_consensus)
+        {
+          charge_consensus.push_back(e);
+        }
       }
           
 
@@ -521,7 +533,7 @@ public:
     for (Size i = 0; i < seq.size(); ++i)
     {
       // check for basic residues
-      if (basic_residues_.count(seq[i].getShortName()) == 1)
+      if (basic_residues_.count(seq[i].getThreeLetterCode()) == 1)
       {
         ++count;
       }
@@ -536,7 +548,7 @@ public:
     std::transform(maldi_probabilities_.begin(),
                    maldi_probabilities_.end(),
                    std::back_inserter(weights),
-                   boost::bind(std::multiplies<double>(), _1, 10));
+                   [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
     boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
@@ -651,17 +663,17 @@ public:
       // adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
       StringList keys;
       f.getKeys(keys);
-      for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
+      for (const String& key : keys)
       {
-        if (it_key->hasPrefix("intensity"))
+        if (key.hasPrefix("intensity"))
         {
-          f.setMetaValue(*it_key, SimTypes::SimIntensityType(f.getMetaValue(*it_key)) * factor);
+          f.setMetaValue(key, SimTypes::SimIntensityType(f.getMetaValue(key)) * factor);
         }
       }
     } // ! pragma
   }
 
-  bool IonizationSimulation::isFeatureValid_(const Feature& feature)
+  bool IonizationSimulation::isFeatureValid_(const Feature& feature) const
   {
     if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_) // remove feature
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ public:
     SwathMapMassCorrection();
 
     /// Destructor
-    ~SwathMapMassCorrection() = default;
+    ~SwathMapMassCorrection() override = default;
     //@}
 
     /// Synchronize members with param class
@@ -78,11 +78,13 @@ public:
      * transforming map that will contain corrected m/z values.
      *
      * @param transition_group_map A MRMFeatureFinderScoring result map
-     * @param swath_maps The raw swath maps from the current run
+     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
      *
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
-                   std::vector< OpenSwath::SwathMap > & swath_maps, const OpenSwath::LightTargetedExperiment& targeted_exp);
+                   const OpenSwath::LightTargetedExperiment & targeted_exp,
+                   std::vector< OpenSwath::SwathMap > & swath_maps);
 
     /**
      * @brief Correct the ion mobility values of a SWATH map based on the RT-normalization peptides
@@ -90,17 +92,19 @@ public:
      * This extracts the full spectra at the most likely elution time of the
      * calibrant peptides and fits a linear regression curve to correct for a
      * possible ion mobility (drift time) shift of the empirical drift time vs
-     * the theoretically expected drift time.
+     * the theoretically expected drift time. The resulting linear
+     * transformation is stored using a TransformationDescription object.
      *
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
+     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
      * @param im_trafo The resulting map containing the transformation
      *
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+                   const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
-                   TransformationDescription& im_trafo,
-                   const OpenSwath::LightTargetedExperiment& targeted_exp);
+                   TransformationDescription & im_trafo);
 
   private:
     double mz_extraction_window_;

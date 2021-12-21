@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,13 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
 {
@@ -83,8 +83,10 @@ namespace OpenMS
 
   AnnotationStatistics& AnnotationStatistics::operator=(const AnnotationStatistics& rhs)
   {
-    if (this == &rhs) return *this;
-
+    if (this == &rhs)
+    {
+      return *this;
+    }
     states = rhs.states;
     return *this;
   }
@@ -103,7 +105,7 @@ namespace OpenMS
   FeatureMap::FeatureMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
@@ -116,7 +118,7 @@ namespace OpenMS
   FeatureMap::FeatureMap(const FeatureMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
@@ -132,8 +134,10 @@ namespace OpenMS
 
   FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
   {
-    if (&rhs == this) return *this;
-
+    if (&rhs == this)
+    {
+      return *this;
+    }
     Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
@@ -176,7 +180,10 @@ namespace OpenMS
     // reset these:
     RangeManagerType::operator=(empty_map);
 
-    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
+    {
+      OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    }
     DocumentIdentifier::operator=(empty_map);
 
     UniqueIdInterface::operator=(empty_map);
@@ -210,7 +217,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::IntensityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -237,7 +244,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::OverallQualityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {FeatureType::OverallQualityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -247,33 +254,24 @@ namespace OpenMS
 
   void FeatureMap::updateRanges()
   {
-    this->clearRanges();
-    updateRanges_(this->begin(), this->end());
+    clearRanges();
+    for (const auto& f : (privvec&) *this)
+    {
+      extendRT(f.getRT());
+      extendMZ(f.getMZ());
+      extendIntensity(f.getIntensity());
+    }
 
-    //enlarge the range by the convex hull points
+    // enlarge the range by the convex hull points
     for (Size i = 0; i < this->size(); ++i)
     {
-      DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
+      const DBoundingBox<2>& box = this->operator[](i).getConvexHull().getBoundingBox();
       if (!box.isEmpty())
       {
-        //update RT
-        if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
-        }
-        if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
-        }
-        //update m/z
-        if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
-        }
-        if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
-        }
+        extendRT(box.minPosition()[Peak2D::RT]);
+        extendRT(box.maxPosition()[Peak2D::RT]);
+        extendMZ(box.minPosition()[Peak2D::MZ]);
+        extendMZ(box.maxPosition()[Peak2D::MZ]);
       }
     }
   }

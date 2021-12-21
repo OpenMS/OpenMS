@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
 
   void TransformationXMLFile::store(String filename, const TransformationDescription& transformation)
   {
-    if (transformation.getModelType() == "")
+    if (transformation.getModelType().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "will not write a transformation with empty name");
     }
@@ -96,27 +96,27 @@ namespace OpenMS
     Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
-      if (it->value.valueType() != DataValue::EMPTY_VALUE)
+      if (it->value.valueType() != ParamValue::EMPTY_VALUE)
       {
         switch (it->value.valueType())
         {
-        case DataValue::INT_VALUE:
+        case ParamValue::INT_VALUE:
           os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
-        case DataValue::DOUBLE_VALUE:
+        case ParamValue::DOUBLE_VALUE:
           os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
-        case DataValue::STRING_VALUE:
-        case DataValue::STRING_LIST:
-        case DataValue::INT_LIST:
-        case DataValue::DOUBLE_LIST:
+        case ParamValue::STRING_VALUE:
+        case ParamValue::STRING_LIST:
+        case ParamValue::INT_LIST:
+        case ParamValue::DOUBLE_LIST:
           os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
         default:         // no other value types are supported!
-          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "' with value '" + it->value.toString() + "'");
+          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "'");
           break;
         }
       }

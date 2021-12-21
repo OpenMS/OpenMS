@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -233,13 +233,19 @@ namespace OpenMS
       // PeptideHit:
       for (const PeptideHit& hit : pep.getHits())
       {
-        if (hit.getSequence().empty()) continue;
+        if (hit.getSequence().empty())
+        {
+          continue;
+        }
         ID::IdentifiedPeptide peptide(hit.getSequence());
         peptide.addProcessingStep(step_ref);
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
           const String& accession = evidence.getProteinAccession();
-          if (accession.empty()) continue;
+          if (accession.empty())
+          {
+            continue;
+          }
           ID::ParentMolecule parent(accession);
           parent.addProcessingStep(step_ref);
           // this will merge information if the protein already exists:
@@ -331,7 +337,10 @@ namespace OpenMS
       const ID::ParentMatches* parent_matches_ptr;
       if (!export_oligonucleotides) // export peptides
       {
-        if (query_match.getMoleculeType() != ID::MoleculeType::PROTEIN) continue;
+        if (query_match.getMoleculeType() != ID::MoleculeType::PROTEIN)
+        {
+          continue;
+        }
         static_cast<MetaInfoInterface&>(hit) = query_match;
         ID::IdentifiedPeptideRef peptide_ref =
           query_match.getIdentifiedPeptideRef();
@@ -380,7 +389,10 @@ namespace OpenMS
       // generate hits in different ID runs for different processing steps:
       for (ID::AppliedProcessingStep applied : query_match.steps_and_scores)
       {
-        if (applied.scores.empty()) continue;
+        if (applied.scores.empty())
+        {
+          continue;
+        }
         PeptideHit hit_copy = hit;
         vector<pair<ID::ScoreTypeRef, double>> scores =
           applied.getScoresInOrder();
@@ -437,7 +449,10 @@ namespace OpenMS
         parent.molecule_type == (export_oligonucleotides ?
                                  ID::MoleculeType::RNA :
                                  ID::MoleculeType::PROTEIN);
-      if (!right_type) continue;
+      if (!right_type)
+      {
+        continue;
+      }
       ProteinHit hit;
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);

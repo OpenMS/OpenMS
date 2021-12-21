@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/DTAFile.h>
@@ -113,11 +113,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPepNovoAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
   public:
   TOPPPepNovoAdapter() :
-    TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
+    SearchEngineBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
     {
     }
 
@@ -169,17 +169,13 @@ class TOPPPepNovoAdapter :
 
       PeakMap exp;
 
-      String inputfile_name = getStringOption_("in");
-      writeDebug_(String("Input file: ") + inputfile_name, 1);
+      String inputfile_name = getRawfileName();
 
       String outputfile_name = getStringOption_("out");
-      writeDebug_(String("Output file: ") + outputfile_name, 1);
 
       String model_directory = getStringOption_("model_directory");
-      writeDebug_(String("model directory: ") + model_directory, 1);
 
       String model_name = getStringOption_("model");
-      writeDebug_(String("model directory: ") + model_name, 1);
 
       double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
@@ -273,23 +269,23 @@ class TOPPPepNovoAdapter :
           return INPUT_FILE_NOT_FOUND;
         }
 
-        for (QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+        for (const QString& file : pepnovo_files)
         {
-          if (qdir_models_source.cd(*file_it))
+          if (qdir_models_source.cd(file))
           {
-            qdir_temp.mkdir(*file_it);
-            qdir_temp.cd(*file_it);
+            qdir_temp.mkdir(file);
+            qdir_temp.cd(file);
             QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
-            for (QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+            for (const QString& subdir_file : subdir_files)
             {
-              QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
+              QFile::copy(qdir_models_source.filePath(subdir_file), qdir_temp.filePath(subdir_file));
             }
             qdir_temp.cdUp();
             qdir_models_source.cdUp();
           }
           else
           {
-            QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
+            QFile::copy(qdir_models_source.filePath(file), qdir_temp.filePath(file));
           }
         }
 
@@ -305,7 +301,7 @@ class TOPPPepNovoAdapter :
 
           for (std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
           {
-            if (ptm_command!="")
+            if (!ptm_command.empty())
             {
               ptm_command+=":";
             }
@@ -321,16 +317,40 @@ class TOPPPepNovoAdapter :
 
         arguments << "-file" << mgf_file.toQString();
         arguments << "-model" << model_name.toQString();
-        if (pm_tolerance != -1 ) arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
-        if (fragment_tolerance != -1 ) arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
-        if (!ptm_command.empty()) arguments <<"-PTMs" <<ptm_command.toQString();
-        if (getFlag_("correct_pm")) arguments << "-correct_pm";
-        if (getFlag_("use_spectrum_charge")) arguments << "-use_spectrum_charge";
-        if (getFlag_("use_spectrum_mz")) arguments << "-use_spectrum_mz";
-        if (getFlag_("no_quality_filter")) arguments << "-no_quality_filter";
+        if (pm_tolerance != -1 )
+        {
+          arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
+        }
+        if (fragment_tolerance != -1 )
+        {
+          arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
+        }
+        if (!ptm_command.empty())
+        {
+          arguments <<"-PTMs" <<ptm_command.toQString();
+        }
+        if (getFlag_("correct_pm"))
+        {
+          arguments << "-correct_pm";
+        }
+        if (getFlag_("use_spectrum_charge"))
+        {
+          arguments << "-use_spectrum_charge";
+        }
+        if (getFlag_("use_spectrum_mz"))
+        {
+          arguments << "-use_spectrum_mz";
+        }
+        if (getFlag_("no_quality_filter"))
+        {
+          arguments << "-no_quality_filter";
+        }
         arguments << "-digest" << digest.toQString();
         arguments << "-num_solutions" << String(num_solutions).toQString();
-        if (tag_length!=-1) arguments<<"-tag_length" << String(tag_length).toQString();
+        if (tag_length!=-1)
+        {
+          arguments<<"-tag_length" << String(tag_length).toQString();
+        }
         arguments<<"-model_dir" << tmp_models_dir.toQString();
         //arguments<<">" << temp_pepnovo_outfile.toQString();
 
@@ -356,7 +376,10 @@ class TOPPPepNovoAdapter :
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }
 
-        if (process.exitStatus() != 0)  error = true;
+        if (process.exitStatus() != 0)
+        {
+          error = true;
+        }
        
       }
       catch(Exception::BaseException &exc)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,18 +75,18 @@ namespace OpenMS
 
     // post-processing
     set<String> accessions;
-    for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
+    for (PeptideIdentification& pep : peptide_identifications)
     {
-      it->setScoreType("OMSSA");
-      it->setHigherScoreBetter(false);
-      it->setIdentifier(identifier);
-      it->assignRanks();
+      pep.setScoreType("OMSSA");
+      pep.setHigherScoreBetter(false);
+      pep.setIdentifier(identifier);
+      pep.assignRanks();
 
       if (load_proteins)
       {
-        for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+        for (const PeptideHit& pit : pep.getHits())
         {
-          set<String> hit_accessions = pit->extractProteinAccessionsSet();
+          set<String> hit_accessions = pit.extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
@@ -138,7 +138,7 @@ namespace OpenMS
     // end of peptide id
     else if (tag_ == "MSHitSet")
     {
-      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_)
+      if (!actual_peptide_id_.getHits().empty()  || load_empty_hits_)
       {
         peptide_identifications_->push_back(actual_peptide_id_);
       }
@@ -155,7 +155,7 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
+      if (mods_map_.has(actual_mod_type_.toInt()) && !mods_map_[actual_mod_type_.toInt()].empty())
       {
         if (mods_map_[actual_mod_type_.toInt()].size() > 1)
         {
@@ -285,12 +285,13 @@ namespace OpenMS
         {
           String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
           UInt position(0);
-          for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
+          for (const Residue& ait : seq)
           {
-            if (ait->getOneLetterCode() == origin)
+            if (ait.getOneLetterCode() == origin)
             {
               seq.setModification(position, *it);
             }
+            ++position;
           }
         }
       }
@@ -305,7 +306,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAABefore(value[0]);
       }
@@ -314,7 +315,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
@@ -356,7 +357,7 @@ namespace OpenMS
     {
       // value might be  ( OMSSA 2.1.8): 359.213256835938_3000.13720000002_controllerType=0 controllerNumber=1 scan=4655
       //                 (<OMSSA 2.1.8): 359.213256835938_3000.13720000002
-      if (value.trim() != "")
+      if (!value.trim().empty())
       {
         if (value.has('_'))
         {
@@ -385,7 +386,7 @@ namespace OpenMS
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
 
@@ -179,6 +179,60 @@ namespace OpenMS
     return result;
   }
 
+  // static
+  IsotopeDistribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge)
+  {
+    IsotopeDistribution result;
+    result.resize(num_peaks);
+
+    // lambda * mass. Lambda is the parameter for Poisson distribution. Value (1/1800) taken from Bellew et al
+    double factor = mass / 1800.0;
+
+    // for k=0, non-normalized value is always 1
+    result[0] = Peak1D(mass, 1.0f);
+
+    float curr_intensity = 1.0f;
+    for (UInt k = 1; k < num_peaks; ++k) // result[0] is always 1 anyway
+    {
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
+      result[k] = Peak1D(mass + (k * OpenMS::Constants::NEUTRON_MASS_U / charge),
+                         curr_intensity != curr_intensity ? 0.0f : curr_intensity);
+    }
+
+    result.renormalize();
+
+    return result;
+  }
+
+  std::vector<double> CoarseIsotopePatternGenerator::approximateIntensities(double mass, UInt num_peaks)
+  {
+    std::vector<double> result(num_peaks, 1.0);
+
+    // lambda * mass. Lambda is the parameter of Poisson distribution. Value (1/1800) taken from Bellew et al
+    double factor = mass / 1800.0;
+    double curr_intensity = 1.0;
+    double sum = 1.0; // result[0] is always factor^0/1 = 1, which is the reason why we start the loop at 1
+
+    for (UInt k = 1; k < num_peaks; ++k)
+    {
+      curr_intensity *= factor / k; // represents (m * lambda)^k / k!
+
+      // at some point, curr_intensity will become too small for float (which is the intensity type of Peak1D)
+      result[k] = curr_intensity != curr_intensity ? 0.0: curr_intensity;
+      sum += result[k];
+    }
+
+    // normalize
+    for (UInt k = 0; k != result.size(); ++k)
+    {
+      result[k] /= sum;
+    }
+
+    return result;
+  }
+
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 7, 0, 1);
@@ -189,7 +243,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
@@ -229,7 +283,6 @@ namespace OpenMS
       return result;
     }
 
-
     // ensure the isotope cluster has no gaps
     // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
     IsotopeDistribution::ContainerType left_l = fillGaps_(left);
@@ -266,6 +319,10 @@ namespace OpenMS
   IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
   {
     IsotopeDistribution::ContainerType result;
+    if (input.empty())
+    {
+      return result;
+    }
     // TODO: use FFT convolve?
     if (n == 1)
     {
@@ -383,7 +440,7 @@ namespace OpenMS
     //
     // We want to calculate the probability the fragment will be isotope x given that we isolated precursors M0,M+1,M+2
     //
-    // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // bayes' theorem
+    // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // Bayes' theorem
     //        = P(fi=0) * (P(pi=0|fi=0) + P(pi=1|fi=0) + P(pi=2|fi=0)) / (P(pi=0) + P(pi=1) + P(pi=2))  // mutually exclusive events
     //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2)) / (P(pi=0) + P(pi=1) + P(pi=2))                 // The only way pi=x|fi=y, is if ci=x-y
     //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2))                                                 // ignore normalization for now
@@ -427,43 +484,47 @@ namespace OpenMS
 
   IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
+    if (id.empty()) return id;
     IsotopeDistribution::ContainerType id_gapless;
     Size mass = round(id.begin()->getMZ());
-    for (IsotopeDistribution::ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
+    Size massend = round((--id.end())->getMZ());
+    id_gapless.resize(massend - mass + 1);
+
+    Size mass_cnt = mass;
+    for (auto& peak : id_gapless)
     {
-      //round atomic mass to the mass_number
-      if (round(it->getMZ()) != mass)
-      { // missing an entry
-        id_gapless.push_back(Peak1D(mass, 0.0));
-      }
-      else
-      { // mass is registered already
-        id_gapless.push_back(Peak1D(round(it->getMZ()), it->getIntensity())); // copy
-        ++it;  // ... and advance
-      }
+      peak.setMZ(mass_cnt);
+      mass_cnt++;
     }
+
+    for (const auto& peak : id)
+    {
+      Size to_set = round(peak.getMZ());
+      id_gapless[to_set-mass].setIntensity(peak.getIntensity());
+    }
+
     return id_gapless;
   }
 
-    IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const
+  {
+    IsotopeDistribution::ContainerType result(input.size());
+
+    for (Size i = 0; i < input.size(); ++i)
     {
-      IsotopeDistribution::ContainerType result(input.size());
-
-      for (Size i = 0; i < input.size(); ++i)
+      // We assume that a coarse isotopic peak is mostly composed of carbon-13's
+      // and therefore use the mass difference between carbon-13 and carbon-12
+      // to determine the expected mass of a coarse isotopic peak.
+      double mass = mono_weight + (i * Constants::C13C12_MASSDIFF_U);
+      if (getRoundMasses())
       {
-        // We assume that a coarse isotopic peak is mostly composed of carbon-13's
-        // and therefore use the mass difference between carbon-13 and carbon-12
-        // to determine the expected mass of a coarse isotopic peak.
-        double mass = mono_weight + (i * Constants::C13C12_MASSDIFF_U);
-        if (getRoundMasses())
-        {
-          mass = round(mass);
-        }
-
-        result[i] = Peak1D(mass, input[i].getIntensity() );
+        mass = round(mass);
       }
 
-      return result;
+      result[i] = Peak1D(mass, input[i].getIntensity() );
     }
+
+    return result;
+  }
 }
 

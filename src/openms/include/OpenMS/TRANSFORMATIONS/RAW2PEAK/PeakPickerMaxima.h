@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ public:
     void findMaxima(const std::vector<double>& mz_array,
         const std::vector<double>& int_array,
         std::vector<PeakCandidate>& pc,
-        bool check_spacings = true);
+        bool check_spacings = true) const;
 
     /**
       @brief Will pick peaks in a spectrum

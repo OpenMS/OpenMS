@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIs
 
         # wrap-inherits:
         #    DefaultParamHandler
-        FeatureFinderAlgorithmIsotopeWavelet()      nogil except +
+        FeatureFinderAlgorithmIsotopeWavelet() nogil except +
 
         void setData(MSExperiment & input, FeatureMap& output, FeatureFinder & ff) nogil except +
         void run() nogil except +

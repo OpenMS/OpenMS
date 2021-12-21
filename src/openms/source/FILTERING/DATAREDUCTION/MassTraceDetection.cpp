@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,28 +48,32 @@ namespace OpenMS
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
       defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
-      defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
       defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
-      defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
+      defaults_.setValidStrings("quant_method", std::vector<std::string>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
       // advanced parameters
-      defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("trace_termination_criterion", ListUtils::create<String>("outlier,sample_rate"));
-      defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", {"advanced"});
+      defaults_.setValidStrings("trace_termination_criterion", {"outlier","sample_rate"});
+      defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", {"advanced"});
 
-      defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-      defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", {"advanced"});
+      defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", {"advanced"});
+      defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", {"advanced"});
 
       defaultsToParam_();
 
       this->setLogType(CMD);
     }
 
-    MassTraceDetection::~MassTraceDetection()
-    {
-    }
+    MassTraceDetection::~MassTraceDetection() = default;
+
+    MassTraceDetection::Apex::Apex(double intensity, Size scan_idx, Size peak_idx):
+      intensity(intensity),
+      scan_idx(scan_idx),
+      peak_idx(peak_idx)
+    {}
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
                                                            const double& added_int, double& centroid_mz, double& prev_counter,
@@ -133,7 +137,7 @@ namespace OpenMS
       // std::cerr << "func:  " << tmp << " " << i << std::endl;
     }
 
-    void updateWeightedSDEstimate(PeakType p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
       double weights_sum = last_weights_sum + p.getIntensity();
@@ -148,7 +152,7 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
-    void updateWeightedSDEstimateRobust(PeakType p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
@@ -196,7 +200,7 @@ namespace OpenMS
       //   - use work_exp for actual work (remove peaks below noise threshold)
       //   - store potential apices in chrom_apices
       PeakMap work_exp;
-      MapIdxSortedByInt chrom_apices;
+      std::vector<Apex> chrom_apices;
 
       Size total_peak_count(0);
       std::vector<Size> spec_offsets;
@@ -207,15 +211,17 @@ namespace OpenMS
       // *********************************************************** //
       //  Step 1: Detecting potential chromatographic apices
       // *********************************************************** //
-      for (PeakMap::ConstIterator it = input_exp.begin(); it != input_exp.end(); ++it)
+      for (const MSSpectrum& it : input_exp)
       {
         // check if this is a MS1 survey scan
-        if (it->getMSLevel() != 1) continue;
-
-        std::vector<Size> indices_passing;
-        for (Size peak_idx = 0; peak_idx < it->size(); ++peak_idx)
+        if (it.getMSLevel() != 1)
         {
-          double tmp_peak_int((*it)[peak_idx].getIntensity());
+          continue;
+        }
+        std::vector<Size> indices_passing;
+        for (Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
+        {
+          double tmp_peak_int((it)[peak_idx].getIntensity());
           if (tmp_peak_int > noise_threshold_int_)
           {
             // Assume that noise_threshold_int_ contains the noise level of the
@@ -223,13 +229,13 @@ namespace OpenMS
             // --> add this peak as possible chromatographic apex
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apices.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, indices_passing.size())));
+              chrom_apices.emplace_back(tmp_peak_int, spectra_count, indices_passing.size());
             }
             indices_passing.push_back(peak_idx);
             ++total_peak_count;
           }
         }
-        PeakMap::SpectrumType tmp_spec(*it);
+        PeakMap::SpectrumType tmp_spec(it);
         tmp_spec.select(indices_passing);
         work_exp.addSpectrum(tmp_spec);
         spec_offsets.push_back(spec_offsets.back() + tmp_spec.size());
@@ -245,6 +251,13 @@ namespace OpenMS
       // discard last spectrum's offset
       spec_offsets.pop_back();
 
+      std::sort(chrom_apices.begin(), chrom_apices.end(),
+                [](const Apex & a,
+                    const Apex & b) -> bool
+      {
+        return a.intensity < b.intensity;
+      });
+
       // *********************************************************************
       // Step 2: start extending mass traces beginning with the apex peak (go
       // through all peaks in order of decreasing intensity)
@@ -254,7 +267,7 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
-    void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices,
+    void MassTraceDetection::run_(const std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
                                   const std::vector<Size>& spec_offsets,
@@ -269,7 +282,7 @@ namespace OpenMS
       Size fwhm_meta_count(0);
       for (Size i = 0; i < work_exp.size(); ++i)
       {
-        if (work_exp[i].getFloatDataArrays().size() > 0 &&
+        if (!work_exp[i].getFloatDataArrays().empty() &&
             work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm")
         {
           if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
@@ -290,10 +303,10 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
-      for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apices.rbegin(); m_it != chrom_apices.rend(); ++m_it)
+      for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
       {
-        Size apex_scan_idx(m_it->second.first);
-        Size apex_peak_idx(m_it->second.second);
+        Size apex_scan_idx(m_it->scan_idx);
+        Size apex_peak_idx(m_it->peak_idx);
 
         if (peak_visited[spec_offsets[apex_scan_idx] + apex_peak_idx])
         {
@@ -320,7 +333,7 @@ namespace OpenMS
         updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
         std::vector<std::pair<Size, Size> > gathered_idx;
-        gathered_idx.push_back(std::make_pair(apex_scan_idx, apex_peak_idx));
+        gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
         if (fwhm_meta_idx != -1)
         {
           fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx][apex_peak_idx]);
@@ -381,7 +394,7 @@ namespace OpenMS
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
+                gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
 
                 // Update the m/z variance dynamically
                 if (reestimate_mt_sd_)           //  && (down_hitting_peak+1 > min_flank_scans))
@@ -457,7 +470,7 @@ namespace OpenMS
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
+                gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
                 if (reestimate_mt_sd_)           //  && (up_hitting_peak+1 > min_flank_scans))
@@ -530,7 +543,10 @@ namespace OpenMS
           MassTrace new_trace(current_trace);
           new_trace.updateWeightedMeanRT();
           new_trace.updateWeightedMeanMZ();
-          if (!fwhms_mz.empty()) new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+          if (!fwhms_mz.empty())
+          {
+            new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+          }
           new_trace.setQuantMethod(quant_method_);
           //new_trace.setCentroidSD(ftl_sd);
           new_trace.updateWeightedMZsd();
@@ -543,7 +559,10 @@ namespace OpenMS
           this->setProgress(peaks_detected);
 
           // check if we already reached the (optional) maximum number of traces
-          if (max_traces > 0 && found_masstraces.size() == max_traces) break;
+          if (max_traces > 0 && found_masstraces.size() == max_traces)
+          {
+            break;
+          }
         }
       }
 
@@ -556,9 +575,9 @@ namespace OpenMS
       mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
+      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
 
-      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
+      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion").toString();
       trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");

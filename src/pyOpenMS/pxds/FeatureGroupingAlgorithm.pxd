@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" name
         # Abstract Class
         void transferSubelements(libcpp_vector[ConsensusMap] maps,
                                  ConsensusMap & out
-                                ) nogil except +
+                                ) nogil except + # wrap-doc:Transfers subelements (grouped features) from input consensus maps to the result consensus map
 
         # since this is a base class, cannot have overloaded methods
         # void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out)
         # void group(libcpp_vector[ ConsensusMap ] & maps, ConsensusMap & out)
-        void registerChildren() nogil except +
+        void registerChildren() nogil except + # wrap-doc:Register all derived classes in this method

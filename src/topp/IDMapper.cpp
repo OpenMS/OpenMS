@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -147,9 +147,9 @@ protected:
     registerDoubleOption_("mz_tolerance", "<value>", p.getValue("mz_tolerance"), "m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.\nTolerance is understood as 'plus or minus x', so the matching range increases by twice the given value.", false);
     setMinFloat_("mz_tolerance", 0.0);
     registerStringOption_("mz_measure", "<choice>", p.getEntry("mz_measure").valid_strings[0], "Unit of 'mz_tolerance'.", false);
-    setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
+    setValidStrings_("mz_measure", ListUtils::toStringList<std::string>(p.getEntry("mz_measure").valid_strings));
     registerStringOption_("mz_reference", "<choice>", p.getEntry("mz_reference").valid_strings[1], "Source of m/z values for peptide identifications. If 'precursor', the precursor-m/z from the idXML is used. If 'peptide',\nmasses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.\n('peptide' should be used together with 'feature:use_centroid_mz' to avoid false-positive matches.)", false);
-    setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
+    setValidStrings_("mz_reference", ListUtils::toStringList<std::string>(p.getEntry("mz_reference").valid_strings));
     registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.", true);
 
     addEmptyLine_();
@@ -284,11 +284,11 @@ protected:
       file.load(in, msq);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
-      for (std::vector<ConsensusMap>::iterator it = msq.getConsensusMaps().begin(); it != msq.getConsensusMaps().end(); ++it)
+      for (ConsensusMap& cm : msq.getConsensusMaps())
       {
-        mapper.annotate(*it, peptide_ids, protein_ids, measure_from_subelements);
+        mapper.annotate(cm, peptide_ids, protein_ids, measure_from_subelements);
         //annotate output with data processing info
-        addDataProcessing_(*it, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+        addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       }
 
       //~ writeDebug_(msq.getConsensusMaps().size(),3);

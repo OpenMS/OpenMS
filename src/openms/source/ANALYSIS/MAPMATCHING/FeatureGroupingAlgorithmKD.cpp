@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 using namespace std;
 
@@ -50,16 +51,16 @@ namespace OpenMS
     setName("FeatureGroupingAlgorithmKD");
 
     defaults_.setValue("warp:enabled", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
-    defaults_.setValidStrings("warp:enabled", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("warp:enabled", {"true","false"});
     defaults_.setValue("warp:rt_tol", 100.0, "Width of RT tolerance window (sec)");
     defaults_.setMinFloat("warp:rt_tol", 0.0);
     defaults_.setValue("warp:mz_tol", 5.0, "m/z tolerance (in ppm or Da)");
     defaults_.setMinFloat("warp:mz_tol", 0.0);
-    defaults_.setValue("warp:max_pairwise_log_fc", 0.5, "Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("warp:min_rel_cc_size", 0.5, "Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
+    defaults_.setValue("warp:max_pairwise_log_fc", 0.5, "Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", {"advanced"});
+    defaults_.setValue("warp:min_rel_cc_size", 0.5, "Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", {"advanced"});
     defaults_.setMinFloat("warp:min_rel_cc_size", 0.0);
     defaults_.setMaxFloat("warp:min_rel_cc_size", 1.0);
-    defaults_.setValue("warp:max_nr_conflicts", 0, "Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("warp:max_nr_conflicts", 0, "Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", {"advanced"});
     defaults_.setMinInt("warp:max_nr_conflicts", -1);
 
     defaults_.setValue("link:rt_tol", 30.0, "Width of RT tolerance window (sec)");
@@ -72,7 +73,7 @@ namespace OpenMS
     defaults_.setValidStrings("link:adduct_merging", {"Identical", "With_unknown_adducts", "Any"});
 
     defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
-    defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("mz_unit", {"ppm","Da"});
     defaults_.setValue("nr_partitions", 100, "Number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
 

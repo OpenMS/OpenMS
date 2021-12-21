@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -88,7 +89,7 @@ namespace OpenMS
     }
 
     // extrapolation:
-    String extrapolate = params_.getValue("extrapolate");
+    std::string extrapolate = params_.getValue("extrapolate");
     if (extrapolate == "b_spline")
     {
       extrapolate_ = EX_BSPLINE;
@@ -163,7 +164,7 @@ namespace OpenMS
     params.setValue("num_nodes", 5, "Number of nodes for B-spline fitting. Overrides 'wavelength' if set (to two or greater). A lower value means more smoothing.");
     params.setMinInt("num_nodes", 0);
     params.setValue("extrapolate", "linear", "Method to use for extrapolation beyond the original data range. 'linear': Linear extrapolation using the slope of the B-spline at the corresponding endpoint. 'b_spline': Use the B-spline (as for interpolation). 'constant': Use the constant value of the B-spline at the corresponding endpoint. 'global_linear': Use a linear fit through the data (which will most probably introduce discontinuities at the ends of the data range).");
-    params.setValidStrings("extrapolate", ListUtils::create<String>("linear,b_spline,constant,global_linear"));
+    params.setValidStrings("extrapolate", {"linear","b_spline","constant","global_linear"});
     params.setValue("boundary_condition", 2, "Boundary condition at B-spline endpoints: 0 (value zero), 1 (first derivative zero) or 2 (second derivative zero)");
     params.setMinInt("boundary_condition", 0);
     params.setMaxInt("boundary_condition", 2);

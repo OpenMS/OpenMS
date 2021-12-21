@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,7 +138,7 @@ protected:
     p_epd.remove("chrom_fwhm");
 
     p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.setValidStrings("enabled", {"true","false"});
     combined.insert("epd:", p_epd);
 
     return combined;
@@ -170,7 +170,7 @@ protected:
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
-    if (ms_peakmap.size() == 0)
+    if (ms_peakmap.empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -258,16 +258,18 @@ protected:
       
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         ConsensusFeature fcons;
         int k = 0;
-        for (MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
+        for (const Peak2D& mss : m_traces_final[i])
         {
           FeatureHandle fhandle;
-          fhandle.setRT(it->getRT());
-          fhandle.setMZ(it->getMZ());
-          fhandle.setIntensity(it->getIntensity());
+          fhandle.setRT(mss.getRT());
+          fhandle.setMZ(mss.getMZ());
+          fhandle.setIntensity(mss.getIntensity());
           fhandle.setUniqueId(++k);
           fcons.insert(fhandle);
         }
@@ -310,8 +312,10 @@ protected:
 
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         m_traces_final[i].updateMeanMZ();
         m_traces_final[i].updateWeightedMZsd();
 
@@ -327,13 +331,16 @@ protected:
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue("SD", sd);
         f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        if (m_traces_final[i].fwhm_mz_avg > 0)
+        {
+          f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }
 
       // print some stats about standard deviation of mass traces
-      if (stats_sd.size() > 0)
+      if (!stats_sd.empty())
       {
         std::sort(stats_sd.begin(), stats_sd.end());
         OPENMS_LOG_INFO << "Mass trace m/z s.d.\n"

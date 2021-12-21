@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,8 +121,9 @@ namespace OpenMS
   {
     // handle self assignment
     if (this == &rhs)
+    {
       return *this;
-
+    }
     height = rhs.height;
     mz_position = rhs.mz_position;
     left_width = rhs.left_width;
@@ -172,18 +173,26 @@ namespace OpenMS
     {
     case LORENTZ_PEAK:
       if (x <= mz_position)
+      {
         // see equation 8.7 on p. 72 in Dissertation of Eva Lange
         value = height / (1. + pow(left_width * (x - mz_position), 2));
+      }
       else
+      {
         value = height / (1. + pow(right_width * (x - mz_position), 2));
+      }
       break;
 
     case SECH_PEAK:
       if (x <= mz_position)
+      {
         // see equation 8.8 on p. 72 in Dissertation of Eva Lange
         value = height / pow(cosh(left_width * (x - mz_position)), 2);
+      }
       else
+      {
         value = height / pow(cosh(right_width * (x - mz_position)), 2);
+      }
       break;
 
     default:
@@ -231,19 +240,26 @@ namespace OpenMS
     double value;
 
     if (left_width < right_width)
+    {
       value = left_width / right_width;
+    }
     else
+    {
       value = right_width / left_width;
-
+    }
     return value;
   }
 
   bool PeakShape::iteratorsSet() const
   {
     if (left_iterator_set_ && right_iterator_set_)
+    {
       return true;
+    }
     else
+    {
       return false;
+    }
   }
 
   PeakShape::PeakIterator PeakShape::getLeftEndpoint() const

@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -544,7 +544,6 @@ foreach ($files_todo as $f)
   $dont_load = array(
     "IsotopeCluster.h",
     "RangeUtils.h",
-    "ComparatorUtils.h",
     "StatisticFunctions.h",
     "KernelTraits.h",
     "StandardTypes.h",
@@ -1026,7 +1025,7 @@ foreach ($files_todo as $f)
   {
     // don't report e.g. abstract base classes
     $dont_report = array(
-      "src/openms/include/OpenMS/VISUAL/SpectrumCanvas.h",
+      "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
       "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",

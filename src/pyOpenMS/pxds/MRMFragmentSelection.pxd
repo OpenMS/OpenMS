@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>" namespace "OpenM
         # wrap-inherits:
         #  DefaultParamHandler
         MRMFragmentSelection() nogil except +
-        MRMFragmentSelection(MRMFragmentSelection) nogil except +
-        void selectFragments(libcpp_vector[ Peak1D ] & selected_peaks, MSSpectrum & spec) nogil except +
+        MRMFragmentSelection(MRMFragmentSelection&) nogil except +
+        void selectFragments(libcpp_vector[ Peak1D ] & selected_peaks, MSSpectrum & spec) nogil except + # wrap-doc:Selects accordingly to the parameters the best peaks of spec and writes them into `selected_peaks`
+
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;
@@ -118,11 +118,11 @@ namespace OpenMS
     // calculate the local transformation
     si_trafo.invert(); // to undo the transformation applied above
     TransformationDescription::DataPoints data;
-    for (ConsensusMap::Iterator it = result.begin(); it != result.end(); ++it)
+    for (ConsensusFeature& cfeature : result)
     {
-      if (it->size() == 2) // two matching features
+      if (cfeature.size() == 2) // two matching features
       {
-        ConsensusFeature::iterator feat_it = it->begin();
+        ConsensusFeature::iterator feat_it = cfeature.begin();
         double y = feat_it->getRT();
         double x = si_trafo.apply((++feat_it)->getRT());
         // one feature should be from the reference map:

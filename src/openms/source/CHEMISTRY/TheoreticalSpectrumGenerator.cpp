@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 
 #include <unordered_set>
 
@@ -53,49 +54,49 @@ namespace OpenMS
     DefaultParamHandler("TheoreticalSpectrumGenerator")
   {
     defaults_.setValue("isotope_model", "none", "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
-    defaults_.setValidStrings("isotope_model", ListUtils::create<String>("none,coarse,fine"));
+    defaults_.setValidStrings("isotope_model", {"none","coarse","fine"});
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added if 'isotope_model' is 'coarse'");
     defaults_.setValue("max_isotope_probability", 0.05, "Defines the maximal isotopic probability to cover if 'isotope_model' is 'fine'");
 
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValidStrings("add_losses", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_losses", {"true","false"});
 
     defaults_.setValue("sort_by_position", "true", "Sort output by position");
-    defaults_.setValidStrings("sort_by_position", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("sort_by_position", {"true","false"});
 
     defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the unfragmented precursor ion to the spectrum");
-    defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_precursor_peaks", {"true","false"});
 
     defaults_.setValue("add_all_precursor_charges", "false", "Adds precursor peaks with all charges in the given range");
-    defaults_.setValidStrings("add_all_precursor_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_all_precursor_charges", {"true","false"});
 
     defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
-    defaults_.setValidStrings("add_abundant_immonium_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_abundant_immonium_ions", {"true","false"});
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
-    defaults_.setValidStrings("add_first_prefix_ion", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_first_prefix_ion", {"true","false"});
 
     defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("add_y_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_y_ions", {"true","false"});
 
     defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("add_b_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_b_ions", {"true","false"});
 
     defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("add_a_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_a_ions", {"true","false"});
 
     defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("add_c_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_c_ions", {"true","false"});
 
     defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("add_x_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_x_ions", {"true","false"});
 
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("add_z_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_z_ions", {"true","false"});
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
@@ -133,7 +134,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge) const
   {
     if (peptide.empty())
     {
@@ -144,7 +145,17 @@ namespace OpenMS
     PeakSpectrum::StringDataArray* ion_names;
     PeakSpectrum::IntegerDataArray* charges;
 
-    bool charges_dynamic = false, ion_names_dynamic = false;
+    bool charges_dynamic = false;
+    bool ion_names_dynamic = false;
+
+    // Assure memory is freed even if an exception occurs.
+    RAIICleanup _(
+      [&]
+        {
+          if (charges_dynamic) delete charges;
+          if (ion_names_dynamic) delete ion_names;
+        }
+    );
 
     if (spectrum.getIntegerDataArrays().empty())
     {
@@ -212,10 +223,72 @@ namespace OpenMS
       }
     }
 
-    if (charges_dynamic) delete charges;
-    if (ion_names_dynamic) delete ion_names;
-
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
+
+    // set MS Level
+    spectrum.setMSLevel(2);
+
+    // set spectrum type
+    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+
+    // set precursor
+    Precursor prec;
+
+    if (precursor_charge == 0)
+    {
+      precursor_charge = max_charge +1;
+    }
+    
+    if (precursor_charge < max_charge)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than or equal to 'max_charge'.");
+    }
+
+    prec.setCharge(precursor_charge);
+    prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
+    spectrum.getPrecursors().push_back(prec);
+  }
+
+  MSSpectrum TheoreticalSpectrumGenerator::generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge)
+  {
+    if (precursor_charge == 0)
+    {
+      OPENMS_LOG_WARN << "Precursor charge can't be 0. Using 2 instead." << endl;
+      precursor_charge = 2;
+    }
+
+    // initialize a TheoreticalSpectrumGenerator
+    TheoreticalSpectrumGenerator theo_gen;
+
+    // get current parameters (default)
+    // default with b and y ions
+    Param theo_gen_settings = theo_gen.getParameters();
+
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    {
+      theo_gen_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_y_ions", "true");
+    }
+    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+    {
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+      theo_gen_settings.setValue("add_b_ions", "false");
+      theo_gen_settings.setValue("add_y_ions", "false");
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
+    }
+
+    // set changed parameters
+    theo_gen.setParameters(theo_gen_settings);
+
+    // generate b/y or c/z-ion spectrum of peptide seq
+    PeakSpectrum theo_spectrum;
+    theo_gen.getSpectrum(theo_spectrum, seq, 1, precursor_charge <= 2 ? 1 : 2);
+
+    return theo_spectrum;
   }
 
 
@@ -511,7 +584,7 @@ namespace OpenMS
     std::set<EmpiricalFormula> fx_losses;
     std::map<EmpiricalFormula, String> formula_str_cache;
 
-    // precompute formula_str_cache
+    // pre-compute formula_str_cache
     if (add_losses_)
     {
       for (auto& p : peptide)

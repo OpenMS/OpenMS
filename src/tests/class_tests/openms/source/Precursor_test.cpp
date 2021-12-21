@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,13 +82,13 @@ END_SECTION
 
 START_SECTION((double getDriftTimeUnit() const ))
   Precursor tmp;
-  TEST_EQUAL(tmp.getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE);
+  TEST_EQUAL(tmp.getDriftTimeUnit() == DriftTimeUnit::NONE, true);
 END_SECTION
 
 START_SECTION((void setDriftTimeUnit(double dt)))
   Precursor tmp;
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
-  TEST_EQUAL(tmp.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
+  tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(tmp.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
 END_SECTION
 
 START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
@@ -193,7 +193,7 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setDriftTime(7.11);
   tmp.setDriftTimeWindowUpperOffset(12.8);
   tmp.setDriftTimeWindowLowerOffset(12.7);
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+  tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(2);
   tmp.getPossibleChargeStates().resize(2);
   tmp.setMetaValue("label",String("label"));
@@ -206,7 +206,7 @@ START_SECTION((Precursor(const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 12.8);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
-  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),2);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),2);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -224,7 +224,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   tmp.setDriftTime(0.11);
   tmp.setDriftTimeWindowUpperOffset(10.8);
   tmp.setDriftTimeWindowLowerOffset(10.7);
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::VSSC);
+  tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
   tmp.setMetaValue("label",String("label2"));
@@ -243,7 +243,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTime(),0.11);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 10.8);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 10.7);
-  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
@@ -260,7 +260,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   tmp.setDriftTime(7.11);
   tmp.setDriftTimeWindowUpperOffset(12.8);
   tmp.setDriftTimeWindowLowerOffset(12.7);
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+  tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(9);
   tmp.getPossibleChargeStates().resize(5);
   tmp.setMetaValue("label",String("label"));
@@ -275,7 +275,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 12.8);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
-  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),9);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),5);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -289,7 +289,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTime(),-1.0);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 0.0);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 0.0);
-  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE);
+  TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::NONE, true);
   TEST_EQUAL(tmp2.getCharge(),0);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -307,7 +307,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   tmp.setDriftTime(0.11);
   tmp.setDriftTimeWindowUpperOffset(10.8);
   tmp.setDriftTimeWindowLowerOffset(10.7);
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::VSSC);
+  tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
   tmp.setMetaValue("label",String("label2"));
@@ -327,7 +327,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTime(),0.11);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 10.8);
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 10.7);
-  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
@@ -347,7 +347,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+  tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
@@ -396,7 +396,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;
-  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+  tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;

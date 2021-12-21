@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -128,7 +128,7 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
-    Hint: this adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    @note This adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
     will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
 
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
@@ -140,7 +140,6 @@ using namespace std;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_OMSSAAdapter.html
 
-    @improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -148,11 +147,11 @@ using namespace std;
 
 
 class TOPPOMSSAAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPOMSSAAdapter() :
-    TOPPBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
+    SearchEngineBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
   {
   }
 
@@ -174,12 +173,24 @@ protected:
 
     bool operator<(const OMSSAVersion& v) const
     {
-      if (omssa_major > v.omssa_major) return false;
-      else if (omssa_major < v.omssa_major) return true;
+      if (omssa_major > v.omssa_major)
+      {
+        return false;
+      }
+      else if (omssa_major < v.omssa_major)
+      {
+        return true;
+      }
       else // ==
       {
-        if (omssa_minor > v.omssa_minor) return false;
-        else if (omssa_minor < v.omssa_minor) return true;
+        if (omssa_minor > v.omssa_minor)
+        {
+          return false;
+        }
+        else if (omssa_minor < v.omssa_minor)
+        {
+          return true;
+        }
         else
         {
           return omssa_patch < v.omssa_patch;
@@ -194,8 +205,10 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
-
+    if (nums.size() != 3)
+    {
+      return false;
+    }
     omssa_version_i.omssa_major = nums[0];
     omssa_version_i.omssa_minor = nums[1];
     omssa_version_i.omssa_patch = nums[2];
@@ -438,10 +451,8 @@ protected:
       }
     }
     // parse arguments
-    String inputfile_name = getStringOption_("in");
+    String inputfile_name = getRawfileName();
     String outputfile_name = getStringOption_("out");
-    String db_name = String(getStringOption_("database"));
-    // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
     //-------------------------------------------------------------
     // Validate user parameters
@@ -452,35 +463,28 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+
+    String db_name = getStringOption_("database");
     if (db_name.suffix('.') != "psq")
     {
       db_name += ".psq";
     }
-
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did generate the PSQ file (see OMSSAAdapter documentation)." << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
-
-    db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
+    db_name = getDBFilename(db_name); // resolve (search in DB dirs)
+    db_name = FileHandler::stripExtension(db_name); // OMSSA requires the filename without the .psq part
     // check for .pin and .phr files
     bool has_pin = File::readable(db_name + ".pin");
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
       OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      if (!has_pin)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      }
+      if (!has_phr)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      }
       OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -576,7 +580,7 @@ protected:
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         if (split.size() < 2)
         {
@@ -617,7 +621,7 @@ protected:
           writeDebug_("Inserting unknown fixed modification: '" + *it + "' into OMSSA", 1);
         }
       }
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mf" << ListUtils::concatenate(mod_list, ",");
       }
@@ -643,7 +647,7 @@ protected:
         }
       }
 
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mv" << ListUtils::concatenate(mod_list, ",");
       }
@@ -656,7 +660,7 @@ protected:
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
       ofstream out(unique_usermod_name.c_str());
       out << "<?xml version=\"1.0\"?>" << "\n";
-      out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << "\n";
+      out << R"(<MSModSpecSet xmlns="http://www.ncbi.nlm.nih.gov" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.ncbi.nlm.nih.gov OMSSA.xsd">)" << "\n";
 
       UInt user_mod_count(1);
       for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
@@ -690,7 +694,7 @@ protected:
         }
         if (ts == ResidueModification::C_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << "\n";
           }
@@ -701,7 +705,7 @@ protected:
         }
         if (ts == ResidueModification::N_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << "\n";
           }
@@ -717,7 +721,7 @@ protected:
         out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
-        if (origin != "")
+        if (!origin.empty())
         {
           out << "\t<MSModSpec_residues>" << "\n";
           out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << "\n";
@@ -825,9 +829,14 @@ protected:
         c.setSpectraProcessingFunc(f);
         MzMLFile().transform(inputfile_name, &c, true);
         ofs.close();
-        if (empty) chunk--;
-        if (chunk < 0) throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-
+        if (empty)
+        {
+          chunk--;
+        }
+        if (chunk < 0)
+        {
+          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+        }
         for (Size ch = 0; ch <= Size(chunk); ch++)
         {
             String filename_chunk = unique_input_name + String(ch) + ".mgf";
@@ -911,12 +920,12 @@ protected:
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
-      for (vector<PeptideIdentification>::iterator it = peptide_ids_chunk.begin(); it != peptide_ids_chunk.end(); ++it)
+      for (PeptideIdentification& pep : peptide_ids_chunk)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+        vector<PeptideHit> hits = pep.getHits();
+        for (PeptideHit& ptide : hits)
         {
-          AASequence seq = pit->getSequence();
+          AASequence seq = ptide.getSequence();
           for (vector<String>::const_iterator mit = fixed_nterm_mods.begin(); mit != fixed_nterm_mods.end(); ++mit)
           {
             seq.setNTerminalModification(*mit);
@@ -926,16 +935,17 @@ protected:
             seq.setCTerminalModification(*mit);
           }
           UInt pos = 0;
-          for (AASequence::Iterator mit = seq.begin(); mit != seq.end(); ++mit, ++pos)
+          for (const Residue& mm : seq)
           {
-            if (fixed_residue_mods.has(mit->getOneLetterCode()))
+            if (fixed_residue_mods.has(mm.getOneLetterCode()))
             {
-              seq.setModification(pos, fixed_residue_mods[mit->getOneLetterCode()]);
+              seq.setModification(pos, fixed_residue_mods[mm.getOneLetterCode()]);
             }
+            ++pos;
           }
-          pit->setSequence(seq);
+          ptide.setSequence(seq);
         }
-        it->setHits(hits);
+        pep.setHits(hits);
       }
       std::cout << "nr proteins: " << protein_identification_chunk.getHits().size() << std::endl;
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
@@ -953,23 +963,19 @@ protected:
           protein_identification.setHits(std::vector<ProteinHit>()); // remove hits
         }
         // ... and remove any refs from peptides
-        for (vector<PeptideIdentification>::iterator it_pep = peptide_ids_chunk.begin();
-             it_pep != peptide_ids_chunk.end();
-             ++it_pep)
+        for (PeptideIdentification& pep : peptide_ids_chunk)
         {
-          it_pep->setIdentifier(protein_identification.getIdentifier());
+          pep.setIdentifier(protein_identification.getIdentifier());
 
           // clear peptide evidences
-          vector<PeptideHit> pep_hits = it_pep->getHits();
-          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
-             it_pep_hit != pep_hits.end();
-             ++it_pep_hit)
+          vector<PeptideHit> pep_hits = pep.getHits();
+          for (PeptideHit& pep_hit : pep_hits)
           {
-            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+            pep_hit.setPeptideEvidences(std::vector<PeptideEvidence>());
           }
-          it_pep->setHits(pep_hits);
+          pep.setHits(pep_hits);
 
-          peptide_ids.push_back(*it_pep);
+          peptide_ids.push_back(pep);
         }
       }
 

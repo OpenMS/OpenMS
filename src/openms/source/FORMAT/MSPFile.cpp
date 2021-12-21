@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
+#include <regex>
 
 using namespace std;
 
@@ -48,22 +49,19 @@ namespace OpenMS
     DefaultParamHandler("MSPFile")
   {
     defaults_.setValue("parse_headers", "false", "Flag whether header information should be parsed an stored for each spectrum");
-    vector<String> parse_strings;
-    parse_strings.push_back("true");
-    parse_strings.push_back("false");
+    vector<std::string> parse_strings{"true","false"};
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
+    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
+    defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-    defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
+    defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
 
     defaultsToParam_();
   }
 
-  MSPFile::MSPFile(const MSPFile & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  MSPFile::MSPFile(const MSPFile & rhs) = default;
 
   MSPFile & MSPFile::operator=(const MSPFile & rhs)
   {
@@ -74,9 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  MSPFile::~MSPFile()
-  {
-  }
+  MSPFile::~MSPFile() = default;
 
   void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
   {
@@ -89,6 +85,13 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
+    // groups everything inside the shortest pair of parentheses
+    const std::regex rex(R"(\((.*?)\))");
+    // matches 2+ whitespaces or tabs or returns "   ", "\t", "\r"
+    // Note: this is a hack because one of the encountered formats has single whitespaces in quotes.
+    // TODO choose a format during construction of the class. If we actually knew how to call and define them.
+    const std::regex ws_rex(R"(\s{2,}|\t|\r)");
+
     exp.reset();
 
     //set DocumentIdentifier
@@ -98,42 +101,21 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, double> mod_to_mass;
-    mod_to_mass["Oxidation"] = 15.994915;
-    mod_to_mass["Carbamidomethyl"] = 57.02146;
-    mod_to_mass["ICAT_light"] = 227.126991;
-    mod_to_mass["ICAT_heavy"] = 236.157185;
-    mod_to_mass["AB_old_ICATd0"] = 442.224991;
-    mod_to_mass["AB_old_ICATd8"] = 450.275205;
-    mod_to_mass["Acetyl"] = 42.0106;
-    mod_to_mass["Deamidation"] = 0.9840;
-    mod_to_mass["Pyro-cmC"] = -17.026549;
-    mod_to_mass["Pyro-glu"] = -18.010565;
-    mod_to_mass["Gln->pyro-Glu"] = -18.010565;
-    mod_to_mass["Amide"] = -0.984016;
-    mod_to_mass["Phospho"] = 79.9663;
-    mod_to_mass["Methyl"] = 14.0157;
-    mod_to_mass["Carbamyl"] = 43.00581;
-    mod_to_mass["di-Methylation"] = 28.031300;
-
     Map<String, String> modname_to_unimod;
     modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
+    modname_to_unimod["CAM"] = "Carbamidomethyl";
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
     modname_to_unimod["AB_old_ICATd0"] = "ICAT-D";
 
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
-    String instrument((String)param_.getValue("instrument"));
+    bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
+    std::string instrument((std::string)param_.getValue("instrument"));
     bool inst_type_correct(true);
-    bool spectrast_format(false);
+    [[maybe_unused]] bool spectrast_format(false); // TODO: implement usage
     Size spectrum_number = 0;
 
     PeakSpectrum spec;
-    if (parse_peakinfo)
-    {
-      spec.getStringDataArrays().resize(1);
-      spec.getStringDataArrays()[0].setName("MSPPeakInfo");
-    }
 
     // line number counter
     Size line_number = 0;
@@ -148,9 +130,13 @@ namespace OpenMS
         line.split(' ', split);
         split[1].split('/', split2);
         String peptide = split2[0];
-        Int charge = split2[1].toInt();
-        // remove damn (O), also defined in 'Mods=' comment
-        peptide.substitute("(O)", "");
+        // in newer NIST versions, the charge is followed by the modification(s) e.g. "_1(0,A,Acetyl)"
+        vector<String> split3;
+        split2[1].split('_', split3);
+        Int charge = split3[0].toInt();
+
+        // remove modifications inside the peptide string, since it is also defined in 'Mods=' comment
+        peptide = std::regex_replace(peptide, rex, "");
         PeptideIdentification id;
         id.insertHit(PeptideHit(0, 0, charge, AASequence::fromString(peptide)));
         ids.push_back(id);
@@ -178,7 +164,7 @@ namespace OpenMS
           {
             break;
           }
-          if (instrument != "" && it->hasPrefix("Inst="))
+          if (!instrument.empty() && it->hasPrefix("Inst="))
           {
             String inst_type = it->suffix('=');
             if (instrument != inst_type)
@@ -195,6 +181,24 @@ namespace OpenMS
             // e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
             vector<String> mod_split;
             mods.split('/', mod_split);
+            if (mod_split.size() <= 1) // e.g. Mods=2(0,A,Acetyl)(11,M,Oxidation)
+            {
+              mod_split.clear();
+              mod_split.emplace_back(mods.prefix('('));
+              Size sz = mod_split[0].toInt();
+              std::smatch sm;
+              std::string::const_iterator cit = mods.cbegin();
+              // go through all pairs of parentheses
+              while (std::regex_search(cit, mods.cend(), sm, rex) && mod_split.size()-1 <= sz)
+              {
+                if (sm.size() == 2) // 2 = match
+                {
+                  mod_split.emplace_back(sm[1].str());
+                }
+                // set cit to after match
+                cit = sm[0].second;
+              }
+            }
             AASequence peptide = ids.back().getHits().begin()->getSequence();
             for (Size i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
             {
@@ -257,53 +261,90 @@ namespace OpenMS
       }
       else if (line.hasPrefix("Num peaks:") || line.hasPrefix("NumPeaks:"))
       {
-        if (line.hasPrefix("NumPeaks:")) {spectrast_format = true;}
+        if (line.hasPrefix("NumPeaks:"))
+        {
+          spectrast_format = true;
+        }
 
         if (!inst_type_correct)
         {
-          while (getline(is, line) && ++line_number && line.size() > 0 && isdigit(line[0]))
+          while (getline(is, line) && ++line_number && !line.empty() && isdigit(line[0]))
           {
           }
         }
         else
         {
-          while (getline(is, line) && ++line_number && line.size() > 0 && isdigit(line[0]))
+          PeptideHit& hitToAnnotate = ids.back().getHits()[0];
+          vector<PeptideHit::PeakAnnotation> annots;
+          while (getline(is, line) && ++line_number && !line.empty() && isdigit(line[0]))
           {
-            vector<String> split;
-            line.split('\t', split);
+            std::sregex_token_iterator iter(line.begin(),
+                                            line.end(),
+                                            ws_rex,
+                                            -1);
+            std::sregex_token_iterator end;
+            if (iter == end)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
+            }
             Peak1D peak;
-            if (spectrast_format && split.size() != 4)
+            float mz = String(iter->str()).toFloat();
+            peak.setMZ(mz);
+            ++iter;
+            if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                  line, "not <mz><tab><intensity><tab>\"<annotation>\"<tab>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
-            else if (!spectrast_format && split.size() != 3)
+            float ity = String(iter->str()).toFloat();
+            peak.setIntensity(ity);
+            ++iter;
+            if (parse_peakinfo && iter != end)
+            {
+              //e.g. "b32-H2O^3/0.11,y19-H2O^2/0.26"
+              String annot = iter->str();
+              annot = annot.unquote();
+              if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6" whatever i means, it will be lost here
+              {
+                annots.push_back(PeptideHit::PeakAnnotation{"?", 0, mz, ity});
+              }
+              else
+              {
+                if (annot.has(' ')) annot = annot.prefix(' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
+                StringList splitstr;
+                annot.split(',',splitstr);
+                for (auto& str : splitstr)
+                {
+                  String splitstrprefix = str.prefix('/');
+                  int charge = 1;
+                  StringList splitstr2;
+                  splitstrprefix.split('^', splitstr2);
+                  if (splitstr2.size() > 1)
+                  {
+                    charge = splitstr2[1].toInt();
+                  }
+                  annots.push_back(PeptideHit::PeakAnnotation{splitstr2[0], charge, mz, ity});
+                  if (parse_firstpeakinfo_only) break;
+                }
+              }
+            }
+            else if (parse_peakinfo)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                  line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
-            }
-            peak.setMZ(split[0].toFloat());
-            peak.setIntensity(split[1].toFloat());
-            if (parse_peakinfo)
-            {
-              spec.getStringDataArrays()[0].push_back(split[2]);
+                                          line, "Requested reading peak info but no annotation found for line " + String(line_number));
             }
             spec.push_back(peak);
           }
+          hitToAnnotate.setPeakAnnotations(annots);
           spec.setNativeID(String("index=") + spectrum_number);
           exp.addSpectrum(spec);
-          // clear spectrum, create new DataArrays
+          // clear spectrum
           spec.clear(true);
-          spec.getStringDataArrays().resize(1);
-          spec.getStringDataArrays()[0].setName("MSPPeakInfo");
         }
         spectrum_number++;
       }
     }
-
-    // last spectrum, if available
-
-
   }
 
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
@@ -326,6 +367,7 @@ namespace OpenMS
     }
   }
 
+  //TODO adapt store to write new? format
   void MSPFile::store(const String & filename, const PeakMap & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
@@ -341,22 +383,22 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+    for (const MSSpectrum& it : exp)
     {
-      if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
       {
-        PeptideHit hit = *it->getPeptideIdentifications().begin()->getHits().begin();
+        PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
         String peptide;
-        for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
+        for (const Residue& pit : hit.getSequence())
         {
-          if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+          if (pit.isModified() && pit.getOneLetterCode() == "M" &&
+              fabs(pit.getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
-            peptide += "M(O)";
+            peptide += "M(O)"; // TODO why are we writing specifically only oxidations?
           }
           else
           {
-            peptide += pit->getOneLetterCode();
+            peptide += pit.getOneLetterCode();
           }
         }
         out << "Name: " << peptide << "/" << hit.getCharge() << "\n";
@@ -402,24 +444,24 @@ namespace OpenMS
           out << " Mods=0";
         }
         out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
-        out << "Num peaks: " << it->size() << "\n";
+        out << "Num peaks: " << it.size() << "\n";
 
         // normalize to 10,000
-        PeakSpectrum rich_spec = *it;
+        PeakSpectrum rich_spec = it;
         double max_int(0);
-        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        for (const Peak1D& sit : rich_spec)
         {
-          if (sit->getIntensity() > max_int)
+          if (sit.getIntensity() > max_int)
           {
-            max_int = sit->getIntensity();
+            max_int = sit.getIntensity();
           }
         }
 
         if (max_int != 0)
         {
-          for (PeakSpectrum::Iterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+          for (Peak1D& sit : rich_spec)
           {
-            sit->setIntensity(sit->getIntensity() / max_int * 10000.0);
+            sit.setIntensity(sit.getIntensity() / max_int * 10000.0);
           }
         }
         else
@@ -438,9 +480,9 @@ namespace OpenMS
         }
 
         Size k = 0;
-        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        for (const Peak1D& sit : rich_spec)
         {
-          out << sit->getPosition()[0] << "\t" << sit->getIntensity() << "\t";
+          out << sit.getPosition()[0] << "\t" << sit.getIntensity() << "\t";
           if (ion_name >= 0)
           {
             out << "\"" << rich_spec.getStringDataArrays()[ion_name][k] << "\"";

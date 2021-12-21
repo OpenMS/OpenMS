@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 
@@ -87,11 +88,11 @@ namespace OpenMS
   void RTSimulation::setDefaultParams_()
   {
     defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", ListUtils::create<String>("none,HPLC,CE"));
+    defaults_.setValidStrings("rt_column", {"none","HPLC","CE"});
 
     // scaling
     defaults_.setValue("auto_scale", "true", "Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
-    defaults_.setValidStrings("auto_scale", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("auto_scale", {"true","false"});
 
     // column settings
     defaults_.setValue("total_gradient_time", 2500.0, "The duration [s] of the gradient.");
@@ -162,7 +163,7 @@ namespace OpenMS
 
   void RTSimulation::updateMembers_()
   {
-    rt_model_file_ = param_.getValue("HPLC:model_file");
+    rt_model_file_ = param_.getValue("HPLC:model_file").toString();
     if (!File::readable(rt_model_file_)) // look in OPENMS_DATA_PATH
     {
       rt_model_file_ = File::find(rt_model_file_);
@@ -195,10 +196,9 @@ namespace OpenMS
 
   void RTSimulation::noRTColumn_(SimTypes::FeatureMapSim& features)
   {
-    for (SimTypes::FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
-         ++it_f)
+    for (Feature& it_f : features)
     {
-      (*it_f).setRT(-1);
+      it_f.setRT(-1);
     }
   }
 
@@ -332,13 +332,17 @@ namespace OpenMS
     }
 
     // print invalid features:
-    if (deleted_features.size() > 0)
+    if (!deleted_features.empty())
     {
       OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
+      {
         OPENMS_LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+      }
       else
+      {
         OPENMS_LOG_WARN << "  (List is too big to show)" << std::endl;
+      }
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -419,19 +423,26 @@ namespace OpenMS
       double charge = 0;
       // C&N term charge contribution
       if (q_nterm.has(seq[0]))
+      {
         charge +=  q_nterm[seq[0]];
+      }
       if (q_cterm.has(seq.suffix(1)))
+      {
         charge +=  q_cterm[seq.suffix(1)];
-
+      }
       // sidechains ...
       Map<String, Size> frequency_table;
       features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
       for (Map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
       {
         if (q_aa_basic.has(it->first))
+        {
           charge +=  q_aa_basic[it->first] * it->second;
+        }
         if (q_aa_acidic.has(it->first))
+        {
           charge +=  q_aa_acidic[it->first] * it->second;
+        }
       }
 
       // ** determine mass of peptide
@@ -513,26 +524,26 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load(add_paramfile, additional_parameters);
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No border length defined in additional parameters file.");
       }
-      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+      border_length = ((String)additional_parameters.getValue("border_length").toString()).toInt();
+      if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No k-mer length defined in additional parameters file.");
       }
-      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+      k_mer_length = ((String)additional_parameters.getValue("k_mer_length").toString()).toInt();
 
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+      if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No sigma defined in additional parameters file.");
       }
 
-      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+      sigma = ((String)additional_parameters.getValue("sigma").toString()).toFloat();
     }
 
     svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
@@ -605,18 +616,16 @@ namespace OpenMS
 
       double current_scan_rt = gradient_min_;
       Size id = 1;
-      for (SimTypes::MSSimExperiment::iterator exp_it = experiment.begin();
-           exp_it != experiment.end();
-           ++exp_it)
+      for (MSSpectrum& spec : experiment)
       {
-        (*exp_it).setRT(current_scan_rt);
+        spec.setRT(current_scan_rt);
 
         String spec_id = String("spectrum=") + id;
         ++id;
-        (*exp_it).setNativeID(spec_id);
+        spec.setNativeID(spec_id);
 
         // dice & store distortion
-        (*exp_it).setMetaValue("distortion", 1);
+        spec.setMetaValue("distortion", 1);
 
         // TODO (for CE) store peak broadening parameter
         current_scan_rt += rt_sampling_rate_;

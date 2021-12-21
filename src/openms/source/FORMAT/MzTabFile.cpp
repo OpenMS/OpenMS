@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,18 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm>
 
 #include <boost/regex.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
@@ -85,14 +91,14 @@ namespace OpenMS
   // $        # Match the end of the line
   boost::sregex_token_iterator end;
 
-  boost::regex rx_first_number("^.*?\\[(\\d+)\\].*$");
+  boost::regex rx_first_number(R"(^.*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it1(s.begin(), s.end(), rx_first_number, 1);
   if (it1 != end)
   {
     pair.first = String(*it1++).toInt();
   }
 
-  boost::regex  rx_second_number("^.*?\\[\\d+\\].*?\\[(\\d+)\\].*$");
+  boost::regex  rx_second_number(R"(^.*?\[\d+\].*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it2(s.begin(), s.end(), rx_second_number, 1);
   if (it2 != end)
   {
@@ -219,7 +225,7 @@ namespace OpenMS
   // potentially mandatory meta values (depending on mzTab type, mode and sections that are present)
   set<String> mandatory_meta_values;
 
-  // mzTab sections present in the file. Influences mandatoryness of meta-values.
+  // mzTab sections present in the file. Influences compulsoriness of meta-values.
   set<String> sections_present;
 
   Size count_protein_search_engine_score = 0;
@@ -1548,7 +1554,7 @@ namespace OpenMS
     }
   }
 
-  // TODO: check mandatoryness
+  // TODO: check compulsoriness
   //hasMandatoryMetaDataKeys_(mandatory_meta_values, sections_present, mz_tab_metadata);
 
   mz_tab.setMetaData(mz_tab_metadata);
@@ -2185,7 +2191,7 @@ namespace OpenMS
 
   // Study variables
   // go over all study variables that should be present and fill with either values
-  // or uninitialized MzTabDoubles()
+  // or uninitialized MzTabDouble()
   for (const auto& kv : meta.study_variable)
   {
     const auto& k = kv.first;
@@ -2902,6 +2908,7 @@ namespace OpenMS
         const std::vector<PeptideIdentification>& peptide_identifications,
         bool first_run_inference_only,
         bool export_empty_pep_ids,
+        bool export_all_psms,
         const String& title)
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
@@ -2911,9 +2918,11 @@ namespace OpenMS
     }
 
     vector<const PeptideIdentification*> pep_ids_ptr;
+    pep_ids_ptr.reserve(peptide_identifications.size());
     for (const PeptideIdentification& pi : peptide_identifications) { pep_ids_ptr.push_back(&pi); }
 
     vector<const ProteinIdentification*> prot_ids_ptr;
+    prot_ids_ptr.reserve(protein_identifications.size());
     for (const ProteinIdentification& pi : protein_identifications) { prot_ids_ptr.push_back(&pi); }
 
     ofstream tab_file;
@@ -2925,6 +2934,7 @@ namespace OpenMS
       filename,
       first_run_inference_only,
       export_empty_pep_ids,
+      export_all_psms,
       title);      
 
     // generate full meta data section and write to file
@@ -2995,7 +3005,8 @@ namespace OpenMS
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
-      const bool export_empty_pep_ids) const
+      const bool export_empty_pep_ids,
+      const bool export_all_psms) const
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
     {
@@ -3014,6 +3025,7 @@ namespace OpenMS
       export_unassigned_ids,
       export_subfeatures,
       export_empty_pep_ids,
+      export_all_psms,
       "ConsensusMap export from OpenMS");      
 
     // generate full meta data section and write to file

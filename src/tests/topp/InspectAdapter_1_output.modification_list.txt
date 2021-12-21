@@ -1,3 +1,0 @@
-name           	composition	amino_acids
-Phosphorylation	HO3P       	STYDHCR    
-

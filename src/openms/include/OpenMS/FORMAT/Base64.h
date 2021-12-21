@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,10 +144,10 @@ public:
         @brief Decodes a Base64 string to a QByteArray
 
         @param in A String containing the Base64 encoded data
-        @param out A ByteArray containing the decoded data
+        @param base64_uncompressed A ByteArray containing the decoded data
         @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
-    static void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
+    static void decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression);
 
 private:
 
@@ -350,7 +350,7 @@ private:
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "") return;
+    if (in.empty()) return;
 
     const Size element_size = sizeof(ToType);
 
@@ -645,7 +645,7 @@ private:
   void Base64::decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+    if (in.empty())
       return;
 
     void * byte_buffer;

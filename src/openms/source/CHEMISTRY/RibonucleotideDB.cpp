@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,7 +117,7 @@ namespace OpenMS
       {
         OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count
                   << ". Reason:\n" << e.getName()
-                  << " - " << e.getMessage() << "\nSkipping this line." << endl;
+                  << " - " << e.what() << "\nSkipping this line." << endl;
       }
     }
   }
@@ -190,7 +190,18 @@ namespace OpenMS
     }
     else // default specificity is "ANYWHERE"; now set formula after base loss:
     {
-      if (parts[1].back() == 'm') // mod. attached to the ribose, not base
+      if (parts[1].front() == 'd') // handle deoxyribose, possibly with methyl mod
+      {
+        if (parts[1].back() == 'm') // do we have both a methylation and a deoxylation?
+        {
+          ribo->setBaselossFormula(EmpiricalFormula("C6H12O4"));
+        }
+        else  // Otherwise we have just the O difference
+        {
+          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
+        }
+      }
+      else if (parts[1].back() == 'm') // mod. attached to the ribose, not base
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }
@@ -213,7 +224,6 @@ namespace OpenMS
         ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
       }
     }
-
     return ribo;
   }
 

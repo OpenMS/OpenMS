@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,9 +117,9 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
   IonizationSimulation esi_sim(rnd_gen);
   Param esi_param = esi_sim.getParameters();
   esi_param.setValue("ionization_type","ESI");
-  esi_param.setValue("esi:ionized_residues",ListUtils::create<String>("Arg,Lys,His"));
+  esi_param.setValue("esi:ionized_residues", std::vector<std::string>{"Arg","Lys","His"});
   esi_param.setValue("esi:ionization_probability", 0.8);
-  esi_param.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1,NH4+:0.2,Ca++:0.1"));
+  esi_param.setValue("esi:charge_impurity", std::vector<std::string>{"H+:1","NH4+:0.2","Ca++:0.1"});
   esi_param.setValue("esi:max_impurity_set_size", 3);
   esi_param.setValue("mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
 

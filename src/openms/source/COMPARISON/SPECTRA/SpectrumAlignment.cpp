@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ namespace OpenMS
   {
     defaults_.setValue("tolerance", 0.3, "Defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If true, the 'tolerance' is interpreted as ppm-value");
-    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", {"true","false"});
     defaultsToParam_();
   }
 

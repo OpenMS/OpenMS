@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <mzML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" version="1.1.0" id="test">
+    <cvList count="2">
+      <cv id="MS" fullName="Mass spectrometry ontology" version="4.1.12" URI="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" />
+      <cv id="UO" fullName="Unit Ontology" version="09:04:2014" URI="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" />
+    </cvList>
+    <fileDescription>
+      <fileContent>
+        <cvParam cvRef="MS" accession="MS:1000579" value="" name="MS1 spectrum" />
+        <cvParam cvRef="MS" accession="MS:1000580" value="" name="MSn spectrum" />
+      </fileContent>
+      <sourceFileList count="1">
+        <sourceFile id="RAW1" name="test" location="file:////test.SP_Human">
+          <cvParam cvRef="MS" accession="MS:1000768" value="" name="Thermo nativeID format" />
+          <cvParam cvRef="MS" accession="MS:1000563" value="" name="Thermo RAW format" />
+          <cvParam cvRef="MS" accession="MS:1000569" value="fb08d4a436cbde62b92b0a67790dc7a6e86f7f69" name="SHA-1" />
+        </sourceFile>
+      </sourceFileList>
+    </fileDescription>
+    <referenceableParamGroupList count="1">
+      <referenceableParamGroup id="commonInstrumentParams">
+        <cvParam cvRef="MS" accession="MS:1000483" value="" name="Thermo Fisher Scientific instrument model" />
+        <cvParam cvRef="MS" accession="MS:1000529" value="FSN40025" name="instrument serial number" />
+      </referenceableParamGroup>
+    </referenceableParamGroupList>
+    <softwareList count="1">
+      <software id="ThermoRawFileParser" version="1.2.3">
+        <cvParam cvRef="MS" accession="MS:1000799" value="ThermoRawFileParser" name="custom unreleased software tool" />
+      </software>
+    </softwareList>
+    <instrumentConfigurationList count="2">
+      <instrumentConfiguration id="IC1">
+        <referenceableParamGroupRef ref="commonInstrumentParams" />
+        <componentList count="3">
+          <source order="1">
+            <cvParam cvRef="MS" accession="MS:1000398" value="" name="nanoelectrospray" />
+          </source>
+          <analyzer order="2">
+            <cvParam cvRef="MS" accession="MS:1000079" value="" name="fourier transform ion cyclotron resonance mass spectrometer" />
+          </analyzer>
+          <detector order="3">
+            <cvParam cvRef="MS" accession="MS:1000624" value="" name="inductive detector" />
+          </detector>
+        </componentList>
+      </instrumentConfiguration>
+      <instrumentConfiguration id="IC2">
+        <referenceableParamGroupRef ref="commonInstrumentParams" />
+        <componentList count="3">
+          <source order="1">
+            <cvParam cvRef="MS" accession="MS:1000398" value="" name="nanoelectrospray" />
+          </source>
+          <analyzer order="2">
+            <cvParam cvRef="MS" accession="MS:1000264" value="" name="ion trap" />
+          </analyzer>
+          <detector order="3">
+            <cvParam cvRef="MS" accession="MS:1000624" value="" name="inductive detector" />
+          </detector>
+        </componentList>
+      </instrumentConfiguration>
+    </instrumentConfigurationList>
+    <dataProcessingList count="1">
+      <dataProcessing id="ThermoRawFileParserProcessing">
+        <processingMethod order="0" softwareRef="ThermoRawFileParser">
+          <cvParam cvRef="MS" accession="MS:1000544" value="" name="Conversion to mzML" />
+        </processingMethod>
+      </dataProcessing>
+    </dataProcessingList>
+    <run id="test" defaultInstrumentConfigurationRef="IC1" startTimeStamp="2021-02-14T16:32:39.6079725Z" defaultSourceFileRef="RAW1">
+      <spectrumList count="250675" defaultDataProcessingRef="ThermoRawFileParserProcessing">
+
+       
+      <spectrum id="controllerType=0 controllerNumber=1 scan=244413" index="244412" defaultArrayLength="0">
+          <cvParam cvRef="MS" accession="MS:1000511" value="2" name="ms level" />
+          <cvParam cvRef="MS" accession="MS:1000580" value="" name="MSn spectrum" />
+          <cvParam cvRef="MS" accession="MS:1000130" value="" name="positive scan" />
+          <cvParam cvRef="MS" accession="MS:1000285" value="0" name="total ion current" />
+          <cvParam cvRef="MS" accession="MS:1000504" value="0" name="base peak m/z" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+          <cvParam cvRef="MS" accession="MS:1000505" value="0" name="base peak intensity" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+          <scanList count="1">
+            <cvParam cvRef="MS" accession="MS:1000795" value="" name="no combination" />
+            <scan instrumentConfigurationRef="IC2">
+              <cvParam cvRef="MS" accession="MS:1000016" value="104.5667483168" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
+              <cvParam cvRef="MS" accession="MS:1000512" value="ITMS + c NSI t d Full ms2 1354.1577@hcd28.00 [175.0000-1075.0000]" name="filter string" />
+              <cvParam cvRef="MS" accession="MS:1000927" value="12" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
+              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="1354.1577" />
+              <scanWindowList count="1">
+                <scanWindow>
+                  <cvParam cvRef="MS" accession="MS:1000501" value="175" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                  <cvParam cvRef="MS" accession="MS:1000500" value="1075" name="scan window upper limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                </scanWindow>
+              </scanWindowList>
+            </scan>
+          </scanList>
+          <precursorList count="1">
+            <precursor spectrumRef="controllerType=0 controllerNumber=1 scan=244396">
+              <isolationWindow>
+                <cvParam cvRef="MS" accession="MS:1000827" value="1354.15771484375" name="isolation window target m/z" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000828" value="0.35" name="isolation window lower offset" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000829" value="0.35" name="isolation window upper offset" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </isolationWindow>
+              <selectedIonList count="1">
+                <selectedIon>
+                  <cvParam cvRef="MS" accession="MS:1000744" value="1354.15771484375" name="selected ion m/z" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                  <cvParam cvRef="MS" accession="MS:1000041" value="3" name="charge state" />
+                </selectedIon>
+              </selectedIonList>
+              <activation>
+                <cvParam cvRef="MS" accession="MS:1000045" value="28" name="collision energy" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+                <cvParam cvRef="MS" accession="MS:1000422" value="" name="beam-type collision-induced dissociation" />
+              </activation>
+            </precursor>
+          </precursorList>
+        </spectrum>
+        
+     </spectrumList>
+  </run>
+</mzML>

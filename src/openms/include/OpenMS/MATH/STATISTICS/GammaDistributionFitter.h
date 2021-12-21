@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points);
+      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points) const;
 
 protected:
 

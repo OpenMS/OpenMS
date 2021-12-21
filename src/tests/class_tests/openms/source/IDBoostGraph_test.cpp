@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,31 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
 
 using namespace OpenMS;
 using namespace std;
 using Internal::IDBoostGraph;
+
+static void runIBGResolve(vector<ProteinIdentification>& inferred_protein_ids,
+                          vector<PeptideIdentification>& inferred_peptide_ids)
+{
+  IDBoostGraph ibg(inferred_protein_ids[0], inferred_peptide_ids, 1, false, false);
+  ibg.computeConnectedComponents();
+  ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
+  //Note: the above does not add singleton groups to graph
+  ibg.resolveGraphPeptideCentric(true);
+  inferred_protein_ids[0].getIndistinguishableProteins().clear();
+  inferred_protein_ids[0].getProteinGroups().clear();
+  ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
+  IDFilter::removeUnreferencedProteins(inferred_protein_ids[0], inferred_peptide_ids);
+  IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(),inferred_protein_ids[0].getHits());
+  inferred_protein_ids[0].fillIndistinguishableGroupsWithSingletons();
+  auto & ipg = inferred_protein_ids[0].getIndistinguishableProteins();
+  std::sort(std::begin(ipg), std::end(ipg));
+}
 
 START_TEST(IDBoostGraph, "$Id$")
 
@@ -174,6 +193,33 @@ START_TEST(IDBoostGraph, "$Id$")
           TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 5)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
         }
+    END_SECTION
+
+
+    START_SECTION(Resolution)
+    {
+      // TODO problem is that there is no way to build the graph using existing groups.
+      //  therefore resolution on the graph will redo groups and assign new scores.
+      //  Therefore we need slightly different test files.
+      vector<ProteinIdentification> prots;
+      vector<PeptideIdentification> peps;
+      IdXMLFile idf;
+      idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);
+      runIBGResolve(prots, peps);
+      std::string tmp_filename;
+      NEW_TMP_FILE(tmp_filename);
+      IdXMLFile().store(tmp_filename, prots, peps);
+      TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out_ibg.idXML"), tmp_filename);
+
+      prots.clear();
+      peps.clear();
+      tmp_filename.clear();
+      NEW_TMP_FILE(tmp_filename);
+      idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in2.idXML"), prots, peps);
+      runIBGResolve(prots, peps);
+      IdXMLFile().store(tmp_filename, prots, peps);
+      TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out2_ibg.idXML"), tmp_filename);
+    }
     END_SECTION
 
     START_SECTION(IDBoostGraph on consensusXML TODO)

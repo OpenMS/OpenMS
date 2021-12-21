@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/MSSim.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
@@ -135,9 +136,8 @@ namespace OpenMS
     tmp.insert("", this->param_); // get non-labeling options
 
     vector<String> products = Factory<BaseLabeler>::registeredProducts();
-
     tmp.setValue("Labeling:type", "labelfree", "Select the labeling type you want for your experiment");
-    tmp.setValidStrings("Labeling:type", products);
+    tmp.setValidStrings("Labeling:type", ListUtils::create<std::string>(products));
 
     for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
@@ -204,7 +204,7 @@ namespace OpenMS
     raw_sim.loadContaminants(); // check if the file is valid (if not, an error is raised here instead of half-way through simulation)
 
 
-    String labeling = param_.getValue("Labeling:type");
+    String labeling = param_.getValue("Labeling:type").toString();
     labeler_ = Factory<BaseLabeler>::create(labeling);
     Param labeling_parameters = param_.copy("Labeling:" + labeling + ":", true);
     labeler_->setParameters(labeling_parameters);
@@ -225,9 +225,9 @@ namespace OpenMS
     labeler_->setUpHook(feature_maps_);
 
     // digest
-    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (FeatureMap& map : feature_maps_)
     {
-      digest_sim.digest(*map_iterator);
+      digest_sim.digest(map);
     }
 
     // post digest labeling
@@ -237,9 +237,9 @@ namespace OpenMS
     verbosePrintFeatureMap(feature_maps_, "digested");
 
     // RT prediction
-    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (FeatureMap& map : feature_maps_)
     {
-      rt_sim.predictRT(*map_iterator);
+      rt_sim.predictRT(map);
     }
     rt_sim.createExperiment(experiment_);
 
@@ -252,9 +252,9 @@ namespace OpenMS
     verbosePrintFeatureMap(feature_maps_, "RT sim done");
 
     // Detectability prediction
-    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (FeatureMap& map : feature_maps_)
     {
-      dt_sim.filterDetectability(*map_iterator);
+      dt_sim.filterDetectability(map);
     }
 
     // post detectability labeling
@@ -327,14 +327,14 @@ namespace OpenMS
     feature_map.clear(true);
     ProteinIdentification protIdent;
 
-    for (SimTypes::SampleProteins::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
+    for (const SimTypes::SimProtein& simpr : proteins)
     {
       // add new ProteinHit to ProteinIdentification
-      ProteinHit protHit(0.0, 1, (it->entry).identifier, (it->entry).sequence);
+      ProteinHit protHit(0.0, 1, (simpr.entry).identifier, (simpr.entry).sequence);
       // copy all meta values from FASTA file parsing
-      protHit = (it->meta);
+      protHit = (simpr.meta);
       // additional meta values:
-      protHit.setMetaValue("description", it->entry.description);
+      protHit.setMetaValue("description", simpr.entry.description);
       protHit.setMetaValue("map_index", map_index);
       protIdent.insertHit(protHit);
     }
@@ -440,53 +440,55 @@ namespace OpenMS
     peptides.clear();
 
     // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
-
+    if (feature_maps_.empty())
+    {
+      return;
+    }
     // we need to keep track of the proteins we write out
     set<String> accessions;
 
     // collect peptide identifications
-    for (SimTypes::MSSimExperiment::const_iterator ms_it = experiment_.begin();
-         ms_it != experiment_.end();
-         ++ms_it)
+    for (const MSSpectrum& ms : experiment_)
     {
       // skip non-ms2 spectra
-      if (ms_it->getMSLevel() != 2) continue;
-
+      if (ms.getMSLevel() != 2)
+      {
+        continue;
+      }
       // create matching PeptideIdentification
       PeptideIdentification pep_ident;
       pep_ident.setHigherScoreBetter(true);
-      pep_ident.setRT(ms_it->getRT());
+      pep_ident.setRT(ms.getRT());
       // we follow the solution used throughout OpenMS .. take the first precursor
-      pep_ident.setMZ(ms_it->getPrecursors().begin()->getMZ());
+      pep_ident.setMZ(ms.getPrecursors().begin()->getMZ());
 
       // "the" precursor is the one with highest intensity:
       Precursor::IntensityType total_intensity = 0.0;
 
       // get information on the feature ids used for this spectrum
-      IntList feat_ids = ms_it->getMetaValue("parent_feature_ids");
+      IntList feat_ids = ms.getMetaValue("parent_feature_ids");
 
       // store all precursors as peptide hits
-      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size(); ++prec_idx)
+      for (Size prec_idx = 0; prec_idx < ms.getPrecursors().size(); ++prec_idx)
       {
         const Feature& feature = feature_maps_[0][feat_ids[prec_idx]];
         // append the first (and only) peptide hit of this feature to our peptide identification
         pep_ident.getHits().push_back(*(feature.getPeptideIdentifications().begin()->getHits().begin()));
         // store m/z value, eases matching
-        pep_ident.getHits().back().setMetaValue("MZ", ms_it->getPrecursors()[prec_idx].getMZ());
+        pep_ident.getHits().back().setMetaValue("MZ", ms.getPrecursors()[prec_idx].getMZ());
 
         std::set<String> protein_accessions = pep_ident.getHits().back().extractProteinAccessionsSet();
         // store protein accessions
         accessions.insert(protein_accessions.begin(), protein_accessions.end());
 
         // compute total intensity to score the individual hits
-        total_intensity += ms_it->getPrecursors()[prec_idx].getIntensity();
+        total_intensity += ms.getPrecursors()[prec_idx].getIntensity();
       }
 
       // assign score to each peptidehit based on intensity contribution to the total intensity
-      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size() && prec_idx < pep_ident.getHits().size(); ++prec_idx)
+      for (Size prec_idx = 0; prec_idx < ms.getPrecursors().size() && prec_idx < pep_ident.getHits().size(); ++prec_idx)
       {
-        pep_ident.getHits()[prec_idx].setScore(ms_it->getPrecursors()[prec_idx].getIntensity() / total_intensity);
+        pep_ident.getHits()[prec_idx].setScore(ms.getPrecursors()[prec_idx].getIntensity() / total_intensity);
       }
 
       // sort according to score
@@ -497,17 +499,17 @@ namespace OpenMS
     }
 
     // test if we have a feature map at all ..
-    if (feature_maps_[0].getProteinIdentifications().size() > 0)
+    if (!feature_maps_[0].getProteinIdentifications().empty())
     {
       // store protein identification / protein hits for those proteins used in the ms2 spectra
       const ProteinIdentification& protein = feature_maps_[0].getProteinIdentifications()[0];
       proteins.push_back(protein);
       proteins[0].getHits().clear();
-      for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin(); prot_it != protein.getHits().end(); ++prot_it)
+      for (const ProteinHit& ph : protein.getHits())
       {
-        if (accessions.find(prot_it->getAccession()) != accessions.end())
+        if (accessions.find(ph.getAccession()) != accessions.end())
         {
-          proteins[0].insertHit(*prot_it);
+          proteins[0].insertHit(ph);
         }
       }
     }
@@ -520,8 +522,10 @@ namespace OpenMS
     peptides.clear();
 
     // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
-
+    if (feature_maps_.empty())
+    {
+      return;
+    }
     // protein IDs
     const FeatureMap& fmap = feature_maps_[0];
     const vector<ProteinIdentification>& prot_ids = fmap.getProteinIdentifications();
@@ -530,9 +534,9 @@ namespace OpenMS
 
     // peptide IDs
     peptides.reserve(fmap.size());
-    for (FeatureMap::ConstIterator it = fmap.begin(); it != fmap.end(); ++it)
+    for (const Feature& feat : fmap)
     {
-      peptides.push_back(it->getPeptideIdentifications()[0]);
+      peptides.push_back(feat.getPeptideIdentifications()[0]);
     }
   }
 

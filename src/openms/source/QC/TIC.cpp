@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,27 +40,65 @@
 using namespace std;
 
 namespace OpenMS
-{
-  /// Reset
-  void TIC::clear()
+{ 
+
+  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
   {
-    results_.clear();
+    TIC::Result result;
+    MSChromatogram tic = exp.calculateTIC(bin_size, ms_level);
+    if (!tic.empty())
+    {
+      for (const auto& p : tic)
+      {
+        result.intensities.push_back(p.getIntensity());
+        result.retention_times.push_back(p.getRT());
+      }
+
+      UInt max_int = *max_element(result.intensities.begin(), result.intensities.end());
+
+      for (const auto& i: result.intensities)
+      {
+        if (max_int != 0)
+        {
+          result.relative_intensities.push_back((double)i / max_int * 100);
+        }
+        else
+        {
+          result.relative_intensities.push_back(0.0);
+        }
+      }
+
+      result.area = result.intensities[0];
+
+      for (size_t i = 1; i < result.intensities.size(); ++i)
+      {
+        result.area += result.intensities[i];
+        if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+        {
+          ++result.jump;
+        }
+        if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+        {
+          ++result.fall;
+        }
+      }
+    }
+    return result;
   }
-  void TIC::compute(const MSExperiment &exp, float bin_size)
+
+  bool TIC::Result::operator==(const Result& rhs) const
   {
-    results_.push_back(exp.getTIC(bin_size));
+    return intensities == rhs.intensities
+          && retention_times == rhs.retention_times
+          && area == rhs.area
+          && fall == rhs.fall
+          && jump == rhs.jump;
   }
 
   /// Returns the name of the metric
   const String& TIC::getName() const
   {
     return name_;
-  }
-  
-  /// Returns all results calculated with compute.
-  const std::vector<MSChromatogram>& TIC::getResults() const
-  {
-    return results_;
   }
 
   /// Returns required file input i.e. MzML.
@@ -70,23 +108,24 @@ namespace OpenMS
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
+  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, vector<TIC::Result>& tics)
   {
     // Adding TIC information to meta data
-    const auto& tics = this->getResults();
     for (Size i = 0; i < tics.size(); ++i)
     {
-      if (tics[i].empty()) continue; // no MS1 spectra
-
+      if (tics[i].intensities.empty())
+      {
+        continue; // no MS1 spectra
+      }
       MzTabParameter tic{};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
       tic.setName("TIC_" + String(i + 1));
       String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
+      value += String(tics[i].retention_times[0], false) + ", " + String((UInt64)tics[i].intensities[0]);
+      for (Size j = 1; j < tics[i].intensities.size(); ++j)
       {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
+        value += ", " + String(tics[i].retention_times[j], false) + ", " + String((UInt64)tics[i].intensities[j]);
       }
       value += "]";
       tic.setValue(value);

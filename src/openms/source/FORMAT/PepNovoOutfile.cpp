@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,34 +119,34 @@ namespace OpenMS
 
     map<String, String> mod_mask_map;
     const vector<String> & mods = protein_identification.getSearchParameters().variable_modifications;
-    for (vector<String>::const_iterator mod_it = mods.begin(); mod_it != mods.end(); ++mod_it)
+    for (const String& mod_it : mods)
     {
-      if (mod_it->empty())
+      if (mod_it.empty())
         continue;
       //cout<<*mod_it<<endl;
-      if (pnovo_modkey_to_mod_id.find(*mod_it) != pnovo_modkey_to_mod_id.end())
+      if (pnovo_modkey_to_mod_id.find(mod_it) != pnovo_modkey_to_mod_id.end())
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
-        const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
-        if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "$")
+        const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(mod_it)->second);
+        if (mod_it.prefix(1) == "^" || mod_it.prefix(1) == "$")
         {
-          mod_mask_map[*mod_it] = "(" + tmp_mod->getId() + ")";
+          mod_mask_map[mod_it] = "(" + tmp_mod->getId() + ")";
         }
         else
         {
-          mod_mask_map[*mod_it] = String(tmp_mod->getOrigin()) + "(" + tmp_mod->getId() + ")";
+          mod_mask_map[mod_it] = String(tmp_mod->getOrigin()) + "(" + tmp_mod->getId() + ")";
         }
       }
       else
       {
-        if (mod_it->prefix(1) != "^" && mod_it->prefix(1) != "$")
+        if (mod_it.prefix(1) != "^" && mod_it.prefix(1) != "$")
         {
-          mod_mask_map[*mod_it] = mod_it->prefix(1) + "[" + mod_it->substr(1) + "]";
+          mod_mask_map[mod_it] = mod_it.prefix(1) + "[" + mod_it.substr(1) + "]";
           //cout<<mod_mask_map[*mod_it]<<endl;
         }
         else
         {
-          mod_mask_map[*mod_it] = "[" + *mod_it + "]";
+          mod_mask_map[mod_it] = "[" + mod_it + "]";
           //cout<<mod_mask_map[*mod_it]<<endl;
         }
       }
@@ -156,7 +156,10 @@ namespace OpenMS
     Size index;
     while (getline(result_file, line))
     {
-      if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1); // remove weird EOL character
+      if (!line.empty() && (line[line.length() - 1] < 33))
+      {
+        line.resize(line.length() - 1); // remove weird EOL character
+      }
       line.trim();
       ++line_number;
       if (line.hasPrefix(">> "))         // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
@@ -186,7 +189,7 @@ namespace OpenMS
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
-        if (index_to_precursor.size()>0)
+        if (!index_to_precursor.empty())
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {
@@ -194,7 +197,10 @@ namespace OpenMS
             peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
-          else throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          else
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          }
         }
 
         if (!success)
@@ -216,7 +222,10 @@ namespace OpenMS
           {
 
           }
-          if (!success) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
+          if (!success)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
+          }
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);
@@ -230,21 +239,37 @@ namespace OpenMS
           for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
           {
             if ((*s_i) == "#Index")
+            {
               columns["Index"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "RnkScr")
+            {
               columns["RnkScr"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "PnvScr")
+            {
               columns["PnvScr"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "N-Gap")
+            {
               columns["N-Gap"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "C-Gap")
+            {
               columns["C-Gap"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "[M+H]")
+            {
               columns["[M+H]"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "Charge")
+            {
               columns["Charge"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "Sequence")
+            {
               columns["Sequence"] = s_i - substrings.begin();
+            }
           }
 
           if (columns.size() != 8)
@@ -258,12 +283,15 @@ namespace OpenMS
         {
           ++line_number;
           if (!line.empty() && (line[line.length() - 1] < 33))
+          {
             line.resize(line.length() - 1);
+          }
           line.trim();
 
           if (line.empty())
+          {
             break;
-
+          }
           line.split('\t', substrings);
           if (!substrings.empty())
           {
@@ -333,10 +361,14 @@ namespace OpenMS
     while (getline(pepnovo_output_without_parameters, line))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       if (line.empty())
+      {
         continue;
+      }
       if (line.hasPrefix("PepNovo"))
       {
         line.split(',', substrings);

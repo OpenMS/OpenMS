@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -232,7 +232,7 @@ protected:
 
       @return A pointer to the trace fitter that should be used.
      */
-    TraceFitter* chooseTraceFitter_(double& tau);
+    std::unique_ptr<TraceFitter> chooseTraceFitter_(double& tau);
 
     double intensityScore_(Size rt_bin, Size mz_bin, double intensity) const;
 
@@ -251,7 +251,7 @@ protected:
       @param traces Original mass traces found in the experiment.
       @param new_traces Mass traces created by cropping the original mass traces.
      */
-    void cropFeature_(TraceFitter* fitter,
+    void cropFeature_(std::shared_ptr<TraceFitter> fitter,
                       const MassTraces& traces,
                       MassTraces& new_traces);
 
@@ -278,7 +278,7 @@ protected:
 
       @return true if the feature is valid
      */
-    bool checkFeatureQuality_(TraceFitter* fitter,
+    bool checkFeatureQuality_(std::shared_ptr<TraceFitter> fitter,
                               MassTraces& feature_traces,
                               const double& seed_mz, const double& min_feature_score,
                               String& error_msg, double& fit_score, double& correlation, double& final_score);
@@ -296,7 +296,7 @@ protected:
       @param peak The Seed Peak
       @param path The path where to put the debug files (default is debug/features)
     */
-    void writeFeatureDebugInfo_(TraceFitter* fitter,
+    void writeFeatureDebugInfo_(std::shared_ptr<TraceFitter> fitter,
                                 const MassTraces& traces,
                                 const MassTraces& new_traces,
                                 bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,18 +107,18 @@ public:
                                               " All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin." \
                                               " If you choose 'max_intensity' too small, the noise estimate might be too small as well. " \
                                               " If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime)." \
-                                              " In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.", ListUtils::create<String>("advanced"));
+                                              " In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.", {"advanced"});
       defaults_.setMinInt("max_intensity", -1);
 
-      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", {"advanced"});
       defaults_.setMinFloat("auto_max_stdev_factor", 0.0);
       defaults_.setMaxFloat("auto_max_stdev_factor", 999.0);
 
-      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", {"advanced"});
       defaults_.setMinInt("auto_max_percentile", 0);
       defaults_.setMaxInt("auto_max_percentile", 100);
 
-      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", {"advanced"});
       defaults_.setMinInt("auto_mode", -1);
       defaults_.setMaxInt("auto_mode", 1);
 
@@ -131,10 +131,10 @@ public:
       defaults_.setValue("min_required_elements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)");
       defaults_.setMinInt("min_required_elements", 1);
 
-      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", ListUtils::create<String>("advanced"));
+      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", {"advanced"});
 
       defaults_.setValue("write_log_messages", "true", "Write out log messages in case of sparse windows or median in rightmost histogram bin");
-      defaults_.setValidStrings("write_log_messages", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("write_log_messages", {"true","false"});
 
       SignalToNoiseEstimator<Container>::defaultsToParam_();
     }

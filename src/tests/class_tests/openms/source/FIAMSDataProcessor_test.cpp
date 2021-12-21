@@ -80,10 +80,10 @@ p.setValue("resolution", 120000.0);
 p.setValue("polarity", "negative");
 p.setValue("max_mz", 1500);
 p.setValue("bin_step", 20);
-p.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
-p.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
-p.setValue("positive_adducts", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv")));
-p.setValue("negative_adducts", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv")));
+p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+p.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
+p.setValue("positive_adducts", OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv"));
+p.setValue("negative_adducts", OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv"));
 fia_processor.setParameters(p);
 
 MSExperiment exp;
@@ -138,7 +138,7 @@ END_SECTION
 START_SECTION((mergeAlongTime))
 {
     MSSpectrum output = fia_processor.mergeAlongTime(spectra);
-    TEST_EQUAL(output.size() > 0, true);
+    TEST_EQUAL(!output.empty(), true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
     TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
 }

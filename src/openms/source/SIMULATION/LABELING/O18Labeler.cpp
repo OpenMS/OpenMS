@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 using std::vector;
 
 // TODO: change postRawHook to SimTypes::FeatureMapSim?
-// TODO: implement correct consensus in postRaw
+// TODO: implement correct consensus in post raw
 
 
 namespace OpenMS
@@ -94,15 +94,13 @@ namespace OpenMS
 
     std::map<AASequence, Feature> unlabeled_features_index;
 
-    for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = unlabeled_features.begin();
-         unlabeled_features_iter != unlabeled_features.end();
-         ++unlabeled_features_iter)
+    for (Feature& unlabel : unlabeled_features)
     {
-      (*unlabeled_features_iter).ensureUniqueId();
+      unlabel.ensureUniqueId();
       unlabeled_features_index.insert(std::make_pair(
-                                        (*unlabeled_features_iter).getPeptideIdentifications()[0].getHits()[0].getSequence()
+                                        unlabel.getPeptideIdentifications()[0].getHits()[0].getSequence()
                                                     ,
-                                        *unlabeled_features_iter
+                                        unlabel
                                         ));
 
     }
@@ -110,12 +108,12 @@ namespace OpenMS
     // iterate over second map
     SimTypes::FeatureMapSim& labeled_features = features_to_simulate[1];
 
-    for (SimTypes::FeatureMapSim::iterator lf_iter = labeled_features.begin(); lf_iter != labeled_features.end(); ++lf_iter)
+    for (Feature& lf : labeled_features)
     {
-      AASequence unmodified_sequence = (*lf_iter).getPeptideIdentifications()[0].getHits()[0].getSequence();
+      AASequence unmodified_sequence = lf.getPeptideIdentifications()[0].getHits()[0].getSequence();
 
       // check if feature has tryptic c-terminus
-      PeptideHit ph = (*lf_iter).getPeptideIdentifications()[0].getHits()[0];
+      PeptideHit ph = lf.getPeptideIdentifications()[0].getHits()[0];
       if (ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'R'
          ||
           ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'K')
@@ -127,12 +125,12 @@ namespace OpenMS
 
         if (labeling_efficiency != 1.0)
         {
-          Feature b1(*lf_iter);
+          Feature b1(lf);
           b1.ensureUniqueId();
-          Feature b2(*lf_iter);
+          Feature b2(lf);
           b2.ensureUniqueId();
 
-          SimTypes::SimIntensityType total_intensity = (*lf_iter).getIntensity();
+          SimTypes::SimIntensityType total_intensity = lf.getIntensity();
 
           // di-labeled
           addModificationToPeptideHit_(b2, "UniMod:193");
@@ -148,7 +146,7 @@ namespace OpenMS
 
           // merge unlabeled with possible labeled feature
           // modify unlabeled intensity
-          (*lf_iter).setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
+          lf.setIntensity(total_intensity * (1 - labeling_efficiency) * (1 - labeling_efficiency));
 
           // all three partial intensities from above should add up to 1 now
 
@@ -160,7 +158,7 @@ namespace OpenMS
           cf.insert(HEAVY_CHANNEL_ID_, b2);
 
           // merge unlabeled with unlabeled from other channel (if it exists)
-          Feature final_unlabeled_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
+          Feature final_unlabeled_feature = mergeFeatures_(lf, unmodified_sequence, unlabeled_features_index);
           final_unlabeled_feature.ensureUniqueId();
           cf.insert(LIGHT_CHANNEL_ID_, final_unlabeled_feature);
 
@@ -175,9 +173,9 @@ namespace OpenMS
           // generate labeled feature
           // labeling_efficiency is 100% so we transform the complete
           // feature in a di-labeled feature
-          addModificationToPeptideHit_(*lf_iter, "UniMod:193");
-          (*lf_iter).ensureUniqueId();
-          final_feature_map.push_back(*lf_iter);
+          addModificationToPeptideHit_(lf, "UniMod:193");
+          lf.ensureUniqueId();
+          final_feature_map.push_back(lf);
 
           // add corresponding feature if it exists
           // and generate consensus feature for the unlabeled/labeled pair
@@ -186,7 +184,7 @@ namespace OpenMS
             ConsensusFeature cf;
             cf.setUniqueId();
             final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
-            cf.insert(HEAVY_CHANNEL_ID_, *lf_iter);
+            cf.insert(HEAVY_CHANNEL_ID_, lf);
             cf.insert(LIGHT_CHANNEL_ID_, unlabeled_features_index[unmodified_sequence]);
 
             // remove unlabeled feature
@@ -198,7 +196,7 @@ namespace OpenMS
       }
       else
       {
-        Feature final_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
+        Feature final_feature = mergeFeatures_(lf, unmodified_sequence, unlabeled_features_index);
         final_feature_map.push_back(final_feature);
       }
     }
