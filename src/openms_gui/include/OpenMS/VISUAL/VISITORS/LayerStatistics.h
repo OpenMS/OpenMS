@@ -39,7 +39,10 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
+#include <array>
 #include <map>
 #include <string>
 #include <variant>
@@ -51,12 +54,12 @@ namespace OpenMS
   class FeatureMap;
   
   /**
-     @brief Struct representing the statistics about one meta information.
+     @brief Struct representing the statistics about a set of values
 
      Min and max are only useful if count > 0
   */
   template <typename VALUE_TYPE>
-  struct StatsSummary
+  struct RangeStats
   {
     public:  
       void addDataPoint(VALUE_TYPE v)
@@ -95,52 +98,154 @@ namespace OpenMS
       VALUE_TYPE sum_{0};
   };
 
+  using RangeStatsInt = RangeStats<int>;
+  using RangeStatsDouble = RangeStats<double>;
+  using RangeStatsVariant = std::variant<RangeStatsInt, RangeStatsDouble>;
+
   /// a simple counting struct, for non-numerical occurrences of meta-values
   struct StatsCounter
   {
     size_t counter{0};
   };
 
-  using SSInt = StatsSummary<int>;
-  using SSDouble = StatsSummary<double>;
-  using StatsSummaryVariant = std::variant<SSInt, SSDouble, StatsCounter>;
+  /// Where did a statistic come from? Useful for display to user, and for internal dispatch when user requests a more detailed value distribution
+  enum class RangeStatsSource
+  {
+    CORE,  ///< statistic was obtained from a core data structure of the container, e.g. intensity
+    METAINFO, ///< statistic was obtained from MetaInfoInterface of container elements, e.g. "FWHM" for FeatureMaps
+    ARRAYINFO,  ///< statistic was obtained from Float/IntegerArrays of the container elements, e.g. "IonMobility" for PeakMap
+    SIZE_OF_STATSSOURCE
+  };
+  
+  /// Names corresponding to elements of enum RangeStatsSource
+  static std::array<char*, (size_t)RangeStatsSource::SIZE_OF_STATSSOURCE> StatsSourceNames = {"core", "metainfo", "arrayinfo"};
+
+  /// Origin and name of a statistic.
+  struct RangeStatsType
+  {
+    RangeStatsSource src;
+    std::string name;
+
+    bool operator<(const RangeStatsType& rhs) const
+    {
+      return std::tie(src, name) < std::tie(rhs.src, rhs.name);
+    }
+
+    bool operator==(const RangeStatsType& rhs) const
+    {
+      return src == rhs.src && name == rhs.name;
+    }
+  };
+
+  /// collection of Min/Max/Avg statistics from different sources
+  using StatsMap = std::map<RangeStatsType, RangeStatsVariant>;
+  /// collection of MetaValues which are not numeric (counts only the number of occurrences per metavalue)
+  using StatsCounterMap = std::map<std::string, StatsCounter>;
 
   /**
-      @brief Compute summary statistics (count/min/max/avg) about a layer, e.g. intensity, charge, meta values, ...
+      @brief Compute summary statistics (count/min/max/avg) about a container, e.g. intensity, charge, meta values, ...
   */
   class OPENMS_GUI_DLLAPI LayerStatistics
   {
   public:
-    /// Computes the statistics of a peak layer
-    void computePeakMapStats(const PeakMap& pm);
-    /// Computes the statistics of a feature layer
-    void computeFeatureMapStats(const FeatureMap& fm);
-    /// Computes the statistics of a consensus feature layer
-    void computeConsensusMapStats(const ConsensusMap& cm);
+    /// get all range statistics, any of which can then be plugged into getDistribution()
+    const StatsMap& getRangeStatistics() const
+    {
+      return overview_range_data_;
+    }
 
-    using StatsMap = std::map<std::string, StatsSummaryVariant>;
+    /// obtain count statistics for all meta values which are not numerical
+    const StatsCounterMap& getCountStatistics() const
+    {
+      return overview_count_data_;
+    }
 
-    /// retrieve the core statistics of the data structure (usually intensity, maybe charge, quality, etc)
-    const StatsMap& getCoreStats() const;
+    /**
+       @brief After computing the overview statistic, you can query a concrete distribution by giving the name of the statistic
+       @param which Distribution based on which data? 
+       @param number_of_bins Number of histogram bins (equally spaced within [min,max] of the distribution)
+       @return The distribution
+       @throws Exception::InvalidValue if @p which is not a valid overview statistic for the underlying data
+    */
+    virtual Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins = 500) const = 0;
 
-    /// retrieve the statistics of all the meta values, e.g. "FWHM" for FeatureMaps
-    /// The result is computed by looking up a MetaInfoInterface. Try not to query repeatedly if performance matters.
-    StatsMap getMetaStats() const;
-
-    /// retrieve the statistics of all float and integer data arrays of spectra (only populated for PeakMaps)
-    const StatsMap& getArrayStats() const;
 
   protected:
+    /// compute the range and count statistics. Call this method in the Ctor of derived classes.
+    virtual void computeStatistics_() = 0;
     /// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
     void bringInMetaStats_(const MetaInfoInterface* meta_interface);
-    
-    /// core statistics of the data structure
-    StatsMap core_stats_;
-    /// Map containing the statistics about all meta information of the peaks/features in the layer
-    /// It's key is UInt for performance reasons
-    std::map<UInt, StatsSummaryVariant> meta_stats_;
-    /// Map containing the statistics about the FloatDataArrays of all spectra in this layer
-    StatsMap meta_array_stats_;
+
+    StatsMap overview_range_data_; ///< data on numerical values computed during getOverviewStatistics 
+    StatsCounterMap overview_count_data_; ///< count data on non-numerical values computed during getOverviewStatistics
   };
 
+  /**
+    @brief Computes statistics and distributions for a PeakMap    
+  */
+  class OPENMS_GUI_DLLAPI LayerStatisticsPeakMap
+   : public LayerStatistics
+  {
+  public:
+    LayerStatisticsPeakMap(const PeakMap& pm);
+ 
+    Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
+
+  private:
+    void computeStatistics_() override;
+    const PeakMap* pm_; ///< internal reference to a PeakMap -- make sure it does not go out of
+                        ///< scope while using this class
+  };
+
+  /**
+    @brief Computes statistics and distributions for a PeakMap
+  */
+  class OPENMS_GUI_DLLAPI LayerStatisticsFeatureMap : public LayerStatistics
+  {
+  public:
+    LayerStatisticsFeatureMap(const FeatureMap& fm);
+
+    Math::Histogram<> getDistribution(const RangeStatsType& which,
+                                      const UInt number_of_bins) const override;
+
+  private:
+    void computeStatistics_() override;
+    const FeatureMap* fm_; ///< internal reference to a FeatureMap -- make sure it does not go out of
+                           ///< scope while using this class
+  };
+
+  /**
+    @brief Computes statistics and distributions for a PeakMap
+  */
+  class OPENMS_GUI_DLLAPI LayerStatisticsConsensusMap : public LayerStatistics
+  {
+  public:
+    LayerStatisticsConsensusMap(const ConsensusMap& cm);
+
+    Math::Histogram<> getDistribution(const RangeStatsType& which,
+                                      const UInt number_of_bins) const override;
+
+  private:
+    void computeStatistics_() override;
+    const ConsensusMap* cm_; ///< internal reference to a PeakMap -- make sure it does not go out of
+                             ///< scope while using this class
+  };
+
+  /**
+    @brief Computes statistics and distributions for a vector<PeptideIdentifications>
+  */
+  class OPENMS_GUI_DLLAPI LayerStatisticsIdent : public LayerStatistics
+  {
+  public:
+    LayerStatisticsIdent(const IPeptideIds::PepIds& cm);
+
+    Math::Histogram<> getDistribution(const RangeStatsType& which,
+                                      const UInt number_of_bins) const override;
+
+  private:
+    void computeStatistics_() override;
+    const IPeptideIds::PepIds* ids_; ///< internal reference to a PeptideIds -- make sure it does not
+                                     ///< go out of scope while using this class
+  };
+  
 } // namespace OpenMS

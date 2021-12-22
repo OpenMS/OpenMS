@@ -70,10 +70,6 @@ public:
 
     // Docu in base class
     void recalculateAxes_() override;
-    // Docu in base class
-    Math::Histogram<> createIntensityDistribution_() const override;
-    // Docu in base class
-    Math::Histogram<> createMetaDistribution_(const String & name) const override;
 
     //docu in base class
     bool isLegendShown() const override;
