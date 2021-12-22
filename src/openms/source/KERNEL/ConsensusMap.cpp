@@ -75,9 +75,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::~ConsensusMap()
-  {
-  }
+  ConsensusMap::~ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(Base::size_type n) :
     Base(n),
