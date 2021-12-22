@@ -81,7 +81,7 @@ namespace OpenMS
       split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
     
-    exp.clear();
+    exp.clear(true);
     return split_peakmap;
   }
 
