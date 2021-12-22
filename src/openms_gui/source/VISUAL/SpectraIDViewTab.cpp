@@ -200,7 +200,7 @@ namespace OpenMS
     //clear the map each time entries are updated with updateEntries()
     protein_to_peptide_id_map.clear();
 
-    if (is_first_time_loading)
+    if (is_first_time_loading_)
     {
       for (const auto& spec : *layer_->getPeakData())
       {
@@ -226,7 +226,7 @@ namespace OpenMS
         }
       }
       // set is_first_time_loading to false so that the map gets created only the first time!
-      is_first_time_loading = false;
+      is_first_time_loading_ = false;
     }
   }
 
@@ -557,11 +557,11 @@ namespace OpenMS
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-    // setting "is_first_time_loading = true;" here currently negates the logic of creating the map only the first time
+    // setting "is_first_time_loading_ = true;" here currently negates the logic of creating the map only the first time
     // the data loads, but in future, after fixing the issue of calling updateEntries() multiple times, we can use it to only
     // create the map when the table data loads completely new data from idXML file. Currently the map gets created each time 
     // the updateEntries() is called.
-    is_first_time_loading = true;
+    is_first_time_loading_ = true;
     createProteinToPeptideIDMap_();
     updateEntries_(); // we need this extra function since it's an internal slot
   }
