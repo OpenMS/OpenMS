@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File
+from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File, IonSource
 
 import pandas as pd
 import numpy as np
@@ -303,6 +303,61 @@ class MSExperimentDF(MSExperiment):
         cols = ["RT", "mzarray", "intarray"]
 
         return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+
+    def get_massql_df(self):
+        """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
+
+        The Python module massql allows queries in mass spectrometry data (MS1 and MS2
+        data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
+        
+        Returns:
+        ms1_df (pandas.DataFrame): peak data of MS1 spectra
+        ms2_df (pandas.DataFrame): peak data of MS2 spectra with precursor information
+        """
+        self.updateRanges()
+
+        def get_polarity(spectrum):
+            polarity = spectrum.getInstrumentSettings().getPolarity()
+            if polarity == IonSource.Polarity.POLNULL:
+                return 0
+            elif polarity == IonSource.Polarity.POSITIVE:
+                return 1
+            elif polarity == IonSource.Polarity.NEGATIVE:
+                return 2
+
+        def get_peak_arrays_from_spec(spec, scan_num):
+            if spec.getMSLevel() == 2:
+                ms2_data = (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+            else:
+                ms2_data = ()
+            for i, peak in enumerate(spec):
+                peak_data = (peak.getIntensity(), peak.getMZ(), scan_num+1, spec.getRT()/60, get_polarity(spec))
+                yield peak_data + ms2_data
+
+        def get_spec_arr(spec, scan_num):
+            arr = np.asarray([peak_data for peak_data in get_peak_arrays_from_spec(spec, scan_num)], dtype='f')
+            arr = np.insert(arr, 1, arr[:,0]/np.amax(arr[:,0]), axis=1) # i_norm
+            arr = np.insert(arr, 2, arr[:,0]/np.sum(arr[:,0]), axis=1) # tic_i_norm
+            return arr
+
+        columns = ['i', 'i_norm', 'i_tic_norm', 'mz', 'scan', 'rt', 'polarity']
+        if 1 in self.getMSLevels():
+            ms1_df = pd.DataFrame(np.concatenate([get_spec_arr(spec, scan_num) for scan_num, spec in enumerate(self) if spec.getMSLevel() == 1], axis=0), columns = columns)
+        else:
+            ms1_df = pd.DataFrame(columns = columns)
+        columns += ['precmz', 'ms1scan', 'charge']
+
+        if 2 in self.getMSLevels():
+            ms2_df = pd.DataFrame(np.concatenate([get_spec_arr(spec, scan_num) for scan_num, spec in enumerate(self) if spec.getMSLevel() == 2], axis=0), columns = columns)
+        else:
+            ms2_df = pd.DataFrame(columns = columns)
+
+        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'scan': 'int32', 'polarity': 'int32'}
+        ms1_df = ms1_df.astype(dtypes)
+        dtypes = dict(dtypes, **{'ms1scan': 'int32', 'charge': 'int32'})
+        ms2_df = ms2_df.astype(dtypes)
+        
+        return ms1_df, ms2_df
 
 MSExperiment = MSExperimentDF
 PeakMap = MSExperimentDF

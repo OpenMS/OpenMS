@@ -2876,6 +2876,7 @@ def testMSExperiment():
      MSExperiment.isSorted
      MSExperiment.get2DPeakDataLong
      MSExperiment.get_df
+     MSExperiment.get_massql_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2948,6 +2949,10 @@ def testMSExperiment():
         exp.addSpectrum(s)
 
     assert exp.get_df().shape == (3,3)
+
+    ms1_df, ms2_df = exp.get_massql_df()
+
+    assert ms1_df.shape == (6,7)
 
 
 @report
