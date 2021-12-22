@@ -85,9 +85,10 @@ namespace OpenMS
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
-    ///  Rebuild protein table entries
+    /// Rebuild protein table entries
     void updateProteinEntries_(int spec_cell_row_idx);
-
+    /// Switch horizontal or vertical layout of the PSM and Proteintable 
+    void switchOrientation_();
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
@@ -110,6 +111,7 @@ namespace OpenMS
     TableView* table_widget_ = nullptr;
     TableView* protein_table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
+    QSplitter* tables_splitter_ = nullptr;
     bool is_first_time_loading = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
 

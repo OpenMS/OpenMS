@@ -138,17 +138,19 @@ namespace OpenMS
     defaults_.setValue("tolerance", 0.5, "Mass tolerance in Th used in the automatic alignment."); // unfortunately we don't support alignment with ppm error
 
     QVBoxLayout* all = new QVBoxLayout(this);
-    QSplitter* tables_splitter = new QSplitter(Qt::Horizontal);
+    tables_splitter_ = new QSplitter(Qt::Horizontal);
+
     table_widget_ = new TableView(this);
     table_widget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
 
-    tables_splitter->addWidget(table_widget_);
+    tables_splitter_->addWidget(table_widget_);
 
     protein_table_widget_ = new TableView(this);
     protein_table_widget_->setWhatsThis("Protein selection bar<BR><BR>Here all proteins of the current experiment are shown. TODO what can you do with it");
 
-    tables_splitter->addWidget(protein_table_widget_);
-    all->addWidget(tables_splitter);
+    tables_splitter_->addWidget(protein_table_widget_);
+    all->addWidget(tables_splitter_);
+    
     ////////////////////////////////////
     // additional checkboxes and buttons
     QHBoxLayout* buttons_hbox_layout = new QHBoxLayout();
@@ -163,10 +165,14 @@ namespace OpenMS
 
     QPushButton* export_table = new QPushButton("Export table", this);
 
+    QPushButton* switch_orientation_ = new QPushButton("Switch orientation", this);
+    connect(switch_orientation_, &QPushButton::clicked, this, &SpectraIDViewTab::switchOrientation_);
+
     buttons_hbox_layout->addWidget(hide_no_identification_);
     buttons_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
     buttons_hbox_layout->addWidget(save_IDs);
     buttons_hbox_layout->addWidget(export_table);
+    buttons_hbox_layout->addWidget(switch_orientation_);
     all->addLayout(buttons_hbox_layout);
     //TODO add search boxes like in spectrum list view
     //TODO add score filter box or Apply Tool to identifications
@@ -928,6 +934,19 @@ namespace OpenMS
     // call this updateProteinEntries_(-1) function after the table_widget data is filled, 
     // otherwise table_widget_->item(row, clm) returns nullptr;
     updateProteinEntries_(selected_row);
+  }
+
+  void SpectraIDViewTab::switchOrientation_()
+  {
+    if (tables_splitter_->orientation() == Qt::Vertical) 
+    {
+      tables_splitter_->setOrientation(Qt::Horizontal);
+    }
+    else
+    {
+      tables_splitter_->setOrientation(Qt::Vertical);
+    }
+
   }
  
   void SpectraIDViewTab::saveIDs_()
