@@ -39,6 +39,7 @@
 
 #include <chrono>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace OpenMS;
 
@@ -90,6 +91,8 @@ AASequence DecoyGenerator::shufflePeptides(
         const String& protease,
         const int max_attempts)
 {
+  static std::unordered_map<std::string, std::string> td_cache; // to prevent targets getting different decoys
+
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
 
   std::vector<AASequence> peptides;
@@ -101,7 +104,17 @@ AASequence DecoyGenerator::shufflePeptides(
   String protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
-    std::string peptide_string = peptides[i].toUnmodifiedString();
+    const std::string peptide_string = peptides[i].toUnmodifiedString();
+    bool cached(false);
+    #pragma omp critical (td_cache)
+    {
+      if (auto it = td_cache.find(peptide_string); it != td_cache.end())
+      {      
+        protein_shuffled += it->second; // add if cached
+        cached = true;
+      }
+    }
+    if (cached) continue;
 
     String peptide_string_shuffled = peptide_string;
     auto last = --peptide_string_shuffled.end();
@@ -124,9 +137,25 @@ AASequence DecoyGenerator::shufflePeptides(
       }
     }
     protein_shuffled += lowest_identity_string;
+    #pragma omp critical (td_cache)
+    {
+      td_cache[peptide_string] = lowest_identity_string;
+    }
   }
   // the last peptide of a protein is not an enzymatic cutting site so we do a full shuffle
-  std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  const std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  bool cached(false);
+  #pragma omp critical (td_cache)
+  {
+    if (auto it = td_cache.find(peptide_string); it != td_cache.end())
+    {      
+      protein_shuffled += it->second; // add if cached
+      cached = true;
+    }
+  }
+
+  if (cached) return AASequence::fromString(protein_shuffled);
+
   String peptide_string_shuffled = peptide_string;
   double lowest_identity(1.0);
   String lowest_identity_string(peptide_string_shuffled);
@@ -145,6 +174,10 @@ AASequence DecoyGenerator::shufflePeptides(
     }
   }
   protein_shuffled += lowest_identity_string;
+  #pragma omp critical (td_cache)
+  {
+    td_cache[peptide_string] = lowest_identity_string;
+  }
   return AASequence::fromString(protein_shuffled);
 }
 
