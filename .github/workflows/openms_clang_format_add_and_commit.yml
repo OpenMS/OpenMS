@@ -27,10 +27,10 @@ jobs:
 
 # Perform linting
       - name: Use clang format linting
-        uses: DoozyX/clang-format-lint-action@v0.12
+        uses: DoozyX/clang-format-lint-action@v0.13
         with:
           source: ${{ steps.changed-files.outputs.all_modified_files }}
-          clangFormatVersion: 12
+          clangFormatVersion: 13
           inplace: True
       - uses: EndBug/add-and-commit@v4
         with:

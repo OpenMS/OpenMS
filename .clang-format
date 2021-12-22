@@ -33,7 +33,7 @@ BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
-ColumnLimit: 100
+ColumnLimit: 200
 CompactNamespaces: false
 ContinuationIndentWidth: 2
 FixNamespaceComments: true
