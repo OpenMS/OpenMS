@@ -80,7 +80,8 @@ namespace OpenMS
     {
       split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
-
+    
+    exp.clear();
     return split_peakmap;
   }
 
@@ -256,8 +257,7 @@ namespace OpenMS
     if (exp.empty())
     {
       return result;
-    }
-      
+    }      
 
     std::vector<const MSSpectrum*> stack;
     double curr_rt = std::numeric_limits<double>::max();
