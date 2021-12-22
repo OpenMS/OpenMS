@@ -63,7 +63,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSSpectrum :
+  class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
     public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
