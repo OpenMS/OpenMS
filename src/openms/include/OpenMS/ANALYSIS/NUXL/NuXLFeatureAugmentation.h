@@ -116,7 +116,7 @@ namespace OpenMS
         for (const auto& s : positive_weights) 
         {
           auto p = p_template;
-          p.setMetaValue(s, maxima[s]); // set feature value to maximum of observed ones
+          p.setMetaValue(s, maxima[s] + 1000.0 * (maxima[s] - minima[s])); // set feature value to >> maximum of observed ones
           std::vector<PeptideHit> phs;
           phs.push_back(p);
           PeptideIdentification pid = pep_ids[0];
@@ -130,7 +130,7 @@ namespace OpenMS
         for (const auto& s : negative_weights) 
         {
           auto p = p_template;
-          p.setMetaValue(s, minima[s]); // set feature value to min of observed ones
+          p.setMetaValue(s, minima[s] - 1000.0 * (maxima[s] - minima[s])); // set feature value to << min of observed ones
           std::vector<PeptideHit> phs;
           phs.push_back(p);
           PeptideIdentification pid = pep_ids[0];
