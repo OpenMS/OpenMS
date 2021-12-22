@@ -39,8 +39,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  void LayerDataChrom::computeStats(LayerStatistics& visitor) const
+  std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {
-    visitor.computePeakMapStats(*peak_map_);
+    return make_unique<LayerStatisticsPeakMap>(*peak_map_);
   }
 }// namespace OpenMS

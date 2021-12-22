@@ -71,7 +71,7 @@ namespace OpenMS
       return r;
     }
 
-    void computeStats(LayerStatistics& visitor) const override;
+    std::unique_ptr<LayerStatistics> getStats() const override;
   };
 
 }// namespace OpenMS

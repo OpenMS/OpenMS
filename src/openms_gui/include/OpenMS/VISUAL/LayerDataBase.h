@@ -425,7 +425,7 @@ namespace OpenMS
     virtual RangeAllType getRange() const = 0;
 
     /// compute layer statistics (via visitor)
-    virtual void computeStats(LayerStatistics& visitor) const = 0;
+    virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated

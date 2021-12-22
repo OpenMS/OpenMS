@@ -39,8 +39,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  void LayerDataIdent::computeStats(LayerStatistics& /*visitor*/) const
+  std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
   {
-    // nothing to compute here...
+    return make_unique<LayerStatisticsIdent>(peptides_);
   }
-}// namespace OpenMS
+} // namespace OpenMS

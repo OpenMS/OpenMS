@@ -112,11 +112,6 @@ signals:
     void showCurrentPeaksAs3D();
 
 protected:
-    // Docu in base class
-    Math::Histogram<> createIntensityDistribution_() const override;
-    // Docu in base class
-    Math::Histogram<> createMetaDistribution_(const String & name) const override;
-
     /// Vertical projection widget
     Plot1DWidget * projection_vert_;
     /// Horizontal projection widget
