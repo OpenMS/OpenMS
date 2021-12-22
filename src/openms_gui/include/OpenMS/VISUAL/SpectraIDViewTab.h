@@ -112,7 +112,7 @@ namespace OpenMS
     TableView* protein_table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
     QSplitter* tables_splitter_ = nullptr;
-    bool is_first_time_loading = true;
+    bool is_first_time_loading_ = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
 
   private slots:

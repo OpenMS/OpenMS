@@ -52,14 +52,14 @@ namespace OpenMS
   {
     Q_OBJECT
     // We can access the protein and peptide data using SequenceVisualizer.json_data_obj inside JS/HTML resource file 
-    Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj)
+    Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj_)
 
   public:
     explicit SequenceVisualizer(QWidget* parent = nullptr);
     ~SequenceVisualizer() override;
 
   public slots:
-    // this method sets protein and peptide data to m_json_data_obj.
+    // this method sets protein and peptide data to m_json_data_obj_.
     void setProteinPeptideDataToJsonObj(
         const QString& accession_num, 
         const QString& pro_seq, 
@@ -67,7 +67,7 @@ namespace OpenMS
 
   private:
     Ui::SequenceVisualizer* ui;
-    QJsonObject m_json_data_obj;
+    QJsonObject m_json_data_obj_;
   };
 }// namespace OpenMS
 #endif

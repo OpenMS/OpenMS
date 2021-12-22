@@ -32,6 +32,3 @@ cmake-build-release
 cmake-build-*
 *.code-workspace
 .vs
-contrib_win64_build
-CMakeSettings.json
-OpenMS_Win64
