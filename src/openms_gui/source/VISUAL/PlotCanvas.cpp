@@ -967,7 +967,7 @@ namespace OpenMS
 
   LayerDataBase& LayerStack::getCurrentLayer()
   {
-    if (current_layer_ >= layers_.size() || current_layer_ < 0)
+    if (current_layer_ >= layers_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
     }

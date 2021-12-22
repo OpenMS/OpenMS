@@ -66,7 +66,7 @@ namespace OpenMS
         const QJsonArray& peptides_data);
 
   private:
-    Ui::SequenceVisualizer* ui;
+    Ui::SequenceVisualizer* ui_;
     QJsonObject m_json_data_obj_;
   };
 }// namespace OpenMS

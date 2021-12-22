@@ -46,20 +46,20 @@
 namespace OpenMS
 {
   SequenceVisualizer::SequenceVisualizer(QWidget* parent) :
-      QWidget(parent), ui(new Ui::SequenceVisualizer)
+      QWidget(parent), ui_(new Ui::SequenceVisualizer)
   {
-    ui->setupUi(this);
+    ui_->setupUi(this);
     auto* view = new QWebEngineView(parent);
     auto* channel = new QWebChannel(this); // setup Qt WebChannel API
     view->page()->setWebChannel(channel);
     channel->registerObject(QString("SequenceVisualizer"), this); // This object will be available in HTML file.
     view->load(QUrl("qrc:/new/sequence_viz.html"));
-    ui->gridLayout->addWidget(view);
+    ui_->gridLayout->addWidget(view);
   }
 
   SequenceVisualizer::~SequenceVisualizer()
   {
-    delete ui;
+    delete ui_;
   }
 
   // Get protein and peptide data from the protein table and store inside the m_json_data_obj_ object. 
