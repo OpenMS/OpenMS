@@ -120,7 +120,7 @@ namespace OpenMS
     }
     bool show_button = std::visit(overload{
       [&](auto&& stats) { return stats.getCount() > 1 && stats.getMin() < stats.getMax(); },// for SSInt, SSDouble
-      [&](const StatsCounter& c) { return false; }
+      [&](const StatsCounter& /*c*/) { return false; }
       }, row_data);
     if (enable_show_button && show_button)
     {

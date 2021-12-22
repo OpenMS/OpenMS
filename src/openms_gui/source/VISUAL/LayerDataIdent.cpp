@@ -39,7 +39,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  void LayerDataIdent::computeStats(LayerStatistics& visitor) const
+  void LayerDataIdent::computeStats(LayerStatistics& /*visitor*/) const
   {
     // nothing to compute here...
   }
