@@ -81,6 +81,10 @@ namespace OpenMS
 
   ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode)
   {
+    // pass environment variables to child process
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    qp_->setProcessEnvironment(env);
+
     error_msg.clear();
     if (!working_dir.isEmpty())
     {
