@@ -10,11 +10,15 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>" namespace "OpenM
     cdef cppclass Normalizer(DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
+        # wrap-doc:
+        #   Normalizes the peak intensities spectrum-wise
 
-        Normalizer()           nogil except +
-        Normalizer(Normalizer) nogil except + #wrap-ignore
+        Normalizer() nogil except +
 
-        void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
+        Normalizer(Normalizer) nogil except +
 
+        void filterSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Normalizes the spectrum
+
+        void filterPeakSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Normalizes the peak spectrum
+
+        void filterPeakMap(MSExperiment & exp) nogil except + # wrap-doc:Normalizes the peak map

@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
         # wrap-inherits:
         #    DefaultParamHandler
 
-        FeatureDeconvolution()                  nogil except +
-        FeatureDeconvolution(FeatureDeconvolution)   nogil except + #wrap-ignore
+        FeatureDeconvolution() nogil except +
+        FeatureDeconvolution(FeatureDeconvolution&) nogil except + 
 
         void compute(FeatureMap & input, FeatureMap & output, ConsensusMap & cmap1, ConsensusMap & cmap2) nogil except +
 

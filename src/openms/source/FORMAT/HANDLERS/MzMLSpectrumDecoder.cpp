@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,12 +50,12 @@ namespace OpenMS
       bool x_precision_64, bool int_precision_64)
   {
     // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
-    if ((data[x_index].ints_32.size() > 0) || (data[x_index].ints_64.size() > 0))
+    if ((!data[x_index].ints_32.empty()) || (!data[x_index].ints_64.empty()))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding m/z or RT array as integer is not allowed!");
     }
-    if ((data[int_index].ints_32.size() > 0) || (data[int_index].ints_64.size() > 0))
+    if ((!data[int_index].ints_32.empty()) || (!data[int_index].ints_64.empty()))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding intensity array as integer is not allowed!");
@@ -274,7 +274,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& spectrum)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& spectrum) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
@@ -310,7 +310,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& chromatogram)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& chromatogram) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
@@ -346,7 +346,7 @@ namespace OpenMS
     }
   }
 
-  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data)
+  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
@@ -396,7 +396,7 @@ namespace OpenMS
     return sptr;
   }
 
-  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data)
+  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data) const
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
@@ -449,16 +449,18 @@ namespace OpenMS
   void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
   {
     // access result through data.back()
-    data.push_back(BinaryData());
+    data.emplace_back();
 
-    static const XMLCh* TAG_CV = xercesc::XMLString::transcode("cvParam");
-    static const XMLCh* TAG_binary = xercesc::XMLString::transcode("binary");
-    static const XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
-    static const XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
-    static const XMLCh* TAG_accession = xercesc::XMLString::transcode("accession");
-    static const XMLCh* TAG_unit_accession = xercesc::XMLString::transcode("unitAccession");
-    static const XMLCh* TAG_value = xercesc::XMLString::transcode("value");
-    static const XMLCh* TAG_name = xercesc::XMLString::transcode("name");
+    // using CONST_XMLCH since writing a u16 char array each time is ugly. disadvantage = no constexpr.
+    // Uses only reinterpret_cast, so usually no runtime cost though.
+    static const XMLCh* TAG_CV = CONST_XMLCH("cvParam");
+    static const XMLCh* TAG_binary = CONST_XMLCH("binary");
+    static const XMLCh* TAG_userParam = CONST_XMLCH("userParam");
+    static const XMLCh* TAG_referenceableParamGroupRef = CONST_XMLCH("referenceableParamGroupRef");
+    static const XMLCh* TAG_accession = CONST_XMLCH("accession");
+    static const XMLCh* TAG_unit_accession = CONST_XMLCH("unitAccession");
+    static const XMLCh* TAG_value = CONST_XMLCH("value");
+    static const XMLCh* TAG_name = CONST_XMLCH("name");
 
     OpenMS::Internal::StringManager sm;
 
@@ -544,11 +546,13 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
+  std::string MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
-    static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
-    static const XMLCh* binary_data_array_tag = xercesc::XMLString::transcode("binaryDataArray");
+    // initializer list of XMLCh (= usually some type that fits utf16) from ASCII chars
+    static constexpr XMLCh id_tag[] = {'i','d', 0};
+    static constexpr XMLCh default_array_length_tag[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h', 0};
+    static constexpr XMLCh binary_data_array_tag[] = { 'b','i','n','a','r','y','D','a','t','a','A','r','r','a','y', 0};
 
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
@@ -575,11 +579,9 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
-    OPENMS_PRECONDITION(
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" ||
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
+    OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
           (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
-          String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str() )
+          String(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + String("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).
@@ -590,6 +592,8 @@ namespace OpenMS
           in, "Root element does not contain defaultArrayLength XML tag.");
     }
     int default_array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
+    OpenMS::Internal::StringManager sm;
+    std::string id = sm.convert(elementRoot->getAttribute(id_tag));
 
     // Extract the binaryDataArray elements (there may be multiple) and process them
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
@@ -602,6 +606,7 @@ namespace OpenMS
     }
 
     delete parser;
+    return id;
   }
 
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
@@ -614,15 +619,17 @@ namespace OpenMS
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, MSSpectrum& s)
   {
     std::vector<BinaryData> data;
-    domParseString_(in, data);
+    std::string id = domParseString_(in, data);
     decodeBinaryDataMSSpectrum_(data, s);
+    s.setNativeID(id);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, MSChromatogram& c)
   {
     std::vector<BinaryData> data;
-    domParseString_(in, data);
+    std::string id = domParseString_(in, data);
     decodeBinaryDataMSChrom_(data, c);
+    c.setNativeID(id);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)

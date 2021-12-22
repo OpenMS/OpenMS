@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+
 // calculate pearson distance
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 // create binary tree
@@ -44,6 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;
@@ -55,7 +57,7 @@ namespace OpenMS
           DefaultParamHandler("MapAlignmentAlgorithmTreeGuided"),
           ProgressLogger()
   {
-    defaults_.insert("model:", TOPPMapAlignerBase::getModelDefaults("b_spline"));
+    defaults_.insert("model:", MapAlignerBase::getModelDefaults("b_spline"));
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");
     defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());
@@ -63,15 +65,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MapAlignmentAlgorithmTreeGuided::~MapAlignmentAlgorithmTreeGuided()
-  {
-  }
+  MapAlignmentAlgorithmTreeGuided::~MapAlignmentAlgorithmTreeGuided() = default;
 
   void MapAlignmentAlgorithmTreeGuided::updateMembers_()
   {
     align_algorithm_.setParameters(param_.copy("align_algorithm:", true));
     model_param_ = param_.copy("model:",true);
-    model_type_ = param_.getValue("model_type");
+    model_type_ = param_.getValue("model_type").toString();
     model_param_ = model_param_.copy(model_type_+":", true);
   }
 
@@ -177,7 +177,7 @@ namespace OpenMS
 
   // Align feature maps tree guided using align() of MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
   void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree,
-                                                            std::vector<FeatureMap> feature_maps_transformed,
+                                                            std::vector<FeatureMap>& feature_maps_transformed,
                                                             std::vector<std::vector<double>>& maps_ranges,
                                                             FeatureMap& map_transformed,
                                                             std::vector<Size>& trafo_order)
@@ -195,6 +195,14 @@ namespace OpenMS
 
     Size ref;
     Size to_transform;
+
+    // check RT ranges of IDs
+    for (size_t i = 0; i < maps_ranges.size(); ++i)
+    {
+      StringList p;
+      feature_maps_transformed[i].getPrimaryMSRunPath(p);
+      if (maps_ranges[i].empty()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap originating from '" + ListUtils::concatenate(p, "', '") + "' contains no Peptide Identifications. Cannot align!");
+    }
 
     for (const auto& node : tree)
     {
@@ -219,7 +227,6 @@ namespace OpenMS
       vector<double> tmp;
       std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
 
-      last_trafo = to_transform;
       to_align.push_back(feature_maps_transformed[to_transform]);
       to_align.push_back(feature_maps_transformed[ref]);
 
@@ -233,10 +240,21 @@ namespace OpenMS
       MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
               transformations_align[0], true);
 
-      // combine aligned maps, store in both, because tree always calls smaller number
+      // combine aligned maps, store at smaller index, because tree always calls smaller number
+      // clear feature map at larger index to save memory
       feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
       feature_maps_transformed[ref].updateRanges();
-      feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+      if (ref < to_transform)
+      {
+        feature_maps_transformed[to_transform].clear(true);
+        last_trafo = ref;
+      }
+      else
+      {
+        feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+        feature_maps_transformed[ref].clear(true);
+        last_trafo = to_transform;
+      }
 
       // update order of alignment for both aligned maps
       map_sets[ref].insert(map_sets[ref].end(), map_sets[to_transform].begin(), map_sets[to_transform].end());
@@ -248,6 +266,34 @@ namespace OpenMS
     // copy last transformed FeatureMap for reference return
     map_transformed = feature_maps_transformed[last_trafo];
     trafo_order = map_sets[last_trafo];
+  }
+
+  void MapAlignmentAlgorithmTreeGuided::align(std::vector<FeatureMap>& feature_maps,
+           std::vector<TransformationDescription>& transformations)
+  {
+    // constructing tree
+    vector<vector<double>> maps_ranges(feature_maps.size());  // to save ranges for alignment (larger rt_range -> reference)
+    std::vector<BinaryTreeNode> tree;    // to construct tree with pearson coefficient
+    buildTree(feature_maps, tree, maps_ranges);
+        // print tree
+    ClusterAnalyzer ca;
+    OPENMS_LOG_INFO << "  Alignment follows Newick tree: " << ca.newickTree(tree, true) << endl;
+
+    // alignment
+    vector<Size> trafo_order;
+    FeatureMap map_transformed;
+    {
+      vector<FeatureMap> copied_maps = feature_maps;
+      treeGuidedAlignment(tree, copied_maps, maps_ranges, map_transformed, trafo_order);
+    } // free copied maps
+
+    //-------------------------------------------------------------
+    // generating output
+    //-------------------------------------------------------------
+    transformations.clear();
+    transformations.resize(feature_maps.size()); // for trafo_out
+    computeTrafosByOriginalRT(feature_maps, map_transformed, transformations, trafo_order);
+    OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(feature_maps, transformations);
   }
 
   // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.

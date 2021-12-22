@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,11 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 class QLabel;
 class QComboBox;
 class QPushButton;
-class QRadioButton;
 class QString;
 
 #include <QtWidgets/QDialog>
@@ -76,11 +75,13 @@ public:
         @brief Constructor
 
         @param parent Qt parent widget
+        @param params Containing all TOPP tool/util params
         @param ini_file The file name of the temporary INI file created by this dialog
         @param default_dir The default directory for loading and storing INI files
-        @param layertype The type of data (determines the applicable tools)
+        @param layer_type The type of data (determines the applicable tools)
+        @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
+    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, String layer_name);
     ///Destructor
     ~ToolsDialog() override;
 
@@ -116,11 +117,19 @@ private:
     String default_dir_;
     /// name of ini-file
     QString filename_;
+    /// Mapping of file extension to layer type to determine the type of a tool
+    std::map<String, LayerDataBase::DataType> tool_map_;
+    /// Param object containing all TOPP tool/util params
+    Param params_;
 
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
+    /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
+    std::vector<LayerDataBase::DataType> getTypesFromParam_(const Param& p) const;
+    // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
+    void setInputOutputCombo_(const Param& p);
 
 protected slots:
 

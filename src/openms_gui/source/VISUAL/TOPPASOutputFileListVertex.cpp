@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -186,10 +186,9 @@ namespace OpenMS
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
-                // look for <name>_type (more generic, supporting more than just 'out')
                 if (p.exists(out_type))
                 {
-                  ft = FileTypes::nameToType(p.getValue(out_type));
+                  ft = FileTypes::nameToType(p.getValue(out_type).toString());
                 }
               }
 
@@ -197,11 +196,8 @@ namespace OpenMS
           }
         }
 
-        if (ft != FileTypes::UNKNOWN)
-        { // replace old suffix by new suffix
-          String new_suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
-        }
+        // replace old suffix by new suffix
+        FileHandler::swapExtension(new_file, ft);
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
@@ -230,8 +226,14 @@ namespace OpenMS
             {
               String msg = "Error: Could not remove old output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
-              if (ts->isGUIMode()) QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok);
-              else throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
+              if (ts->isGUIMode())
+              {
+                QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok);
+              }
+              else
+              {
+                throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
+              }
             }
           }
 
@@ -255,8 +257,14 @@ namespace OpenMS
           {
             String msg = "Error: Could not copy temporary output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + String(file_to) + "'. Probably the old file still exists (see earlier errors).";
             OPENMS_LOG_ERROR << msg << std::endl;
-            if (ts->isGUIMode()) QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok);
-            else throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
+            if (ts->isGUIMode())
+            {
+              QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok);
+            }
+            else
+            {
+              throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
+            }
           }
         }
         update(boundingRect()); // repaint
@@ -280,7 +288,7 @@ namespace OpenMS
     TOPPASVertex::inEdgeHasChanged();
   }
 
-  void TOPPASOutputFileListVertex::openContainingFolder()
+  void TOPPASOutputFileListVertex::openContainingFolder() const
   {
     QString path = getFullOutputDirectory().toQString();
     GUIHelpers::openFolder(path);
@@ -300,23 +308,28 @@ namespace OpenMS
 
   String TOPPASOutputFileListVertex::getOutputDir() const
   {
-    TOPPASEdge* e = *inEdgesBegin();
-    TOPPASVertex* tv = e->getSourceVertex();
-    String dir;
-    if (output_folder_name_.isEmpty()) {
+    String dir = String("TOPPAS_out") + String(QDir::separator());
+    if (output_folder_name_.isEmpty())
+    {
+      TOPPASEdge* e = *inEdgesBegin();
+      if (e == nullptr)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "To open the output folder, an input edge is required to knit a folder name.");
+      }
+      const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                             + tv->getName() + "-" 
-                                                             + e->getSourceOutParamName().remove(':');
+      dir += get3CharsNumber_(topo_nr_) + "-"
+             + tv->getName() + "-" 
+             + e->getSourceOutParamName().remove(':');
     }
     else
     {
-      dir = String("TOPPAS_out") + String(QDir::separator()) + output_folder_name_;
+      dir += output_folder_name_;
     }
     return dir;
   }
 
-  String TOPPASOutputFileListVertex::createOutputDir()
+  String TOPPASOutputFileListVertex::createOutputDir() const
   {
     String full_dir = getFullOutputDirectory();
     if (!File::exists(full_dir))
@@ -357,4 +370,8 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
+  void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  {
+    openContainingFolder();
+  }
 }

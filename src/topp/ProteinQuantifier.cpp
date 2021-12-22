@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -417,8 +416,10 @@ protected:
     bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
     for (auto const & q : quant) // loop over sequence->peptide data
     {
-      if (q.second.total_abundances.empty()) { continue; } // not quantified
-
+      if (q.second.total_abundances.empty())
+      { 
+        continue; // not quantified
+      }
       StringList accessions;
       for (String acc : q.second.accessions)
       {
@@ -520,12 +521,17 @@ protected:
 
     for (auto const & q : quant)
     {
-      if (q.second.total_abundances.empty()) continue; // not quantified
-
+      if (q.second.total_abundances.empty())
+      {
+        continue; // not quantified
+      }
       if (leader_to_group.empty())
       {
         out << q.first << 1;
-        if (proteins_.getHits().empty()) out << 0;
+        if (proteins_.getHits().empty())
+        {
+          out << 0;
+        }
         else
         {
           vector<ProteinHit>::iterator pos = proteins_.findHit(q.first);
@@ -564,7 +570,6 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        ConsensusMap::ColumnHeaders::iterator file_it = columns_headers_.begin();
         double light = q.second.total_abundances.find(1)->second;
         double middle = q.second.total_abundances.find(2)->second;
         double heavy = q.second.total_abundances.find(3)->second;
@@ -595,7 +600,10 @@ protected:
       if (top != 1)
       {
         relevant_params.push_back("average");
-        if (top != 0) relevant_params.push_back("include_all");
+        if (top != 0)
+        {
+          relevant_params.push_back("include_all");
+        }
       }
     }
     relevant_params.push_back("best_charge_and_fraction"); // also for peptide output
@@ -603,18 +611,29 @@ protected:
     if (ed.getNumberOfSamples() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
-      if (proteins) relevant_params.push_back("consensus:fix_peptides");
+      if (proteins)
+      {
+        relevant_params.push_back("consensus:fix_peptides");
+      }
     }
 
     String params;
-    for (StringList::iterator it = relevant_params.begin();
-         it != relevant_params.end(); ++it)
+    for (const String& str : relevant_params)
     {
-      String value = algo_params_.getValue(*it);
-      if (value != "false") params += *it + "=" + value + ", ";
+      String value = algo_params_.getValue(str).toString();
+      if (value != "false")
+      {
+        params += str + "=" + value + ", ";
+      }
     }
-    if (params.empty()) params = "(none)";
-    else params.resize(params.size() - 2); // remove trailing ", "
+    if (params.empty())
+    {
+      params = "(none)";
+    }
+    else
+    {
+      params.resize(params.size() - 2); // remove trailing ", "
+    }
     out << "# Parameters (relevant only): " + params << endl;
 
     if (ed.getNumberOfSamples() > 1)
@@ -624,10 +643,16 @@ protected:
       for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
            it != columns_headers_.end(); ++it, ++counter)
       {
-        if (counter > 1) desc += ", ";
+        if (counter > 1)
+        {
+          desc += ", ";
+        }
         desc += String(counter) + ": '" + it->second.filename + "'";
         String label = it->second.label;
-        if (!label.empty()) desc += " ('" + label + "')";
+        if (!label.empty())
+        {
+          desc += " ('" + label + "')";
+        }
       }
       out << desc << endl;
     }
@@ -662,12 +687,24 @@ protected:
                << " quantified";
       if (top > 1)
       {
-        if (include_all) OPENMS_LOG_INFO << " (incl. ";
-        else OPENMS_LOG_INFO << ", ";
+        if (include_all)
+        {
+          OPENMS_LOG_INFO << " (incl. ";
+        }
+        else
+        {
+          OPENMS_LOG_INFO << ", ";
+        }
         OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
                  << " peptides";
-        if (stats.n_samples > 1) OPENMS_LOG_INFO << " in every sample";
-        if (include_all) OPENMS_LOG_INFO << ")";
+        if (stats.n_samples > 1)
+        {
+          OPENMS_LOG_INFO << " in every sample";
+        }
+        if (include_all)
+        {
+          OPENMS_LOG_INFO << ")";
+        }
       }
     }
     OPENMS_LOG_INFO << endl;
@@ -789,7 +826,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString(Qt::ISODate);
+        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
       }
 
       ed = getExperimentalDesignIds_(design_file, proteins);
@@ -812,12 +849,14 @@ protected:
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
-      // protein inference results in the consensusXML?
+      bool inference_in_cxml = false;
+      // protein inference results in the consensusXML or from external ID-only file?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
-          (!consensus.getProteinIdentifications()[0].getHits().empty()))
+          consensus.getProteinIdentifications()[0].hasInferenceData())
       {
         proteins_ = consensus.getProteinIdentifications()[0];
+        inference_in_cxml = true;
       }
 
       quantifier.readQuantData(consensus, ed);
@@ -830,9 +869,15 @@ protected:
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
-        vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
-        proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
-        consensus.setProteinIdentifications(proteins);
+        if (!inference_in_cxml)
+        {
+          auto& prots = consensus.getProteinIdentifications();
+          prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
+        }
+        else
+        {
+          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        }
 /*
  *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
@@ -843,7 +888,7 @@ protected:
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, true, report_unidentified_features, report_unmapped, report_subfeatures);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, !inference_in_cxml, report_unidentified_features, report_unmapped, report_subfeatures);
         MzTabFile().store(mztab, m);
       }
     }
@@ -852,12 +897,23 @@ protected:
     String separator = getStringOption_("format:separator");
     String replacement = getStringOption_("format:replacement");
     String quoting = getStringOption_("format:quoting");
-    if (separator.empty()) separator = "\t";
+    if (separator.empty())
+    {
+      separator = "\t";
+    }
     String::QuotingMethod quoting_method;
-    if (quoting == "none") quoting_method = String::NONE;
-    else if (quoting == "double") quoting_method = String::DOUBLE;
-    else quoting_method = String::ESCAPE;
-
+    if (quoting == "none")
+    {
+      quoting_method = String::NONE;
+    }
+    else if (quoting == "double")
+    {
+      quoting_method = String::DOUBLE;
+    }
+    else
+    {
+      quoting_method = String::ESCAPE;
+    }
     if (!peptide_out.empty())
     {
       ofstream outstr(peptide_out.c_str());

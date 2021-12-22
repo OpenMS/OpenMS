@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,16 +96,16 @@ namespace OpenMS
     {
       //write opened/closed nodes
       const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      for (const Param::ParamIterator::TraceInfo& it2 : trace)
       {
-        if (it2->opened) //opened node
+        if (it2.opened) //opened node
         {
-          String d = it2->description;
+          String d = it2.description;
           //d.substitute('"','\'');
           d.substitute("\n", "#br#");
           //d.substitute("<","&lt;");
           //d.substitute(">","&gt;");
-          os << indentation  << "<NODE name=\"" << writeXMLEscape(it2->name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
+          os << indentation  << "<NODE name=\"" << writeXMLEscape(it2.name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
           indentation += "  ";
         }
         else //closed node
@@ -116,34 +116,34 @@ namespace OpenMS
       }
 
       //write item
-      if (it->value.valueType() != DataValue::EMPTY_VALUE)
+      if (it->value.valueType() != ParamValue::EMPTY_VALUE)
       {
         // we create a temporary copy of the tag list, since we remove certain tags while writing,
         // that will be represented differently in the xml
-        std::set<String> tag_list = it->tags;
-        DataValue::DataType value_type = it->value.valueType();
+        std::set<std::string> tag_list = it->tags;
+        ParamValue::ValueType value_type = it->value.valueType();
         bool stringParamIsFlag = false;
 
         //write opening tag
         switch (value_type)
         {
-        case DataValue::INT_VALUE:
-          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"int\"";
+        case ParamValue::INT_VALUE:
+          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << R"(" type="int")";
           break;
 
-        case DataValue::DOUBLE_VALUE:
-          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"double\"";
+        case ParamValue::DOUBLE_VALUE:
+          os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << R"(" type="double")";
           break;
 
-        case DataValue::STRING_VALUE:
+        case ParamValue::STRING_VALUE:
           if (tag_list.find("input file") != tag_list.end())
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"input-file\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
           else if (tag_list.find("output file") != tag_list.end())
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"output-file\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
           else if (it->valid_strings.size() == 2 &&
@@ -151,37 +151,37 @@ namespace OpenMS
           it->value == "false")
           {
             stringParamIsFlag = true;
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"bool\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << R"(" type="bool")";
           }
           else
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"string\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << R"(" type="string")";
           }
           break;
 
-        case DataValue::STRING_LIST:
+        case ParamValue::STRING_LIST:
           if (tag_list.find("input file") != tag_list.end())
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"input-file\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
           else if (tag_list.find("output file") != tag_list.end())
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"output-file\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
           else
           {
-            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"string\"";
+            os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="string")";
           }
           break;
 
-        case DataValue::INT_LIST:
-          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"int\"";
+        case ParamValue::INT_LIST:
+          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="int")";
           break;
 
-        case DataValue::DOUBLE_LIST:
-          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"double\"";
+        case ParamValue::DOUBLE_LIST:
+          os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="double")";
           break;
 
         default:
@@ -222,7 +222,7 @@ namespace OpenMS
         if (!tag_list.empty())
         {
           String list;
-          for (std::set<String>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
+          for (std::set<std::string>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
           {
             if (!list.empty())
               list += ",";
@@ -238,8 +238,8 @@ namespace OpenMS
           String restrictions = "";
           switch (value_type)
           {
-            case DataValue::INT_VALUE:
-            case DataValue::INT_LIST:
+            case ParamValue::INT_VALUE:
+            case ParamValue::INT_LIST:
             {
               bool min_set = (it->min_int != -std::numeric_limits<Int>::max());
               bool max_set = (it->max_int != std::numeric_limits<Int>::max());
@@ -258,8 +258,8 @@ namespace OpenMS
             }
               break;
 
-            case DataValue::DOUBLE_VALUE:
-            case DataValue::DOUBLE_LIST:
+            case ParamValue::DOUBLE_VALUE:
+            case ParamValue::DOUBLE_LIST:
             {
               bool min_set = (it->min_float != -std::numeric_limits<double>::max());
               bool max_set = (it->max_float != std::numeric_limits<double>::max());
@@ -278,9 +278,9 @@ namespace OpenMS
             }
               break;
 
-            case DataValue::STRING_VALUE:
-            case DataValue::STRING_LIST:
-              if (it->valid_strings.size() != 0)
+            case ParamValue::STRING_VALUE:
+            case ParamValue::STRING_LIST:
+              if (!it->valid_strings.empty())
               {
                 restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
               }
@@ -290,7 +290,7 @@ namespace OpenMS
               break;
           }
           // for files we store the restrictions as supported_formats
-          if (restrictions != "")
+          if (!restrictions.empty())
           {
             if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
             {
@@ -306,16 +306,16 @@ namespace OpenMS
         //finish opening tag
         switch (value_type)
         {
-        case DataValue::INT_VALUE:
-        case DataValue::DOUBLE_VALUE:
-        case DataValue::STRING_VALUE:
+        case ParamValue::INT_VALUE:
+        case ParamValue::DOUBLE_VALUE:
+        case ParamValue::STRING_VALUE:
           os << " />" <<  "\n";
           break;
 
-        case DataValue::STRING_LIST:
+        case ParamValue::STRING_LIST:
         {
           os << ">" <<  "\n";
-          const StringList& list = it->value;
+          const std::vector<std::string>& list = it->value;
           for (Size i = 0; i < list.size(); ++i)
           {
             os << indentation << "  <LISTITEM value=\"" << Internal::encodeTab(writeXMLEscape(list[i])) << "\"/>" << "\n";
@@ -324,7 +324,7 @@ namespace OpenMS
         }
         break;
 
-        case DataValue::INT_LIST:
+        case ParamValue::INT_LIST:
         {
           os << ">" <<  "\n";
           const IntList& list = it->value;
@@ -336,7 +336,7 @@ namespace OpenMS
         }
         break;
 
-        case DataValue::DOUBLE_LIST:
+        case ParamValue::DOUBLE_LIST:
         {
           os << ">" <<  "\n";
           const DoubleList& list = it->value;

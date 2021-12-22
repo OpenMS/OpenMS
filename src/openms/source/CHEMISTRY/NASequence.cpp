@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,11 +73,15 @@ namespace OpenMS
     // can't use std::tie here as we might prefer sorting by string instead of pointer address
 
     // compare 5' mod
-    if (five_prime_ != rhs.five_prime_) return (five_prime_ < rhs.five_prime_);
-
+    if (five_prime_ != rhs.five_prime_)
+    {
+      return (five_prime_ < rhs.five_prime_);
+    }
     // compare sequence length
-    if (seq_.size() != rhs.seq_.size()) return (seq_.size() < rhs.seq_.size());
-
+    if (seq_.size() != rhs.seq_.size())
+    {
+      return (seq_.size() < rhs.seq_.size());
+    }
     // compare pointers. If different, we compare the more expensive code (string)
     for (size_t i = 0; i != seq_.size(); ++i)
     {
@@ -174,7 +178,7 @@ namespace OpenMS
     our_form += (phosphate_form - internal_to_full) * (seq_.size() - 1);
     EmpiricalFormula local_three_prime, local_five_prime;
 
-    // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing nullptrs
+    // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing null ptrs
     if (three_prime_ != nullptr)
     {
       local_three_prime = three_prime_->getFormula() - H_form;
@@ -374,7 +378,7 @@ namespace OpenMS
           ConstRibonucleotidePtr r = rdb->getRibonucleotide(string(1, *str_it));
           nas.seq_.push_back(r);
         }
-        catch (Exception::ElementNotFound)
+        catch (Exception::ElementNotFound&)
         {
           String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
           throw Exception::ParseError(__FILE__, __LINE__,
@@ -396,7 +400,10 @@ namespace OpenMS
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
     String::ConstIterator mod_start(str_it);
     String::ConstIterator mod_end(++mod_start);
-    while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end; // advance to closing bracket
+    while ((mod_end != str.end()) && (*mod_end != ']'))
+    {
+      ++mod_end; // advance to closing bracket
+    }
     string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {

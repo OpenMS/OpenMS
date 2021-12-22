@@ -6,6 +6,7 @@ set(sources_list_h
 AAIndex.h
 AASequence.h
 CrossLinksDB.h
+DecoyGenerator.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h
@@ -18,6 +19,7 @@ DigestionEnzymeDB.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
+ModifiedPeptideGenerator.h
 ModificationsDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h

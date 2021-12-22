@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,9 @@ namespace OpenMS
 
     /// Default constructor
     DigestionEnzymeProtein();
+
+    /// Constructor from base class (adding defaults for the missing stuff)
+    explicit DigestionEnzymeProtein(const DigestionEnzyme& d);
 
     /// Copy constructor
     DigestionEnzymeProtein(const DigestionEnzymeProtein&) = default;
@@ -118,17 +121,17 @@ namespace OpenMS
     /// returns the X! Tandem enzyme ID
     String getXTandemID() const;
 
-    /// returns the Comet enzyme ID
-    Int getCometID() const;
-
     /// sets the Comet enzyme ID
     void setCometID(Int value);
 
-    /// returns the Crux enzyme ID
-    String getCruxID() const;
+    /// returns the Comet enzyme ID
+    Int getCometID() const;
 
     /// sets the Crux enzyme ID
     void setCruxID(const String& value);
+
+    /// returns the Crux enzyme ID
+    String getCruxID() const;
 
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);

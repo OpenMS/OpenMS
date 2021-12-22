@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,6 @@
 # This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-# set which library extensions are preferred (we prefer shared libraries)
-if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
-endif()
-if (APPLE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
-endif()
-
 
 #------------------------------------------------------------------------------
 # find libs (for linking)
@@ -68,10 +59,6 @@ if(Boost_FOUND)
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
-
-#------------------------------------------------------------------------------
-# SEQAN
-find_package(SEQAN 1.4.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libsvm
@@ -131,7 +118,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # SQLITE
-find_package(SQLITE 3.15.0 REQUIRED)
+find_package(SQLite 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # HDF5
@@ -175,10 +162,14 @@ add_definitions(${Qt5Network_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
+# see https://github.com/ethereum/solidity/issues/4124
+if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT")
+endif()
+
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
-# at least FFSuperHirn requires linking against pthread
 find_package (Threads REQUIRED)
 
 #------------------------------------------------------------------------------

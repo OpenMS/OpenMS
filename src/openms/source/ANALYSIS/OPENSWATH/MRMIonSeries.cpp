@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
+
+#include <boost/assign.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace OpenMS
 {
@@ -67,12 +70,12 @@ namespace OpenMS
     ion = make_pair(unannotated, -1);
     double closest_delta = std::numeric_limits<double>::max();
 
-    for (boost::unordered_map<String, double>::const_iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
+    for (const auto& ordinal : ionseries)
     {
-      if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
+      if (std::fabs(ordinal.second - ProductMZ) <= mz_threshold && std::fabs(ordinal.second - ProductMZ) <= closest_delta)
       {
-        closest_delta = std::fabs(ordinal->second - ProductMZ);
-        ion = make_pair(ordinal->first, ordinal->second);
+        closest_delta = std::fabs(ordinal.second - ProductMZ);
+        ion = make_pair(ordinal.first, ordinal.second);
       }
     }
 
@@ -237,13 +240,13 @@ namespace OpenMS
       fragment_charge = tr.getProductChargeState();
     }
 
-    double prec_pos = sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+    double prec_pos = sequence.getMZ(precursor_charge);
     bool unannotated = false;
     std::pair<String, double> target_ion = std::make_pair(String("unannotated"), -1);
     double pos = -1;
     String ionstring;
 
-    if (tr.getProduct().getInterpretationList().size() > 0)
+    if (!tr.getProduct().getInterpretationList().empty())
     {
       interpretation = tr.getProduct().getInterpretationList()[0];
       AASequence ion;
@@ -256,37 +259,37 @@ namespace OpenMS
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "x";
-          pos = ion.getMonoWeight(Residue::XIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::XIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::YIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "y";
-          pos = ion.getMonoWeight(Residue::YIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::YIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::ZIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "z";
-          pos = ion.getMonoWeight(Residue::ZIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::ZIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::AIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "a";
-          pos = ion.getMonoWeight(Residue::AIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::AIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::BIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "b";
-          pos = ion.getMonoWeight(Residue::BIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::BIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::CIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "c";
-          pos = ion.getMonoWeight(Residue::CIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::CIon);
         }
         else
         {
@@ -471,16 +474,25 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence, size_t precursor_charge, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
+  std::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence,
+                                                                size_t precursor_charge,
+                                                                const std::vector<String>& fragment_types,
+                                                                const std::vector<size_t>& fragment_charges,
+                                                                const bool enable_specific_losses,
+                                                                const bool enable_unspecific_losses,
+                                                                const int round_decPow)
   {
-    boost::unordered_map<String, double> ionseries;
+    const static EmpiricalFormula H2O = EmpiricalFormula("H2O1");
+    const static EmpiricalFormula NH3 = EmpiricalFormula("H3N1");
+    const static EmpiricalFormula CN2 = EmpiricalFormula("C1H2N2");
+    const static EmpiricalFormula CNO = EmpiricalFormula("C1H2N1O1");
+
+    std::unordered_map<String, double> ionseries;
 
     for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
     {
-      for (std::vector<size_t>::const_iterator ch_it = fragment_charges.begin(); ch_it != fragment_charges.end(); ++ch_it)
+      for (const auto& charge : fragment_charges)
       {
-        size_t charge = *ch_it;
-
         if (charge > precursor_charge)
         {
           continue;
@@ -494,32 +506,32 @@ namespace OpenMS
           if (*ft_it == "a")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::AIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::AIon);
           }
           else if (*ft_it == "b")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::BIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::BIon);
           }
           else if (*ft_it == "c")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::CIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::CIon);
           }
           else if (*ft_it == "x")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::XIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::XIon);
           }
           else if (*ft_it == "y")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::YIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::YIon);
           }
           else if (*ft_it == "z")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::ZIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::ZIon);
           }
           else
           {
@@ -534,27 +546,25 @@ namespace OpenMS
           {
             if (ion[j].hasNeutralLoss())
             {
-              const std::vector<EmpiricalFormula> losses = ion[j].getLossFormulas();
-              for (std::vector<EmpiricalFormula>::const_iterator lit = losses.begin(); lit != losses.end(); ++lit)
+              for (const auto& lit : ion[j].getLossFormulas())
               {
                 if (enable_specific_losses && 
-                    lit->toString() != String("H2O1") &&
-                    lit->toString() != String("H3N1") &&
-                    lit->toString() != String("C1H2N2") &&
-                    lit->toString() != String("C1H2N1O1"))
+                    lit != H2O &&
+                    lit != NH3 &&
+                    lit != CN2 &&
+                    lit != CNO)
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] =
-                    Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
+                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
+                    Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
                 }
                 else if (enable_unspecific_losses && (
-                            lit->toString() == String("H2O1") ||
-                            lit->toString() == String("H3N1") ||
-                            lit->toString() == String("C1H2N2") ||
-                            lit->toString() == String("C1H2N1O1")
-                          ))
+                    lit == H2O ||
+                    lit == NH3 ||
+                    lit == CN2 ||
+                    lit == CNO))
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] =
-                    Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
+                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
+                    Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
                 }
               }
             }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,12 +107,12 @@ namespace OpenMS
 
       bool ms1 = false;
       double upper = -1, lower = -1, center = -1;
-      if (exp->size() == 0)
+      if (exp->empty())
       {
         std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << std::endl;
         continue;
       }
-      if (exp->getSpectra()[0].getPrecursors().size() == 0)
+      if (exp->getSpectra()[0].getPrecursors().empty())
       {
         std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan." << std::endl;
         ms1 = true;
@@ -275,7 +275,7 @@ namespace OpenMS
     for (Size k = 0; k < swath_maps.size(); k++)
     {
       std::vector<int> indices = sql_mass_reader.readSpectraForWindow(swath_maps[k]);
-      OpenMS::Internal::MzMLSqliteHandler handler(file);
+      OpenMS::Internal::MzMLSqliteHandler handler(file, 0);
       OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
       swath_maps[k].sptr = sptr;
     }
@@ -283,7 +283,7 @@ namespace OpenMS
     // also store the MS1 map
     OpenSwath::SwathMap ms1_map;
     std::vector<int> indices = sql_mass_reader.readMS1Spectra();
-    OpenMS::Internal::MzMLSqliteHandler handler(file);
+    OpenMS::Internal::MzMLSqliteHandler handler(file, 0);
     OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
     ms1_map.sptr = sptr;
     ms1_map.ms1 = true;

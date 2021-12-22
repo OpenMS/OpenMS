@@ -19,7 +19,13 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
         #    DefaultParamHandler
         #
 
-        FeatureFindingMetabo()      nogil except +
+        FeatureFindingMetabo() nogil except +
+            # wrap-doc: 
+            #   Method for the assembly of mass traces belonging to the same isotope
+            #   pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
+            #   and isotope abundances
+
+        FeatureFindingMetabo(FeatureFindingMetabo &) nogil except + # compiler
 
         void run(libcpp_vector[Kernel_MassTrace] input_mtraces,
                  FeatureMap & output_featmap,

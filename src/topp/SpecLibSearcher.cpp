@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -235,11 +235,12 @@ protected:
        lib_entry.setPrecursors(lib_spec.getPrecursors());
 
        // empty array would segfault
-       if (lib_spec.getStringDataArrays().empty())
+       if (id.getHits().empty() || id.getHits()[0].getPeakAnnotations().empty())
        {
          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
        }
- 
+
+       const vector<PeptideHit::PeakAnnotation>& pa = id.getHits()[0].getPeakAnnotations();
        // library entry transformation
        for (UInt l = 0; l < lib_spec.size(); ++l)
        {
@@ -247,7 +248,7 @@ protected:
          if (lib_spec[l].getIntensity() > remove_peaks_below_threshold)
          {
            // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
-           const String& sa = lib_spec.getStringDataArrays()[0][l];
+           const String& sa = pa[l].annotation;
 
            // TODO: check why this scaling is done for ? peaks (dubious peaks?)
            if (sa[0] == '?')
@@ -358,7 +359,7 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
  
    //-------------------------------------------------------------
     // calculations
@@ -412,7 +413,10 @@ protected:
         prot_id.insertHit(pr_hit);
 
         // proper MS2?
-        if (query[j].empty() || query[j].getMSLevel() != 2) {continue; }
+        if (query[j].empty() || query[j].getMSLevel() != 2)
+        {
+          continue;
+        }
 
         if (query[j].getPrecursors().empty())
         {
@@ -450,13 +454,19 @@ protected:
           filtered_query.sortByPosition();
         }
 
-        if (filtered_query.size() < min_peaks) { continue; }
+        if (filtered_query.size() < min_peaks)
+        { 
+          continue;
+        }
 
         const double& query_rt = query[j].getRT();
         const int& query_charge = query[j].getPrecursors()[0].getCharge();
         const double query_mz = query[j].getPrecursors()[0].getMZ();
         
-        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
+        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge))
+        { 
+          continue;
+        } 
 
         for (auto const & iso : isotopes)
         {
@@ -467,11 +477,17 @@ protected:
           const double precursor_mass_tolerance_mz = precursor_mass_tolerance_unit_ppm ? ic_query_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
 
           // skip matching of isotopic misassignments if charge not annotated
-          if (iso != 0 && query_charge == 0) { continue; }
+          if (iso != 0 && query_charge == 0)
+          {
+            continue;
+          }
 
           // skip matching of isotopic misassignments if search windows around isotopic peaks would overlap (resulting in more than one report of the same hit)
           const double isotopic_peak_distance_mz = Constants::C13C12_MASSDIFF_U / query_charge;
-          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz) { continue; }
+          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz)
+          { 
+            continue;
+          }
 
           /* TODO: remove old code for charge estimation?
           bool charge_one = false;
@@ -498,7 +514,10 @@ protected:
           up_it = mslib.upper_bound(ic_query_mz + 0.5 * precursor_mass_tolerance_mz);
         
           // no matching precursor in data
-          if (low_it == up_it) { continue; }
+          if (low_it == up_it)
+          { 
+            continue;
+          }
        
           for (; low_it != up_it; ++low_it)
           {
@@ -507,28 +526,31 @@ protected:
             const int& lib_charge = hit.getCharge();  
 
             // check if charge state between library and experimental spectrum match
-            if (query_charge > 0 && lib_charge != query_charge) { continue; }
+            if (query_charge > 0 && lib_charge != query_charge)
+            {
+              continue;
+            }
 
             // Special treatment for SpectraST score as it computes a score based on the whole library
             if (compare_function == "SpectraSTSimilarityScore")
             {
-              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
-              BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
-              BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
-              score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
-              double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
+              auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
+              BinnedSpectrum quer_bin_spec = sp.transform(filtered_query);
+              BinnedSpectrum lib_bin_spec = sp.transform(lib_spec);
+              score = sp(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
+              double dot_bias = sp.dot_bias(quer_bin_spec, lib_bin_spec, score);
               hit.setMetaValue("DOTBIAS", dot_bias);
             }
             else
             {
-              score = (*comparor)(filtered_query, lib_spec);
+              score = (*comparator)(filtered_query, lib_spec);
             }
 
             DataValue RT(lib_spec.getRT());
             DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
             hit.setMetaValue("lib:RT", RT);
             hit.setMetaValue("lib:MZ", MZ);
-            hit.setMetaValue("isotope_error", iso);
+            hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, iso);
             hit.setScore(score);
             PeptideEvidence pe;
             pe.setProteinAccession(pr_hit.getAccession());
@@ -546,7 +568,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+            auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -556,13 +578,13 @@ protected:
                 break;
               }
             }
-            double delta_D = sp->delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
+            double delta_D = sp.delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
             for (Size s = 0; s < pid.getHits().size(); ++s)
             {
               final_hits[s] = pid.getHits()[s];
               final_hits[s].setMetaValue("delta D", delta_D);
               final_hits[s].setMetaValue("dot product", pid.getHits()[s].getScore());
-              final_hits[s].setScore(sp->compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
+              final_hits[s].setScore(sp.compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
             }
             pid.setHits(final_hits);
             pid.sort();

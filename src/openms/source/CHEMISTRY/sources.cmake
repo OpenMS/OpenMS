@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY)
 set(sources_list
 AASequence.cpp
 CrossLinksDB.cpp
+DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
@@ -18,6 +19,7 @@ ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
+ModifiedPeptideGenerator.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
 ProteaseDB.cpp

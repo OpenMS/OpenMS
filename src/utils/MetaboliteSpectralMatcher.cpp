@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ using namespace std;
 /**
         @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher identify small molecules from tandem MS spectra.
+        @brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
 
         <CENTER>
         <table>
@@ -64,19 +64,13 @@ using namespace std;
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref PeakPickerHiRes </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
         </tr>
         </table>
         </CENTER>
-
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_MetaboliteSpectralMatcher.cli
-
-
-        MetaboliteSpectralMatcher matches spectra from a spectral library with tandem MS spectra.
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_MetaboliteSpectralMatcher.cli
@@ -140,7 +134,7 @@ protected:
 
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
-    std::vector<Int> ms_level(1,2);
+    std::vector<Int> ms_level = {2};
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
@@ -148,7 +142,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any MS2/fragment spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -159,8 +153,8 @@ protected:
     // get parameters
     //-------------------------------------------------------------
 
-    Param ams_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
+    Param msm_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", msm_param, 3);
 
     //-------------------------------------------------------------
     // load database
@@ -178,9 +172,9 @@ protected:
     //-------------------------------------------------------------
     // run spectral library search
     //-------------------------------------------------------------
-    MetaboliteSpectralMatching ams;
-    ams.setParameters(ams_param);
-    ams.run(ms_peakmap, spec_db, mztab_output);
+    MetaboliteSpectralMatching msm;
+    msm.setParameters(msm_param);
+    msm.run(ms_peakmap, spec_db, mztab_output);
 
     //-------------------------------------------------------------
     // store results

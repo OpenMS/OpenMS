@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_2701786587770110637" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2020-08-02T18:06:38">
+		<software name="FileConverter" version="2.6.0-pre-disabled-20200722" />
+		<processingAction name="File format conversion" />
+		<UserParam type="string" name="parameter: in" value="C:\Users\bielow\AppData\Local\Temp\20200730_171917_45332_1\qc\017_IDMapper\out\bla.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="C:\Users\bielow\AppData\Local\Temp\20200730_171917_45332_1\qc\020_FileConverter\out\bla.consensusXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="2"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+		<UserParam type="string" name="parameter: UID_postprocessing" value="ensure"/>
+		<UserParam type="string" name="parameter: out_type" value="consensusXML"/>
+		<UserParam type="string" name="parameter: TIC_DTA2D" value="false"/>
+		<UserParam type="string" name="parameter: MGF_compact" value="false"/>
+		<UserParam type="string" name="parameter: force_MaxQuant_compatibility" value="false"/>
+		<UserParam type="string" name="parameter: convert_to_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: force_TPP_compatibility" value="false"/>
+		<UserParam type="string" name="parameter: change_im_format" value="none"/>
+		<UserParam type="string" name="parameter: write_scan_index" value="true"/>
+		<UserParam type="string" name="parameter: lossy_compression" value="false"/>
+		<UserParam type="float" name="parameter: lossy_mass_accuracy" value="-1.0"/>
+		<UserParam type="string" name="parameter: process_lowmemory" value="false"/>
+		<UserParam type="string" name="parameter: NET_executable" value=""/>
+		<UserParam type="string" name="parameter: ThermoRaw_executable" value="ThermoRawFileParser.exe"/>
+		<UserParam type="string" name="parameter: no_peak_picking" value="false"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2020-08-02T18:01:05" search_engine="Comet" search_engine_version="# comet_version 2019.01 rev. 4">
+		<SearchParameters db="C:\uniprot-FWBW.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin/p" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Label:15N(1) (G)" />
+			<FixedModification name="Label:15N(1) (A)" />
+			<FixedModification name="Label:15N(1) (S)" />
+			<FixedModification name="Label:15N(1) (P)" />
+			<FixedModification name="Label:15N(1) (V)" />
+			<FixedModification name="Label:15N(1) (T)" />
+      <FixedModification name="C+58.018500" />
+			<FixedModification name="Label:15N(1) (L)" />
+			<FixedModification name="Label:15N(1) (I)" />
+			<FixedModification name="Label:15N(2) (N)" />
+			<FixedModification name="Label:15N(2) (Q)" />
+			<FixedModification name="Label:15N(2) (K)" />
+			<FixedModification name="Label:15N(1) (M)" />
+			<FixedModification name="Label:15N(3) (H)" />
+			<FixedModification name="Label:15N(1) (F)" />
+			<FixedModification name="Label:15N(4) (R)" />
+			<FixedModification name="Label:15N(1) (Y)" />
+			<FixedModification name="Label:15N(2) (W)" />
+			<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="tr|Q1PI90|Q1PI90_ECOLI" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="tr|Q1PI83|Q1PI83_ECOLI" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[C:\Users\bielow\AppData\Local\Temp\20200730_171917_45332_1\qc\009_InternalCalibration\out\bla.mzML]"/>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///bla.raw]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="300.6357900319" RT="33" spectrum_reference="controllerType=0 controllerNumber=1 scan=52" >
+		<PeptideHit score="0.039528211667198" sequence="GC[161.027684999999991]TPEPTID" charge="2" aa_before="R" aa_after="V" start="31" end="35" protein_refs="PH_1">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="MS:1002258" value="4"/>
+			<UserParam type="string" name="MS:1002259" value="8"/>
+			<UserParam type="string" name="num_matched_peptides" value="24"/>
+			<UserParam type="float" name="MS:1002252" value="0.897"/>
+			<UserParam type="float" name="MS:1002253" value="1.0"/>
+			<UserParam type="float" name="MS:1002254" value="0.0"/>
+			<UserParam type="float" name="MS:1002255" value="162.599999999999994"/>
+			<UserParam type="float" name="MS:1002256" value="1.0"/>
+			<UserParam type="float" name="MS:1002257" value="0.0734"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+			<UserParam type="float" name="expect_score" value="0.0734"/>
+			<UserParam type="float" name="mz_raw" value="300.636047363281023"/>
+			<UserParam type="int" name="is_contaminant" value="0"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-8.437166358642148, -8.589863705133286, -6.010347557055449]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.342279130255974e-03, -1.538505516748501e-03, -2.65765243034366e-03]"/>
+			<UserParam type="float" name="mz_ref" value="300.635358493120975"/>
+			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.291381038811291"/>
+			<UserParam type="float" name="calibrated_mz_error_ppm" value="1.435422570347994"/>
+			<UserParam type="int" name="missed_cleavages" value="0"/>
+			<UserParam type="float" name="mass" value="599.257027130258052"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="int" name="cf_id" value="-1"/>
+		<UserParam type="int" name="ScanEventNumber" value="2"/>
+		<UserParam type="int" name="identified" value="1"/>
+		<UserParam type="float" name="total_ion_count" value="1.7258765625e05"/>
+		<UserParam type="float" name="base_peak_intensity" value="9766.17578125"/>
+		<UserParam type="float" name="ion_injection_time" value="200.0"/>
+		<UserParam type="string" name="activation_method" value="HCID"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<mapList count="1">
+		<map id="0" name="" label="" size="22500">
+		</map>
+	</mapList>
+	<consensusElementList>
+		
+		<consensusElement id="e_16393779085856951517" quality="0.865367" charge="2">
+			<centroid rt="460.306214458680699" mz="430.185982351020698" it="1.851918e06"/>
+			<groupedElementList>
+				<element map="0" id="16393779085856951517" rt="460.306214458680699" mz="430.185982351020698" it="1.851918e06" charge="2"/>
+			</groupedElementList>
+			<UserParam type="int" name="label" value="30433"/>
+			<UserParam type="float" name="score_fit" value="0.803239812093931"/>
+			<UserParam type="float" name="score_correlation" value="0.932299655076805"/>
+			<UserParam type="float" name="FWHM" value="21.41680908203125"/>
+			<UserParam type="int" name="spectrum_index" value="473"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=822"/>
+			<UserParam type="int" name="cf_id" value="576"/>
+			<UserParam type="string" name="feature_id" value="16393779085856951517"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

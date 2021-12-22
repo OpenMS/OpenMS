@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
+#include <mutex>
 
 
 namespace OpenMS
@@ -54,6 +55,36 @@ namespace OpenMS
 public:
 
     friend class TOPPBase;
+
+    /**
+      @brief Class representing a temporary directory
+    
+    */
+
+    class OPENMS_DLLAPI TempDir
+    {
+    public:
+      
+      /// Construct temporary folder
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      TempDir(bool keep_dir = false);
+
+      /// Destroy temporary folder (can be prohibited in Constructor)
+      ~TempDir();
+
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
+      /// Return path to temporary folder
+      const String& getPath() const;
+
+    private:
+      String temp_dir_;
+      bool keep_dir_;
+    };
 
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
@@ -119,19 +150,15 @@ public:
     static String absolutePath(const String& file);
 
     /// Returns the basename of the file (without the path).
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return ''.
     static String basename(const String& file);
 
-    /// Returns the path of the file (without the file name).
+    /// Returns the path of the file (without the file name and without path separator).
+    /// If just a filename is given without any path, then "." is returned.
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return '/path/some_entity'.
     static String path(const String& file);
-
-    /**
-      Returns the file name without the extension
-
-      The extension is the suffix of the string up to and including the last dot.
-
-      If no extension is found, the whole file name is returned
-    */
-    static String removeExtension(const String& file);
 
     /// Return true if the file exists and is readable
     static bool readable(const String& file);
@@ -194,7 +221,11 @@ public:
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
     static String getOpenMSHomePath();
 
-    /// The current OpenMS temporary data path (for temporary files)
+    /// The current OpenMS temporary data path (for temporary files).
+    /// Looks up the following locations, taking the first one which is non-null:
+    ///   - environment variable OPENMS_TMPDIR
+    ///   - 'temp_dir' in the ~/OpenMS.ini file
+    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
@@ -238,7 +269,7 @@ public:
       Note: this does not require the file to have executable permission set (this is not tested)
       The returned content of @p exe_filename is only valid if true is returned.
 
-      @param [in/out] exe_filename The executable to search for.
+      @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
     static bool findExecutable(OpenMS::String& exe_filename);
@@ -267,8 +298,29 @@ public:
       @param alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
-    static const String& getTemporaryFile(const String& alternative_file = "");
+    static String getTemporaryFile(const String& alternative_file = "");
 
+    /**
+      @brief Helper function to test if filenames provided in two StringLists match.
+
+      Passing several InputFilesLists is error-prone as users may provide files in a different order.
+      To check for common mistakes this helper function checks:
+      - if both file lists have the same length (returns false otherwise)
+      - if the content is the same and provided in exactly the same order (returns false otherwise)
+
+      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
+      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
+      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+
+      @param sl1 First StringList with filenames
+      @param sl2 Second StringList with filenames
+      @param basename If set to true, only basenames are compared
+      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
+                    If set to false, only the order is compared if both share the same filenames.
+      @return False, if both StringLists are different (respecting the parameters)
+    */
+    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
@@ -297,22 +349,21 @@ private:
     class TemporaryFiles_
     {
       public:
+        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         TemporaryFiles_();
         /// create a new filename and queue internally for deletion
-        const String& newFile();
+        String newFile();
 
         ~TemporaryFiles_();
       private:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
+        std::mutex mtx_;
     };
 
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

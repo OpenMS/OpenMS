@@ -4,13 +4,21 @@ set(directory include/OpenMS/QC)
 ### list all header files of the directory here
 set(sources_list_h
   Contaminants.h
+  FeatureSummary.h
   FragmentMassError.h
+  FWHM.h
+  IdentificationSummary.h
   MissedCleavages.h
+  MQEvidenceExporter.h
   Ms2IdentificationRate.h
   Ms2SpectrumStats.h
   MzCalibration.h
+  PeptideMass.h
+  PSMExplainedIonCurrent.h
   QCBase.h
   RTAlignment.h
+  SpectrumCount.h
+  DBSuitability.h
   TIC.h
 )
 

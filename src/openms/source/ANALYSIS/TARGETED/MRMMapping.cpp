@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,10 +50,10 @@ namespace OpenMS
       defaults_.setValue("product_tolerance", 0.1, "Product tolerance when mapping (in Th)");
 
       defaults_.setValue("map_multiple_assays", "false", "Allow to map multiple assays to chromatograms and duplicate these chromatograms in the output.");
-      defaults_.setValidStrings("map_multiple_assays", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("map_multiple_assays", {"true","false"});
 
       defaults_.setValue("error_on_unmapped", "false", "Treat remaining, unmapped chromatograms as an error");
-      defaults_.setValidStrings("error_on_unmapped", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("error_on_unmapped", {"true","false"});
 
       // write defaults into Param object param_
       defaultsToParam_();
@@ -70,7 +70,7 @@ namespace OpenMS
 
   void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map, 
       const OpenMS::TargetedExperiment& targeted_exp,
-      OpenMS::PeakMap& output)
+      OpenMS::PeakMap& output) const
   {
     // copy all meta data from old MSExperiment
     output = (ExperimentalSettings)chromatogram_map;
@@ -140,7 +140,7 @@ namespace OpenMS
       }
 
       // Check whether we have mapped this chromatogram to at least one transition:
-      //  - warn if no mapping occured
+      //  - warn if no mapping occurred
       //  - else append all mapped chromatograms (if we allow multiple mappings)
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())

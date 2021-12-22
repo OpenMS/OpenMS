@@ -1442,7 +1442,7 @@
 <alternative_protein protein="DECOY_tr|A0A1S3M7Q4|A0A1S3M7Q4_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X2 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
 <alternative_protein protein="DECOY_tr|A0A1S3M863|A0A1S3M863_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X4 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
 <alternative_protein protein="DECOY_tr|A0A1S3M8E5|A0A1S3M8E5_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X3 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
-<alternative_protein protein="DECOY_tr|A0A060X411|A0A060X411_ONCMY" protein_descr="Uncharacterized protein OS=Oncorhynchus mykiss GN=GSONMT00045548001 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="tr|A0A060X411|A0A060X411_ONCMY" protein_descr="Uncharacterized protein OS=Oncorhynchus mykiss GN=GSONMT00045548001 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
 <modification_info modified_peptide="QRM[147]ADVKQVAADM[147]EEEKD">
 <mod_aminoacid_mass position="3" mass="147.035385"/>
 <mod_aminoacid_mass position="13" mass="147.035385"/>

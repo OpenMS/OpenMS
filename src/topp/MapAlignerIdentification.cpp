@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
@@ -116,7 +121,7 @@ public:
 
 private:
   template <typename MapType, typename FileType>
-  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins,
                         FileType& input_file)
   {
     // custom progress logger for this task:
@@ -134,7 +139,7 @@ private:
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
   template <typename MapType, typename FileType>
-  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs,
                              FileType& output_file)
   {
     // custom progress logger for this task:
@@ -145,7 +150,7 @@ private:
     {
       progresslogger.setProgress(i);
       // annotate output with data processing info:
-      addDataProcessing_(maps[i], 
+      addDataProcessing_(maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
@@ -158,18 +163,34 @@ private:
                          vector<TransformationDescription>& transformations,
                          Int reference_index)
   {
-    algorithm.align(data, transformations, reference_index);
-
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
+
+    try
+    {
+      algorithm.align(data, transformations, reference_index);
+    }
+    catch (Exception::MissingInformation& err)
+    {
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_ERROR
+          << "Error: alignment failed. Details:\n" << err.what()
+          << "\nSince 'force' is set, processing will continue using 'identity' transformations."
+          << endl;
+        model_type = "identity";
+        transformations.resize(data.size());
+      }
+      else throw;
+    }
+
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
-      for (vector<TransformationDescription>::iterator it =
-             transformations.begin(); it != transformations.end(); ++it)
+      for (TransformationDescription& tra : transformations)
       {
-        it->fitModel(model_type, model_params);
+        tra.fitModel(model_type, model_params);
       }
     }
   }
@@ -191,7 +212,7 @@ private:
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), 
+    progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
@@ -244,7 +265,7 @@ private:
   void registerOptionsAndFlags_() override
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
@@ -261,7 +282,7 @@ private:
     }
     if (section == "model")
     {
-      return TOPPMapAlignerBase::getModelDefaults("b_spline");
+      return MapAlignerBase::getModelDefaults("b_spline");
     }
 
     return Param(); // this shouldn't happen
@@ -282,6 +303,11 @@ private:
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
+    if (input_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerIdentification." << std::endl;
+    }   
+
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
     FileTypes::Type in_type = FileHandler::getType(input_files[0]);
@@ -356,22 +382,23 @@ private:
           size_t n_fractions = frac2files.size();
 
           // TODO FRACTIONS: determine map index based on annotated MS files (getPrimaryMSRuns())
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
-            ++feature_map_index)
+          for (size_t feature_map_index = 0; feature_map_index != n_fractions;
+               ++feature_map_index)
           {
             fraction_maps.push_back(feature_maps[feature_map_index]);
           }
           performAlignment_(algorithm, fraction_maps, fraction_transformations,
-            reference_index);
+                            reference_index);
           applyTransformations_(fraction_maps, fraction_transformations);
 
           // copy into transformations and feature maps
-          transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+          transformations.insert(transformations.end(),
+                                 fraction_transformations.begin(),
+                                 fraction_transformations.end());
 
           Size f = 0;
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
+          for (size_t feature_map_index = 0;
+            feature_map_index != n_fractions;
             ++feature_map_index,
             ++f)
           {
@@ -430,7 +457,7 @@ private:
 
       if (!output_files.empty())
       {
-        progresslogger.startProgress(0, output_files.size(), 
+        progresslogger.startProgress(0, output_files.size(),
                                      "writing output files");
         for (Size i = 0; i < output_files.size(); ++i)
         {

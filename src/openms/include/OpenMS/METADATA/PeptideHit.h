@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -89,43 +90,7 @@ public:
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
       // sensible to sort first by m/z and charge
-      if (mz < other.mz)
-      {
-        return true;
-      }
-      else if (mz > other.mz)
-      {
-        return false;
-      }
-
-      if (charge < other.charge)
-      {
-        return true;
-      }
-      else if (charge > other.charge)
-      {
-        return false;
-      }
-
-      if (annotation < other.annotation)
-      {
-        return true;
-      }
-      else if (annotation > other.annotation)
-      {
-        return false;
-      }
-
-      if (intensity < other.intensity)
-      {
-        return true;
-      }
-      else if (intensity > other.intensity)
-      {
-        return false;
-      }
-
-      return false;
+      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
     }
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const
@@ -210,9 +175,9 @@ public:
     class OPENMS_DLLAPI PepXMLAnalysisResult
     {
 public:
-      String score_type; // e.g. peptideprophet / interprophet
-      bool higher_is_better; // is higher score better ?
-      double main_score; // posterior probability for example
+      String score_type; /// e.g. peptideprophet / interprophet
+      bool higher_is_better; /// is higher score better ?
+      double main_score; /// posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
@@ -309,7 +274,9 @@ public:
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
-    std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
+    std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations();
+    const std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations() const;
+
 
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
@@ -341,4 +308,6 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS

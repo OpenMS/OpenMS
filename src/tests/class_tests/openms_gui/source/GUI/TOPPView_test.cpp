@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,7 +124,7 @@ void TestTOPPView::testGui()
   // register a GUI logger
   Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
 
-  TOPPViewBase tv;
+  TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();
   QApplication::processEvents();
 
@@ -132,7 +132,7 @@ void TestTOPPView::testGui()
 
 #if 1 //def __APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
     tv.addDataFile(File::getOpenMSDataPath() + "/examples/peakpicker_tutorial_1.mzML", false, false);
-    QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1"));
+    QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1"));
 #else
     scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);                 // Open File dialog
     scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
@@ -148,7 +148,7 @@ void TestTOPPView::testGui()
 #endif
 
   // compare the name of the opened tab
-  QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1"));
+  QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1"));
 }
 
 // expands to a simple main() method that runs all the test functions

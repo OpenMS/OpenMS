@@ -29,6 +29,7 @@ IDMergerAlgorithm.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp
 IDScoreGetterSetter.cpp
+IDScoreSwitcherAlgorithm.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp

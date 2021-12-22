@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,6 +120,7 @@ protected:
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
                                                 "only represent (protein) inference results? If so, read peptide information only "
                                                 "from second to last runs.", true);
+      registerFlag_("export_all_psms", "Export all PSMs instead of only the best per spectrum", true);
       registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
       setValidStrings_("opt_columns", {"subfeatures"});
     }
@@ -182,9 +183,14 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-        std::map<String, size_t> idrun_2_run_index;
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
+
+        MzTabFile().store(out,
+          prot_ids,
+          pep_ids,
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
+        return EXECUTION_OK;
       }
 
       // export identification data from mzIdentML
@@ -194,9 +200,14 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
-        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-        std::map<String, size_t> idrun_2_run_index;
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
+
+        MzTabFile().store(out,
+	        prot_ids,
+          pep_ids,
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
+        return EXECUTION_OK;
       }
 
       // export quantification data
@@ -205,7 +216,15 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, getFlag_("first_run_inference_only"), true, true, export_subfeatures);
+        MzTabFile().store(out,
+           consensus_map,
+           getFlag_("first_run_inference_only"), 
+           true, 
+           true, 
+           export_subfeatures,
+           false,
+           getFlag_("export_all_psms")); // direct stream to disc
+        return EXECUTION_OK;
       }
 
       MzTabFile().store(out, mztab);

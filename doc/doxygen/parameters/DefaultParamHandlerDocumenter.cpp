@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,15 +163,15 @@
 #ifdef WITH_GUI
 #include <QApplication>
 
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
 
 // include this file after the GUI stuff, or there will be a conflict between
-// "LayerData.h" (via "Spectrum1DCanvas.h") and "SeqanIncludeWrapper.h"!
+// "LayerData.h" (via "Plot1DCanvas.h") and "SeqanIncludeWrapper.h"!
 // (see https://github.com/OpenMS/OpenMS/issues/1327)
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 
@@ -189,18 +189,22 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
   if (!table_only)
+  {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
-  f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
+  }
+  f << R"(<table border="1" style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" width="100%" cellpadding="4">)" << endl;
   f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
   {
     restrictions = "";
-    if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+    if (it->value.valueType() == ParamValue::INT_VALUE || it->value.valueType() == ParamValue::INT_LIST)
     {
       type = "int";
-      if (it->value.valueType() == DataValue::INT_LIST)
+      if (it->value.valueType() == ParamValue::INT_LIST)
+      {
         type += " list";
+      }
 
       //restrictions
       bool first = true;
@@ -212,14 +216,16 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       if (it->max_int != (numeric_limits<Int>::max)())
       {
         if (!first)
+        {
           restrictions += ' ';
+        }          
         restrictions += String("max: ") + it->max_int;
       }
     }
-    else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+    else if (it->value.valueType() == ParamValue::DOUBLE_VALUE || it->value.valueType() == ParamValue::DOUBLE_LIST)
     {
       type = "float";
-      if (it->value.valueType() == DataValue::DOUBLE_LIST)
+      if (it->value.valueType() == ParamValue::DOUBLE_LIST)
         type += " list";
 
       //restrictions
@@ -236,14 +242,14 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         restrictions += String("max: ") + it->max_float;
       }
     }
-    else if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+    else if (it->value.valueType() == ParamValue::STRING_VALUE || it->value.valueType() == ParamValue::STRING_LIST)
     {
       type = "string";
-      if (it->value.valueType() == DataValue::STRING_LIST)
+      if (it->value.valueType() == ParamValue::STRING_LIST)
         type += " list";
 
       //restrictions
-      if (it->valid_strings.size() != 0)
+      if (!it->valid_strings.empty())
       {
         String valid_strings;
         valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
@@ -289,7 +295,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
     }
 
     //replace # and @ in values
-    String value = it->value;
+    String value = it->value.toString(true);
     value.substitute("@", "XXnot_containedXX");
     value.substitute("XXnot_containedXX", "@@");
     value.substitute("#", "XXnot_containedXX");
@@ -449,10 +455,10 @@ int main(int argc, char** argv)
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
-  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
-  writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
-  writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
-  writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
+  writeParameters("MapAlignerIdentificationModel", MapAlignerBase::getModelDefaults("interpolated"), true);
+  writeParameters("MapAlignerPoseClusteringModel", MapAlignerBase::getModelDefaults("linear"), true);
+  writeParameters("MapAlignerSpectrumModel", MapAlignerBase::getModelDefaults("interpolated"), true);
+  writeParameters("MapRTTransformerModel", MapAlignerBase::getModelDefaults("none"), true);
 
   //////////////////////////////////
   // More complicated cases
@@ -480,12 +486,12 @@ int main(int argc, char** argv)
   // some classes require a QApplication
   QApplication app(argc, argv);
 
-  DOCME(TOPPViewBase);
+  DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
+  DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));
+  DOCME2(Plot2DCanvas, Plot2DCanvas(Param(), nullptr));
+  DOCME2(Plot3DCanvas, Plot3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

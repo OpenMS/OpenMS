@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -490,10 +490,10 @@ protected:
     }
 
     //tmp_dir
-    String temp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     // create a temporary config file for LuciPHOr2 parameters
-    String conf_file = temp_dir + "luciphor2_input_template.txt";
+    String conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";
     
     String id = getStringOption_("id");
     String in = getStringOption_("in");
@@ -529,8 +529,8 @@ protected:
         OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
-      String id_file_name = File::removeExtension(File::basename(id));
-      id = temp_dir + id_file_name + ".pepXML";
+      String id_file_name = FileHandler::swapExtension(File::basename(id), FileTypes::PEPXML);
+      id = tmp_dir.getPath() + id_file_name;
 
       PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
     }
@@ -593,7 +593,7 @@ protected:
     ProteinIdentification::SearchParameters search_params;
 
     String error = parseLuciphorOutput_(out, l_psms, lookup);
-    if (error != "")
+    if (!error.empty())
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
       writeLog_(error);
@@ -611,15 +611,26 @@ protected:
       return ret;
     }
     
-    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    for (PeptideIdentification& pep : pep_ids)
     {
-      Size scan_idx = lookup.findByRT(pep_id->getRT());
+      Size scan_idx;
+      const String& ID_native_ids = pep.getMetaValue("spectrum_reference");
+      try
+      {
+        scan_idx = lookup.findByNativeID(ID_native_ids);
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        // fall-back if native ids are missing
+        writeLog_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
+        scan_idx = lookup.findByRT(pep.getRT());
+      }
 
       vector<PeptideHit> scored_peptides;
-      if (!pep_id->getHits().empty())
+      if (!pep.getHits().empty())
       {
-        PeptideHit scored_hit = pep_id->getHits()[0];
-        addScoreToMetaValues_(scored_hit, pep_id->getScoreType());
+        PeptideHit scored_hit = pep.getHits()[0];
+        addScoreToMetaValues_(scored_hit, pep.getScoreType());
         
         struct LuciphorPSM l_psm;
         if (l_psms.count(scan_idx) > 0)
@@ -652,12 +663,18 @@ protected:
         return PARSE_ERROR;
       }
       
-      PeptideIdentification new_pep_id(*pep_id);
+      PeptideIdentification new_pep_id(pep);
       new_pep_id.setScoreType("Luciphor_delta_score");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
       new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
+    }
+
+    // store which modifications have been localized
+    for (auto& p : prot_ids)
+    {
+      p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
     IdXMLFile().store(out, prot_ids, pep_out);
 
@@ -670,3 +687,5 @@ int main(int argc, const char** argv)
   LuciphorAdapter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

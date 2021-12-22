@@ -501,7 +501,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.003215e-20"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="8.058529e-14"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="362"/>
 					<userParam name="end" unitName="xsd:integer" value="377"/>
@@ -519,7 +519,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.073655e-19"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.8828592e-13"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="46"/>
 					<userParam name="end" unitName="xsd:integer" value="65"/>
@@ -537,7 +537,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.0111343e-16"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.7126024e-10"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="77"/>
 					<userParam name="end" unitName="xsd:integer" value="91"/>
@@ -555,7 +555,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.5933126e-16"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="4.2722542e-10"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="69"/>
 					<userParam name="end" unitName="xsd:integer" value="81"/>
@@ -573,7 +573,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="5.940147e-16"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.5922653e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="440"/>
 					<userParam name="end" unitName="xsd:integer" value="451"/>
@@ -591,7 +591,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.4862159e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.9805084e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="230"/>
 					<userParam name="end" unitName="xsd:integer" value="239"/>
@@ -609,7 +609,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="9.925799e-13"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.658411e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="213"/>
 					<userParam name="end" unitName="xsd:integer" value="222"/>
@@ -627,7 +627,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.3285213e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.5581572e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="518"/>
 					<userParam name="end" unitName="xsd:integer" value="527"/>
@@ -645,7 +645,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="7.977778e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.1376505e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="248"/>
 					<userParam name="end" unitName="xsd:integer" value="258"/>
@@ -663,7 +663,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="8.095269e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.1691323e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="21"/>
 					<userParam name="end" unitName="xsd:integer" value="31"/>
@@ -681,7 +681,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.4378858e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.848858e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="812"/>
 					<userParam name="end" unitName="xsd:integer" value="820"/>
@@ -699,7 +699,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.0208451e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0002734113"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="357"/>
 					<userParam name="end" unitName="xsd:integer" value="366"/>
@@ -717,7 +717,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.9774998e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.007978229"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="44"/>
 					<userParam name="end" unitName="xsd:integer" value="54"/>
@@ -735,7 +735,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.1434015e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.008422763"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="430"/>
 					<userParam name="end" unitName="xsd:integer" value="440"/>
@@ -753,7 +753,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.7346752e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.009996784"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="25"/>
 					<userParam name="end" unitName="xsd:integer" value="33"/>
@@ -771,7 +771,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.675953e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.01252353"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="81"/>
 					<userParam name="end" unitName="xsd:integer" value="90"/>
@@ -789,7 +789,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="6.55279e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.017550232"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="186"/>
 					<userParam name="end" unitName="xsd:integer" value="195"/>
@@ -814,7 +814,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="7.066086e-16"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.8946762e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="69"/>
 					<userParam name="end" unitName="xsd:integer" value="81"/>
@@ -832,7 +832,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.6555598e-15"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="4.443208e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="427"/>
 					<userParam name="end" unitName="xsd:integer" value="443"/>
@@ -850,7 +850,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.5575765e-15"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="9.544024e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="77"/>
 					<userParam name="end" unitName="xsd:integer" value="91"/>
@@ -868,7 +868,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="8.741583e-15"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.3423127e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="66"/>
 					<userParam name="end" unitName="xsd:integer" value="76"/>
@@ -886,7 +886,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.6907081e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="4.5302624e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="101"/>
 					<userParam name="end" unitName="xsd:integer" value="111"/>
@@ -904,7 +904,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.6421675e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="9.759209e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="63"/>
 					<userParam name="end" unitName="xsd:integer" value="73"/>
@@ -922,7 +922,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.7675953e-13"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.2774801e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="430"/>
 					<userParam name="end" unitName="xsd:integer" value="440"/>
@@ -940,7 +940,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.9049003e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="7.783698e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="721"/>
 					<userParam name="end" unitName="xsd:integer" value="731"/>
@@ -958,7 +958,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.1475476e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.0734584e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="476"/>
 					<userParam name="end" unitName="xsd:integer" value="485"/>
@@ -976,7 +976,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="5.7334908e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0001533527"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="182"/>
 					<userParam name="end" unitName="xsd:integer" value="189"/>
@@ -994,7 +994,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="6.7542257e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00018089735"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="213"/>
 					<userParam name="end" unitName="xsd:integer" value="222"/>
@@ -1012,7 +1012,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="9.1778654e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0002456683"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="87"/>
 					<userParam name="end" unitName="xsd:integer" value="95"/>
@@ -1030,7 +1030,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.03830514e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00027831923"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="1062"/>
 					<userParam name="end" unitName="xsd:integer" value="1073"/>
@@ -1048,7 +1048,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.8423854e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00049385417"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="207"/>
 					<userParam name="end" unitName="xsd:integer" value="218"/>
@@ -1066,7 +1066,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.8714143e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0005009304"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="483"/>
 					<userParam name="end" unitName="xsd:integer" value="491"/>
@@ -1084,7 +1084,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="7.227254e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0019305203"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="220"/>
 					<userParam name="end" unitName="xsd:integer" value="226"/>
@@ -1102,7 +1102,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.303146e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.006171293"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="156"/>
 					<userParam name="end" unitName="xsd:integer" value="166"/>
@@ -1120,7 +1120,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="3.869086e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.010374436"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="116"/>
 					<userParam name="end" unitName="xsd:integer" value="128"/>
@@ -1138,7 +1138,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.2454213e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.011370445"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="285"/>
 					<userParam name="end" unitName="xsd:integer" value="294"/>
@@ -1156,7 +1156,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.4617152e-08"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.039044853"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="129"/>
 					<userParam name="end" unitName="xsd:integer" value="135"/>
@@ -1181,7 +1181,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="7.559567e-15"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.0255905e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="66"/>
 					<userParam name="end" unitName="xsd:integer" value="76"/>
@@ -1199,7 +1199,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.4862159e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.9805084e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="230"/>
 					<userParam name="end" unitName="xsd:integer" value="239"/>
@@ -1217,7 +1217,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.2417716e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="6.00684e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="63"/>
 					<userParam name="end" unitName="xsd:integer" value="73"/>
@@ -1235,7 +1235,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.7378024e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="7.335958e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="101"/>
 					<userParam name="end" unitName="xsd:integer" value="111"/>
@@ -1253,7 +1253,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.1472151e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.0761034e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="116"/>
 					<userParam name="end" unitName="xsd:integer" value="128"/>
@@ -1271,7 +1271,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="7.0912967e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.8992507e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="27"/>
 					<userParam name="end" unitName="xsd:integer" value="36"/>
@@ -1289,7 +1289,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.7344594e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="7.319459e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="1148"/>
 					<userParam name="end" unitName="xsd:integer" value="1156"/>
@@ -1307,7 +1307,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.7517169e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="7.373242e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="430"/>
 					<userParam name="end" unitName="xsd:integer" value="440"/>
@@ -1325,7 +1325,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="5.5264335e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00014813688"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="440"/>
 					<userParam name="end" unitName="xsd:integer" value="451"/>
@@ -1343,7 +1343,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.2696689e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0006085813"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="68"/>
 					<userParam name="end" unitName="xsd:integer" value="80"/>
@@ -1361,7 +1361,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.2644369e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.003384579"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="812"/>
 					<userParam name="end" unitName="xsd:integer" value="820"/>
@@ -1379,7 +1379,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.4746852e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.003944315"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="38"/>
 					<userParam name="end" unitName="xsd:integer" value="45"/>
@@ -1397,7 +1397,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.7790914e-08"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0475225"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="298"/>
 					<userParam name="end" unitName="xsd:integer" value="304"/>
@@ -1422,7 +1422,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="8.2206734e-19"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="2.205854e-12"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="362"/>
 					<userParam name="end" unitName="xsd:integer" value="377"/>
@@ -1440,7 +1440,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="5.4154824e-16"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.4531369e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="62"/>
 					<userParam name="end" unitName="xsd:integer" value="77"/>
@@ -1458,7 +1458,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.539059e-15"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="4.1254706e-09"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="233"/>
 					<userParam name="end" unitName="xsd:integer" value="244"/>
@@ -1476,7 +1476,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.1337648e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.0379294e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="66"/>
 					<userParam name="end" unitName="xsd:integer" value="76"/>
@@ -1494,7 +1494,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.1609276e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="5.7923987e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="107"/>
 					<userParam name="end" unitName="xsd:integer" value="118"/>
@@ -1512,7 +1512,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.2280051e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="5.972201e-08"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="70"/>
 					<userParam name="end" unitName="xsd:integer" value="81"/>
@@ -1530,7 +1530,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.4650532e-14"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.1978541e-07"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="77"/>
 					<userParam name="end" unitName="xsd:integer" value="91"/>
@@ -1548,7 +1548,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.267926e-13"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.3958662e-07"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="518"/>
 					<userParam name="end" unitName="xsd:integer" value="527"/>
@@ -1566,7 +1566,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.317169e-13"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.5293624e-07"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="167"/>
 					<userParam name="end" unitName="xsd:integer" value="177"/>
@@ -1584,7 +1584,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.3430025e-13"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="3.596942e-07"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="230"/>
 					<userParam name="end" unitName="xsd:integer" value="239"/>
@@ -1602,7 +1602,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.3257778e-12"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="6.243062e-06"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="588"/>
 					<userParam name="end" unitName="xsd:integer" value="605"/>
@@ -1620,7 +1620,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.6717065e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="4.4793476e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="101"/>
 					<userParam name="end" unitName="xsd:integer" value="111"/>
@@ -1638,7 +1638,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.6434374e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="7.070357e-05"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="28"/>
 					<userParam name="end" unitName="xsd:integer" value="35"/>
@@ -1656,7 +1656,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.4531216e-11"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00011932166"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="145"/>
 					<userParam name="end" unitName="xsd:integer" value="155"/>
@@ -1674,7 +1674,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.0073342e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.00026991582"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="294"/>
 					<userParam name="end" unitName="xsd:integer" value="304"/>
@@ -1692,7 +1692,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.9582426e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0005230793"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="220"/>
 					<userParam name="end" unitName="xsd:integer" value="226"/>
@@ -1710,7 +1710,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="6.5704314e-10"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.001755072"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="76"/>
 					<userParam name="end" unitName="xsd:integer" value="82"/>
@@ -1728,7 +1728,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.7660496e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0047321403"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="1"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="1"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="167"/>
 					<userParam name="end" unitName="xsd:integer" value="177"/>
@@ -1746,7 +1746,7 @@
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.5923825e-09"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="0.0069338013"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="IsotopeError" unitName="xsd:string" value="0"/>
+					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="105"/>
 					<userParam name="end" unitName="xsd:integer" value="112"/>

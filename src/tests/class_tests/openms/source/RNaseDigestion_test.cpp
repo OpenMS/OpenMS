@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,6 +70,11 @@ START_SECTION((void setEnzyme(const String& enzyme_name)))
   TEST_EQUAL(rd.getEnzymeName(), "RNase_T1");
   rd.setEnzyme("cusativin");
   TEST_EQUAL(rd.getEnzymeName(), "cusativin");
+  rd.setEnzyme("mazF");
+  TEST_EQUAL(rd.getEnzymeName(), "mazF");
+  rd.setEnzyme("colicin_E5");
+  TEST_EQUAL(rd.getEnzymeName(), "colicin_E5");
+  TEST_EXCEPTION(Exception::ElementNotFound, rd.setEnzyme("NoSuchEnzyme"));
 }
 END_SECTION
 
@@ -123,6 +128,33 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[0].toString(), "CCCp");
   TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
   TEST_STRING_EQUAL(out[2].toString(), "G");
+  out.clear();
+
+  rd.setEnzyme("cusativin");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("CCCAUCCG"), out);
+  TEST_EQUAL(out.size(), 3);
+  TEST_STRING_EQUAL(out[0].toString(), "CCCp");
+  TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
+  TEST_STRING_EQUAL(out[2].toString(), "G");
+  out.clear();
+
+  rd.setEnzyme("mazF");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("A[m6A]CA[m5C]AGGACGACAAAG"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "A[m6A]CA[m5C]AGGACGp");
+  TEST_STRING_EQUAL(out[1].toString(), "ACAAAG");
+  out.clear();
+
+
+  rd.setEnzyme("colicin_E5");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("GGAUGUAAA"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "GGAUGp");  
+  TEST_STRING_EQUAL(out[1].toString(), "UAAA");  
+  out.clear();
 
   rd.setEnzyme("no cleavage");
   rd.setMissedCleavages(3);
@@ -134,14 +166,14 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   rd.setMissedCleavages(0); // shouldn't matter for the result
   rd.digest(NASequence::fromString("ACGU"), out);
   TEST_EQUAL(out.size(), 10);
-  TEST_STRING_EQUAL(out[0].toString(), "A");
-  TEST_STRING_EQUAL(out[1].toString(), "AC");
-  TEST_STRING_EQUAL(out[2].toString(), "ACG");
+  TEST_STRING_EQUAL(out[0].toString(), "Ap");
+  TEST_STRING_EQUAL(out[1].toString(), "ACp");
+  TEST_STRING_EQUAL(out[2].toString(), "ACGp");
   TEST_STRING_EQUAL(out[3].toString(), "ACGU");
-  TEST_STRING_EQUAL(out[4].toString(), "C");
-  TEST_STRING_EQUAL(out[5].toString(), "CG");
+  TEST_STRING_EQUAL(out[4].toString(), "Cp");
+  TEST_STRING_EQUAL(out[5].toString(), "CGp");
   TEST_STRING_EQUAL(out[6].toString(), "CGU");
-  TEST_STRING_EQUAL(out[7].toString(), "G");
+  TEST_STRING_EQUAL(out[7].toString(), "Gp");
   TEST_STRING_EQUAL(out[8].toString(), "GU");
   TEST_STRING_EQUAL(out[9].toString(), "U");
 }
@@ -159,6 +191,28 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   rd.digest(id_data);
 
   TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
+
+  /// multiple occurrences of the same oligo:
+  IdentificationData id_data2;
+  rna.sequence = "ACUGACUGG";
+  id_data2.registerParentMolecule(rna);
+
+  rd.digest(id_data2, 2);
+
+  TEST_EQUAL(id_data2.getIdentifiedOligos().size(), 1);
+  ABORT_IF(id_data2.getIdentifiedOligos().empty());
+  IdentificationData::IdentifiedOligoRef ref = id_data2.getIdentifiedOligos().begin();
+  TEST_EQUAL(ref->parent_matches.size(), 1);
+  ABORT_IF(ref->parent_matches.empty());
+  // oligo sequence matches in two locations:
+  const set<IdentificationData::MoleculeParentMatch>& matches =
+    ref->parent_matches.begin()->second;
+  TEST_EQUAL(matches.size(), 2);
+  ABORT_IF(matches.size() < 2);
+  auto match_it = matches.begin();
+  TEST_EQUAL(match_it->start_pos, 0);
+  ++match_it;
+  TEST_EQUAL(match_it->start_pos, 4);
 }
 END_SECTION
 

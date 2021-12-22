@@ -43,13 +43,13 @@
  	<Peptide id="PEP_3023658190814908261" name="VEPSWLGPLFPDK[284.173608765599965]TSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6408859317243173796" name="IVEGLK[284.173608765599965]FPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<PeptideEvidence id="PEV_10306100746905639127" peptide_ref="PEP_16907355690727166316" dBSequence_ref="PROT_13440783915218733453" post="K" pre="R" start="1538" end="1549" isDecoy="0"/>
@@ -88,7 +88,7 @@
 			<userParam name="precursor:corrections" unitName="xsd:string" value="[2, 1, 0]"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
 			<userParam name="feature_extractor" unitName="xsd:string" value="TOPP_PSMFeatureExtractor"/>
-			<userParam name="extra_features" unitName="xsd:string" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
+			<userParam name="extra_features" unitName="xsd:string" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 			<userParam name="charges" unitName="xsd:string" value="3,4,5,6,7"/>
 		</AdditionalSearchParams>
 		<Enzymes independent="false">
@@ -177,8 +177,8 @@
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-6.743660622128596"/>
+					<userParam name="isotope_error" unitName="xsd:integer" value="0"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="-6.743660622128596"/>
 					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.090404095866226"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="10.059541921174523"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.032467532467532"/>
@@ -247,8 +247,8 @@
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
+					<userParam name="isotope_error" unitName="xsd:integer" value="0"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
 					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.297929420845218"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="11.778473206138731"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.028880866425993"/>
@@ -299,8 +299,8 @@
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
+					<userParam name="isotope_error" unitName="xsd:integer" value="0"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
 					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.297929420845218"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="11.778473206138731"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.028880866425993"/>
@@ -375,8 +375,8 @@
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="precursor_correction" unitName="xsd:integer" value="2"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.403713911646945"/>
+					<userParam name="isotope_error" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.403713911646945"/>
 					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.302434381264498"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="12.468556042040005"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.020547945205479"/>

@@ -11,8 +11,11 @@ from DateTime cimport *
 cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
     
     cdef cppclass SequestOutfile "OpenMS::SequestOutfile":
-        SequestOutfile() nogil except +
-        SequestOutfile(SequestOutfile) nogil except +
+        # wrap-doc:
+        #   Representation of a Sequest output file
+        
+        SequestOutfile() nogil except + # wrap-doc:Representation of a Sequest output file
+        SequestOutfile(SequestOutfile &) nogil except +
 
         bool operator==(SequestOutfile &sequest_outfile) nogil except +
         void load(const String &result_filename,
@@ -22,13 +25,24 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
                   libcpp_vector[ double ] &pvalues,
                   const String &database,
                   bool ignore_proteins_per_peptide) nogil except +
-        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except +
+            # wrap-doc:
+                #   Loads data from a Sequest outfile
+                #   -----
+                #   :param result_filename: The file to be loaded
+                #   :param peptide_identifications: The identifications
+                #   :param protein_identification: The protein identifications
+                #   :param p_value_threshold: The significance level (for the peptide hit scores)
+                #   :param pvalues: A list with the pvalues of the peptides (pvalues computed with peptide prophet)
+                #   :param database: The database used for the search
+                #   :param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
+
+        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + # wrap-doc:Retrieves columns from a Sequest outfile line
         void getSequences(const String &database_filename,
                           libcpp_map[ String, size_t ] &ac_position_map,
                           libcpp_vector[ String ] &sequences,
                           libcpp_vector[ libcpp_pair[ String, size_t ] ] &found,
                           libcpp_map[ String, size_t ] &not_found) nogil except + # wrap-ignore
-        void getACAndACType(String line, String &accession, String &accession_type) nogil except +
+        void getACAndACType(String line, String &accession, String &accession_type) nogil except + # wrap-doc:Retrieves the accession type and accession number from a protein description line
 
         # TODO immutable types by reference
         # 

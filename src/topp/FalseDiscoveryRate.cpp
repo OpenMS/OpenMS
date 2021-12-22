@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ using namespace std;
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
     @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
-    Alternatively, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
+    Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
     automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -220,7 +220,7 @@ protected:
     catch (Exception::MissingInformation& e)
     {
       OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information:\n"
-      << e.getMessage();
+      << e.what();
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -248,10 +248,10 @@ protected:
     }
 
     // update protein groupings if necessary:
-    for (auto prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
+    for (auto& prot : prot_ids)
     {
-      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
-                                                 prot_it->getHits());
+      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
+                                                 prot.getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
@@ -260,7 +260,7 @@ protected:
       }
 
       valid = IDFilter::updateProteinGroups(
-        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+        prot.getIndistinguishableProteins(), prot.getHits());
 
       if (!valid)
       {

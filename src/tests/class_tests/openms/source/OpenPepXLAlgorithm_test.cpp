@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,7 +96,11 @@ PeakMap spectra;
 
 OpenPepXLAlgorithm search_algorithm;
 Param algo_param = search_algorithm.getParameters();
-algo_param.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)"));
+algo_param.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+algo_param.setValue("fragment:mass_tolerance", 0.2, "Fragment mass tolerance");
+algo_param.setValue("fragment:mass_tolerance_xlinks", 0.3, "Fragment mass tolerance for cross-link ions");
+algo_param.setValue("fragment:mass_tolerance_unit", "Da", "Unit of fragment m");
+algo_param.setValue("algorithm:number_top_hits", 5, "Number of top hits reported for each spectrum pair");
 search_algorithm.setParameters(algo_param);
 
 // run algorithm

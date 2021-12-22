@@ -17,10 +17,9 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
         #    ProgressLogger
         #    DefaultParamHandler
 
-        MassTraceDetection()      nogil except +
+        MassTraceDetection() nogil except +
+        MassTraceDetection(MassTraceDetection &) nogil except + # compiler
 
         void run(MSExperiment & input_map,
                 libcpp_vector[Kernel_MassTrace] & traces,
-                Size max_traces
-                ) nogil except +
-
+                Size max_traces) nogil except +

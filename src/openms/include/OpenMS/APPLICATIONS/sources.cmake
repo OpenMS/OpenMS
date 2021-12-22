@@ -6,7 +6,9 @@ set(sources_list_h
 ConsoleUtils.h
 INIUpdater.h
 MapAlignerBase.h
+OpenSwathBase.h
 ParameterInformation.h
+SearchEngineBase.h
 ToolHandler.h
 TOPPBase.h
 )

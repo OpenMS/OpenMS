@@ -7,7 +7,6 @@ AreaIterator.h
 BaseFeature.h
 ChromatogramPeak.h
 ChromatogramTools.h
-ComparatorUtils.h
 ConsensusFeature.h
 ConversionHelper.h
 ConsensusMap.h
@@ -30,6 +29,7 @@ RangeManager.h
 RangeUtils.h
 RichPeak2D.h
 StandardTypes.h
+StandardDeclarations.h
 SpectrumHelper.h
 )
 

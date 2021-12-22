@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/Users/lars/Desktop/MSGFPlusAdapterModFix/uniprot_HomoSapiensHUMAN_ChlamydiaTrachomatisCHLTR_plus_reverse.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="arg-c" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/Users/lars/Desktop/MSGFPlusAdapterModFix/uniprot_HomoSapiensHUMAN_ChlamydiaTrachomatisCHLTR_plus_reverse.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2-5" enzyme="arg-c" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<FixedModification name="Dimethyl:2H(6) (K)" />
 		<FixedModification name="Methyl:2H(2)13C (N-term)" />
@@ -10,85 +10,83 @@
 				<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
 				<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
 				<UserParam type="string" name="Instrument" value="QExactive"/>
-				<UserParam type="string" name="MaxCharge" value="5"/>
 				<UserParam type="string" name="MaxIsotopeError" value="0"/>
 				<UserParam type="string" name="MaxNumModifications" value="2"/>
 				<UserParam type="string" name="MaxPepLength" value="40"/>
-				<UserParam type="string" name="MinCharge" value="2"/>
 				<UserParam type="string" name="MinIsotopeError" value="0"/>
 				<UserParam type="string" name="MinPepLength" value="6"/>
 				<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
-				<UserParam type="string" name="NumTolerableTermini" value="1"/>
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="semi" />
 	</SearchParameters>
-	<IdentificationRun date="2018-06-23T11:13:55" search_engine="MS-GF+" search_engine_version="Release (v2018.01.30)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-05-22T11:59:12" search_engine="MS-GF+" search_engine_version="Release (v2018.01.30)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="sp|Q9ULV5|HSF4_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="sp|Q9ULV5|HSF4_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|Q9UIL4|KIF25_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|Q9UIL4|KIF25_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|Q9UHN6|TMEM2_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="sp|Q9UHN6|TMEM2_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|Q9BV90|SNR25_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_3" accession="sp|Q9BV90|SNR25_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|Q8NFP9|NBEA_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|Q8NFP9|NBEA_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|Q86T20|CF001_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="sp|Q86T20|CF001_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|Q5VST6|AB17B_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_6" accession="sp|Q5VST6|AB17B_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|Q12791|KCMA1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_7" accession="sp|Q12791|KCMA1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|P54840|GYS2_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_8" accession="sp|P54840|GYS2_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|P46940|IQGA1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_9" accession="sp|P46940|IQGA1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="sp|P13807|GYS1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_10" accession="sp|P13807|GYS1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="dec_sp|Q9Y5H8|PCDA3_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_11" accession="dec_sp|Q9Y5H8|PCDA3_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="dec_sp|Q9Y4H2|IRS2_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_12" accession="dec_sp|Q9Y4H2|IRS2_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="dec_sp|Q9UMS6|SYNP2_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_13" accession="dec_sp|Q9UMS6|SYNP2_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="dec_sp|Q9NZV1|CRIM1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_14" accession="dec_sp|Q9NZV1|CRIM1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="dec_sp|Q9H2V7|SPNS1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_15" accession="dec_sp|Q9H2V7|SPNS1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_16" accession="dec_sp|O95248|MTMR5_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_16" accession="dec_sp|O95248|MTMR5_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="dec_sp|A7MD48|SRRM4_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_17" accession="dec_sp|A7MD48|SRRM4_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[/var/folders/bf/8phydss51y155wc4d3nmsr3h0000gn/T/20180620_121804_14865_1/MSGFPlusMod_20180620/003_FileFilter/out/MB_BM1321_P211112_101212.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="451.256317138672" RT="2004.1622" spectrum_reference="controllerType=0 controllerNumber=1 scan=1964" >
-			<PeptideHit score="71" sequence=".(Methyl:2H(2)13C)PAGGDRRR" charge="2" aa_before="Q" aa_after="V" start="1626" end="1633" protein_refs="PH_16" >
-				<UserParam type="float" name="MS:1002049" value="71"/>
-				<UserParam type="float" name="MS:1002050" value="82"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="451.256317138671875" RT="2004.162199999999984" spectrum_reference="controllerType=0 controllerNumber=1 scan=1964" >
+			<PeptideHit score="71.0" sequence=".(Methyl:2H(2)13C)PAGGDRRR" charge="2" aa_before="Q" aa_after="V" start="1626" end="1633" protein_refs="PH_16" >
+				<UserParam type="float" name="MS:1002049" value="71.0"/>
+				<UserParam type="float" name="MS:1002050" value="82.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.0554089e-08"/>
 				<UserParam type="float" name="MS:1002053" value="0.22233067"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="451.259857177734"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="451.259857177734375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1626"/>
 				<UserParam type="int" name="end" value="1633"/>
@@ -96,15 +94,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1964"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="689.847595214844" RT="2005.3826" spectrum_reference="controllerType=0 controllerNumber=1 scan=1966" >
-			<PeptideHit score="37" sequence=".(Methyl:2H(2)13C)NINLC(Carbamidomethyl)C(Carbamidomethyl)DLAIR" charge="2" aa_before="K" aa_after="A" start="94" end="104" protein_refs="PH_12" >
-				<UserParam type="float" name="MS:1002049" value="37"/>
-				<UserParam type="float" name="MS:1002050" value="80"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="689.84759521484375" RT="2005.382599999999911" spectrum_reference="controllerType=0 controllerNumber=1 scan=1966" >
+			<PeptideHit score="37.0" sequence=".(Methyl:2H(2)13C)NINLC(Carbamidomethyl)C(Carbamidomethyl)DLAIR" charge="2" aa_before="K" aa_after="A" start="94" end="104" protein_refs="PH_12" >
+				<UserParam type="float" name="MS:1002049" value="37.0"/>
+				<UserParam type="float" name="MS:1002050" value="80.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.3762788e-08"/>
 				<UserParam type="float" name="MS:1002053" value="0.2952743"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="689.852661132812"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="689.8526611328125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="94"/>
 				<UserParam type="int" name="end" value="104"/>
@@ -112,15 +110,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1966"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="499.255920410156" RT="2000.5209" spectrum_reference="controllerType=0 controllerNumber=1 scan=1957" >
-			<PeptideHit score="52" sequence=".(Methyl:2H(2)13C)C(Carbamidomethyl)TAMTQLR" charge="2" aa_before="P" aa_after="N" start="18" end="25" protein_refs="PH_5" >
-				<UserParam type="float" name="MS:1002049" value="52"/>
-				<UserParam type="float" name="MS:1002050" value="90"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="499.25592041015625" RT="2000.520899999999983" spectrum_reference="controllerType=0 controllerNumber=1 scan=1957" >
+			<PeptideHit score="52.0" sequence=".(Methyl:2H(2)13C)C(Carbamidomethyl)TAMTQLR" charge="2" aa_before="P" aa_after="N" start="18" end="25" protein_refs="PH_5" >
+				<UserParam type="float" name="MS:1002049" value="52.0"/>
+				<UserParam type="float" name="MS:1002050" value="90.0"/>
 				<UserParam type="float" name="MS:1002052" value="2.7136423e-07"/>
 				<UserParam type="float" name="MS:1002053" value="5.716513"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="499.252014160156"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="499.25201416015625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="18"/>
 				<UserParam type="int" name="end" value="25"/>
@@ -128,15 +126,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1957"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="387.20068359375" RT="2001.5951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1959" >
-			<PeptideHit score="53" sequence=".(Methyl:2H(2)13C)NFESLF" charge="2" aa_before="R" aa_after="S" start="448" end="453" protein_refs="PH_15" >
-				<UserParam type="float" name="MS:1002049" value="53"/>
-				<UserParam type="float" name="MS:1002050" value="74"/>
-				<UserParam type="float" name="MS:1002052" value="8.2252217e-07"/>
-				<UserParam type="float" name="MS:1002053" value="16.240004"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="387.20068359375" RT="2001.595100000000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=1959" >
+			<PeptideHit score="53.0" sequence=".(Methyl:2H(2)13C)NFESLF" charge="2" aa_before="R" aa_after="S" start="448" end="453" protein_refs="PH_15" >
+				<UserParam type="float" name="MS:1002049" value="53.0"/>
+				<UserParam type="float" name="MS:1002050" value="74.0"/>
+				<UserParam type="float" name="MS:1002052" value="8.225221700000001e-07"/>
+				<UserParam type="float" name="MS:1002053" value="16.240003999999999"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="387.197540283203"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="387.197540283203125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="448"/>
 				<UserParam type="int" name="end" value="453"/>
@@ -144,15 +142,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1959"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="433.72607421875" RT="2009.831" spectrum_reference="controllerType=0 controllerNumber=1 scan=1974" >
-			<PeptideHit score="47" sequence=".(Methyl:2H(2)13C)SHGQQHR" charge="2" aa_before="Q" aa_after="V" start="177" end="183" protein_refs="PH_0" >
-				<UserParam type="float" name="MS:1002049" value="47"/>
-				<UserParam type="float" name="MS:1002050" value="81"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="433.72607421875" RT="2009.830999999999904" spectrum_reference="controllerType=0 controllerNumber=1 scan=1974" >
+			<PeptideHit score="47.0" sequence=".(Methyl:2H(2)13C)SHGQQHR" charge="2" aa_before="Q" aa_after="V" start="177" end="183" protein_refs="PH_0" >
+				<UserParam type="float" name="MS:1002049" value="47.0"/>
+				<UserParam type="float" name="MS:1002050" value="81.0"/>
 				<UserParam type="float" name="MS:1002052" value="8.476001e-07"/>
-				<UserParam type="float" name="MS:1002053" value="17.61635"/>
+				<UserParam type="float" name="MS:1002053" value="17.616350000000001"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="433.723114013672"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="433.723114013671875"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="177"/>
 				<UserParam type="int" name="end" value="183"/>
@@ -160,14 +158,14 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1974"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="410.693695068359" RT="2003.6277" spectrum_reference="controllerType=0 controllerNumber=1 scan=1963" >
-			<PeptideHit score="46" sequence=".(Methyl:2H(2)13C)C(Carbamidomethyl)QAGPDR" charge="2" aa_before="L" aa_after="I" start="41" end="47" protein_refs="PH_11" >
-				<UserParam type="float" name="MS:1002049" value="46"/>
-				<UserParam type="float" name="MS:1002050" value="64"/>
-				<UserParam type="float" name="MS:1002052" value="8.7567236e-07"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="410.693695068359375" RT="2003.627700000000004" spectrum_reference="controllerType=0 controllerNumber=1 scan=1963" >
+			<PeptideHit score="46.0" sequence=".(Methyl:2H(2)13C)C(Carbamidomethyl)QAGPDR" charge="2" aa_before="L" aa_after="I" start="41" end="47" protein_refs="PH_11" >
+				<UserParam type="float" name="MS:1002049" value="46.0"/>
+				<UserParam type="float" name="MS:1002050" value="64.0"/>
+				<UserParam type="float" name="MS:1002052" value="8.756723600000001e-07"/>
 				<UserParam type="float" name="MS:1002053" value="18.199797"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="410.692626953125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="41"/>
@@ -176,15 +174,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1963"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="471.751983642578" RT="2007.4843" spectrum_reference="controllerType=0 controllerNumber=1 scan=1970" >
-			<PeptideHit score="27" sequence=".(Methyl:2H(2)13C)YGQAMTVR" charge="2" aa_before="E" aa_after="V" start="37" end="44" protein_refs="PH_3" >
-				<UserParam type="float" name="MS:1002049" value="27"/>
-				<UserParam type="float" name="MS:1002050" value="52"/>
-				<UserParam type="float" name="MS:1002052" value="8.780003e-07"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="471.751983642578125" RT="2007.484300000000076" spectrum_reference="controllerType=0 controllerNumber=1 scan=1970" >
+			<PeptideHit score="27.0" sequence=".(Methyl:2H(2)13C)YGQAMTVR" charge="2" aa_before="E" aa_after="V" start="37" end="44" protein_refs="PH_3" >
+				<UserParam type="float" name="MS:1002049" value="27.0"/>
+				<UserParam type="float" name="MS:1002050" value="52.0"/>
+				<UserParam type="float" name="MS:1002052" value="8.780003000000001e-07"/>
 				<UserParam type="float" name="MS:1002053" value="18.495808"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="471.747406005859"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="471.747406005859375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="37"/>
 				<UserParam type="int" name="end" value="44"/>
@@ -192,15 +190,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1970"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="575.799072265625" RT="2004.7657" spectrum_reference="controllerType=0 controllerNumber=1 scan=1965" >
-			<PeptideHit score="39" sequence=".(Methyl:2H(2)13C)SYSPRSSPPR" charge="2" aa_before="S" aa_after="S" start="438" end="447" protein_refs="PH_17" >
-				<UserParam type="float" name="MS:1002049" value="39"/>
-				<UserParam type="float" name="MS:1002050" value="96"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="575.799072265625" RT="2004.765699999999924" spectrum_reference="controllerType=0 controllerNumber=1 scan=1965" >
+			<PeptideHit score="39.0" sequence=".(Methyl:2H(2)13C)SYSPRSSPPR" charge="2" aa_before="S" aa_after="S" start="438" end="447" protein_refs="PH_17" >
+				<UserParam type="float" name="MS:1002049" value="39.0"/>
+				<UserParam type="float" name="MS:1002050" value="96.0"/>
 				<UserParam type="float" name="MS:1002052" value="9.174196e-07"/>
 				<UserParam type="float" name="MS:1002053" value="19.591503"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="575.804321289062"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="575.8043212890625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="438"/>
 				<UserParam type="int" name="end" value="447"/>
@@ -208,15 +206,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1965"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="557.3017578125" RT="2000.0544" spectrum_reference="controllerType=0 controllerNumber=1 scan=1956" >
-			<PeptideHit score="26" sequence=".(Methyl:2H(2)13C)DVC(Carbamidomethyl)EK(Dimethyl:2H(6))GAQR" charge="2" aa_before="S" aa_after="S" start="332" end="340" protein_refs="PH_13" >
-				<UserParam type="float" name="MS:1002049" value="26"/>
-				<UserParam type="float" name="MS:1002050" value="69"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="557.3017578125" RT="2000.054399999999987" spectrum_reference="controllerType=0 controllerNumber=1 scan=1956" >
+			<PeptideHit score="26.0" sequence=".(Methyl:2H(2)13C)DVC(Carbamidomethyl)EK(Dimethyl:2H(6))GAQR" charge="2" aa_before="S" aa_after="S" start="332" end="340" protein_refs="PH_13" >
+				<UserParam type="float" name="MS:1002049" value="26.0"/>
+				<UserParam type="float" name="MS:1002050" value="69.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.293976e-06"/>
 				<UserParam type="float" name="MS:1002053" value="27.47222"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="557.303771972656"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="557.30377197265625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="332"/>
 				<UserParam type="int" name="end" value="340"/>
@@ -224,14 +222,14 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1956"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="646.852905273438" RT="2008.0905" spectrum_reference="controllerType=0 controllerNumber=1 scan=1971" >
-			<PeptideHit score="20" sequence=".(Methyl:2H(2)13C)VANEAEFILNR" charge="2" aa_before="R" aa_after="Q" start="1981" end="1991" protein_refs="PH_4" >
-				<UserParam type="float" name="MS:1002049" value="20"/>
-				<UserParam type="float" name="MS:1002050" value="90"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="646.8529052734375" RT="2008.09050000000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=1971" >
+			<PeptideHit score="20.0" sequence=".(Methyl:2H(2)13C)VANEAEFILNR" charge="2" aa_before="R" aa_after="Q" start="1981" end="1991" protein_refs="PH_4" >
+				<UserParam type="float" name="MS:1002049" value="20.0"/>
+				<UserParam type="float" name="MS:1002050" value="90.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.3071013e-06"/>
-				<UserParam type="float" name="MS:1002053" value="28.043257"/>
+				<UserParam type="float" name="MS:1002053" value="28.043257000000001"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="646.85400390625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1981"/>
@@ -240,15 +238,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1971"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="522.248046875" RT="2006.4971" spectrum_reference="controllerType=0 controllerNumber=1 scan=1968" >
-			<PeptideHit score="37" sequence=".(Methyl:2H(2)13C)EQEAEHQR" charge="2" aa_before="S" aa_after="A" start="1415" end="1422" protein_refs="PH_9" >
-				<UserParam type="float" name="MS:1002049" value="37"/>
-				<UserParam type="float" name="MS:1002050" value="91"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="522.248046875" RT="2006.497100000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=1968" >
+			<PeptideHit score="37.0" sequence=".(Methyl:2H(2)13C)EQEAEHQR" charge="2" aa_before="S" aa_after="A" start="1415" end="1422" protein_refs="PH_9" >
+				<UserParam type="float" name="MS:1002049" value="37.0"/>
+				<UserParam type="float" name="MS:1002050" value="91.0"/>
 				<UserParam type="float" name="MS:1002052" value="2.3158323e-06"/>
-				<UserParam type="float" name="MS:1002053" value="48.784935"/>
+				<UserParam type="float" name="MS:1002053" value="48.784934999999997"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="522.249389648438"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="522.2493896484375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1415"/>
 				<UserParam type="int" name="end" value="1422"/>
@@ -256,15 +254,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1968"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="542.828308105469" RT="2008.723" spectrum_reference="controllerType=0 controllerNumber=1 scan=1972" >
-			<PeptideHit score="26" sequence=".(Methyl:2H(2)13C)RQVQRGPAR" charge="2" aa_before="A" aa_after="K" start="361" end="369" protein_refs="PH_1" >
-				<UserParam type="float" name="MS:1002049" value="26"/>
-				<UserParam type="float" name="MS:1002050" value="89"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="542.82830810546875" RT="2008.722999999999956" spectrum_reference="controllerType=0 controllerNumber=1 scan=1972" >
+			<PeptideHit score="26.0" sequence=".(Methyl:2H(2)13C)RQVQRGPAR" charge="2" aa_before="A" aa_after="K" start="361" end="369" protein_refs="PH_1" >
+				<UserParam type="float" name="MS:1002049" value="26.0"/>
+				<UserParam type="float" name="MS:1002050" value="89.0"/>
 				<UserParam type="float" name="MS:1002052" value="4.096956e-06"/>
-				<UserParam type="float" name="MS:1002053" value="86.9819"/>
+				<UserParam type="float" name="MS:1002053" value="86.981899999999996"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="542.828491210938"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="542.8284912109375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="361"/>
 				<UserParam type="int" name="end" value="369"/>
@@ -272,14 +270,14 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1972"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="457.197143554688" RT="2003.1198" spectrum_reference="controllerType=0 controllerNumber=1 scan=1962" >
-			<PeptideHit score="27" sequence=".(Methyl:2H(2)13C)DEYGC(Carbamidomethyl)PR" charge="2" aa_before="L" aa_after="A" start="1358" end="1364" protein_refs="PH_2" >
-				<UserParam type="float" name="MS:1002049" value="27"/>
-				<UserParam type="float" name="MS:1002050" value="70"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="457.1971435546875" RT="2003.119799999999941" spectrum_reference="controllerType=0 controllerNumber=1 scan=1962" >
+			<PeptideHit score="27.0" sequence=".(Methyl:2H(2)13C)DEYGC(Carbamidomethyl)PR" charge="2" aa_before="L" aa_after="A" start="1358" end="1364" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1002049" value="27.0"/>
+				<UserParam type="float" name="MS:1002050" value="70.0"/>
 				<UserParam type="float" name="MS:1002052" value="4.1651015e-06"/>
-				<UserParam type="float" name="MS:1002053" value="86.56663"/>
+				<UserParam type="float" name="MS:1002053" value="86.566630000000004"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="457.19775390625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1358"/>
@@ -288,15 +286,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1962"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="536.238525390625" RT="2006.9612" spectrum_reference="controllerType=0 controllerNumber=1 scan=1969" >
-			<PeptideHit score="22" sequence=".(Methyl:2H(2)13C)LMC(Carbamidomethyl)DESGSR" charge="2" aa_before="T" aa_after="W" start="37" end="45" protein_refs="PH_6" >
-				<UserParam type="float" name="MS:1002049" value="22"/>
-				<UserParam type="float" name="MS:1002050" value="56"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="536.238525390625" RT="2006.961199999999963" spectrum_reference="controllerType=0 controllerNumber=1 scan=1969" >
+			<PeptideHit score="22.0" sequence=".(Methyl:2H(2)13C)LMC(Carbamidomethyl)DESGSR" charge="2" aa_before="T" aa_after="W" start="37" end="45" protein_refs="PH_6" >
+				<UserParam type="float" name="MS:1002049" value="22.0"/>
+				<UserParam type="float" name="MS:1002050" value="56.0"/>
 				<UserParam type="float" name="MS:1002052" value="4.1952444e-06"/>
-				<UserParam type="float" name="MS:1002053" value="89.06864"/>
+				<UserParam type="float" name="MS:1002053" value="89.068640000000002"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="536.234008789062"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="536.2340087890625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="37"/>
 				<UserParam type="int" name="end" value="45"/>
@@ -304,15 +302,15 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1969"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="717.790954589844" RT="2002.001" spectrum_reference="controllerType=0 controllerNumber=1 scan=1960" >
-			<PeptideHit score="-6" sequence=".(Methyl:2H(2)13C)AC(Carbamidomethyl)C(Carbamidomethyl)FDC(Carbamidomethyl)GRSER" charge="2" aa_before="R" aa_after="D" start="709" end="719" protein_refs="PH_7" >
-				<UserParam type="float" name="MS:1002049" value="-6"/>
-				<UserParam type="float" name="MS:1002050" value="90"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="717.79095458984375" RT="2002.000999999999976" spectrum_reference="controllerType=0 controllerNumber=1 scan=1960" >
+			<PeptideHit score="-6.0" sequence=".(Methyl:2H(2)13C)AC(Carbamidomethyl)C(Carbamidomethyl)FDC(Carbamidomethyl)GRSER" charge="2" aa_before="R" aa_after="D" start="709" end="719" protein_refs="PH_7" >
+				<UserParam type="float" name="MS:1002049" value="-6.0"/>
+				<UserParam type="float" name="MS:1002050" value="90.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.0327638e-05"/>
-				<UserParam type="float" name="MS:1002053" value="221.57472"/>
+				<UserParam type="float" name="MS:1002053" value="221.574720000000014"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="717.789733886719"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="717.78973388671875"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="709"/>
 				<UserParam type="int" name="end" value="719"/>
@@ -320,28 +318,28 @@
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="1960"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="466.218536376953" RT="2000.985" spectrum_reference="controllerType=0 controllerNumber=1 scan=1958" >
-			<PeptideHit score="26" sequence=".(Methyl:2H(2)13C)RDC(Carbamidomethyl)GNHR" charge="2" aa_before="C" aa_after="T" start="488" end="494" protein_refs="PH_14" >
-				<UserParam type="float" name="MS:1002049" value="26"/>
-				<UserParam type="float" name="MS:1002050" value="62"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="466.218536376953125" RT="2000.9849999999999" spectrum_reference="controllerType=0 controllerNumber=1 scan=1958" >
+			<PeptideHit score="26.0" sequence=".(Methyl:2H(2)13C)RDC(Carbamidomethyl)GNHR" charge="2" aa_before="C" aa_after="T" start="488" end="494" protein_refs="PH_14" >
+				<UserParam type="float" name="MS:1002049" value="26.0"/>
+				<UserParam type="float" name="MS:1002050" value="62.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.2744677e-05"/>
-				<UserParam type="float" name="MS:1002053" value="264.88278"/>
+				<UserParam type="float" name="MS:1002053" value="264.882780000000025"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="466.219879150391"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="466.219879150390625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="488"/>
 				<UserParam type="int" name="end" value="494"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="26" sequence=".(Methyl:2H(2)13C)RYC(Carbamidomethyl)MER" charge="2" aa_before="H H" aa_after="A A" start="241 241" end="246 246" protein_refs="PH_10 PH_8" >
-				<UserParam type="float" name="MS:1002049" value="26"/>
-				<UserParam type="float" name="MS:1002050" value="62"/>
+			<PeptideHit score="26.0" sequence=".(Methyl:2H(2)13C)RYC(Carbamidomethyl)MER" charge="2" aa_before="H H" aa_after="A A" start="241 241" end="246 246" protein_refs="PH_10 PH_8" >
+				<UserParam type="float" name="MS:1002049" value="26.0"/>
+				<UserParam type="float" name="MS:1002050" value="62.0"/>
 				<UserParam type="float" name="MS:1002052" value="1.2744677e-05"/>
-				<UserParam type="float" name="MS:1002053" value="251.63284"/>
+				<UserParam type="float" name="MS:1002053" value="251.632839999999987"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="466.217956542969"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="float" name="calcMZ" value="466.217956542968807"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="241"/>
 				<UserParam type="int" name="end" value="246"/>

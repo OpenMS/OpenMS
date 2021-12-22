@@ -643,7 +643,7 @@
 			<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 			<UserParam type="string" name="CTermIonCurrentRatio" value="0.008483601"/>
 			<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.00875963"/>
-			<UserParam type="string" name="IsotopeError" value="0"/>
+			<UserParam type="string" name="isotope_error" value="0"/>
 			<UserParam type="string" name="MS2IonCurrent" value="1.12854624E8"/>
 			<UserParam type="string" name="MeanErrorAll" value="14.8119"/>
 			<UserParam type="string" name="MeanErrorTop7" value="14.8119"/>
@@ -931,7 +931,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.018437373"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.018437373"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="160549.36"/>
 					<UserParam type="string" name="MeanErrorAll" value="8.457564"/>
 					<UserParam type="string" name="MeanErrorTop7" value="8.457564"/>
@@ -1034,7 +1034,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.10506144"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.10506144"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="862883.3"/>
 					<UserParam type="string" name="MeanErrorAll" value="8.951585"/>
 					<UserParam type="string" name="MeanErrorTop7" value="8.951585"/>
@@ -1211,7 +1211,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.082971536"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.08864274"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="594900.0"/>
 					<UserParam type="string" name="MeanErrorAll" value="10.372393"/>
 					<UserParam type="string" name="MeanErrorTop7" value="12.900443"/>
@@ -1349,7 +1349,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.015385298"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.015385298"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1070942.4"/>
 					<UserParam type="string" name="MeanErrorAll" value="6.100949"/>
 					<UserParam type="string" name="MeanErrorTop7" value="6.100949"/>
@@ -1497,7 +1497,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.043317284"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.044184253"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1052053.0"/>
 					<UserParam type="string" name="MeanErrorAll" value="13.560098"/>
 					<UserParam type="string" name="MeanErrorTop7" value="13.09368"/>
@@ -1604,7 +1604,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.18437183"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.18437183"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1028323.06"/>
 					<UserParam type="string" name="MeanErrorAll" value="12.4489975"/>
 					<UserParam type="string" name="MeanErrorTop7" value="12.4489975"/>
@@ -1678,7 +1678,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.06313431"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.077875786"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1648792.8"/>
 					<UserParam type="string" name="MeanErrorAll" value="9.680351"/>
 					<UserParam type="string" name="MeanErrorTop7" value="9.680351"/>
@@ -1754,7 +1754,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.07181577"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.07181577"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="2104602.5"/>
 					<UserParam type="string" name="MeanErrorAll" value="11.658926"/>
 					<UserParam type="string" name="MeanErrorTop7" value="11.658926"/>
@@ -1828,7 +1828,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.1715437"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.17218985"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1478531.2"/>
 					<UserParam type="string" name="MeanErrorAll" value="10.11589"/>
 					<UserParam type="string" name="MeanErrorTop7" value="10.11589"/>
@@ -2100,7 +2100,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.015528469"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.017406216"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="342967.84"/>
 					<UserParam type="string" name="MeanErrorAll" value="7.3925905"/>
 					<UserParam type="string" name="MeanErrorTop7" value="6.057341"/>
@@ -2166,7 +2166,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.014198913"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.026651885"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1159124.1"/>
 					<UserParam type="string" name="MeanErrorAll" value="9.123063"/>
 					<UserParam type="string" name="MeanErrorTop7" value="7.243789"/>
@@ -2224,7 +2224,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.043934997"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.046672396"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="600056.1"/>
 					<UserParam type="string" name="MeanErrorAll" value="9.453442"/>
 					<UserParam type="string" name="MeanErrorTop7" value="8.294648"/>
@@ -2294,7 +2294,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.0011663509"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.009149219"/>
-					<UserParam type="string" name="IsotopeError" value="0"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1947549.8"/>
 					<UserParam type="string" name="MeanErrorAll" value="11.597982"/>
 					<UserParam type="string" name="MeanErrorTop7" value="11.597982"/>
@@ -2364,7 +2364,7 @@
 					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 					<UserParam type="string" name="CTermIonCurrentRatio" value="0.028336924"/>
 					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.030324776"/>
-					<UserParam type="string" name="IsotopeError" value="1"/>
+					<UserParam type="string" name="isotope_error" value="1"/>
 					<UserParam type="string" name="MS2IonCurrent" value="1223018.4"/>
 					<UserParam type="string" name="MeanErrorAll" value="11.688016"/>
 					<UserParam type="string" name="MeanErrorTop7" value="11.688016"/>

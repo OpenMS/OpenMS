@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::showFilesDialog()
   {
-    TOPPASInputFilesDialog tifd(getFileNames(), cwd_);
+    TOPPASInputFilesDialog tifd(getFileNames(), cwd_, 0);
     if (tifd.exec())
     {
       QStringList updated_filelist;
@@ -171,8 +171,10 @@ namespace OpenMS
   {
     output_files_.clear();
 
-    if (files.empty()) return;
-
+    if (files.empty())
+    {
+      return;
+    }
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)
     {

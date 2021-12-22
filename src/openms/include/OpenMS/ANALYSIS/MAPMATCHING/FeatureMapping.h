@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -45,9 +46,19 @@ namespace OpenMS
       {
           public:
 
-          struct FeatureToMs2Indices
+          /// Stores information required for preprocessing
+          class FeatureMappingInfo
           {
-             Map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+          public:
+            std::vector<FeatureMap> feature_maps; // feature data
+            KDTreeFeatureMaps kd_tree; // KDTree references into feature_maps to provides fast spatial queries
+          };
+
+          /// Stores preprocessed feature mapping information
+          class FeatureToMs2Indices
+          {
+          public:
+             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
              std::vector<size_t> unassignedMS2;
           };
 
@@ -64,7 +75,7 @@ namespace OpenMS
 
           */
           static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
-                                                             const KDTreeFeatureMaps& fp_map_kd,
+                                                             const FeatureMappingInfo& fm_info,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,
                                                              bool ppm);

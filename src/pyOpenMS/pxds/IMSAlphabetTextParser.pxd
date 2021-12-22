@@ -7,7 +7,7 @@ from IMSAlphabetParser cimport *
 #         # wrap-inherits:
 #         #  IMSAlphabetParser
 #         IMSAlphabetTextParser() nogil except + 
-#         IMSAlphabetTextParser(IMSAlphabetTextParser) nogil except + #wrap-ignore
+#         IMSAlphabetTextParser(IMSAlphabetTextParser &) nogil except +
 
 #         # ContainerType  getElements() nogil except +
 #         # NAMESPACE # void parse(std::istream & is_) nogil except +

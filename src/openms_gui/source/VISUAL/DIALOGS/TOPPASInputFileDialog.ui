@@ -21,12 +21,12 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QLineEdit" name="line_edit"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="browse_button">
-        <property name="text">
-         <string>Browse</string>
+       <widget class="InputFile" name="input_file" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -70,6 +70,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>InputFile</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/InputFile.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

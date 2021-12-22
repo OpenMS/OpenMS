@@ -43,6 +43,7 @@
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+		<userParam name="sqMassRunID" type="xsd:integer" value="5233264595117471314"/>
 		<chromatogramList count="24" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="0_Precursor_i0" index="0" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
@@ -937,32 +938,32 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="0_Precursor_i0">3033</offset>
-		<offset idRef="0">5338</offset>
-		<offset idRef="1">7635</offset>
-		<offset idRef="2">9932</offset>
-		<offset idRef="2_Precursor_i0">12229</offset>
-		<offset idRef="3">14534</offset>
-		<offset idRef="4">16831</offset>
-		<offset idRef="5">19128</offset>
-		<offset idRef="3_Precursor_i0">21425</offset>
-		<offset idRef="6">23730</offset>
-		<offset idRef="7">26027</offset>
-		<offset idRef="8">28325</offset>
-		<offset idRef="4_Precursor_i0">30623</offset>
-		<offset idRef="9">32929</offset>
-		<offset idRef="10">35227</offset>
-		<offset idRef="11">37526</offset>
-		<offset idRef="6_Precursor_i0">39825</offset>
-		<offset idRef="5_Precursor_i0">42133</offset>
-		<offset idRef="15">44441</offset>
-		<offset idRef="12">46742</offset>
-		<offset idRef="16">49043</offset>
-		<offset idRef="13">51344</offset>
-		<offset idRef="17">53645</offset>
-		<offset idRef="14">55946</offset>
+		<offset idRef="0_Precursor_i0">3114</offset>
+		<offset idRef="0">5426</offset>
+		<offset idRef="1">7730</offset>
+		<offset idRef="2">10034</offset>
+		<offset idRef="2_Precursor_i0">12338</offset>
+		<offset idRef="3">14650</offset>
+		<offset idRef="4">16954</offset>
+		<offset idRef="5">19258</offset>
+		<offset idRef="3_Precursor_i0">21562</offset>
+		<offset idRef="6">23874</offset>
+		<offset idRef="7">26178</offset>
+		<offset idRef="8">28483</offset>
+		<offset idRef="4_Precursor_i0">30788</offset>
+		<offset idRef="9">33101</offset>
+		<offset idRef="10">35406</offset>
+		<offset idRef="11">37712</offset>
+		<offset idRef="6_Precursor_i0">40018</offset>
+		<offset idRef="5_Precursor_i0">42333</offset>
+		<offset idRef="15">44648</offset>
+		<offset idRef="12">46956</offset>
+		<offset idRef="16">49264</offset>
+		<offset idRef="13">51572</offset>
+		<offset idRef="17">53880</offset>
+		<offset idRef="14">56188</offset>
 	</index>
 </indexList>
-<indexListOffset>58281</indexListOffset>
+<indexListOffset>58530</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,8 +87,7 @@ using namespace std;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathAnalyzer.html
 
  */
@@ -131,7 +130,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "",
                        "RT normalization file (how to map the RTs of this run to the ones stored in the library)",
@@ -179,11 +178,11 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     String trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
-    if (trafo_in.size() > 0)
+    if (!trafo_in.empty())
     {
       TransformationXMLFile trafoxml;
       String model_type = getStringOption_("model:type");
@@ -217,7 +216,7 @@ protected:
     mzmlfile.load(in, *exp.get());
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
-    if (file_list.size() == 0)
+    if (file_list.empty())
     {
       MRMFeatureFinderScoring featureFinder;
       featureFinder.setParameters(feature_finder_param);
@@ -288,17 +287,13 @@ protected:
 #pragma omp critical (featureFinder)
 #endif
         {
-          for (FeatureMap::iterator feature_it = featureFile.begin();
-               feature_it != featureFile.end(); ++feature_it)
+          for (const Feature& feature : featureFile)
           {
-            out_featureFile.push_back(*feature_it);
+            out_featureFile.push_back(feature);
           }
-          for (std::vector<ProteinIdentification>::iterator protid_it =
-                 featureFile.getProteinIdentifications().begin();
-               protid_it != featureFile.getProteinIdentifications().end();
-               ++protid_it)
+          for (const ProteinIdentification& protid : featureFile.getProteinIdentifications())
           {
-            out_featureFile.getProteinIdentifications().push_back(*protid_it);
+            out_featureFile.getProteinIdentifications().push_back(protid);
           }
 
         }

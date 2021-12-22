@@ -5,14 +5,17 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
     
     cdef cppclass SiriusAdapterHit "OpenMS::SiriusMzTabWriter::SiriusAdapterHit":
         SiriusAdapterHit() nogil except +
-        SiriusAdapterHit(SiriusAdapterHit) nogil except + #wrap-ignore
+        SiriusAdapterHit(SiriusAdapterHit &) nogil except + # compiler
 
         String formula
         String adduct
+        String precursor_formula
         int rank
-        double score
-        double treescore
-        double isoscore
+        double iso_score
+        double tree_score
+        double sirius_score
         int explainedpeaks
         double explainedintensity
-
+        double median_mass_error_fragment_peaks_ppm
+        double median_absolute_mass_error_fragment_peaks_ppm
+        double mass_error_precursor_ppm

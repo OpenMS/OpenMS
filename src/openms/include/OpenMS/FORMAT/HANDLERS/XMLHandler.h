@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,9 @@
 #include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
-#include <algorithm>
 #include <iosfwd>
 #include <string>
+#include <memory>
 
 namespace OpenMS
 {
@@ -58,6 +58,167 @@ namespace OpenMS
 
   namespace Internal
   {
+
+    #define CONST_XMLCH(s) reinterpret_cast<const ::XMLCh*>(u ## s)
+
+    static_assert(sizeof(::XMLCh) == sizeof(char16_t),
+                  "XMLCh is not sized correctly for UTF-16.");
+
+    //Adapted from https://www.codeproject.com/articles/99551/redux-raii-adapter-for-xerces
+    //Copyright 2010 Orjan Westin
+    //Under BSD license
+    //========================================================================================================
+    template<typename T>
+    class OPENMS_DLLAPI shared_xerces_ptr
+    {
+      // Function to release Xerces data type with a release member function
+      template<typename U>
+      static void doRelease_(U* item)
+      {
+        // Only release this if it has no owner
+        if (nullptr == item->getOwnerDocument())
+          item->release();
+      }
+
+      static void doRelease_(char* item);
+      static void doRelease_(XMLCh* item);
+
+      // The actual data we're holding
+      std::shared_ptr<T> item_;
+    public:
+      // Default constructor
+      shared_xerces_ptr() = default;
+      // Assignment constructor
+      shared_xerces_ptr(T* item)
+          : item_(item, doRelease_ )
+      {}
+      // Assignment of data to guard
+      shared_xerces_ptr& operator=(T* item)
+      {
+        assign(item);
+        return *this;
+      }
+      // Give up hold on data
+      void reset()
+      {
+        item_.reset();
+      }
+      // Release currently held data, if any, to hold another
+      void assign(T* item)
+      {
+        item_.reset(item, doRelease_ );
+      }
+      // Get pointer to the currently held data, if any
+      T* get()
+      {
+        return item_.get();
+      }
+      const T* get() const
+      {
+        return item_.get();
+      }
+      // Return true if no data is held
+      bool is_released() const
+      {
+        return (nullptr == item_.get());
+      }
+    };
+
+    template <typename T>
+    class OPENMS_DLLAPI unique_xerces_ptr
+    {
+    private:
+
+      template<typename U>
+      static void doRelease_(U*& item)
+      {
+        // Only release this if it has no parent (otherwise
+        // parent will release it)
+        if (nullptr == item->getOwnerDocument())
+          item->release();
+      }
+
+      static void doRelease_(char*& item);
+      static void doRelease_(XMLCh*& item);
+
+      T* item_;
+
+    public:
+
+      // Hide copy constructor and assignment operator
+      unique_xerces_ptr(const unique_xerces_ptr<T>&) = delete;
+      unique_xerces_ptr& operator=(const unique_xerces_ptr<T>&) = delete;
+
+      unique_xerces_ptr()
+          : item_(nullptr)
+      {}
+
+      explicit unique_xerces_ptr(T* i)
+          : item_(i)
+      {}
+
+      ~unique_xerces_ptr()
+      {
+        xerces_release();
+      }
+
+      unique_xerces_ptr(unique_xerces_ptr<T>&& other) noexcept
+          : item_(nullptr)
+      {
+        this->swap(other);
+      }
+
+      void swap(unique_xerces_ptr<T>& other) noexcept
+      {
+        std::swap(item_, other.item_);
+      }
+
+      // Assignment of data to guard (not chainable)
+      void operator=(T* i)
+      {
+        reassign(i);
+      }
+
+      // Release held data (i.e. delete/free it)
+      void xerces_release()
+      {
+        if (!is_released())
+        {
+          // Use type-specific release mechanism
+          doRelease_(item_);
+          item_ = nullptr;
+        }
+      }
+
+      // Give up held data (i.e. return data without releasing)
+      T* yield()
+      {
+        T* tempItem = item_;
+        item_ = nullptr;
+        return tempItem;
+      }
+
+      // Release currently held data, if any, to hold another
+      void assign(T* i)
+      {
+        xerces_release();
+        item_ = i;
+      }
+
+      // Get pointer to the currently held data, if any
+      T* get() const
+      {
+        return item_;
+      }
+
+      // Return true if no data is held
+      bool is_released() const
+      {
+        return (nullptr == item_);
+      }
+    };
+
+    //========================================================================================================
 
     /*
      * @brief Helper class for XML parsing that handles the conversions of Xerces strings
@@ -74,33 +235,27 @@ namespace OpenMS
       typedef std::basic_string<XMLCh> XercesString;
 
       // Converts from a narrow-character string to a wide-character string.
-      inline XercesString fromNative_(const char* str) const
+      inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
-        XMLCh* ptr(xercesc::XMLString::transcode(str));
-        XercesString result(ptr);
-        xercesc::XMLString::release(&ptr);
-        return result;
+        return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
       // Converts from a narrow-character string to a wide-character string.
-      inline XercesString fromNative_(const String& str) const
+      inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
       {
         return fromNative_(str.c_str());
       }
 
       // Converts from a wide-character string to a narrow-character string.
-      inline String toNative_(const XMLCh* str) const
+      inline static String toNative_(const XMLCh* str)
       {
-        char* ptr(xercesc::XMLString::transcode(str));
-        String result(ptr);
-        xercesc::XMLString::release(&ptr);
-        return result;
+        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
       }
 
       // Converts from a wide-character string to a narrow-character string.
-      inline String toNative_(const XercesString& str) const
+      inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
       {
-        return toNative_(str.c_str());
+        return toNative_(str.get());
       }
 
 
@@ -112,25 +267,43 @@ public:
       ~StringManager();
 
       /// Transcode the supplied C string to a xerces string
-      inline XercesString convert(const char * str) const
+      inline static XercesString convert(const char * str)
+      {
+        return fromNative_(str).get();
+      }
+
+      /// Transcode the supplied C++ string to a xerces string
+      inline static XercesString convert(const std::string & str)
+      {
+        return fromNative_(str.c_str()).get();
+      }
+
+      /// Transcode the supplied OpenMS string to a xerces string
+      inline static XercesString convert(const String & str)
+      {
+        return fromNative_(str.c_str()).get();
+      }
+
+      /// Transcode the supplied C string to a xerces string pointer
+      inline static unique_xerces_ptr<XMLCh> convertPtr(const char * str)
       {
         return fromNative_(str);
       }
 
-      /// Transcode the supplied C++ string to a xerces string
-      inline XercesString convert(const std::string & str) const
+      /// Transcode the supplied C++ string to a xerces string pointer
+      inline static unique_xerces_ptr<XMLCh> convertPtr(const std::string & str)
       {
         return fromNative_(str.c_str());
       }
 
-      /// Transcode the supplied OpenMS string to a xerces string
-      inline XercesString convert(const String & str) const
+      /// Transcode the supplied OpenMS string to a xerces string pointer
+      inline static unique_xerces_ptr<XMLCh> convertPtr(const String & str)
       {
         return fromNative_(str.c_str());
       }
 
       /// Transcode the supplied XMLCh* to a String
-      inline String convert(const XMLCh * str) const
+      inline static String convert(const XMLCh * str)
       {
         return toNative_(str);
       }
@@ -248,7 +421,7 @@ public:
 
       /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
       /// Should be called before writing any ProtIDs to file
-      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids);
+      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
       /// Error message of the last error
@@ -296,21 +469,7 @@ protected:
 
       /// Converts @p term to the index of the term in the cv_terms_ entry @p section
       /// If the term is not found, @p result_on_error is returned (0 by default)
-      inline SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0)
-      {
-        OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
-
-        std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
-        if (it != cv_terms_[section].end())
-        {
-          return it - cv_terms_[section].begin();
-        }
-        else
-        {
-          warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
-          return result_on_error;
-        }
-      }
+      SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0);
 
       //@}
 
@@ -318,7 +477,7 @@ protected:
       //@{
 
       /// Conversion of a String to an integer value
-      inline Int asInt_(const String & in)
+      inline Int asInt_(const String & in) const
       {
         Int res = 0;
         try
@@ -333,13 +492,13 @@ protected:
       }
 
       /// Conversion of a Xerces string to an integer value
-      inline Int asInt_(const XMLCh * in)
+      inline Int asInt_(const XMLCh * in) const
       {
         return xercesc::XMLString::parseInt(in);
       }
 
       /// Conversion of a String to an unsigned integer value
-      inline UInt asUInt_(const String & in)
+      inline UInt asUInt_(const String & in) const
       {
         UInt res = 0;
         try
@@ -359,7 +518,7 @@ protected:
       }
 
       /// Conversion of a String to a double value
-      inline double asDouble_(const String & in)
+      inline double asDouble_(const String & in) const
       {
         double res = 0.0;
         try
@@ -374,7 +533,7 @@ protected:
       }
 
       /// Conversion of a String to a float value
-      inline float asFloat_(const String & in)
+      inline float asFloat_(const String & in) const
       {
         float res = 0.0;
         try
@@ -395,7 +554,7 @@ protected:
 
           @n For all other values a parse error is produced.
       */
-      inline bool asBool_(const String & in)
+      inline bool asBool_(const String & in) const
       {
         if (in == "true" || in == "TRUE" || in == "True" || in == "1")
         {
@@ -413,10 +572,10 @@ protected:
       }
 
       /// Conversion of a xs:datetime string to a DateTime value
-      inline DateTime asDateTime_(String date_string)
+      inline DateTime asDateTime_(String date_string) const
       {
         DateTime date_time;
-        if (date_string != "")
+        if (!date_string.empty())
         {
           try
           {
@@ -441,7 +600,7 @@ protected:
       /// Converts an attribute to a String
       inline String attributeAsString_(const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return sm_.convert(val);
       }
@@ -449,7 +608,7 @@ protected:
       /// Converts an attribute to a Int
       inline Int attributeAsInt_(const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
@@ -457,7 +616,7 @@ protected:
       /// Converts an attribute to a double
       inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return String(sm_.convert(val)).toDouble();
       }
@@ -490,7 +649,7 @@ protected:
       */
       inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = sm_.convert(val);
@@ -506,7 +665,7 @@ protected:
       */
       inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -522,7 +681,7 @@ protected:
       */
       inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
@@ -538,7 +697,7 @@ protected:
       */
       inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = String(sm_.convert(val)).toDouble();
@@ -554,7 +713,7 @@ protected:
       */
       inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
@@ -570,7 +729,7 @@ protected:
       */
       inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
@@ -586,7 +745,7 @@ protected:
       */
       inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const char * name) const
       {
-        const XMLCh * val = a.getValue(sm_.convert(name).c_str());
+        const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
         if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);

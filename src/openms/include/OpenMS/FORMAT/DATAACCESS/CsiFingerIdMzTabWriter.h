@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ namespace OpenMS
           public:
 
           /**
-          @brief Internal structure used in @ref SiriusAdapter that is used
+          @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
            for the conversion of the Csi:FingerID output to an mzTab.
 
            CsiAdapterHit:
@@ -54,7 +54,7 @@ namespace OpenMS
            score (int) - Score of the identification for a compound (spectrum) calculated by CSI:FingerID
            name (String)
            smiles (String)
-           pubchemids (vector<String>) - Pubchemid as reference
+           pubchemids (vector<String>) - PubChemID as reference
            links (vector<String>) - Links to the database
 
            CsiAdapterIdentification:
@@ -69,33 +69,40 @@ namespace OpenMS
            @ingroup DATAACCESS
           */
 
-          struct CsiAdapterHit
+          class CsiAdapterHit
           {
+          public:
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
             unsigned int rank = 0;
+            unsigned int formula_rank = 0;
+            OpenMS::String adduct;
             OpenMS::String molecular_formula;
             double score = 0.;
             OpenMS::String name;
             OpenMS::String smiles;
+            OpenMS::String xlogp;
+            OpenMS::String dbflags;
             std::vector<String> pubchemids;
             std::vector<String> links;
 
           };
 
-          struct CsiAdapterIdentification
+          class CsiAdapterIdentification
           {
+          public:
             double mz = 0.;
             double rt = 0.;
-            OpenMS::String native_id;
+            OpenMS::StringList native_ids;
             int scan_index = -1;
             int scan_number = -1;
             OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };
 
-          struct CsiAdapterRun
+          class CsiAdapterRun
           {
+          public:
             std::vector <CsiAdapterIdentification> identifications;
           };
 
@@ -116,4 +123,3 @@ namespace OpenMS
 
       };
 }
-

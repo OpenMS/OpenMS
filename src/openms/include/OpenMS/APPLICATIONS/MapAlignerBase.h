@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -67,48 +62,52 @@
 
 namespace OpenMS
 {
+  // @brief stores model defaults for map aligner algorithms
+  struct MapAlignerBase
+  {
+    // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
+    static Param getModelDefaults(const String& default_model)
+    {
+      Param params;
+      params.setValue("type", default_model, "Type of model");
+      // TODO: avoid referring to each TransformationModel subclass explicitly
+      std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
+      if (!ListUtils::contains(model_types, default_model))
+      {
+        model_types.insert(model_types.begin(), default_model);
+      }
+      params.setValidStrings("type", model_types);
+
+      Param model_params;
+      TransformationModelLinear::getDefaultParameters(model_params);
+      params.insert("linear:", model_params);
+      params.setSectionDescription("linear", "Parameters for 'linear' model");
+
+      TransformationModelBSpline::getDefaultParameters(model_params);
+      params.insert("b_spline:", model_params);
+      params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
+
+      TransformationModelLowess::getDefaultParameters(model_params);
+      params.insert("lowess:", model_params);
+      params.setSectionDescription("lowess", "Parameters for 'lowess' model");
+
+      TransformationModelInterpolated::getDefaultParameters(model_params);
+      params.insert("interpolated:", model_params);
+      params.setSectionDescription("interpolated",
+                                  "Parameters for 'interpolated' model");
+      return params;
+    }
+  };
+
 
 class TOPPMapAlignerBase :
-  public TOPPBase
+  public TOPPBase, public MapAlignerBase
 {
 
 public:
   TOPPMapAlignerBase(String name, String description, bool official = true) :
     TOPPBase(name, description, official), ref_params_(REF_NONE)
   {
-  }
-
-  // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
-  static Param getModelDefaults(const String& default_model)
-  {
-    Param params;
-    params.setValue("type", default_model, "Type of model");
-    // TODO: avoid referring to each TransformationModel subclass explicitly
-    StringList model_types = ListUtils::create<String>("linear,b_spline,lowess,interpolated");
-    if (!ListUtils::contains(model_types, default_model))
-    {
-      model_types.insert(model_types.begin(), default_model);
-    }
-    params.setValidStrings("type", model_types);
-
-    Param model_params;
-    TransformationModelLinear::getDefaultParameters(model_params);
-    params.insert("linear:", model_params);
-    params.setSectionDescription("linear", "Parameters for 'linear' model");
-
-    TransformationModelBSpline::getDefaultParameters(model_params);
-    params.insert("b_spline:", model_params);
-    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
-
-    TransformationModelLowess::getDefaultParameters(model_params);
-    params.insert("lowess:", model_params);
-    params.setSectionDescription("lowess", "Parameters for 'lowess' model");
-
-    TransformationModelInterpolated::getDefaultParameters(model_params);
-    params.insert("interpolated:", model_params);
-    params.setSectionDescription("interpolated",
-                                 "Parameters for 'interpolated' model");
-    return params;
   }
 
 protected:
@@ -120,8 +119,8 @@ protected:
   enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
     ref_params_;
 
-  void registerOptionsAndFlags_(const String& file_formats,
-                                enum ReferenceParameterKind ref_params)
+  void registerOptionsAndFlagsMapAligners_(const String& file_formats,
+                                           enum ReferenceParameterKind ref_params)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));

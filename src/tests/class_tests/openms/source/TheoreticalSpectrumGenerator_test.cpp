@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,6 +62,7 @@ TheoreticalSpectrumGenerator* nullPointer = nullptr;
 START_SECTION(TheoreticalSpectrumGenerator())
   ptr = new TheoreticalSpectrumGenerator();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
@@ -93,23 +94,23 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   /**  From http://db.systemsbiology.net:8080/proteomicsToolkit/FragIonServlet.html
      Fragment Ion Table, monoisotopic masses
 
-     Seq    #       A            B            C            X            Y            Z         # (+1) 
+     Seq    #       A            B            C            X            Y            Z         # (+1)
 
-     I     1     86.09647    114.09139    131.11793       -         778.44581    761.42036    7 
-     F     2    233.16488    261.15980    278.18635    691.34101    665.36174    648.33629    6 
-     S     3    320.19691    348.19183    365.21838    544.27260    518.29333    501.26788    5 
-     Q     4    448.25549    476.25040    493.27695    457.24057    431.26130    414.23585    4 
-     V     5    547.32390    575.31882    592.34537    329.18199    303.20273    286.17727    3 
-     G     6    604.34537    632.34028    649.36683    230.11358    204.13431    187.10886    2 
-     K     7    732.44033    760.43524       -         173.09211    147.11285    130.08740    1 
+     I     1     86.09647    114.09139    131.11793       -         778.44581    761.42036    7
+     F     2    233.16488    261.15980    278.18635    691.34101    665.36174    648.33629    6
+     S     3    320.19691    348.19183    365.21838    544.27260    518.29333    501.26788    5
+     Q     4    448.25549    476.25040    493.27695    457.24057    431.26130    414.23585    4
+     V     5    547.32390    575.31882    592.34537    329.18199    303.20273    286.17727    3
+     G     6    604.34537    632.34028    649.36683    230.11358    204.13431    187.10886    2
+     K     7    732.44033    760.43524       -         173.09211    147.11285    130.08740    1
 
   **/
   double result[] = {/*114.091,*/ 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
   std::vector<double> result_x = { 691.34101, 544.27260, 457.24057, 329.18199, 230.11358, 173.09211 };
   std::vector<double> result_x_losses = {
-      691.34101 - 17.026549095700005, 
+      691.34101 - 17.026549095700005,
       691.34101 - 18.01056506379996,
-      691.34101, 
+      691.34101,
       544.27260 - 17.026549095700005,
       544.27260 - 18.01056506379996,
       544.27260,
@@ -129,9 +130,15 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
+  TEST_EQUAL(spec.getMSLevel(), 2);
+  TEST_EQUAL(spec.getType(), MSSpectrum::SpectrumSettings::CENTROID);
+  TEST_REAL_SIMILAR(peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
+
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 1, 2);
   TEST_EQUAL(spec.size(), 22)
+
+  TEST_REAL_SIMILAR(peptide.getMZ(3, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   spec.clear(true);
   Param param(ptr->getParameters());
@@ -188,6 +195,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->setParameters(param);
   ptr->getSpectrum(spec, new_peptide, 1, 1);
   TEST_EQUAL(spec.size(), 52-1)
+
+  TEST_REAL_SIMILAR(new_peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   vector<double> generated;
   for (Size i = 0; i != spec.size(); ++i)
@@ -256,7 +265,6 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   }
 
   std::sort(generated.begin(),generated.end());
-  // std::vector<double> result_loss(result_all, 
 
   // test loss creation and annotation
   spec.clear(true);
@@ -340,6 +348,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 30)
+
+  TEST_REAL_SIMILAR(peptide.getMZ(4, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   ion_names.clear();
   // ions without losses
@@ -430,6 +440,18 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->getSpectrum(spec, AASequence::fromString("A"), 1, 1);
   TEST_EQUAL(spec.size(), 0)
 
+  spec.clear(true);
+  ptr->getSpectrum(spec, peptide, 1, 1, 4);
+  ptr->getSpectrum(spec, new_peptide, 1, 3);
+  ABORT_IF(spec.getPrecursors().size() != 2);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[0].getCharge(), 4);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), new_peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[1].getCharge(), 4);
+
+  spec.clear(true);
+
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ptr->getSpectrum(spec, peptide, 1, 2, 1), "'precursor_charge' has to be higher than or equal to 'max_charge'.");
 
 //  // for quick benchmarking of implementation chances
 //  param = ptr->getParameters();
@@ -450,6 +472,59 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
 //    PeakSpectrum spec;
 //    ptr->getSpectrum(spec, peptide, 1, 3);
 //  }
+
+END_SECTION
+
+START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge))
+  MSSpectrum spec;
+  Precursor prec;
+
+  // Test CID/HCID
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::CID, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 219.0797);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 285.1346);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 405.1591);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 448.1979);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 518.2431);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 561.2819);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 681.3064);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 747.3613);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 828.3749);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 850.3704);
+
+  spec.clear(true);
+
+  // Test ECD/ETD
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ECD, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 99.044);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 202.0532);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 302.1611);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 388.1325);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 465.2244);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 501.2166);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 578.3085);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 664.2799);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 764.3878);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 811.3483);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 867.397);
+
+  spec.clear(true);
+
+  // Test precursor_charge > 2
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCID, AASequence::fromString("PEP"), 3);
+  ABORT_IF(spec.size() != 6);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 58.5389);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 114.0549);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 123.0602);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 227.1026);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 245.1131);
+
+  // Test not supported activation method
+  TEST_EXCEPTION(Exception::InvalidParameter, TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::SORI, AASequence::fromString("PEP"), 1));
 
 END_SECTION
 
@@ -561,7 +636,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     107.05279,
     185.10335,
     263.15390,
-    
+
     78.54206+(neutron_shift/2),
     107.05279+(neutron_shift/2),
     185.10335+(neutron_shift/2),
@@ -582,7 +657,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   // isotope cluster for y-ions
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 18)
+  TEST_EQUAL(spec.size(), 10)
 
   result = {
     78.54206,
@@ -591,23 +666,15 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     263.15390,
 
     // 405: POS: 78.54256367545 INT: 0.921514272689819
-    79.04108117545,
     79.04424117545,
-    79.54469067545,
     // 405: POS: 107.0532957233 INT: 0.89608770608902
-    107.5518132233,
     107.5549732233,
-    108.0554227233,
     // 405: POS: 185.1038514147 INT: 0.824628114700317
     185.6023689147,
     185.6055289147,
-    186.1059784147,
-    186.1072064147,
     // 405: POS: 263.1544071061 INT: 0.758867204189301
     263.6529246061,
     263.6560846061,
-    264.1565341061,
-    264.1577621061
   };
   std::sort(result.begin(), result.end());
   for (Size i = 0; i != spec.size(); ++i)
@@ -624,7 +691,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   // isotope cluster for y-ions
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 8)
+  TEST_EQUAL(spec.size(), 5)
 
   result = {
     78.54206,
@@ -636,10 +703,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     // 405: POS: 107.0532957233 INT: 0.89608770608902
     // 405: POS: 185.1038514147 INT: 0.824628114700317
     // 405: POS: 263.1544071061 INT: 0.758867204189301
-    263.6529246061,
     263.6560846061,
-    264.1565341061,
-    264.1577621061
   };
   std::sort(result.begin(), result.end());
   for (Size i = 0; i != spec.size(); ++i)
@@ -702,25 +766,25 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   params.setValue("add_b_ions", "false");
   t_gen.setParameters(params);
   t_gen.getSpectrum(spec, tmp_aa, 1, 2);
-  TEST_EQUAL(spec.size(), 98)
+  TEST_EQUAL(spec.size(), 50)
 
-  result_losses = { 78.5426, 79.0411, 79.0442, 79.5447};
+  result_losses = { 78.5426, 79.0442, 107.0532, 107.5549};
   for (Size i = 0; i != 4; ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getMZ(), result_losses[i])
   }
-  result_losses = { 0.921514, 0.0102111, 0.0598011, 0.00378741}; // check intensity
+  result_losses = { 0.921514, 0.0598011, 0.896088, 0.0775347}; // check intensity
   for (Size i = 0; i != 4; ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getIntensity(), result_losses[i])
   }
 
   // last entries
-  TEST_REAL_SIMILAR( spec[ spec.size() -5 ].getMZ(), 525.301)
-  TEST_REAL_SIMILAR( spec[ spec.size() -4 ].getMZ(), 526.298)
-  TEST_REAL_SIMILAR( spec[ spec.size() -3 ].getMZ(), 526.304)
-  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 527.305)
-  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 527.308)
+  TEST_REAL_SIMILAR( spec[ spec.size() -5 ].getMZ(), 509.271)
+  TEST_REAL_SIMILAR( spec[ spec.size() -4 ].getMZ(), 509.277)
+  TEST_REAL_SIMILAR( spec[ spec.size() -3 ].getMZ(), 525.301)
+  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 526.298)
+  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 526.304)
 
   // isotope cluster for precursor peaks with losses
   spec.clear(true);
@@ -735,12 +799,12 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   // 3 monoisotopic peaks, 3 second peaks
   double result_precursors[] = {
-    (578.32698+proton_shift)/2, 
-      (579.31100+proton_shift)/2, 
+    (578.32698+proton_shift)/2,
+      (579.31100+proton_shift)/2,
         (596.33755+proton_shift)/2,
 
-    (578.32698+proton_shift)/2+(neutron_shift/2), 
-      (579.31100+proton_shift)/2+(neutron_shift/2), 
+    (578.32698+proton_shift)/2+(neutron_shift/2),
+      (579.31100+proton_shift)/2+(neutron_shift/2),
         (596.33755+proton_shift)/2+(neutron_shift/2)};
 
   std::sort(result_precursors, result_precursors+6);
@@ -757,11 +821,11 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   t_gen.setParameters(params);
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 16)
+  TEST_EQUAL(spec.size(), 12)
 
   TEST_REAL_SIMILAR(spec[0].getMZ(), (578.32698+proton_shift)/2 )
   TEST_REAL_SIMILAR(spec[1].getMZ(), (579.31100+proton_shift)/2 )
-  TEST_REAL_SIMILAR(spec[11].getMZ(), (596.33755+proton_shift)/2 )
+  TEST_REAL_SIMILAR(spec[11].getMZ(), (598.34481333943+proton_shift)/2 )
 }
 END_SECTION
 
@@ -845,6 +909,8 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
 }
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -9,8 +9,17 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS":
     cdef cppclass PeptideIndexing(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
+        # wrap-doc:
+        #   Refreshes the protein references for all peptide hits in a vector of PeptideIdentifications and adds target/decoy information
+        #   -----
+        #   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", 
+        #   depending on whether the protein accession contains the decoy pattern (parameter `decoy_string`) as a suffix or prefix, respectively (see parameter `prefix`).
+        #   For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins,
+        #   only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
+        #   (For FDR calculations, "target+decoy" peptide hits count as target hits.)
+
         PeptideIndexing() nogil except +
-        PeptideIndexing(PeptideIndexing) nogil except + #wrap-ignore
+        PeptideIndexing(PeptideIndexing &) nogil except + # compiler
 
         PeptideIndexing_ExitCodes run(libcpp_vector[ FASTAEntry ] & proteins,
                                       libcpp_vector[ ProteinIdentification ] & prot_ids,

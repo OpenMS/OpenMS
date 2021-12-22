@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ namespace OpenMS
 
         return editor;
       }
-      else if (type_ == ListEditor::STRING && restrictions_ != "")
+      else if (type_ == ListEditor::STRING && !restrictions_.empty())
       {
         QComboBox * editor = new QComboBox(parent);
         QStringList list;
@@ -168,67 +168,69 @@ namespace OpenMS
           bool restrictions_met = true;
           switch (type_)
           {
-          //check if valid integer
-          case ListEditor::INT:
-          {
-            bool ok;
-            new_value.toString().toLong(&ok);
-            if (!ok)
+            //check if valid integer
+            case ListEditor::INT:
             {
-              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
-              new_value = present_value;
-              if (new_value == "")
-                new_value = 0;
-            }
+              bool ok;
+              new_value.toString().toLong(&ok);
+              if (!ok)
+              {
+                QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+                new_value = present_value;
+                if (new_value == "")
+                  new_value = 0;
+              }
 
-            //restrictions
-            vector<String> parts;
-            if (restrictions_.split(' ', parts))
-            {
-              if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+              //restrictions
+              vector<String> parts;
+              if (restrictions_.split(' ', parts))
               {
-                restrictions_met = false;
-              }
-              if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
-              {
-                restrictions_met = false;
+                if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
+                {
+                  restrictions_met = false;
+                }
+                if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
+                {
+                  restrictions_met = false;
+                }
               }
             }
-          }
-          break;
+            break;
 
-          case ListEditor::FLOAT:               //check if valid float
-          {
-            bool ok;
-            new_value.toString().toDouble(&ok);
-            if (!ok)
+            case ListEditor::FLOAT:               //check if valid float
             {
-              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
-              new_value = present_value;
-              if (new_value == "")
-                new_value = 0;
-            }
+              bool ok;
+              new_value.toString().toDouble(&ok);
+              if (!ok)
+              {
+                QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+                new_value = present_value;
+                if (new_value == "")
+                {
+                  new_value = 0;
+                }
+              }
 
-            //restrictions
-            vector<String> parts;
-            if (restrictions_.split(' ', parts))
-            {
-              if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+              //restrictions
+              vector<String> parts;
+              if (restrictions_.split(' ', parts))
               {
-                restrictions_met = false;
-              }
-              if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
-              {
-                restrictions_met = false;
+                if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
+                {
+                  restrictions_met = false;
+                }
+                if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
+                {
+                  restrictions_met = false;
+                }
               }
             }
-          }
-          break;
+            break;
 
           default:
-          {
+            break;
           }
-          }
+
           if (!restrictions_met)
           {
             QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
@@ -285,7 +287,7 @@ namespace OpenMS
       for (Int i = 0; i < count(); ++i)
       {
         stringit = item(i)->text();
-        if (stringit != "")
+        if (!stringit.empty())
         {
           stringit.trim();
         }

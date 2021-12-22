@@ -11,17 +11,24 @@ function cdashify()
 export SOURCE_DIRECTORY=`pwd`
 mkdir _build
 
+# additional variables
+export CMAKE_GENERATOR="Unix Makefiles"
+export CONTRIB_BUILD_DIRECTORY="$SOURCE_DIRECTORY/contrib"
+export OPENMS_CONTRIB_LIBS="$SOURCE_DIRECTORY/contrib"
+export USE_STATIC_BOOST="Off"
+
 # assemble a proper build name
-_build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})
+_build_name=""
 
 # extend with specific information
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_PULL_REQUEST})
-elif [ "${TRAVIS_COMMIT_RANGE}" != "" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT_RANGE})
+  _build_name="pr"$(cdashify ${TRAVIS_PULL_REQUEST})
 else
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT})
+  _build_name=$(cdashify ${TRAVIS_BRANCH})
 fi
+
+# append OS
+_build_name=${_build_name}"-Ubuntu"
 
 # append compiler info
 _build_name=${_build_name}"-"${CXX}
@@ -85,7 +92,7 @@ export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries
 export OS_PREFIX_PATH=/usr
-timeout 60m ctest -V -S tools/travis/cibuild.cmake
+timeout 60m ctest --output-on-failure -V -S tools/travis/cibuild.cmake
 
 if [ $? -ne 0 ]; then
     echo "Killed build prematurely to store whatever was already built in the cache. Please restart the travis job."

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,17 +123,19 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXL.cli
+  @verbinclude TOPP_OpenPepXL.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXL.html
+  @htmlinclude TOPP_OpenPepXL.html
 */
+
+/// @cond TOPPCLASSES
 
 class TOPPOpenPepXL :
   public TOPPBase
 {
 public:
   TOPPOpenPepXL() :
-    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
+    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", true)
   {
   }
 
@@ -229,9 +231,9 @@ protected:
     PeakMap spectra;
 
     OpenPepXLAlgorithm search_algorithm;
-    Param this_param = getParam_().copy("", true);
+    Param this_param = getParam_();
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 
@@ -261,16 +263,16 @@ protected:
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
-    if (out_idXML.size() > 0)
+    if (!out_idXML.empty())
     {
       IdXMLFile().store(out_idXML, protein_ids, peptide_ids);
     }
-    if (out_mzIdentML.size() > 0)
+    if (!out_mzIdentML.empty())
     {
       MzIdentMLFile().store(out_mzIdentML, protein_ids, peptide_ids);
     }
 
-    if (out_xquest.size() > 0 || out_xquest_specxml.size() > 0)
+    if (!out_xquest.empty() || !out_xquest_specxml.empty())
     {
       vector<String> input_split_dir;
       vector<String> input_split;
@@ -278,11 +280,11 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
-      if (out_xquest.size() > 0)
+      if (!out_xquest.empty())
       {
         XQuestResultXMLFile().store(out_xquest, protein_ids, peptide_ids);
       }
-      if (out_xquest_specxml.size() > 0)
+      if (!out_xquest_specxml.empty())
       {
         XQuestResultXMLFile::writeXQuestXMLSpec(out_xquest_specxml, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
       }
@@ -301,3 +303,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

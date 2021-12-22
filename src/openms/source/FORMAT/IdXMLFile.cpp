@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -127,7 +128,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
-    if (document_id != "")
+    if (!document_id.empty())
     {
       os << " id=\"" << document_id << "\"";
     }
@@ -185,6 +186,10 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
+      if (params[i].enzyme_term_specificity != EnzymaticDigestion::SPEC_UNKNOWN)
+      {
+        os << "\t\t\t\t<UserParam name=\"EnzymeTermSpecificity\" type=\"string\" value=\"" << EnzymaticDigestion::NamesOfSpecificity[params[i].enzyme_term_specificity] << "\" />\n";
+      }
 
       os << "\t</SearchParameters>\n";
     }
@@ -357,7 +362,21 @@ namespace OpenMS
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
             {
-              protein_accessions.push_back("PH_" + String(accession_to_id[protein_accession]));
+              const auto acc = accession_to_id.find(protein_accession);
+              if (acc != accession_to_id.end())
+              {
+                protein_accessions.emplace_back("PH_" + String(acc->second));
+              }
+              else
+              {
+                throw Exception::ElementNotFound(
+                    __FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "No accession " + protein_accession + " found in run '" + protein_ids[i].getIdentifier() +
+                    "' for PSM " + p_hit.getSequence().toString() + "_" + String(p_hit.getCharge()) +
+                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.");
+              }
             }
           }
 
@@ -452,8 +471,10 @@ namespace OpenMS
       prot_id_in_run_ = false;
 
       optionalAttributeAsString_(file_version, attributes, "version");
-      if (file_version == "")
+      if (file_version.empty())
+      {
         file_version = "1.0";  //default version is 1.0
+      }
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -540,10 +561,10 @@ namespace OpenMS
       prot_id_.setSearchParameters(parameters_[ref]);
 
       //date
-      prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
+      prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
 
       // set identifier (with UID to make downstream merging of prot_ids possible)
-      // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+      // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
       prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId()));
     }
     //PROTEINS
@@ -842,6 +863,14 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
+      if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
+      {
+        String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        if (spec != "unknown")
+        {
+          param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+        }
+      }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
     }
@@ -868,10 +897,10 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      if (prot_ids_->size() == 0)
+      if (prot_ids_->empty())
       {
         // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
-        prot_ids_->push_back(prot_id_);
+        prot_ids_->emplace_back(std::move(prot_id_));
       }
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
@@ -885,9 +914,9 @@ namespace OpenMS
     //PEPTIDES
     else if (tag == "PeptideIdentification")
     {
-      pep_ids_->push_back(pep_id_);
+      pep_ids_->emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
-      last_meta_  = nullptr;
+      last_meta_ = nullptr;
     }
     else if (tag == "PeptideHit")
     {
@@ -921,7 +950,9 @@ namespace OpenMS
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
         if (acc_it != groups[g].accessions.begin())
+        {
           accessions += ",";
+        }
         const auto pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
@@ -971,13 +1002,13 @@ namespace OpenMS
     bool has_aa_after_information(false);
     String aa_string;
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAABefore() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_before_information = true;
       }
-      if (it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAAAfter() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_after_information = true;
       }
@@ -1010,13 +1041,13 @@ namespace OpenMS
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getStart() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_start_information = true;
       }
-      if (it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_end_information = true;
       }
@@ -1054,7 +1085,7 @@ namespace OpenMS
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
     if (!val.empty())
     {
-      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << R"( type="string" name="fragment_annotation" value=")" << writeXMLEscape(val) << "\"/>" << "\n";
     }
   }
 

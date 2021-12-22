@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,8 +80,7 @@ public:
     //@}
 
     /// Compare by size(), the number of consensus elements
-    struct SizeLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct SizeLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
@@ -106,8 +105,7 @@ public:
     };
 
     /// Compare by the sets of consensus elements (lexicographically)
-    struct MapsLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct MapsLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
@@ -275,7 +273,7 @@ public:
       @brief Computes the uncharged parent RT & mass, assuming the handles are charge variants.
 
       The position of the feature handles (decharged) is averaged (using intensity as weights if
-      @param intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
+      @p intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
       Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this
       will be used as adduct mass instead of weight(H+) * charge.
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ using namespace std;
   Mass traces alone would allow for further analysis such as metabolite ID or
   statistical evaluation. However, in general, monoisotopic mass traces are
   accompanied by satellite C13 peaks and thus may render the analysis more
-  difficult. @ref FeatureFinderMetabo fulfills a further data reduction step by
+  difficult. FeatureFinderMetabo fulfills a further data reduction step by
   assembling compatible mass traces to metabolite features (that is, all mass
   traces originating from one metabolite). To this end, multiple metabolite
   hypotheses are formulated and scored according to how well differences in RT (optional),
@@ -148,7 +148,7 @@ protected:
 
     Param p_epd;
     p_epd.setValue("enabled", "true", "Enable splitting of isobaric mass traces by chromatographic peak detection. Disable for direct injection.");
-    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.setValidStrings("enabled", {"true","false"});
     p_epd.insert("", ElutionPeakDetection().getDefaults());
     p_epd.remove("chrom_peak_snr");
     p_epd.remove("chrom_fwhm");
@@ -325,14 +325,14 @@ protected:
     // store chromatograms
     if (!out_chrom.empty())
     {
-        if (feat_chromatograms.size() == feat_map.size())
+      if (feat_chromatograms.size() == feat_map.size())
         {
           MSExperiment out_exp;
             for (Size i = 0; i < feat_chromatograms.size(); ++i)
             {
                 for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
                 {
-                    out_exp.addChromatogram(feat_chromatograms[i][j]);
+                  out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
           MzMLFile().store(out_chrom, out_exp);

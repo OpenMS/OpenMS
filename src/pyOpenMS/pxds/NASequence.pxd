@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
         #   instance primarily contains a sequence of ribonucleotides. 
 
         NASequence() nogil except +
-        NASequence(NASequence) nogil except + # wrap-ignore
+        NASequence(NASequence &) nogil except +
 
         bool operator==(const NASequence & rhs) nogil except +
         bool operator!=(const NASequence & rhs) nogil except +
@@ -30,54 +30,40 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
         const Ribonucleotide * operator[](size_t index) nogil except +
 
-        # check if sequence is empty
-        bool empty() nogil except +
+        bool empty() nogil except + # wrap-doc:Check if sequence is empty
 
         void setSequence(const libcpp_vector[ const Ribonucleotide *] & seq) nogil except +
 
-        # returns the peptide as string with modifications embedded in brackets
-        String toString() nogil except +
+        String toString() nogil except + # wrap-doc:Returns the peptide as string with modifications embedded in brackets
 
-        # sets the 5' modification
-        void setFivePrimeMod(const RibonucleotideChainEnd * modification) nogil except +
+        void setFivePrimeMod(const RibonucleotideChainEnd * modification) nogil except + # wrap-doc:Sets the 5' modification
 
-        # returns the name (ID) of the N-terminal modification, or an empty string if none is set
-        const RibonucleotideChainEnd * getFivePrimeMod() nogil except +
+        const RibonucleotideChainEnd * getFivePrimeMod() nogil except + # wrap-doc:Returns the name (ID) of the N-terminal modification, or an empty string if none is set
 
-        # sets the 3' modification
-        void setThreePrimeMod(const RibonucleotideChainEnd * modification) nogil except +
+        void setThreePrimeMod(const RibonucleotideChainEnd * modification) nogil except + # wrap-doc:Sets the 3' modification
 
         const RibonucleotideChainEnd * getThreePrimeMod() nogil except +
 
-        # returns the residue at position index
-        const Ribonucleotide * get(Size index) nogil except +
+        const Ribonucleotide * get(Size index) nogil except + # wrap-doc:Returns the residue at position index
 
-        # set the residue at position index
-        void set(size_t index, const Ribonucleotide * r) nogil except +
+        void set(size_t index, const Ribonucleotide * r) nogil except + # wrap-doc:Sets the residue at position index
 
-        # returns the formula of the peptide
-        EmpiricalFormula getFormula() nogil except + # wrap-doc:convenience function with ResidueType=Full and charge = 0 by default
+        EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the formula of the peptide
         EmpiricalFormula getFormula(NASFragmentType type_, Int charge) nogil except +
 
-        # returns the average weight of the peptide
-        double getAverageWeight() nogil except +
+        double getAverageWeight() nogil except + # wrap-doc:Returns the average weight of the peptide
         double getAverageWeight(NASFragmentType type_, Int charge) nogil except +
 
-        # returns the mono isotopic weight of the peptide
-        double getMonoWeight() nogil except +
+        double getMonoWeight() nogil except + # wrap-doc:Returns the mono isotopic weight of the peptide
         double getMonoWeight(NASFragmentType type_, Int charge) nogil except +
 
-        # returns the number of residues
-        Size size() nogil except +
+        Size size() nogil except + # wrap-doc:Returns the number of residues
 
-        # returns a peptide sequence of the first index residues
-        NASequence getPrefix(Size length) nogil except +
+        NASequence getPrefix(Size length) nogil except + # wrap-doc:Returns a peptide sequence of the first index residues
 
-        # returns a peptide sequence of the last index residues
-        NASequence getSuffix(Size length) nogil except +
+        NASequence getSuffix(Size length) nogil except + # wrap-doc:Returns a peptide sequence of the last index residues
 
-        # returns a peptide sequence of number residues, beginning at position index
-        NASequence getSubsequence(Size start, Size length) nogil except +
+        NASequence getSubsequence(Size start, Size length) nogil except + # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
 
 # COMMENT: wrap static methods

@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
         # wrap-inherits:
         #  DefaultParamHandler
         MRMTransitionGroupPicker() nogil except +
-        MRMTransitionGroupPicker(MRMTransitionGroupPicker) nogil except + #wrap-ignore
+        MRMTransitionGroupPicker(MRMTransitionGroupPicker &) nogil except +
 
         void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, LightTransition] transition_group) nogil except +
         void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition] transition_group) nogil except +

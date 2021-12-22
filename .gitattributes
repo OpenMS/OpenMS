@@ -1,0 +1,11 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Denote all files that are truly binary and should not be modified.
+# Images
+*.png binary
+*.jpg binary
+# XML files with potential byte-counting indices that will lose function
+# if the windows CR byte is added
+*.mzML binary
+*.mzXML binary

@@ -1,8 +1,10 @@
 
 -- General information --
 
-File name: /home/sachsenb/OpenMS/src/tests/topp/FileInfo_10_input.idXML
+File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_10_input.idXML
 File type: idXML
+Search Engine(s):
+  Unknown (version: 0)
 Number of:
   runs:                       1
   protein hits:               0

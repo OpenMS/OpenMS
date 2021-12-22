@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -137,8 +137,7 @@ public:
       return solver_;
     }
 
-    struct IndexLess :
-      std::binary_function<IndexTriple, IndexTriple, bool>
+    struct IndexLess
     {
       inline bool operator()(IndexTriple  const& left,
                              IndexTriple const& right) const
@@ -149,8 +148,7 @@ public:
     };
 
 
-    struct ScanLess :
-      std::binary_function<IndexTriple, IndexTriple, bool>
+    struct ScanLess
     {
       inline bool operator()(IndexTriple  const& left,
                              IndexTriple  const& right) const
@@ -160,8 +158,7 @@ public:
 
     };
 
-    struct VariableIndexLess :
-      std::binary_function<IndexTriple, IndexTriple, bool>
+    struct VariableIndexLess
     {
       inline bool operator()(IndexTriple  const& left,
                              IndexTriple  const& right) const
