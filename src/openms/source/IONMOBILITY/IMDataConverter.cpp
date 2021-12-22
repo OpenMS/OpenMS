@@ -198,7 +198,7 @@ namespace OpenMS
         result.addSpectrum(std::move(in[k]));
       }
     }
-    result.ExperimentalSettings::operator=(in);
+    result.ExperimentalSettings::operator=(std::move(in));
     in.clear(true);
     return result;
   }
