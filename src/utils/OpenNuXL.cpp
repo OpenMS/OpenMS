@@ -450,6 +450,7 @@ protected:
      * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
      */
     feature_set_
+       << "missed_cleavages"
        << "NuXL:mass_error_p"
        << "NuXL:err"
        << "NuXL:total_loss_score"
@@ -1084,11 +1085,116 @@ protected:
 
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
+    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
 
-    // match b-ions
+
+    // find best matching adducts and charge b-ions
+    vector<std::tuple<size_t, size_t, NuXLFragmentAdductDefinition>> matches_z_fa;
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
+      {
+        size_t z_fa(0);
+        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+        {
+          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
+
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+
+          // found peak match
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
+          {
+            z_fa++;
+          }
+        }
+        if (z_fa != 0)
+          matches_z_fa.emplace_back(z_fa, z, fa);
+      } 
+    }
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
+      {
+        size_t z_fa(0);
+        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+        {
+          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
+
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+
+          // found peak match
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
+          {
+            z_fa++;
+          }
+        }
+        if (z_fa != 0)
+          matches_z_fa.emplace_back(z_fa, z, fa);
+      } 
+    }
     for (Size z = 1; z <= max_z; ++z)
     {
      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
+      {
+        size_t z_fa(0);
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
+        {
+          const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
+
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+
+          // found peak match
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
+          {
+            if (!peak_matched[index])
+            {
+              z_fa++;
+            }
+          }
+        }
+        if (z_fa != 0)
+          matches_z_fa.emplace_back(z_fa, z, fa);
+      }  
+    }
+
+    std::sort(matches_z_fa.begin(), matches_z_fa.end(), [](const auto& a, const auto& b)
+        {
+          return (get<0>(a) > get<0>(b));
+        }
+      ); // sorts by first element descending
+    if (matches_z_fa.size() > 3) matches_z_fa.resize(3); // keep top 3 adducts (most peaks matched)
+
+  // match b-ions
+    for (const auto& t : matches_z_fa) // for best 3 adducts
+//    for (Size z = 1; z <= max_z; ++z)
+    {
+     const Size z = get<1>(t);
+     const NuXLFragmentAdductDefinition & fa = get<2>(t);
+//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
      {
        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
 
@@ -1125,12 +1231,13 @@ protected:
 
     // match a-ions
     vector<double> a_ions(b_ions.size(), 0.0);
-    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
 
-    // match a-ions
-    for (Size z = 1; z <= max_z; ++z)
+    for (const auto& t : matches_z_fa) // for best 3 adducts
+//    for (Size z = 1; z <= max_z; ++z)
     {
-      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
+     const Size z = get<1>(t);
+     const NuXLFragmentAdductDefinition & fa = get<2>(t);
+//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
 
@@ -1167,11 +1274,13 @@ protected:
 
  
     // match y-ions
-    for (Size z = 1; z <= max_z; ++z)
+    for (const auto& t : matches_z_fa) // for best 3 adducts
+//    for (Size z = 1; z <= max_z; ++z)
     {
-      for (const NuXLFragmentAdductDefinition  & fa : partial_loss_modification)
+     const Size z = get<1>(t);
+     const NuXLFragmentAdductDefinition & fa = get<2>(t);
+//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
-
         n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
 
         for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
@@ -1382,10 +1491,10 @@ protected:
           {
             score += exp_spectrum[index].getIntensity();      
             peak_matched[index] = true;
-            matches++;
+//            matches++;
           }
         } 
-        ++n_theoretical_XL_peaks;
+//        ++n_theoretical_XL_peaks;
       };
 
     static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight();
@@ -1533,8 +1642,7 @@ static void scoreXLIons_(
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
 
       // count marker ions
-      n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
-      
+//      n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
     }
 
     scoreShiftedLadderIons_(
@@ -3013,6 +3121,13 @@ static void scoreXLIons_(
       ph.setMetaValue(String("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
       // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
       ph.setSequence(fixed_and_variable_modified_peptide);
+
+      ProteaseDigestion pd;
+      const String enzyme = getStringOption_("peptide:enzyme");
+      pd.setEnzyme(enzyme);
+      size_t num_mc = pd.countInternalCleavageSites(aas.toUnmodifiedString());
+      ph.setMetaValue("missed_cleavages", num_mc);
+
       phs.push_back(ph);  // add new hit
     }
 
@@ -3125,6 +3240,36 @@ static void scoreXLIons_(
         }
       }
     }
+/*
+    // one hot encoding of adduct
+    set<string> identified_adducts;
+    for (auto & pid : peptide_ids)
+    {
+      for (auto & ph : pid.getHits())
+      {
+        identified_adducts.insert(ph.getMetaValue("NuXL:NA"));
+      }
+    } 
+
+    for (auto& s : identified_adducts)
+    {
+      feature_set_ << String("NuXL:MS1Adduct_") + s;
+    }
+
+    for (auto & pid : peptide_ids)
+    {
+      for (auto & ph : pid.getHits())
+      {
+        string adduct = ph.getMetaValue("NuXL:NA");
+        for (auto& s : identified_adducts)
+        {
+          size_t one_hot = (adduct == s) ? 1 : 0;
+          ph.setMetaValue(String("NuXL:MS1Adduct_") + s, one_hot);
+        }
+      }
+    } 
+*/
+
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
@@ -3901,6 +4046,7 @@ static void scoreXLIons_(
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
     bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
     bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
+
     bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
@@ -3966,17 +4112,19 @@ static void scoreXLIons_(
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
         if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
         {
-          IdXMLFile().store(out_idxml, prot_ids, pep_ids);
+          String perc_in = out_idxml;
+          perc_in.substitute(".idXML", "_sse_perc_in.idXML");
+          IdXMLFile().store(perc_in, prot_ids, pep_ids);
 
           // run percolator on idXML
           String perc_out = out_idxml;
-          perc_out.substitute(".idXML", "_sse_perc.idXML");
+          perc_out.substitute(".idXML", "_sse_perc_out.idXML");
            
           String weights_out = out_idxml;
-          weights_out.substitute(".idXML", "_sse.weights");
+          weights_out.substitute(".idXML", "_sse_perc.weights");
 
           QStringList process_params;
-          process_params << "-in" << out_idxml.toQString()
+          process_params << "-in" << perc_in.toQString()
                        << "-out" << perc_out.toQString()
                        << "-percolator_executable" << percolator_executable.toQString()
                        << "-train_best_positive" 
@@ -4453,7 +4601,7 @@ static void scoreXLIons_(
       progresslogger.startProgress(0, 1, "Generating decoys...");
       ProteaseDigestion digestor;
       const String enzyme = getStringOption_("peptide:enzyme");
-      digestor.setEnzyme(getStringOption_("peptide:enzyme"));
+      digestor.setEnzyme(enzyme);
       digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
 
       // append decoy proteins
@@ -5320,7 +5468,6 @@ static void scoreXLIons_(
   }
 */
 
-
 /* 
   if (generate_decoys) 
   {
@@ -5415,6 +5562,7 @@ static void scoreXLIons_(
     }
   }
   */  
+
 
   if (generate_decoys) 
   {
@@ -5640,11 +5788,14 @@ static void scoreXLIons_(
        << "nucleotide_mass_tags"
        << "n_theoretical_peaks";
 */
-      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features, negative_weights_features); // TODO: seems to work ... scales weights but no improvement
+
+
+//      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features, negative_weights_features); // TODO: seems to work ... scales weights but no improvement
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
-      NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features
+//      NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features
 
       // generate filtered results
 #ifdef FILTER_RANKS
