@@ -124,6 +124,11 @@ namespace OpenMS
     return positions;
   }
 
+  Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
+  {
+    return tokenize_(sequence).size() - 1;
+  }
+
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
                                           int pos,
                                           int length,
