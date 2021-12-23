@@ -95,8 +95,8 @@ namespace OpenMS
 
       /// Add a score (possibly connected to a processing step)
       void addScore(ScoreTypeRef score_type, double score,
-                    const boost::optional<ProcessingStepRef>&
-                    processing_step_opt = boost::none)
+                    const std::optional<ProcessingStepRef>&
+                    processing_step_opt = std::nullopt)
       {
         AppliedProcessingStep applied(processing_step_opt);
         applied.scores[score_type] = score;
@@ -131,7 +131,7 @@ namespace OpenMS
       */
       std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
-        std::tuple<double, boost::optional<ProcessingStepRef>, bool> result =
+        std::tuple<double, std::optional<ProcessingStepRef>, bool> result =
           getScoreAndStep(score_ref);
         return std::make_pair(std::get<0>(result), std::get<2>(result));
       }
@@ -142,7 +142,7 @@ namespace OpenMS
         @return A pair: score (or NaN), success indicator
       */
       std::pair<double, bool> getScore(ScoreTypeRef score_ref,
-                                       boost::optional<ProcessingStepRef>
+                                       std::optional<ProcessingStepRef>
                                        processing_step_opt) const
       {
         auto step_pos = steps_and_scores.get<1>().find(processing_step_opt);
@@ -165,7 +165,7 @@ namespace OpenMS
 
         All processing steps are considered, in "most recent first" order.
       */
-      std::tuple<double, boost::optional<ProcessingStepRef>, bool>
+      std::tuple<double, std::optional<ProcessingStepRef>, bool>
       getScoreAndStep(ScoreTypeRef score_ref) const
       {
         // give priority to scores from later processing steps:
@@ -179,7 +179,7 @@ namespace OpenMS
         }
         // not found:
         return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
-                               boost::none, false);
+                               std::nullopt, false);
       }
 
     protected:

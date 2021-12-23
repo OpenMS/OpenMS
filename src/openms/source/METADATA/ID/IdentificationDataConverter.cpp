@@ -324,7 +324,7 @@ namespace OpenMS
     // "DataQuery" roughly corresponds to "PeptideIdentification",
     // "DataProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
-    map<pair<ID::DataQueryRef, boost::optional<ID::ProcessingStepRef>>,
+    map<pair<ID::DataQueryRef, std::optional<ID::ProcessingStepRef>>,
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
@@ -416,7 +416,7 @@ namespace OpenMS
       }
     }
 
-    set<boost::optional<ID::ProcessingStepRef>> steps;
+    set<std::optional<ID::ProcessingStepRef>> steps;
     for (const auto& psm : psm_data)
     {
       const ID::DataQuery& query = *psm.first.first;
@@ -441,7 +441,7 @@ namespace OpenMS
       steps.insert(psm.first.second);
     }
 
-    map<boost::optional<ID::ProcessingStepRef>,
+    map<std::optional<ID::ProcessingStepRef>,
         pair<vector<ProteinHit>, ID::ScoreTypeRef>> prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
