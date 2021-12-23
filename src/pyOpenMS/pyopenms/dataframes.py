@@ -310,14 +310,38 @@ class MSExperimentDF(MSExperiment):
         The Python module massql allows queries in mass spectrometry data (MS1 and MS2
         data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
         
+        Both dataframes contain the columns:
+        'i': intensity of a peak
+        'i_norm': intensity normalized by the maximun intensity in the spectrum
+        'i_tic_norm': intensity normalized by the sum of intensities (TIC) in the spectrum
+        'mz': mass to charge of a peak
+        'scan': number of the spectrum
+        'rt': retention time of the spectrum
+        'polarity': ion mode of the spectrum as integer value (positive: 1, negative: 2)
+        
+        The MS2 dataframe contains additional columns:
+        'precmz': mass to charge of the precursor ion
+        'ms1scan': number of the corresponding MS1 spectrum
+        'charge': charge of the precursor ion
+
         Returns:
         ms1_df (pandas.DataFrame): peak data of MS1 spectra
         ms2_df (pandas.DataFrame): peak data of MS2 spectra with precursor information
         """
         self.updateRanges()
 
-        def get_polarity(spectrum):
-            polarity = spectrum.getInstrumentSettings().getPolarity()
+        def _get_polarity(spec):
+            '''Returns polarity as an integer value for the massql dataframe.
+            
+            According to massql positive polarity is represented by 1 and negative by 2.
+
+            Parameters:
+            spec (MSSpectrum): the spectrum to extract polarity
+
+            Returns:
+            int: polarity as int value according to massql specification
+            '''
+            polarity = spec.getInstrumentSettings().getPolarity()
             if polarity == IonSource.Polarity.POLNULL:
                 return 0
             elif polarity == IonSource.Polarity.POSITIVE:
@@ -325,38 +349,64 @@ class MSExperimentDF(MSExperiment):
             elif polarity == IonSource.Polarity.NEGATIVE:
                 return 2
 
-        def get_peak_arrays_from_spec(spec, scan_num):
+        def _get_peak_arrays_from_spec(spec, scan_num):
+            '''Extract peak data from a MSSpectrum.
+            
+            Generator yields peak data (intensity, mz, scan number, rt (in min), polarity) for a given MSSpectrum.
+            Placeholder values (-1) are inserted that will be replaced by normalized intensity values
+            in _get_spec_arrays(). If the spectrum MS level is 2 additionally data is provided (precursor mz,
+            scan number of precursor spectrum, precursor charge).
+
+            Parameters:
+            spec (MSSpectrum): the spectrum to extract peak data
+            scan_num (int): the scan number of the given spectrum (0 based index)
+
+            Yields:
+            tuple: peak data as a tuple
+            '''
             if spec.getMSLevel() == 2:
                 ms2_data = (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
             else:
                 ms2_data = ()
-            for i, peak in enumerate(spec):
-                peak_data = (peak.getIntensity(), peak.getMZ(), scan_num+1, spec.getRT()/60, get_polarity(spec))
+            for peak in spec:
+                peak_data = (peak.getIntensity(), -1, -1, peak.getMZ(), scan_num+1, spec.getRT()/60, _get_polarity(spec))
                 yield peak_data + ms2_data
 
-        def get_spec_arr(spec, scan_num):
-            arr = np.asarray([peak_data for peak_data in get_peak_arrays_from_spec(spec, scan_num)], dtype='f')
-            arr = np.insert(arr, 1, arr[:,0]/np.amax(arr[:,0]), axis=1) # i_norm
-            arr = np.insert(arr, 2, arr[:,0]/np.sum(arr[:,0]), axis=1) # tic_i_norm
-            return arr
+        def _get_spec_array(mslevel):
+            '''Get spectrum data as a matrix.
 
-        columns = ['i', 'i_norm', 'i_tic_norm', 'mz', 'scan', 'rt', 'polarity']
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and 
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    ndarr = np.asarray([peak_data for peak_data in _get_peak_arrays_from_spec(spec, scan_num)], dtype='float64')
+                    ndarr[:,1] = ndarr[:,0]/np.amax(ndarr[:,0])# i_norm
+                    ndarr[:,2] = ndarr[:,0]/np.sum(ndarr[:,0]) # tic_i_norm
+                    yield ndarr
+
+        # create DataFrame for MS1 and MS2 with according column names and data types
+        # if there are no spectra with given MS level return an empty DataFrame
+        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
         if 1 in self.getMSLevels():
-            ms1_df = pd.DataFrame(np.concatenate([get_spec_arr(spec, scan_num) for scan_num, spec in enumerate(self) if spec.getMSLevel() == 1], axis=0), columns = columns)
+            ms1_df = pd.DataFrame(np.concatenate(list(_get_spec_array(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms1_df = pd.DataFrame(columns = columns)
-        columns += ['precmz', 'ms1scan', 'charge']
+            ms1_df = pd.DataFrame()
 
+        dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
         if 2 in self.getMSLevels():
-            ms2_df = pd.DataFrame(np.concatenate([get_spec_arr(spec, scan_num) for scan_num, spec in enumerate(self) if spec.getMSLevel() == 2], axis=0), columns = columns)
+            ms2_df = pd.DataFrame(np.concatenate(list(_get_spec_array(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms2_df = pd.DataFrame(columns = columns)
+            ms2_df = pd.DataFrame()
 
-        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'scan': 'int32', 'polarity': 'int32'}
-        ms1_df = ms1_df.astype(dtypes)
-        dtypes = dict(dtypes, **{'ms1scan': 'int32', 'charge': 'int32'})
-        ms2_df = ms2_df.astype(dtypes)
-        
         return ms1_df, ms2_df
 
 MSExperiment = MSExperimentDF
