@@ -377,6 +377,28 @@ public:
       }
     }
 
+    // for fast pyOpenMS access to MS2 peak data in format: [rt, mz, intensity]
+    void getMS2PeakData(
+      std::vector<float>& rt, 
+      std::vector<float>& mz, 
+      std::vector<float>& intensity) const
+    {
+      for (const auto& s : spectra_)
+      {
+        if (s.getMSLevel() == 2)
+        {
+          rt.reserve(rt.size() + s.size());
+          rt.insert(rt.end(), s.size(), s.getRT());
+          mz.reserve(mz.size() + s.size());
+          intensity.reserve(intensity.size() + s.size());
+          for (const auto& p : s)
+          {
+            mz.insert(mz.end(),p.getMZ());
+            intensity.insert(intensity.end(),p.getIntensity());
+          }
+        }
+      }
+    }
 
     /**
       @brief Fast search for spectrum range begin
