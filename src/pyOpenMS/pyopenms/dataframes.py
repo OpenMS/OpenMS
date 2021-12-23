@@ -349,30 +349,7 @@ class MSExperimentDF(MSExperiment):
             elif polarity == IonSource.Polarity.NEGATIVE:
                 return 2
 
-        def _get_peak_arrays_from_spec(spec, scan_num):
-            '''Extract peak data from a MSSpectrum.
-            
-            Generator yields peak data (intensity, mz, scan number, rt (in min), polarity) for a given MSSpectrum.
-            Placeholder values (-1) are inserted that will be replaced by normalized intensity values
-            in _get_spec_arrays(). If the spectrum MS level is 2 additionally data is provided (precursor mz,
-            scan number of precursor spectrum, precursor charge).
-
-            Parameters:
-            spec (MSSpectrum): the spectrum to extract peak data
-            scan_num (int): the scan number of the given spectrum (0 based index)
-
-            Yields:
-            tuple: peak data as a tuple
-            '''
-            if spec.getMSLevel() == 2:
-                ms2_data = (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
-            else:
-                ms2_data = ()
-            for peak in spec:
-                peak_data = (peak.getIntensity(), -1, -1, peak.getMZ(), scan_num+1, spec.getRT()/60, _get_polarity(spec))
-                yield peak_data + ms2_data
-
-        def _get_spec_array(mslevel):
+        def _get_spec_arrays(mslevel):
             '''Get spectrum data as a matrix.
 
             Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
@@ -388,24 +365,34 @@ class MSExperimentDF(MSExperiment):
             '''
             for scan_num, spec in enumerate(self):
                 if spec.getMSLevel() == mslevel:
-                    ndarr = np.asarray([peak_data for peak_data in _get_peak_arrays_from_spec(spec, scan_num)], dtype='float64')
-                    ndarr[:,1] = ndarr[:,0]/np.amax(ndarr[:,0])# i_norm
-                    ndarr[:,2] = ndarr[:,0]/np.sum(ndarr[:,0]) # tic_i_norm
+                    mz, inty = spec.get_peaks()
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, inty/np.amax(inty), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    cols = 7
+                    if mslevel == 2:
+                        cols = 10
+                        # data for MS2 only: precmz, ms1scan, charge
+                        data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
                     yield ndarr
 
         # create DataFrame for MS1 and MS2 with according column names and data types
-        # if there are no spectra with given MS level return an empty DataFrame
+        # if there are no spectra of given MS level return an empty DataFrame
         dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
         if 1 in self.getMSLevels():
-            ms1_df = pd.DataFrame(np.concatenate(list(_get_spec_array(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
+            ms1_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms1_df = pd.DataFrame()
+            ms1_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
         if 2 in self.getMSLevels():
-            ms2_df = pd.DataFrame(np.concatenate(list(_get_spec_array(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
+            ms2_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms2_df = pd.DataFrame()
+            ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         return ms1_df, ms2_df
 
