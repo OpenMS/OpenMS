@@ -232,7 +232,7 @@ namespace OpenMS
    * @param[out] output The output spectrum (will be cleared and will contain all metadata of the input spectrum).
    * @param clear_spectrum Whether the output spectrum should be cleared first (all raw data and data arrays will be deleted)
    **/
-  OPENMS_DLLAPI static void copySpectrumMeta(const MSSpectrum & input, MSSpectrum & output, bool clear_spectrum = true);
+  OPENMS_DLLAPI void copySpectrumMeta(const MSSpectrum & input, MSSpectrum & output, bool clear_spectrum = true);
   
 } // namespace OpenMS
 
