@@ -14,7 +14,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN}}
           exclude_check: ./src/openms/thirdparty
           inconclusive: disable
-          other_options: -i./cmake -i./doc
+          other_options: -i./cmake -i./doc -i./src/tests
                   
       - name: show report    
         run: cat cppcheck_report.txt
