@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -171,13 +172,13 @@ protected:
     std::cout << "strategy " << strategy << std::endl;
     String pt_model_file(getStringOption_("pt_model"));
 
-    if (include == "" && exclude == "")
+    if (include.empty() && exclude.empty())
     {
       writeLog_("Error: No input file given.");
       return MISSING_PARAMETERS;
     }
     // currently we can handle only inclusion OR exclusion, will be possible with the traML output
-    if (include != "" && exclude != "")
+    if (!include.empty() && !exclude.empty())
     {
       writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
@@ -203,7 +204,7 @@ protected:
     //    std::cout << "\n\n\n\n" << iel_param.getValue("RT:unit") << "\n\n";
 
 
-    if (include != "")
+    if (!include.empty())
     {
       FileTypes::Type in_type = fh.getType(include);
 
@@ -371,7 +372,7 @@ protected:
     //-------------------------------------------------------------
     // loading input: exclusion list part
     //-------------------------------------------------------------
-    if (exclude != "")
+    if (!exclude.empty())
     {
       FileTypes::Type ex_type = fh.getType(exclude);
       //        std::vector<IncludeExcludeTarget> excl_targets;

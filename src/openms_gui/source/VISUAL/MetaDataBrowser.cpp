@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -142,7 +142,7 @@ namespace OpenMS
     connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string)));
   }
 
-  bool MetaDataBrowser::isEditable()
+  bool MetaDataBrowser::isEditable() const
   {
     return editable_;
   }
@@ -156,8 +156,9 @@ namespace OpenMS
   {
     QList<QTreeWidgetItem *> list = treeview_->selectedItems();
     if (list.empty())
+    {
       return;
-
+    }
     ws_->setCurrentIndex(list[0]->text(1).toInt());
   }
 
@@ -1035,9 +1036,9 @@ namespace OpenMS
   void MetaDataBrowser::add(Feature & feature)
   {
     //peptide ids
-    for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
+    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
     {
-      add(*it);
+      add(pep);
     }
 
     add(static_cast<MetaInfoInterface &>(feature));
@@ -1048,9 +1049,9 @@ namespace OpenMS
   void MetaDataBrowser::add(ConsensusFeature & feature)
   {
     //peptide ids
-    for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
+    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
     {
-      add(*it);
+      add(pep);
     }
 
     add(static_cast<MetaInfoInterface &>(feature));

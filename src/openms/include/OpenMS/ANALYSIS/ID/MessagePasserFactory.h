@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ namespace OpenMS
     std::map<int, double> chgLLhoods = {{1, 0.7}, {2, 0.9}, {3, 0.7}, {4, 0.5}, {5, 0.5}};
 
     /// to fill the noisy-OR table for a peptide given parent proteins
-    /// TODO precompute for like a hundred parent proteins
+    /// TODO pre-compute for like a hundred parent proteins
     /// TODO introduce special case for alpha or beta = 1. The log formula does not work otherwise.
     inline double notConditionalGivenSum(unsigned long summ) {
       // use log for better precision
@@ -105,7 +105,7 @@ namespace OpenMS
      * @param beta Spurious peptide emission probability
      * @param gamma Protein prior
      * @param p Marginalization norm
-     * @param pepPrior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
+     * @param pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
     MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pep_prior);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ namespace OpenMS
       QVector<TOPPASToolVertex::IOInfo> source_output_files;
       source_tool->getOutputParameters(source_output_files);
       ui_->source_label->setText(source_tool->getName().toQString());
-      if (source_tool->getType() != "")
+      if (!source_tool->getType().empty())
       {
         ui_->source_type_label->setText("(" + source_tool->getType().toQString() + ")");
       }
@@ -172,7 +172,7 @@ namespace OpenMS
       QVector<TOPPASToolVertex::IOInfo> target_input_files;
       target_tool->getInputParameters(target_input_files);
       ui_->target_label->setText(target_tool->getName().toQString());
-      if (target_tool->getType() != "")
+      if (!target_tool->getType().empty())
       {
         ui_->target_type_label->setText("(" + target_tool->getType().toQString() + ")");
       }

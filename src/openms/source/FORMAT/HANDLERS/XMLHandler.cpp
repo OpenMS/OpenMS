@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,15 +39,39 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
+    // Specializations for character types, released by XMLString::release
+    template<> void shared_xerces_ptr<char>::doRelease_(char* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template<> void shared_xerces_ptr<XMLCh>::doRelease_(XMLCh* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    // Specializations for character types, which needs to be
+    // released by XMLString::release
+    template <>
+    void unique_xerces_ptr<char>::doRelease_(char*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template <>
+    void unique_xerces_ptr<XMLCh>::doRelease_(XMLCh*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
 
     XMLHandler::XMLHandler(const String & filename, const String & version) :
       file_(filename),
@@ -84,9 +108,9 @@ namespace OpenMS
       if (mode == LOAD)
       {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
-	// test if file has the wrong extension and is therefore passed to the wrong parser
+	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
-	FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
@@ -170,6 +194,22 @@ namespace OpenMS
       return error_message_;
     }
 
+    SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
+    {
+      OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
+
+      std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+      if (it != cv_terms_[section].end())
+      {
+        return it - cv_terms_[section].begin();
+      }
+      else
+      {
+        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+        return result_on_error;
+      }
+    }
+
     /// handlers which support partial loading, implement this method
     /// @throws Exception::NotImplemented
     XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
@@ -184,7 +224,7 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
     {
       std::set<String> s;
       for (const auto& p : prot_ids)
@@ -193,7 +233,7 @@ namespace OpenMS
         {
           fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
                                         p.getIdentifier() +
-                                        ".\nThe random chance of this error occuring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
+                                        ".\nThe random chance of this error occurring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
         }
       }
     }
@@ -291,6 +331,4 @@ namespace OpenMS
 
     }
 
-  }   // namespace Internal
-
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

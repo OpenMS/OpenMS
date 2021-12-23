@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,6 @@
   - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
-  - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts.
@@ -90,7 +89,6 @@
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
-  - @subpage UTILS_FeatureFinderSuperHirn - Finds features using the SuperHirn algorithm (can handle centroided or profile data, see .ini file).
   - @subpage UTILS_ProteomicsLFQ - A standard Proteomics LFQ pipeline.
   - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
   - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.

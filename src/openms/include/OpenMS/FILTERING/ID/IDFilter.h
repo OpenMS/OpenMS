@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,10 +79,10 @@ namespace OpenMS
 public:
 
     /// Constructor
-    IDFilter();
+    IDFilter() = default;
 
     /// Destructor
-    virtual ~IDFilter();
+    virtual ~IDFilter() = default;
 
     /// Typedefs
     typedef std::map<Int, PeptideHit*> ChargeToPepHitP;
@@ -297,7 +297,7 @@ public:
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
 
-       @note Currently implemented for FastaEntries and Peptide Evidences
+       @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template <class HitType, class Entry>
     struct GetMatchingItems
@@ -628,8 +628,9 @@ public:
 
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param best_hit Contains the best hit if successful
 
-       @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
+       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
 
        @return true if a hit was present, false otherwise
     */
@@ -754,6 +755,10 @@ public:
     static void removeUnreferencedProteins(
       std::vector<ProteinIdentification>& proteins,
       const std::vector<PeptideIdentification>& peptides);
+    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
+    static void removeUnreferencedProteins(
+        ProteinIdentification& proteins,
+        const std::vector<PeptideIdentification>& peptides);
 
     /**
        @brief Removes references to missing proteins
@@ -770,12 +775,24 @@ public:
     /**
        @brief Removes references to missing proteins
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
 
        If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
     */
     static void updateProteinReferences(
         ConsensusMap& cmap,
+        bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+        ConsensusMap& cmap,
+        const ProteinIdentification& ref_run,
         bool remove_peptides_without_reference = false);
 
     /**
@@ -1018,7 +1035,7 @@ public:
 
        Only peptide hits with a low mass deviation (between theoretical peptide mass and precursor mass) are kept.
 
-       @param identification Input/output
+       @param peptides Input/output
        @param mass_error Threshold for the mass deviation
        @param unit_ppm Is @p mass_error given in PPM?
 
@@ -1059,6 +1076,10 @@ public:
     static void removePeptidesWithMatchingModifications(
       std::vector<PeptideIdentification>& peptides,
       const std::set<String>& modifications);
+
+    static void removePeptidesWithMatchingRegEx(
+      std::vector<PeptideIdentification>& peptides,
+      const String& regex);
 
     /// Keeps only peptide hits that have at least one of the given modifications
     static void keepPeptidesWithMatchingModifications(

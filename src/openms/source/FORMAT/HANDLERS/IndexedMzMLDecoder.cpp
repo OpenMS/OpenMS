@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -177,11 +177,11 @@ namespace OpenMS
     // Since we could be anywhere in the XML structure, use regex to find
     // indexListOffset and read its content.
     //-------------------------------------------------------------
-    boost::regex listoffset_rx("<[^>/]*indexListOffset\\s*>\\s*(\\d*)");
+    boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
     boost::cmatch matches;
     boost::regex_search(buffer.get(), matches, listoffset_rx);
     String thismatch(matches[1].first, matches[1].second);
-    if (thismatch.size() > 0)
+    if (!thismatch.empty())
     {
       try
       {

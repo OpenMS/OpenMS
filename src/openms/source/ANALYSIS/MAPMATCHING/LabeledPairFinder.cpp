@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,7 @@ namespace OpenMS
                                               "Note that this works only datasets with a significant amount of pairs! "
                                               "If 'false' the parameters 'rt_pair_dist', 'rt_dev_low' "
                                               "and 'rt_dev_high' define the optimal distance.");
-    defaults_.setValidStrings("rt_estimate", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("rt_estimate", {"true","false"});
     defaults_.setValue("rt_pair_dist", -20.0, "optimal pair distance in RT [sec] from light to heavy feature");
     defaults_.setValue("rt_dev_low", 15.0, "maximum allowed deviation below optimal retention time distance");
     defaults_.setMinFloat("rt_dev_low", 0.0);
@@ -67,8 +67,8 @@ namespace OpenMS
     defaults_.setValue("mz_pair_dists", ListUtils::create<double>("4.0"), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
     defaults_.setValue("mz_dev", 0.05, "maximum allowed deviation from optimal m/z distance\n");
     defaults_.setMinFloat("mz_dev", 0.0);
-    defaults_.setValue("mrm", "false", "this option should be used if the features correspond mrm chromatograms (additionally the precursor is taken into account)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("mrm", ListUtils::create<String>("true,false"));
+    defaults_.setValue("mrm", "false", "this option should be used if the features correspond mrm chromatograms (additionally the precursor is taken into account)", {"advanced"});
+    defaults_.setValidStrings("mrm", {"true","false"});
 
     defaultsToParam_();
   }

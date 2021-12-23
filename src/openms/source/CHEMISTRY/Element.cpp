@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,9 +60,9 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const String & name,
-                   const String & symbol,
-                   UInt atomic_number,
+  Element::Element(const string & name,
+                   const string & symbol,
+                   unsigned int atomic_number,
                    double average_weight,
                    double mono_weight,
                    const IsotopeDistribution & isotopes) :
@@ -79,12 +79,12 @@ namespace OpenMS
   {
   }
 
-  void Element::setAtomicNumber(UInt atomic_number)
+  void Element::setAtomicNumber(unsigned int atomic_number)
   {
     atomic_number_ = atomic_number;
   }
 
-  UInt Element::getAtomicNumber() const
+  unsigned int Element::getAtomicNumber() const
   {
     return atomic_number_;
   }
@@ -119,22 +119,22 @@ namespace OpenMS
     return isotopes_;
   }
 
-  void Element::setName(const String & name)
+  void Element::setName(const string & name)
   {
     name_ = name;
   }
 
-  const String & Element::getName() const
+  const string & Element::getName() const
   {
     return name_;
   }
 
-  void Element::setSymbol(const String & symbol)
+  void Element::setSymbol(const string & symbol)
   {
     symbol_ = symbol;
   }
 
-  const String & Element::getSymbol() const
+  const string & Element::getSymbol() const
   {
     return symbol_;
   }

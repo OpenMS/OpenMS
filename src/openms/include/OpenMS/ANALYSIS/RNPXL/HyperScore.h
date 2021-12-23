@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <vector>
 
 namespace OpenMS
@@ -61,7 +62,27 @@ struct OPENMS_DLLAPI HyperScore
    */
 //  static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
 
-  static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum);
+  static double compute(double fragment_mass_tolerance, 
+                        bool fragment_mass_tolerance_unit_ppm, 
+                        const PeakSpectrum& exp_spectrum, 
+                        const PeakSpectrum& theo_spectrum);
+
+  /** @brief compute the (ln transformed) X!Tandem HyperScore 
+   *  overload that returns some additional information on the match
+   */
+  struct PSMDetail
+  {
+    size_t matched_b_ions = 0;
+    size_t matched_y_ions = 0;
+    double mean_error = 0.0;
+  };
+
+  static double computeWithDetail(double fragment_mass_tolerance, 
+                        bool fragment_mass_tolerance_unit_ppm, 
+                        const PeakSpectrum& exp_spectrum, 
+                        const PeakSpectrum& theo_spectrum,
+                        PSMDetail& d
+                       );
 
   private:
     /// helper to compute the log factorial
@@ -69,5 +90,3 @@ struct OPENMS_DLLAPI HyperScore
 };
 
 }
-
-

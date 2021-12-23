@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -259,7 +259,7 @@ protected:
     String in_featureXML = getStringOption_("in_featureXML");
     String out = getStringOption_("out");
     String format = getStringOption_("out_type");
-    if (format.trim() == "") // get from filename
+    if (format.trim().empty()) // get from filename
     {
       try
       {
@@ -360,7 +360,7 @@ protected:
 
     MultiGradient gradient;
     String gradient_str = getStringOption_("gradient");
-    if (gradient_str != "")
+    if (!gradient_str.empty())
     {
       gradient.fromString(String("Linear|") + gradient_str);
     }

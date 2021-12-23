@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 
 namespace OpenMS
 {
-  ParameterInformation::ParameterInformation(const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values) :
+  ParameterInformation::ParameterInformation(const String& n, ParameterTypes t, const String& arg, const ParamValue& def, const String& desc, bool req, bool adv, const StringList& tag_values) :
     name(n),
     type(t),
     default_value(def),
@@ -72,8 +72,10 @@ namespace OpenMS
 
   ParameterInformation& ParameterInformation::operator=(const ParameterInformation& rhs)
   {
-    if (&rhs == this) return *this;
-
+    if (&rhs == this)
+    {
+      return *this;
+    }
     name = rhs.name;
     type = rhs.type;
     default_value = rhs.default_value;

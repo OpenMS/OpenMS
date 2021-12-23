@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,7 +270,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
 void MapAlignmentAlgorithmKD::updateMembers_()
 {
-  if (param_ == Param()) return;
+  if (param_.empty()) return;
 
   rt_tol_secs_ = (double)(param_.getValue("warp:rt_tol"));
   mz_tol_ = (double)(param_.getValue("warp:mz_tol"));

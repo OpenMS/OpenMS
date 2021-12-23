@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
-#include <boost/math/special_functions/gamma.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <cmath>
 #include <utility>
 
@@ -51,6 +53,32 @@ namespace OpenMS
   */
   namespace Math
   {
+
+    /**
+      @brief Given an interval/range and a new value, extend the range to include the new value if needed
+
+      @param min The current minimum of the range
+      @param max The current maximum of the range
+      @param value The new value which may extend the range
+      @return true if the range was modified
+    */
+    template<typename T>
+    bool extendRange(T& min, T& max, const T& value)
+    {
+      if (value < min)
+      {
+        min = value;
+        return true;
+      }
+      if (value > max)
+      {
+        max = value;
+        return true;
+      }
+      return false;
+    }
+
+
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow
 
@@ -312,18 +340,56 @@ namespace OpenMS
     }
     
     /**
-       @brief Return the ln(x!) of a value
-       
-       This functions comes handy when there are large factorials in a ratio formula.
-       
-       @param x an integer value
-       @return natural logarithm of factorial x
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @p x
     */
-    inline double factLn(UInt x)
+    template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
-      return lgamma(double(x+1));
+      if (x.empty()) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                       "Quantile requested from empty container.");
+      if (q < 0.0) q = 0.;
+      if (q > 1.0) q = 1.;
+
+      const auto n  = x.size();
+      const auto id = std::max(0., n * q - 1); // -1 for c++ index starting at 0
+      const auto lo = floor(id);
+      const auto hi = ceil(id);
+      const auto qs = x[lo];
+      const auto h  = (id - lo);
+
+      return (1.0 - h) * qs + h * x[hi];
     }
 
+    // portable random shuffle
+    class OPENMS_DLLAPI RandomShuffler
+    {
+    public:
+      explicit RandomShuffler(int seed):
+      rng_(boost::mt19937_64(seed))
+      {}
+
+      explicit RandomShuffler(const boost::mt19937_64& mt_rng):
+          rng_(mt_rng)
+      {}
+
+      RandomShuffler() = default;
+      ~RandomShuffler() = default;
+
+      boost::mt19937_64 rng_;
+      template <class RandomAccessIterator>
+      void portable_random_shuffle (RandomAccessIterator first, RandomAccessIterator last)
+      {
+        for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
+        {
+          boost::uniform_int<decltype(i)> d(0, i);
+          std::swap(first[i], first[d(rng_)]);
+        }
+      }
+
+      void seed(uint64_t val)
+      {
+        rng_.seed(val);
+      }
+    };
   } // namespace Math
 } // namespace OpenMS
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,37 +60,37 @@ namespace OpenMS
     max_subscore_number_(30),
     max_isotope_(3)
   {
-    defaults_.setValue("max_number_aa_per_decomp", 4, "maximal amino acid frequency per decomposition", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_number_aa_per_decomp", 4, "maximal amino acid frequency per decomposition", {"advanced"});
     defaults_.setValue("tryptic_only", "true", "if set to true only tryptic peptides are reported");
     defaults_.setValue("precursor_mass_tolerance", 1.5, "precursor mass tolerance");
     defaults_.setValue("fragment_mass_tolerance", 0.3, "fragment mass tolerance");
-    defaults_.setValue("max_number_pivot", 9, "maximal number of pivot ions to be used", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_subscore_number", 40, "maximal number of solutions of a subsegment that are kept", ListUtils::create<String>("advanced"));
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
-    defaults_.setValue("double_charged_iso_threshold", 0.6, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_number_pivot", 9, "maximal number of pivot ions to be used", {"advanced"});
+    defaults_.setValue("max_subscore_number", 40, "maximal number of solutions of a subsegment that are kept", {"advanced"});
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", {"advanced"});
+    defaults_.setValue("double_charged_iso_threshold", 0.6, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", {"advanced"});
     defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions");
     defaults_.setValue("min_mz", 200.0, "minimal m/z value used to calculate the isotope distributions");
-    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", {"advanced"});
+    defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions", {"advanced"});
+    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", {"advanced"});
     defaults_.setValue("missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
     defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
     defaults_.setValue("estimate_precursor_mz", "true", "If set to true, the precursor charge will be estimated, e.g. from the precursor peaks of the ETD spectrum.\n"
                                                         "The input is believed otherwise.");
-    defaults_.setValidStrings("estimate_precursor_mz", ListUtils::create<String>("true,false"));
-    defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("estimate_precursor_mz", {"true","false"});
+    defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring", {"advanced"});
 
     // set all known modifications as restriction
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-    defaults_.setValidStrings("fixed_modifications", all_mods);
+    defaults_.setValue("fixed_modifications", std::vector<std::string>(), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("fixed_modifications", ListUtils::create<std::string>(all_mods));
 
-    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-    defaults_.setValidStrings("variable_modifications", all_mods);
+    defaults_.setValue("variable_modifications", std::vector<std::string>(), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("variable_modifications", ListUtils::create<std::string>(all_mods));
 
-    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<String>("advanced"));
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", {"advanced"});
 
     defaultsToParam_();
   }
@@ -284,7 +284,7 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
+  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut) const
   {
     set<String> tmp;
     for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
@@ -470,7 +470,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
     double score(0.0);
 
@@ -609,15 +609,15 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence & sequence)
   {
     String seq;
-    for (AASequence::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
+    for (const Residue& res : sequence)
     {
-      if (residue_to_name_.has(&*it))
+      if (residue_to_name_.has(&res))
       {
-        seq += residue_to_name_[&*it];
+        seq += residue_to_name_[&res];
       }
       else
       {
-        seq += it->getOneLetterCode();
+        seq += res.getOneLetterCode();
       }
     }
     return seq;
@@ -626,7 +626,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   void CompNovoIdentificationBase::updateMembers_()
   {
     // init residue mass table
-    String residue_set(param_.getValue("residue_set"));
+    String residue_set(param_.getValue("residue_set").toString());
 
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
     for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
@@ -649,7 +649,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     residue_to_name_.clear();
 
     // now handle the modifications
-    ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
+    ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
     set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
 
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)

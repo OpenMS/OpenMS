@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 
   // add another map
   Param p = i.getParameters();
-  p.setValue("channel_active_4plex", ListUtils::create<String>("114:myReference, 117:blabla"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
+  p.setValue("channel_active_4plex", std::vector<std::string>{"114:myReference"," 117:blabla"}, R"(Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. "114:myref","115:liver".)");
   i.setParameters(p);
   f_maps.push_back(FeatureMap());
   i.setUpHook(f_maps);
@@ -234,9 +234,9 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   Param p;
   p = i.getParameters();
   // no isotope skewing
-  StringList iso = ListUtils::create<String>("114:0/0/100/0,115:0/0/0/0,116:0/0/0/0,117:0/100/0/0");
+  std::vector<std::string> iso = {"114:0/0/100/0","115:0/0/0/0","116:0/0/0/0","117:0/100/0/0"};
   p.setValue("isotope_correction_values_4plex", iso);
-  StringList ch = ListUtils::create<String>("114:c1,115:c2,116:c3,117:c4");
+  std::vector<std::string> ch = {"114:c1","115:c2","116:c3","117:c4"};
   p.setValue("channel_active_4plex", ch);
   p.setValue("iTRAQ", "4plex");
   i.setParameters(p);
@@ -254,16 +254,16 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   exp=exp2;//revert
 
   // with isotope skewing
-  iso = ListUtils::create<String>("113:0/0/100/0,"
-                           "114:0/0/50 /0,"
-                           "115:0/100/0/0,"
-                           "116:0/0/100/0,"
-                           "117:0/0/0/100,"
-                           "118:0/0/100/0,"
-                           "119:0/0/100/0,"
-                           "121:0/100/0/0");
+  iso = {"113:0/0/100/0",
+         "114:0/0/50 /0",
+         "115:0/100/0/0",
+         "116:0/0/100/0",
+         "117:0/0/0/100",
+         "118:0/0/100/0",
+         "119:0/0/100/0",
+         "121:0/100/0/0"};
   p.setValue("isotope_correction_values_8plex", iso);
-  ch = ListUtils::create<String>("113:ch0,114:c1,115:c2,116:c3,117:c4,118:c5,119:c6,121:c7");
+  ch = {"113:ch0","114:c1","115:c2","116:c3","117:c4","118:c5","119:c6","121:c7"};
   p.setValue("channel_active_8plex", ch);
   p.setValue("iTRAQ", "8plex");
   i.setParameters(p);

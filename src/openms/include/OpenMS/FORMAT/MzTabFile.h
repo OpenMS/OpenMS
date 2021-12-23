@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 #include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -75,6 +72,7 @@ namespace OpenMS
           const std::vector<PeptideIdentification>& peptide_identifications,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
+          bool export_all_psms = false,
           const String& title = "ID export from OpenMS");
 
     // stream ConsensusMap to file
@@ -85,7 +83,8 @@ namespace OpenMS
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
-      const bool export_empty_pep_ids = false) const;
+      const bool export_empty_pep_ids = false,
+      const bool export_all_psms = false) const;
 
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);

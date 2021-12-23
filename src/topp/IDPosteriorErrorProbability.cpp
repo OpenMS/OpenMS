@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -159,7 +159,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
-    String outlier_handling = fit_algorithm.getValue("outlier_handling");
+    String outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
 
     //-------------------------------------------------------------
     // reading input
@@ -201,10 +201,13 @@ protected:
     if (all_scores.empty())
     {
       writeLog_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
+      if (!ignore_bad_data)
+      {
+        return INPUT_FILE_EMPTY;
+      }
     }
 
-    String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
+    String out_plot = String(fit_algorithm.getValue("out_plot").toString()).trim();
 
     for (auto & score : all_scores)
     {
@@ -230,7 +233,10 @@ protected:
       if (!return_value) 
       {
         writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-        if (!ignore_bad_data) { return UNEXPECTED_RESULT; }
+        if (!ignore_bad_data)
+        { 
+          return UNEXPECTED_RESULT;
+        }
       }
 
       if (return_value)
@@ -259,7 +265,10 @@ protected:
         if (unable_to_fit_data)
         {
           writeLog_(String("Unable to fit data for search engine: ") + engine);
-          if (!ignore_bad_data) return UNEXPECTED_RESULT;
+          if (!ignore_bad_data)
+          {
+            return UNEXPECTED_RESULT;
+          }
         }
         else if (data_might_not_be_well_fit) 
         {

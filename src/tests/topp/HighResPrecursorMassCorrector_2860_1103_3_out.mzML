@@ -48,7 +48,7 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_4" version="2.0.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="Plot1DCanvas" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -106,7 +106,7 @@
 				<userParam name="parameter: no_progress" type="xsd:string" value="true"/>
 				<userParam name="parameter: test" type="xsd:string" value="false"/>
 				<userParam name="parameter: ini" type="xsd:string" value="C:\Users\sqamar\AppData\Local\Temp\2014-11-30_142807_p1608-07-x64_3068_1\TOPPAS_tmp\peakpick\002_FileFilter\FileFilter.ini"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -130,7 +130,7 @@
 				<userParam name="parameter: consensus:blackorwhitelist:blacklist" type="xsd:string" value="true"/>
 				<userParam name="parameter: consensus:blackorwhitelist:file" type="xsd:string" value=""/>
 				<userParam name="parameter: consensus:blackorwhitelist:maps" type="xsd:string" value="[]"/>
-				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60"/>
+				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60.0"/>
 				<userParam name="parameter: consensus:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
 				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
@@ -145,16 +145,16 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
@@ -167,7 +167,7 @@
 				<userParam name="parameter: no_progress" type="xsd:string" value="true"/>
 				<userParam name="parameter: test" type="xsd:string" value="false"/>
 				<userParam name="parameter: ini" type="xsd:string" value="C:\Users\sqamar\AppData\Local\Temp\2014-11-30_142807_p1608-07-x64_3068_1\TOPPAS_tmp\peakpick\003_PeakPickerHiRes\PeakPickerHiRes.ini"/>
-				<userParam name="parameter: algorithm:signal_to_noise" type="xsd:double" value="0"/>
+				<userParam name="parameter: algorithm:signal_to_noise" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: algorithm:ms1_only" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
@@ -188,7 +188,7 @@
 				<userParam name="parameter: no_progress" type="xsd:string" value="true"/>
 				<userParam name="parameter: test" type="xsd:string" value="false"/>
 				<userParam name="parameter: ini" type="xsd:string" value="C:\Users\sqamar\AppData\Local\Temp\2014-11-30_173043_P2300-29_8904_1\TOPPAS_tmp\ID filter\008_FileFilter\FileFilter.ini"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -212,7 +212,7 @@
 				<userParam name="parameter: consensus:blackorwhitelist:blacklist" type="xsd:string" value="true"/>
 				<userParam name="parameter: consensus:blackorwhitelist:file" type="xsd:string" value=""/>
 				<userParam name="parameter: consensus:blackorwhitelist:maps" type="xsd:string" value="[]"/>
-				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60"/>
+				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60.0"/>
 				<userParam name="parameter: consensus:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
 				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
@@ -230,13 +230,13 @@
 				<userParam name="parameter: id:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -252,11 +252,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="928.9534677" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="68899768" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="2113223400"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524752079646" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16071351089" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="928.953467700000033" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="6.8899768e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="2.1132234e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524752079646021" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.160713510889991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -291,11 +291,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4471511" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="52980052" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="2000630400"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524679048322" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16053614881" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.447151100000042" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.2980052e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="2.0006304e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524679048322014" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.160536148810024" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -330,11 +330,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4473049" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="54253088" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1874094800"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524754607617" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16094704241" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.447304899999949" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.4253088e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.8740948e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524754607617012" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.160947042410044" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -369,11 +369,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4473413" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="49503620" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1673828100"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524770131926" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16102408532" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.447341299999948" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="4.950362e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.6738281e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524770131926005" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161024085319923" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -408,11 +408,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4471677" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="48421740" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1511382700"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524789377299" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16112199239" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.447167700000023" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="4.842174e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.5113827e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524789377298987" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161121992390008" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -447,18 +447,18 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="272.1238263" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="43961.742" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1515157"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="272.123826300000019" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="4.3961742e04" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.515157e06"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="110.07160949707" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="2352.01391601563" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="2352.013916015630002" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + c NSI d Full ms2 1103.51@hcd28.00 [110.00-3395.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2852.83584" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
-						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="0"/>
+						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="0.0"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -483,7 +483,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
-							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="28" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
+							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="28.0" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
 				</precursorList>
@@ -507,11 +507,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4465317" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="51970000" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1491946800"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524823004874" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16112959909" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.446531700000037" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.197e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4919468e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524823004874008" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161129599089918" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -546,11 +546,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4459682" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="51053140" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1450167400"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524718476022" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16109189829" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.445968200000038" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.105314e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4501674e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524718476021974" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161091898289897" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -585,11 +585,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4450924" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="54631924" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1493682900"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52484671706" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16106942812" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.445092400000021" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.4631924e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4936829e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524846717059972" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161069428120072" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -624,11 +624,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4448429" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="52541648" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1448090200"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524749011812" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16113990418" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.444842900000026" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.2541648e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4480902e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524749011811991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16113990417989" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -663,11 +663,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4445465" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="59227792" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1594535400"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524736669138" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16107059415" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.444546500000001" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.9227792e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.5945354e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524736669138008" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161070594150033" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -702,11 +702,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.443366" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="57033284" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1472300200"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52471507144" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16101460719" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.443365999999969" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.7033284e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4723002e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524715071440028" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161014607190054" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -741,11 +741,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4434011" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="62176872" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1556517100"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524820127892" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16103053494" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.44340109999996" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="6.2176872e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.5565171e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524820127891985" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161030534939982" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -780,11 +780,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4445347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="42376524" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1084864000"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524943446136" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16170022459" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.444534699999963" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="4.2376524e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.084864e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524943446135978" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161700224590049" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -819,11 +819,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4432994" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="75926240" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1669102700"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524786672727" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16069194884" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.443299400000001" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="7.592624e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.6691027e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524786672726975" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16069194883994" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -858,11 +858,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.44387" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="59780816" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1278342900"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524716379132" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16096207141" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.443869999999947" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.9780816e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.2783429e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524716379131974" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16096207141004" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -898,10 +898,10 @@
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4436465" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="62979868" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1549485400"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524606476794" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16026006637" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="6.2979868e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.5494854e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52460647679402" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.160260066370029" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -936,11 +936,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4439881" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="60527668" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1452100700"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524741544076" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1607491712" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.443988099999956" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="6.0527668e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4521007e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524741544075994" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.160749171199996" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -975,11 +975,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4447371" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="59972936" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1409315600"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524556784114" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.15992511178" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.444737099999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="5.9972936e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4093156e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524556784113997" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.159925111780012" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -1014,11 +1014,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.4448087" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="60056732" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1458002700"/>
-				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.5247965866" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16108444794" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="925.444808699999953" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="6.0056732e07" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.4580027e09"/>
+				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524796586600019" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.161084447940084" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
@@ -1053,28 +1053,28 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18028">20423</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18044">23305</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18060">26188</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18063">29071</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18079">31990</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18083">35007</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18095">44612</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18111">47563</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18127">50564</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18136">53580</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18139">56547</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18155">59565</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18171">62565</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18181">65533</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18184">68485</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18200">71465</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18211">74335</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18222">77303</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18232">80186</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18235">83090</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18028">20443</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18044">23346</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18060">26250</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18063">29154</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18079">32093</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18083">35130</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18095">44758</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18111">47726</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18127">50747</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18136">53785</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18139">56772</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18155">59811</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18171">62834</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18181">65822</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18184">68794</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18200">71793</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18211">74685</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18222">77665</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18232">80570</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18235">83495</offset>
 	</index>
 </indexList>
-<indexListOffset>86022</indexListOffset>
+<indexListOffset>86450</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

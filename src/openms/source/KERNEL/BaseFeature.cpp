@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,27 +146,63 @@ namespace OpenMS
     peptides_ = peptides;
   }
 
+  void BaseFeature::sortPeptideIdentifications()
+  {
+    std::sort(peptides_.rbegin(),peptides_.rend(),
+              [](PeptideIdentification& p1, PeptideIdentification& p2)
+              {p1.sort();p2.sort();
+              if (p1.empty())
+              {
+                return true;
+              }
+              if (p2.empty())
+              {
+                return false;
+              }
+              if (p1.isHigherScoreBetter())
+              {
+                return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+              }
+              else
+              {
+                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
+              }});
+  }
+
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
-    if (peptides_.size() == 0) return FEATURE_ID_NONE;
-    else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+    if (peptides_.empty())
+    {
+      return FEATURE_ID_NONE;
+    }
+    else if (peptides_.size() == 1 && !peptides_[0].getHits().empty())
+    {
       return FEATURE_ID_SINGLE;
+    }
     else
     {
       std::set<String> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
       {
-        if (peptides_[i].getHits().size() > 0)
+        if (!peptides_[i].getHits().empty())
         {
           PeptideIdentification id_tmp = peptides_[i];
           id_tmp.sort();  // look at best hit only - requires sorting
           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
         }
       }
-      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      if (seqs.size() == 1)
+      {
+        return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      }
       else if (seqs.size() > 1)
+      {
         return FEATURE_ID_MULTIPLE_DIVERGENT;                        // multiple different annotations ... probably bad mapping
-      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+      }
+      else /*if (seqs.size()==0)*/
+      {
+        return FEATURE_ID_NONE;   // very rare case of empty hits
+      }
     }
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
+#include <fstream>
 
 using namespace OpenMS;
 
@@ -123,8 +125,8 @@ END_SECTION
 START_SECTION("NEW_TMP_FILE()")
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
-	TEST::this_test = (tmp_filename != "");
-	TEST_EQUAL(tmp_filename != "", true);
+	TEST::this_test = (!tmp_filename.empty());
+	TEST_EQUAL(!tmp_filename.empty(), true);
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR()")
@@ -842,8 +844,12 @@ END_SECTION
 
 START_SECTION("ABORT_IF")
 	TEST_EQUAL(1, 1)
-	ABORT_IF(true)
-	TEST_EQUAL(1, 0)
+	while (true)
+  {
+    ABORT_IF(true) // will 'break;' internally, but we do not want to leave the test
+	}
+  FAILURE_IS_SUCCESS;			 	
+	
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR : type checking")

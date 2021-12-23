@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -273,13 +273,15 @@ namespace OpenMS
 
     OSWFile::OSWFile(const String& filename)
       : filename_(filename),
-      conn_(filename)
+        conn_(filename, SqliteConnector::SqlOpenMode::READONLY)
     {
       has_SCOREMS2_ = conn_.tableExists("SCORE_MS2");
     }
 
     void OSWFile::readMinimal(OSWData& swath_result)
     {
+      readMeta_(swath_result);
+
       readTransitions_(swath_result);
 
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession from PROTEIN order by prot_id";
@@ -330,6 +332,7 @@ namespace OpenMS
 
     void OSWFile::read(OSWData& swath_result)
     {
+      readMeta_(swath_result);
       readTransitions_(swath_result);
       getFullProteins_(swath_result);      
     }
@@ -497,7 +500,10 @@ namespace OpenMS
           {
             new_transition = Sql::extractInt(stmt, I_TRID);
             new_line.setFeature(stmt);
-            if (check_add_feat()) break; // new feature just started?--> check if new PC started as well.
+            if (check_add_feat())
+            {
+              break; // new feature just started?--> check if new PC started as well.
+            }
             rc = Sql::nextRow(stmt, rc); // next row
           }
           if (rc != Sql::SqlState::SQL_ROW) {
@@ -508,7 +514,10 @@ namespace OpenMS
             return false; // this was the last protein
           }
           new_line.setPC(stmt);
-          if (check_add_pc()) break; // new PC just started?--> check if if new protein started as well.
+          if (check_add_pc())
+          {
+            break; // new PC just started?--> check if if new protein started as well.
+          }
         }
         new_line.setProt(stmt);
         if (check_add_protein())
@@ -540,7 +549,7 @@ namespace OpenMS
       String MS2_select = (has_SCOREMS2_ ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
       String MS2_join = (has_SCOREMS2_ ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
 
-      // assemble the protein-PeptidePrecursor-Feature hierachy
+      // assemble the protein-PeptidePrecursor-Feature hierarchy
       // note: when changing the query, make sure to keep the indices in ColProteinSelect in sync!!!
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, "
                           "       PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,"
@@ -593,6 +602,38 @@ namespace OpenMS
       }
 
       sqlite3_finalize(stmt);
+    }
+
+    void OSWFile::readMeta_(OSWData& data)
+    {
+      data.setSqlSourceFile(filename_);
+      data.setRunID(getRunID());
+    }
+
+    UInt64 OSWFile::getRunID() const
+    {
+      SqliteConnector conn(filename_);
+      Size nr_results = 0;
+
+      std::string select_sql = "SELECT RUN.ID FROM RUN;";
+
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_sql);
+      Sql::SqlState state = Sql::SqlState::SQL_ROW;
+      UInt64 id;
+      while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+      {
+        ++nr_results;
+        id = Sql::extractInt64(stmt, 0);
+      }
+      // free memory
+      sqlite3_finalize(stmt);
+
+      if (nr_results != 1)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
+      }
+      return id;
     }
 
     void OSWFile::readTransitions_(OSWData& swath_result)

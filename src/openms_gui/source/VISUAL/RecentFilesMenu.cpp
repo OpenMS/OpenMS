@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QAction>
@@ -78,6 +79,34 @@ namespace OpenMS
     sync_();
   }
 
+  unsigned RecentFilesMenu::setFromParam(const Param& filenames)
+  {
+    QStringList rfiles;
+    unsigned count{ 0 };
+    for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
+    {
+      QString filename = String(it->value.toString()).toQString();
+      if (File::exists(filename))
+      {
+        rfiles.append(filename);
+        ++count;
+      }
+    }
+    set(rfiles);
+    return count;
+  }
+
+  Param RecentFilesMenu::getAsParam() const
+  {
+    Param p;
+    int i{ 0 };
+    for (const auto& f : recent_files_)
+    {
+      p.setValue(String(i), f.toStdString());
+      ++i;
+    }
+    return p;
+  }
 
   QMenu* RecentFilesMenu::getMenu()
   {
@@ -109,7 +138,10 @@ namespace OpenMS
   void RecentFilesMenu::itemClicked_()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    if (!action) return;
+    if (!action)
+    {
+      return;
+    }
     String filename = String(action->text());
     emit recentFileClicked(filename);
   }

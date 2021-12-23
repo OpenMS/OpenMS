@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,11 @@
 
 #include <string>
 
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -442,6 +445,51 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
   TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
 }
 END_SECTION
+
+START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap)))
+{
+  ConsensusMap cmap;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
+  std::multimap<String, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+
+  auto b = map_of_UIDs.begin();
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=112")
+  TEST_EQUAL(b->second.first, Size(-1))
+  TEST_EQUAL(b->second.second, 4)
+  ++b;
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=113")
+  TEST_EQUAL(b->second.first, 11)
+  TEST_EQUAL(b->second.second, 0)
+  ++b;
+  TEST_EQUAL(b->first,
+             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=118")
+  TEST_EQUAL(b->second.first, 4)
+  TEST_EQUAL(b->second.second, 0)
+
+  FeatureMap fmap;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap);
+  ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
+  const map<String, StringList>& identifier_to_msrunpath = mp_c.identifier_to_msrunpath;
+
+
+  String uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], identifier_to_msrunpath);
+  String uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], identifier_to_msrunpath);
+  String uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], identifier_to_msrunpath);
+
+  TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=219")
+  TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzML|spectrum=33")
+  TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzML|spectrum=133")
+}
+END_SECTION
+
+START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_id,const std::map<String, StringList>& fidentifier_to_msrunpath)))
+{
+      NOT_TESTABLE //Tested above
+}
+END_SECTION
+
 
 /*
 START_SECTION(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)

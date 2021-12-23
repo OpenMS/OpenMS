@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,9 @@ namespace OpenMS
       os << *cit;
       ++cit;
       if (cit == rhs.end())
+      {
         break;
+      }
       os << separator;
     }
     os << suffix;
@@ -107,8 +109,9 @@ namespace OpenMS
     // if no p_values were computed take all peptides
     bool no_pvalues = pvalues.empty();
     if (no_pvalues)
+    {
       pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
-
+    }
     // generally used variables
     String
       line,
@@ -127,9 +130,9 @@ namespace OpenMS
     vector<ProteinHit> protein_hits = protein_identification.getHits();
 
     // and insert them Into the map
-    for (vector<ProteinHit>::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i)
+    for (const ProteinHit& phit_i : protein_hits)
     {
-      ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
+      ac_position_map.insert(make_pair(phit_i.getAccession(), ac_position_map.size()));
     }
 
     String accession, accession_type, score_type;
@@ -227,12 +230,18 @@ namespace OpenMS
       ++line_number;
       // if less peptides were found than may be displayed, break
       if (!getline(result_file, line))
+      {
         break;
+      }
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       if (line.empty())
+      {
         continue; // skip empty lines
+      }
       ++viewed_peptides;
 
       getColumns(line, substrings, number_of_columns, reference_column);
@@ -334,7 +343,7 @@ namespace OpenMS
         getACAndACType(substrings[reference_column], accession, accession_type);
         protein_hit.setAccession(accession);
 //              protein_hit.setRank(ac_position_map.size());
-        /// @todo score einfach zusammenrechnen? (Martin)
+        /// @todo simply sum up score? (Martin)
 
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
         {
@@ -370,7 +379,7 @@ namespace OpenMS
             protein_hit.setAccession(accession);
             // protein_hit.setRank(ac_position_map.size());
             // @todo simply add up score
-            // score einfach zusammenrechnen? (Martin)
+            // Simply sum up score? (Martin)
             // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
@@ -403,10 +412,13 @@ namespace OpenMS
     result_file.clear();
 
     if (no_pvalues)
+    {
       pvalues.clear();
+    }
     if (!peptide_identification.getHits().empty())
+    {
       peptide_identifications.push_back(peptide_identification);
-
+    }
     protein_identification.setHits(protein_hits);
     protein_identification.setDateTime(datetime);
 
@@ -424,8 +436,9 @@ namespace OpenMS
     String buffer;
 
     if (line.empty())
+    {
       return false;
-
+    }
     line.split(' ', substrings);
 
     // remove any empty strings
@@ -459,20 +472,28 @@ namespace OpenMS
         {
           bool is_digit(true);
           for (Size i = 1; i < (s_i + 1)->length(); ++i)
+          {
             is_digit &= (bool)isdigit((*(s_i + 1))[i]);
+          }
           if (is_digit && ((s_i + 1)->length() - 1))
           {
             s_i->append(*(s_i + 1));
             substrings.erase(s_i + 1);
           }
           else
+          {
             ++s_i;
+          }
         }
         else
+        {
           ++s_i;
+        }
       }
       else
+      {
         ++s_i;
+      }
     }
 
     // if there are more columns than should be, there were spaces in the protein column
@@ -515,8 +536,9 @@ namespace OpenMS
 
       // empty and comment lines are skipped
       if (line.empty() || line.hasPrefix(";"))
+      {
         continue;
-
+      }
       // the sequence belonging to the predecessing protein ('>') is stored, so
       // when a new protein ('>') is found, save the sequence of the old
       // protein
@@ -556,9 +578,13 @@ namespace OpenMS
     accession_type.clear();
     // if it's a FASTA line
     if (line.hasPrefix(">"))
+    {
       line.erase(0, 1);
+    }
     if (!line.empty() && (line[line.length() - 1] < 33))
+    {
       line.resize(line.length() - 1);
+    }
     line.trim();
 
     // if it's a swissprot accession
@@ -579,29 +605,45 @@ namespace OpenMS
         accession_type = line.substr(snd, third - 1 - snd);
       }
       if (accession_type == "gb")
+      {
         accession_type = "GenBank";
+      }
       else if (accession_type == "emb")
+      {
         accession_type = "EMBL";
+      }
       else if (accession_type == "dbj")
+      {
         accession_type = "DDBJ";
+      }
       else if (accession_type == "ref")
+      {
         accession_type = "NCBI";
+      }
       else if ((accession_type == "sp") || (accession_type == "tr"))
+      {
         accession_type = "SwissProt";
+      }
       else if (accession_type == "gnl")
       {
         accession_type = accession;
         snd = line.find('|', third);
         third = line.find('|', ++snd);
         if (third != String::npos)
+        {
           accession = line.substr(snd, third - snd);
+        }
         else
         {
           third = line.find(' ', snd);
           if (third != String::npos)
+          {
             accession = line.substr(snd, third - snd);
+          }
           else
+          {
             accession = line.substr(snd);
+          }
         }
       }
       else
@@ -628,12 +670,20 @@ namespace OpenMS
         {
           accession_type = "gi";
           if (snd != String::npos)
+          {
             accession = line.substr(3, snd - 4);
+          }
           else
           {
             snd = line.find(' ', 3);
-            if (snd != String::npos) accession = line.substr(3, snd - 3);
-            else accession = line.substr(3);
+            if (snd != String::npos)
+            {
+              accession = line.substr(3, snd - 3);
+            }
+            else
+            {
+              accession = line.substr(3);
+            }
           }
         }
       }
@@ -666,9 +716,13 @@ namespace OpenMS
         {
           accession = line.substr(pos1, pos2 - pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
+          {
             accession.clear();
+          }
         }
       }
       if (accession.empty())
@@ -676,20 +730,28 @@ namespace OpenMS
         pos1 = line.find('|');
         accession = line.substr(0, pos1);
         if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+        {
           accession_type = "SwissProt";
+        }
         else
         {
           pos1 = line.find(' ');
           accession = line.substr(0, pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
           {
             accession = line.substr(0, 6);
             if (String(swissprot_prefixes).find(accession[0], 0) != String::npos)
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
       }
@@ -749,7 +811,9 @@ namespace OpenMS
     while (getline(result_file, line))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       line.split(',', substrings);
 
@@ -829,7 +893,9 @@ namespace OpenMS
         // 12:00 = 12:00 PM; 24:00 = 12:00 AM
         Int hour = substrings[0].substr(0, 2).toInt();
         if ((hour == 12) && (substrings[1] == "AM"))
+        {
           substrings[0].replace(0, 2, "00");
+        }
         else if ((hour != 12) && (substrings[1] == "PM"))
         {
           hour += 12;

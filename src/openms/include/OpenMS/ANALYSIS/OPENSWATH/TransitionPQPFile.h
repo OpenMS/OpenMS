@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,6 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
-
-#include <boost/range/algorithm.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -250,17 +246,17 @@ public:
 
     /** @brief Write out a targeted experiment (TraML structure) into a PQP file
      *
-     * @param filename The output file
-     * @param targeted_exp The targeted experiment
+      @param filename The output file
+      @param targeted_exp The targeted experiment
      *
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
-     * @param filename The input file
-     * @param targeted_exp The output targeted experiment
-     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
+      @param filename The input file
+      @param targeted_exp The output targeted experiment
+      @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id = false);

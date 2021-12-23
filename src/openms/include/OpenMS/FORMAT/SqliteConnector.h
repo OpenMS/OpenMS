@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <type_traits> // for is_same
+
 // forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
@@ -53,21 +55,28 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SqliteConnector
   {
-public:
+  public:
+
+    /// how an sqlite db should be opened
+    enum class SqlOpenMode
+    {
+      READONLY,  ///< the DB must exist and is read-only
+      READWRITE, ///< the DB is readable and writable, but must exist when opening it
+      READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
+    };
 
     /// Default constructor
     SqliteConnector() = delete;
 
-    explicit SqliteConnector(const String& filename)
-    {
-      openDatabase(filename);
-    }
+    /// Constructor which opens a connection to @p filename
+    /// @throws Exception::SqlOperationFailed if the file does not exist/cannot be created (depending on @p mode)
+    explicit SqliteConnector(const String& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE);
 
     /// Destructor
     ~SqliteConnector();
 
     /**
-      @brief Returns the raw pointer to the database 
+      @brief Returns the raw pointer to the database
 
       @note The pointer is tied to the lifetime of the SqliteConnector object,
       do not use it after the object has gone out of scope!
@@ -97,7 +106,7 @@ public:
     Size countTableRows(const String& table_name);
 
     /**
-      @brief Checkes whether the given table contains a certain column
+      @brief Checks whether the given table contains a certain column
 
       @p tablename The name of the table (needs to exist)
       @p colname The name of the column to be checked
@@ -124,7 +133,7 @@ public:
     }
 
     /**
-      @brief Executes raw data SQL statements (insert statements) 
+      @brief Executes raw data SQL statements (insert statements)
 
       This is useful for a case where raw data should be inserted into sqlite
       databases, and the raw data needs to be passed separately as it cannot be
@@ -246,7 +255,7 @@ public:
     */
     static void executeBindStatement(sqlite3* db, const String& prepare_statement, const std::vector<String>& data);
 
-protected:
+  protected:
 
     /**
       @brief Opens a new SQLite database
@@ -255,10 +264,10 @@ protected:
 
       @note Call this only once!
     */
-    void openDatabase(const String& filename);
+    void openDatabase_(const String& filename, const SqlOpenMode mode);
 
-protected:
-    sqlite3 *db_ = nullptr;
+  protected:
+    sqlite3* db_ = nullptr;
 
   };
 
@@ -266,6 +275,22 @@ protected:
   {
     namespace SqliteHelper
     {
+      /// Sql only stores signed 64bit ints, so we remove the highest bit, because some/most
+      /// of our sql-insert routines first convert to string, which might yield an uint64 which cannot
+      /// be represented as int64, and sqlite would attempt to store it as double(!), which will loose precision
+      template <typename T>
+      UInt64 clearSignBit(T /*value*/)
+      {
+        static_assert(std::is_same<T, std::false_type>::value, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
+        return 0;
+      };
+      /// only allow UInt64 specialization
+      template <>
+      inline UInt64 clearSignBit(UInt64 value) {
+        return value & ~(1ULL << 63);
+      }
+
+
       enum class SqlState
       {
         SQL_ROW,
@@ -314,7 +339,7 @@ protected:
       bool extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Not implemented");
+          "Not implemented");
       }
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
@@ -330,7 +355,7 @@ protected:
       bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
       /** @defgroup sqlThrowingGetters Functions for getting values from sql-select statements
-          
+
           All these function throw Exception::SqlOperationFailed if the given position is of the wrong type.
        @{
        */
@@ -347,5 +372,3 @@ protected:
 
 
 } // namespace OpenMS
-
-

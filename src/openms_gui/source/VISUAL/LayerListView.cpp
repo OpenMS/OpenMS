@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,12 @@
 #include <OpenMS/VISUAL/LayerListView.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
-#include <OpenMS/VISUAL/Spectrum2DWidget.h>
-#include <OpenMS/VISUAL/Spectrum3DWidget.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/Plot2DWidget.h>
+#include <OpenMS/VISUAL/Plot3DWidget.h>
 
 #include <QtWidgets/QListWidgetItem>
 
@@ -67,27 +67,32 @@ namespace OpenMS
     connect(this, &QListWidget::itemDoubleClicked, this, &LayerListView::itemDoubleClickedAction_);
   }
 
-  void LayerListView::update(SpectrumWidget* active_widget)
+  void LayerListView::update(PlotWidget* active_widget)
   {
     // reset items
     this->clear();
 
     spectrum_widget_ = active_widget;
-    // during program exit, this could be called after SpectrumWidgets are gone
-    if (spectrum_widget_ == nullptr) return;
-
-    SpectrumCanvas* cc = spectrum_widget_->canvas();
-    if (cc == nullptr) return;
+    // during program exit, this could be called after PlotWidgets are gone
+    if (spectrum_widget_ == nullptr)
+    {
+      return;
+    }
+    PlotCanvas* cc = spectrum_widget_->canvas();
+    if (cc == nullptr)
+    {
+      return;
+    }
 
     // determine if this is a 1D view (for text color)
-    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
+    bool is_1d_view = (dynamic_cast<Plot1DCanvas*>(cc) != nullptr);
 
     this->blockSignals(true);
     RAIICleanup cl([&]() { this->blockSignals(false); });
 
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData& layer = cc->getLayer(i);
+      const LayerDataBase& layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
@@ -99,20 +104,20 @@ namespace OpenMS
       if (is_1d_view)
       {
         QPixmap icon(7, 7);
-        icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
+        icon.fill(QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
         item->setIcon(icon);
       }
       else
       {  // 2D/3D map view
         switch (layer.type)
         {
-        case LayerData::DT_PEAK:
+        case LayerDataBase::DT_PEAK:
           item->setIcon(QIcon(":/peaks.png"));
           break;
-        case LayerData::DT_FEATURE:
+        case LayerDataBase::DT_FEATURE:
           item->setIcon(QIcon(":/convexhull.png"));
           break;
-        case LayerData::DT_CONSENSUS:
+        case LayerDataBase::DT_CONSENSUS:
           item->setIcon(QIcon(":/elements.png"));
           break;
         default:
@@ -157,8 +162,10 @@ namespace OpenMS
   void LayerListView::contextMenuEvent(QContextMenuEvent* event)
   {
     QListWidgetItem* item = this->itemAt(event->pos());
-    if (!item) return;
-
+    if (!item)
+    {
+      return;
+    }
     int layer_idx = this->row(item);
     QMenu* context_menu = new QMenu(this);
     
@@ -175,7 +182,7 @@ namespace OpenMS
       emit layerDataChanged();
     });
 
-    auto widget1D = qobject_cast<Spectrum1DWidget*>(spectrum_widget_);
+    auto widget1D = qobject_cast<Plot1DWidget*>(spectrum_widget_);
     if (widget1D != nullptr)
     {
       if (widget1D->canvas()->getLayer(layer_idx).flipped)

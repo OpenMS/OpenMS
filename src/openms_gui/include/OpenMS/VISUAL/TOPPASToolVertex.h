@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QVector>
 
@@ -183,7 +184,7 @@ public:
     /// Creates all necessary directories
     void createDirs();
     /// Opens the folder where the file is contained
-    void openContainingFolder();
+    void openContainingFolder() const;
     /// Opens the files in TOPPView
     void openInTOPPView();
     /// Refreshes the parameters of this tool, returns if their has been a change

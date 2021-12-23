@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <array>
@@ -69,6 +70,8 @@ namespace OpenMS
     /// query all proteins, not just one with a particular ID
     static constexpr Size ALL_PROTEINS = -1;
 
+    /// opens an OSW file for reading.
+    /// @throws Exception::FileNotReadable if @p filename does not exist
     OSWFile(const String& filename);
     OSWFile(const OSWFile& rhs) = default;
     OSWFile& operator=(const OSWFile& rhs) = default;
@@ -127,7 +130,11 @@ namespace OpenMS
     /**
     @brief Updates an OpenSWATH OSW SQLite file with the MS1-, MS2- or transition-level results of Percolator.
     */
-    static void writeFromPercolator(const std::string& in_osw, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
+    static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
+
+    /// extract the RUN::ID from the sqMass file
+    /// @throws Exception::SqlOperationFailed more than on run exists
+    UInt64 getRunID() const;
 
   protected:
     /** populate transitions of @p swath_result
@@ -144,6 +151,9 @@ namespace OpenMS
 
     */
     void getFullProteins_(OSWData& swath_result, Size prot_index = ALL_PROTEINS);
+
+    /// set source file and sqMass run-ID
+    void readMeta_(OSWData& data);
 
   private:
     String filename_;       ///< sql file to open/write to

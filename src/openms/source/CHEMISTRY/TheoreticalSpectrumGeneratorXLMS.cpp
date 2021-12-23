@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,50 +48,50 @@ namespace OpenMS
   {
     // TODO only partly functional (second isotopic peak if max_isotope = 2)
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_isotopes", {"true","false"});
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
     defaults_.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_charges", "true", "Adds the charges to a DataArray of the spectrum");
-    defaults_.setValidStrings("add_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_charges", {"true","false"});
 
     defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValidStrings("add_losses", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_losses", {"true","false"});
 
     defaults_.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_precursor_peaks", {"true","false"});
 
     // TODO not functional yet
     defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
-    defaults_.setValidStrings("add_abundant_immonium_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_abundant_immonium_ions", {"true","false"});
 
     defaults_.setValue("add_k_linked_ions", "true", "Add RES-Linked ions, which are specific to XLMS");
-    defaults_.setValidStrings("add_k_linked_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_k_linked_ions", {"true","false"});
 
     // TODO not functional yet
     defaults_.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    defaults_.setValidStrings("add_first_prefix_ion", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_first_prefix_ion", {"true","false"});
 
     defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("add_y_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_y_ions", {"true","false"});
 
     defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("add_b_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_b_ions", {"true","false"});
 
     defaults_.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("add_a_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_a_ions", {"true","false"});
 
     defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("add_c_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_c_ions", {"true","false"});
 
     defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("add_x_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_x_ions", {"true","false"});
 
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("add_z_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_z_ions", {"true","false"});
 
 
     // intensity options of the ions
@@ -170,7 +170,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -178,7 +178,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -224,7 +224,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -235,7 +235,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }
@@ -365,7 +365,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -373,7 +373,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -429,7 +429,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -440,7 +440,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }
@@ -864,7 +864,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
@@ -872,7 +872,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
@@ -965,7 +965,7 @@ namespace OpenMS
 
     if (add_charges_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (!spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays()[0] = charges;
       }
@@ -976,7 +976,7 @@ namespace OpenMS
     }
     if (add_metainfo_)
     {
-      if (spectrum.getStringDataArrays().size() > 0)
+      if (!spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays()[0] = ion_names;
       }

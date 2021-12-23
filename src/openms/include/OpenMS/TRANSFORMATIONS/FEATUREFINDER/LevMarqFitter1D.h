@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,19 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-#include <unsupported/Eigen/NonLinearOptimization>
 
 #include <algorithm>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    class Matrix;
+    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+}
 
 namespace OpenMS
 {
@@ -69,10 +77,10 @@ public:
 
       virtual ~GenericFunctor() {}
 
-      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
+      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const = 0;
 
       // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) = 0;
+      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const = 0;
 
     protected:
       const int m_inputs, m_values;
@@ -82,7 +90,7 @@ public:
     LevMarqFitter1D() :
       Fitter1D()
     {
-      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", {"advanced"});
     }
 
     /// copy constructor
@@ -120,7 +128,7 @@ protected:
 
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
 

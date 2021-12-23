@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,19 +43,35 @@
 
 namespace OpenMS
 {
-
+  SqliteConnector::SqliteConnector(const String& filename, const SqlOpenMode mode)
+  {
+    openDatabase_(filename, mode);
+  }
   SqliteConnector::~SqliteConnector()
   {
     sqlite3_close(db_);
   }
 
-  void SqliteConnector::openDatabase(const String& filename)
+  void SqliteConnector::openDatabase_(const String& filename, const SqlOpenMode mode)
   {
     // Open database
-    int rc = sqlite3_open(filename.c_str(), &db_);
+    int flags = 0;
+    switch (mode)
+    {
+      case SqlOpenMode::READONLY:
+        flags = SQLITE_OPEN_READONLY;
+        break;
+      case SqlOpenMode::READWRITE:
+        flags = SQLITE_OPEN_READWRITE;
+        break;
+      case SqlOpenMode::READWRITE_OR_CREATE:
+        flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+        break;
+    }
+    int rc = sqlite3_open_v2(filename.c_str(), &db_, flags, nullptr);
     if (rc)
     {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + String(int(mode)));
     }
   }
 
@@ -168,9 +184,7 @@ namespace OpenMS
     sqlite3_finalize(stmt);
   }
 
-  namespace Internal
-  {
-    namespace SqliteHelper
+  namespace Internal::SqliteHelper
     {
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
@@ -326,7 +340,6 @@ namespace OpenMS
       }
 
     }
-  }
 
 }
 

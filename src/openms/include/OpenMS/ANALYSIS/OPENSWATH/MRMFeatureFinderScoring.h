@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,10 +54,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/unordered_map.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -186,7 +182,7 @@ public:
                          const TransformationDescription & trafo,
                          const std::vector<OpenSwath::SwathMap>& swath_maps,
                          FeatureMap& output,
-                         bool ms1only = false);
+                         bool ms1only = false) const;
 
     /** @brief Set the flag for strict mapping
     */
@@ -239,7 +235,7 @@ private:
      * @param transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
-                                         MRMTransitionGroupType& transition_group_detection);
+                                         MRMTransitionGroupType& transition_group_detection) const;
 
     /** @brief Splits combined transition groups into identification transition groups
      *
@@ -252,7 +248,7 @@ private:
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
                                               MRMTransitionGroupType& transition_group_identification,
-                                              MRMTransitionGroupType& transition_group_identification_decoy);
+                                              MRMTransitionGroupType& transition_group_identification_decoy) const;
 
     /** @brief Provides scoring for target and decoy identification against detecting transitions
      *
@@ -276,9 +272,9 @@ private:
                                               const std::vector<std::string> & native_ids_detection,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
-                                              const std::vector<OpenSwath::SwathMap>& swath_maps);
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps) const;
 
-    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge);
+    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
     /// Synchronize members with param class
     void updateMembers_() override;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -388,20 +388,20 @@ y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.5030703
 
 */
 
-  static const double arr1[] =
-  {
-    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
-    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
-  };
-  static const double arr2[] =
+
+
+  /*static const double arr2[] =
   {
     15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
     121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
-  };
-  std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  };*/
+  std::vector<double> data1 {5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+                  8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392};
 
-  std::vector<uint> result = Scoring::computeRank(data1);
+  std::vector<double> data2 {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+                             121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
+
+  auto result = Scoring::computeRank(data1);
 
   TEST_EQUAL (result[0],7);
   TEST_EQUAL (result[1],4);

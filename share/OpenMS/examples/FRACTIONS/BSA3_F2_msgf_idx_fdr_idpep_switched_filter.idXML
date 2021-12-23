@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/home/runner/work/proteomicslfq/proteomicslfq/work/99/6ccc649611e394a7090479a861d298/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2-4" enzyme="trypsin/p" missed_cleavages="1000" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="MS:1001211" value=""/>
+				<UserParam type="string" name="MS:1001256" value=""/>
+				<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
+				<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
+				<UserParam type="string" name="Instrument" value="HighRes"/>
+				<UserParam type="string" name="MaxIsotopeError" value="1"/>
+				<UserParam type="string" name="MaxNumModifications" value="3"/>
+				<UserParam type="string" name="MaxPepLength" value="40"/>
+				<UserParam type="string" name="MinIsotopeError" value="0"/>
+				<UserParam type="string" name="MinPepLength" value="6"/>
+				<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
+				<UserParam type="string" name="Protocol" value="Standard"/>
+				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:in" value="BSA3_F2.mzML"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:out" value="BSA3_F2_msgf.idXML"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:mzid_out" value=""/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:executable" value="MSGFPlus.jar"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:database" value="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:add_decoys" value="false"/>
+				<UserParam type="float" name="MSGFPlusAdapter:1:precursor_mass_tolerance" value="5.0"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:precursor_error_units" value="ppm"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:isotope_error_range" value="0,1"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:fragment_method" value="from_spectrum"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:instrument" value="high_res"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:enzyme" value="Trypsin/P"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:protocol" value="automatic"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:tryptic" value="fully"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:min_precursor_charge" value="2"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:max_precursor_charge" value="4"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:min_peptide_length" value="6"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:max_peptide_length" value="40"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:matches_per_spec" value="1"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:add_features" value="true"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:max_mods" value="3"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:max_missed_cleavages" value="-1"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:tasks" value="0"/>
+				<UserParam type="stringList" name="MSGFPlusAdapter:1:fixed_modifications" value="[Carbamidomethyl (C)]"/>
+				<UserParam type="stringList" name="MSGFPlusAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:legacy_conversion" value="false"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:conf" value=""/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:java_executable" value="java"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:java_memory" value="6144"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:java_permgen" value="0"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:log" value=""/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:threads" value="2"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:force" value="false"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:test" value="false"/>
+				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
+	</SearchParameters>
+	<IdentificationRun date="2020-11-20T14:30:14" search_engine="MS-GF+" search_engine_version="Release (v2020.07.02)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="tr|A9GCS7|A9GCS7_SORC5" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="tr|A9G9A9|A9G9A9_SORC5_rev" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="tr|A9FYD8|A9FYD8_SORC5_rev" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="tr|A9FKB2|A9FKB2_SORC5" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="tr|A9FB47|A9FB47_SORC5_rev" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|O46375|TTHY_BOVIN" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="P02769|ALBU_BOVIN" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/home/runner/work/proteomicslfq/proteomicslfq/work/99/6ccc649611e394a7090479a861d298/BSA3_F2.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="435.910461425781307" RT="2251.568400000000111" spectrum_reference="spectrum=3007" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="34.0"/>
+				<UserParam type="float" name="MS:1002050" value="39.0"/>
+				<UserParam type="float" name="MS:1002052" value="4.583931400000004e-13"/>
+				<UserParam type="float" name="MS:1002053" value="3.4113082e-06"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="1569.7765"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="435.91021728515625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="4.583931400000004e-13"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.075998257922052"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="653.36029052734375" RT="2272.67430000000013" spectrum_reference="spectrum=3040" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="21.0"/>
+				<UserParam type="float" name="MS:1002050" value="29.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.1644296e-12"/>
+				<UserParam type="float" name="MS:1002053" value="8.665547999999998e-06"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0019175701"/>
+				<UserParam type="string" name="MS2IonCurrent" value="19474.197"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0019175701"/>
+				<UserParam type="float" name="calcMZ" value="653.3616943359375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.1644296e-12"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.105367390594808"/>
+				<UserParam type="string" name="MeanErrorAll" value="1.589132"/>
+				<UserParam type="string" name="MeanErrorTop7" value="1.589132"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="1.589132"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="1.589132"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="1"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="518.88885498046875" RT="2194.639400000000023" spectrum_reference="spectrum=2949" >
+			<PeptideHit score="0.0" sequence="DDPHAC(Carbamidomethyl)YSTVFDK" charge="3" aa_before="K" aa_after="I" start="386" end="398" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="6.0"/>
+				<UserParam type="float" name="MS:1002050" value="15.0"/>
+				<UserParam type="float" name="MS:1002052" value="5.235155e-12"/>
+				<UserParam type="float" name="MS:1002053" value="3.90672e-05"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.04825794"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.04825794"/>
+				<UserParam type="string" name="MS2IonCurrent" value="17358.037"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="518.88916015625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="387"/>
+				<UserParam type="int" name="end" value="399"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="5.235155e-12"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.173708081066749"/>
+				<UserParam type="string" name="MeanErrorAll" value="10.694571"/>
+				<UserParam type="string" name="MeanErrorTop7" value="10.694571"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="10.694571"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="10.694571"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="2"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.92498153"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.92498153"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.92498153"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.92498153"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="653.36181640625" RT="2250.448499999999967" spectrum_reference="spectrum=3004" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="16.0"/>
+				<UserParam type="float" name="MS:1002050" value="28.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.4942641e-11"/>
+				<UserParam type="float" name="MS:1002053" value="1.11201385e-04"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="9.514273E-4"/>
+				<UserParam type="string" name="MS2IonCurrent" value="1988.6499"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="9.514273E-4"/>
+				<UserParam type="float" name="calcMZ" value="653.3616943359375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.4942641e-11"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.239069109668246"/>
+				<UserParam type="string" name="MeanErrorAll" value="6.886238"/>
+				<UserParam type="string" name="MeanErrorTop7" value="6.886238"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="-6.886238"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="-6.886238"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="1"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="547.31695556640625" RT="2334.679200000000037" spectrum_reference="spectrum=3106" >
+			<PeptideHit score="0.0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" start="436" end="450" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="8.0"/>
+				<UserParam type="float" name="MS:1002050" value="23.0"/>
+				<UserParam type="float" name="MS:1002052" value="4.1734106e-11"/>
+				<UserParam type="float" name="MS:1002053" value="3.1200307e-04"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="844.7918"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="547.31744384765625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="437"/>
+				<UserParam type="int" name="end" value="451"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="4.1734106e-11"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.318127455754186"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="554.25927734375" RT="2001.705200000000104" spectrum_reference="spectrum=2758" >
+			<PeptideHit score="0.0" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="I" start="587" end="596" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="29.0"/>
+				<UserParam type="float" name="MS:1002050" value="43.0"/>
+				<UserParam type="float" name="MS:1002052" value="2.3610514e-10"/>
+				<UserParam type="float" name="MS:1002053" value="1.7535489e-03"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.08314386"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.08314386"/>
+				<UserParam type="string" name="MS2IonCurrent" value="622.07227"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="554.2606201171875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="588"/>
+				<UserParam type="int" name="end" value="597"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="2.3610514e-10"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.474055741164414"/>
+				<UserParam type="string" name="MeanErrorAll" value="0.9221308"/>
+				<UserParam type="string" name="MeanErrorTop7" value="0.9221308"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="0.9221308"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="0.9221308"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="1"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="435.910125732421875" RT="2326.227499999999964" spectrum_reference="spectrum=3094" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="11.0"/>
+				<UserParam type="float" name="MS:1002050" value="30.0"/>
+				<UserParam type="float" name="MS:1002052" value="3.5354347e-10"/>
+				<UserParam type="float" name="MS:1002053" value="2.6310293e-03"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="647.5208"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="435.91021728515625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="3.5354347e-10"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.512509034154632"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="464.250244140625" RT="2250.238299999999981" spectrum_reference="spectrum=3003" >
+			<PeptideHit score="0.0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="80.0"/>
+				<UserParam type="float" name="MS:1002050" value="80.0"/>
+				<UserParam type="float" name="MS:1002052" value="5.8311533e-10"/>
+				<UserParam type="float" name="MS:1002053" value="4.2480007e-03"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.00787906"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.013166671"/>
+				<UserParam type="string" name="MS2IonCurrent" value="121049.63"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.005287611"/>
+				<UserParam type="float" name="calcMZ" value="464.250335693359375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="161"/>
+				<UserParam type="int" name="end" value="167"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="5.8311533e-10"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.557546722337713"/>
+				<UserParam type="string" name="MeanErrorAll" value="14.304431"/>
+				<UserParam type="string" name="MeanErrorTop7" value="14.304431"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="14.304431"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="14.304431"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="2"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.25884616"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.25884616"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.25884616"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.25884616"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="464.250274658203125" RT="2235.776899999999841" spectrum_reference="spectrum=2981" >
+			<PeptideHit score="0.0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="75.0"/>
+				<UserParam type="float" name="MS:1002050" value="75.0"/>
+				<UserParam type="float" name="MS:1002052" value="5.8311533e-10"/>
+				<UserParam type="float" name="MS:1002053" value="4.2480007e-03"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.056646887"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.06918256"/>
+				<UserParam type="string" name="MS2IonCurrent" value="42027.883"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.012535675"/>
+				<UserParam type="float" name="calcMZ" value="464.250335693359375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="161"/>
+				<UserParam type="int" name="end" value="167"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="5.8311533e-10"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.557546722337713"/>
+				<UserParam type="string" name="MeanErrorAll" value="7.171575"/>
+				<UserParam type="string" name="MeanErrorTop7" value="7.171575"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="-6.2132454"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="-6.2132454"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="3"/>
+				<UserParam type="string" name="StdevErrorAll" value="4.2453337"/>
+				<UserParam type="string" name="StdevErrorTop7" value="4.2453337"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="5.5542707"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="5.5542707"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="435.910827636718693" RT="2333.570999999999913" spectrum_reference="spectrum=3105" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="9.0"/>
+				<UserParam type="float" name="MS:1002050" value="28.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.0616389e-09"/>
+				<UserParam type="float" name="MS:1002053" value="7.900592999999999e-03"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="593.449"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="435.91021728515625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.0616389e-09"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.614135970356352"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="541.7451171875" RT="2009.607700000000023" spectrum_reference="spectrum=2769" >
+			<PeptideHit score="0.0" sequence="MWHHAPM(Oxidation)R" charge="2" aa_before="[" aa_after="T" start="0" end="7" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="11.0"/>
+				<UserParam type="float" name="MS:1002050" value="19.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.4445357e-09"/>
+				<UserParam type="float" name="MS:1002053" value="0.010651449"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="622.99744"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="541.24456787109375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="1"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="isotope_error" value="1"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.4445357e-09"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.640291152310855"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="428.234069824218693" RT="2125.652300000000196" spectrum_reference="spectrum=2885" >
+			<PeptideHit score="0.0" sequence="FVEGLYK" charge="2" aa_before="K" aa_after="V" start="83" end="89" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="54.0"/>
+				<UserParam type="float" name="MS:1002050" value="62.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.5238906e-09"/>
+				<UserParam type="float" name="MS:1002053" value="0.011101558"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.059165232"/>
+				<UserParam type="string" name="MS2IonCurrent" value="4251.632"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.059165232"/>
+				<UserParam type="float" name="calcMZ" value="428.234161376953125"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="84"/>
+				<UserParam type="int" name="end" value="90"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.5238906e-09"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.643846563010666"/>
+				<UserParam type="string" name="MeanErrorAll" value="6.420993"/>
+				<UserParam type="string" name="MeanErrorTop7" value="6.420993"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="6.420993"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="6.420993"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="1"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="435.91015625" RT="2295.557999999999993" spectrum_reference="spectrum=3064" >
+			<PeptideHit score="0.0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="14.0"/>
+				<UserParam type="float" name="MS:1002050" value="37.0"/>
+				<UserParam type="float" name="MS:1002052" value="2.9893779e-09"/>
+				<UserParam type="float" name="MS:1002053" value="0.022246601"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.024045667"/>
+				<UserParam type="string" name="MS2IonCurrent" value="677.5482"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.024045667"/>
+				<UserParam type="float" name="calcMZ" value="435.91021728515625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="402"/>
+				<UserParam type="int" name="end" value="412"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="2.9893779e-09"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.70069648226291"/>
+				<UserParam type="string" name="MeanErrorAll" value="12.94056"/>
+				<UserParam type="string" name="MeanErrorTop7" value="12.94056"/>
+				<UserParam type="string" name="MeanRelErrorAll" value="12.94056"/>
+				<UserParam type="string" name="MeanRelErrorTop7" value="12.94056"/>
+				<UserParam type="string" name="NumMatchedMainIons" value="1"/>
+				<UserParam type="string" name="StdevErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevErrorTop7" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorAll" value="0.0"/>
+				<UserParam type="string" name="StdevRelErrorTop7" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="688.8619384765625" RT="2255.564699999999903" spectrum_reference="spectrum=3013" >
+			<PeptideHit score="0.066666666666667" sequence="ISRNIC(Carbamidomethyl)TVQER" charge="2" aa_before="R" aa_after="V" start="70" end="80" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002049" value="-1.0"/>
+				<UserParam type="float" name="MS:1002050" value="22.0"/>
+				<UserParam type="float" name="MS:1002052" value="9.832189000000001e-09"/>
+				<UserParam type="float" name="MS:1002053" value="0.07317001"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="1339.6786"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="688.35919189453125"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="71"/>
+				<UserParam type="int" name="end" value="81"/>
+				<UserParam type="string" name="isotope_error" value="1"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="9.832189000000001e-09"/>
+				<UserParam type="float" name="q-value_score" value="0.066666666666667"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.785217038502351"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="504.618865966796875" RT="2421.077999999999975" spectrum_reference="spectrum=3168" >
+			<PeptideHit score="0.066666666666667" sequence="VPQVSTPTLVEVSR" charge="3" aa_before="K" aa_after="S" start="437" end="450" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="0.0"/>
+				<UserParam type="float" name="MS:1002050" value="22.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.1053932e-08"/>
+				<UserParam type="float" name="MS:1002053" value="0.08257085"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="1165.8171"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="504.619110107421875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="438"/>
+				<UserParam type="int" name="end" value="451"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.1053932e-08"/>
+				<UserParam type="float" name="q-value_score" value="0.066666666666667"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.793129960536052"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="321.203277587890625" RT="2492.773200000000088" spectrum_reference="spectrum=3216" >
+			<PeptideHit score="0.066666666666667" sequence="QPVAVK" charge="2" aa_before="K" aa_after="C" start="45" end="50" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002049" value="16.0"/>
+				<UserParam type="float" name="MS:1002050" value="16.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.43656536e-08"/>
+				<UserParam type="float" name="MS:1002053" value="0.098576814"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="917.8775"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="321.202667236328125"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="46"/>
+				<UserParam type="int" name="end" value="51"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.43656536e-08"/>
+				<UserParam type="float" name="q-value_score" value="0.066666666666667"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.804482620049216"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="582.32379150390625" RT="2033.096000000000004" spectrum_reference="spectrum=2798" >
+			<PeptideHit score="0.066666666666667" sequence="YRGVLPGVM(Oxidation)R" charge="2" aa_before="R" aa_after="A" start="1060" end="1069" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002049" value="-7.0"/>
+				<UserParam type="float" name="MS:1002050" value="8.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.4947188e-08"/>
+				<UserParam type="float" name="MS:1002053" value="0.11101251"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="384.96075"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="582.32135009765625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="1061"/>
+				<UserParam type="int" name="end" value="1070"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.4947188e-08"/>
+				<UserParam type="float" name="q-value_score" value="0.066666666666667"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.811920414195403"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="659.36126708984375" RT="2353.050299999999879" spectrum_reference="spectrum=3121" >
+			<PeptideHit score="0.066666666666667" sequence="LQEVMKNITNK" charge="2" aa_before="R R R" aa_after="I I I" start="1084 1176 1268" end="1094 1186 1278" protein_refs="PH_4 PH_4 PH_4" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002049" value="-2.0"/>
+				<UserParam type="float" name="MS:1002050" value="19.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.5052272e-08"/>
+				<UserParam type="float" name="MS:1002053" value="0.11201725"/>
+				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
+				<UserParam type="string" name="CTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.0"/>
+				<UserParam type="string" name="MS2IonCurrent" value="617.52563"/>
+				<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+				<UserParam type="float" name="calcMZ" value="659.3634033203125"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="1269"/>
+				<UserParam type="int" name="end" value="1279"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="SpecEValue_score" value="1.5052272e-08"/>
+				<UserParam type="float" name="q-value_score" value="0.066666666666667"/>
+				<UserParam type="float" name="Posterior Error Probability" value="0.812478518964216"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

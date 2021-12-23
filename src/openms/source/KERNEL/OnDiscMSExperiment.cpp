@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,26 @@
 
 namespace OpenMS
 {
+  bool OnDiscMSExperiment::openFile(const String& filename, bool skipMetaData)
+  {
+    filename_ = filename;
+    indexed_mzml_file_.openFile(filename);
+    if (!filename.empty() && !skipMetaData)
+    {
+      loadMetaData_(filename);
+    }
+    return indexed_mzml_file_.getParsingSuccess();
+  }
+
+  void OnDiscMSExperiment::setSkipXMLChecks(bool skip)
+  {
+    indexed_mzml_file_.setSkipXMLChecks(skip);
+  }
+
+  OpenMS::Interfaces::ChromatogramPtr OnDiscMSExperiment::getChromatogramById(Size id)
+  {
+    return indexed_mzml_file_.getChromatogramById(id);
+  }
 
   void OnDiscMSExperiment::loadMetaData_(const String& filename)
   {

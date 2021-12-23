@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal":
     cdef cppclass OpenMSOSInfo:
 
         OpenMSOSInfo() nogil except +
-        OpenMSOSInfo(OpenMSOSInfo) nogil except + # wrap-ignore
+        OpenMSOSInfo(OpenMSOSInfo &) nogil except + # compiler
         String getOSAsString() nogil except +
         String getArchAsString() nogil except +
         String getOSVersionAsString() nogil except +
@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal":
     cdef cppclass OpenMSBuildInfo:
 
         OpenMSBuildInfo() nogil except +
-        OpenMSBuildInfo(OpenMSBuildInfo) nogil except + # wrap-ignore
+        OpenMSBuildInfo(OpenMSBuildInfo &) nogil except + # compiler
 
 
 cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSOSInfo":

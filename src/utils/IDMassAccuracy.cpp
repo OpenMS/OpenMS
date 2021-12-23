@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -209,7 +209,7 @@ protected:
 
     // generate precursor statistics
     vector<MassDifference> precursor_diffs;
-    if (getStringOption_("out_precursor") != "" || getStringOption_("out_precursor_fit") != "")
+    if (!getStringOption_("out_precursor").empty() || !getStringOption_("out_precursor_fit").empty())
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -221,7 +221,7 @@ protected:
           }
           for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
-            if (it->getHits().size() > 0)
+            if (!it->getHits().empty())
             {
               PeptideHit hit = *it->getHits().begin();
               MassDifference md;
@@ -249,7 +249,7 @@ protected:
     sa_param.setValue("tolerance", fragment_mass_tolerance);
     sa.setParameters(sa_param);
 
-    if (getStringOption_("out_fragment") != "" || getStringOption_("out_fragment_fit") != "")
+    if (!getStringOption_("out_fragment").empty() || !getStringOption_("out_fragment_fit").empty())
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -261,7 +261,7 @@ protected:
           }
           for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
-            if (it->getHits().size() > 0)
+            if (!it->getHits().empty())
             {
               PeptideHit hit = *it->getHits().begin();
 
@@ -293,7 +293,7 @@ protected:
     //-------------------------------------------------------------
 
     String precursor_out_file(getStringOption_("out_precursor"));
-    if (precursor_out_file != "" || getStringOption_("out_precursor_fit") != "")
+    if (!precursor_out_file.empty() || !getStringOption_("out_precursor_fit").empty())
     {
       vector<double> errors;
       
@@ -312,7 +312,7 @@ protected:
           min_diff = diff;
         }
       }
-      if (precursor_out_file != "")
+      if (!precursor_out_file.empty())
       {
         ofstream precursor_out(precursor_out_file.c_str());
         for (Size i = 0; i != errors.size(); ++i)
@@ -365,7 +365,7 @@ protected:
 
         // write fit data
         String fit_out_file(getStringOption_("out_precursor_fit"));
-        if (fit_out_file != "")
+        if (!fit_out_file.empty())
         {
           ofstream fit_out(fit_out_file.c_str());
           if (precursor_error_ppm)
@@ -393,7 +393,7 @@ protected:
     }
 
     String fragment_out_file(getStringOption_("out_fragment"));
-    if (fragment_out_file != "" || getStringOption_("out_fragment_fit") != "")
+    if (!fragment_out_file.empty() || !getStringOption_("out_fragment_fit").empty())
     {
       vector<double> errors;
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
@@ -411,7 +411,7 @@ protected:
           min_diff = diff;
         }
       }
-      if (fragment_out_file != "")
+      if (!fragment_out_file.empty())
       {
         ofstream fragment_out(fragment_out_file.c_str());
         for (Size i = 0; i != errors.size(); ++i)
@@ -465,7 +465,7 @@ protected:
 
         // write fit data
         String fit_out_file(getStringOption_("out_fragment_fit"));
-        if (fit_out_file != "")
+        if (!fit_out_file.empty())
         {
           ofstream fit_out(fit_out_file.c_str());
           if (precursor_error_ppm)

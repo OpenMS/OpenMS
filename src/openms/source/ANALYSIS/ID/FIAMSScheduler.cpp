@@ -32,8 +32,10 @@
 // $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
+
+#include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -83,8 +85,8 @@ namespace OpenMS {
       p.setValue("dir_output", base_dir_ + samples_[i].at("dir_output"));
       p.setValue("resolution", std::stof(samples_[i].at("resolution")));
       p.setValue("polarity", samples_[i].at("charge"));
-      p.setValue("db:mapping", ListUtils::create<String>(base_dir_ + samples_[i].at("db_mapping")));
-      p.setValue("db:struct", ListUtils::create<String>(base_dir_ + samples_[i].at("db_struct")));
+      p.setValue("db:mapping", std::vector<std::string>{base_dir_ + samples_[i].at("db_mapping")});
+      p.setValue("db:struct", std::vector<std::string>{base_dir_ + samples_[i].at("db_struct")});
       p.setValue("positive_adducts", base_dir_ + samples_[i].at("positive_adducts"));
       p.setValue("negative_adducts", base_dir_ + samples_[i].at("negative_adducts"));
       fia_processor.setParameters(p);

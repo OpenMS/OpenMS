@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -178,7 +178,7 @@ private:
     }
 
     /// Calculate the mass value for a given flight time using the averaged coefficients of the quadratic fit.
-    inline double mQAv_(double ft)
+    inline double mQAv_(double ft) const
     {
       return a_ + ft * b_ + ft * ft * c_;
     }

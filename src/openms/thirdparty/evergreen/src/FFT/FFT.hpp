@@ -4,7 +4,7 @@
 // #include this file to import all FFT utilities from this
 // subdirectory.
 
-const unsigned char FFT1D_MAX_LOG_N = 31u;
+const unsigned char FFT1D_MAX_LOG_N = 16u;
 
 #include "../BitReversedShuffle/RecursiveShuffle.hpp"
 

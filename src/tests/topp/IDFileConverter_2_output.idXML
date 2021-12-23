@@ -56,40 +56,67 @@
 			<ProteinHit id="PH_19" accession="rev000459115" score="0.0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="538.605091698566639" RT="1.3653" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="538.605091698566639" RT="1.3653" spectrum_reference="scan=2" >
 			<PeptideHit score="8.0" sequence=".(Glu-&gt;pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="329.0"/>
+				<UserParam type="float" name="nextscore" value="323.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="637.885175031899962" RT="1.719" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="637.885175031899962" RT="1.719" spectrum_reference="scan=3" >
 			<PeptideHit score="7.7" sequence=".(Gln-&gt;pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="173.0"/>
+				<UserParam type="float" name="nextscore" value="167.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="678.384725031899961" RT="2.0436" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="678.384725031899961" RT="2.0436" spectrum_reference="scan=4" >
 			<PeptideHit score="4.9" sequence="IFQAALYAAPYK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_4" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="274.0"/>
+				<UserParam type="float" name="nextscore" value="250.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="762.728391698566725" RT="2.7843" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="762.728391698566725" RT="2.7843" spectrum_reference="scan=6" >
 			<PeptideHit score="9.1e-04" sequence="EISPDTTLLDLQNNDISELR" charge="3" aa_before="K X X X" aa_after="K X X X" protein_refs="PH_5 PH_6 PH_7 PH_8" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="807.0"/>
+				<UserParam type="float" name="nextscore" value="446.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="1143.595525031900024" RT="3.085" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="1143.595525031900024" RT="3.085" spectrum_reference="scan=7" >
 			<PeptideHit score="7.9e-05" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K X X X" aa_after="K X X X" protein_refs="PH_5 PH_6 PH_7 PH_8" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="705.0"/>
+				<UserParam type="float" name="nextscore" value="309.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="770.055225031900022" RT="3.4018" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="770.055225031900022" RT="3.4018" spectrum_reference="scan=8" >
 			<PeptideHit score="14.0" sequence="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K" charge="3" aa_before="K X X" aa_after="H X X" protein_refs="PH_9 PH_10 PH_11" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="350.0"/>
+				<UserParam type="float" name="nextscore" value="349.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="757.412291698566719" RT="4.4573" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="757.412291698566719" RT="4.4573" spectrum_reference="scan=10" >
 			<PeptideHit score="0.65" sequence="VSLPNYPAIPSDATLEVQSLR" charge="3" aa_before="K X X" aa_after="S X X" protein_refs="PH_12 PH_13 PH_14" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="463.0"/>
+				<UserParam type="float" name="nextscore" value="431.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="807.394125031899989" RT="4.8288" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="807.394125031899989" RT="4.8288" spectrum_reference="scan=11" >
 			<PeptideHit score="4.6e-03" sequence="NALWHTGDTESQVR" charge="2" aa_before="R X X" aa_after="L X X" protein_refs="PH_15 PH_16 PH_17" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="478.0"/>
+				<UserParam type="float" name="nextscore" value="278.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="512.784525031899989" RT="5.1785" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="512.784525031899989" RT="5.1785" spectrum_reference="scan=12" >
 			<PeptideHit score="1.1" sequence="SSLKNYANK" charge="2" aa_before="R X" aa_after="I X" protein_refs="PH_18 PH_19" >
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="hyperscore" value="266.0"/>
+				<UserParam type="float" name="nextscore" value="228.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
@@ -112,48 +139,57 @@
 			<ProteinHit id="PH_27" accession="IPI00027377" score="0.0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="1143.590525031899915" RT="3.1" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="1143.590525031899915" RT="3.1" spectrum_reference="scan=7" >
 			<PeptideHit score="5.136" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K" aa_after="K" protein_refs="PH_20" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="5.136"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="637.885525031899988" RT="1.7" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="637.885525031899988" RT="1.7" spectrum_reference="scan=3" >
 			<PeptideHit score="1.024" sequence="LLTAQEQPVYI" charge="2" aa_before="R" aa_after="-" protein_refs="PH_21" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="1.024"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="538.605558365233378" RT="1.4" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="538.605558365233378" RT="1.4" spectrum_reference="scan=2" >
 			<PeptideHit score="1.641" sequence="HEVVIWLGDLNYR" charge="3" aa_before="K" aa_after="L" protein_refs="PH_22" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="1.641"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="770.055558365233424" RT="3.4" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="770.055558365233424" RT="3.4" spectrum_reference="scan=8" >
 			<PeptideHit score="1.606" sequence="LDGNYLKPPIPLDLM(Oxidation)MC(Carbamidomethyl)FR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_23" >
+				<UserParam type="int" name="isotope_error" value="-1"/>
 				<UserParam type="float" name="MS:1001155" value="1.606"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="512.784525031899989" RT="5.2" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="512.784525031899989" RT="5.2" spectrum_reference="scan=12" >
 			<PeptideHit score="1.288" sequence="EHVQLRDK" charge="2" aa_before="K" aa_after="R" protein_refs="PH_24" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="1.288"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="678.384525031900012" RT="2.0" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="678.384525031900012" RT="2.0" spectrum_reference="scan=4" >
 			<PeptideHit score="3.986" sequence="FSDGAFLGVTTLK" charge="2" aa_before="K" aa_after="H" protein_refs="PH_25" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="3.986"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="807.394525031900002" RT="4.8" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="807.394525031900002" RT="4.8" spectrum_reference="scan=11" >
 			<PeptideHit score="2.831" sequence="NALWHTGDTESQVR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_26" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="2.831"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="757.412558365233394" RT="4.5" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="757.412558365233394" RT="4.5" spectrum_reference="scan=10" >
 			<PeptideHit score="2.197" sequence="VSLPNYPAIPSDATLEVQSLR" charge="3" aa_before="K" aa_after="S" protein_refs="PH_27" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="2.197"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="762.728558365233425" RT="2.8" >
+		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="762.728558365233425" RT="2.8" spectrum_reference="scan=6" >
 			<PeptideHit score="5.638" sequence="EISPDTTLLDLQNNDISELR" charge="3" aa_before="K" aa_after="K" protein_refs="PH_20" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="MS:1001155" value="5.638"/>
 			</PeptideHit>
 		</PeptideIdentification>

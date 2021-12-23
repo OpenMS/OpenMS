@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,10 +46,9 @@
 // #define GAMMA_DISTRIBUTION_FITTER_VERBOSE
 // #undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+
     GammaDistributionFitter::GammaDistributionFitter() :
       init_param_(1.0, 5.0)
     {
@@ -76,7 +75,7 @@ namespace OpenMS
       {
       }
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
       {
 
         double b = x(0);
@@ -106,7 +105,7 @@ namespace OpenMS
       }
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
       {
 
         double b = x(0);
@@ -146,7 +145,7 @@ namespace OpenMS
       const std::vector<DPosition<2> >* m_data;
     };
 
-    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input)
+    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input) const
     {
       Eigen::VectorXd x_init(2);
       x_init << init_param_.b, init_param_.p;
@@ -171,5 +170,4 @@ namespace OpenMS
       return GammaDistributionFitResult(x_init(0), x_init(1));
     }
 
-  } //namespace Math
-} // namespace OpenMS
+} // namespace OpenMS //namespace Math

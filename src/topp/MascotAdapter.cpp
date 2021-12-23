@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -330,26 +330,13 @@ protected:
     //-------------------------------------------------------------
 
     inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
     first_dim_rt = getDoubleOption_("first_dim_rt");
-    if (inputfile_name == "")
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
+
 
     outputfile_name = getStringOption_("out");
-    writeDebug_(String("Output file: ") + outputfile_name, 1);
-    if (outputfile_name == "")
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
     boundary = getStringOption_("boundary");
-    if (boundary != "")
+    if (!boundary.empty())
     {
       writeDebug_(String("Boundary: ") + boundary, 1);
     }
@@ -439,7 +426,7 @@ protected:
     {
       // full pipeline:
       mascot_cgi_dir = getStringOption_("mascot_directory");
-      if (mascot_cgi_dir == "")
+      if (mascot_cgi_dir.empty())
       {
         writeLog_("No Mascot directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -450,7 +437,7 @@ protected:
 
       mascot_data_dir = getStringOption_("temp_data_directory");
 
-      if (mascot_data_dir == "")
+      if (mascot_data_dir.empty())
       {
         writeLog_("No temp directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -499,11 +486,11 @@ protected:
       mascot_infile.setInstrument(instrument);
       mascot_infile.setPrecursorMassTolerance(precursor_mass_tolerance);
       mascot_infile.setPeakMassTolerance(peak_mass_tolerance);
-      if (mods.size() > 0)
+      if (!mods.empty())
       {
         mascot_infile.setModifications(mods);
       }
-      if (variable_mods.size() > 0)
+      if (!variable_mods.empty())
       {
         mascot_infile.setVariableModifications(variable_mods);
       }
@@ -587,7 +574,7 @@ protected:
       }           // from if(!mascot_in)
       else
       {
-        if (boundary != "")
+        if (!boundary.empty())
         {
           mascot_infile.setBoundary(boundary);
         }

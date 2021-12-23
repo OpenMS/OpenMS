@@ -8,8 +8,10 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDB.h>" namespace "OpenMS":
         # wrap-manual-memory:
         #     cdef AutowrapPtrHolder[_RNaseDB] inst
 
-        RNaseDB() nogil except + #wrap-ignore
-        RNaseDB(RNaseDB) nogil except + #wrap-ignore
+        # protected
+        RNaseDB() nogil except + # wrap-ignore
+        # due to wrap-manual-memory
+        RNaseDB(RNaseDB &) nogil except + # wrap-ignore
 
         const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
         const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -152,9 +152,9 @@ private:
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", ListUtils::create<String>("advanced"));
-      defaults.setValue("mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", ListUtils::create<String>("advanced"));
-      defaults.setValue("rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", ListUtils::create<String>("advanced"));
+      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", {"advanced"});
+      defaults.setValue("mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", {"advanced"});
+      defaults.setValue("rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
     }
 
     if (section == "labels")
@@ -164,7 +164,7 @@ private:
       
       for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
       {
-        defaults.setValue(it->name, it->value, it->description, ListUtils::create<String>("advanced"));
+        defaults.setValue(it->name, it->value, it->description, {"advanced"});
         defaults.setMinFloat(it->name, 0.0);
       }
     }
@@ -188,7 +188,7 @@ private:
    */
   void getParameters_algorithm_()
   {
-    labels_ = getParam_().getValue("algorithm:labels");
+    labels_ = getParam_().getValue("algorithm:labels").toString();
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     mass_tolerance_ = getParam_().getValue("algorithm:mass_tolerance");
     mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");

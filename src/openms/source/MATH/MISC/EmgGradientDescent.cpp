@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
     defaults.setMinInt("max_gd_iter", 0);
 
     defaults.setValue("compute_additional_points", "true", "Whether additional points should be added when fitting EMG peak model.");
-    defaults.setValidStrings("compute_additional_points", ListUtils::create<String>("true,false"));
+    defaults.setValidStrings("compute_additional_points", {"true","false"});
   }
 
   void EmgGradientDescent::updateMembers_()
@@ -302,8 +302,10 @@ namespace OpenMS
       out_ys.push_back(emg_point(x, h, mu, sigma, tau));
     }
 
-    if (!compute_additional_points_) return;
-
+    if (!compute_additional_points_)
+    {
+      return;
+    }
     // Compute the sampling step for the additional points
     double avg_sampling { 0.0 };
     for (Size i = 1; i < xs.size(); ++i)
@@ -331,7 +333,10 @@ namespace OpenMS
       while (out_ys.front() > target_intensity && out_ys.front() > est_y_threshold)
       {
         const double position = out_xs.front() - avg_sampling;
-        if (position < pos_boundary) break;
+        if (position < pos_boundary)
+        {
+          break;
+        }
         out_xs.insert(out_xs.begin(), position);
         out_ys.insert(out_ys.begin(), emg_point(position, h, mu, sigma, tau));
       }
@@ -343,7 +348,10 @@ namespace OpenMS
       while (out_ys.back() > target_intensity && out_ys.back() > est_y_threshold)
       {
         const double position = out_xs.back() + avg_sampling;
-        if (position > pos_boundary) break;
+        if (position > pos_boundary)
+        {
+          break;
+        }
         out_xs.push_back(position);
         out_ys.push_back(emg_point(position, h, mu, sigma, tau));
       }
@@ -355,7 +363,7 @@ namespace OpenMS
     const std::vector<double>& ys
   ) const
   {
-    if (xs.size() == 0)
+    if (xs.empty())
     {
       throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }

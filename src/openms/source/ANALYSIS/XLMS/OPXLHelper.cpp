@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -490,7 +491,7 @@ namespace OpenMS
           cross_link_candidate.cross_linker_name = cross_link_name;
 
           // filter out unnecessary loop-link candidates that we would not trust in a manual validation anyway
-          if ((seq_second.size() == 0) && (link_pos_second[y] != -1)) // if it is a loop-link
+          if ((seq_second.empty()) && (link_pos_second[y] != -1)) // if it is a loop-link
           {
             // if the positions are the same, then it is linking the same residue with itself
             // also pos1 > pos2 would be the same link as pos1 < pos2 with switched positions
@@ -515,7 +516,7 @@ namespace OpenMS
             continue;
           }
           // check for modified residue for loop linked cases
-          if ((seq_second.size() == 0 && link_pos_second[y] != -1) && (*peptide_first)[link_pos_second[y]].isModified())
+          if ((seq_second.empty() && link_pos_second[y] != -1) && (*peptide_first)[link_pos_second[y]].isModified())
           {
             continue;
           }
@@ -757,7 +758,7 @@ namespace OpenMS
 #endif
 
         bool mod_set = false;
-        if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
+        if (!mods.empty()) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
         {
           for (Size s = 0; s < mods.size(); ++s)
           {
@@ -773,14 +774,14 @@ namespace OpenMS
             }
           }
         }
-        else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == static_cast<int>(seq_alpha.size())-1))
+        else if (mods.empty() && (alpha_pos == 0 || alpha_pos == static_cast<int>(seq_alpha.size())-1))
         {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
           OPENMS_LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
 #endif
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);
-          if (mods.size() > 0)
+          if (!mods.empty())
           {
             Size mod_index = 0;
             for (Size s = 0; s < mods.size(); ++s)
@@ -810,7 +811,7 @@ namespace OpenMS
           }
         }
 
-        if ( (mods.size() > 0) && (!mod_set) ) // If resolving by name did not work, use any with matching diff mass
+        if ( (!mods.empty()) && (!mod_set) ) // If resolving by name did not work, use any with matching diff mass
         {
           seq_alpha.setModification(alpha_pos, mods[0]);
           mod_set = true;
@@ -1157,7 +1158,7 @@ namespace OpenMS
     map<String, PeptideIdentification> new_peptide_ids;
     for (PeptideIdentification& id : peptide_ids)
     {
-      if (id.getHits().size() > 0)
+      if (!id.getHits().empty())
       {
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
@@ -1180,6 +1181,7 @@ namespace OpenMS
       }
     }
     vector<PeptideIdentification> new_peptide_ids_vector;
+    new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
@@ -1252,7 +1254,7 @@ namespace OpenMS
         }
       }
       // set delta score to 0 for the last ranked PeptideHit, or if only one Peptide hit is available
-      if (phs.size() > 0)
+      if (!phs.empty())
       {
         phs[phs.size()-1].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
       }
@@ -1353,7 +1355,7 @@ namespace OpenMS
 
     std::vector< int > precursor_correction_positions;
     // if sequence tags are used and no tags were found, don't bother combining peptide pairs
-    if ( (use_sequence_tags && tags.size() > 0) ||
+    if ( (use_sequence_tags && !tags.empty()) ||
          !use_sequence_tags)
     {
       candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);

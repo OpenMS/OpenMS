@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,7 +154,7 @@ public:
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    void getAllChildTerms(std::set<String>& terms, const String& parent) const;
+    void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
         @brief Iterates over all children of parent recursively.
@@ -166,11 +166,12 @@ public:
                  you can just return false always to not quit early.
     */
     template <class LAMBDA>
-    bool iterateAllChildren(const String& parent, LAMBDA lbd) const
+    bool iterateAllChildren(const String& parent_id, LAMBDA lbd) const
     {
-      for (const auto& child : getTerm(parent).children)
+      for (const auto& child_id : getTerm(parent_id).children)
       {
-        if (lbd(child) || iterateAllChildren(child, lbd)) return true;
+        if (lbd(child_id) || iterateAllChildren(child_id, lbd))
+          return true;
       }
       return false;
     }
@@ -187,7 +188,24 @@ public:
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */
-    bool isChildOf(const String& child, const String& parent) const;
+    bool isChildOf(const String& child_id, const String& parent_id) const;
+
+
+    /**
+      @brief Returns a CV for parsing/storing PSI-MS related data, e.g. mzML, or handle accessions/ids in datastructures
+
+      The CV will be initialized on first access. Repeated access is therefor cheap.
+
+      It consists of the following CVs:<br>
+      <ul>
+        <li>PSI-MS (psi-ms.obo)</li>
+        <li>PATO (quality.obo)</li>
+        <li>UO (unit.obo)</li>
+        <li>BTO (CV/brenda.obo)</li>
+        <li>GO (goslim_goa.obo)</li>
+      </ul>
+    */
+    static const ControlledVocabulary& getPSIMSCV();
 
 protected:
     /**
@@ -195,7 +213,7 @@ protected:
 
         If the term is not known, 'true' is returned!
     */
-    bool checkName_(const String& id, const String& name, bool ignore_case = true);
+    bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     ///Map from ID to CVTerm
     Map<String, CVTerm> terms_;

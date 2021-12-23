@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,18 +48,18 @@ namespace OpenMS
     alphabet_(nullptr),
     decomposer_(nullptr)
   {
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", {"advanced"});
     defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-    defaults_.setValidStrings("fixed_modifications", all_mods);
-    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-    defaults_.setValidStrings("variable_modifications", all_mods);
-    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<String>("advanced"));
+    defaults_.setValue("fixed_modifications", std::vector<std::string>(), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("fixed_modifications", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("variable_modifications", std::vector<std::string>(), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("variable_modifications", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", {"advanced"});
     set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
-    vector<String> valid_strings;
+    vector<std::string> valid_strings;
     for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
     {
       valid_strings.push_back(*it);
@@ -103,7 +103,7 @@ namespace OpenMS
 
     Map<char, double> aa_to_weight;
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
+    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(String(param_.getValue("residue_set").toString()));
 
     for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
@@ -111,7 +111,7 @@ namespace OpenMS
     }
 
     // now handle the modifications
-    ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
+    ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
     set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,28 +63,42 @@ public:
   /// Main method for actual FeatureFinder
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
   /// in which case no machine learning or FDR estimation will be performed.
+  /// Optional seeds from e.g. untargeted FeatureFinders can be added with
+  /// @p seeds.
+  /// Results will be written to @p features. 
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// stored in the MSExperiment.
+  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// will be annotated as a fall-back.
+  /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
+  /// and potential seed IDs added.
   void run(
     std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap()
+    const FeatureMap& seeds = FeatureMap(),
+    const String spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);
 
-  PeakMap& getMSData() { return ms_data_; }
-  const PeakMap& getMSData() const { return ms_data_; }
+  PeakMap& getMSData();
+  const PeakMap& getMSData() const;
 
-  PeakMap& getChromatograms() { return chrom_data_; }
-  const PeakMap& getChromatograms() const { return chrom_data_; }
+  /// @brief set the MS data used for feature detection
+  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  PeakMap& getChromatograms();
+  const PeakMap& getChromatograms() const;
 
-  TargetedExperiment& getLibrary() { return library_; }
-  const TargetedExperiment& getLibrary() const { return library_; }
+  ProgressLogger& getProgressLogger();
+  const ProgressLogger& getProgressLogger() const;
+
+  TargetedExperiment& getLibrary();
+  const TargetedExperiment& getLibrary() const;
 
 protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -203,6 +217,10 @@ protected:
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
   TargetedExperiment library_; ///< accumulated assays for peptides
 
+  bool quantify_decoys_;
+
+  const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
@@ -222,8 +240,8 @@ protected:
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
 
-  /// get regions in which peptide elutes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
+  /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
+  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
@@ -233,7 +251,7 @@ protected:
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -242,9 +260,13 @@ protected:
 
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
-  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map);
+  /// @param clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
-  void addPeptideToMap_(PeptideIdentification& peptide, 
+  /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
+  /// Make sure it stays valid until destruction of the class.
+  /// @todo find better solution
+  void addPeptideToMap_(PeptideIdentification& peptide,
     PeptideMap& peptide_map,
     bool external = false) const;
 
@@ -253,7 +275,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

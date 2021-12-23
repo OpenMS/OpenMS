@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,12 +98,12 @@ namespace OpenMS
         For a loop-link two different positions can be set and link_pos_2 must be larger than link_pos.
         The generated ion types and other additional settings are determined by the tool parameters.
 
-       * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
-       * @param peptide The peptide to fragment
-       * @param link_pos The position of the cross-linker on the given peptide
-       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
-       * @param charge The maximal charge of the ions
-       * @param link_pos_2 A second position for the linker, in case it is a loop link
+        @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
+        @param peptide The peptide to fragment
+        @param link_pos The position of the cross-linker on the given peptide
+        @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
+        @param charge The maximal charge of the ions
+        @param link_pos_2 A second position for the linker, in case it is a loop link
        */
       virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0) const;
 
@@ -121,14 +121,14 @@ namespace OpenMS
           because residues in the second, unknown peptide cannot be considered for possible neutral losses.
           The generated ion types and other additional settings are determined by the tool parameters.
 
-       * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
-       * @param peptide The peptide to fragment
-       * @param link_pos The position of the cross-linker on the given peptide
-       * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
-       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
-       * @param mincharge The minimal charge of the ions
-       * @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
-       * @param link_pos_2 A second position for the linker, in case it is a loop link
+        @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
+        @param peptide The peptide to fragment
+        @param link_pos The position of the cross-linker on the given peptide
+        @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
+        @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
+        @param mincharge The minimal charge of the ions
+        @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
+        @param link_pos_2 A second position for the linker, in case it is a loop link
        */
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
@@ -143,13 +143,11 @@ namespace OpenMS
           This simplifies the function, but it has to be called twice to get all fragments of a peptide pair.
           The generated ion types and other additional settings are determined by the tool parameters.
 
-       * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
-       * @param crosslink ProteinProteinCrossLink to be fragmented
-       * @param link_pos The position of the cross-linker on the given peptide
-       * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
-       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide.
-       * @param mincharge The minimal charge of the ions
-       * @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
+        @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
+        @param crosslink ProteinProteinCrossLink to be fragmented
+        @param frag_alpha True, if the fragmented peptide is the Alpha peptide.
+        @param mincharge The minimal charge of the ions
+        @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
        */
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
 
@@ -283,8 +281,6 @@ namespace OpenMS
        * @param charges A DataArray collecting the charges of the added peaks
        * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param crosslink The ProteinProteinCrossLink to be fragmented
-       * @param link_pos The position of the cross-linker on the given peptide
-       * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
        * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
        * @param res_type The ion type of the added peaks
        * @param forward_losses  vector of sets of losses generated by getForwardLosses_ for the fragmented peptide

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -131,11 +133,10 @@ namespace OpenMS
     params.setValue("delta", -1.0, "Nonnegative parameter which may be used to save computations (recommended value is 0.01 of the range of the input, e.g. for data ranging from 1000 seconds to 2000 seconds, it could be set to 10). Setting a negative value will automatically do this.");
 
     params.setValue("interpolation_type", "cspline", "Method to use for interpolation between datapoints computed by lowess. 'linear': Linear interpolation. 'cspline': Use the cubic spline for interpolation. 'akima': Use an akima spline for interpolation");
-    params.setValidStrings("interpolation_type", ListUtils::create<String>("linear,cspline,akima"));
+    params.setValidStrings("interpolation_type", {"linear","cspline","akima"});
 
     params.setValue("extrapolation_type", "four-point-linear", "Method to use for extrapolation outside the data range. 'two-point-linear': Uses a line through the first and last point to extrapolate. 'four-point-linear': Uses a line through the first and second point to extrapolate in front and and a line through the last and second-to-last point in the end. 'global-linear': Uses a linear regression to fit a line through all data points and use it for interpolation.");
-    StringList etypes = ListUtils::create<String>("two-point-linear,four-point-linear,global-linear");
-    params.setValidStrings("extrapolation_type", etypes);
+    params.setValidStrings("extrapolation_type", {"two-point-linear","four-point-linear","global-linear"});
   }
 
 }

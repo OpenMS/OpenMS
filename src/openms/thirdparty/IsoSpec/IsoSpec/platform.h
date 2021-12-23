@@ -107,7 +107,7 @@
         #include "mman.h"
     #endif
 #else
-    #include <stdlib.h>     /* malloc, free, rand */
+    #include <cstdlib>     /* malloc, free, rand */
 #endif
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
+#include "OpenMS/CHEMISTRY/ResidueModification.h"
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
@@ -64,7 +65,7 @@ namespace OpenMS
 
       // residues do NOT match if the modification is user-defined and has origin
       // X (which here means an actual input AA X and it does *not* mean "match
-      // all AA") while the current residue is not X. Make sure we dont match things like
+      // all AA") while the current residue is not X. Make sure we don't match things like
       // PEPN[400] and PEPX[400] since these have very different masses.
       bool non_matching_user_defined = (
            curr_mod->isUserDefined() &&
@@ -187,6 +188,38 @@ namespace OpenMS
         }
       }
       if (nr_mods > 1) multiple_matches = true;
+    }
+    return mod;
+  }
+
+  const ResidueModification* ModificationsDB::searchModification(const ResidueModification& mod_in) const
+  {
+    const ResidueModification* mod(nullptr);
+
+    String mod_name = mod_in.getFullId();
+
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      bool found = true;
+      auto modifications = modification_names_.find(mod_name);
+
+      if (modifications == modification_names_.end())
+      {
+        OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+        found = false; 
+      }
+
+      if (found)
+      {
+        for (const auto& mod_indb : modifications->second)
+        {
+          if (mod_in == *mod_indb)
+          {
+            mod = mod_indb;
+            break;
+          }
+        }
+      }
     }
     return mod;
   }
@@ -327,7 +360,6 @@ namespace OpenMS
     return index;
   }
 
-
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
@@ -368,13 +400,72 @@ namespace OpenMS
     }
   }
 
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    std::map<std::pair<double,Size>, const String&> diff_idx2mods;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m->getFullId());
+        }
+      }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m);
+        }
+      }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
+    }
+  }
+
 
   const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     char res = '?'; // empty
-    if (!residue.empty()) res = residue[0];
+    if (!residue.empty())
+    {
+      res = residue[0];
+    }
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
@@ -439,9 +530,48 @@ namespace OpenMS
         modification_names_[new_mod->getFullName()].insert(new_mod.get());
         modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
         mods_.push_back(new_mod.get());
-        new_mod.release(); // do not delete the object; 
+        new_mod.release(); // do not delete the object;
         ret = mods_.back();
       }
+    }
+    return ret;
+  }
+
+  const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod)
+  {
+    const ResidueModification* ret = new ResidueModification(new_mod);
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      auto it = modification_names_.find(new_mod.getFullId());
+      if (it != modification_names_.end())
+      {
+        OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod.getFullId() << endl;
+        ret = *(it->second.begin()); // returning from omp critical is not allowed
+      }
+      else
+      {
+        modification_names_[ret->getFullId()].insert(ret);
+        modification_names_[ret->getId()].insert(ret);
+        modification_names_[ret->getFullName()].insert(ret);
+        modification_names_[ret->getUniModAccession()].insert(ret);
+        mods_.push_back(const_cast<ResidueModification*>(ret));
+        ret = mods_.back();
+      }
+    }
+    return ret;
+  }
+
+  const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod)
+  {
+    const ResidueModification* ret = new ResidueModification(new_mod);
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      modification_names_[ret->getFullId()].insert(ret);
+      modification_names_[ret->getId()].insert(ret);
+      modification_names_[ret->getFullName()].insert(ret);
+      modification_names_[ret->getUniModAccession()].insert(ret);
+      mods_.push_back(const_cast<ResidueModification*>(ret));
+      ret = mods_.back();
     }
     return ret;
   }
@@ -466,7 +596,7 @@ namespace OpenMS
       line_wo_spaces = line;
       line_wo_spaces.removeWhitespaces();
 
-      if (line == "" || line[0] == '!') //skip empty lines and comments
+      if (line.empty() || line[0] == '!') //skip empty lines and comments
       {
         continue;
       }
@@ -474,7 +604,7 @@ namespace OpenMS
       if (line_wo_spaces == "[Term]")       //new term
       {
         // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
-        if (id != "" && !reading_cross_link) //store last term
+        if (!id.empty() && !reading_cross_link) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<String> origins;
@@ -661,7 +791,7 @@ namespace OpenMS
       }
     }
 
-    if (id != "") //store last term
+    if (!id.empty()) //store last term
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
       vector<String> origins;
@@ -768,11 +898,29 @@ namespace OpenMS
       size_t i(0);
       while (i < a.size() && i < b.size())
       {
-        if (tolower(a[i]) == tolower(b[i])) ++i;
-        else return tolower(a[i]) < tolower(b[i]);
+        if (tolower(a[i]) == tolower(b[i]))
+        {
+          ++i;
+        }
+        else
+        {
+          return tolower(a[i]) < tolower(b[i]);
+        }
       }
       return a.size() < b.size();
     });
   }
 
+  void ModificationsDB::writeTSV(String const& filename)
+  {
+    std::ofstream ofs(filename, std::ofstream::out);
+    ofs << "FullId\tFullName\tUnimodAccession\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";
+    ResidueModification tmp;
+    for (const auto& mod : mods_)
+    {
+      ofs << mod->getFullId() << "\t" << mod->getFullName() << "\t" << mod->getUniModAccession() << "\t" << mod->getOrigin() << "\t"
+      << tmp.getTermSpecificityName(mod->getTermSpecificity()) << "\t"
+      << mod->getDiffMonoMass() << "\n";
+    }
+  }
 } // namespace OpenMS

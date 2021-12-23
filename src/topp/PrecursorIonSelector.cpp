@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -215,13 +215,13 @@ protected:
     {
       pisp.loadPreprocessing();
     }
-    else if (db_path == "")
+    else if (db_path.empty())
     {
       writeLog_("No database file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    else if (rt_model == "" ||  dt_model == "")
+    else if (rt_model.empty() ||  dt_model.empty())
     {
       pisp.dbPreprocessing(db_path, store_preprocessing);
     }
@@ -231,8 +231,10 @@ protected:
     }
 
     PeakMap exp;
-    if (raw_data != "") MzMLFile().load(raw_data, exp);
-
+    if (!raw_data.empty())
+    {
+      MzMLFile().load(raw_data, exp);
+    }
     //-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
@@ -282,11 +284,16 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (next_prec != "") f_file.store(next_prec, new_precursors);
+      if (!next_prec.empty())
+      {
+        f_file.store(next_prec, new_precursors);
+      }
     }
 
-    if (out != "") f_file.store(out, f_map);
-
+    if (!out.empty())
+    {
+      f_file.store(out, f_map);
+    }
     return EXECUTION_OK;
   }
 

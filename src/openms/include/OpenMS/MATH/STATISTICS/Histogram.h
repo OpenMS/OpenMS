@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,7 +88,7 @@ public:
       }
 
       /**
-        @brief constructor with min, max and bin size
+        @brief constructor with min, max (inclusive) and bin width
 
         @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
       */
@@ -119,7 +119,6 @@ public:
         }
       }
 
-
       ///destructor
       virtual ~Histogram()
       {
@@ -127,37 +126,37 @@ public:
 
       //@}
 
-      ///returns the lower bound
+      /// returns the lower bound (inclusive)
       BinSizeType minBound() const
       {
         return min_;
       }
 
-      ///returns the upper bound
+      /// returns the upper bound (inclusive)
       BinSizeType maxBound() const
       {
         return max_;
       }
 
-      ///returns the highest value of all bins
+      /// returns the bin with the highest count
       ValueType maxValue() const
       {
         return *(std::max_element(bins_.begin(), bins_.end()));
       }
 
-      ///returns the lowest value of all bins
+      /// returns the bin with lowest count
       ValueType minValue() const
       {
         return *(std::min_element(bins_.begin(), bins_.end()));
       }
 
-      ///returns the bin size
+      /// returns the bin size
       BinSizeType binSize() const
       {
         return bin_size_;
       }
 
-      ///returns the number of bins
+      /// returns the number of bins
       Size size() const
       {
         return bins_.size();
@@ -193,13 +192,46 @@ public:
       }
 
       /**
+        @brief returns the first value to the right side of the bin with the index @p bin_index, which is not part of this bin, i.e. open right side of the interval.
+
+        @exception Exception::IndexOverflow is thrown for invalid indices
+      */
+      BinSizeType rightBorderOfBin(Size bin_index) const
+      {
+        if (bin_index >= bins_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+        if (bin_index + 1 == bins_.size())
+        { // rightmost bin is special. It contains the maximum value - see valueToBin().
+          return std::nextafter(maxBound(), maxBound() + 1);
+        }
+        return (BinSizeType)(min_ + ((BinSizeType) bin_index + 1) * bin_size_);
+      }
+
+      /**
+        @brief returns the leftmost value of the bin with the index @p bin_index, which is part of this bin, i.e. closed left side of the interval.
+
+        @exception Exception::IndexOverflow is thrown for invalid indices
+      */
+      BinSizeType leftBorderOfBin(Size bin_index) const
+      {
+        if (bin_index >= bins_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+
+        return (BinSizeType)(min_ + (BinSizeType)bin_index * bin_size_);
+      }
+
+      /**
         @brief returns the value of bin corresponding to the value @p val
 
         @exception Exception::OutOfRange is thrown if the value is out of valid range
       */
       ValueType binValue(BinSizeType val) const
       {
-        return bins_[valToBin_(val)];
+        return bins_[valueToBin(val)];
       }
 
       /**
@@ -211,15 +243,21 @@ public:
       */
       Size inc(BinSizeType val, ValueType increment = 1)
       {
-        Size bin_index = this->valToBin_(val);
+        Size bin_index = this->valueToBin(val);
         this->bins_[bin_index] += increment;
         return bin_index;
       }
 
-
+      /**
+       * @brief Increment all bins from to lowest(=first) bin up to (and including?) the bin for @p val by a certain number of counts
+       * @param val The value which determines the highest bin
+       * @param inclusive Is the highest bin included?
+       * @param increment Increase each bin by this value
+       * @return The index of the bin for @p value
+      */
       Size incUntil(BinSizeType val, bool inclusive, ValueType increment = 1)
       {
-        Size bin_index = this->valToBin_(val);
+        Size bin_index = this->valueToBin(val);
         for (Size i = 0; i < bin_index; ++i)
         {
          this->bins_[i] += increment;
@@ -231,9 +269,16 @@ public:
         return bin_index;
       }
 
+     /**
+       * @brief Increment all bins from the bin of @p val to the highest(=last) bin by a certain number of counts
+       * @param val The value which determines the lowest bin
+       * @param inclusive Is the lowest bin included?
+       * @param increment Increase each bin by this value
+       * @return The index of the bin for @p value
+      */
       Size incFrom(BinSizeType val, bool inclusive, ValueType increment = 1)
       {
-        Size bin_index = this->valToBin_(val);
+        Size bin_index = this->valueToBin(val);
         for (Size i = bin_index + 1; i < this->bins_.size(); ++i)
         {
           this->bins_[i] += increment;
@@ -347,21 +392,12 @@ public:
         }
       }
 
-protected:
-      /// Lower bound
-      BinSizeType min_;
-      /// Upper bound
-      BinSizeType max_;
-      /// Bin size
-      BinSizeType bin_size_;
-      /// Vector of bins
-      std::vector<ValueType> bins_;
       /**
-        @brief Returns the bin a given value belongs to
+        @brief Returns the bin index a given value belongs to
 
-        @exception Exception::OutOfRange is thrown if the value is out of valid range
+        @exception Exception::OutOfRange is thrown if the value is out of valid range [min, max]
       */
-      Size valToBin_(BinSizeType val) const
+      Size valueToBin(BinSizeType val) const
       {
         //std::cout << "val: " << val << " (min: " << min_ << " max: " << max_ << ")" << std::endl;
         if (val < min_ || val > max_)
@@ -374,11 +410,22 @@ protected:
         }
         else
         {
-          return (Size) floor((val - min_) / (max_ - min_) * bins_.size());
+          return (Size) floor((val - min_) / bin_size_);
         }
       }
 
-      ///initialize the bins
+protected:
+      /// Lower bound
+      BinSizeType min_;
+      /// Upper bound
+      BinSizeType max_;
+      /// Bin size
+      BinSizeType bin_size_;
+      /// Vector of bins
+      std::vector<ValueType> bins_;
+
+
+      /// initialize the bins
       void initBins_()
       {
         if (this->bin_size_ <= 0)
@@ -387,13 +434,12 @@ protected:
         }
         else
         {
-          // if max_ == min_ there is only one bin
           if (this->max_ != this->min_)
           {
             this->bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
           }
           else
-          {
+          { // if max_ == min_ there is only one bin
             this->bins_ = std::vector<ValueType>(1, 0);
           }
         }

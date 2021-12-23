@@ -3,7 +3,10 @@ from AASequence cimport *
 cdef extern from "<OpenMS/CHEMISTRY/AAIndex.h>" namespace "OpenMS":
     
     cdef cppclass AAIndex "OpenMS::AAIndex":
-        AAIndex(AAIndex) nogil except + #wrap-ignore
+        # private
+        AAIndex() nogil except + # wrap-ignore
+        # private
+        AAIndex(AAIndex &) nogil except + # wrap-ignore
         double aliphatic(char aa) nogil except +
         double acidic(char aa) nogil except +
         double basic(char aa) nogil except +

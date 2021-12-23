@@ -1,11 +1,13 @@
-﻿=========================================================================
+=========================================================================
                  OpenMS -- Open Source Mass Spectrometry
 =========================================================================
 
 The following authors contributed to OpenMS at some point. For the 
 authors contributing to a specific piece of code, please refer to
 the authors tag in the respective file header.
+ - Ahmed Khalil
  - Alexandra Scherbart
+ - Axel Walter
  - Alexandra Zerck
  - Andreas Bertsch
  - Andreas Simon
@@ -20,10 +22,12 @@ the authors tag in the respective file header.
  - Daniel Jameson
  - Darren Kessner
  - David Wojnar
+ - David Voigt
  - Dilek Dere
  - Dimitri Schachmann
  - Dominik Schmitz
  - Douglas McCloskey
+ - Emil Paulitz
  - Erhan Kenar
  - Eugen Netz
  - Eva Lange
@@ -40,6 +44,7 @@ the authors tag in the respective file header.
  - Holger Franken
  - Holger Plattfaut
  - Immanuel Luhn
+ - Jang Jang Jin 
  - Jihyung Kim
  - Johan Teleman
  - Johannes Junker
@@ -73,6 +78,7 @@ the authors tag in the respective file header.
  - Peter Kunszt
  - Petra Gutenbrunner
  - Rene Hussong
+ - Ruben Grünberg
  - Samuel Wein
  - Sandro Andreotti
  - Steffen Sass
@@ -82,10 +88,15 @@ the authors tag in the respective file header.
  - Swenja Wagner
  - Taraneh Strunk
  - Timo Sachsenberg
+ - Tinatin Kasradze
  - Tom Lukas Lankenau
  - Tom Waschischeck
  - Uwe Schmitt
+ - Valentin Noske
+ - Vincent Musch
  - Vipul Patel
  - Volker Mosthaf
  - Witold Wolski
  - Xiao Liang
+ - Justin Sing
+ - Radu Suciu

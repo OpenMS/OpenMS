@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
 
 using namespace std;
+
 namespace OpenMS
 {
   ConsensusMapMergerAlgorithm::ConsensusMapMergerAlgorithm() :
@@ -45,7 +48,7 @@ namespace OpenMS
       defaults_.setValue("annotate_origin",
                          "true",
                          "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
-      defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("annotate_origin", {"true","false"});
       defaultsToParam_();
     }
 

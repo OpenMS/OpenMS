@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <map> // for multimap<>
 #include <vector> // for vector<>
@@ -50,18 +50,6 @@
 namespace OpenMS
 {
   class GridFeature;
-
-  // Boost switch since with 1.47 several classes got moved into a new
-  // boost::unordered namespace (specifically unordered_map).
-  namespace OpenMSBoost
-  {
-#if OPENMS_BOOST_VERSION_MINOR > 47
-    using namespace boost::unordered;
-#else
-    using namespace boost;
-#endif
-  }
-
 
 /**
      @brief A representation of a QT cluster used for feature grouping.
@@ -86,7 +74,7 @@ namespace OpenMS
 
      In our implementation, multiple rounds of clustering are not necessary.
      Instead, the clustering is updated in each iteration. This is the reason
-     for storing all potential cluster elements: When a certain cluster is
+     for temporarily storing all potential cluster elements: When a certain cluster is
      finalized, its elements have to be removed from the remaining clusters,
      and affected clusters change their composition. (Note that clusters can
      also be invalidated by this, if the cluster center is being removed.)
@@ -103,6 +91,15 @@ namespace OpenMS
      any more elements through the add function (the client must call
      initializeCluster again before adding new elements).
 
+     If use_id_ is set, clusters are extended only with elements that have at least one
+     matching ID. Quality is then computed as the best quality of all possible IDs and
+     this ID is then used as the only (representative) ID of the cluster. The left-out
+     alternative IDs might be added back later based on the original features though.
+
+     @todo This implementation may benefit from two separate implementations (one considering IDs/annotations
+        one without). The current implementation most likely hinders speed/memory of both by trying to do both in one.
+        The ID-based implementation could additionally benefit from ID scores and make use of ConsensusID functions.
+
      @see QTClusterFinder
 
      @ingroup Datastructures
@@ -113,7 +110,7 @@ public:
 
     // need to store more than one
     typedef std::multimap<double, const GridFeature*> NeighborList;
-    typedef OpenMSBoost::unordered_map<Size, NeighborList> NeighborMapMulti;
+    typedef std::unordered_map<Size, NeighborList> NeighborMapMulti;
 
     struct Neighbor
     {
@@ -121,7 +118,7 @@ public:
       const GridFeature* feature;
     };
 
-    typedef OpenMSBoost::unordered_map<Size, Neighbor> NeighborMap;
+    typedef std::unordered_map<Size, Neighbor> NeighborMap;
 
     struct Element
     {
@@ -254,7 +251,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(const QTCluster& cluster);
+    bool operator<(const QTCluster& cluster) const;
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -335,7 +332,7 @@ public:
       double optimizeAnnotations_();
 
       /// compute seq table, mapping: peptides -> best distance per input map
-      void makeSeqTable_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
+      void makeSeqTable_(std::map<AASequence, std::map<Size,double>>& seq_table) const;
       
       /// report elements that are compatible with the optimal annotation
       void recomputeNeighbors_();
@@ -370,6 +367,4 @@ public:
       bool finalized_;
   };
 
-  // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS

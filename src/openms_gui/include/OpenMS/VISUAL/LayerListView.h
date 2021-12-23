@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@
 
 namespace OpenMS
 {
-  class SpectrumWidget;
+  class PlotWidget;
   /**
     @brief Pimped QListView for Layers of a Canvas
 
@@ -59,7 +59,7 @@ namespace OpenMS
     LayerListView(QWidget* parent);
 
     /// rebuild list of layers and remember current widget (for context menu etc)
-    void update(SpectrumWidget* active_widget);
+    void update(PlotWidget* active_widget);
 
   signals:
     /// emitted whenever a change to a layer happened, e.g. its name was changed, it was removed, or a new layer was selected
@@ -76,7 +76,7 @@ namespace OpenMS
     /// show preferences dialog
     void itemDoubleClickedAction_(QListWidgetItem*);
 
-    SpectrumWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
+    PlotWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
   };
 
 } //namespace

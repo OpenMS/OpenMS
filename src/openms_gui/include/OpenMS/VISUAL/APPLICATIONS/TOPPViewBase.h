@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,9 +45,10 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //STL
 #include <map>
@@ -76,14 +77,14 @@ class QToolButton;
 
 namespace OpenMS
 {
+  class DataSelectionTabs;
   class FileWatcher;
   class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
-  class SpectraSelectionTabs;
-  class Spectrum1DWidget;
-  class Spectrum2DWidget;
-  class Spectrum3DWidget;
+  class Plot1DWidget;
+  class Plot2DWidget;
+  class Plot3DWidget;
   class ToolsDialog;
 
   /**
@@ -132,29 +133,52 @@ public:
     ///@name Type definitions
     //@{
     //Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     //Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     //Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     //Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     //Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     //Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     //Main on-disc managed data type (experiment)
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    /// Used for deciding whether new tool/util params should be generated or reused from TOPPView's ini file
+    enum class TOOL_SCAN
+    {
+      /**
+         TVToolDiscovery does not generate params for each tool/util unless they are absolutely needed and could not be
+         extracted from TOPPView's ini file. This may be useful for testing.
+      */
+      SKIP_SCAN,
+      /// Only generate params for each tool/util if TOPPView's last ini file has an older version. (Default behaviour)
+      SCAN_IF_NEWER_VERSION,
+      /// Forces TVToolDiscovery to generate params and using them instead of the params in TOPPView's ini file
+      FORCE_SCAN
+    };
+
     ///Constructor
-    TOPPViewBase(QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
+
+    enum class LOAD_RESULT
+    {
+      OK,
+      FILE_NOT_FOUND,       ///< file did not exist
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
+      LOAD_ERROR            ///< an error occurred while loading the file
+    };
 
     /**
       @brief Opens and displays data from a file
@@ -168,7 +192,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -191,7 +215,7 @@ public:
                  std::vector<PeptideIdentification>& peptides,
                  ExperimentSharedPtrType peak_map,
                  ODExperimentSharedPtrType on_disc_peak_map,
-                 LayerData::DataType data_type,
+                 LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
@@ -213,36 +237,39 @@ public:
     /// Stores the preferences (used when this window is closed)
     void savePreferences();
 
-    /// Returns the parameters for a SpectrumCanvas of dimension @p dim
+    /// Returns the parameters for a PlotCanvas of dimension @p dim
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerData* getCurrentLayer() const;
+    const LayerDataBase* getCurrentLayer() const;
+
+    /// Returns the active Layer data (0 if no layer is active)
+    LayerDataBase* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
-    /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
+    /// returns a pointer to the EnhancedWorkspace containing PlotWidgets
     EnhancedWorkspace* getWorkspace();
 
-    /// returns a pointer to the active SpectrumWidget (0 if none is active)
-    SpectrumWidget* getActiveSpectrumWidget() const;
+    /// returns a pointer to the active PlotWidget (0 if none is active)
+    PlotWidget* getActivePlotWidget() const;
 
-    /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-    Spectrum1DWidget* getActive1DWidget() const;
+    /// returns a pointer to the active Plot1DWidget (0 the active window is no Plot1DWidget or there is no active window)
+    Plot1DWidget* getActive1DWidget() const;
 
-    /// returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum2DWidget* getActive2DWidget() const;
+    /// returns a pointer to the active Plot2DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot2DWidget* getActive2DWidget() const;
 
-    /// returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum3DWidget* getActive3DWidget() const;
+    /// returns a pointer to the active Plot3DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot3DWidget* getActive3DWidget() const;
     //@}
 
-    /// returns a pointer to the active SpectrumCanvas (0 if none is active)
-    SpectrumCanvas* getActiveCanvas() const;
+    /// returns a pointer to the active PlotCanvas (0 if none is active)
+    PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
 
 public slots:
     /// changes the current path according to the currently active window/layer
@@ -250,17 +277,17 @@ public slots:
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
     void openFilesByDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
-    void showGoToDialog();
+    void showGoToDialog() const;
     /// shows the preferences dialog
     void preferencesDialog();
     /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
-    void layerStatistics();
+    void layerStatistics() const;
     /// lets the user edit the meta data of a layer
     void editMetadata();
     /// gets called if a layer got activated
     void layerActivated();
     /// gets called when a layer changes in zoom
-    void layerZoomChanged();
+    void layerZoomChanged() const;
     /// link the zoom of individual windows
     void linkZoom();
     /// gets called if a layer got deactivated
@@ -300,6 +327,8 @@ public slots:
     void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
+    /// Annotates current chromatogram layer with ID data
+    void annotateWithOSW();
     /// Shows the theoretical spectrum generation dialog
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog
@@ -313,29 +342,29 @@ public slots:
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
     /// Saves the whole current layer data
-    void saveLayerAll();
+    void saveLayerAll() const;
     /// Saves the visible layer data
-    void saveLayerVisible();
+    void saveLayerVisible() const;
     /// Toggles the grid lines
-    void toggleGridLines();
+    void toggleGridLines() const;
     /// Toggles the axis legends
-    void toggleAxisLegends();
+    void toggleAxisLegends() const;
     /// Toggles drawing of interesting MZs
-    void toggleInterestingMZs();
+    void toggleInterestingMZs() const;
     /// Shows current layer preferences
-    void showPreferences();
+    void showPreferences() const;
     /// dialog for inspecting database meta data
     void metadataFileDialog();
 
     /** @name Toolbar slots
     */
     //@{
-    void setDrawMode1D(int);
+    void setDrawMode1D(int) const;
     void setIntensityMode(int);
     void changeLayerFlag(bool);
     void changeLabel(QAction*);
     void changeUnassigned(QAction*);
-    void resetZoom();
+    void resetZoom() const;
     void toggleProjections();
     //@}
 
@@ -344,10 +373,10 @@ public slots:
     void openFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
+    void layerFilterVisibilityChange(bool) const;
 
     /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
-    void showSpectrumMetaData(int spectrum_index);
+    void showSpectrumMetaData(int spectrum_index) const;
 
 protected slots:
     /// slot for the finished signal of the TOPP tools execution
@@ -392,7 +421,7 @@ protected:
     /// Layer management widget
     LayerListView* layers_view_;
 
-    SpectraSelectionTabs* selection_view_;
+    DataSelectionTabs* selection_view_;
 
     ///@name Filter widget
     //@{
@@ -410,6 +439,11 @@ protected:
 
     /// Log output window
     LogWindow* log_;
+
+    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    TOOL_SCAN scan_mode_;
+    /// Scans for tools/utils and generates a param for each.
+    TVToolDiscovery tool_scanner_;
 
     /** @name Toolbar
     */
@@ -505,6 +539,9 @@ protected:
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
+
+    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
+    void addToolParamsToIni_();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

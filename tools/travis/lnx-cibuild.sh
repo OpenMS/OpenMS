@@ -11,17 +11,24 @@ function cdashify()
 export SOURCE_DIRECTORY=`pwd`
 mkdir _build
 
+# additional variables
+export CMAKE_GENERATOR="Unix Makefiles"
+export CONTRIB_BUILD_DIRECTORY="$SOURCE_DIRECTORY/contrib"
+export OPENMS_CONTRIB_LIBS="$SOURCE_DIRECTORY/contrib"
+export USE_STATIC_BOOST="Off"
+
 # assemble a proper build name
-_build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})
+_build_name=""
 
 # extend with specific information
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_PULL_REQUEST})
-elif [ "${TRAVIS_COMMIT_RANGE}" != "" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT_RANGE})
+  _build_name="pr"$(cdashify ${TRAVIS_PULL_REQUEST})
 else
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT})
+  _build_name=$(cdashify ${TRAVIS_BRANCH})
 fi
+
+# append OS
+_build_name=${_build_name}"-Ubuntu"
 
 # append compiler info
 _build_name=${_build_name}"-"${CXX}

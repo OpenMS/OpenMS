@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ namespace OpenMS
      * @param key String that will be the key for searching in the unordered set
      * @param pep_hit PeptideHit to store the result "is_contaminant = 0/1"
      * @param total counter of all checked peptides
-     * @param cont counter of all checked peptides that are contamiants
+     * @param cont counter of all checked peptides that are contaminants
      * @param sum_total intensity of all checked peptides
      * @param sum_cont intensity of all checked peptides that are contaminants
      * @param intensity intensity of current peptide

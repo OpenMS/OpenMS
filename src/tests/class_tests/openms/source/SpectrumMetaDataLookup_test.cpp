@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,7 +144,7 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
   TEST_EQUAL(meta.rt, 2.0);
   TEST_EQUAL(meta.native_id, "spectrum=1");
 
-  lookup.addReferenceFormat("rt=(?<RT>\\d+(\\.\\d+)?),mz=(?<MZ>\\d+(\\.\\d+)?)");
+  lookup.addReferenceFormat(R"(rt=(?<RT>\d+(\.\d+)?),mz=(?<MZ>\d+(\.\d+)?))");
   SpectrumMetaDataLookup::SpectrumMetaData meta2;
   SpectrumMetaDataLookup::MetaDataFlags flags =
     (SpectrumMetaDataLookup::MDF_RT | SpectrumMetaDataLookup::MDF_PRECURSORMZ);

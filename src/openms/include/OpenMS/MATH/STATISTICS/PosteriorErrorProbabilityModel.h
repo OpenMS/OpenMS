@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <vector>
 #include <map>
@@ -160,16 +161,16 @@ public:
       ///Writes the log distributions of gumbel and gauss densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
       void fillLogDensitiesGumbel(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
       ///computes the Likelihood with a log-likelihood function.
-      double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density);
+      double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density) const;
       
       /**computes the posteriors for the datapoints to belong to the incorrect distribution
        * @param incorrect_posterior resulting posteriors
-       * @return the loglikelihood of the model
+       * @return the log-likelihood of the model
        */
       double computeLLAndIncorrectPosteriorsFromLogDensities(
           const std::vector<double>& incorrect_log_density,
           const std::vector<double>& correct_log_density,
-          std::vector<double>& incorrect_posterior);
+          std::vector<double>& incorrect_posterior) const;
 
       /**
        * @param x_scores Scores observed "on the x-axis"
@@ -243,7 +244,7 @@ public:
       void plotTargetDecoyEstimation(std::vector<double> & target, std::vector<double> & decoy);
 
       /// returns the smallest score used in the last fit
-      inline double getSmallestScore()
+      inline double getSmallestScore() const
       {
         return smallest_score_;
       }
@@ -265,7 +266,7 @@ private:
       /// @requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
       /// @hit the PeptideHit to extract from
       /// @actual_score_type the current score type to take preference if matching
-      static double getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
+      static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);

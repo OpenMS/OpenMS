@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,8 +81,9 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.11);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.12);
-  TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
+  TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);  
   TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
+  TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
   TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
   TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_STRING_EQUAL(tmp2.getMetaValue("bla"),"bluff");
@@ -94,7 +95,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.0);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.0);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);
-  TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
+  TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
   TEST_STRING_EQUAL(tmp2.getNativeID(),"");
   TEST_EQUAL(tmp2.getDataProcessing().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("bla"),false);
@@ -122,6 +123,7 @@ START_SECTION((ChromatogramSettings& operator=(const ChromatogramSettings &sourc
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.14);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
   TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
+  TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
   TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
   TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getMetaValue("bla")=="bluff",true);
@@ -292,14 +294,15 @@ START_SECTION((const AcquisitionInfo& getAcquisitionInfo() const ))
 {
   ChromatogramSettings tmp;
   tmp.getAcquisitionInfo().setMethodOfCombination("test");
-  TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
+  TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);  
+  TEST_EQUAL(tmp.getAcquisitionInfo().empty(), true);
 }
 END_SECTION
 
 START_SECTION((AcquisitionInfo& getAcquisitionInfo()))
 {
   ChromatogramSettings tmp;
-  TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
+  TEST_EQUAL(tmp.getAcquisitionInfo().empty(), true);
 }
 END_SECTION
 
@@ -309,7 +312,8 @@ START_SECTION((void setAcquisitionInfo(const AcquisitionInfo &acquisition_info))
   AcquisitionInfo ai;
   ai.setMethodOfCombination("test");
   tmp.setAcquisitionInfo(ai);
-  TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
+  TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);  
+  TEST_EQUAL(tmp.getAcquisitionInfo().empty(), true);  
 }
 END_SECTION
 

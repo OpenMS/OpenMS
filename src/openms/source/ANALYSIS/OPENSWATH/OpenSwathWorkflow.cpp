@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -203,7 +203,7 @@ namespace OpenMS
 
     // 5. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
-    String outlier_method = irt_detection_param.getValue("outlierMethod");
+    String outlier_method = irt_detection_param.getValue("outlierMethod").toString();
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
     {
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
@@ -279,8 +279,8 @@ namespace OpenMS
     // 8. Correct m/z deviations using SwathMapMassCorrection
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
-    mc.correctMZ(trgrmap_final, swath_maps, targeted_exp);
-    mc.correctIM(trgrmap_final, swath_maps, im_trafo, targeted_exp);
+    mc.correctMZ(trgrmap_final, targeted_exp, swath_maps);
+    mc.correctIM(trgrmap_final, targeted_exp, swath_maps, im_trafo);
 
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
@@ -289,7 +289,7 @@ namespace OpenMS
     model_params.setValue("symmetric_regression", "false");
     model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-    String model_type = irt_detection_param.getValue("alignmentMethod");
+    String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
     OPENMS_LOG_DEBUG << "Final RT mapping:" << std::endl;
@@ -328,7 +328,7 @@ namespace OpenMS
         OpenSwath::LightTargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
-        if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found
+        if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
         {
 
           std::vector< OpenSwath::ChromatogramPtr > tmp_out;
@@ -606,7 +606,7 @@ namespace OpenMS
           }
         }
 
-        if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
+        if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
 
           OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
@@ -962,21 +962,21 @@ namespace OpenMS
       featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
       // Ensure that a detection transition is used to derive features for output
-      if (detection_assay_it == nullptr && output.size() > 0)
+      if (detection_assay_it == nullptr && !output.empty())
       {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Error, did not find any detection transition for feature " + id );
       }
 
       // 5. Add to the output tsv if given
-      if (tsv_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
+      if (tsv_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         to_tsv_output.push_back(tsv_writer.prepareLine(pep, detection_assay_it, output, id));
       }
 
       // 6. Add to the output osw if given
-      if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
+      if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep;
         to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
@@ -1145,7 +1145,7 @@ namespace OpenMS
         OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
             0, currwin_start, currwin_end);
 
-        if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
+        if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
 
 

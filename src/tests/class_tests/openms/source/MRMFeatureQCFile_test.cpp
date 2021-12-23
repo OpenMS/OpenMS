@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 
@@ -276,6 +277,9 @@ START_SECTION(void store(const String& filename, MRMFeatureQC& mrmfqc, const boo
   MRMFeatureQC mrmfqc, mrmfqc_test;
   String file_comp = File::getTemporaryFile();
   String file_comp_group = File::getTemporaryFile();
+
+  mrmfqcfile.store(file_comp, mrmfqc, false); // empty components file
+  mrmfqcfile.store(file_comp_group, mrmfqc, true); // empty component groups file
 
   mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc, false); // components file
   mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2.csv"), mrmfqc, true); // component groups file

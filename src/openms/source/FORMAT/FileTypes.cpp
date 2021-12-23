@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,6 +79,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file"),
     TypeNameBinding(FileTypes::MZQUANTML, "mzq", "mzQuantML file"),
     TypeNameBinding(FileTypes::QCML, "qcml", "quality control file"),
+    TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format"),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file"),
     TypeNameBinding(FileTypes::TRAML, "traML", "transition file"),
     TypeNameBinding(FileTypes::MSP, "msp", "NIST spectra library file format"),
@@ -130,7 +131,10 @@ namespace OpenMS
   {
     for (const auto& t : type_list_)
     {
-      if (t == type) return true;
+      if (t == type)
+      {
+        return true;
+      }
     }
     return false;
   }
@@ -160,8 +164,10 @@ namespace OpenMS
       }
       out += ListUtils::concatenate(items, "");
     }
-    if (add_all_filter) out += "all files (*);;";
-
+    if (add_all_filter)
+    {
+      out += "all files (*);;";
+    }
     // remove the last ";;", since this will be interpreted as ' (*)' by Qt
     out = out.chop(2);
 
@@ -173,7 +179,10 @@ namespace OpenMS
   {
     for (const auto& t_info : type_with_annotation__)
     {
-      if (t_info.type == type) return t_info.name;
+      if (t_info.type == type)
+      {
+        return t_info.name;
+      }
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type has no name!", String(type));
   }
@@ -194,7 +203,10 @@ namespace OpenMS
     
     for (const auto& t_info : type_with_annotation__)
     {
-      if (String(t_info.name).toUpper() == name_upper) return t_info.type;
+      if (String(t_info.name).toUpper() == name_upper)
+      {
+        return t_info.type;
+      }
     }
 
     return FileTypes::UNKNOWN;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,11 +47,11 @@ namespace OpenMS
   /**
     @brief provides a signal mechanism (by deriving from QObject) for classes which are not allowed to have signals themselves.
 
-    This might be useful for EnhancedTabBarWidgetInterface, since that cannot derive from QObject due to the diamond star inheritance problem via its parent classes (e.g. SpectrumWidget).
+    This might be useful for EnhancedTabBarWidgetInterface, since that cannot derive from QObject due to the diamond star inheritance problem via its parent classes (e.g. PlotWidget).
     
     Diamond star problem:
       
-      SpectrumWidget
+      PlotWidget
        /       \
     ETBWI    QWidget
        -!      /
@@ -94,7 +94,7 @@ namespace OpenMS
     void addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab = true);
 
     /// get the EnhancedTabBar unique window id
-    Int getWindowId();
+    Int getWindowId() const;
 
     /// the first object to be created will get this ID
     static Int getFirstWindowID();

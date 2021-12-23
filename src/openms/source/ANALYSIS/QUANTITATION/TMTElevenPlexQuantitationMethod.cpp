@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,7 @@
 namespace OpenMS
 {
 const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
-const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
+const std::vector<std::string> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
 
 TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
 {
@@ -101,17 +101,17 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C).");
     defaults_.setValidStrings("reference_channel", TMTElevenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
@@ -119,22 +119,22 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTElevenPlexQuantitationMethod::updateMembers_()
 {
-    channels_[0].description = param_.getValue("channel_126_description");
-    channels_[1].description = param_.getValue("channel_127N_description");
-    channels_[2].description = param_.getValue("channel_127C_description");
-    channels_[3].description = param_.getValue("channel_128N_description");
-    channels_[4].description = param_.getValue("channel_128C_description");
-    channels_[5].description = param_.getValue("channel_129N_description");
-    channels_[6].description = param_.getValue("channel_129C_description");
-    channels_[7].description = param_.getValue("channel_130N_description");
-    channels_[8].description = param_.getValue("channel_130C_description");
-    channels_[9].description = param_.getValue("channel_131N_description");
-    channels_[10].description = param_.getValue("channel_131C_description");
+    channels_[0].description = param_.getValue("channel_126_description").toString();
+    channels_[1].description = param_.getValue("channel_127N_description").toString();
+    channels_[2].description = param_.getValue("channel_127C_description").toString();
+    channels_[3].description = param_.getValue("channel_128N_description").toString();
+    channels_[4].description = param_.getValue("channel_128C_description").toString();
+    channels_[5].description = param_.getValue("channel_129N_description").toString();
+    channels_[6].description = param_.getValue("channel_129C_description").toString();
+    channels_[7].description = param_.getValue("channel_130N_description").toString();
+    channels_[8].description = param_.getValue("channel_130C_description").toString();
+    channels_[9].description = param_.getValue("channel_131N_description").toString();
+    channels_[10].description = param_.getValue("channel_131C_description").toString();
 
     // compute the index of the reference channel
-    std::vector<String>::const_iterator t_it = std::find(TMTElevenPlexQuantitationMethod::channel_names_.begin(),
+    std::vector<std::string>::const_iterator t_it = std::find(TMTElevenPlexQuantitationMethod::channel_names_.begin(),
                                                          TMTElevenPlexQuantitationMethod::channel_names_.end(),
-                                                         (String) param_.getValue("reference_channel"));
+                                                         param_.getValue("reference_channel"));
 
     reference_channel_ = t_it - TMTElevenPlexQuantitationMethod::channel_names_.begin();
 }
@@ -179,7 +179,7 @@ Size TMTElevenPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTElevenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
 }
 

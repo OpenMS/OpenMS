@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,13 +93,13 @@ namespace OpenMS
     fragment_mass_tolerance_(0)
   {
     defaults_.setValue("fragment_mass_tolerance", 0.4, "fragment mass tolerance");
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
-    defaults_.setValue("double_charged_iso_threshold", 0.9, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", ListUtils::create<String>("advanced"));
-    defaults_.setValue("double_charged_iso_threshold_single", 0.99, "Isotope scoring threshold used for doubly charged ions to infer singly charged variants", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_decomp_weight", 600, "maximal m/z difference used to calculate the decompositions", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions", ListUtils::create<String>("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", {"advanced"});
+    defaults_.setValue("double_charged_iso_threshold", 0.9, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", {"advanced"});
+    defaults_.setValue("double_charged_iso_threshold_single", 0.99, "Isotope scoring threshold used for doubly charged ions to infer singly charged variants", {"advanced"});
+    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", {"advanced"});
+    defaults_.setValue("max_decomp_weight", 600, "maximal m/z difference used to calculate the decompositions", {"advanced"});
+    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", {"advanced"});
+    defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions", {"advanced"});
 
     defaultsToParam_();
   }
@@ -166,7 +166,7 @@ namespace OpenMS
     CID_spec = CID_spec_new;
   }
 
-  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it)
+  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it) const
   {
     double it_pos(it->getPosition()[0]);
 

@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,13 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
-  void OpenMS::OSWData::addProtein(OSWProtein&& prot)
+  const char* OSWHierarchy::LevelName[] = { "protein", "peptide", "feature/peakgroup", "transition" };
+
+  void OSWData::addProtein(OSWProtein&& prot)
   {
     // check if transitions are known
     checkTransitions_(prot);
@@ -54,6 +57,49 @@ namespace OpenMS
   void OSWData::clearProteins()
   {
     proteins_.clear();
+  }
+
+  void OSWData::buildNativeIDResolver(const MSExperiment& chrom_traces)
+  {
+    // first check if the MSExperiment originates from the same run by checking for matching run-ids
+    if (chrom_traces.getSqlRunID() != getRunID())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                    "The RUN.ID of the sqMass/MSExperiment ('" + String(chrom_traces.getSqlRunID()) + 
+                                    "') and the OSW file ('" + String(getRunID()) + "') does not match. "
+                                    "Please use a recent version of OpenSwathWorkflow to create matching data.");
+    }
+    
+    Size chrom_count = chrom_traces.getChromatograms().size();
+    for (Size i = 0; i < chrom_count; ++i)
+    {
+      const auto& chrom = chrom_traces.getChromatograms()[i];
+      UInt32 nid;
+      try
+      {
+        nid = chrom.getNativeID().toInt();
+      }
+      catch (...)
+      {
+        // probably a precursor native ID, e.g. 5543_precursor_i0 .. currently not handled.
+        continue;
+      }
+      if (transitions_.find(nid) == transitions_.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (String(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
+      }
+      transID_to_index_[nid] = (UInt32)i;
+    }
+  }
+
+  UInt OSWData::fromNativeID(int transition_id) const
+  {
+    auto it = transID_to_index_.find(transition_id);
+    if (it == transID_to_index_.end())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native ID not found in sqMass file. Did you load the correct file (corresponding sqMass + OSW file)?", String(transition_id));
+    }
+    return it->second;
   }
 
   void OSWData::checkTransitions_(const OSWProtein& prot) const
