@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,10 +54,10 @@ namespace OpenMS
     defaults_.setMinFloat("filter:min_support", 0.0);
     defaults_.setMaxFloat("filter:min_support", 1.0);
     defaults_.setValue("filter:count_empty", "false", "Count empty ID runs (i.e. those containing no peptide hit for the current spectrum) when calculating 'min_support'?");
-    defaults_.setValidStrings("filter:count_empty", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("filter:count_empty", {"true","false"});
 
     defaults_.setValue("filter:keep_old_scores", "false", "if set, keeps the original scores as user params");
-    defaults_.setValidStrings("filter:keep_old_scores", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("filter:keep_old_scores", {"true","false"});
 
     defaultsToParam_();
   }
@@ -90,14 +90,13 @@ namespace OpenMS
     number_of_runs_ = (number_of_runs != 0) ? number_of_runs : ids.size();
 
     // prepare data here, so that it doesn't have to happen in each algorithm:
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
-         pep_it != ids.end(); ++pep_it)
+    for (PeptideIdentification& pep : ids)
     {
-      pep_it->sort();
+      pep.sort();
       if ((considered_hits_ > 0) &&
-          (pep_it->getHits().size() > considered_hits_))
+          (pep.getHits().size() > considered_hits_))
       {
-        pep_it->getHits().resize(considered_hits_);
+        pep.getHits().resize(considered_hits_);
       }
     }
     // make sure there are no duplicated hits (by sequence):

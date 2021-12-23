@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,10 +166,10 @@ protected:
     String date_string = now.get();
     String identifier("CompNovo_" + date_string);
 
-    for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    for (PeptideIdentification&  pep : pep_ids)
     {
-      it->assignRanks();
-      it->setIdentifier(identifier);
+      pep.assignRanks();
+      pep.setIdentifier(identifier);
     }
 
     vector<ProteinIdentification> prot_ids;
@@ -199,8 +199,8 @@ protected:
       search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");
-    search_parameters.variable_modifications = algorithm_param.getValue("variable_modifications");
+    search_parameters.fixed_modifications = ListUtils::toStringList<std::string>(algorithm_param.getValue("fixed_modifications"));
+    search_parameters.variable_modifications = ListUtils::toStringList<std::string>(algorithm_param.getValue("variable_modifications"));
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");

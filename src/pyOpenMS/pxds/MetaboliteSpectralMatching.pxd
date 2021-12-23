@@ -15,14 +15,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         #    DefaultParamHandler
 
         MetaboliteSpectralMatching() nogil except +
-        MetaboliteSpectralMatching(MetaboliteSpectralMatching) nogil except + 
+        MetaboliteSpectralMatching(MetaboliteSpectralMatching &) nogil except + # compiler
 
         void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab) nogil except +
         
     cdef cppclass SpectralMatch:
 
-        SpectralMatch() nogil except +
-        SpectralMatch(SpectralMatch) nogil except + 
+        SpectralMatch() nogil except +# TODO(Whole file)
+        SpectralMatch(SpectralMatch &) nogil except +
 
         double getObservedPrecursorMass() nogil except +
         void setObservedPrecursorMass(double)nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
+
+#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
+
 #include <QtCore/QMimeData>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
 
 #include <QMdiSubWindow>
-#include <QtCore/QStringList>
 
 namespace OpenMS
 {
@@ -113,6 +115,23 @@ namespace OpenMS
       window->setVisible(true);
       window->show();
     }
+  }
+
+  /// get the subwindow with the given id (for all subwindows which inherit from EnhancedTabBarWidgetInterface)
+  /// Returns nullptr if window is not present
+
+  EnhancedTabBarWidgetInterface* EnhancedWorkspace::getWidget(int id) const
+  {
+    for (const auto& sub_window : this->subWindowList())
+    {
+      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(sub_window->widget());
+      //cout << "  Tab " << i << ": " << w->window_id << endl;
+      if (w != 0 && w->getWindowId() == id)
+      {
+        return w;
+      }
+    }
+    return nullptr;
   }
 
   void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)

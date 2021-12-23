@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ namespace OpenMS
     UInt font_size = painter->font().pointSize();
     UInt max_width = 0;
 
-    if (grid.size() >= 1) //check big intervals only
+    if (!grid.empty()) //check big intervals only
     {
       QFontMetrics metrics(QFont(painter->font().family(), font_size));
       for (Size i = 0; i < grid[0].size(); i++)
@@ -261,7 +261,7 @@ namespace OpenMS
 
     // Painting legend
     painter->setFont(QFont(painter->font().family(), font_size));
-    if (show_legend && legend != "")
+    if (show_legend && !legend.empty())
     {
       // style settings
       painter->setPen(QPen(Qt::black));

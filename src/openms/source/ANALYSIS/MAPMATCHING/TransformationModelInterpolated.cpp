@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,6 +31,10 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
@@ -259,7 +263,7 @@ private:
 
 
     // choose the actual interpolation type
-    const String interpolation_type = params_.getValue("interpolation_type");
+    const String interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
       interp_ = new LinearInterpolator();
@@ -282,7 +286,7 @@ private:
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type");
+    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
       std::vector<TransformationModel::DataPoint> bloated_data{};
@@ -337,7 +341,7 @@ private:
     preprocessDataPoints_(data);
 
     // choose the actual interpolation type
-    const String interpolation_type = params_.getValue("interpolation_type");
+    const String interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
       interp_ = new LinearInterpolator();
@@ -360,7 +364,7 @@ private:
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type");
+    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
       lm_front_ = new TransformationModelLinear(data, Param());
@@ -422,11 +426,9 @@ private:
   {
     params.clear();
     params.setValue("interpolation_type", "cspline", "Type of interpolation to apply.");
-    StringList types = ListUtils::create<String>("linear,cspline,akima");
-    params.setValidStrings("interpolation_type", types);
+    params.setValidStrings("interpolation_type", {"linear","cspline","akima"});
     params.setValue("extrapolation_type", "two-point-linear", "Type of extrapolation to apply: two-point-linear: use the first and last data point to build a single linear model, four-point-linear: build two linear models on both ends using the first two / last two points, global-linear: use all points to build a single linear model. Note that global-linear may not be continuous at the border.");
-    StringList etypes = ListUtils::create<String>("two-point-linear,four-point-linear,global-linear");
-    params.setValidStrings("extrapolation_type", etypes);
+    params.setValidStrings("extrapolation_type", {"two-point-linear","four-point-linear","global-linear"});
   }
 
 } // namespace

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,16 +53,13 @@
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
 
-namespace OpenMS
+namespace OpenMS::Exception
 {
-
-  namespace Exception
-  {
 
     GlobalExceptionHandler::GlobalExceptionHandler() throw()
     {
       std::set_terminate(terminate);
-      std::set_unexpected(terminate);
+      //std::set_unexpected(terminate); // removed in c++17
       std::set_new_handler(newHandler);
     }
 
@@ -85,7 +82,7 @@ namespace OpenMS
       if ((line_() != -1) && (name_() != "unknown"))
       {
         std::cout << "last entry in the exception handler: " << std::endl;
-        std::cout << "exception of type " << name_().c_str() << " occured in line "
+        std::cout << "exception of type " << name_().c_str() << " occurred in line "
                   << line_() << ", function " << function_() << " of " << file_().c_str() << std::endl;
         std::cout << "error message: " << what_().c_str() << std::endl;
       }
@@ -143,6 +140,5 @@ namespace OpenMS
       GlobalExceptionHandler::line_() = line;
     }
 
-  } // namespace Exception
 
-} // namespace OpenMS
+} // namespace OpenMS // namespace Exception

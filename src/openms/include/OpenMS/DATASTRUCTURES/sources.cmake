@@ -24,6 +24,7 @@ DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
 FASTAContainer.h
+FlagSet.h
 GridFeature.h
 IsotopeCluster.h
 KDTree.h
@@ -34,14 +35,15 @@ Map.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
+OSWData.h
 Param.h
+ParamValue.h
 QTCluster.h
 SeqanIncludeWrapper.h
 String.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
-
 )
 
 ### add path to the filenames

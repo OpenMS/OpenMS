@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,28 +70,9 @@ START_SECTION(Status requires() const override)
 END_SECTION
 
 START_SECTION(void compute(const MSExperiment &exp, float bin_size))
-  // very simple test ATM, since the computation is simply exp.getTIC(bin_size);
+  // very simple test ATM, check if compute returns an empty Result struct
   MSExperiment exp;
-  exp.setSpectra( { MSSpectrum() });
-  TIC tic;
-  tic.compute(exp, 0);
-  auto r = tic.getResults();
-  TEST_EQUAL(r.size(), 1);
-  ABORT_IF(r[0].size() != 1); // one intensity per input spectrum
-  ABORT_IF(r[0][0].getIntensity() != 0); // empty spectrum
-END_SECTION
-
-START_SECTION(vector<MSChromatogram> getResults() const)
-  NOT_TESTABLE // tested above
-END_SECTION
-
-START_SECTION(void clear())
-  TIC tic;
-  MSExperiment exp2;
-  tic.compute(exp2);
-  TEST_EQUAL(tic.getResults().empty(), false);
-  tic.clear();
-  TEST_EQUAL(tic.getResults().empty(), true);
+  TEST_EQUAL(tic.compute(exp, 0) == TIC::Result(), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

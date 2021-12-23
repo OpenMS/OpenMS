@@ -1,6 +1,5 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
 from ConvexHull2D cimport *
 from PeptideIdentification cimport *
 from BaseFeature cimport *
@@ -16,7 +15,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #    RichPeak2D
         #
         # wrap-doc:
-        #   An LC-MS feature.
+        #   An LC-MS feature
         #   -----
         #   The Feature class is used to describe the two-dimensional signal caused by an
         #   analyte. It can store a charge state and a list of peptide identifications
@@ -25,20 +24,25 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #   also a convex hull for the entire Feature. The model description can store
         #   the parameters of a two-dimensional theoretical model of the underlying
         #   signal in LC-MS. Currently, non-peptide compounds are also represented as
-        #   features.
+        #   features
 
         Feature() nogil except +
         Feature(Feature &) nogil except +
 
-        float getQuality(Size index) nogil except +
-        void setQuality(Size index, float q) nogil except +
-        float getOverallQuality() nogil except +
-        void setOverallQuality(float q) nogil except +
+        float getQuality(Size index) nogil except + # wrap-doc:Returns the quality in dimension c
+        void setQuality(Size index, float q) nogil except + # wrap-doc:Sets the quality in dimension c
+        float getOverallQuality() nogil except + # wrap-doc:Model and quality methods
+        void setOverallQuality(float q) nogil except + # wrap-doc:Sets the overall quality
 
-        libcpp_vector[Feature] getSubordinates() nogil except +
-        void setSubordinates(libcpp_vector[Feature]) nogil except +
+        libcpp_vector[Feature] getSubordinates() nogil except + # wrap-doc:Returns the subordinate features
+        void setSubordinates(libcpp_vector[Feature]) nogil except + # wrap-doc:Returns the subordinate features
 
-        bool encloses(double rt, double mz) nogil except +
+        bool encloses(double rt, double mz) nogil except + 
+            # wrap-doc:
+            #   Returns if the mass trace convex hulls of the feature enclose the position specified by `rt` and `mz`
+            #   -----
+            #   :param rt: Sequence to digest
+            #   :param mz: Digestion products
         ConvexHull2D getConvexHull() nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
@@ -58,8 +62,8 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         void setCharge(Int q) nogil except +
         AnnotationState getAnnotationState() nogil except +
 
-        # returns a mutable reference to the PeptideIdentification vector
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
-        # sets the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
+   
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except + # wrap-doc:Returns a reference to the PeptideIdentification vector
+        
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except + # wrap-doc:Sets the PeptideIdentification vector
 

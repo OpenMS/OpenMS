@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,8 +60,10 @@ namespace OpenMS
       return false;
     }
 
-    if (verbose) OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
-
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
+    }
     QStringList args;
     args << "--vanilla" << "--quiet" << fullscript.toQString();
     args.append(cmd_args);
@@ -83,8 +85,10 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
-
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " success" << std::endl;
+    }
     return true;
   }
 
@@ -116,9 +120,14 @@ namespace OpenMS
 
       return false;
     }
-    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
-
-    if (verbose) OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " success" << std::endl;
+    }
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
+    }
     if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
     {
       if (verbose)
@@ -132,8 +141,10 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
-
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " success" << std::endl;
+    }
     return true;
   }
 
@@ -146,7 +157,10 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (verbose) OPENMS_LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
+      if (verbose)
+      {
+        OPENMS_LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
+      }
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;

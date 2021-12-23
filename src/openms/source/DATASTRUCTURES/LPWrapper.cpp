@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
+#if COINOR_SOLVER == 1  // only include COINOR if we actually use it...
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
 #pragma warning( push ) // save warning state
 #pragma warning( disable : 4267 )
@@ -57,15 +58,12 @@
 #else
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
-
-
-
+#else   // no COINOR
 #include <glpk.h>
+#endif
 
 namespace OpenMS
 {
-
-
   LPWrapper::LPWrapper()
   {
 #if COINOR_SOLVER == 1
@@ -93,7 +91,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     }
 #if COINOR_SOLVER == 1
-    model_->addRow(row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
+    model_->addRow((int)row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
     return model_->numberRows() - 1;
 #else
     std::vector<Int> row_indices_ = row_indices;
@@ -106,7 +104,7 @@ namespace OpenMS
     {
       ++row_index;
     }
-    glp_set_mat_row(lp_problem_, index, row_indices_.size() - 1, row_indices_.data(), row_values_.data());
+    glp_set_mat_row(lp_problem_, index, (int)row_indices_.size() - 1, row_indices_.data(), row_values_.data());
     glp_set_row_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -133,7 +131,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     }
 #if COINOR_SOLVER == 1
-    model_->addColumn(column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
+    model_->addColumn((int)column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
     return model_->numberColumns() - 1;
 #else
     std::vector<Int> column_indices_ = column_indices;
@@ -146,7 +144,7 @@ namespace OpenMS
     {
       ++column_index;
     }
-    glp_set_mat_col(lp_problem_, index, column_indices_.size() - 1, column_indices_.data(), column_values_.data());
+    glp_set_mat_col(lp_problem_, index, (int)column_indices_.size() - 1, column_indices_.data(), column_values_.data());
     glp_set_col_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -469,13 +467,16 @@ namespace OpenMS
     return solver_;
   }
 
-  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
-  {
 #if COINOR_SOLVER == 1
+  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
+  {
     // delete old model and create a new model in its place (using same ptr)
     delete model_;
     model_ = new CoinModel(filename.c_str());
-#else      
+  }
+#else
+  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
+  {
     // delete old model and create a new model in its place (using same ptr)
     glp_erase_prob(lp_problem_);
 
@@ -493,9 +494,8 @@ namespace OpenMS
     }
     else
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid LP format, allowed are LP, MPS, GLPK");
-
-#endif
   }
+#endif
 
   void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
   {
@@ -526,17 +526,15 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param, const Size
 #if COINOR_SOLVER == 1
-                       verbose_level
+  Int LPWrapper::solve(SolverParam& /*solver_param*/, const Size verbose_level)
 #else
-                       /* verbose_level */
+  Int LPWrapper::solve(SolverParam& solver_param, const Size /*verbose_level*/)
 #endif
-                       )
   {
     OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
 #if COINOR_SOLVER == 1
-//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But afaik we prefer CLP as solver anyway so no need to look for different solvers.
+//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But as far as I know we prefer CLP as solver anyway so no need to look for different solvers.
 //#ifdef COIN_HAS_CLP
     OsiClpSolverInterface solver;
 //#elif COIN_HAS_OSL
@@ -572,7 +570,7 @@ namespace OpenMS
     //model.addCutGenerator(&generator1,-1,"Probing");
     model.addCutGenerator(&generator2, -1, "Gomory");
     model.addCutGenerator(&generator3, -1, "Knapsack");
-    //model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
+    //model.addCutGenerator(&generator4,-1,"OddHole"); // segfaults
     model.addCutGenerator(&generator5, -10, "Clique");
     //model.addCutGenerator(&flowGen,-1,"FlowCover");
     model.addCutGenerator(&mixedGen, -1, "MixedIntegerRounding");
@@ -613,24 +611,37 @@ namespace OpenMS
     solver_param_glp.bt_tech = solver_param.backtrack_tech;
     solver_param_glp.pp_tech = solver_param.preprocessing_tech;
     if (solver_param.enable_feas_pump_heuristic)
+    {
       solver_param_glp.fp_heur = GLP_ON;
+    }
     if (solver_param.enable_gmi_cuts)
+    {
       solver_param_glp.gmi_cuts = GLP_ON;
+    }
     if (solver_param.enable_mir_cuts)
+    {
       solver_param_glp.mir_cuts = GLP_ON;
+    }
     if (solver_param.enable_cov_cuts)
+    {
       solver_param_glp.cov_cuts = GLP_ON;
+    }
     if (solver_param.enable_clq_cuts)
+    {
       solver_param_glp.clq_cuts = GLP_ON;
+    }
     solver_param_glp.mip_gap = solver_param.mip_gap;
     solver_param_glp.tm_lim = solver_param.time_limit;
     solver_param_glp.out_frq = solver_param.output_freq;
     solver_param_glp.out_dly = solver_param.output_delay;
     if (solver_param.enable_presolve)
+    {
       solver_param_glp.presolve = GLP_ON;
+    }
     if (solver_param.enable_binarization)
+    {
       solver_param_glp.binarize = GLP_ON; // only with presolve
-
+    }
     return glp_intopt(lp_problem_, &solver_param_glp);
 #endif
   }
@@ -638,7 +649,7 @@ namespace OpenMS
   LPWrapper::SolverStatus LPWrapper::getStatus()
   {
 #if COINOR_SOLVER == 1
-    return LPWrapper::UNDEFINED; // solver lokale Variable, braucht man diese Abfrage
+    return LPWrapper::UNDEFINED;
 #else
     Int status = glp_mip_status(lp_problem_);
     switch (status)
@@ -737,9 +748,13 @@ namespace OpenMS
       return LPWrapper::MAX;
 #else
     if (glp_get_obj_dir(lp_problem_) == 1)
+    {
       return LPWrapper::MIN;
+    }
     else
+    {
       return LPWrapper::MAX;
+    }
 #endif
   }
 

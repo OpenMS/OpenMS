@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <sstream>
 
 //#define DEBUG
 
@@ -131,9 +133,9 @@ namespace OpenMS
     
     // construct navigators for all spline spectra
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
-    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
       navigators.push_back(nav);
     }
     
@@ -159,7 +161,7 @@ namespace OpenMS
         size_t idx_rt = &it_rt - &exp_centroided_white_[0];
         
         // skip empty spectra
-        if (it_rt.size() == 0 || boundaries_[idx_rt].size() == 0 || exp_spline_profile_[idx_rt].size() == 0)
+        if (it_rt.empty() || boundaries_[idx_rt].empty() || exp_spline_profile_[idx_rt].size() == 0)
         {
           continue;
         }
@@ -170,17 +172,18 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
-        for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
+        #pragma omp parallel for
+        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
         {
-          double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()], idx_rt);
+          double mz = it_rt[s].getMZ();
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
           
-          if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
             continue;
           }
           
-          size_t mz_idx = exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()];
+          size_t mz_idx = exp_centroided_mapping_[idx_rt][s];
           double peak_min = boundaries_[idx_rt][mz_idx].mz_min;
           double peak_max = boundaries_[idx_rt][mz_idx].mz_max;
           
@@ -245,8 +248,11 @@ namespace OpenMS
           // If some satellite data points passed all filters, we can add the peak to the filter result.
           if (peak.sizeProfile() > 0)
           {
-            result.addPeak(peak);
-            blacklistPeak_(peak, pattern_idx);
+            #pragma omp critical
+            {
+              result.addPeak(peak);
+              blacklistPeak_(peak, pattern_idx);
+            };
           }
           
         }
@@ -421,12 +427,12 @@ namespace OpenMS
         }
 
         // It is well possible that no corresponding satellite peaks exist, in which case the filter fails.
-        if ((intensities_1.size() == 0) || (intensities_2.size() == 0))
+        if ((intensities_1.empty()) || (intensities_2.empty()))
         {
           return false;
         }
         
-        // calculate correlation between peak insities in peptides 1 and 2
+        // calculate correlation between peak intensities in peptides 1 and 2
         double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         

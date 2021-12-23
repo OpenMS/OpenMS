@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,7 @@ protected:
     void updateMembers_() override;
 
     /// filters the permutations
-    void filterPermuts_(std::set<String> & permut);
+    void filterPermuts_(std::set<String> & permut) const;
 
     /// selects pivot ion of the given range using the scores given in CID_nodes
     void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
@@ -123,7 +123,7 @@ protected:
     void windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks);
 
     /// compares two spectra
-    double compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2);
+    double compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2) const;
 
     /// returns a modified AASequence from a given internal representation
     AASequence getModifiedAASequence_(const String & sequence);

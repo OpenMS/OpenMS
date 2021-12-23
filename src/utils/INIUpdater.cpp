@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,7 +130,7 @@ protected:
     }
     else
     {
-      version = p.getValue("info:version");
+      version = p.getValue("info:version").toString();
       // TODO: return on newer version?!
     }
 
@@ -162,14 +162,14 @@ protected:
         break;
       }
 
-      String old_name = p.getValue(sec_inst + "tool_name");
+      String old_name = p.getValue(sec_inst + "tool_name").toString();
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type");
+      if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type").toString();
       if (!updater.getNewToolName(old_name, ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLog_("Update for file " + infile + " failed because the tool '" + old_name + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -279,7 +279,7 @@ protected:
     }
     else
     {
-      version_old = p.getValue(sections[0] + ":version");
+      version_old = p.getValue(sections[0] + ":version").toString();
       // TODO: return on newer version?!
     }
 
@@ -300,10 +300,10 @@ protected:
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type");
+      if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type").toString();
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLog_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -369,7 +369,7 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (out.size() > 0 && inplace)
+    if (!out.empty() && inplace)
     {
       writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
       printUsage_();
@@ -399,7 +399,7 @@ protected:
     }
 
 
-    if (failed_.size() > 0)
+    if (!failed_.empty())
     {
       writeLog_("The following INI/TOPPAS files could not be updated:\n  " + ListUtils::concatenate(failed_, "\n  "));
       return INPUT_FILE_CORRUPT;

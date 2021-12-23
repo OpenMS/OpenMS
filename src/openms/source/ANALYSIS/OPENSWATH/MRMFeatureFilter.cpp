@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,18 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
-
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -67,8 +64,8 @@ namespace OpenMS
   {
     params.clear();
 
-    params.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", ListUtils::create<String>("advanced"));
-    params.setValidStrings("flag_or_filter", ListUtils::create<String>("flag,filter"));
+    params.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", {"advanced"});
+    params.setValidStrings("flag_or_filter", {"flag","filter"});
   }
 
   void MRMFeatureFilter::updateMembers_()
@@ -187,8 +184,8 @@ namespace OpenMS
             {
               String component_name2 = (String)features.at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
               // find the ion ratio pair
-              if (filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-               && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+              if (!filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
+               && !filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()
                && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
                && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
               {
@@ -298,13 +295,13 @@ namespace OpenMS
       features.at(feature_it).setMetaValue("QC_transition_group_score", cg_score);
 
       // Copy or Flag passing/failing Features
-      if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      if (cg_qc_pass && flag_or_filter_ == "filter" && !subordinates_filtered.empty())
       {
         Feature feature_filtered(features.at(feature_it));
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
       }
-      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
+      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.empty())
       {
         // do nothing
       }
@@ -387,8 +384,8 @@ namespace OpenMS
             cg_tests_count += 3;
 
             // ion ratio QC
-            if (filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-             && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != "") {
+            if (!filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
+             && !filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()) {
               if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).ion_ratio_u,
                 filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_l,
                 filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_u))
@@ -491,13 +488,13 @@ namespace OpenMS
       features.at(feature_it).setMetaValue("QC_transition_group_%RSD_score", cg_score);
 
       // Copy or Flag passing/failing Features
-      if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      if (cg_qc_pass && flag_or_filter_ == "filter" && !subordinates_filtered.empty())
       {
         Feature feature_filtered(features.at(feature_it));
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
       }
-      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
+      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.empty())
       {
         // do nothing
       }
@@ -613,13 +610,13 @@ namespace OpenMS
       features.at(feature_it).setMetaValue("QC_transition_group_%BackgroundInterference_score", cg_score);
 
       // Copy or Flag passing/failing Features
-      if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      if (cg_qc_pass && flag_or_filter_ == "filter" && !subordinates_filtered.empty())
       {
         Feature feature_filtered(features.at(feature_it));
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
       }
-      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
+      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.empty())
       {
         // do nothing
       }
@@ -646,9 +643,9 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values)
+  void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values) const
   {
-    // iterature through each sample and accumulate the min/max values in the samples in the filter_template
+    // iterate through each sample and accumulate the min/max values in the samples in the filter_template
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
 
       // iterate through each component_group/feature
@@ -747,8 +744,8 @@ namespace OpenMS
               {
                 String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
                 // find the ion ratio pair
-                if (filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-                 && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+                if (!filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
+                 && !filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()
                  && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
                  && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
@@ -853,9 +850,9 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
+  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
     accumulateFilterValues(filter_values, samples, filter_template, transitions);
 
@@ -871,9 +868,9 @@ namespace OpenMS
     calculateFilterValuesPercRSD(filter_template, filter_mean, filter_var);
   }
 
-  void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
+  void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
     accumulateFilterValues(filter_values, samples, filter_template, transitions);
 
@@ -1056,7 +1053,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const
   {
-    // iterature through each sample and accumulate the values in the filter_values
+    // iterate through each sample and accumulate the values in the filter_values
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
       MRMFeatureQC filter_value = filter_template;
 
@@ -1117,8 +1114,8 @@ namespace OpenMS
               {
                 String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
                 // find the ion ratio pair
-                if (filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-                 && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+                if (!filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
+                 && !filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()
                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
@@ -1263,7 +1260,7 @@ namespace OpenMS
         }
       }
     }
-    for (size_t cg_qc_it = 0; cg_qc_it < filter_mean.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed seperately due to int types...)
+    for (size_t cg_qc_it = 0; cg_qc_it < filter_mean.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l / filter_values.size();
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u / filter_values.size();
       filter_mean.component_group_qcs.at(cg_qc_it).intensity_l = filter_mean.component_group_qcs.at(cg_qc_it).intensity_l / filter_values.size();
@@ -1347,7 +1344,7 @@ namespace OpenMS
         }
       }
     }
-    for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed seperately due to int types...)
+    for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_var.component_group_qcs.at(cg_qc_it).retention_time_l = filter_var.component_group_qcs.at(cg_qc_it).retention_time_l / (filter_values.size() - 1);
       filter_var.component_group_qcs.at(cg_qc_it).retention_time_u = filter_var.component_group_qcs.at(cg_qc_it).retention_time_u / (filter_values.size() - 1);
       filter_var.component_group_qcs.at(cg_qc_it).intensity_l = filter_var.component_group_qcs.at(cg_qc_it).intensity_l / (filter_values.size() - 1);

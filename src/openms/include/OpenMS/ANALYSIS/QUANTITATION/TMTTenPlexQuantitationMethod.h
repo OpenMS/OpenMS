@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ public:
     TMTTenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() = default;
+    ~TMTTenPlexQuantitationMethod() override = default;
 
     /// Copy c'tor
     TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
@@ -87,7 +87,7 @@ public:
     Size reference_channel_;
 
     /// List of available channel names as they are presented to the user
-    static const std::vector<String> channel_names_;
+    static const std::vector<std::string> channel_names_;
 
   protected:
     /// implemented for DefaultParamHandler

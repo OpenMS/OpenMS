@@ -231,7 +231,7 @@ public:
 
 template <typename VARIABLE_KEY, bool MULT> // true is means multiply, false means divide
 LabeledPMF<VARIABLE_KEY> mult_or_div(const LabeledPMF<VARIABLE_KEY> & lhs, const LabeledPMF<VARIABLE_KEY> & rhs) {
-  #ifdef SHAPE_CHECK
+  //#ifdef SHAPE_CHECK
   // Check that bounds intersect:
   for (unsigned int lhs_index=0; lhs_index<lhs.ordered_variables().size(); ++lhs_index) {
     const VARIABLE_KEY & var = lhs.ordered_variables()[lhs_index];
@@ -243,10 +243,18 @@ LabeledPMF<VARIABLE_KEY> mult_or_div(const LabeledPMF<VARIABLE_KEY> & lhs, const
       long min_rhs_outcome = rhs.pmf().first_support()[rhs_index];
       long max_rhs_outcome = min_rhs_outcome + rhs.pmf().table().view_shape()[rhs_index] - 1;
 
-      assert( ((min_rhs_outcome <= max_lhs_outcome && max_rhs_outcome >= min_lhs_outcome) || (min_lhs_outcome <= max_rhs_outcome && max_lhs_outcome >= min_rhs_outcome)) && "Error: multiplying LabeledPMFs would produce empty product");
+      //assert( ((min_rhs_outcome <= max_lhs_outcome && max_rhs_outcome >= min_lhs_outcome) || (min_lhs_outcome <= max_rhs_outcome && max_lhs_outcome >= min_rhs_outcome)) && "Error: multiplying LabeledPMFs would produce empty product");
+    
+      if (!((min_rhs_outcome <= max_lhs_outcome && max_rhs_outcome >= min_lhs_outcome) || (min_lhs_outcome <= max_rhs_outcome && max_lhs_outcome >= min_rhs_outcome)))
+      {
+	std::stringstream ss;
+	ss << "Multiplying/dividing PMFs with supports [" << min_lhs_outcome << "," << max_lhs_outcome << "] and [" 
+	   << min_rhs_outcome << "," << max_rhs_outcome << "] would result in empty outcome. Contradiction occurred?" << std::endl;
+	throw std::runtime_error(ss.str());
+      }
     }
   }
-  #endif
+  //#endif
 
   std::pair<TensorView<double>, Vector<long> > lhs_view_and_first_sup = lhs.view_of_intersection_with(rhs);
   std::pair<TensorView<double>, Vector<long> > rhs_view_and_first_sup = rhs.view_of_intersection_with(lhs);

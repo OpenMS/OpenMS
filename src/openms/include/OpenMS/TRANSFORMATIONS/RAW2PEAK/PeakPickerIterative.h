@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,19 +118,19 @@ public:
       defaults_.setValue("peak_width", 0.0, "Expected peak width half width in Dalton - peaks will be extended until this half width is reached (even if the intensitity is increasing). In conjunction with check_width_internally it will also be used to remove peaks whose spacing is larger than this value.");
 
 
-      defaults_.setValue("spacing_difference", 1.5, "Difference between peaks in multiples of the minimal difference to continue. The higher this value is set, the further apart peaks are allowed to be to still extend a peak. E.g. if the value is set to 1.5 and in a current peak the minimal spacing between peaks is 10 mDa, then only peaks at most 15 mDa apart will be added to the peak.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("sn_bin_count_", 30, "Bin count for the Signal to Noise estimation.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("nr_iterations_", 5, "Nr of iterations to perform (how many times the peaks are re-centered).", ListUtils::create<String>("advanced"));
+      defaults_.setValue("spacing_difference", 1.5, "Difference between peaks in multiples of the minimal difference to continue. The higher this value is set, the further apart peaks are allowed to be to still extend a peak. E.g. if the value is set to 1.5 and in a current peak the minimal spacing between peaks is 10 mDa, then only peaks at most 15 mDa apart will be added to the peak.", {"advanced"});
+      defaults_.setValue("sn_bin_count_", 30, "Bin count for the Signal to Noise estimation.", {"advanced"});
+      defaults_.setValue("nr_iterations_", 5, "Nr of iterations to perform (how many times the peaks are re-centered).", {"advanced"});
       defaults_.setMinInt("nr_iterations_", 1);
-      defaults_.setValue("sn_win_len_", 20.0, "Window length for the Signal to Noise estimation.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("sn_win_len_", 20.0, "Window length for the Signal to Noise estimation.", {"advanced"});
 
-      defaults_.setValue("check_width_internally", "false", "Delete peaks where the spacing is larger than the peak width (should be set to true to avoid artefacts)", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("check_width_internally", ListUtils::create<String>("true,false"));
+      defaults_.setValue("check_width_internally", "false", "Delete peaks where the spacing is larger than the peak width (should be set to true to avoid artefacts)", {"advanced"});
+      defaults_.setValidStrings("check_width_internally", {"true","false"});
 
       defaults_.setValue("ms1_only", "false", "Only do MS1");
-      defaults_.setValidStrings("ms1_only", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("ms1_only", {"true","false"});
       defaults_.setValue("clear_meta_data", "false", "Delete meta data about peak width");
-      defaults_.setValidStrings("clear_meta_data", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("clear_meta_data", {"true","false"});
 
       // write defaults into Param object param_
       defaultsToParam_();
@@ -166,7 +166,7 @@ private:
     */
     void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt) const
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -287,14 +287,14 @@ private:
 public:
 
     /*
-     * This will pick one single spectrum. The PeakPickerHiRes is used to
-     * generate seeds, these seeds are then used to re-center the mass and
-     * compute peak width and integrated intensity of the peak.
-     *
-     * Finally, other peaks that would fall within the primary peak are
-     * discarded
-     *
-     * The output are the remaining peaks.
+      This will pick one single spectrum. The PeakPickerHiRes is used to
+      generate seeds, these seeds are then used to re-center the mass and
+      compute peak width and integrated intensity of the peak.
+     
+      Finally, other peaks that would fall within the primary peak are
+      discarded
+     
+      The output are the remaining peaks.
     */
     void pick(const MSSpectrum& input, MSSpectrum& output)
     {

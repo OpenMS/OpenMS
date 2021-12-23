@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ public:
     MascotInfile();
 
     /// constructor
-    virtual ~MascotInfile();
+    ~MascotInfile() override;
 
     /// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
     void store(const String & filename, const PeakSpectrum & spec, double mz, double retention_time, String search_title);
@@ -108,7 +108,7 @@ public:
         spectrum.getPrecursors()[0].setIntensity(pre_int);
         spectrum.getPrecursors()[0].setCharge(charge);
         spectrum.setRT(rt);
-        if (title != "")
+        if (!title.empty())
         {
           spectrum.setMetaValue("TITLE", title);
           title = "";
@@ -170,17 +170,17 @@ public:
     void setInstrument(const String & instrument);
 
     /// returns the number of allowed missed cleavages
-    UInt getMissedCleavages();
+    UInt getMissedCleavages() const;
     /// sets the number of allowed missed cleavages (default: 1)
     void setMissedCleavages(UInt missed_cleavages);
 
     /// returns the precursor mass tolerance
-    float getPrecursorMassTolerance();
+    float getPrecursorMassTolerance() const;
     /// sets the precursor mass tolerance in Da (default: 2.0)
     void setPrecursorMassTolerance(float precursor_mass_tolerance);
 
     /// returns the peak mass tolerance in Da
-    float getPeakMassTolerance();
+    float getPeakMassTolerance() const;
     /// sets the peak mass tolerance in Da (default: 1.0)
     void setPeakMassTolerance(float ion_mass_tolerance);
 

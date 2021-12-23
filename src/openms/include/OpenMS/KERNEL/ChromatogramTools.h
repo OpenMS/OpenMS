@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ public:
     /// @name Accessors
     //@{
     /**
-      @brief converts the chromatogram to a list of spectra with instrument settings SRM
+      @brief converts the chromatogram to a list of spectra with instrument settings
 
       This conversion may be necessary as most of the spectra formats do not support
       chromatograms, except of mzML. However, most formats support e.g. SRM chromatogram
@@ -132,6 +132,7 @@ public:
 
       @param exp the experiment to be converted.
       @param remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
+      @param force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
     */
     template <typename ExperimentType>
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)

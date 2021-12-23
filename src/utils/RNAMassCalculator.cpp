@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -305,13 +305,13 @@ protected:
       sv_out << "sequence" << "charge" << "mass" << "mass-to-charge" << "formula" << endl;
     }
 
-    if ((in.size() > 0) && (in_seq.size() > 0))
+    if ((!in.empty()) && (!in_seq.empty()))
     {
       OPENMS_LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
-    if (in.size() > 0)
+    if (!in.empty())
     {
       readFile_(in, charges);
     }

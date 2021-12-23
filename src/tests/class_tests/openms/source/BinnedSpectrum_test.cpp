@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,11 +37,19 @@
 
 ///////////////////////////
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/FORMAT/DTAFile.h>
 ///////////////////////////
+
+#include <Eigen/Sparse>
+#include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIndexType = Eigen::SparseVector<float>::Index;
+
+/// typedef for the index into the sparse vector
+using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
 
 START_TEST(BinnedSpectrum, "$Id$")
 
@@ -82,6 +90,7 @@ END_SECTION
 START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
 {
   BinnedSpectrum copy(*bs1);
+  delete bs1;
   bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0.0);
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
@@ -114,6 +123,8 @@ START_SECTION((UInt getBinSpread() const ))
 }
 END_SECTION
 
+delete bs1;
+
 START_SECTION((SparseVectorIndexType getBinIndex(double mz) const))
 {
   bs1 = new BinnedSpectrum(s1, 10, true, 0, 0.0); // 10 ppm bins
@@ -121,6 +132,7 @@ START_SECTION((SparseVectorIndexType getBinIndex(double mz) const))
   TEST_EQUAL(bs1->getBinIndex(10.0), 230259);
   TEST_EQUAL(bs1->getBinIndex(100.0), 460519);
   TEST_EQUAL(bs1->getBinIndex(1000.0), 690778);
+  delete bs1;
 }
 END_SECTION
 
@@ -134,6 +146,7 @@ START_SECTION((float getBinLowerMZ(size_t i) const))
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(10.0)), 10.0);
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(100.0)), 100.0);
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(1000.0)), 1000.0);
+  delete bs1;
 
   BinnedSpectrum* bs2 = new BinnedSpectrum(s1, 1.0, false, 0, 0.5); // 1.0 m/z bins with 0.5 offset
   // offset ensures that floats close to nominal masses fall into same bin 
@@ -149,31 +162,32 @@ START_SECTION((float getBinLowerMZ(size_t i) const))
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(9.5)), 9.5);
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(99.5)), 99.5);
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(999.5)), 999.5);
+  delete bs2;
 }
 END_SECTION
 
-START_SECTION((const SparseVectorType& getBins() const))
+START_SECTION((const SparseVectorType* getBins() const))
 {
   bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0);
   // count non-zero elements before access
-  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+  TEST_EQUAL(bs1->getBins()->nonZeros(), 347)
 
   // access by bin index
-  TEST_EQUAL(bs1->getBins().coeffRef(658), 501645)
+  TEST_EQUAL(bs1->getBins()->coeffRef(658), 501645)
 
   // check if number of non-zero elements is still the same
-  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+  TEST_EQUAL(bs1->getBins()->nonZeros(), 347)
 
   // some additional tests for the underlying Eigen SparseVector
   UInt c = 0;
-  for (BinnedSpectrum::SparseVectorIteratorType it(bs1->getBins()); it; ++it) { ++c; }
-  TEST_EQUAL(bs1->getBins().nonZeros(), c)
+  for (SparseVectorIteratorType it(*bs1->getBins()); it; ++it) { ++c; }
+  TEST_EQUAL(bs1->getBins()->nonZeros(), c)
 }
 END_SECTION
 
-START_SECTION((SparseVectorType& getBins()))
+START_SECTION((SparseVectorType* getBins()))
 {
-  TEST_EQUAL(bs1->getBins().coeffRef(658),501645)
+  TEST_EQUAL(bs1->getBins()->coeffRef(658),501645)
 }
 END_SECTION
 
@@ -193,6 +207,7 @@ START_SECTION((bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const 
 }
 END_SECTION
 
+delete bs1;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

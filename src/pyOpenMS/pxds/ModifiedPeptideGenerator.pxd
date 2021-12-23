@@ -6,21 +6,21 @@ from AASequence cimport *
 from ResidueModification cimport *
 from StringList cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS":
 
     cdef cppclass ModifiedPeptideGenerator:
 
-        ModifiedPeptideGenerator() nogil except +
-        ModifiedPeptideGenerator(ModifiedPeptideGenerator) nogil except + 
+        ModifiedPeptideGenerator() nogil except + # compiler
+        ModifiedPeptideGenerator(ModifiedPeptideGenerator &) nogil except + # compiler
 
     cdef cppclass ModifiedPeptideGenerator_MapToResidueType "OpenMS::ModifiedPeptideGenerator::MapToResidueType":
 
-        ModifiedPeptideGenerator_MapToResidueType() nogil except +
-        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType) nogil except + #wrap-ignore
+        ModifiedPeptideGenerator_MapToResidueType() nogil except + # compiler
+        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType &) nogil except + # compiler
 
 
     ## wrap static methods
-    cdef extern from "<OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
+    cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
         ModifiedPeptideGenerator_MapToResidueType getModifications(const StringList& modNames) nogil except +
 
         void applyFixedModifications(const ModifiedPeptideGenerator_MapToResidueType& fixed_mods, AASequence& peptide) nogil except +

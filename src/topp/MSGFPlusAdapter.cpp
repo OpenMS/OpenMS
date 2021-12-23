@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,9 @@
 // $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -83,7 +84,7 @@
     The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
     an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
     
-    Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
+    Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
 
     The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
     generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
@@ -104,10 +105,10 @@
     an example and consult the MSGF+ documentation for further details.
     Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
     This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
-    are not available here (this includes fixed/variable modifications, which are passed on the commandline via -mod <file>).
+    are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
     Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
 
-    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFPlusAdapter.cli
@@ -122,11 +123,11 @@ using namespace OpenMS;
 using namespace std;
 
 class MSGFPlusAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
+    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
@@ -156,7 +157,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
+    setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
@@ -233,6 +234,9 @@ protected:
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
@@ -340,29 +344,13 @@ protected:
         primary_ms_run_path_.push_back(exp_name);
       }
 
-      if (exp.getSpectra().empty())
+      for (MSSpectrum& ms : exp)
       {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-      }
-
-      // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-      if (spectrum_type == SpectrumSettings::PROFILE)
-      {
-        if (!getFlag_("force"))
+        String id = ms.getNativeID(); // expected format: "... scan=#"
+        if (!id.empty())
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-        }
-      }
-
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-      {
-        String id = it->getNativeID(); // expected format: "... scan=#"
-        if (id != "")
-        {
-          rt_mapping[id].push_back(it->getRT());
-          rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
+          rt_mapping[id].push_back(ms.getRT());
+          rt_mapping[id].push_back(ms.getPrecursors()[0].getMZ());
         }
       }
     }
@@ -372,11 +360,23 @@ protected:
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
-    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
+    if (residue == 'X')
+    {
+      residue = '*'; // terminal mod. without residue specificity
+    }
     String position = mod->getTermSpecificityName();
-    if (position == "Protein N-term") position = "Prot-N-term";
-    else if (position == "Protein C-term") position = "Prot-C-term";
-    else if (position == "none") position = "any";
+    if (position == "Protein N-term")
+    {
+      position = "Prot-N-term";
+    }
+    else if (position == "Protein C-term")
+    {
+      position = "Prot-C-term";
+    }
+    else if (position == "none")
+    {
+      position = "any";
+    }
     return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
@@ -425,16 +425,16 @@ protected:
   // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
   void switchScores_(PeptideIdentification& id)
   {
-    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    for (PeptideHit& hit : id.getHits())
     {
       // MS:1002052 == MS-GF spectral E-value
-      if (!hit_it->metaValueExists("MS:1002052"))
+      if (!hit.metaValueExists("MS:1002052"))
       {
-        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
+        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(hit);
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
+      hit.setScore(hit.getMetaValue("MS:1002052"));
     }
     id.setScoreType("SpecEValue");
     id.setHigherScoreBetter(false);
@@ -446,7 +446,7 @@ protected:
     // parse parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
+    String in = getRawfileName();
     String out = getStringOption_("out");
     String mzid_out = getStringOption_("mzid_out");
     if (mzid_out.empty() && out.empty())
@@ -456,20 +456,7 @@ protected:
     }
 
     String java_executable = getStringOption_("java_executable");
-    String db_name = getStringOption_("database");
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
+    String db_name = getDBFilename();
 
     vector<String> fixed_mods = getStringList_("fixed_modifications");
     vector<String> variable_mods = getStringList_("variable_modifications");
@@ -551,8 +538,10 @@ protected:
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
     String conf = getStringOption_("conf");
-    if (!conf.empty()) process_params << "-conf" << conf.toQString();
-
+    if (!conf.empty())
+    {
+      process_params << "-conf" << conf.toQString();
+    }
 
     if (!mod_file.empty())
     {
@@ -670,7 +659,7 @@ protected:
           }
 
           int scan_number = 0;
-          if ((elements[2] == "") || (elements[2] == "-1"))
+          if ((elements[2].empty()) || (elements[2] == "-1"))
           {
             scan_number = elements[1].suffix('=').toInt();
           }
@@ -722,13 +711,12 @@ protected:
           if (!pep_ident.getHits().empty()) // previously existing PeptideIdentification
           {
             // do we have a peptide hit with this sequence already?
-            for (vector<PeptideHit>::iterator hit_it = pep_ident.getHits().begin();
-                 hit_it != pep_ident.getHits().end(); ++hit_it)
+            for (PeptideHit& hit : pep_ident.getHits())
             {
-              if (hit_it->getSequence() == seq) // yes!
+              if (hit.getSequence() == seq) // yes!
               {
                 hit_exists = true;
-                hit_it->addPeptideEvidence(evidence);
+                hit.addPeptideEvidence(evidence);
                 break;
               }
             }
@@ -757,7 +745,10 @@ protected:
         vector<ProteinHit> prot_hits;
         for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
         {
-          if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
+          if (it->empty())
+          {
+            continue; // don't write a protein hit without accession (see @BUG above)
+          }
           ProteinHit prot_hit = ProteinHit();
           prot_hit.setAccession(*it);
           prot_hits.push_back(prot_hit);
@@ -786,7 +777,10 @@ protected:
           pid.getSearchParameters().digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
         }
         // set the MS-GF+ spectral e-value as new peptide identification score
-        for (auto& pep : peptide_ids) { switchScores_(pep); }
+        for (auto& pep : peptide_ids)
+        { 
+          switchScores_(pep);
+        }
 
 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
@@ -798,6 +792,7 @@ protected:
         for (PeptideHit& psm : pid.getHits())
         {
           auto v = psm.getMetaValue("IsotopeError");
+          // TODO cast to Int!
           psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
           psm.removeMetaValue("IsotopeError");
         }
@@ -808,6 +803,9 @@ protected:
       {
         DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), this->getToolPrefix());
       }
+
+      // if "reindex" parameter is set to true will perform reindexing
+      if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }

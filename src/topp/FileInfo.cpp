@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,6 +65,7 @@
 #include <QtCore/QString>
 
 #include <unordered_map>
+#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;
@@ -171,8 +172,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
-    registerInputFile_("in", "<file>", "", "input file ");
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", in_types);
@@ -194,9 +195,9 @@ protected:
   {
     os << "Ranges:"
        << '\n'
-       << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << " sec (" << String::number((map.getMax()[Peak2D::RT] - map.getMin()[Peak2D::RT]) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
+       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
@@ -204,17 +205,17 @@ protected:
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMin()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMinRT(), 2) << '\n'
        << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMax()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
        << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMin()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
        << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
        << "general: ranges: intensity: min"
-       << '\t' << String::number(map.getMinInt(), 2) << '\n'
+       << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
-       << '\t' << String::number(map.getMaxInt(), 2) << '\n';
+       << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
   }
 
   template <class T>
@@ -444,14 +445,15 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-
-      Map<char, int> aacids; // required for default construction of non-existing keys
-      size_t number_of_aacids = 0;
+      file.setLogType(log_type_);
 
       SysInfo::MemUsage mu;
       // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
+
+      Map<char, int> aacids;// required for default construction of non-existing keys
+      size_t number_of_aacids = 0;
 
       Size dup_header(0);
       Size dup_seq(0);
@@ -590,13 +592,13 @@ protected:
       map<Size, UInt> num_consfeat_of_size_with_id;
 
       map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
-      for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
+      for (const ConsensusFeature& cm : cons)
       {
-        ++num_consfeat_of_size[cmit->size()];
-        const auto& pids = cmit->getPeptideIdentifications();
+        ++num_consfeat_of_size[cm.size()];
+        const auto& pids = cm.getPeptideIdentifications();
         if (!pids.empty())
         {
-          ++num_consfeat_of_size_with_id[cmit->size()];
+          ++num_consfeat_of_size_with_id[cm.size()];
 
           // count how often a peptide/charge pair has been observed in the different maps
           const vector<PeptideHit>& phits = pids[0].getHits();
@@ -611,7 +613,7 @@ protected:
             }
 
             // assign id to all dimensions in the consensus feature
-            for (auto const & f : cmit->getFeatures())
+            for (auto const & f : cm.getFeatures())
             {
               Size map_index = f.getMapIndex();
               seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
@@ -630,10 +632,10 @@ protected:
       map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
-        const vector<int>& occurences = a.second;
+        const vector<int>& occurrences = a.second;
         UInt n(0); // dimensions with at least one peptide id assigned
         UInt f(0); // number of subfeatures with a least one peptide id assigned
-        for (int i : occurences) 
+        for (int i : occurrences) 
         { 
           if (i != 0) ++n; 
           f += i;
@@ -765,12 +767,20 @@ protected:
           {
             ++modified_peptide_count;
             const AASequence& aa = temp_hits[0].getSequence();
-            if (aa.hasCTerminalModification()) ++mod_counts[aa.getCTerminalModificationName()];
-            if (aa.hasNTerminalModification()) ++mod_counts[aa.getNTerminalModificationName()];
+            if (aa.hasCTerminalModification())
+            {
+              ++mod_counts[aa.getCTerminalModificationName()];
+            }
+            if (aa.hasNTerminalModification())
+            {
+              ++mod_counts[aa.getNTerminalModificationName()];
+            }
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
+              {
                 ++mod_counts[aa[ia].getModification()->getFullId()];
+              }
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
@@ -823,9 +833,13 @@ protected:
       for (Map<String, int>::ConstIterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
       {
         if (it != mod_counts.begin())
+        {
           os << ", ";
+        }
         else
+        {
           os << "  Modification count (top-hits only): ";
+        }
         os << it->first << " " << it->second;
       }
 
@@ -990,19 +1004,19 @@ protected:
 
 
       // show meta data array names
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (MSSpectrum& pm : exp)
       {
-        for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
+        for (Size i = 0; i < pm.getFloatDataArrays().size(); ++i)
         {
-          ++meta_names[it->getFloatDataArrays()[i].getName()];
+          ++meta_names[pm.getFloatDataArrays()[i].getName()];
         }
-        for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
+        for (Size i = 0; i < pm.getIntegerDataArrays().size(); ++i)
         {
-          ++meta_names[it->getIntegerDataArrays()[i].getName()];
+          ++meta_names[pm.getIntegerDataArrays()[i].getName()];
         }
-        for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
+        for (Size i = 0; i < pm.getStringDataArrays().size(); ++i)
         {
-          ++meta_names[it->getStringDataArrays()[i].getName()];
+          ++meta_names[pm.getStringDataArrays()[i].getName()];
         }
       }
       if (!meta_names.empty())
@@ -1012,7 +1026,9 @@ protected:
         for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
           if (it->first.size() > max_length)
+          {
             max_length = it->first.size();
+          }
         }
         os << "Meta data array:"
            << '\n';
@@ -1034,10 +1050,10 @@ protected:
 
         Size num_chrom_peaks(0);
         Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
-        for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+        for (const MSChromatogram& ms : exp.getChromatograms())
         {
-          num_chrom_peaks += it->size();
-          ++chrom_types[it->getChromatogramType()];
+          num_chrom_peaks += ms.size();
+          ++chrom_types[ms.getChromatogramType()];
         }
         os << "Number of chromatographic peaks: " << num_chrom_peaks << '\n'
            << '\n';
@@ -1059,11 +1075,11 @@ protected:
              << '\n';
           os << "Q1 Q3 RT_begin RT_end name comment"
              << '\n';
-          for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+          for (const MSChromatogram& ms : exp.getChromatograms())
           {
-            if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+            if (ms.getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
-              os << it->getPrecursor().getMZ() << " " << it->getProduct().getMZ() << " " << it->front().getRT() << " " << it->back().getRT() << " " << it->getName() << " " << it->getComment() << '\n';
+              os << ms.getPrecursor().getMZ() << " " << ms.getProduct().getMZ() << " " << ms.front().getRT() << " " << ms.back().getRT() << " " << ms.getName() << " " << ms.getComment() << '\n';
             }
           }
         }
@@ -1462,14 +1478,14 @@ protected:
         vector<double> peak_widths(size);
 
         Size idx = 0;
-        for (FeatureMap::const_iterator fm_iter = feat.begin();
-             fm_iter != feat.end(); ++fm_iter, ++idx)
+        for (const Feature& fm : feat)
         {
-          intensities[idx] = fm_iter->getIntensity();
-          overall_qualities[idx] = fm_iter->getOverallQuality();
-          rt_qualities[idx] = fm_iter->getQuality(Feature::RT);
-          mz_qualities[idx] = fm_iter->getQuality(Feature::MZ);
-          peak_widths[idx] = fm_iter->getWidth();
+          intensities[idx] = fm.getIntensity();
+          overall_qualities[idx] = fm.getOverallQuality();
+          rt_qualities[idx] = fm.getQuality(Feature::RT);
+          mz_qualities[idx] = fm.getQuality(Feature::MZ);
+          peak_widths[idx] = fm.getWidth();
+          ++idx;
         }
 
         Math::SummaryStatistics<vector<double>> intensities_summary;
@@ -1533,19 +1549,18 @@ protected:
         vector<double> it_aad_by_cfs;
         it_aad_by_cfs.reserve(size);
 
-        for (ConsensusMap::const_iterator cm_iter = cons.begin();
-             cm_iter != cons.end(); ++cm_iter)
+        for (const ConsensusFeature& cm : cons)
         {
           double rt_aad = 0;
           double mz_aad = 0;
           double it_aad = 0;
-          intensities.push_back(cm_iter->getIntensity());
-          qualities.push_back(cm_iter->getQuality());
-          widths.push_back(cm_iter->getWidth());
-          for (ConsensusFeature::HandleSetType::const_iterator hs_iter = cm_iter->begin();
-               hs_iter != cm_iter->end(); ++hs_iter)
+          intensities.push_back(cm.getIntensity());
+          qualities.push_back(cm.getQuality());
+          widths.push_back(cm.getWidth());
+          for (ConsensusFeature::HandleSetType::const_iterator hs_iter = cm.begin();
+               hs_iter != cm.end(); ++hs_iter)
           {
-            double rt_diff = hs_iter->getRT() - cm_iter->getRT();
+            double rt_diff = hs_iter->getRT() - cm.getRT();
             rt_delta_by_elems.push_back(rt_diff);
             if (rt_diff < 0)
             {
@@ -1553,7 +1568,7 @@ protected:
             }
             rt_aad_by_elems.push_back(rt_diff);
             rt_aad += rt_diff;
-            double mz_diff = hs_iter->getMZ() - cm_iter->getMZ();
+            double mz_diff = hs_iter->getMZ() - cm.getMZ();
             mz_delta_by_elems.push_back(mz_diff);
             if (mz_diff < 0)
             {
@@ -1561,7 +1576,7 @@ protected:
             }
             mz_aad_by_elems.push_back(mz_diff);
             mz_aad += mz_diff;
-            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() > 0 ? cm_iter->getIntensity() : 1.);
+            double it_ratio = hs_iter->getIntensity() / (cm.getIntensity() > 0 ? cm.getIntensity() : 1.);
             it_delta_by_elems.push_back(it_ratio);
             if (it_ratio < 1.)
             {
@@ -1570,11 +1585,11 @@ protected:
             it_aad_by_elems.push_back(it_ratio);
             it_aad += it_ratio;
           }
-          if (!cm_iter->empty())
+          if (!cm.empty())
           {
-            rt_aad /= cm_iter->size();
-            mz_aad /= cm_iter->size();
-            it_aad /= cm_iter->size();
+            rt_aad /= cm.size();
+            mz_aad /= cm.size();
+            it_aad /= cm.size();
           } // otherwise rt_aad etc. are 0 anyway
           rt_aad_by_cfs.push_back(rt_aad);
           mz_aad_by_cfs.push_back(mz_aad);
@@ -1718,7 +1733,10 @@ protected:
     else
     {
       os.open(out);
-      if (!os) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+      if (!os)
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+      }
       os_filt.push(os);
     }
 
@@ -1729,7 +1747,10 @@ protected:
     else
     {
       os_tsv.open(out_tsv);
-      if (!os_tsv) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_tsv);
+      if (!os_tsv)
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_tsv);
+      }
       os_tsv_filt.push(os_tsv);
     }
 

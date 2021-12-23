@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,7 +117,7 @@ namespace OpenMS
                                         const std::vector<std::string>& precursor_ids,
                                         const std::vector<double>& normalized_library_intensity,
                                         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                        OpenSwath_Scores & scores);
+                                        OpenSwath_Scores & scores) const;
 
     /** @brief Score identification transitions against detection transitions of a single peakgroup 
      * in a chromatogram using only chromatographic properties.
@@ -141,7 +141,7 @@ namespace OpenMS
                                           const std::vector<std::string>& native_ids_identification,
                                           const std::vector<std::string>& native_ids_detection,
                                           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                          OpenSwath_Ind_Scores & scores);
+                                          OpenSwath_Ind_Scores & scores) const;
 
     /** @brief Score a single chromatographic feature against a spectral library
      *
@@ -184,7 +184,7 @@ namespace OpenMS
                             const std::vector<TransitionType>& transitions,
                             const std::vector<OpenSwath::SwathMap>& swath_maps,
                             OpenSwath::SpectrumAccessPtr ms1_map,
-                            OpenMS::DIAScoring& diascoring,
+                            const OpenMS::DIAScoring& diascoring,
                             const CompoundType& compound,
                             OpenSwath_Scores& scores,
                             std::vector<double>& mzerror_ppm,
@@ -206,7 +206,7 @@ namespace OpenMS
      *
     */
     void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                     OpenMS::DIAScoring& diascoring, 
+                                     const OpenMS::DIAScoring& diascoring,
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
@@ -230,7 +230,7 @@ namespace OpenMS
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                               const TransitionType & transition,
                               const std::vector<OpenSwath::SwathMap> swath_maps,
-                              OpenMS::DIAScoring & diascoring,
+                              const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
                               double drift_lower,
                               double drift_upper);

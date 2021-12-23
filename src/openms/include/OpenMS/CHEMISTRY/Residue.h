@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
 
@@ -179,7 +179,7 @@ public:
     */
     //@{
 
-    /// Default constructor
+    /// Default constructor (needed by pyOpenMS)
     Residue();
 
     /// Copy constructor
@@ -187,12 +187,19 @@ public:
 
     /// Move constructor
     Residue(Residue&&) = default;
-
-    /// Detailed constructor
+           
+    // Detailed constructor 
     Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
-            const EmpiricalFormula& formula);
+            const EmpiricalFormula& formula,
+            double pka = 0,
+            double pkb = 0,
+            double pkc = -1,
+            double gb_sc = 0,
+            double gb_bb_l = 0,
+            double gb_bb_r = 0,
+            const std::set<String>& synonyms = std::set<String>());
 
     /// Destructor
     virtual ~Residue();
@@ -217,12 +224,6 @@ public:
 
     /// returns the name of the residue
     const String& getName() const;
-
-    /// sets the short name of the residue, this name is used in the PeptideSequence for output
-    void setShortName(const String& short_name);
-
-    /// returns the short name of the residue
-    const String& getShortName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -307,6 +308,14 @@ public:
 
     /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
     void setModification(const ResidueModification* mod);
+
+    /// sets the modification by looking for an exact match in the DB first, otherwise creating a
+    /// new entry
+    void setModification(const ResidueModification& mod);
+
+    /// sets a modification by monoisotopic mass difference. Searches in DBs first with a tolerance.
+    /// If not found, creates a new entry with name = OneLetterResidueCode[+/-diffMonoMass] and adds this as user-defined mod.
+    void setModificationByDiffMonoMass(double diffMonoMass);
     
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;
@@ -408,8 +417,6 @@ protected:
 
     // basic
     String name_;
-
-    String short_name_;
 
     std::set<String> synonyms_;
 

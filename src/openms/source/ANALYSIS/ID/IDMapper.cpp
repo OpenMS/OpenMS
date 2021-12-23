@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,10 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+
+#include <unordered_set>
+
 
 using namespace std;
 
@@ -52,12 +56,12 @@ namespace OpenMS
     defaults_.setValue("mz_tolerance", mz_tolerance_, "m/z tolerance (in ppm or Da) for the matching");
     defaults_.setMinFloat("mz_tolerance", 0);
     defaults_.setValue("mz_measure", "ppm", "unit of 'mz_tolerance' (ppm or Da)");
-    defaults_.setValidStrings("mz_measure", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("mz_measure", {"ppm","Da"});
     defaults_.setValue("mz_reference", "precursor", "source of m/z values for peptide identifications");
-    defaults_.setValidStrings("mz_reference", ListUtils::create<String>("precursor,peptide"));
+    defaults_.setValidStrings("mz_reference", {"precursor","peptide"});
 
     defaults_.setValue("ignore_charge", "false", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
-    defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("ignore_charge", {"true","false"});
 
     defaultsToParam_();
   }
@@ -98,6 +102,7 @@ namespace OpenMS
   void IDMapper::annotate(PeakMap& map, const vector<PeptideIdentification>& peptide_ids, const vector<ProteinIdentification>& protein_ids, const bool clear_ids, const bool map_ms1)
   {
     checkHits_(peptide_ids);
+    SpectrumLookup lookup;
 
     if (clear_ids)
     { // start with empty IDs
@@ -115,84 +120,106 @@ namespace OpenMS
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-    // store mapping of scan RT to index
-    multimap<double, Size> experiment_precursors;
-    for (Size i = 0; i < map.size(); i++)
-    {
-      experiment_precursors.insert(make_pair(map[i].getRT(), i));
-    }
+    lookup.readSpectra(map);
 
+    // remember which peptides were mapped (for stats later)
+    unordered_set<Size> peptides_mapped;
     // store mapping of identification RT to index (ignore empty hits)
     multimap<double, Size> identifications_precursors;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       if (!peptide_ids[i].empty())
-      {
-        identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
-      }
-    }
-    // note that mappings are sorted by key via multimap (we rely on that down below)
-
-    // remember which peptides were mapped (for stats later)
-    set<Size> peptides_mapped;
-
-    // calculate the actual mapping
-    multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
-    multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
-    // to achieve O(n) complexity we now move along the spectra
-    // and for each spectrum we look at the peptide id's with the allowed RT range
-    // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
-    // right end of the old interval to the left end of the new interval
-    while (experiment_iterator != experiment_precursors.end())
-    {
-      // maybe we hit end() of IDs during the last scan - go back to a real value
-      if (identifications_iterator == identifications_precursors.end())
-      {
-        --identifications_iterator; // this is valid, since we have at least one peptide ID
-      }
-
-      // go to left border of RT interval
-      while (identifications_iterator != identifications_precursors.begin() &&
-             (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
-      {
-        --identifications_iterator;
-      }
-      // ... we might have stepped too far left
-      if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
-      {
-        ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
-      }
-
-      if (identifications_iterator == identifications_precursors.end())
-      { // no more ID's, so we don't have any chance of matching the next spectra
-        break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
-      }
-
-      // run through RT interval
-      while (identifications_iterator != identifications_precursors.end() &&
-             (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
-      {
-        bool success = map_ms1;
-        if (!success)
-        {
-          for (const auto& precursor : map[experiment_iterator->second].getPrecursors())
-          {
-            if (isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), precursor.getMZ()))
-            {
-              success = true;
-              break;
-            }
+      { // mapping is done by either native id or by comparing peptide_id RT with experiment RT
+        if (!peptide_ids[i].metaValueExists("spectrum_reference")) 
+        { // use RT for mapping 
+          identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
+        } 
+        else 
+        { // use native id for mapping
+          DataValue native_id = peptide_ids[i].getMetaValue("spectrum_reference");
+          try 
+          { // spectrum can be retrieved
+            Size spectrum_idx = lookup.findByNativeID(native_id);
+            map[spectrum_idx].getPeptideIdentifications().push_back(peptide_ids[i]);
+            peptides_mapped.insert(i);
+          } 
+          catch (const Exception::ElementNotFound& /*e*/) 
+          { // use RT for mapping
+            identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
           }
         }
-        if (success)
-        {
-          map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
-          peptides_mapped.insert(identifications_iterator->second);
-        }
-        ++identifications_iterator;
       }
-      // we are at the right border now (or likely even beyond)
-      ++experiment_iterator;
+    }
+
+    if (!identifications_precursors.empty()) 
+    {
+      // store mapping of scan RT to index
+      multimap<double, Size> experiment_precursors;
+      for (Size i = 0; i < map.size(); i++)
+      {
+        experiment_precursors.insert(make_pair(map[i].getRT(), i));
+      }
+
+      // note that mappings are sorted by key via multimap (we rely on that down below)
+
+      // calculate the actual mapping
+      multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
+      multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
+      // to achieve O(n) complexity we now move along the spectra
+      // and for each spectrum we look at the peptide id's with the allowed RT range
+      // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
+      // right end of the old interval to the left end of the new interval
+      while (experiment_iterator != experiment_precursors.end())
+      {
+        // maybe we hit end() of IDs during the last scan - go back to a real value
+        if (identifications_iterator == identifications_precursors.end())
+        {
+          --identifications_iterator; // this is valid, since we have at least one peptide ID
+        }
+
+        // go to left border of RT interval
+        while (identifications_iterator != identifications_precursors.begin() &&
+              (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
+        {
+          --identifications_iterator;
+        }
+        // ... we might have stepped too far left
+        if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
+        {
+          ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
+        }
+
+        if (identifications_iterator == identifications_precursors.end())
+        { // no more ID's, so we don't have any chance of matching the next spectra
+          break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
+        }
+
+        // run through RT interval
+        while (identifications_iterator != identifications_precursors.end() &&
+              (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
+        {
+          bool success = map_ms1;
+          if (!success)
+          {
+            for (const auto& precursor : map[experiment_iterator->second].getPrecursors())
+            {
+              if (isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), precursor.getMZ()))
+              {
+                success = true;
+                break;
+              }
+            }
+          }
+          if (success)
+          {
+            map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
+            peptides_mapped.insert(identifications_iterator->second);
+          }
+          ++identifications_iterator;
+        }
+        // we are at the right border now (or likely even beyond)
+        ++experiment_iterator;
+      }
     }
 
     // some statistics output
@@ -460,7 +487,7 @@ namespace OpenMS
                   // store the map index the precursor was mapped to
                   Size map_index = it_handle->getMapIndex();
 
-                  // we use no undesrscore here to be compatible with linkers
+                  // we use no underscore here to be compatible with linkers
                   precursor_empty_id.setMetaValue("map_index", map_index);
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
@@ -515,9 +542,9 @@ namespace OpenMS
     // if not, use the centroid and the given tolerances
     if (!(use_centroid_rt && use_centroid_mz))
     {
-      for (FeatureMap::Iterator f_it = map.begin(); f_it != map.end(); ++f_it)
+      for (Feature& f_it : map)
       {
-        if (f_it->getConvexHulls().empty())
+        if (f_it.getConvexHulls().empty())
         {
           use_centroid_rt = true;
           use_centroid_mz = true;
@@ -541,23 +568,22 @@ namespace OpenMS
     double max_rt = -numeric_limits<double>::max();
     // cout << "Precomputing bounding boxes..." << endl;
     boxes.reserve(map.size());
-    for (FeatureMap::Iterator f_it = map.begin();
-         f_it != map.end(); ++f_it)
+    for (Feature& f_it : map)
     {
       DBoundingBox<2> box;
       if (!(use_centroid_rt && use_centroid_mz))
       {
-        box = f_it->getConvexHull().getBoundingBox();
+        box = f_it.getConvexHull().getBoundingBox();
       }
       if (use_centroid_rt)
       {
-        box.setMinX(f_it->getRT());
-        box.setMaxX(f_it->getRT());
+        box.setMinX(f_it.getRT());
+        box.setMaxX(f_it.getRT());
       }
       if (use_centroid_mz)
       {
-        box.setMinY(f_it->getMZ());
-        box.setMaxY(f_it->getMZ());
+        box.setMinY(f_it.getMZ());
+        box.setMaxY(f_it.getMZ());
       }
       increaseBoundingBox_(box);
       boxes.push_back(box);
@@ -574,7 +600,7 @@ namespace OpenMS
     // in the beginning:
     SignedSize offset(0);
 
-    if (map.size() > 0)
+    if (!map.empty())
     {
       // cout << "Setting up hash table..." << endl;
       offset = SignedSize(floor(min_rt));
@@ -600,21 +626,20 @@ namespace OpenMS
 
     // cout << "Finding matches..." << endl;
     // iterate over peptide IDs:
-    for (vector<PeptideIdentification>::const_iterator id_it =
-         ids.begin(); id_it != ids.end(); ++id_it)
+    for (const PeptideIdentification& id_it : ids)
     {
       // cout << "Peptide ID: " << id_it - ids.begin() << endl;
 
-      if (id_it->getHits().empty()) continue;
+      if (id_it.getHits().empty()) continue;
 
       DoubleList mz_values;
       double rt_value;
       IntList charges;
-      getIDDetails_(*id_it, rt_value, mz_values, charges, use_avg_mass);
+      getIDDetails_(id_it, rt_value, mz_values, charges, use_avg_mass);
 
       if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
       {
-        map.getUnassignedPeptideIdentifications().push_back(*id_it);
+        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
         continue;
       }
@@ -622,11 +647,9 @@ namespace OpenMS
       // iterate over candidate features:
       Size index = SignedSize(floor(rt_value)) - offset;
       Size matching_features = 0;
-      for (vector<SignedSize>::iterator hash_it =
-           hash_table[index].begin(); hash_it != hash_table[index].end();
-           ++hash_it)
+      for (SignedSize& hash_it : hash_table[index])
       {
-        Feature & feat = map[*hash_it];
+        Feature & feat = map[hash_it];
 
         // need to check the charge state?
         bool check_charge = !ignore_charge_;
@@ -647,13 +670,13 @@ namespace OpenMS
           }
 
           DPosition<2> id_pos(rt_value, *mz_it);
-          if (boxes[*hash_it].encloses(id_pos))                 // potential match
+          if (boxes[hash_it].encloses(id_pos))                 // potential match
           {
             if (use_centroid_mz)
             {
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
-              feat.getPeptideIdentifications().push_back(*id_it);
+              feat.getPeptideIdentifications().push_back(id_it);
               ++matching_features;
               break;                     // "mz_it" loop
             }
@@ -672,7 +695,7 @@ namespace OpenMS
               increaseBoundingBox_(box);
               if (box.encloses(id_pos)) // success!
               {
-                feat.getPeptideIdentifications().push_back(*id_it);
+                feat.getPeptideIdentifications().push_back(id_it);
                 ++matching_features;
                 found_match = true;
                 break; // "ch_it" loop
@@ -684,7 +707,7 @@ namespace OpenMS
       }
       if (matching_features == 0)
       {
-        map.getUnassignedPeptideIdentifications().push_back(*id_it);
+        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
       }
       else if (matching_features == 1)
@@ -764,13 +787,11 @@ namespace OpenMS
         precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
         //precursor_empty_id.setCharge(z_p);
 
-        for (vector<SignedSize>::iterator hash_it =
-           hash_table[index].begin(); hash_it != hash_table[index].end();
-           ++hash_it)
+        for (SignedSize& hash_it : hash_table[index])
         {
-          Feature & feat = map[*hash_it];
+          Feature & feat = map[hash_it];
 
-          // (optinally) check charge state
+          // (optionally) check charge state
           if (!ignore_charge_)
           {
             if (z_p != feat.getCharge()) continue;
@@ -778,7 +799,7 @@ namespace OpenMS
 
           DPosition<2> id_pos(rt_value, mz_p);
 
-          if (boxes[*hash_it].encloses(id_pos)) // potential match
+          if (boxes[hash_it].encloses(id_pos)) // potential match
           {
             if (use_centroid_mz)
             {
@@ -895,17 +916,16 @@ namespace OpenMS
       mz_values.push_back(id.getMZ());
     }
 
-    for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();
-         hit_it != id.getHits().end(); ++hit_it)
+    for (const PeptideHit& hit_it : id.getHits())
     {
-      Int charge = hit_it->getCharge();
+      Int charge = hit_it.getCharge();
       charges.push_back(charge);
 
       if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
       {
         double mass = use_avg_mass ?
-                      hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
-                      hit_it->getSequence().getMonoWeight(Residue::Full, charge);
+                      hit_it.getSequence().getAverageWeight(Residue::Full, charge) :
+                      hit_it.getSequence().getMonoWeight(Residue::Full, charge);
 
         mz_values.push_back(mass / (double) charge);
       }
@@ -926,13 +946,11 @@ namespace OpenMS
   {
     bool use_avg_mass = false;
     String before;
-    for (vector<DataProcessing>::const_iterator proc_it = processing.begin();
-         proc_it != processing.end(); ++proc_it)
+    for (const DataProcessing& proc_it : processing)
     {
-      if (proc_it->getSoftware().getName() == "FeatureFinder")
+      if (proc_it.getSoftware().getName() == "FeatureFinder")
       {
-        String reported_mz = proc_it->
-                             getMetaValue("parameter: algorithm:feature:reported_mz");
+        String reported_mz = proc_it.getMetaValue("parameter: algorithm:feature:reported_mz");
         if (reported_mz.empty())
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))

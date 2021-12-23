@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,8 +85,8 @@ START_SECTION((template < typename MapType > void mergeSpectraBlockWise(MapType 
 
 	SpectraMerger merger;
   Param p;
-  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
-  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", {"advanced"});
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", {"advanced"});
 
   p.setValue("block_method:rt_block_size", 5);
   p.setValue("block_method:ms_levels", ListUtils::create<Int>("1"));
@@ -122,9 +122,9 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
 	TEST_EQUAL(exp.size(), 17)
 
   Param p;
-  p.setValue("mz_binning_width", 0.3, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width", 0.3, "Max m/z distance of two peaks to be merged.", {"advanced"});
 
-  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", {"advanced"});
 
   // same precursor MS/MS merging
  	p.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
@@ -154,14 +154,14 @@ START_SECTION((template < typename MapType > void averageGaussian(MapType &exp))
 	TEST_EQUAL(exp.size(), 28)
 
   Param p;
-  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
-  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", {"advanced"});
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", {"advanced"});
 
   // same precursor MS/MS merging
  	p.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
  	p.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
   p.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
-  p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+  p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", {"advanced"});
   merger.setParameters(p);
   merger.average(exp,"gaussian");
 
@@ -187,14 +187,14 @@ START_SECTION((template < typename MapType > void averageGaussian(MapType &exp))
 	TEST_EQUAL(exp.size(), 28)
 
   Param p;
-  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
-  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", {"advanced"});
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", {"advanced"});
 
   // same precursor MS/MS merging
  	p.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
  	p.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
   p.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
-  p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+  p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", {"advanced"});
   merger.setParameters(p);
   merger.average(exp,"gaussian");
 

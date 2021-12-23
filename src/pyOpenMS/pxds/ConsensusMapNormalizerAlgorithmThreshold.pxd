@@ -6,13 +6,14 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmTh
     cdef cppclass ConsensusMapNormalizerAlgorithmThreshold:
 
         ConsensusMapNormalizerAlgorithmThreshold() nogil except +
-        ConsensusMapNormalizerAlgorithmThreshold(ConsensusMapNormalizerAlgorithmThreshold) nogil except + #wrap-ignore
+        # private
+        ConsensusMapNormalizerAlgorithmThreshold(ConsensusMapNormalizerAlgorithmThreshold) nogil except + # wrap-ignore
 
         libcpp_vector[double] computeCorrelation(ConsensusMap & input_map,
                                                  double ratio_threshold,
                                                  const String & acc_filter,
-                                                 const String & desc_filter) nogil except +
+                                                 const String & desc_filter) nogil except + # wrap-doc:Determines the ratio of all maps to the map with the most features
 
         void normalizeMaps(ConsensusMap & input_map,
-                           libcpp_vector[double] & ratios) nogil except +
+                           libcpp_vector[double] & ratios) nogil except + # wrap-doc:Applies the given ratio to the maps of the consensusMap
 

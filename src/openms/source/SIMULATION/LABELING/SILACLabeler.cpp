@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,11 +66,11 @@ namespace OpenMS
 
   void SILACLabeler::updateMembers_()
   {
-    medium_channel_lysine_label_ = (String)param_.getValue("medium_channel:modification_lysine");
-    medium_channel_arginine_label_ = (String)param_.getValue("medium_channel:modification_arginine");
+    medium_channel_lysine_label_ = (String)param_.getValue("medium_channel:modification_lysine").toString();
+    medium_channel_arginine_label_ = (String)param_.getValue("medium_channel:modification_arginine").toString();
 
-    heavy_channel_lysine_label_ = (String)param_.getValue("heavy_channel:modification_lysine");
-    heavy_channel_arginine_label_ = (String)param_.getValue("heavy_channel:modification_arginine");
+    heavy_channel_lysine_label_ = (String)param_.getValue("heavy_channel:modification_lysine").toString();
+    heavy_channel_arginine_label_ = (String)param_.getValue("heavy_channel:modification_arginine").toString();
   }
 
   bool SILACLabeler::canModificationBeApplied_(const String& modification_id, const String& aa) const
@@ -104,11 +104,9 @@ namespace OpenMS
 
   void SILACLabeler::applyLabelToProteinHit_(SimTypes::FeatureMapSim& channel, const String& arginine_label, const String& lysine_label) const
   {
-    for (std::vector<ProteinHit>::iterator protein_hit = channel.getProteinIdentifications()[0].getHits().begin();
-         protein_hit != channel.getProteinIdentifications()[0].getHits().end();
-         ++protein_hit)
+    for (ProteinHit& protein_hit : channel.getProteinIdentifications()[0].getHits())
     {
-      AASequence aa = AASequence::fromString(protein_hit->getSequence());
+      AASequence aa = AASequence::fromString(protein_hit.getSequence());
 
       for (AASequence::Iterator residue = aa.begin(); residue != aa.end(); ++residue)
       {
@@ -121,7 +119,7 @@ namespace OpenMS
           aa.setModification(residue - aa.begin(), lysine_label);
         }
       }
-      protein_hit->setSequence(aa.toString());
+      protein_hit.setSequence(aa.toString());
     }
   }
 
@@ -134,7 +132,7 @@ namespace OpenMS
     }
 
     SimTypes::FeatureMapSim& medium_channel = features_to_simulate[1];
-    if (medium_channel.getProteinIdentifications().size() > 0)
+    if (!medium_channel.getProteinIdentifications().empty())
     {
       applyLabelToProteinHit_(medium_channel, medium_channel_arginine_label_, medium_channel_lysine_label_);
     }
@@ -143,7 +141,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
       SimTypes::FeatureMapSim& heavy_channel = features_to_simulate[2];
-      if (heavy_channel.getProteinIdentifications().size() > 0)
+      if (!heavy_channel.getProteinIdentifications().empty())
       {
         applyLabelToProteinHit_(heavy_channel, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
       }
@@ -153,21 +151,19 @@ namespace OpenMS
   String SILACLabeler::getUnmodifiedSequence_(const Feature& feature, const String& arginine_label, const String& lysine_label) const
   {
     String unmodified_sequence = "";
-    for (AASequence::ConstIterator residue = feature.getPeptideIdentifications()[0].getHits()[0].getSequence().begin();
-         residue != feature.getPeptideIdentifications()[0].getHits()[0].getSequence().end();
-         ++residue)
+    for (const Residue& residue : feature.getPeptideIdentifications()[0].getHits()[0].getSequence())
     {
-      if (*residue == 'R' && residue->getModificationName() == arginine_label)
+      if (residue == 'R' && residue.getModificationName() == arginine_label)
       {
         unmodified_sequence.append("R");
       }
-      else if (*residue == 'K' && residue->getModificationName() == lysine_label)
+      else if (residue == 'K' && residue.getModificationName() == lysine_label)
       {
         unmodified_sequence.append("K");
       }
       else
       {
-        unmodified_sequence.append(residue->getOneLetterCode());
+        unmodified_sequence.append(residue.getOneLetterCode());
       }
     }
     return unmodified_sequence;
@@ -185,25 +181,23 @@ namespace OpenMS
     if (features_to_simulate.size() == 2)
     {
       Map<String, Feature> unlabeled_features_index;
-      for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
-           unlabeled_features_iter != light_channel_features.end();
-           ++unlabeled_features_iter)
+      for (Feature& unlabeled_feature : light_channel_features)
       {
-        (*unlabeled_features_iter).ensureUniqueId();
+        unlabeled_feature.ensureUniqueId();
         unlabeled_features_index.insert(std::make_pair(
-                                          (*unlabeled_features_iter).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
+                                          unlabeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
                                                       ,
-                                          *unlabeled_features_iter
+                                          unlabeled_feature
                                           ));
       }
 
       // iterate over second map
-      for (SimTypes::FeatureMapSim::iterator labeled_feature_iter = medium_channel_features.begin(); labeled_feature_iter != medium_channel_features.end(); ++labeled_feature_iter)
+      for (Feature& labeled_feature : medium_channel_features)
       {
-        const String unmodified_sequence = getUnmodifiedSequence_(*labeled_feature_iter, medium_channel_arginine_label_, medium_channel_lysine_label_);
+        const String unmodified_sequence = getUnmodifiedSequence_(labeled_feature, medium_channel_arginine_label_, medium_channel_lysine_label_);
 
         // guarantee uniqueness
-        (*labeled_feature_iter).ensureUniqueId();
+        labeled_feature.ensureUniqueId();
 
         // check if we have a pair
         if (unlabeled_features_index.has(unmodified_sequence))
@@ -214,15 +208,15 @@ namespace OpenMS
           unlabeled_feature.ensureUniqueId();
 
           // feature has a SILAC Label and is not equal to non-labeled
-          if ((*labeled_feature_iter).getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
+          if (labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
-            final_feature_map.push_back(*labeled_feature_iter);
+            final_feature_map.push_back(labeled_feature);
             final_feature_map.push_back(unlabeled_feature);
 
             // create consensus feature
             ConsensusFeature cf;
-            cf.insert(MEDIUM_FEATURE_MAPID_, *labeled_feature_iter);
+            cf.insert(MEDIUM_FEATURE_MAPID_, labeled_feature);
             cf.insert(LIGHT_FEATURE_MAPID_, unlabeled_feature);
             cf.ensureUniqueId();
             consensus_.push_back(cf);
@@ -233,13 +227,13 @@ namespace OpenMS
           else
           {
             // merge features since they are equal
-            Feature final_feature = mergeFeatures_(*labeled_feature_iter, unmodified_sequence, unlabeled_features_index, 1, 2);
+            Feature final_feature = mergeFeatures_(labeled_feature, unmodified_sequence, unlabeled_features_index, 1, 2);
             final_feature_map.push_back(final_feature);
           }
         }
         else // no SILAC pair, just add the labeled one
         {
-          final_feature_map.push_back(*labeled_feature_iter);
+          final_feature_map.push_back(labeled_feature);
         }
       }
 
@@ -256,41 +250,35 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
 
-      // index of unlabeled channelunlabeled_feature
+      // index of unlabeled channel unlabeled_feature
       Map<String, Feature> unlabeled_features_index;
-      for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
-           unlabeled_features_iter != light_channel_features.end();
-           ++unlabeled_features_iter)
+      for (Feature& unlabeled_features : light_channel_features)
       {
-        (*unlabeled_features_iter).ensureUniqueId();
+        unlabeled_features.ensureUniqueId();
         unlabeled_features_index.insert(std::make_pair(
-                                          (*unlabeled_features_iter).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
+                                          unlabeled_features.getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
                                                       ,
-                                          *unlabeled_features_iter
+                                          unlabeled_features
                                           ));
       }
 
       // index of labeled channel
       Map<String, Feature> medium_features_index;
-      for (SimTypes::FeatureMapSim::iterator labeled_features_iter = medium_channel_features.begin();
-           labeled_features_iter != medium_channel_features.end();
-           ++labeled_features_iter)
+      for (Feature& labeled_features : medium_channel_features)
       {
-        (*labeled_features_iter).ensureUniqueId();
+        labeled_features.ensureUniqueId();
         medium_features_index.insert(std::make_pair(
-                                       getUnmodifiedSequence_(*labeled_features_iter, medium_channel_arginine_label_, medium_channel_lysine_label_)
+                                       getUnmodifiedSequence_(labeled_features, medium_channel_arginine_label_, medium_channel_lysine_label_)
                                                    ,
-                                       *labeled_features_iter
+                                       labeled_features
                                        ));
       }
 
       SimTypes::FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
-      for (SimTypes::FeatureMapSim::iterator heavy_labeled_feature_iter = heavy_labeled_features.begin();
-           heavy_labeled_feature_iter != heavy_labeled_features.end();
-           ++heavy_labeled_feature_iter)
+      for (Feature& heavy_label: heavy_labeled_features)
       {
 
-        Feature& heavy_feature = *heavy_labeled_feature_iter;
+        Feature& heavy_feature = heavy_label;
         heavy_feature.ensureUniqueId();
 
         String heavy_feature_unmodified_sequence = getUnmodifiedSequence_(heavy_feature, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
@@ -493,23 +481,23 @@ namespace OpenMS
       // create map of all available features
       Map<UInt64, Feature*> id_map;
       SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
-      for (SimTypes::FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
+      for (Feature& feat : feature_map)
       {
-        id_map.insert(std::make_pair<UInt64, Feature*>(it->getUniqueId(), &(*it)));
+        id_map.insert(std::make_pair<UInt64, Feature*>(feat.getUniqueId(), &(feat)));
       }
 
       // recompute RT and set shape parameters for each consensus element
-      for (ConsensusMap::Iterator consensus_it = consensus_.begin(); consensus_it != consensus_.end(); ++consensus_it)
+      for (ConsensusFeature& cons : consensus_)
       {
         vector<Feature*> original_features;
 
         // find all features that belong to this consensus element and adjust their rt
-        ConsensusFeature& cf = *consensus_it;
-        for (ConsensusFeature::iterator cfit = cf.begin(); cfit != cf.end(); ++cfit)
+        ConsensusFeature& cf = cons;
+        for (const FeatureHandle& cfit : cf)
         {
-          if (id_map.has(cfit->getUniqueId()))
+          if (id_map.has(cfit.getUniqueId()))
           {
-            original_features.push_back(id_map[cfit->getUniqueId()]);
+            original_features.push_back(id_map[cfit.getUniqueId()]);
           }
         }
 

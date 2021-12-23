@@ -8,6 +8,7 @@ import os
 
 from pyopenms import String as s
 import numpy as np
+import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
@@ -224,6 +225,16 @@ def testAASequence():
     # has selenocysteine
     assert seq.getResidue(1) is not None
     assert seq.size() == 16
+
+    # test exception forwarding from C++ to python
+    # classes derived from std::runtime_exception can be caught in python
+    try:
+        seq.getResidue(1000) # does not exist
+    except RuntimeError:
+        print("Exception successfully triggered.")
+    else:
+        print("Error: Exception not triggered.")
+        assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
@@ -835,16 +846,27 @@ def testConsensusMap():
     m.sortBySize()
     m.updateRanges()
 
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMinInt(), float)
-    assert isinstance(m.getMaxInt(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMinIntensity(), float)
+    assert isinstance(m.getMaxIntensity(), float)
 
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
+    
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+    intydf = m.get_intensity_df()
+    metadf = m.get_metadata_df()
+    assert intydf.shape[0] == 2
+    assert metadf.shape[0] == 2
 
     assert m == m
     assert not m != m
@@ -1471,32 +1493,6 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-     FeatureFinderAlgorithmSH.getDefaults
-     FeatureFinderAlgorithmSH.getName
-     FeatureFinderAlgorithmSH.getParameters
-     FeatureFinderAlgorithmSH.getProductName
-     FeatureFinderAlgorithmSH.setName
-     FeatureFinderAlgorithmSH.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -1799,17 +1795,6 @@ def testFeatureFinderAlgorithmPicked():
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-
-    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -2078,12 +2063,12 @@ def testFeatureMap():
 
     fm2.updateRanges()
 
-    assert isinstance(fm2.getMin()[0], float)
-    assert isinstance(fm2.getMin()[1], float)
-    assert isinstance(fm2.getMax()[0], float)
-    assert isinstance(fm2.getMax()[1], float)
-    assert isinstance(fm2.getMinInt(), float)
-    assert isinstance(fm2.getMaxInt(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMinIntensity(), float)
+    assert isinstance(fm2.getMaxIntensity(), float)
 
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
@@ -2122,6 +2107,44 @@ def testFeatureXMLFile():
 
     fm = pyopenms.FeatureMap()
     fm.setUniqueIds()
+
+    f = pyopenms.Feature()
+    f.setMZ(200)
+    f.setCharge(1)
+    f.setRT(10)
+    f.setIntensity(10000)
+    f.setOverallQuality(10)
+
+    ch = pyopenms.ConvexHull2D()
+    ch.setHullPoints(np.asarray([[8,199],[12,201]], dtype='f'))
+    f.setConvexHulls([ch])
+
+    f.setMetaValue(b'mv1', 1)
+    f.setMetaValue(b'mv2', 2)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
+    fm.push_back(f)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=124')
+    fm.push_back(f)
+
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+
+    fm = pyopenms.FeatureMap()
+    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
@@ -2234,6 +2257,49 @@ def testIdXMLFile():
     """
     assert pyopenms.IdXMLFile().load is not None
     assert pyopenms.IdXMLFile().store is not None
+
+@report
+def test_peptide_identifications_to_df():
+    peps = []
+
+    p = pyopenms.PeptideIdentification()
+    p.setRT(1243.56)
+    p.setMZ(440.0)
+    p.setScoreType("ScoreType")
+    p.setHigherScoreBetter(False)
+    p.setIdentifier("IdentificationRun1")
+
+    h = pyopenms.PeptideHit()
+    h.setScore(1.0)
+    h.setCharge(2)
+    h.setMetaValue("StringMetaValue", "Value")
+    h.setMetaValue("IntMetaValue", 2)
+    e1 = pyopenms.PeptideEvidence()
+    e1.setProteinAccession("sp|Accession1")
+    e1.setStart(123)
+    e1.setEnd(141)
+    e2 = pyopenms.PeptideEvidence()
+    e2.setProteinAccession("sp|Accession2")
+    e2.setStart(12)
+    e2.setEnd(24)
+    h.setPeptideEvidences([e1, e2])
+    p.insertHit(h)
+
+    peps.append(p)
+
+    p1 = pyopenms.PeptideIdentification()
+    p1.setRT(1243.56)
+    p1.setMZ(240.0)
+    p1.setScoreType("ScoreType")
+    p1.setHigherScoreBetter(False)
+    p1.setIdentifier("IdentificationRun2")
+
+    peps.append(p1)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
 @report
 def testPepXMLFile():
@@ -2808,6 +2874,8 @@ def testMSExperiment():
      MSExperiment.removeMetaValue
      MSExperiment.getSize
      MSExperiment.isSorted
+     MSExperiment.get2DPeakDataLong
+     MSExperiment.get_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2825,13 +2893,9 @@ def testMSExperiment():
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
     _testStrOutput(mse.getLoadedFilePath())
-    assert isinstance(mse.getMinInt(), float)
-    assert isinstance(mse.getMaxInt(), float)
+    assert isinstance(mse.getMinIntensity(), float)
+    assert isinstance(mse.getMaxIntensity(), float)
 
-    assert isinstance(mse.getMin()[0], float)
-    assert isinstance(mse.getMin()[1], float)
-    assert isinstance(mse.getMax()[0], float)
-    assert isinstance(mse.getMax()[1], float)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
 
@@ -2839,10 +2903,22 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    mse.addSpectrum(pyopenms.MSSpectrum())
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mse.addSpectrum(spec)
     assert mse.size() == 1
 
     assert mse[0] is not None
+
+    mse.updateRanges()
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape[0] == 2
+    assert mz.shape[0] == 2
+    assert inty.shape[0] == 2
+
 
     assert isinstance(list(mse), list)
 
@@ -2856,6 +2932,22 @@ def testMSExperiment():
 
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
+
+    exp = pyopenms.MSExperiment()
+    for i in range(3):
+        s = pyopenms.MSSpectrum()
+        s.setRT(i)
+        s.setMSLevel(1)
+
+        for mz in (500, 600):
+            p = pyopenms.Peak1D()
+            p.setMZ(mz + i)
+            p.setIntensity(i + 10)
+            s.push_back(p)
+
+        exp.addSpectrum(s)
+
+    assert exp.get_df().shape == (3,3)
 
 
 @report
@@ -2980,10 +3072,10 @@ def testMSSpectrum():
     spec.updateRanges()
     assert isinstance(spec.findNearest(0.0), int)
 
-    assert isinstance(spec.getMin()[0], float)
-    assert isinstance(spec.getMax()[0], float)
-    assert isinstance(spec.getMinInt(), float)
-    assert isinstance(spec.getMaxInt(), float)
+    assert isinstance(spec.getMinMZ(), float)
+    assert isinstance(spec.getMaxMZ(), float)
+    assert isinstance(spec.getMinIntensity(), float)
+    assert isinstance(spec.getMaxIntensity(), float)
 
     assert spec == spec
     assert not spec != spec
@@ -3238,10 +3330,10 @@ def testMSChromatogram():
     chrom.updateRanges()
     assert isinstance(chrom.findNearest(0.0), int)
 
-    assert isinstance(chrom.getMin()[0], float)
-    assert isinstance(chrom.getMax()[0], float)
-    assert isinstance(chrom.getMinInt(), float)
-    assert isinstance(chrom.getMaxInt(), float)
+    assert isinstance(chrom.getMinRT(), float)
+    assert isinstance(chrom.getMaxRT(), float)
+    assert isinstance(chrom.getMinIntensity(), float)
+    assert isinstance(chrom.getMaxIntensity(), float)
 
     assert chrom == chrom
     assert not chrom != chrom
@@ -4525,10 +4617,16 @@ def testTransformationModels():
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
      TransformationModelLinear.getParameters
+     TransformationModelBSpline.getDefaultParameters
+     TransformationModelBSpline.getParameters
+     TransformationModelLowess.getDefaultParameters
+     TransformationModelLowess.getParameters
+     NB: THIS TEST STOPS AFTER THE FIRST FAILURE
     """
     for clz in [pyopenms.TransformationModelLinear,
                 pyopenms.TransformationModelBSpline,
-                pyopenms.TransformationModelInterpolated]:
+                pyopenms.TransformationModelInterpolated,
+                pyopenms.TransformationModelLowess]:
         p = pyopenms.Param()
         data = [ pyopenms.TM_DataPoint(9.0, 8.9),
                  pyopenms.TM_DataPoint(5.0, 6.0),
@@ -5290,7 +5388,7 @@ def testExperimentalDesign():
     fourplex_fractionated_design = pyopenms.ExperimentalDesign()
     ed_dirname = os.path.dirname(os.path.abspath(__file__))
     ed_filename = os.path.join(ed_dirname, "ExperimentalDesign_input_2.tsv").encode()
-    fourplex_fractionated_design = f.load(ed_filename, False)
+    fourplex_fractionated_design = pyopenms.ExperimentalDesignFile.load(ed_filename, False)
     assert fourplex_fractionated_design.getNumberOfSamples() == 8
     assert fourplex_fractionated_design.getNumberOfFractions() == 3
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
@@ -5406,3 +5504,5 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
+
+    

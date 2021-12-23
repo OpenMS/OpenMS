@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,12 +59,12 @@ namespace OpenMS
     E_c_term_(0),
     E_n_term_(0)
   {
-    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("temperature", 500.0, "Temperature term ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", {"advanced"});
+    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", {"advanced"});
+    defaults_.setValue("temperature", 500.0, "Temperature term ", {"advanced"});
 
     defaultsToParam_();
   }
@@ -161,7 +161,7 @@ namespace OpenMS
   {
     // TODO model this using one calculation for both ions
 
-    double q(0);     // Zustandsumme = state sum
+    double q(0);     // partition function = state sum
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
@@ -171,7 +171,7 @@ namespace OpenMS
 
     // we calculate the distribution of only the last proton, all other protons are already distributed
 
-    // so, first calculate the Zustandssumme Q of the N-term ion
+    // so, first calculate the partition function Q of the N-term ion
     for (Size i = 0; i != cleavage_site; ++i)
     {
       // backbone energy
@@ -213,7 +213,7 @@ namespace OpenMS
 
     //cerr << "Q-N-term=" <<    q << endl;
 
-    // add the parts of the C-term ion to the Zustandssumme
+    // add the parts of the C-term ion to the partition function
     for (Size i = cleavage_site; i != peptide.size(); ++i)
     {
       // backbone energy
@@ -487,17 +487,17 @@ namespace OpenMS
 
       // search for entries > 1
       bool has_greater_one(false);
-      for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
+      for (const double& it : p_bb)
       {
-        if (*it > 1.0)
+        if (it > 1.0)
         {
           has_greater_one = true;
         }
       }
 
-      for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
+      for (const double& it : p_sc)
       {
-        if (*it > 1.0)
+        if (it > 1.0)
         {
           has_greater_one = true;
         }
@@ -520,7 +520,7 @@ namespace OpenMS
                                                                     Size cleavage_site,
                                                                     bool use_most_basic_site)
   {
-    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // Zustandsumme
+    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // partition function
     Size most_basic_site(0);
     bool most_basic_site_sc(false);
 
@@ -1197,7 +1197,7 @@ namespace OpenMS
   void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence & peptide, Residue::ResidueType res_type)
   {
     // single charged
-    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
+    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // partition function
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");

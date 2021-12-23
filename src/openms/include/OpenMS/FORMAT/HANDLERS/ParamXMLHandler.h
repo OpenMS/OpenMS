@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,10 +76,10 @@ protected:
       {
         String name;
         String type;
-        StringList stringlist;
+        std::vector<std::string> stringlist;
         IntList intlist;
         DoubleList doublelist;
-        StringList tags;
+        std::vector<std::string> tags;
         String description;
         String restrictions;
         Int restrictions_index;

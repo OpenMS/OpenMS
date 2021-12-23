@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  Julia Thueringer$
+// $Maintainer: Julia Thueringer$
 // $Authors: Julia Thueringer $
 // --------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 namespace OpenMS
@@ -100,6 +99,12 @@ public:
     void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap>& feature_maps_transformed,
                              std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed,
                              std::vector<Size>& trafo_order);
+
+    /**
+     * @brief Align feature maps tree guided using align() of @ref OpenMS::MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
+    */
+    void align(std::vector<FeatureMap>& data,
+               std::vector<TransformationDescription>& transformations);
 
     /**
      * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.

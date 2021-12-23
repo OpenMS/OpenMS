@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ namespace OpenMS
   {
     Param p;
     String suffix = " FILE";
-    StringList commands;
+    std::vector<std::string> commands;
     for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
     {
       // split by " " to get all keywords
@@ -112,7 +112,7 @@ namespace OpenMS
 
   void LogConfigHandler::configure(const Param & param)
   {
-    StringList configurations = param.getValue(LogConfigHandler::PARAM_NAME);
+    StringList configurations = ListUtils::toStringList<std::string>(param.getValue(LogConfigHandler::PARAM_NAME));
 
     for (StringList::const_iterator iter = configurations.begin(); iter != configurations.end(); ++iter)
     {

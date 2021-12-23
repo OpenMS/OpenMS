@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,7 +101,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
   p.setValue("retention_max_diff_local", 2.0, "maxi");
-  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.3,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:0.7","Na:+:0.3","(2)H4H-4:0:0.2:-2:heavy"}, "Ad");
   fdt.setParameters(p);
 
   {
@@ -141,7 +141,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   p.setValue("charge_min", 11, "minimal possible charge");
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("q_try", "heuristic", "Try dif");
-  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.9,Na:++:0.1"));
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:0.9","Na:++:0.1"});
   p.setValue("retention_max_diff", 1.0, "maximum ");
   p.setValue("retention_max_diff_local", 1.0, "maxim");
   p.setValue("intensity_filter", "true", "Enable");
@@ -214,7 +214,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   MetaboliteFeatureDeconvolution fd;
   Param p;
-  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.3,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:0.7","Na:+:0.3","(2)H4H-4:0:0.2:-2:heavy"}, "Ad");
   p.setValue("mass_max_diff", 0.1);
   p.setValue("use_minority_bound","true","enable bound");
   fd.setParameters(p);
@@ -236,7 +236,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   //small pos test file with specific ions
   Param p_pos;
-  p_pos.setValue("potential_adducts", ListUtils::create<String>("H:+:0.6,Na:+:0.2,NH4:+:0.1,K:+:0.1,C2H3N:0:0.05,H-2O-1:0:0.05,H-1Na:0:0.05"), "Ad_p");
+  p_pos.setValue("potential_adducts", std::vector<std::string>{"H:+:0.6","Na:+:0.2","NH4:+:0.1","K:+:0.1","C2H3N:0:0.05","H-2O-1:0:0.05","H-1Na:0:0.05"}, "Ad_p");
   p_pos.setValue("charge_min", 1, "minimal possible charge");
   p_pos.setValue("charge_max", 3, "maximal possible charge");
   p_pos.setValue("charge_span_max", 3);
@@ -267,7 +267,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   //small neg test file with specific ions
   Param p_neg;
-  p_neg.setValue("potential_adducts", ListUtils::create<String>("H-1:-:0.6,Cl:-:0.2,Br:-:0.2,CH2O2:0:0.05,H-2O-1:0:0.05,H-1Na:0:0.05,H-1K:0:0.05"), "Ad_n");
+  p_neg.setValue("potential_adducts", std::vector<std::string>{"H-1:-:0.6","Cl:-:0.2","Br:-:0.2","CH2O2:0:0.05","H-2O-1:0:0.05","H-1Na:0:0.05","H-1K:0:0.05"}, "Ad_n");
   p_neg.setValue("charge_min", -3, "minimal possible charge");
   p_neg.setValue("charge_max", -1, "maximal possible charge");
   p_neg.setValue("charge_span_max", 3);
@@ -299,7 +299,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   //small pos test file with specific ions and ppm error
   Param p_pos_ppm;
-  p_pos_ppm.setValue("potential_adducts", ListUtils::create<String>("H:+:0.6,Na:+:0.4"), "Ad_p");
+  p_pos_ppm.setValue("potential_adducts", std::vector<std::string>{"H:+:0.6","Na:+:0.4"}, "Ad_p");
   p_pos_ppm.setValue("charge_min", 1, "minimal possible charge");
   p_pos_ppm.setValue("charge_max", 3, "maximal possible charge");
   p_pos_ppm.setValue("charge_span_max", 3);

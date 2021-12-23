@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,12 +45,12 @@ using namespace OpenMS;
 DecoyGenerator::DecoyGenerator()
 {
   const UInt64 seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-  rng_ = boost::mt19937_64(seed);
+  shuffler_.seed(seed);
 }
 
 void DecoyGenerator::setSeed(UInt64 seed)
 {
-  rng_.seed(seed);
+  shuffler_.seed(seed);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
@@ -109,7 +109,7 @@ AASequence DecoyGenerator::shufflePeptides(
     String lowest_identity_string(peptide_string_shuffled);
     for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
     {
-      shuffle_(std::begin(peptide_string_shuffled), last);
+      shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), last);
 
       double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
       if (identity < lowest_identity)
@@ -117,7 +117,10 @@ AASequence DecoyGenerator::shufflePeptides(
         lowest_identity = identity;
         lowest_identity_string = peptide_string_shuffled;
 
-        if (identity <= (1.0/peptide_string_shuffled.size() + 1e-6)) break; // found perfect shuffle (only 1 (=cutting site) of all AAs match)
+        if (identity <= (1.0/peptide_string_shuffled.size() + 1e-6)) 
+        {
+          break; // found perfect shuffle (only 1 (=cutting site) of all AAs match)
+        }
       }
     }
     protein_shuffled += lowest_identity_string;
@@ -129,13 +132,16 @@ AASequence DecoyGenerator::shufflePeptides(
   String lowest_identity_string(peptide_string_shuffled);
   for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
   {
-    shuffle_(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
+    shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
     double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
     if (identity < lowest_identity)
     {
       lowest_identity = identity;
       lowest_identity_string = peptide_string_shuffled;
-      if (identity == 0) break; // found best shuffle
+      if (identity == 0)
+      {
+        break; // found best shuffle
+      }
     }
   }
   protein_shuffled += lowest_identity_string;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,14 +63,14 @@ namespace OpenMS
       double lefthand = left_neighbor_mz;
       double righthand = right_neighbor_mz;
 
-      bool lefthand_sign = 1;
+      bool lefthand_sign = true;
       double eps = std::numeric_limits<double>::epsilon();
 
       // bisection
       do
       {
         double mid = (lefthand + righthand) / 2.0;
-        double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
+        double midpoint_deriv_val = peak_spline.derivative(mid);
 
         // if deriv nearly zero then maximum already found
         if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -78,7 +78,7 @@ namespace OpenMS
           break;
         }
 
-        bool midpoint_sign = (midpoint_deriv_val < 0.0) ? 0 : 1;
+        bool midpoint_sign = (midpoint_deriv_val < 0.0) ? false : true;
 
         if (lefthand_sign ^ midpoint_sign)
         {

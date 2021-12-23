@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ public:
       decompositions_type getAllDecompositions(value_type mass) override;
 
       /**
-        Gets number of all possible decompositions for a given @c mass.
+        Gets number of all possible decompositions for a given @p mass.
         Since using getAllDecomposition() the usage of this function could
         be @b consuming.
 

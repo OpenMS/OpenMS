@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -272,8 +272,6 @@ namespace OpenMS
 
   QPointF TOPPASEdge::endPos() const
   {
-    QPointF position;
-
     if (!to_)
     {
       // we do not have a target vertex yet
@@ -288,9 +286,10 @@ namespace OpenMS
 
   QPointF TOPPASEdge::borderPoint_(bool atTargetVertex) const
   {
-    if (!to_ || !from_) return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
-
-    QPointF position;
+    if (!to_ || !from_)
+    {
+      return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
+    }
     const TOPPASVertex* to = (atTargetVertex ? to_ : from_);
     const TOPPASVertex* from = (!atTargetVertex ? to_ : from_);
 
@@ -672,7 +671,7 @@ namespace OpenMS
     source_out_param_ = out;
   }
 
-  int TOPPASEdge::getSourceOutParam()
+  int TOPPASEdge::getSourceOutParam() const
   {
     return source_out_param_;
   }
@@ -682,7 +681,7 @@ namespace OpenMS
     target_in_param_ = in;
   }
 
-  int TOPPASEdge::getTargetInParam()
+  int TOPPASEdge::getTargetInParam() const
   {
     return target_in_param_;
   }

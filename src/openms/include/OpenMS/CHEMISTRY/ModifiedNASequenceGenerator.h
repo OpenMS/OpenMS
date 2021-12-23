@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ namespace OpenMS
 {
   /*
    * @brief This class applies fixed and variable modifications to (unmodified)
-   * nucleic acid sequences, combinatorially generating modified sequences.
+   * nucleic acid sequences, combinatorically generating modified sequences.
    *
    */
   class OPENMS_DLLAPI ModifiedNASequenceGenerator

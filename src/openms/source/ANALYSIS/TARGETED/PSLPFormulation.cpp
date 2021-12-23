@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,7 +88,7 @@ namespace OpenMS
 
 
     defaults_.setValue("thresholds:use_peptide_rule", "false", "Use peptide rule instead of minimal protein id probability");
-    defaults_.setValidStrings("thresholds:use_peptide_rule", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("thresholds:use_peptide_rule", {"true","false"});
 
     defaults_.setValue("thresholds:min_peptide_ids", 2, "If use_peptide_rule is true, this parameter sets the minimal number of peptide ids for a protein id");
     defaults_.setMinInt("thresholds:min_peptide_ids", 1);
@@ -110,10 +110,10 @@ namespace OpenMS
     defaults_.setMinFloat("combined_ilp:k3", 0.);
     // defaults_.setMaxFloat("combined_ilp:k1",1.);
     defaults_.setValue("combined_ilp:scale_matching_probs", "true", "flag if detectability * rt_weight shall be scaled to cover all [0,1]");
-    defaults_.setValidStrings("combined_ilp:scale_matching_probs", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("combined_ilp:scale_matching_probs", {"true","false"});
 
     defaults_.setValue("feature_based:no_intensity_normalization", "false", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
-    defaults_.setValidStrings("feature_based:no_intensity_normalization", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("feature_based:no_intensity_normalization", {"true","false"});
 
     defaults_.setValue("feature_based:max_number_precursors_per_feature", 1, "The maximal number of precursors per feature.");
     defaults_.setMinInt("feature_based:max_number_precursors_per_feature", 1);
@@ -519,9 +519,8 @@ namespace OpenMS
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
     //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
-    //  TODO: German comment
-    //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
-    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
+    // cmodel_->setColumnIsInteger(counter,true); // partially switched off, if not enough peptides
+    // were available to set the protein to 1 (no variables choosen for the protein)
     model_->setObjective(index, 1.);
     protein_variable_index_map.insert(make_pair(map_iter->first, counter));
     ++counter;
@@ -1069,7 +1068,7 @@ namespace OpenMS
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
         continue;
-      if (mass_ranges[i].size() == 0)
+      if (mass_ranges[i].empty())
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
       }
@@ -1486,7 +1485,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if (!new_feature.getPeptideIdentifications().empty() && !new_feature.getPeptideIdentifications()[0].getHits().empty())
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();

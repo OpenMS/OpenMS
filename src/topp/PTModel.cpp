@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -451,9 +451,10 @@ protected:
     debug_string = String(training_labels.size()) + " positive sequences read";
     writeDebug_(debug_string, 1);
 
+    Math::RandomShuffler r{0};
     if (training_peptides.size() > max_positive_count)
     {
-      random_shuffle(training_peptides.begin(), training_peptides.end());
+      r.portable_random_shuffle(training_peptides.begin(), training_peptides.end());
       training_peptides.resize(max_positive_count, "");
       training_labels.resize(max_positive_count, 1.);
     }
@@ -500,7 +501,7 @@ protected:
     writeDebug_(debug_string, 1);
     if (temp_training_peptides.size() > max_negative_count)
     {
-      random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
+      r.portable_random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
       temp_training_peptides.resize(max_negative_count, "");
       training_labels.resize(training_peptides.size() + max_negative_count, -1.);
     }
@@ -562,6 +563,11 @@ protected:
                                                          additive_cv,
                                                          output_flag,
                                                          "performances_" + digest + ".txt");
+
+      if (temp_type == SVMWrapper::OLIGO)
+      {
+        LibSVMEncoder::destroyProblem(encoded_training_sample);
+      }
 
       String debug_string = "Best parameters found in cross validation:";
 

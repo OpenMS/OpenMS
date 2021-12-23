@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,9 +28,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: UCSD Dorrestein Lab $
-// $Authors: Abinesh Sarvepalli $
+// $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
+// $Authors: Abinesh Sarvepalli and Louis Felix Nothias$
+// $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
 // --------------------------------------------------------------------------
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
+#include <iostream>
+#include <fstream>
+
+using namespace OpenMS;
+using namespace std;
 
 //----------------------------------------------------------
 // Doxygen docu
@@ -40,19 +59,86 @@
 
   @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
 
-GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organisation and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089), and the Dereplicator-based annotation (https://www.nature.com/articles/nchembio.2219). The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
+GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089), and the Dereplicator-based annotation (https://www.nature.com/articles/nchembio.2219). The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
 
-This tool was developed for the OpenMS-GNPS workflow. It can be accessed on GNPS (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-experimental.jsp). The steps used by that workflow are as following:
+This tool was developed for the Feature Based Molecular Networking (FBMN) workflow on GNPS (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp)
+
+Please cite our preprint:
+Nothias, LF., Petras, D., Schmid, R. et al. Feature-based molecular networking in the GNPS analysis environment.
+Nat Methods 17, 905–908 (2020). https://doi.org/10.1038/s41592-020-0933-6
+
+See the FBMN workflow documentation here (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/)
+
+In brief, after running an OpenMS "metabolomics" pipeline, the GNPSExport TOPP tool can be used
+on the consensusXML file and corresponding mzML files to generate the files needed for FBMN on GNPS.
+These two files are:
+
+	- The MS/MS spectral data file (.MGF format) which is generated  with the GNPSExport util.
+	- The feature quantification table (.CSV format) which is generated with the TextExport util.
+
+For each consensusElement in the consensusXML file, the GNPSExport produces one representative consensus
+MS/MS spectrum (named peptide annotation in OpenMS jargon) outputted in the MS/MS spectral file (.MGF file).
+Several modes for the generation of the consensus MS/MS spectrum are available and described below.
+Note that these parameters are defined in the GNPSExport INI parameters file.
+
+Representative command:
+@code
+GNPSExport -ini iniFile-GNPSExport.ini -in_cm filefilter.consensusXML -in_mzml inputFile0.mzML inputFile1.mzML -out GNPSExport_output.mgf
+@endcode
+
+The GNPSExport TOPP tool can be run on a consensusXML file and the corresponding mzML files to generate a MS/MS spectral file (MGF format)
+and corresponding feature quantification table (.TXT format) that contains the LC-MS peak area intensity.
+
+Requirements:
+	- The IDMapper has to be run on the featureXML files, in order to associate MS2 scan(s) (peptide annotation) with each
+	features. These peptide annotations are used by the GNPSExport.
+	- The FileFilter has to be run on the consensusXML file, prior to the GNPSExport, in order to remove consensusElements
+	without MS2 scans (peptide annotation).
+
+Parameters:
+	- Binning (ms2_bin_size): Defines the binning width of fragment ions during the merging of eligible MS/MS spectra.
+	- Cosine Score Threshold (merged_spectra:cos_similarity): Defines the necessary pairwise cosine similarity with the highest precursor intensity MS/MS scan.
+
+  - Output Type (output_type):
+Options for outputting GNPSExport spectral processing are:
+    -# [RECOMMENDED] merged_spectra
+      For each consensusElement, the GNPSExport will merge all the eligible MS/MS scans into one representative consensus MS/MS spectrum.
+      Eligible MS/MS scans have a pairwise cosine similarity with the MS/MS scan of highest precursor intensity above the Cosine Similarity Threshold.
+	    The fragment ions of merged MS/MS scans are binned in m/z (or Da) range defined by the Binning width parameter.
+      .
+	  -# Most intense: most_intense - For each consensusElement, the GNPSExport will output the most intense MS/MS scan (with the highest precursor ion intensity) as consensus MS/MS spectrum.
+      .
+
+Note that mass accuracy and the retention time window for the pairing between MS/MS scans and a LC-MS feature
+or consensusElement is defined at the IDMapper tool step.
+
+A representative OpenMS-GNPS workflow would sequentially use these OpenMS TOPP tools:
   1. Input mzML files
-  2. Run the FeatureFinderMetabo tool
-  3. Run the IDMapper tool
-  4. Run the MapAlignerPoseClustering tool
-  5. Run the FeautureLinkerUnlabeledKD tool
-  6. Run the FileConverter tool (output FeatureXML format)
-  7. Run the MetaboliteAdductDecharger
-  8. Run the GNPSExport to export an .MGF
-  9. Upload the .MGF file on http://gnps.ucsd.edu and follow the instructions here:
+  2. Run the @ref TOPP_FeatureFinderMetabo tool on the mzML files.
+  3. Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
+  4. Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
+  5. Run the @ref TOPP_MetaboliteAdductDecharger on the featureXML files.
+  6. Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
+  8. Run the @ref TOPP_FileFilter on the consensusXML file to keep only consensusElements with at least MS/MS scan (peptide identification).
+  9. Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file.
+  10. Run the @ref TOPP_TextExporter on the "filtered consensusXML file" to export an .TXT file.
+  11. Upload your files to GNPS and run the Feature-Based Molecular Networking workflow. Instructions are here:
 https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
+
+The GitHub for that ProteoSAFe workflow and an OpenMS python wrappers is available here:
+https://github.com/Bioinformatic-squad-DorresteinLab/openms-gnps-workflow
+
+An online version of the OpenMS-GNPS pipeline for FBMN running on CCMS server (http://proteomics.ucsd.edu/) is available on GNPS:
+https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms/
+
+GNPS (Global Natural Products Social Molecular Networking, https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp)
+is an open-access knowledge base for community-wide organization and sharing of raw, processed
+or identified tandem mass (MS/MS) spectrometry data.
+The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries,
+as well as to perform various data analysis such as MS/MS molecular networking, Network Annotation Propagation
+Network Annotation Propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089)
+and the DEREPLICATOR (https://www.nature.com/articles/nchembio.2219)
+The GNPS paper is available here (https://www.nature.com/articles/nbt.3597)
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_GNPSExport.cli
@@ -60,314 +146,400 @@ https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
   @htmlinclude TOPP_GNPSExport.html
  */
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <iostream>
-#include <fstream>
-
-using namespace OpenMS;
-using namespace std;
-
 class TOPPGNPSExport : public TOPPBase
 {
 public:
-  TOPPGNPSExport() :
-  TOPPBase("GNPSExport", "Tool to export consensus features into MGF format", false) {}
+  TOPPGNPSExport() : TOPPBase(
+    "GNPSExport",
+    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms",
+    true,
+    {
+      {
+        "Nothias L.F. et al.", // authors
+        "Feature-based Molecular Networking in the GNPS Analysis Environment", // title
+        "bioRxiv 812404 (2019)", // when_where
+        "10.1101/812404" // doi
+      }
+    }
+  ) {}
 
 private:
-  double DEF_COSINE_SIMILARITY = 0.95;
-  double DEF_PRECURSOR_MZ_TOLERANCE = 0.0001;
-  double DEF_PRECURSOR_RT_TOLERANCE = 5;
+  static constexpr double DEF_COSINE_SIMILARITY = 0.9;
+  static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
+
+  static constexpr double DEF_PREC_MASS_TOL = 0.5;
+  static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
+
+  static constexpr double DEF_PEPT_CUTOFF = 5;
+  static constexpr double DEF_MSMAP_CACHE = 50;
+
+  /**
+   * @brief Bin peaks by similar m/z position and averaged intensities
+   * @param peaks Vector of Peak1D peaks sorted by m/z position
+   * @param bin_width Size of bin
+   * @param binned_peaks Result vector with binned peaks passed in by reference
+   */
+  void binPeaks_(
+    const vector<Peak1D> &peaks,
+    const double bin_width,
+    vector<Peak1D> &binned_peaks
+  )
+  {
+    double last_mz = peaks.at(0).getMZ();
+    double sum_mz = 0, sum_intensity = 0;
+    int count = 0;
+    for (auto& spec : peaks)
+    {
+      if (count > 0 && spec.getMZ() - last_mz > bin_width)
+      {
+        if (sum_intensity > 0)
+        {
+          Peak1D curr(sum_mz/count, sum_intensity/count);
+          binned_peaks.push_back(curr);
+        }
+        last_mz = spec.getMZ();
+        sum_mz = 0;
+        sum_intensity = 0;
+        count = 0;
+      }
+
+      sum_mz += spec.getMZ();
+      sum_intensity += spec.getIntensity();
+      count += 1;
+    }
+    if (count > 0)
+    {
+      Peak1D curr(sum_mz/count, sum_intensity/count);
+      binned_peaks.push_back(curr);
+    }
+  }
+
+  /**
+   * @brief Flatten spectra from MSExperiment into a single vector of Peak1D peaks
+   * @param exp MSExperiment containing at least 1 spectrum
+   * @param bin_width Size of binned scan (m/z)
+   * @param merged_peaks Result vector of peaks passed in by reference
+   */
+  void flattenAndBinSpectra_(
+    MSExperiment &exp,
+    const double bin_width,
+    vector<Peak1D> &merged_peaks
+  )
+  {
+    // flatten spectra
+    vector<Peak1D> flat_spectra;
+    for (unsigned long i = 0; i < exp.getSpectra().size(); ++i)
+    {
+      MSExperiment::SpectrumType &spec = exp.getSpectrum(i);
+      for (auto& spec : spec)
+      {
+        Peak1D curr(spec.getMZ(), spec.getIntensity());
+        flat_spectra.push_back(curr);
+      }
+    }
+
+    sort(flat_spectra.begin(), flat_spectra.end(), [](const Peak1D &a, const Peak1D &b)
+      {
+        return a.getMZ() < b.getMZ();
+      }
+    );
+
+    // bin peaks
+    binPeaks_(flat_spectra, bin_width, merged_peaks);
+
+    // return value is modified merged_peaks passed by reference
+  }
+
+  /**
+   * @brief Private function that outputs MS/MS Block Header
+   * @param output_file Stream that will write to file
+   * @param scan_index Current scan index in GNPSExport formatted output
+   * @param feature_id ConsensusFeature Id found in input mzXML file
+   * @param feature_charge ConsensusFeature's highest charge as mentioned in the input mzXML file
+   * @param feature_mz m/z position of PeptideIdentification with highest intensity
+   * @param spec_index Spectrum index of PeptideIdentification with highest intensity
+   * @param feature_rt ConsensusFeature's retention time specified in input mzXML file
+   */
+  void writeMSMSBlockHeader_(
+    ofstream &output_file,
+    const String &output_type,
+    const int &scan_index,
+    const String &feature_id,
+    const int &feature_charge,
+    const String &feature_mz,
+    const String &spec_index,
+    const String &feature_rt
+  )
+  {
+    if (output_file.is_open())
+    {
+      output_file << "BEGIN IONS" << "\n"
+                  << "OUTPUT=" << output_type << "\n"
+                  << "SCANS=" << scan_index << "\n"
+                  << "FEATURE_ID=e_" << feature_id << "\n"
+                  << "MSLEVEL=2" << "\n"
+                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                  << "PEPMASS=" << feature_mz << "\n"
+                  << "FILE_INDEX=" << spec_index << "\n"
+                  << "RTINSECONDS=" << feature_rt << "\n";
+    }
+  }
+
+  /**
+   * @brief Private function to write peak mass and intensity to output file
+   * @param output_file Stream that will write to file
+   * @param peaks Vector of peaks that will be outputted
+   */
+  void writeMSMSBlock_(
+    ofstream &output_file,
+    const vector<Peak1D> &peaks
+  )
+  {
+    if (output_file.is_open())
+    {
+      output_file << setprecision(4) << fixed;
+      for (auto& peak : peaks)
+      {
+        output_file << peak.getMZ() << "\t" << peak.getIntensity() << "\n";
+      }
+
+      output_file << "END IONS" << "\n" << endl;
+    }
+  }
+
+  /**
+   * @brief Private method used to sort PeptideIdentification map indices in order of annotation's intensity
+   * @param feature ConsensusFeature annotated with PeptideIdentifications
+   * @param featureMaps_sortedByInt Result vector of map indices in order of PeptideIdentification intensity
+   */
+  void sortElementMapsByIntensity_(const ConsensusFeature& feature, vector<pair<int,double>>& element_maps)
+  {
+    // convert element maps to vector of pair<int,double>(map, intensity)
+    for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();\
+          feature_iter != feature.end(); ++feature_iter)
+    {
+      element_maps.push_back(pair<int,double>(feature_iter->getMapIndex(), feature_iter->getIntensity()));
+    }
+
+    // sort elements by intensity
+    sort(element_maps.begin(), element_maps.end(), [](const pair<int,double> &a, const pair<int,double> &b)
+    {
+      return a.second > b.second;
+    });
+
+    // return value will be reformatted vector<int> element_maps passed in by value
+  }
+
+  /**
+   * @brief Retrieve list of PeptideIdentification parameters from ConsensusFeature metadata, sorted by map intensity
+   * @param feature ConsensusFeature feature containing PeptideIdentification annotations
+   * @param sorted_element_maps Sorted list of element_maps
+   * @param pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
+   */
+  void getElementPeptideIdentificationsByElementIntensity_(
+    const ConsensusFeature& feature,
+    vector<pair<int,double>>& sorted_element_maps,
+    vector<pair<int,int>>& pepts
+  )
+  {
+    for (pair<int,double>& element_pair : sorted_element_maps)
+    {
+      int element_map = element_pair.first;
+      vector<PeptideIdentification> feature_pepts = feature.getPeptideIdentifications();
+      for (PeptideIdentification& pept_id : feature_pepts)
+      {
+        if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
+            && (int)pept_id.getMetaValue("map_index") == element_map)
+        {
+          int map_index = pept_id.getMetaValue("map_index");
+          int spec_index = pept_id.getMetaValue("spectrum_index");
+          pepts.push_back(pair<int,int>(map_index,spec_index));
+          break;
+        }
+      }
+    }
+
+    // return will be reformatted vector<PeptideIdentification> pepts passed in by value
+  }
 
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_cm", "<file>", "", "input file containing consensus elements with \'peptide\' annotations");
+    registerInputFile_("in_cm", "<file>", "", "Input consensusXML file containing only consensusElements with \"peptide\" annotations.");
     setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
 
-    registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "original mzml files containing ms/ms spectrum information");
+    registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
     setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out", "<file>", "", "Output MGF file");
     setValidFormats_("out", ListUtils::create<String>("mgf"));
 
-    registerStringOption_("output_type", "<choice>", "full_spectra", "specificity of mgf output information", false);
-    setValidStrings_("output_type", ListUtils::create<String>("full_spectra,merged_spectra"));
+    registerStringOption_("output_type", "<choice>", "most_intense", "specificity of mgf output information", false);
+    setValidStrings_("output_type", ListUtils::create<String>("merged_spectra,most_intense"));
 
-    registerDoubleOption_("precursor_mz_tolerance", "<num>", DEF_PRECURSOR_MZ_TOLERANCE, "Tolerance mz window for precursor selection", false);
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", DEF_PRECURSOR_RT_TOLERANCE, "Tolerance rt window for precursor selection", false);
+    addEmptyLine_();
 
-    registerTOPPSubsection_("merged_spectra", "Options for exporting mgf file with merged spectra per feature");
+    // registerIntOption_("msmap_cache", "<num>", DEF_MSMAP_CACHE, "Number of msmaps that can be cached during export for optimized performance", false, true);
+    // setMinInt_("msmap_cache", 0);
+    registerIntOption_("peptide_cutoff", "<num>", DEF_PEPT_CUTOFF, "Number of most intense peptides to consider per consensus element; '-1' to consider all identifications", false, true);
+    setMinInt_("peptide_cutoff", -1);
+    registerDoubleOption_("ms2_bin_size", "<num>", DEF_MERGE_BIN_SIZE, "Bin size (Da) for fragment ions when merging ms2 scans", false, false);
+    setMinFloat_("ms2_bin_size", 0);
+
+    registerTOPPSubsection_("merged_spectra", "Options for exporting mgf file with merged spectra per consensusElement");
+    registerDoubleOption_("merged_spectra:precursor_mass_tolerance", "<num>", DEF_PREC_MASS_TOL, "Precursor mass tolerance (Da) for ms annotations", false);
+    setMinFloat_("merged_spectra:precursor_mass_tolerance", 0);
     registerDoubleOption_("merged_spectra:cos_similarity", "<num>", DEF_COSINE_SIMILARITY, "Cosine similarity threshold for merged_spectra output", false);
+    setMinFloat_("merged_spectra:cos_similarity", 0);
   }
 
   // the main function is called after all parameters are read
-  ExitCodes main_(int, const char **) override
+  ExitCodes main_(int, const char**) override
   {
-    ProgressLogger progress_logger;
-    progress_logger.setLogType(log_type_);
-
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+    double cos_sim_threshold(getDoubleOption_("merged_spectra:cos_similarity"));
+    double bin_width(getDoubleOption_("ms2_bin_size"));
+
     String consensus_file_path(getStringOption_("in_cm"));
-    StringList mzml_file_paths(getStringList_("in_mzml"));
-
+    StringList mzml_file_paths = getStringList_("in_mzml");
     String out(getStringOption_("out"));
-
     String output_type(getStringOption_("output_type"));
 
-    double prec_mz_tol(getDoubleOption_("precursor_mz_tolerance"));
-    double prec_rt_tol(getDoubleOption_("precursor_rt_tolerance"));
+    int pept_cutoff((output_type == "merged_spectra") ? getIntOption_("peptide_cutoff") : 1);
 
-    double cos_sim(getDoubleOption_("merged_spectra:cos_similarity"));
+    ofstream output_file(out);
+
+    ProgressLogger progress_logger;
+    progress_logger.setLogType(log_type_);
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
     // ConsensusMap
     ConsensusXMLFile consensus_file;
-    consensus_file.setLogType(log_type_);
     ConsensusMap consensus_map;
     consensus_file.load(consensus_file_path, consensus_map);
 
-    // MSExperiment
-    vector<MSExperiment> ms_maps;
-    for (const auto& mzml_file_path : mzml_file_paths)
-    {
-      MzMLFile mzml_file;
-      MSExperiment map;
-      mzml_file.setLogType(log_type_);
-      mzml_file.load(mzml_file_path, map);
+    //-------------------------------------------------------------
+    // open on-disc data (=spectra are only loaded on demand to safe memory)
+    //-------------------------------------------------------------
+    vector<OnDiscMSExperiment> specs_list(mzml_file_paths.size(), OnDiscMSExperiment());
 
-      ms_maps.push_back(map);
-    }
-
+    map<size_t, size_t> map_index2file_index; // <K, V> = <map_index, file_index>
+    Size num_msmaps_cached = 0;
 
     //-------------------------------------------------------------
-    // calculations
+    // write output (+ merge computations)
     //-------------------------------------------------------------
     progress_logger.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
-    std::stringstream output_stream;
-    Size feature_count = 1;
-    for (Size i = 0; i != consensus_map.size(); ++i)
+    for (Size cons_i = 0; cons_i < consensus_map.size(); ++cons_i)
     {
-      progress_logger.setProgress(i);
-      // current feature
-      const ConsensusFeature& feature = consensus_map[i];
+      progress_logger.setProgress(cons_i);
 
-      // store "mz rt" information from each scan
-      stringstream scans_output;
-      scans_output << setprecision(2) << setfill('0') << fixed;
+      const ConsensusFeature& feature = consensus_map[cons_i];
 
-      // determining charge and most intense feature for header
-      BaseFeature::ChargeType charge = feature.getCharge();
-      for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();
-      feature_iter != feature.end(); ++feature_iter)
-      {
-        if (feature_iter->getCharge() > charge)
+      // determine feature's charge as maximum feature handle charge
+      int charge = feature.getCharge();
+      for (auto& fh : feature)
+      { 
+        if (fh.getCharge() > charge)
         {
-          charge = feature_iter->getCharge();
+          charge = fh.getCharge();
         }
       }
 
-      // print spectra information (PeptideIdentification tags)
-      vector<PeptideIdentification> peptide_identifications = feature.getPeptideIdentifications();
+      // compute most intense peptide identifications (based on precursor intensity)
+      vector<pair<int,double>> element_maps;
+      sortElementMapsByIntensity_(feature, element_maps);
+      vector<pair<int, int>> pepts;
+      getElementPeptideIdentificationsByElementIntensity_(feature, element_maps, pepts);
 
-
-      // clean peptide identifications outside mz rt tol ranges
-
-      // vector of <<map index, spectrum index>, most intense ms2 scan>
-      vector<pair<pair<double,PeptideIdentification>,pair<int,int>>> peptides;
-
-      bool should_skip_feature;
-      if (!(should_skip_feature = peptide_identifications.empty()))
+      // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
+      if (pept_cutoff != -1 && pepts.size() > (unsigned long) pept_cutoff)
       {
-        for (Size peptide_index = 0; peptide_index < peptide_identifications.size(); peptide_index++)
+        pepts.erase(pepts.begin()+pept_cutoff, pepts.end());
+      }
+
+      // validate all peptide annotation maps have been loaded
+      for (const auto& pep : pepts)
+      {
+        int map_index = pep.first;
+
+        // open on-disc experiments
+        if (map_index2file_index.find(map_index) == map_index2file_index.end())
         {
-          auto peptide_identification = peptide_identifications[peptide_index];
+          specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index], false); // open on-disc experiment and load meta-data
+          map_index2file_index[map_index] = num_msmaps_cached;
+          ++num_msmaps_cached;
+        }
+      }
 
-          // append spectra information to scans_output
-          int map_index = -1, spectrum_index = -1;
-          if (peptide_identification.metaValueExists("spectrum_index"))
+      // identify most intense spectrum
+      const int best_mapi = pepts[0].first;
+      const int best_speci = pepts[0].second;
+      auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
+
+      // write block output header
+      writeMSMSBlockHeader_(
+        output_file,
+        output_type,
+        (cons_i + 1),
+        feature.getUniqueId(),
+        charge,
+        feature.getMZ(),
+        best_speci,
+        best_spec.getRT()
+      );
+
+      // store outputted spectra in MSExperiment
+      MSExperiment exp;
+
+      // add most intense spectrum to MSExperiment
+      exp.addSpectrum(best_spec);
+
+      if (output_type == "merged_spectra")
+      {
+        // merge spectra that meet cosine similarity threshold to most intense spectrum
+        BinnedSpectrum binned_highest_int(best_spec, bin_width, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+
+        // Retain peptide annotations that do not meet user-specified cosine similarity threshold
+        for (pair<int,int> &pept : pepts)
+        {
+          int map_index = pept.first;
+          int spec_index = pept.second;
+          auto test_spec = specs_list[map_index2file_index[map_index]][spec_index];
+
+          BinnedSpectrum binned_spectrum(test_spec, bin_width, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+
+          BinnedSpectralContrastAngle bsca;
+          double cos_sim = bsca(binned_highest_int, binned_spectrum);
+
+          if (cos_sim >= cos_sim_threshold)
           {
-            spectrum_index = peptide_identification.getMetaValue("spectrum_index");
-          }
-          if (peptide_identification.metaValueExists("map_index"))
-          {
-            map_index = peptide_identification.getMetaValue("map_index");
-          }
-
-          if (map_index != -1 && spectrum_index != -1)
-          {
-            // TEMP: log debug map index and spectrum index values once they are found
-            OPENMS_LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
-
-            // retrieve spectrum for current peptide annotation
-            auto ms2_scan = ms_maps[map_index][spectrum_index];
-            ms2_scan.sortByIntensity(true);
-
-            if (ms2_scan.getMSLevel() == 2 && !ms2_scan.empty())
-            {
-              should_skip_feature = false;
-
-              // DEBUG determine if within user rt and mz tol range
-              if (abs(feature.getMZ() - peptide_identification.getMZ()) > prec_mz_tol
-              && abs(feature.getRT() - peptide_identification.getRT()) > prec_rt_tol)
-              {
-                continue;
-              }
-
-              double similarity_index = 5 * abs(feature.getMZ() - peptide_identification.getMZ()) +
-              abs(feature.getRT() - peptide_identification.getRT());
-
-              pair<double,PeptideIdentification> first_pair = pair<double,PeptideIdentification>(similarity_index, peptide_identification);
-              pair<int,int> second_pair = pair<int,int>(map_index, spectrum_index);
-
-              peptides.emplace_back(first_pair,second_pair);
-            }
-          }
-          else
-          {
-            should_skip_feature = true;
+            exp.addSpectrum(test_spec);
           }
         }
       }
 
-      // peptides list of < <similarity_index, PeptideIdentification>, <map_index, feature_index> >
+      // store outputted peaks in vector<Peak1D>
+      vector<Peak1D> peaks;
+      flattenAndBinSpectra_(
+        exp,
+        bin_width,
+        peaks
+      );
 
-      // with the remaining peptides left within mz/rt tol of most intense
-      if (!should_skip_feature && !peptides.empty())
-      {
-        // prepare peptides for output with highest mz value at top
-        sort (peptides.begin(), peptides.end(), [](const pair<pair<double,PeptideIdentification>,pair<int,int>> &a, const pair<pair<double,PeptideIdentification>,pair<int,int>> &b)
-        {
-          return a.first.first < b.first.first;
-        });
-
-        // tmp stream for current feature
-        stringstream feature_stream;
-        feature_stream << setprecision(4) << fixed;
-
-        // full spectra
-        if (output_type == "full_spectra")
-        {
-          for (const auto& peptide : peptides)
-          {
-            feature_stream << "BEGIN IONS" << endl;
-
-            feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
-
-            string filename = mzml_file_paths[peptide.second.first];
-            Size parse_index = filename.rfind('/') + 1;
-            filename = filename.substr(parse_index);
-            feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
-
-            feature_stream << "MSLEVEL=2" << endl;
-            feature_stream << "CHARGE=" << to_string(charge == 0 ? 1 : charge) << "+" << endl;
-            feature_stream << "PEPMASS=" << peptide.first.second.getMZ() << endl;
-            feature_stream << "FILE_INDEX=" << peptide.second.second << endl;
-            feature_stream << "RTINSECOND=" << peptide.first.second.getRT() << endl;
-
-            auto ms2_scan = ms_maps[peptide.second.first][peptide.second.second];
-            // sort spectra
-            sort (ms2_scan.begin(), ms2_scan.end(), [](const Peak1D& a, const Peak1D& b)
-            {
-              return a.getMZ() > b.getMZ();
-            });
-            // ms2_scan.sortByIntensity(true);
-
-            for (Size l = 0; l < ms2_scan.size(); l++)
-            {
-              feature_stream << ms2_scan[l].getMZ() << "\t" << (int) ms2_scan[l].getIntensity() << endl;
-            }
-
-            feature_stream << "END IONS" << endl << endl;
-          }
-          feature_count++;
-        }
-        else // merged spectra
-        {
-          // map mz to intensity
-          map<double,int> ms2_block;
-
-          // MSExperiment exp;
-
-          const BinnedSpectrum binned_highest_int(ms_maps[peptides[0].second.first][peptides[0].second.second], BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-          for (const auto& peptide : peptides)
-          {
-            int map_index = peptide.second.first;
-            int spectra_index = peptide.second.second;
-            // int highest_binned_intensity = peptide.first.first;
-            // auto highest_peptide_identification = peptide.first.second;
-
-            auto spectrum = ms_maps[map_index][spectra_index];
-
-            const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-            BinnedSpectralContrastAngle bsca;
-            double cosine_sim = bsca(binned_highest_int, binned_spectrum);
-            // OPENMS_LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
-
-            // compare calculated cosine sim to binned highest int
-            if (cosine_sim >= cos_sim)
-            {
-              for (Size spectrum_index = 0; spectrum_index < spectrum.size(); ++spectrum_index)
-              {
-                // exp.addSpectrum(spectrum);
-                // exp.addSpectrum(spectrum);
-                auto curr_spectrum = spectrum[spectrum_index];
-                if (ms2_block[curr_spectrum.getMZ()] < curr_spectrum.getIntensity())
-                {
-                  ms2_block[curr_spectrum.getMZ()] = curr_spectrum.getIntensity();
-                }
-              }
-            }
-          }
-
-
-          feature_stream << "BEGIN IONS" << endl;
-
-          feature_stream << "FEATURE_ID=" << feature_count++ << endl;
-          feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
-
-          feature_stream << "MSLEVEL=2" << endl;
-          feature_stream << "CHARGE=" << std::to_string(charge == 0 ? 1 : charge) << "+" << endl;
-          feature_stream << "PEPMASS=" << peptides[0].first.second.getMZ() << endl;
-          feature_stream << "FILE_INDEX=" << peptides[0].second.second << endl;
-          feature_stream << "RTINSECOND=" << peptides[0].first.second.getRT() << endl;
-
-          for (auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter)
-          {
-            feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
-          }
-          feature_stream << "END IONS" << endl << endl;
-        }
-
-        // output feature information to general outputStream
-        output_stream << feature_stream.str() << endl;
-      }
+      // write peaks to output block
+      writeMSMSBlock_(
+        output_file,
+        peaks
+      );
     }
-    progress_logger.endProgress();
 
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    ofstream output_file(out);
-    progress_logger.startProgress(0, 1, "writing mgf file");
-    output_file << output_stream.str();
-    progress_logger.endProgress();
     output_file.close();
 
     return EXECUTION_OK;

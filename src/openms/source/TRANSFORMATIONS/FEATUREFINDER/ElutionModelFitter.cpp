@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
@@ -46,8 +47,8 @@ using namespace std;
 ElutionModelFitter::ElutionModelFitter():
   DefaultParamHandler("ElutionModelFitter")
 {
-  vector<String> truefalse = ListUtils::create<String>("true,false");
-  vector<String> advanced(1, "advanced");
+  std::vector<std::string> truefalse = {"true","false"};
+  std::vector<std::string> advanced = {"advanced"};
 
   defaults_.setValue("asymmetric", "false", "Fit an asymmetric (exponential-Gaussian hybrid) model? By default a symmetric (Gaussian) model is used.");
   defaults_.setValidStrings("asymmetric", truefalse);
@@ -130,7 +131,7 @@ void ElutionModelFitter::fitAndValidateModel_(
   {
     OPENMS_LOG_ERROR << "Error fitting model to feature '"
                      << feature.getUniqueId() << "': " << except.getName()
-                     << " - " << except.getMessage() << endl;
+                     << " - " << except.what() << endl;
     fit_success = false;
   }
 
@@ -198,6 +199,11 @@ void ElutionModelFitter::fitAndValidateModel_(
 
 void ElutionModelFitter::fitElutionModels(FeatureMap& features)
 {
+  if (features.empty())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No features provided.");
+  }
+
   bool asymmetric = param_.getValue("asymmetric").toBool();
   double add_zeros = param_.getValue("add_zeros");
   bool weighted = !param_.getValue("unweighted_fit").toBool();
@@ -214,7 +220,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   {
     fitter = new EGHTraceFitter();
   }
-  else fitter = new GaussTraceFitter();
+  else
+  {
+    fitter = new GaussTraceFitter();
+  }
   if (weighted)
   {
     Param params = fitter->getDefaults();
@@ -223,20 +232,20 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   }
 
   // collect peaks that constitute mass traces:
+  //TODO make progress logger?
   OPENMS_LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
-  for (FeatureMap::Iterator feat_it = features.begin();
-       feat_it != features.end(); ++feat_it, ++index)
+  for (Feature& feat : features)
   {
-    // OPENMS_LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
-    double region_start = double(feat_it->getMetaValue("leftWidth"));
-    double region_end = double(feat_it->getMetaValue("rightWidth"));
+    // OPENMS_LOG_DEBUG << String(feat->getMetaValue("PeptideRef")) << endl;
+    double region_start = double(feat.getMetaValue("leftWidth"));
+    double region_end = double(feat.getMetaValue("rightWidth"));
 
-    if (feat_it->getSubordinates().empty())
+    if (feat.getSubordinates().empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No subordinate features for mass traces available.");
     }
-    const Feature& sub = feat_it->getSubordinates()[0];
+    const Feature& sub = feat.getSubordinates()[0];
     if (sub.getConvexHulls().empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hull points for mass trace in subordinate feature available.");
@@ -245,18 +254,17 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     vector<Peak1D> peaks;
     // reserve space once, to avoid copying and invalidating pointers:
     Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
-    peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
+    peaks.reserve(feat.getSubordinates().size() * points_per_hull +
                   (add_zeros > 0.0)); // don't forget additional zero point
     MassTraces traces;
     traces.max_trace = 0;
     // need a mass trace for every transition, plus maybe one for add. zeros:
-    traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
-    for (vector<Feature>::iterator sub_it = feat_it->getSubordinates().begin();
-         sub_it != feat_it->getSubordinates().end(); ++sub_it)
+    traces.reserve(feat.getSubordinates().size() + (add_zeros > 0.0));
+    for (Feature& sub : feat.getSubordinates())
     {
       MassTrace trace;
       trace.peaks.reserve(points_per_hull);
-      const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
+      const ConvexHull2D& hull = sub.getConvexHulls()[0];
       for (ConvexHull2D::PointArrayTypeConstIterator point_it =
              hull.getHullPoints().begin(); point_it !=
              hull.getHullPoints().end(); ++point_it)
@@ -265,24 +273,28 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
         if (intensity > 0.0) // only use non-zero intensities for fitting
         {
           Peak1D peak;
-          peak.setMZ(sub_it->getMZ());
+          peak.setMZ(sub.getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
         }
       }
       trace.updateMaximum();
-      if (trace.peaks.empty()) continue;
+      if (trace.peaks.empty())
+      {
+        ++index;
+        continue;
+      }
       if (each_trace)
       {
         MassTraces temp;
         trace.theoretical_int = 1.0;
         temp.push_back(trace);
         temp.max_trace = 0;
-        fitAndValidateModel_(fitter, temp, *sub_it, region_start, region_end,
+        fitAndValidateModel_(fitter, temp, sub, region_start, region_end,
                              asymmetric, area_limit, check_boundaries);
       }
-      trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
+      trace.theoretical_int = sub.getMetaValue("isotope_probability");
       traces.push_back(trace);
     }
 
@@ -306,21 +318,35 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       trace.peaks.reserve(2);
       trace.theoretical_int = add_zeros;
       Peak1D peak;
-      peak.setMZ(feat_it->getSubordinates()[0].getMZ());
+      peak.setMZ(feat.getSubordinates()[0].getMZ());
       peak.setIntensity(0.0);
       peaks.push_back(peak);
       double offset = 0.2 * (region_start - region_end);
-      trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
-      trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
+      trace.peaks.emplace_back(region_start - offset, &peaks.back());
+      trace.peaks.emplace_back(region_end + offset, &peaks.back());
       traces.push_back(trace);
     }
 
     // fit the model:
-    fitAndValidateModel_(fitter, traces, *feat_it, region_start, region_end,
+    fitAndValidateModel_(fitter, traces, feat, region_start, region_end,
                          asymmetric, area_limit, check_boundaries);
+    ++index;
   }
   delete fitter;
 
+  // check if fit worked for at least one feature
+  bool has_valid_models{false};
+  for (Feature& feature : features)
+  {
+    if (feature.getMetaValue("model_status") == "0 (valid)")
+    {
+      has_valid_models = true;
+      break;
+    }
+  }
+  // no valid feature e.g. because of empty file or blank? return empty features. (subsequent steps assume valid features)
+  if (!has_valid_models) { features.clear(); return; }
+  
   // find outliers in model parameters:
   if (width_limit > 0)
   {
@@ -417,7 +443,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     {
       double area = feat_it->getMetaValue("model_area");
       if (impute)
-      { // apply log-transform to weight down high outliers:
+      { // apply log-transform to weigh down high outliers:
         double raw_intensity = feat_it->getIntensity();
         OPENMS_LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
                   << area << "; log(x) = " << log(raw_intensity)
@@ -438,7 +464,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     String x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-    OPENMS_LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
+    OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)
     {

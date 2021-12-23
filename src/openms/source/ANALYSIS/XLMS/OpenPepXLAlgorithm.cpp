@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
@@ -66,63 +66,65 @@ using namespace OpenMS;
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
     defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
-    StringList bool_strings = ListUtils::create<String>("true,false");
+    std::vector<std::string> bool_strings = {"true","false"};
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
 
     defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
-    StringList mass_tolerance_unit_valid_strings = ListUtils::create<String>("ppm,Da");
+    std::vector<std::string> mass_tolerance_unit_valid_strings = {"ppm","Da"};
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
-    defaults_.setValue("precursor:min_charge", 3, "Minimum precursor charge to be considered.");
-    defaults_.setValue("precursor:max_charge", 7, "Maximum precursor charge to be considered.");
-    defaults_.setValue("precursor:corrections", ListUtils::create<int>("2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.");
+    defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
+    defaults_.setValue("precursor:max_charge", 8, "Maximum precursor charge to be considered.");
+    defaults_.setValue("precursor:corrections", ListUtils::create<int>("4, 3, 2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.");
     defaults_.setSectionDescription("precursor", "Precursor filtering settings");
 
-    defaults_.setValue("fragment:mass_tolerance", 0.2, "Fragment mass tolerance");
-    defaults_.setValue("fragment:mass_tolerance_xlinks", 0.3, "Fragment mass tolerance for cross-link ions");
-    defaults_.setValue("fragment:mass_tolerance_unit", "Da", "Unit of fragment m");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance_xlinks", 20.0, "Fragment mass tolerance for cross-link ions");
+    defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
     defaults_.setSectionDescription("fragment", "Fragment peak matching settings");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("modifications:fixed", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
-    defaults_.setValidStrings("modifications:fixed", all_mods);
-    defaults_.setValue("modifications:variable", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
-    defaults_.setValidStrings("modifications:variable", all_mods);
-    defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
+
+    defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable_max_per_peptide", 3, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Peptide modification settings");
 
     defaults_.setValue("peptide:min_size", 5, "Minimum size a peptide must have after digestion to be considered in the search.");
-    defaults_.setValue("peptide:missed_cleavages", 2, "Number of missed cleavages.");
+    defaults_.setValue("peptide:missed_cleavages", 3, "Number of missed cleavages.");
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
+
     defaults_.setValue("peptide:enzyme", "Trypsin", "The enzyme used for peptide digestion.");
-    defaults_.setValidStrings("peptide:enzyme", all_enzymes);
+    defaults_.setValidStrings("peptide:enzyme", ListUtils::create<std::string>(all_enzymes));
     defaults_.setSectionDescription("peptide", "Settings for digesting proteins into peptides");
 
-    defaults_.setValue("cross_linker:residue1", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to");
-    defaults_.setValue("cross_linker:residue2", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to");
+    defaults_.setValue("cross_linker:residue1", std::vector<std::string>{"K","N-term"}, "Comma separated residues, that the first side of a bifunctional cross-linker can attach to");
+    defaults_.setValue("cross_linker:residue2", std::vector<std::string>{"K","N-term"}, "Comma separated residues, that the second side of a bifunctional cross-linker can attach to");
     defaults_.setValue("cross_linker:mass_light", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides");
     defaults_.setValue("cross_linker:mass_iso_shift", 12.075321, "Mass of the isotopic shift between the light and heavy linkers");
     defaults_.setValue("cross_linker:mass_mono_link", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide");
     defaults_.setValue("cross_linker:name", "DSS", "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)");
     defaults_.setSectionDescription("cross_linker", "Description of the cross-linker reagent");
 
-    defaults_.setValue("algorithm:number_top_hits", 5, "Number of top hits reported for each spectrum pair");
-    StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
-    defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("algorithm:number_top_hits", 1, "Number of top hits reported for each spectrum pair");
+    std::vector<std::string> deisotope_strings = {"true","false","auto"};
+    defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", {"advanced"});
     defaults_.setValidStrings("algorithm:deisotope", deisotope_strings);
     defaults_.setSectionDescription("algorithm", "Additional algorithm settings");
 
-    defaults_.setValue("ions:b_ions", "true", "Search for peaks of b-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:y_ions", "true", "Search for peaks of y-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:a_ions", "false", "Search for peaks of a-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:x_ions", "false", "Search for peaks of x-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:c_ions", "false", "Search for peaks of c-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:z_ions", "false", "Search for peaks of z-ions.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("ions:neutral_losses", "true", "Search for neutral losses of H2O and H3N.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("ions:b_ions", "true", "Search for peaks of b-ions.", {"advanced"});
+    defaults_.setValue("ions:y_ions", "true", "Search for peaks of y-ions.", {"advanced"});
+    defaults_.setValue("ions:a_ions", "false", "Search for peaks of a-ions.", {"advanced"});
+    defaults_.setValue("ions:x_ions", "false", "Search for peaks of x-ions.", {"advanced"});
+    defaults_.setValue("ions:c_ions", "false", "Search for peaks of c-ions.", {"advanced"});
+    defaults_.setValue("ions:z_ions", "false", "Search for peaks of z-ions.", {"advanced"});
+    defaults_.setValue("ions:neutral_losses", "true", "Search for neutral losses of H2O and H3N.", {"advanced"});
     defaults_.setValidStrings("ions:b_ions", bool_strings);
     defaults_.setValidStrings("ions:y_ions", bool_strings);
     defaults_.setValidStrings("ions:a_ions", bool_strings);
@@ -141,43 +143,43 @@ using namespace OpenMS;
 
   void OpenPepXLAlgorithm::updateMembers_()
   {
-    decoy_string_ = static_cast<String>(param_.getValue("decoy_string"));
-    decoy_prefix_ = (param_.getValue("decoy_prefix") == "true" ? true : false);
+    decoy_string_ = param_.getValue("decoy_string").toString();
+    decoy_prefix_ = param_.getValue("decoy_prefix").toBool();
 
-    min_precursor_charge_ = static_cast<Int>(param_.getValue("precursor:min_charge"));
-    max_precursor_charge_ = static_cast<Int>(param_.getValue("precursor:max_charge"));
-    precursor_mass_tolerance_ = static_cast<double>(param_.getValue("precursor:mass_tolerance"));
-    precursor_mass_tolerance_unit_ppm_ = (static_cast<String>(param_.getValue("precursor:mass_tolerance_unit")) == "ppm");
+    min_precursor_charge_ = param_.getValue("precursor:min_charge");
+    max_precursor_charge_ = param_.getValue("precursor:max_charge");
+    precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
+    precursor_mass_tolerance_unit_ppm_ = (param_.getValue("precursor:mass_tolerance_unit") == "ppm");
     precursor_correction_steps_ = param_.getValue("precursor:corrections");
 
-    fragment_mass_tolerance_ = static_cast<double>(param_.getValue("fragment:mass_tolerance"));
-    fragment_mass_tolerance_xlinks_ = static_cast<double>(param_.getValue("fragment:mass_tolerance_xlinks"));
-    fragment_mass_tolerance_unit_ppm_  = (static_cast<String>(param_.getValue("fragment:mass_tolerance_unit")) == "ppm");
+    fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
+    fragment_mass_tolerance_xlinks_ = param_.getValue("fragment:mass_tolerance_xlinks");
+    fragment_mass_tolerance_unit_ppm_  = (param_.getValue("fragment:mass_tolerance_unit") == "ppm");
 
-    cross_link_residue1_ = param_.getValue("cross_linker:residue1");
-    cross_link_residue2_ = param_.getValue("cross_linker:residue2");
-    cross_link_mass_light_ = static_cast<double>(param_.getValue("cross_linker:mass_light"));
-    cross_link_mass_iso_shift_ = static_cast<double>(param_.getValue("cross_linker:mass_iso_shift"));
+    cross_link_residue1_ = ListUtils::toStringList<std::string>(param_.getValue("cross_linker:residue1"));
+    cross_link_residue2_ = ListUtils::toStringList<std::string>(param_.getValue("cross_linker:residue2"));
+    cross_link_mass_light_ = param_.getValue("cross_linker:mass_light");
+    cross_link_mass_iso_shift_ = param_.getValue("cross_linker:mass_iso_shift");
     cross_link_mass_mono_link_ = param_.getValue("cross_linker:mass_mono_link");
-    cross_link_name_ = static_cast<String>(param_.getValue("cross_linker:name"));
+    cross_link_name_ = param_.getValue("cross_linker:name").toString();
 
-    fixedModNames_ = param_.getValue("modifications:fixed");
-    varModNames_ = param_.getValue("modifications:variable");
+    fixedModNames_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
+    varModNames_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     max_variable_mods_per_peptide_ = static_cast<Size>(param_.getValue("modifications:variable_max_per_peptide"));
     peptide_min_size_ = static_cast<Size>(param_.getValue("peptide:min_size"));
     missed_cleavages_ = static_cast<Size>(param_.getValue("peptide:missed_cleavages"));
-    enzyme_name_ = static_cast<String>(param_.getValue("peptide:enzyme"));
+    enzyme_name_ = param_.getValue("peptide:enzyme").toString();
 
-    number_top_hits_ = static_cast<Int>(param_.getValue("algorithm:number_top_hits"));
-    deisotope_mode_ = static_cast<String>(param_.getValue("algorithm:deisotope"));
+    number_top_hits_ = param_.getValue("algorithm:number_top_hits");
+    deisotope_mode_ = param_.getValue("algorithm:deisotope").toString();
 
-    add_y_ions_ = param_.getValue("ions:y_ions");
-    add_b_ions_ = param_.getValue("ions:b_ions");
-    add_x_ions_ = param_.getValue("ions:x_ions");
-    add_a_ions_ = param_.getValue("ions:a_ions");
-    add_c_ions_ = param_.getValue("ions:c_ions");
-    add_z_ions_ = param_.getValue("ions:z_ions");
-    add_losses_ = param_.getValue("ions:neutral_losses");
+    add_y_ions_ = param_.getValue("ions:y_ions").toString();
+    add_b_ions_ = param_.getValue("ions:b_ions").toString();
+    add_x_ions_ = param_.getValue("ions:x_ions").toString();
+    add_a_ions_ = param_.getValue("ions:a_ions").toString();
+    add_c_ions_ = param_.getValue("ions:c_ions").toString();
+    add_z_ions_ = param_.getValue("ions:z_ions").toString();
+    add_losses_ = param_.getValue("ions:neutral_losses").toString();
   }
 
   OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
@@ -220,7 +222,7 @@ using namespace OpenMS;
 
     protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
-    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().size() == 0)
+    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
@@ -510,10 +512,10 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_spec_xlinks_alpha;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-        if (linear_peaks.size() > 0)
+        if (!linear_peaks.empty())
         {
           DataArrays::IntegerDataArray exp_charges;
-          if (linear_peaks.getIntegerDataArrays().size() > 0)
+          if (!linear_peaks.getIntegerDataArrays().empty())
           {
             exp_charges = linear_peaks.getIntegerDataArrays()[0];
           }
@@ -545,19 +547,25 @@ using namespace OpenMS;
           continue;
         }
 
-        if (xlink_peaks.size() > 0)
+        if (!xlink_peaks.empty())
         {
           DataArrays::IntegerDataArray exp_charges;
-          if (xlink_peaks.getIntegerDataArrays().size() > 0)
+          if (!xlink_peaks.getIntegerDataArrays().empty())
           {
             exp_charges = xlink_peaks.getIntegerDataArrays()[0];
           }
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, xlink_peaks, exp_charges);
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, xlink_peaks, exp_charges);
         }
-        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-        Size n_xlink_charges = (precursor_charge - 1) - 2;
-        if (n_xlink_charges < 1) n_xlink_charges = 1;
+
+        // the maximal xlink ion charge is (precursor charge - 1) and the minimal xlink ion charge is 2.
+        // we need the difference between min and max here, which is (precursor_charge - 3) in most cases
+        // but we also need a number > 0, we set 1 as the minimum, in case the precursor charge is only 3 or smaller
+        Size n_xlink_charges = 1;
+        if (precursor_charge > 3)
+        {
+          n_xlink_charges = precursor_charge - 3;
+        }
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
         double match_odds_c_alpha = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
@@ -665,7 +673,7 @@ using namespace OpenMS;
         DataArrays::FloatDataArray ppm_error_array_linear_beta;
         DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
 
-        if (linear_peaks.size() > 0)
+        if (!linear_peaks.empty())
         {
           DataArrays::IntegerDataArray theo_charges_alpha;
           DataArrays::IntegerDataArray theo_charges_beta;
@@ -673,7 +681,7 @@ using namespace OpenMS;
 
           auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
-          if (theoretical_spec_linear_beta.size() > 0)
+          if (!theoretical_spec_linear_beta.empty())
           {
             auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
@@ -691,7 +699,7 @@ using namespace OpenMS;
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, linear_peaks, theo_charges_alpha, exp_charges, ppm_error_array_linear_alpha);
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, linear_peaks, theo_charges_beta, exp_charges, ppm_error_array_linear_beta);
         }
-        if (xlink_peaks.size() > 0)
+        if (!xlink_peaks.empty())
         {
           DataArrays::IntegerDataArray theo_charges_alpha;
           DataArrays::IntegerDataArray theo_charges_beta;
@@ -699,7 +707,7 @@ using namespace OpenMS;
 
           auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
-          if (theoretical_spec_xlinks_beta.size() > 0)
+          if (!theoretical_spec_xlinks_beta.empty())
           {
             auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
@@ -775,10 +783,6 @@ using namespace OpenMS;
           // compute wTIC
           double wTIC = XQuestScores::weightedTICScore(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
           double wTICold = XQuestScores::weightedTICScoreXQuest(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
-
-          // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-          Size n_xlink_charges = (precursor_charge - 1) - 2;
-          if (n_xlink_charges < 1) n_xlink_charges = 1;
 
           // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
           double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
@@ -912,7 +916,7 @@ using namespace OpenMS;
               {
                 iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
-              if (iso_peaks_xlinks_alpha.size() > 0)
+              if (!iso_peaks_xlinks_alpha.empty())
               {
                 csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
               }
@@ -924,14 +928,14 @@ using namespace OpenMS;
               {
                 iso_peaks_xlinks_beta.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
-              if (iso_peaks_xlinks_beta.size() > 0)
+              if (!iso_peaks_xlinks_beta.empty())
               {
                 csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
               }
             }
           }
 
-          if (ppm_error_array_linear_alpha.size() > 0)
+          if (!ppm_error_array_linear_alpha.empty())
           {
             for (Size k = 0; k < ppm_error_array_linear_alpha.size(); ++k)
             {
@@ -940,7 +944,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear_alpha = csm.ppm_error_abs_sum_linear_alpha / ppm_error_array_linear_alpha.size();
           }
 
-          if (ppm_error_array_linear_beta.size() > 0)
+          if (!ppm_error_array_linear_beta.empty())
           {
             for (Size k = 0; k < ppm_error_array_linear_beta.size(); ++k)
             {
@@ -949,7 +953,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear_beta = csm.ppm_error_abs_sum_linear_beta / ppm_error_array_linear_beta.size();
           }
 
-          if (ppm_error_array_xlinks_alpha.size() > 0)
+          if (!ppm_error_array_xlinks_alpha.empty())
           {
             for (Size k = 0; k < ppm_error_array_xlinks_alpha.size(); ++k)
             {
@@ -958,7 +962,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_xlinks_alpha = csm.ppm_error_abs_sum_xlinks_alpha / ppm_error_array_xlinks_alpha.size();
           }
 
-          if (ppm_error_array_xlinks_beta.size() > 0)
+          if (!ppm_error_array_xlinks_beta.empty())
           {
             for (Size k = 0; k < ppm_error_array_xlinks_beta.size(); ++k)
             {
@@ -983,7 +987,7 @@ using namespace OpenMS;
           ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_linear.begin(), ppm_error_array_linear.end());
           ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_xlinks.begin(), ppm_error_array_xlinks.end());
 
-          if (ppm_error_array_linear.size() > 0)
+          if (!ppm_error_array_linear.empty())
           {
             for (double ppm_error : ppm_error_array_linear)
             {
@@ -992,7 +996,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear = csm.ppm_error_abs_sum_linear / ppm_error_array_linear.size();
           }
 
-          if (ppm_error_array_xlinks.size() > 0)
+          if (!ppm_error_array_xlinks.empty())
           {
             for (double ppm_error : ppm_error_array_xlinks)
             {
@@ -1001,7 +1005,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_xlinks = csm.ppm_error_abs_sum_xlinks / ppm_error_array_xlinks.size();
           }
 
-          if (ppm_error_array_alpha.size() > 0)
+          if (!ppm_error_array_alpha.empty())
           {
             for (double ppm_error : ppm_error_array_alpha)
             {
@@ -1010,7 +1014,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_alpha = csm.ppm_error_abs_sum_alpha / ppm_error_array_alpha.size();
           }
 
-          if (ppm_error_array_beta.size() > 0)
+          if (!ppm_error_array_beta.empty())
           {
             for (double ppm_error : ppm_error_array_beta)
             {
@@ -1019,7 +1023,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_beta = csm.ppm_error_abs_sum_beta / ppm_error_array_beta.size();
           }
 
-          if (ppm_error_array.size() > 0)
+          if (!ppm_error_array.empty())
           {
             for (double ppm_error : ppm_error_array)
             {
@@ -1199,7 +1203,7 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_fragments_with_shift;
 
         spectrum_heavy_to_light.sortByPosition();
-        if (spectrum_heavy_to_light.size() > 0)
+        if (!spectrum_heavy_to_light.empty())
         {
           dummy_array.clear();
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
@@ -1242,7 +1246,7 @@ using namespace OpenMS;
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
         linear_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
-        if (spectrum_light_charges.size() > 0)
+        if (!spectrum_light_charges.empty())
         {
           linear_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
           linear_peaks.getIntegerDataArrays()[1].push_back(spectrum_light_iso_peaks[matched_fragments_without_shift[i].first]);

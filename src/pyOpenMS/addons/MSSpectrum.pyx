@@ -3,11 +3,6 @@ import numpy as np
 
 
 
-
-
-
-
-
     def get_peaks(self):
         """Cython signature: numpy_vector, numpy_vector get_peaks()
         
@@ -19,9 +14,9 @@ import numpy as np
 
         cdef unsigned int n = spec_.size()
         cdef np.ndarray[np.float64_t, ndim=1] mzs
-        mzs = np.zeros( (n,), dtype=np.float64)
+        mzs = np.empty( (n,), dtype=np.float64)
         cdef np.ndarray[np.float32_t, ndim=1] intensities
-        intensities = np.zeros( (n,), dtype=np.float32)
+        intensities = np.empty( (n,), dtype=np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()

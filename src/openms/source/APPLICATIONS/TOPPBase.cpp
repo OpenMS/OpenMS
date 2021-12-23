@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
@@ -47,6 +48,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -113,12 +115,13 @@ namespace OpenMS
     return tool_name_ + ":" + instance_number_ + ":";
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
     official_(official),
     citations_(citations),
+    toolhandler_test_(toolhandler_test),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
@@ -132,17 +135,45 @@ namespace OpenMS
       verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
-    //check if tool is in official tools list
-    if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+    // can be disabled to allow unit tests
+    if (toolhandler_test_)
     {
-      writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
+      // check if tool entries are in Utils and TOPP (duplication)
+      if (ToolHandler::checkDuplicated(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
+                                      tool_name_);
+      }
+
+      // check if tool is in official tools list
+      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                      tool_name_);
+      }
+
+      // check if tool is in util list
+      if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
+                                      tool_name_);
+      }
     }
   }
 
   TOPPBase::~TOPPBase()
   {
     // delete log file if empty
-    String topplog = getParam_("log");
+    const std::string& topplog = getParam_("log").toString();
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
@@ -183,7 +214,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.getMessage()) + ". Aborting!");
+      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.what()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -207,8 +238,14 @@ namespace OpenMS
     StringList args;
     for (int i = 0; i < argc; ++i)
     {
-      if (String(argv[i]).has(' ')) args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
-      else args.push_back(argv[i]);
+      if (String(argv[i]).has(' '))
+      { 
+        args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
+      }
+      else 
+      {
+        args.push_back(argv[i]);
+      }
     }
     writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
 
@@ -250,17 +287,17 @@ namespace OpenMS
       // '-write_ini' given
       if (param_cmdline_.exists("write_ini"))
       {
-        String write_ini_file = param_cmdline_.getValue("write_ini");
+        String write_ini_file = param_cmdline_.getValue("write_ini").toString();
         outputFileWritable_(write_ini_file, "write_ini");
         Param default_params = getDefaultParameters_();
 
         // check if augmentation with -ini param is needed
-        DataValue in_ini;
+        ParamValue in_ini;
         if (param_cmdline_.exists("ini"))
         {
           in_ini = param_cmdline_.getValue("ini");
           Param ini_params;
-          ParamXMLFile().load((String)in_ini, ini_params);
+          ParamXMLFile().load(in_ini.toString(), ini_params);
           // check if ini parameters are applicable to this tool
           checkIfIniParametersAreApplicable_(ini_params);
           // update default params with outdated params given in -ini and be verbose
@@ -286,15 +323,15 @@ namespace OpenMS
       // load INI file
       //-------------------------------------------------------------
       {
-        DataValue value_ini;
+        String value_ini;
 
         if (param_cmdline_.exists("ini"))
         {
-          value_ini = param_cmdline_.getValue("ini");
-          writeDebug_("INI file: " + (String)value_ini, 1);
+          value_ini = param_cmdline_.getValue("ini").toString();
+          writeDebug_("INI file: " + value_ini, 1);
           writeDebug_("INI location: " + getIniLocation_(), 1);
 
-          ParamXMLFile().load((String)value_ini, param_inifile_);
+          ParamXMLFile().load(value_ini, param_inifile_);
           checkIfIniParametersAreApplicable_(param_inifile_);
 
           // dissect loaded INI parameters
@@ -348,16 +385,16 @@ namespace OpenMS
         }
 
         // check if all parameters are registered and have the correct type
-        checkParam_(param_instance_, (String)value_ini, getIniLocation_());
-        checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
-        checkParam_(param_common_, (String)value_ini, "common:");
+        checkParam_(param_instance_, value_ini, getIniLocation_());
+        checkParam_(param_common_tool_, value_ini, "common:" + tool_name_ + "::");
+        checkParam_(param_common_, value_ini, "common:");
 
         // check if the version of the parameters file matches the version of this tool
         // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
         String file_version = "";
         if (param_inifile_.exists(tool_name_ + ":version"))
         {
-          file_version = param_inifile_.getValue(tool_name_ + ":version");
+          file_version = param_inifile_.getValue(tool_name_ + ":version").toString();
           if (file_version != version_)
           {
             writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").\n"
@@ -614,8 +651,8 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp_s = it->default_value.toString().substitute(", ", " ");
-        if (tmp_s != "" && tmp_s != "[]")
+        String tmp_s = ((String)it->default_value.toString()).substitute(", ", " ");
+        if (!tmp_s.empty() && tmp_s != "[]")
         {
           addons.push_back(String("default: '") + tmp_s + "'");
         }
@@ -635,7 +672,7 @@ namespace OpenMS
       case ParameterInformation::STRINGLIST:
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
-        if (it->valid_strings.size() != 0)
+        if (!it->valid_strings.empty())
         {
           StringList copy = it->valid_strings;
           for (StringList::iterator str_it = copy.begin();
@@ -695,7 +732,7 @@ namespace OpenMS
     }
 
     // SUBSECTION's at the end
-    if (subsections_.size() != 0 && !verbose)
+    if (!subsections_.empty() && !verbose)
     {
       //determine indentation of description
       UInt indent = 0;
@@ -729,7 +766,7 @@ namespace OpenMS
     String name = full_name.empty() ? entry.name : full_name;
     bool advanced = entry.tags.count("advanced");
     // special case for flags:
-    if ((entry.value.valueType() == DataValue::STRING_VALUE) &&
+    if ((entry.value.valueType() == ParamValue::STRING_VALUE) &&
         /*entry.tags.count("flag") && */ // This would avoid autoconversion from true/false String Params when they default to false
         (entry.value == "false") && // This is the current default
         (entry.valid_strings.size() == 2) &&
@@ -747,7 +784,7 @@ namespace OpenMS
     enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
-    case DataValue::STRING_VALUE:
+    case ParamValue::STRING_VALUE:
       if (input_file)
         type = ParameterInformation::INPUT_FILE;
       else if (output_file)
@@ -756,15 +793,15 @@ namespace OpenMS
         type = ParameterInformation::STRING;
       break;
 
-    case DataValue::INT_VALUE:
+    case ParamValue::INT_VALUE:
       type = ParameterInformation::INT;
       break;
 
-    case DataValue::DOUBLE_VALUE:
+    case ParamValue::DOUBLE_VALUE:
       type = ParameterInformation::DOUBLE;
       break;
 
-    case DataValue::STRING_LIST:
+    case ParamValue::STRING_LIST:
       if (input_file)
         type = ParameterInformation::INPUT_FILE_LIST;
       else if (output_file)
@@ -773,21 +810,21 @@ namespace OpenMS
         type = ParameterInformation::STRINGLIST;
       break;
 
-    case DataValue::INT_LIST:
+    case ParamValue::INT_LIST:
       type = ParameterInformation::INTLIST;
       break;
 
-    case DataValue::DOUBLE_LIST:
+    case ParamValue::DOUBLE_LIST:
       type = ParameterInformation::DOUBLELIST;
       break;
 
-    case DataValue::EMPTY_VALUE:
+    case ParamValue::EMPTY_VALUE:
       type = ParameterInformation::NONE;
       break;
     }
     bool required = entry.tags.count("required");
     ParameterInformation param(name, type, argument, entry.value, entry.description, required, advanced);
-    param.valid_strings = entry.valid_strings;
+    param.valid_strings = ListUtils::toStringList<std::string>(entry.valid_strings);
     // here, we rely on the fact that defaults (meaning "not set") are the same for both:
     param.min_int = entry.min_int;
     param.max_int = entry.max_int;
@@ -801,34 +838,34 @@ namespace OpenMS
     String argument = "";
     switch (entry.value.valueType())
     {
-    case DataValue::STRING_VALUE:
+    case ParamValue::STRING_VALUE:
       if (entry.valid_strings.empty())
         argument = "<text>"; // name?
       else
         argument = "<choice>";
       break;
 
-    case DataValue::INT_VALUE:
+    case ParamValue::INT_VALUE:
       argument = "<number>"; // integer?
       break;
 
-    case DataValue::DOUBLE_VALUE:
+    case ParamValue::DOUBLE_VALUE:
       argument = "<value>"; // float?
       break;
 
-    case DataValue::STRING_LIST:
+    case ParamValue::STRING_LIST:
       argument = "<list>";
       break;
 
-    case DataValue::INT_LIST:
+    case ParamValue::INT_LIST:
       argument = "<numbers>";
       break;
 
-    case DataValue::DOUBLE_LIST:
+    case ParamValue::DOUBLE_LIST:
       argument = "<values>";
       break;
 
-    case DataValue::EMPTY_VALUE:
+    case ParamValue::EMPTY_VALUE:
       argument = "";
       break;
     }
@@ -874,7 +911,7 @@ namespace OpenMS
 
   void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
-    if (required && default_value != "")
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringOption param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
   }
@@ -924,18 +961,17 @@ namespace OpenMS
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
-      defaults.push_back(String(p.default_value));
+      defaults.push_back(String(p.default_value.toString()));
     else
-      defaults = p.default_value;
+      defaults = ListUtils::toStringList<std::string>(p.default_value);
 
     for (Size j = 0; j < defaults.size(); ++j) // allow the empty string even if not in restrictions
     {
-      if (defaults[j].size() > 0 && !ListUtils::contains(valids, defaults[j]))
+      if (!defaults[j].empty() && !ListUtils::contains(valids, defaults[j]))
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
-
     p.valid_strings = strings;
   }
 
@@ -968,7 +1004,7 @@ namespace OpenMS
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    if (p.valid_strings.size() > 0)
+    if (!p.valid_strings.empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
     }
@@ -994,7 +1030,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_int = min;
@@ -1018,7 +1054,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_int = max;
@@ -1042,7 +1078,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_float = min;
@@ -1066,7 +1102,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_float = max;
@@ -1111,9 +1147,9 @@ namespace OpenMS
 
   void TOPPBase::registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
-    if (required && default_value.size() > 0)
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, default_value, description, required, advanced));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
   }
 
   void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
@@ -1125,21 +1161,21 @@ namespace OpenMS
     }
     if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced, tags));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced, tags));
   }
 
   void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
-    if (required && default_value.size() > 0)
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, default_value, description, required, advanced));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
   }
 
   void TOPPBase::registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required, bool advanced)
   {
     stringstream ss;
     ss << default_value;
-    if (required && default_value.size() > 0)
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required IntList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INTLIST, argument, default_value, description, required, advanced));
   }
@@ -1148,7 +1184,7 @@ namespace OpenMS
   {
     stringstream ss;
     ss << default_value;
-    if (required && default_value.size() > 0)
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required DoubleList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLELIST, argument, default_value, description, required, advanced));
   }
@@ -1192,13 +1228,13 @@ namespace OpenMS
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
       String message = "'" + name + "'";
-      if (p.valid_strings.size() > 0)
+      if (!p.valid_strings.empty())
       {
         message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
       }
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
-    String tmp = getParamAsString_(name, p.default_value);
+    String tmp = getParamAsString_(name, p.default_value.toString());
     writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
     // if required or set by user, do some validity checks
@@ -1288,9 +1324,11 @@ namespace OpenMS
         }
         else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
-          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Input file '" + t + "' has invalid format '") + FileTypes::typeToName(f_type) +
-            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                   String("Input file '" + t + "' has invalid format '") +
+                                   FileTypes::typeToName(f_type) +
+                                   "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") +
+                                   "'.");
         }
       }
     }
@@ -1348,9 +1386,11 @@ namespace OpenMS
         }
         else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
-          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Input file '" + param_value + "' has invalid format '") + FileTypes::typeToName(f_type) +
-            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                   String("Input file '" + param_value + "' has invalid format '") +
+                                   FileTypes::typeToName(f_type) +
+                                   "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") +
+                                   "'.");
         }
         break;
       }
@@ -1384,7 +1424,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
-    StringList tmp_list = getParamAsStringList_(name, p.default_value);
+    StringList tmp_list = getParamAsStringList_(name, ListUtils::toStringList<std::string>(p.default_value));
     if (p.required && tmp_list.empty())
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
@@ -1396,7 +1436,7 @@ namespace OpenMS
     }
 
     // if required or set by user, do some validity checks
-    if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
+    if (p.required || (!getParam_(name).isEmpty() && tmp_list != ListUtils::toStringList<std::string>(p.default_value)))
     {
       fileParamValidityCheck_(tmp_list, name, p);
     }
@@ -1416,7 +1456,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     DoubleList tmp_list = getParamAsDoubleList_(name, p.default_value);
-    if (p.required && tmp_list.size() == 0)
+    if (p.required && tmp_list.empty())
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1450,7 +1490,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     IntList tmp_list = getParamAsIntList_(name, p.default_value);
-    if (p.required && tmp_list.size() == 0)
+    if (p.required && tmp_list.empty())
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1534,7 +1574,7 @@ namespace OpenMS
 
     const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
-    { // error occured: if not written already in callback, do it now
+    { // error occurred: if not written already in callback, do it now
       writeLog_("Standard output: " + proc_stdout);
       writeLog_("Standard error: " + proc_stderr);
     }
@@ -1548,7 +1588,7 @@ namespace OpenMS
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
       return tmp.toString();
@@ -1561,10 +1601,10 @@ namespace OpenMS
 
   Int TOPPBase::getParamAsInt_(const String& key, Int default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::INT_VALUE)
+      if (tmp.valueType() == ParamValue::INT_VALUE)
       {
         return (Int)tmp;
       }
@@ -1578,10 +1618,10 @@ namespace OpenMS
 
   double TOPPBase::getParamAsDouble_(const String& key, double default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::DOUBLE_VALUE)
+      if (tmp.valueType() == ParamValue::DOUBLE_VALUE)
       {
         return (double)tmp;
       }
@@ -1595,10 +1635,10 @@ namespace OpenMS
 
   StringList TOPPBase::getParamAsStringList_(const String& key, const StringList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      return tmp;
+      return ListUtils::toStringList<std::string>(tmp);
     }
     else
     {
@@ -1608,10 +1648,10 @@ namespace OpenMS
 
   IntList TOPPBase::getParamAsIntList_(const String& key, const IntList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::INT_LIST)
+      if (tmp.valueType() == ParamValue::INT_LIST)
       {
         return tmp;
       }
@@ -1625,10 +1665,10 @@ namespace OpenMS
 
   DoubleList TOPPBase::getParamAsDoubleList_(const String& key, const DoubleList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::DOUBLE_LIST)
+      if (tmp.valueType() == ParamValue::DOUBLE_LIST)
       {
         return tmp;
       }
@@ -1642,26 +1682,26 @@ namespace OpenMS
 
   bool TOPPBase::getParamAsBool_(const String& key) const
   {
-    DataValue tmp = getParam_(key);
-    if (tmp.valueType() == DataValue::EMPTY_VALUE)
+    ParamValue tmp = getParam_(key);
+    if (tmp.valueType() == ParamValue::EMPTY_VALUE)
     {
       return false;
     }
-    else if (tmp.valueType() == DataValue::STRING_VALUE)
+    else if (tmp.valueType() == ParamValue::STRING_VALUE)
     {
-      if ((String)tmp == "false")
+      if ((std::string)tmp == "false")
       {
         return false;
       }
-      else if ((String)tmp == "true")
+      else if ((std::string)tmp == "true")
       {
         return true;
       }
     }
-    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
+    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Invalid value '") + (std::string)tmp + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
   }
 
-  DataValue const& TOPPBase::getParam_(const String& key) const
+  ParamValue const& TOPPBase::getParam_(const String& key) const
   {
     if (param_.exists(key))
     {
@@ -1671,7 +1711,7 @@ namespace OpenMS
     {
       // if look up fails everywhere, return EMPTY
       writeDebug_(String("Parameter '") + key + String("' not found."), 1);
-      return DataValue::EMPTY;
+      return ParamValue::EMPTY;
     }
   }
 
@@ -1693,7 +1733,7 @@ namespace OpenMS
   {
     if (log_.is_open() || !param_.exists("log")) return;
 
-    String log_destination = param_.getValue("log");
+    std::string log_destination = param_.getValue("log");
     if (log_destination.empty()) return;
     log_.open(log_destination, ofstream::out | ofstream::app);
     if (debug_level_ >= 1)
@@ -1733,21 +1773,21 @@ namespace OpenMS
         case ParameterInformation::INPUT_FILE:
         case ParameterInformation::OUTPUT_FILE:
         case ParameterInformation::FLAG:
-          if (it->value.valueType() != DataValue::STRING_VALUE)
+          if (it->value.valueType() != ParamValue::STRING_VALUE)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
           }
           break;
 
         case ParameterInformation::DOUBLE:
-          if (it->value.valueType() != DataValue::DOUBLE_VALUE)
+          if (it->value.valueType() != ParamValue::DOUBLE_VALUE)
           {
             writeLog_("Warning: Wrong  parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double'!");
           }
           break;
 
         case ParameterInformation::INT:
-          if (it->value.valueType() != DataValue::INT_VALUE)
+          if (it->value.valueType() != ParamValue::INT_VALUE)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int'!");
           }
@@ -1756,21 +1796,21 @@ namespace OpenMS
         case ParameterInformation::STRINGLIST:
         case ParameterInformation::INPUT_FILE_LIST:
         case ParameterInformation::OUTPUT_FILE_LIST:
-          if (it->value.valueType() != DataValue::STRING_LIST)
+          if (it->value.valueType() != ParamValue::STRING_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string list'!");
           }
           break;
 
         case ParameterInformation::INTLIST:
-          if (it->value.valueType() != DataValue::INT_LIST)
+          if (it->value.valueType() != ParamValue::INT_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int list'!");
           }
           break;
 
         case ParameterInformation::DOUBLELIST:
-          if (it->value.valueType() != DataValue::DOUBLE_LIST)
+          if (it->value.valueType() != ParamValue::DOUBLE_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double list'!");
           }
@@ -1803,12 +1843,12 @@ namespace OpenMS
 
     // prepare error message
     String message;
-    if (param_name == "")
+    if (param_name.empty())
       message = "Cannot read input file!\n";
     else
       message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
 
-    // check file existance
+    // check file existence
     if (!File::exists(filename))
     {
       OPENMS_LOG_ERROR << message;
@@ -1832,7 +1872,7 @@ namespace OpenMS
 
     // prepare error message
     String message;
-    if (param_name == "")
+    if (param_name.empty())
       message = "Cannot write output file!\n";
     else
       message = "Cannot write output file given from parameter '-" + param_name + "'!\n";
@@ -1927,7 +1967,7 @@ namespace OpenMS
         continue;
       }
       String name = loc + it->name;
-      StringList tags;
+      std::vector<std::string> tags;
       if (it->advanced)
         tags.push_back("advanced");
       if (it->required)
@@ -1940,21 +1980,21 @@ namespace OpenMS
       switch (it->type)
       {
       case ParameterInformation::STRING:
-        tmp.setValue(name, (String)it->default_value, it->description, tags);
-        if (it->valid_strings.size() != 0)
+        tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
+        if (!it->valid_strings.empty())
         {
-          tmp.setValidStrings(name, it->valid_strings);
+          tmp.setValidStrings(name, ListUtils::create<std::string>(it->valid_strings));
         }
         break;
 
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
-        tmp.setValue(name, (String)it->default_value, it->description, tags);
-        if (it->valid_strings.size() != 0)
+        tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
+        if (!it->valid_strings.empty())
         {
           StringList vss_tmp = it->valid_strings;
-          StringList vss;
-          foreach(String vs, vss_tmp)
+          std::vector<std::string> vss;
+          foreach(std::string vs, vss_tmp)
           {
             vss.push_back("*." + vs);
           }
@@ -1994,19 +2034,19 @@ namespace OpenMS
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->valid_strings.size() != 0)
+        if (!it->valid_strings.empty())
         {
-          StringList vss = it->valid_strings;
-          std::transform(vss.begin(), vss.end(), vss.begin(), [](const String& s) {return "*." + s;});
+          std::vector<std::string> vss = ListUtils::create<std::string>(it->valid_strings);
+          std::transform(vss.begin(), vss.end(), vss.begin(), [](const std::string& s) {return "*." + s;});
           tmp.setValidStrings(name, vss);
         }
         break;
 
       case ParameterInformation::STRINGLIST:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->valid_strings.size() != 0)
+        if (!it->valid_strings.empty())
         {
-          tmp.setValidStrings(name, it->valid_strings);
+          tmp.setValidStrings(name, ListUtils::create<std::string>(it->valid_strings));
         }
         break;
 
@@ -2046,7 +2086,7 @@ namespace OpenMS
     }
 
     // set tool version
-    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", ListUtils::create<String>("advanced"));
+    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", {"advanced"});
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
@@ -2147,7 +2187,7 @@ namespace OpenMS
       const Param& param = getParam_();
       for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
       {
-        p.setMetaValue(String("parameter: ") + it.getName(), it->value);
+        p.setMetaValue(String("parameter: " + it.getName()), it->value);
       }
     }
 
@@ -2190,32 +2230,31 @@ namespace OpenMS
 
   String TOPPBase::getDocumentationURL() const
   {
-    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
+    if (ver.pre_release_identifier.empty())
     {
-      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
-    }
-    else if (ToolHandler::getUtilList().count(tool_name_))
-    {
-      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+      String release_version = String(ver.version_major) + "." + String(ver.version_minor) + "." + String(ver.version_patch);
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
     }
     else
     {
-      // TODO: Fix tests first
-      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
-      return "";
+      return String("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
     }
   }
 
   bool TOPPBase::writeCTD_()
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue("write_ctd")).toQString();
+    QString out_dir_str = String(param_cmdline_.getValue("write_ctd").toString()).toQString();
     if (out_dir_str == "")
     {
       out_dir_str = QDir::currentPath();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
-    if (type_list.size() == 0)
+    if (type_list.empty())
       type_list.push_back(""); // no type for most tools (except GenericWrapper)
 
     for (Size i = 0; i < type_list.size(); ++i)
@@ -2224,52 +2263,34 @@ namespace OpenMS
       outputFileWritable_(write_ctd_file, "write_ctd");
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
-      if (type_list[i] != "")
+      if (!type_list[i].empty())
         param_cmdline_.setValue("type", type_list[i]);
       Param default_params = getDefaultParameters_();
 
       // add type to ini file
-      if (type_list[i] != "")
+      if (!type_list[i].empty())
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      ParamXMLFile paramFile;
-      paramFile.writeXMLToStream(&ss, default_params);
-      String ini_file_str(ss.str());
+      ParamCTDFile paramFile;
 
-      //
-      QString docurl = getDocumentationURL().toQString();
-      QString category = "";
+      std::string docurl = getDocumentationURL();
+      std::string category;
       if (official_ || ToolHandler::getUtilList().count(tool_name_))
       { // we can only get the docurl/category from registered/official tools
-        category = ToolHandler::getCategory(tool_name_).toQString();
+        category = ToolHandler::getCategory(tool_name_);
       }
 
-      // morph to ctd format
-      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
-      lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-      lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
-      lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
-      int l = 5;
-      for (const Citation& c : citations_)
+      std::vector<std::string> citation_dois;
+      citation_dois.reserve(citations_.size() + 1);
+      citation_dois.push_back(cite_openms_.doi);
+      for (auto& citation : citations_)
       {
-        lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
+        citation_dois.push_back(citation.doi);
       }
-      lines.insert(++l, QString("</citations>"));
 
-      lines.insert(lines.size(), "</tool>");
-      String ctd_str = String(lines.join("\n")) + "\n";
-
-      //write to file
-      QFile file(write_ctd_file);
-      if (!file.open(QIODevice::WriteOnly))
-      {
-        return false;
-      }
-      file.write(ctd_str.c_str());
+      paramFile.store(write_ctd_file.toStdString(), default_params,
+                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
     }
 
     return true;
@@ -2320,7 +2341,7 @@ namespace OpenMS
     }
 
     // list to store "misc"/"unknown" items:
-    map<String, StringList> misc_unknown;
+    map<std::string, std::vector<std::string> > misc_unknown;
 
     list<String> queue; // queue for arguments
                         // we parse the arguments in reverse order, so that we have arguments already when we encounter the option that uses them!
@@ -2334,10 +2355,10 @@ namespace OpenMS
         ParamMap::iterator pos = param_map.find(arg);
         if (pos != param_map.end()) // parameter is defined
         {
-          DataValue value;
+          ParamValue value;
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
-            value = String("true");
+            value = "true";
           }
           else // option with argument(s)
           {
@@ -2347,7 +2368,7 @@ namespace OpenMS
             case ParameterInformation::INPUT_FILE:
             case ParameterInformation::OUTPUT_FILE:
               if (queue.empty())
-                value = String();
+                value = std::string();
               else
                 value = queue.front();
               break;
@@ -2366,8 +2387,8 @@ namespace OpenMS
             case ParameterInformation::OUTPUT_FILE_LIST:
             case ParameterInformation::STRINGLIST:
             {
-              vector<String> arg_list(queue.begin(), queue.end());
-              value = StringList(arg_list);
+              vector<std::string> arg_list(queue.begin(), queue.end());
+              value = arg_list;
               queue.clear();
               break;
             }
@@ -2410,7 +2431,7 @@ namespace OpenMS
           misc_unknown[unknown].push_back(arg);
         }
         // rest of the queue is just text -> insert into "misc" list:
-        StringList& misc_list = misc_unknown[misc];
+        std::vector<std::string>& misc_list = misc_unknown[misc];
         misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
         queue.clear();
       }
@@ -2420,11 +2441,11 @@ namespace OpenMS
       }
     }
     // remaining items in the queue are leading text arguments:
-    StringList& misc_list = misc_unknown[misc];
+    std::vector<std::string>& misc_list = misc_unknown[misc];
     misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
 
     // store "misc"/"unknown" items, if there were any:
-    for (map<String, StringList>::iterator it = misc_unknown.begin();
+    for (map<std::string, std::vector<std::string> >::iterator it = misc_unknown.begin();
          it != misc_unknown.end(); ++it)
     {
       if (it->second.empty())
@@ -2436,7 +2457,7 @@ namespace OpenMS
       }
       else
       {
-        StringList new_value = cmd_params.getValue(it->first);
+        std::vector<std::string> new_value = cmd_params.getValue(it->first);
         new_value.insert(new_value.end(), it->second.begin(), it->second.end());
         cmd_params.setValue(it->first, new_value);
       }

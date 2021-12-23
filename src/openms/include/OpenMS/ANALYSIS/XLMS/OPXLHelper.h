@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <numeric>
 
 namespace OpenMS
@@ -59,7 +59,7 @@ namespace OpenMS
       {
         bool operator() (const PeptideIdentification& a, const PeptideIdentification& b) const
         {
-          if (a.getHits().size() > 0 && b.getHits().size() > 0)
+          if (!a.getHits().empty() && !b.getHits().empty())
           {
             return a.getHits()[0].getScore() < b.getHits()[0].getScore();
           }
@@ -70,7 +70,7 @@ namespace OpenMS
         }
         bool operator() (const PeptideIdentification& a, const double& b) const
         {
-          if (a.getHits().size() > 0)
+          if (!a.getHits().empty())
           {
             return a.getHits()[0].getScore() < b;
           }
@@ -81,7 +81,7 @@ namespace OpenMS
         }
         bool operator() (const double& a, const PeptideIdentification& b) const
         {
-          if (b.getHits().size() > 0)
+          if (!b.getHits().empty())
           {
             return a < b.getHits()[0].getScore();
           }

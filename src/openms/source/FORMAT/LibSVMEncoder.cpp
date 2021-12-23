@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -207,7 +207,7 @@ namespace OpenMS
     {
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length));
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length);
       svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }

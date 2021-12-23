@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -58,6 +60,22 @@ vector<MSSpectrum>::const_iterator findSpectrumByName(const vector<MSSpectrum>& 
   }
   return it;
 }
+
+namespace std
+{
+  std::ostream& operator<<(ostream& os, const std::vector<OpenMS::String> string_list)
+  {
+    os << "[";
+    std::string separator = "";
+    for (const auto& string_item : string_list)
+    {
+      os << separator << string_item;
+      separator = ", ";
+    }
+    os << "])";
+    return os;
+  }
+}// namespace std
 
 START_TEST(TargetedSpectraExtractor, "$Id$")
 
@@ -889,17 +907,17 @@ START_SECTION(void targetedMatching(
 
   TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_name"), "beta-D-(+)-Glucose")
   TEST_REAL_SIMILAR(extracted_features[0].getMetaValue("spectral_library_score"), 0.946971)
-  String comments = "\"accession=PR010079\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=180.06339\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1882.4\" \"retention time=459.562 sec\" \"derivative formula=C22H55NO6Si5\" \"derivative mass=569.28757\" \"derivatization type=5 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OCC(O1)C(O)C(O)C(O)C(O)1\" \"cas=492-61-5\" \"chebi=15903\" \"kegg=C00221\" \"pubchem=3521\" \"InChI=InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1\" \"molecular formula=C6H12O6\" \"total exact mass=180.06338810399998\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)O\" \"InChIKey=WQZGKKKJIJFFOK-VFUOTHLCSA-N\"";
+  String comments = R"("accession=PR010079" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=180.06339" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=1882.4" "retention time=459.562 sec" "derivative formula=C22H55NO6Si5" "derivative mass=569.28757" "derivatization type=5 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OCC(O1)C(O)C(O)C(O)C(O)1" "cas=492-61-5" "chebi=15903" "kegg=C00221" "pubchem=3521" "InChI=InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1" "molecular formula=C6H12O6" "total exact mass=180.06338810399998" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)O" "InChIKey=WQZGKKKJIJFFOK-VFUOTHLCSA-N")";
   TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_name"), "Adonitol")
   TEST_REAL_SIMILAR(extracted_features[5].getMetaValue("spectral_library_score"), 0.891443)
-  comments = "\"accession=PR010134\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=152.06847\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1710.9\" \"retention time=416.034 sec\" \"derivative formula=C20H52O5Si5\" \"derivative mass=512.26611\" \"derivatization type=5 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OCC([H])(O)C([H])(O)C([H])(O)CO\" \"cas=488-81-3\" \"chebi=15963\" \"kegg=C00474\" \"pubchem=3757\" \"InChI=InChI=1S/C5H12O5/c6-1-3(8)5(10)4(9)2-7/h3-10H,1-2H2/t3-,4+,5-\" \"molecular formula=C5H12O5\" \"total exact mass=152.06847348399998\" \"SMILES=C(C(C(C(CO)O)O)O)O\" \"InChIKey=HEBKCHPVOIAQTA-ZXFHETKHSA-N\"";
+  comments = R"("accession=PR010134" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=152.06847" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=1710.9" "retention time=416.034 sec" "derivative formula=C20H52O5Si5" "derivative mass=512.26611" "derivatization type=5 TMS" "ionization mode=positive" "compound class=Natural Product" "SMILES=OCC([H])(O)C([H])(O)C([H])(O)CO" "cas=488-81-3" "chebi=15963" "kegg=C00474" "pubchem=3757" "InChI=InChI=1S/C5H12O5/c6-1-3(8)5(10)4(9)2-7/h3-10H,1-2H2/t3-,4+,5-" "molecular formula=C5H12O5" "total exact mass=152.06847348399998" "SMILES=C(C(C(C(CO)O)O)O)O" "InChIKey=HEBKCHPVOIAQTA-ZXFHETKHSA-N")";
   TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(extracted_features[10].getMetaValue("spectral_library_name"), "BENZENE-1,2,4,5-TETRACARBOXYLIC ACID TETRA(TRIMETHYLSILYL) ESTER")
   TEST_REAL_SIMILAR(extracted_features[10].getMetaValue("spectral_library_score"), 0.887661)
-  comments = "\"accession=JP000601\" \"author=KOGA M, UNIV. OF OCCUPATIONAL AND ENVIRONMENTAL HEALTH\" \"license=CC BY-NC-SA\" \"exact mass=542.16437\" \"instrument=JEOL JMS-01-SG\" \"instrument type=EI-B\" \"ms level=MS1\" \"ionization energy=70 eV\" \"ion type=[M]+*\" \"ionization mode=positive\" \"SMILES=C[Si](C)(C)OC(=O)c(c1)c(C(=O)O[Si](C)(C)C)cc(C(=O)O[Si](C)(C)C)c(C(=O)O[Si](C)(C)C)1\" \"InChI=InChI=1S/C22H38O8Si4/c1-31(2,3)27-19(23)15-13-17(21(25)29-33(7,8)9)18(22(26)30-34(10,11)12)14-16(15)20(24)28-32(4,5)6/h13-14H,1-12H3\" \"molecular formula=C22H38O8Si4\" \"total exact mass=542.164374296\" \"SMILES=C[Si](C)(C)OC(C1=CC(=C(C=C1C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)=O\" \"InChIKey=BKFGZLAJFGESBT-UHFFFAOYSA-N\"";
+  comments = R"("accession=JP000601" "author=KOGA M, UNIV. OF OCCUPATIONAL AND ENVIRONMENTAL HEALTH" "license=CC BY-NC-SA" "exact mass=542.16437" "instrument=JEOL JMS-01-SG" "instrument type=EI-B" "ms level=MS1" "ionization energy=70 eV" "ion type=[M]+*" "ionization mode=positive" "SMILES=C[Si](C)(C)OC(=O)c(c1)c(C(=O)O[Si](C)(C)C)cc(C(=O)O[Si](C)(C)C)c(C(=O)O[Si](C)(C)C)1" "InChI=InChI=1S/C22H38O8Si4/c1-31(2,3)27-19(23)15-13-17(21(25)29-33(7,8)9)18(22(26)30-34(10,11)12)14-16(15)20(24)28-32(4,5)6/h13-14H,1-12H3" "molecular formula=C22H38O8Si4" "total exact mass=542.164374296" "SMILES=C[Si](C)(C)OC(C1=CC(=C(C=C1C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)=O" "InChIKey=BKFGZLAJFGESBT-UHFFFAOYSA-N")";
   TEST_STRING_EQUAL(extracted_features[10].getMetaValue("spectral_library_comments"), comments)
 }
 END_SECTION
@@ -952,18 +970,257 @@ START_SECTION(void untargetedMatching(
 
   TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
   TEST_REAL_SIMILAR(features[1].getMetaValue("spectral_library_score"), 0.691226)
-  String comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  String comments = R"("accession=PR010050" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=260.02972" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=2300.2" "retention time=538.069 sec" "derivative formula=C25H64NO9PSi6" "derivative mass=721.29343" "derivatization type=6 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O" "cas=54010-71-8" "InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1" "molecular formula=C6H13O9P" "total exact mass=260.029718626" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O" "InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N")";
   TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_name"), "2,3-Pyridinedicarboxylic acid")
   TEST_REAL_SIMILAR(features[6].getMetaValue("spectral_library_score"), 0.54155)
-  comments = "\"accession=PR010082\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=167.02186\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1721.2\" \"retention time=422.998 sec\" \"derivative formula=C13H21NO4Si2\" \"derivative mass=311.10091\" \"derivatization type=2 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(=O)c(c1)c(ncc1)C(O)=O\" \"cas=89-00-9\" \"chebi=16675\" \"kegg=C03722\" \"pubchem=6487\" \"InChI=InChI=1S/C7H5NO4/c9-6(10)4-2-1-3-8-5(4)7(11)12/h1-3H,(H,9,10)(H,11,12)\" \"molecular formula=C7H5NO4\" \"total exact mass=167.02185764\" \"SMILES=C1=CC(=C(C(=O)O)N=C1)C(=O)O\" \"InChIKey=GJAWHXHKYYXBSV-UHFFFAOYSA-N\"";
+  comments = R"lit("accession=PR010082" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=167.02186" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=1721.2" "retention time=422.998 sec" "derivative formula=C13H21NO4Si2" "derivative mass=311.10091" "derivatization type=2 TMS" "ionization mode=positive" "compound class=Natural Product" "SMILES=OC(=O)c(c1)c(ncc1)C(O)=O" "cas=89-00-9" "chebi=16675" "kegg=C03722" "pubchem=6487" "InChI=InChI=1S/C7H5NO4/c9-6(10)4-2-1-3-8-5(4)7(11)12/h1-3H,(H,9,10)(H,11,12)" "molecular formula=C7H5NO4" "total exact mass=167.02185764" "SMILES=C1=CC(=C(C(=O)O)N=C1)C(=O)O" "InChIKey=GJAWHXHKYYXBSV-UHFFFAOYSA-N")lit";
   TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
   TEST_REAL_SIMILAR(features[10].getMetaValue("spectral_library_score"), 0.922175)
-  comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  comments = R"("accession=PR010050" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=260.02972" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=2300.2" "retention time=538.069 sec" "derivative formula=C25H64NO9PSi6" "derivative mass=721.29343" "derivatization type=6 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O" "cas=54010-71-8" "InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1" "molecular formula=C6H13O9P" "total exact mass=260.029718626" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O" "InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N")";
   TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_comments"), comments)
+}
+END_SECTION
+
+START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const)
+{
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  OpenMS::FeatureMap features;
+
+  OpenMS::Feature f1;
+  f1.setUniqueId();
+  std::vector<String> identifier1{"ident1"};
+  f1.setMetaValue("identifier", identifier1);
+  f1.setIntensity(1);
+  f1.setMZ(10);
+  f1.setRT(100);
+  features.push_back(f1);
+
+  OpenMS::Feature f2;
+  f2.setUniqueId();
+  std::vector<String> identifier2{"ident1", "ident2"};
+  f2.setMetaValue("identifier", identifier2);
+  f2.setIntensity(2);
+  f2.setMZ(20);
+  f2.setRT(200);
+  features.push_back(f2);
+
+  OpenMS::Feature f3;
+  f3.setUniqueId();
+  std::vector<String> identifier3{"ident3"};
+  f3.setMetaValue("identifier", identifier3);
+  f3.setIntensity(3);
+  f3.setMZ(30);
+  f3.setRT(300);
+  features.push_back(f3);
+
+  OpenMS::FeatureMap merged_features;
+  targeted_spectra_extractor.mergeFeatures(features, merged_features);
+
+  TEST_EQUAL(merged_features.size(), 2)
+
+  const auto& merged_f1 = merged_features[0];
+  TEST_EQUAL(merged_f1.getMetaValue("PeptideRef"), "ident1");
+  TEST_REAL_SIMILAR(merged_f1.getMZ(), 16.6667);
+  TEST_REAL_SIMILAR(merged_f1.getRT(), 166.667);
+  TEST_EQUAL(merged_f1.getSubordinates().size(), 2);
+
+  const auto& merged_f1_sub1 = merged_f1.getSubordinates().at(0);
+  TEST_EQUAL(merged_f1_sub1.getMetaValue("identifier"), identifier1);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getMZ(), 10.0);
+  TEST_REAL_SIMILAR(merged_f1_sub1.getRT(), 100.0);
+
+  const auto& merged_f1_sub2 = merged_f1.getSubordinates().at(1);
+  TEST_EQUAL(merged_f1_sub2.getMetaValue("identifier"), identifier2);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getMZ(), 20.0);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 200.0);
+
+  const auto& merged_f2 = merged_features[1];
+  TEST_EQUAL(merged_f2.getMetaValue("PeptideRef"), "ident3");
+  TEST_REAL_SIMILAR(merged_f2.getMZ(), 30.0);
+  TEST_REAL_SIMILAR(merged_f2.getRT(), 300.0);
+  TEST_EQUAL(merged_f2.getSubordinates().size(), 1);
+
+  const auto& merged_f2_sub1 = merged_f2.getSubordinates().at(0);
+  TEST_EQUAL(merged_f2_sub1.getMetaValue("identifier"), identifier3);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getMZ(), 30.0);
+  TEST_REAL_SIMILAR(merged_f2_sub1.getRT(), 300.0);
+}
+END_SECTION
+
+START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const FeatureMap& ms1_features, FeatureMap& ms2_features, std::vector<MSSpectrum>& annotated_spectra) const)
+{
+  OpenMS::FeatureMap ms1_features;
+
+  OpenMS::Feature f1;
+  f1.setUniqueId();
+  std::vector<String> identifier1{"ident1"};
+  f1.setMetaValue("identifier", identifier1);
+  f1.setIntensity(1);
+  f1.setMZ(10);
+  f1.setRT(100);
+
+  std::vector<OpenMS::Feature> subs1;
+
+  OpenMS::Feature f1_sub1;
+  f1_sub1.setUniqueId();
+  f1_sub1.setMetaValue("PeptideRef", "ident1");
+  f1_sub1.setIntensity(2);
+  f1_sub1.setMZ(9);
+  f1_sub1.setRT(110);
+  subs1.push_back(f1_sub1);
+
+  OpenMS::Feature f1_sub2; // this one will not be used in the annotation
+  f1_sub2.setUniqueId();
+  f1_sub2.setMetaValue("PeptideRef", "ident1");
+  f1_sub2.setIntensity(2);
+  f1_sub2.setMZ(29);
+  f1_sub2.setRT(210);
+  subs1.push_back(f1_sub2);
+
+  f1.setSubordinates(subs1);
+
+  ms1_features.push_back(f1);
+
+  std::vector<MSSpectrum> spectra;
+  MSSpectrum spectr1;
+  spectr1.setMSLevel(2);
+  spectr1.setRT(100);
+  spectra.push_back(spectr1);
+
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  FeatureMap ms2_features;
+  std::vector<MSSpectrum> annotated_spectra;
+  targeted_spectra_extractor.annotateSpectra(spectra, ms1_features, ms2_features, annotated_spectra);
+
+  TEST_EQUAL(ms2_features.size(), 1)
+  const auto& ms2_f1 = ms2_features[0];
+  TEST_REAL_SIMILAR(ms2_f1.getMZ(), 0.0)
+  TEST_REAL_SIMILAR(ms2_f1.getRT(), 100.0)
+  TEST_EQUAL(ms2_f1.getMetaValue("transition_name"), "ident1")
+  TEST_EQUAL(ms2_f1.getSubordinates().size(), 0)
+
+  TEST_EQUAL(annotated_spectra.size(), 1)
+  const auto& annotated_spectr1 = annotated_spectra[0];
+  TEST_EQUAL(annotated_spectr1.getName(), "ident1")
+  TEST_REAL_SIMILAR(annotated_spectr1.getRT(), 100.0)
+}
+END_SECTION
+
+START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
+{
+  OpenMS::FeatureMap ms1_features;
+  OpenMS::Feature ms1_f1;
+  ms1_f1.setUniqueId();
+  ms1_f1.setMetaValue("PeptideRef", "ident1");
+  ms1_f1.setIntensity(1);
+  ms1_f1.setMZ(10);
+  ms1_f1.setRT(100);
+  ms1_features.push_back(ms1_f1);
+
+  OpenMS::FeatureMap ms2_features;
+  OpenMS::Feature ms2_f1;
+  ms2_f1.setUniqueId();
+  ms2_f1.setIntensity(1);
+  ms2_f1.setMZ(10);
+  ms2_f1.setRT(100);
+  std::vector<OpenMS::Feature> ms2_subs1;
+  OpenMS::Feature ms2_f1_sub1;
+  ms2_f1_sub1.setUniqueId();
+  ms2_f1_sub1.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub1.setMetaValue("native_id", "ms2_f1_sub1");
+  ms2_f1_sub1.setIntensity(2);
+  ms2_f1_sub1.setMZ(9);
+  ms2_f1_sub1.setRT(110);
+  ms2_subs1.push_back(ms2_f1_sub1);
+  OpenMS::Feature ms2_f1_sub2;
+  ms2_f1_sub2.setUniqueId();
+  ms2_f1_sub2.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub2.setMetaValue("native_id", "ms2_f1_sub2");
+  ms2_f1_sub2.setIntensity(2);
+  ms2_f1_sub2.setMZ(29);
+  ms2_f1_sub2.setRT(210);
+  ms2_subs1.push_back(ms2_f1_sub2);
+  ms2_f1.setSubordinates(ms2_subs1);
+  ms2_features.push_back(ms2_f1);
+
+  String output_filepath;
+  NEW_TMP_FILE(output_filepath)
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  targeted_spectra_extractor.storeSpectraTraML(output_filepath, ms1_features, ms2_features);
+
+  // read back the file
+  TraMLFile traml_file;
+  TargetedExperiment t_exp;
+  traml_file.load(output_filepath, t_exp);
+
+  TEST_EQUAL(t_exp.getTransitions().size(), 1)
+  const auto& transition = t_exp.getTransitions()[0];
+  TEST_EQUAL(transition.getPeptideRef(), "ident1");
+  TEST_EQUAL(transition.getMetaValue("transition_name"), "ident1");
+  TEST_EQUAL(transition.getMetaValue("native_id"), "ms2_f1_sub1");
+}
+END_SECTION
+
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+{
+  MSExperiment experiment;
+  
+  std::vector<MSSpectrum> spectra;
+  MSSpectrum spectr1;
+  spectr1.setMSLevel(2);
+  spectr1.setRT(100);
+  spectr1.setName("spectr1");
+  Precursor precursor1;
+  precursor1.setMZ(100);
+  spectr1.setPrecursors({precursor1});
+  Peak1D peak1;
+  peak1.setMZ(100);
+  peak1.setIntensity(10);
+  spectr1.push_back(peak1);
+  Peak1D peak2;
+  spectr1.push_back(peak2);
+  peak2.setMZ(200);
+  peak2.setIntensity(20);
+  spectra.push_back(spectr1);
+  
+  String output_filepath;
+  NEW_TMP_FILE(output_filepath)
+
+  experiment.setSpectra(spectra);
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  targeted_spectra_extractor.storeSpectraMSP(output_filepath, experiment);
+
+  // read back the file
+  MSPGenericFile msp_file;
+  msp_file.store(output_filepath, experiment);
+
+  TEST_EQUAL(experiment.getSpectra().size(), 1)
+  const auto& output_spectr1 = experiment.getSpectra()[0];
+  TEST_EQUAL(output_spectr1.size(), 1)
+  const auto& peak = output_spectr1[0];
+  TEST_EQUAL(peak.getIntensity(), 10);
+  TEST_EQUAL(peak.getMZ(), 100);
+}
+END_SECTION
+
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+{
+  FeatureMap input_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), input_fm);
+
+  FeatureMap output_fm;
+  TargetedSpectraExtractor targeted_spectra_extractor;
+  targeted_spectra_extractor.searchSpectrum(input_fm, output_fm);
+
+  TEST_EQUAL(output_fm.size(), 19);
+  const auto& fm1 = output_fm[0];
+  TEST_EQUAL(fm1.getSubordinates().size(), 1);
+  const auto& fm1_sub1 = fm1.getSubordinates()[0];
+  TEST_EQUAL(fm1_sub1.getMetaValue("PeptideRef"), "HMDB:HMDB0061131");
 }
 END_SECTION
 

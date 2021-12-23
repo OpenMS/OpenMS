@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,10 +154,9 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
-    
+
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
-
 
   /**
    * @brief process parameters of 'input/output' section
@@ -169,7 +168,7 @@ public:
     out_multiplets_ = getStringOption_("out_multiplets");
     out_blacklist_ = getStringOption_("out_blacklist");
   }
-  
+
   /**
    * @brief Write feature map to featureXML file.
    *
@@ -177,11 +176,11 @@ public:
    * @param map    feature map for output
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
-  {    
+  {
     FeatureXMLFile file;
     file.store(filename, map);
   }
-  
+
   /**
    * @brief Write consensus map to consensusXML file.
    *
@@ -189,7 +188,7 @@ public:
    * @param map    consensus map for output
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
-  {     
+  {
     ConsensusXMLFile file;
     for (auto & ch : map.getColumnHeaders())
     {
@@ -197,7 +196,7 @@ public:
     }
     file.store(filename, map);
   }
-  
+
   /**
    * @brief Write blacklist to mzML file.
    *
@@ -205,11 +204,33 @@ public:
    * @param blacklist    blacklist for output
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
-  {    
+  {
     MzMLFile file;
     file.store(filename, blacklist);
   }
-  
+
+  /**
+   * @brief determine the number of samples
+   * for example n=2 for SILAC, or n=1 for simple feature detection
+   *
+   * @param labels    string describing the labels
+   */
+  static size_t numberOfSamples(String labels)
+  {
+    // samples can be deliminated by any kind of brackets
+    labels.substitute("(", "[");
+    labels.substitute("{", "[");
+    size_t n = std::count(labels.begin(), labels.end(), '[');
+    // if no labels are specified, we have n=1 for simple feature detection
+    if (n == 0)
+    {
+      n = 1;
+    }
+
+    return n;
+  }
+
+
   ExitCodes main_(int, const char**) override
   {
 
@@ -228,12 +249,12 @@ public:
      */
     MzMLFile file;
     MSExperiment exp;
-    
+
     // only read MS1 spectra
     std::vector<int> levels;
     levels.push_back(1);
     file.getOptions().setMSLevels(levels);
-    
+
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.setLogType(log_type_);
     file.load(in_, exp);
@@ -259,20 +280,25 @@ public:
     // write feature map, consensus maps and blacklist
     if (!(out_.empty()))
     {
-      writeFeatureMap_(out_, algorithm.getFeatureMap());
+      FeatureMap& feature_map = algorithm.getFeatureMap();
+      feature_map.setPrimaryMSRunPath({in_}, exp);
+      writeFeatureMap_(out_, feature_map);
     }
     if (!(out_multiplets_.empty()))
     {
-      writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+      ConsensusMap& consensus_map = algorithm.getConsensusMap();
+      StringList ms_run_paths(numberOfSamples(params.getValue("algorithm:labels").toString()), in_);
+      consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
+      writeConsensusMap_(out_multiplets_, consensus_map);
     }
     if (!(out_blacklist_.empty()))
     {
       writeBlacklist_(out_blacklist_, algorithm.getBlacklist());
     }
-    
+
     return EXECUTION_OK;
   }
-  
+
 };
 
 int main(int argc, const char** argv)

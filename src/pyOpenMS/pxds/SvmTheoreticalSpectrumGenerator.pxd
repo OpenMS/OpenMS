@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
     
     cdef cppclass SvmTheoreticalSpectrumGenerator "OpenMS::SvmTheoreticalSpectrumGenerator":
         SvmTheoreticalSpectrumGenerator() nogil except +
-        SvmTheoreticalSpectrumGenerator(SvmTheoreticalSpectrumGenerator) nogil except +
+        SvmTheoreticalSpectrumGenerator(SvmTheoreticalSpectrumGenerator &) nogil except +
         # void simulate(MSSpectrum &spectrum, AASequence &peptide, boost::random::mt19937_64& rng, Size precursor_charge) nogil except +
         void load() nogil except +
         libcpp_vector[ IonType ]  getIonTypes() nogil except +
@@ -40,8 +40,8 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
 cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespace "OpenMS::SvmTheoreticalSpectrumGenerator":
     
     cdef cppclass IonType "OpenMS::SvmTheoreticalSpectrumGenerator::IonType":
-        IonType() nogil except +
-        IonType(IonType) nogil except +
+        IonType() nogil except + # compiler
+        IonType(IonType &) nogil except + # compiler
         IonType(ResidueType residue, EmpiricalFormula l, Int charge) nogil except +
         bool operator<(IonType &rhs) nogil except +
         ResidueType residue
@@ -53,5 +53,3 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
 #     cdef cppclass DescriptorSet "OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet":
 #         DescriptorSet(DescriptorSet) nogil except + #wrap-ignore
 #         libcpp_vector[svm_node] descriptors # we would have to wrap libsvm for this
-# 
-# 

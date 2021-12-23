@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,9 +42,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 
-
 #include <vector>
-#include <algorithm>
 #include <limits>
 
 #include <boost/shared_ptr.hpp>
@@ -78,7 +76,7 @@ public:
 
       This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment() {}
+    OnDiscMSExperiment() = default;
 
     /**
       @brief Open a specific file on disk.
@@ -89,16 +87,7 @@ public:
       @return Whether the parsing of the file was successful (if false, the
       file most likely was not an indexed mzML file)
     */
-    bool openFile(const String& filename, bool skipMetaData = false)
-    {
-      filename_ = filename;
-      indexed_mzml_file_.openFile(filename);
-      if (filename != "" && !skipMetaData)
-      {
-        loadMetaData_(filename);
-      }
-      return indexed_mzml_file_.getParsingSuccess();
-    }
+    bool openFile(const String& filename, bool skipMetaData = false);
 
     /// Copy constructor
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
@@ -157,7 +146,7 @@ public:
     /// returns whether spectra are empty
     inline bool empty() const
     {
-      return indexed_mzml_file_.getNrSpectra() == 0;
+      return getNrSpectra() == 0;
     }
 
     /// get the total number of spectra available
@@ -242,16 +231,10 @@ public:
     /**
       @brief returns a single chromatogram
     */
-    OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id)
-    {
-      return indexed_mzml_file_.getChromatogramById(id);
-    }
+    OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id);
 
     /// sets whether to skip some XML checks and be fast instead
-    void setSkipXMLChecks(bool skip)
-    {
-      indexed_mzml_file_.setSkipXMLChecks(skip);
-    }
+    void setSkipXMLChecks(bool skip);
 
 private:
 

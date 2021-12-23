@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -289,13 +289,13 @@ namespace OpenMS
     defaults_.setValue("frag_mass_error_value", 500.0, "Error allowed for product ions.");
 
     defaults_.setValue("mass_error_unit", "ppm", "Unit of mass error (ppm or Da)");
-    defaults_.setValidStrings("mass_error_unit", ListUtils::create<String>(("ppm,Da")));
+    defaults_.setValidStrings("mass_error_unit", {"ppm","Da"});
 
     defaults_.setValue("report_mode", "top3", "Which results shall be reported: the top-three scoring ones or the best scoring one?");
-    defaults_.setValidStrings("report_mode", ListUtils::create<String>(("top3,best")));
+    defaults_.setValidStrings("report_mode", {"top3","best"});
 
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode?");
-    defaults_.setValidStrings("ionization_mode", ListUtils::create<String>(("positive,negative")));
+    defaults_.setValidStrings("ionization_mode", {"positive","negative"});
 
     defaultsToParam_();
 
@@ -571,7 +571,7 @@ namespace OpenMS
 
         if (report_mode_ == "best")
         {
-          if (partial_results.size() > 0)
+          if (!partial_results.empty())
           {
             matching_results.push_back(partial_results[0]);
           }
@@ -591,10 +591,10 @@ namespace OpenMS
   {
     precursor_mz_error_ = (double)param_.getValue("prec_mass_error_value");
     fragment_mz_error_ = (double)param_.getValue("frag_mass_error_value");
-    ion_mode_ = (String)param_.getValue("ionization_mode");
+    ion_mode_ = param_.getValue("ionization_mode").toString();
 
-    mz_error_unit_ = (String)param_.getValue("mass_error_unit");
-    report_mode_ = (String)param_.getValue("report_mode");
+    mz_error_unit_ = param_.getValue("mass_error_unit").toString();
+    report_mode_ = param_.getValue("report_mode").toString();
   }
 
 

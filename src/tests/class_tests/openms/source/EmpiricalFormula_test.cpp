@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -72,12 +72,15 @@ START_SECTION(~EmpiricalFormula())
 END_SECTION
 
 START_SECTION(EmpiricalFormula(const String& rhs))
-  e_ptr = new EmpiricalFormula("C4");
+  // adding spaces and tabs to test sanitizeIfNotValidFormula.
+  // test succeeds when sanitizeIfNotValidFormula has removed
+  // all spaces, tabs and newlines from the provided formula
+  e_ptr = new EmpiricalFormula("C4 ");
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
-  EmpiricalFormula e0("C5(13)C4H2");
-  EmpiricalFormula e1("C5(13)C4");
-  EmpiricalFormula e2("(12)C5(13)C4");
-  EmpiricalFormula e3("C9");
+  EmpiricalFormula e0("C5(13)C4H2 ");
+  EmpiricalFormula e1("C5(13)C4\n\n ");
+  EmpiricalFormula e2("(12)C5(13)C4\t\n ");
+  EmpiricalFormula e3("C9 ");
   TEST_REAL_SIMILAR(e1.getMonoWeight(), e2.getMonoWeight())
   TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
   TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)
@@ -132,6 +135,7 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
+  // operator< compares pointers so this only works for same elements
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
@@ -350,6 +354,9 @@ START_SECTION(double getMonoWeight() const)
                     e->getMonoWeight() * 2 - Constants::PROTON_MASS_U)
   TEST_REAL_SIMILAR(EmpiricalFormula("OH").getMonoWeight(), EmpiricalFormula("HO").getMonoWeight());
   TEST_REAL_SIMILAR(EmpiricalFormula("").getMonoWeight(), 0.0)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2").getMonoWeight() < EmpiricalFormula("C5D2").getMonoWeight(), true)
+  TEST_EQUAL(EmpiricalFormula("C5D2").getMonoWeight() < EmpiricalFormula("C5T2").getMonoWeight(), true)
 END_SECTION
 
 START_SECTION(String toString() const)
@@ -388,6 +395,9 @@ START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   TEST_EQUAL(ef1 == ef1, true)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 == *e_ptr, false)
+
+  TEST_EQUAL(EmpiricalFormula("C5(2)H5") == EmpiricalFormula("C5D5"), true)
+  TEST_EQUAL(EmpiricalFormula("C5(3)H5") == EmpiricalFormula("C5T5"), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
@@ -607,6 +617,8 @@ START_SECTION(([EXTRA] Check correct charge semantics))
   TEST_EQUAL(ef11.getNumberOf(C), 0)
   TEST_EQUAL(ef11.getCharge(), 3)
 END_SECTION
+
+delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

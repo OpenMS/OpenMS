@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 
 // QT includes
@@ -176,7 +177,7 @@ namespace OpenMS
     // remove all items
     ui_->merge_combo_->clear();
 
-    if (layers.size() != 0)
+    if (!layers.empty())
     {
       ui_->merge_->setEnabled(true);
       ui_->merge_combo_->setEnabled(true);

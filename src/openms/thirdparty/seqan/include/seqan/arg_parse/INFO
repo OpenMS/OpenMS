@@ -1,0 +1,10 @@
+Name: arg_parse
+Author: Stephan Aiche <stephan.aiche@fu-berlin.de>
+Maintainer: Stephan Aiche <stephan.aiche@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: under development
+Description: Command Line Parsing functionality. 
+ The module arg_parse provides an argument/command line parser for SeqAn apps
+ including functionality to document tools and export the documentation/command
+ line information to different formats like man, html, or CTD.

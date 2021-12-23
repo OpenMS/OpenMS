@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,6 +73,7 @@ SplinePackage* nullPointer = nullptr;
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity))
   SplinePackage* sp2 = new SplinePackage(mz, intensity);
   TEST_NOT_EQUAL(sp2, nullPointer)
+  delete sp2;
 END_SECTION
 
 START_SECTION(getPosMin())
@@ -103,6 +104,7 @@ START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensit
   SplinePackage* sp4 = new SplinePackage(mz2, intensity2);
   TEST_NOT_EQUAL(sp4, nullPointer);
   TEST_REAL_SIMILAR((*sp4).eval(413.85), 50.1);
+  delete sp4;
 END_SECTION
 
 END_TEST

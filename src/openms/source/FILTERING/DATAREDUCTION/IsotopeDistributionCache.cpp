@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,10 +61,10 @@ namespace OpenMS
       isotope_distributions_[index].trimmed_left = size_before - d.size();
       d.trimRight(intensity_percentage_optional);
 
-      for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
+      for (Peak1D& it : d)
       {
-        isotope_distributions_[index].intensity.push_back(it->getIntensity());
-        //log_ << " - " << it->second << std::endl;
+        isotope_distributions_[index].intensity.push_back(it.getIntensity());
+        //log_ << " - " << it.second << std::endl;
       }
 
       //determine the number of optional peaks at the beginning/end
@@ -77,11 +77,17 @@ namespace OpenMS
         if (isotope_distributions_[index].intensity[i] < intensity_percentage)
         {
           if (!is_end && !is_begin)
+          {
             is_end = true;
+          }
           if (is_begin)
+          {
             ++begin;
+          }
           else if (is_end)
+          {
             ++end;
+          }
         }
         else if (is_begin)
         {

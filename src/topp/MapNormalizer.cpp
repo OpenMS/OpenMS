@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,15 +116,15 @@ protected:
 
     //determine maximum peak
     exp.updateRanges();
-    double max = exp.getMaxInt() / 100.0;
+    double max = exp.getMaxIntensity() / 100.0;
 
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (MSSpectrum& ms : exp)
     {
-      if (it->getMSLevel() < 2)
+      if (ms.getMSLevel() < 2)
       {
-        for (PeakMap::SpectrumType::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+        for (Peak1D& pk : ms)
         {
-          it2->setIntensity(it2->getIntensity() / max);
+          pk.setIntensity(pk.getIntensity() / max);
         }
       }
     }

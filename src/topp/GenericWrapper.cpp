@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QFileInfo>
@@ -180,9 +179,9 @@ protected:
   String paramToString_(const Param::ParamEntry & p)
   {
 
-    if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
+    if (p.value.valueType() == ParamValue::STRING_LIST) // quote each element
     {
-      StringList val = p.value;
+      StringList val = ListUtils::toStringList<std::string>(p.value);
       if (p.tags.count("input file") || p.tags.count("output file"))
       {
         for (Size i = 0; i < val.size(); ++i)
@@ -195,11 +194,11 @@ protected:
     if (p.tags.count("input file") || p.tags.count("output file"))
     {
       // ensure that file names are formated according to system spec
-      return QDir::toNativeSeparators(p.value.toQString());
+      return QDir::toNativeSeparators(String(p.value.toString()).toQString());
     }
     else
     {
-      return p.value;
+      return p.value.toString();
     }
   }
 
@@ -208,8 +207,7 @@ protected:
     the contained strings
 
     */
-  struct StringSizeLess :
-    std::binary_function<String, String, bool>
+  struct StringSizeLess
   {
     bool operator()(String const & left, String const & right) const
     {
@@ -238,7 +236,7 @@ protected:
       param_names.push_back(it->name);
     }
     // sort by length
-    std::sort(param_names.begin(), param_names.end(), reverseComparator(StringSizeLess()));
+    std::sort(param_names.begin(), param_names.end(), [](auto &left, auto &right) {StringSizeLess cmp; return cmp(right, left);});
 
     // iterate through all input params and replace with values:
     SignedSize allowed_percent(0); // filenames might contain '%', which are allowed to remain there (and even must remain)
@@ -251,8 +249,10 @@ protected:
       //std::cerr << "IN: " << s_new << "(" << allowed_percent << "\n";
       fragment.substitute("%%" + *it, s_new);
     }
-    if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
-
+    if (fragment.hasSubstring("%%"))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
+    }
     // mapping replace> e.g.: %2
     // do it reverse, since %10 should precede %1
     for (std::map<int, std::string>::const_reverse_iterator it = optional_mappings.rbegin(); it != optional_mappings.rend(); ++it)
@@ -275,7 +275,7 @@ protected:
 
     // %DIR% replace
     {
-      QRegExp rx("%DIR\\[(.*)\\]");
+      QRegExp rx(R"(%DIR\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0;
       QString t_tmp = fragment.toQString();
@@ -294,7 +294,7 @@ protected:
 
     // %BASENAME% replace
     {
-      QRegExp rx("%BASENAME\\[(.*)\\]");
+      QRegExp rx(R"(%BASENAME\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0, count = 0;
       QString t_tmp = fragment.toQString();
@@ -317,16 +317,21 @@ protected:
 
     SignedSize diff = (fragment.length() - String(fragment).substitute("%", "").length()) - allowed_percent;
     //std::cerr << "allowed: " << allowed_percent << "\n" << "diff: " << diff << " in: " << fragment << "\n";
-    if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
-    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: '%' from a filename where accidentally considered command tags! "
+    if (diff > 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
+    }
+    else if (diff < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: '%' from a filename where accidentally considered command tags! "
                                                                                               "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
-
+    }
     //std::cout << fragment << "'\n";
   }
 
   Internal::ToolExternalDetails tde_;
 
-  ExitCodes wrapExit(const ExitCodes return_code)
+  ExitCodes wrapExit(const ExitCodes return_code) const
   {
     if (return_code != EXECUTION_OK)
     {
@@ -372,7 +377,7 @@ protected:
     {
       if ((it->tags).count("required") > 0)
       {
-        String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
+        String in = String(it->value.toString()).trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
         if (in.empty() || in == "[]") // any required parameter should have a value
         {
           OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
@@ -383,11 +388,11 @@ protected:
           StringList ifs;
           switch (it->value.valueType())
           {
-            case DataValue::STRING_VALUE:
-              ifs.push_back(it->value); 
+            case ParamValue::STRING_VALUE:
+              ifs.push_back(it->value.toChar());
               break;
-            case DataValue::STRING_LIST:
-              ifs = it->value;
+            case ParamValue::STRING_LIST:
+              ifs = ListUtils::toStringList<std::string>(it->value);
               break;
             default:
               OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
@@ -411,7 +416,10 @@ protected:
       if (type == gw.types[i])
       {
         tde_ = gw.external_details[i];
-        if (tde_.working_directory.trim() == "") tde_.working_directory = ".";
+        if (tde_.working_directory.trim().empty())
+        {
+          tde_.working_directory = ".";
+        }
         break;
       }
     }
@@ -441,14 +449,17 @@ protected:
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      if (!p.exists(target))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      }
       String tmp_location = fm.location;
       // fragment's placeholder evaluation:
 
       createFragment_(tmp_location, p);
 
       // check if target already exists:
-      String target_file = (String)p.getValue(target);
+      String target_file = p.getValue(target).toString();
       if (File::exists(tmp_location))
       {
         if (!File::remove(tmp_location))
@@ -517,8 +528,11 @@ protected:
       createFragment_(source_file, p, mappings);
       // check if target already exists:
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
-      String target_file = (String)p.getValue(target);
+      if (!p.exists(target))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      }
+      String target_file = p.getValue(target).toString();
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
       {

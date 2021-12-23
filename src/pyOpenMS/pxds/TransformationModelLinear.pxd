@@ -14,12 +14,17 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
         # wrap-inherits:
         #   TransformationModel
 
-        TransformationModelLinear(TransformationModelLinear) nogil except + #wrap-ignore
+        # copy constructor of 'TransformationModelLinear' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
+        TransformationModelLinear(TransformationModelLinear &) nogil except + # wrap-ignore
         TransformationModelLinear(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
-
-        void getDefaultParameters(Param&)
 
         double evaluate(double value) nogil except +
         # void getParameters(double & slope, double & intercept, String& x_weight, String& y_weight, double & x_datum_min, double & x_datum_max, double & y_datum_min, double & y_datum_max) nogil except +
         void invert() nogil except +
+
+# COMMENT: wrap static methods
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" namespace "OpenMS::TransformationModelLinear":
+        
+        # static members
+        void getDefaultParameters(Param &) nogil except + # wrap-attach:TransformationModelLinear
 

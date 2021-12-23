@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,7 +131,7 @@ namespace OpenMS
       else
       {
         convex_hull_.clear();
-        if (convex_hulls_.size() > 0)
+        if (!convex_hulls_.empty())
         {
           /*
           -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined
@@ -166,10 +166,13 @@ namespace OpenMS
   bool Feature::encloses(double rt, double mz) const
   {
     ConvexHull2D::PointType tmp(rt, mz);
-    for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)
+
+    for (const ConvexHull2D& hull : convex_hulls_)
     {
-      if (it->encloses(tmp))
+      if (hull.encloses(tmp))
+      {
         return true;
+      }
     }
     return false;
   }

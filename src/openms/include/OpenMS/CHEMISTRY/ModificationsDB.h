@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include "OpenMS/CHEMISTRY/AASequence.h"
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -86,6 +87,9 @@ public:
     static bool isInstantiated();
 
     friend class CrossLinksDB;
+    // for access to addNewModification_ (without checking presence)
+    friend class Residue;
+    friend class AASequence;
 
     /// Returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;
@@ -98,6 +102,7 @@ public:
 
     /**
        @brief Collects all modifications which have the given name as synonym
+       @todo use set as return value. Would be more efficient in pyopenms
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
@@ -108,10 +113,21 @@ public:
                              const String& residue = "",
                              ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
+   /**
+      @brief Returns a pointer to an exact match of the given modification if present in the DB.
+
+      This should be used if e.g. only a stack copy of the modification is available but you need
+      a pointer to the modification in the database.
+
+      @return The matching modification given the constraints. Returns nullptr
+      if no modification exists that is an exact match accoring to the equals operator.
+   */
+   const ResidueModification* searchModification(const ResidueModification& mod_in) const;
+
     /**
        @brief Returns the modification which has the given name as synonym (fast version)
 
-       Unlike searchModification(), only returns the one occurrence of the
+       Unlike searchModifications(), only returns the one occurrence of the
        modification (the last occurrence). It is therefore required to check @p
        multiple_matches to ensure that only a single modification was found.
 
@@ -148,11 +164,20 @@ public:
     /**
        @brief Add a new modification to ModificationsDB.
        If the modification already exists (based on its fullID) it is not added.
-       The function returns a pointer to the modification in the ModificationDB (which can be differ from input if mod was already present).
+       @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
 
        @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
     const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
+
+    /**
+       @brief Add a new modification to ModificationsDB.
+       If the modification already exists (based on its fullID) it is not added. A copy will be made on the heap and added to the ModificationsDB otherwise.
+       @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
+
+       @param new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
+    */
+    const ResidueModification* addModification(const ResidueModification& new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
@@ -165,13 +190,24 @@ public:
     Size findModificationIndex(const String& mod_name) const;
 
     /**
-       @brief Collects all modifications with matching delta mass
+       @brief Collects all modifications with delta mass inside a tolerance window
+       @warning This function adds the results in the order of appearance in the DB, not considering proximity in mass. Use searchModificationsByDiffMonoMassSorted for this.
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
     void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+
+    /**
+     @brief Collects all modifications with delta mass inside a tolerance window and adds them sorted
+     by mass difference
+
+     If @p residue is set, only modifications with matching residue of origin are considered.
+     If @p term_spec is set, only modifications with matching term specificity are considered.
+    */
+    void searchModificationsByDiffMonoMassSorted(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue
@@ -198,7 +234,10 @@ public:
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
-protected:
+    /// Writes tab separated entries: FullId,FullName,Origin,AA,TerminusSpecificity,DiffMonoMass (including header) to TSV file
+    void writeTSV(const String& filename);
+
+  protected:
 
     /// Stores whether ModificationsDB was instantiated before
     static bool is_instantiated_;
@@ -235,8 +274,7 @@ private:
 
      */
     //@{
-    /// Default constructor
-    ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    explicit ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);
@@ -253,6 +291,13 @@ private:
     //@}
 
     /**
+       @brief Add a new modification to ModificationsDB without checking if it was inside already.
+
+       @param new_mod A copy will be made on the heap and added to the modification if not already present.
+    */
+    const ResidueModification* addNewModification_(const ResidueModification& new_mod);
+
+    /**
        @brief Adds modifications from a given file in OBO format
 
        @throw Exception::ParseError if the file cannot be parsed correctly
@@ -261,6 +306,5 @@ private:
 
     /// Adds modifications from a given file in Unimod XML format
     void readFromUnimodXMLFile(const String& filename);
-    
   };
 }

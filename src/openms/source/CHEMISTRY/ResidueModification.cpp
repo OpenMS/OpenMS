@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -570,7 +571,7 @@ namespace OpenMS
   {
     return id_.empty() && !full_id_.empty();
   }
-
+  
   const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,
@@ -804,7 +805,7 @@ namespace OpenMS
   }
   String ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::abs(diff_mono_mass);
+    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
   }
   String ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {

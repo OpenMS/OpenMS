@@ -48,6 +48,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
 MzTabFile.cpp
@@ -55,6 +56,7 @@ MzXMLFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+ParamCTDFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
@@ -62,6 +64,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp
@@ -76,6 +79,7 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
+TriqlerFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp

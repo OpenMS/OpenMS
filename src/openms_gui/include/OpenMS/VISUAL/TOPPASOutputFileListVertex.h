@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,11 +78,11 @@ public:
     /// Returns the directory where the output files are stored
     String getOutputDir() const;
     /// Creates the output directory for this node
-    String createOutputDir();
+    String createOutputDir() const;
     /// Sets the topological sort number and removes invalidated tmp files
     void setTopoNr(UInt nr) override;
     /// Opens the folders of the output files
-    void openContainingFolder();
+    void openContainingFolder() const;
     /// Sets a custom output folder name, which will be integrated into 'getOutputDir()' and 'getFullOutputDirectory()' calls.
     /// @note The string is not checked for validity (avoid characters which are not allowed in directories, e.g. '{')
     void setOutputFolderName(const QString& name);
