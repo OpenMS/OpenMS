@@ -48,7 +48,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
   // helper for visitor pattern with std::visit
   template<class... Ts>
   struct overload : Ts... {
@@ -69,15 +68,48 @@ namespace OpenMS
     // custom locale is only valid for 'iss' and vanishes here
   }
 
+
+  void showDistribution(LayerStatisticsDialog* lsd, const QString& text,
+                        const Math::Histogram<>& hist)
+  {
+    if (text == "intensity")
+    {
+      qobject_cast<PlotWidget*>(lsd->parent())->showIntensityDistribution(hist);
+    }
+    else
+    {
+      qobject_cast<PlotWidget*>(lsd->parent())->showMetaDistribution(String(text), hist);
+    }
+  }
+
+  void addEmptyRow(QTableWidget* table, const int row_i, const QString& row_name)
+  {
+    table->setRowCount(row_i + 1);
+
+    // set row header name
+    QTableWidgetItem* item = new QTableWidgetItem();
+    item->setText(row_name);
+    table->setVerticalHeaderItem(row_i, item);
+  }
+
+  constexpr int col_count = 4; // columns: count, min, max, avg
+
+  void populateRow(QTableWidget* table, const int row_i, const std::array<QString, col_count>& data)
+  {
+    for (int col = 0; col < col_count; ++col)
+    {
+      QTableWidgetItem* item = new QTableWidgetItem();
+      item->setText(data[col]);
+      table->setItem(row_i, col, item);
+    }
+  }
+
   /// insert an intermediate row with a single spanning cell, which describes where the values came from (e.g. from DataArrays, or MetaData)
   void addHeaderRow(QTableWidget* table, int& row_i, const QString& row_name)
   {
-    // clear row header name
+    addEmptyRow(table, row_i, "");
+                                
     QTableWidgetItem* item = new QTableWidgetItem();
-    item->setText("");
-    table->setVerticalHeaderItem(row_i, item);
-    
-    item = new QTableWidgetItem();
     item->setText(row_name);
     //item->setBackgroundColor(QColor(Qt::darkGray));
     QFont font;
@@ -88,88 +120,78 @@ namespace OpenMS
     table->setSpan(row_i, 0, 1, table->columnCount()); // extend row to span all columns
     ++row_i;
   }
-  void addRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i, const QString& row_name, const StatsSummaryVariant& row_data, const bool enable_show_button = false)
-  {
-    // row name
-    QTableWidgetItem* item = new QTableWidgetItem();
-    item->setText(row_name);
-    table->setVerticalHeaderItem(row_i, item);
 
-    // column data
-    constexpr int col_count = 4;
-    // count, and min, max, avg (if present)
+  void addRangeRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i,
+                   const RangeStatsType& row_name, const RangeStatsVariant& row_data,
+                   const bool enable_show_button, LayerStatistics* stats)
+  {
+    addEmptyRow(table, row_i, row_name.name.c_str());
+    // get column data
     std::array<QString, col_count> col_values = std::visit(overload{
-      [&](const SSInt& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
+      [&](const RangeStatsInt& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
                                                                       QString::number(d.getMin()),
                                                                       QString::number(d.getMax()),
                                                                       QString::number(d.getAvg(), 'f', 2)}; },
-      [&](const SSDouble& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
+      [&](const RangeStatsDouble& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
                                                                          QString::number(d.getMin(), 'f', 2),
                                                                          QString::number(d.getMax(), 'f', 2),
-                                                                         QString::number(d.getAvg(), 'f', 2)}; },
-      [&](const StatsCounter& c) -> std::array<QString, col_count> { return {toStringWithLocale(c.counter),
-                                                                             "-",
-                                                                             "-",
-                                                                             "-"}; }
+                                                                         QString::number(d.getAvg(), 'f', 2)}; }
       }, row_data);
-    for (int col = 0; col < col_count; ++col)
-    {
-      item = new QTableWidgetItem();
-      item->setText(col_values[col]);
-      table->setItem(row_i, col, item);
-    }
-    bool show_button = std::visit(overload{
-      [&](auto&& stats) { return stats.getCount() > 1 && stats.getMin() < stats.getMax(); },// for SSInt, SSDouble
-      [&](const StatsCounter& /*c*/) { return false; }
+    
+    populateRow(table, row_i, col_values);
+
+    std::pair<double, double> minmax =
+      std::visit(overload {
+      [&](auto&& stats) -> std::pair<double, double>{ return {stats.getMin(), stats.getMax()}; }, // for RangeStatsInt, RangeStatsDouble
       }, row_data);
-    if (enable_show_button && show_button)
+    if (enable_show_button)
     {
-      auto button = new QPushButton(row_name, table);
+      auto button = new QPushButton(row_name.name.c_str(), table);
       table->setCellWidget(row_i, col_count, button);
-      QObject::connect(button, SIGNAL(clicked()), lsd, SLOT(showDistribution_()));
+      QObject::connect(button, &QPushButton::clicked, [=]() { showDistribution(lsd, row_name.name.c_str(), stats->getDistribution(row_name)); });
     }
     
     // next row
     ++row_i;
   }
 
-  LayerStatisticsDialog::LayerStatisticsDialog(PlotWidget* parent) :
+  void addCountRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i,
+                   const QString& row_name, const StatsCounter& row_data)
+  {
+    addEmptyRow(table, row_i, row_name);
+
+    // column data
+    populateRow(table, row_i, {toStringWithLocale(row_data.counter), "-", "-", "-"});
+    
+    // next row
+    ++row_i;
+  } 
+
+  LayerStatisticsDialog::LayerStatisticsDialog(PlotWidget* parent, std::unique_ptr<LayerStatistics>&& stats) :
     QDialog(parent),
-    canvas_(parent->canvas()),
+    stats_(std::move(stats)),
     ui_(new Ui::LayerStatisticsDialogTemplate)
   {
     ui_->setupUi(this);
-    
-    LayerStatistics ls;
-    canvas_->getCurrentLayer().computeStats(ls);
 
-    const auto& stats_meta = ls.getMetaStats(); // a bit expensive to get; so grab only once
-    // compute total number of rows from all categories
-    size_t total_rows = ls.getCoreStats().size() + stats_meta.size() + ls.getArrayStats().size();
-    size_t header_rows = !stats_meta.empty() + !ls.getArrayStats().empty();
-    ui_->table_->setRowCount((int) (total_rows + header_rows));
+    ui_->table_->setColumnCount(col_count + 1); // +1 for button column
+
+    const auto& stats_range = stats_->getRangeStatistics();
+    const auto& stats_count = stats_->getCountStatistics();
     // add each row
     int row_i = 0;
-    for (const auto& item : ls.getCoreStats())
+    for (const auto& item : stats_range)
     {
-      bool show_button = (item.first == "intensity");
-      addRow(this, ui_->table_, row_i, QString(item.first.c_str()), item.second, show_button);
+      bool show_button = (item.first == RangeStatsType{RangeStatsSource::CORE, "intensity"}) || item.first.src == RangeStatsSource::METAINFO;
+      addRangeRow(this, ui_->table_, row_i, item.first, item.second, show_button, stats_.get());
     }
-    if (!stats_meta.empty())
+
+    if (!stats_count.empty())
     {
-      addHeaderRow(ui_->table_, row_i, "Meta values");
-      for (const auto& item : stats_meta)
+      addHeaderRow(ui_->table_, row_i, "Meta count values");
+      for (const auto& item : stats_count)
       {
-        addRow(this, ui_->table_, row_i, QString(item.first.c_str()), item.second, true);// with button to show distribution
-      }
-    }
-    
-    if (!ls.getArrayStats().empty())
-    {
-      addHeaderRow(ui_->table_, row_i, "DataArray values");
-      for (const auto& item : ls.getArrayStats())
-      {
-        addRow(this, ui_->table_, row_i, QString(item.first.c_str()), item.second);
+        addCountRow(this, ui_->table_, row_i, QString(item.first.c_str()), item.second);
       }
     }
   }
@@ -179,19 +201,5 @@ namespace OpenMS
     delete ui_;
   }
 
-  void LayerStatisticsDialog::showDistribution_()
-  {
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    QString text = button->text();
-
-    if (text == "intensity")
-    {
-      qobject_cast<PlotWidget*>(parent())->showIntensityDistribution();
-    }
-    else
-    {
-      qobject_cast<PlotWidget*>(parent())->showMetaDistribution(String(text));
-    }
-  }
 
 } // namespace

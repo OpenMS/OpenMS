@@ -50,10 +50,9 @@ namespace OpenMS
   class ChromatogramPeak;
 
   /**
-    @brief In-Memory representation of a mass spectrometry experiment.
+    @brief In-Memory representation of a mass spectrometry run.
 
-    Contains the data and metadata of an experiment performed with an MS (or
-    HPLC and MS). This representation of an MS experiment is organized as list
+    This representation of an MS run is organized as list
     of spectra and chromatograms and provides an in-memory representation of
     popular mass-spectrometric file formats such as mzXML or mzML. The
     meta-data associated with an experiment is contained in
@@ -62,18 +61,13 @@ namespace OpenMS
     MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
     and getChromatogram functions.
 
-    Be careful when changing the order of contained MSSpectrum instances, if
-    tandem-MS data is stored in this class. The only way to find a precursor
-    spectrum of MSSpectrum x is to search for the first spectrum before x that
-    has a lower MS-level!
-
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
     @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
     @note For an on-disc representation of an MS experiment, see OnDiskExperiment.
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment :
+  class OPENMS_DLLAPI MSExperiment final :
     public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public ExperimentalSettings
   {
@@ -524,15 +518,11 @@ public:
 
     /// sets the spectrum list
     void setSpectra(const std::vector<MSSpectrum>& spectra);
+    void setSpectra(std::vector<MSSpectrum>&& spectra);
 
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
-
-
-    void addSpectrum(MSSpectrum&& spectrum)
-    {
-      spectra_.push_back(std::forward<MSSpectrum>(spectrum));
-    }
+    void addSpectrum(MSSpectrum&& spectrum);
 
     /// returns the spectrum list
     const std::vector<MSSpectrum>& getSpectra() const;
@@ -542,14 +532,11 @@ public:
 
     /// sets the chromatogram list
     void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
+    void setChromatograms(std::vector<MSChromatogram>&& chromatograms);
 
     /// adds a chromatogram to the list
     void addChromatogram(const MSChromatogram& chromatogram);
-
-    void addChromatogram(MSChromatogram&& chrom)
-    {
-      chromatograms_.push_back(std::forward<MSChromatogram>(chrom));
-    }
+    void addChromatogram(MSChromatogram&& chrom);
 
     /// returns the chromatogram list
     const std::vector<MSChromatogram>& getChromatograms() const;
