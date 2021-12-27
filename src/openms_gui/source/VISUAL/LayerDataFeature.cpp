@@ -39,8 +39,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  void LayerDataFeature::computeStats(LayerStatistics& visitor) const
+  std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const
   {
-    visitor.computeFeatureMapStats(*features_);
+    return make_unique<LayerStatisticsFeatureMap>(*getFeatureMap());
   }
 }// namespace OpenMS

@@ -200,6 +200,7 @@ public:
       @brief Adds all feature handles (of the CF) into the consensus feature
     */
     void insert(const ConsensusFeature& cf);
+    void insert(ConsensusFeature&& cf);
 
     /**
       @brief Adds an feature handle into the consensus feature
@@ -208,9 +209,11 @@ public:
       id already exists.
     */
     void insert(const FeatureHandle& handle);
+    void insert(FeatureHandle&& handle);
 
     /// Adds all feature handles in @p handle_set to this consensus feature.
     void insert(const HandleSetType& handle_set);
+    void insert(HandleSetType&& handle_set);
 
     /**
       @brief Creates a FeatureHandle and adds it

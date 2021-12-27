@@ -39,6 +39,8 @@
 
 #include <QtWidgets/QDialog>
 
+#include <memory> // for unique_ptr
+
 namespace Ui
 {
   class LayerStatisticsDialogTemplate;
@@ -46,9 +48,9 @@ namespace Ui
 
 namespace OpenMS
 {
+  class LayerStatistics;
   class PlotWidget;
   class PlotCanvas;
-
   /**
       @brief Dialog showing statistics about the data of the current layer
 
@@ -62,18 +64,14 @@ namespace OpenMS
 public:
     /// Constructor not implemented
     LayerStatisticsDialog() = delete;
-    /// custom constructor
-    LayerStatisticsDialog(PlotWidget* parent);
+    /// Custom constructor
+    LayerStatisticsDialog(PlotWidget* parent, std::unique_ptr<LayerStatistics>&& stats);
     /// D'tor
     ~LayerStatisticsDialog() override;
 
-protected slots:
-    /// Shows the distribution depending on the clicked button
-    void showDistribution_();
-
 protected:
-    /// The canvas of the layer
-    PlotCanvas* canvas_;
+    /// The statistics of the layer
+    std::unique_ptr<LayerStatistics> stats_;
 
 private:
     Ui::LayerStatisticsDialogTemplate* ui_;
