@@ -349,13 +349,11 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      for (const Precursor& p : s.getPrecursors())
       {
-        for (std::set<Precursor::ActivationMethod>::const_iterator it_a = it->getActivationMethods().begin();
-             it_a != it->getActivationMethods().end();
-             ++it_a)
+        for (const Precursor::ActivationMethod am : p.getActivationMethods())
         {
-          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[*it_a]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
           {
             // found matching activation method
             if (reverse_) return false;
@@ -364,8 +362,14 @@ public:
         }
       }
 
-      if (reverse_) return true;
-      else return false;
+      if (reverse_) 
+      {
+        return true;
+      }
+      else 
+      {
+        return false;
+      }
     }
 
 protected:
