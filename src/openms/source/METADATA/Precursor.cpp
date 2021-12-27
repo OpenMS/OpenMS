@@ -75,7 +75,7 @@ namespace OpenMS
     "TRAP",
     "BEAM",
     "INSOURCE",
-    "LIST"
+    "LIFT"
     };
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
