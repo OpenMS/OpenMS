@@ -2950,9 +2950,15 @@ def testMSExperiment():
 
     assert exp.get_df().shape == (3,3)
 
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/BSA/BSA1.mzML'), exp)
+
+    pyopenms.MzMLFile().load('/home/axel/dev/OpenMS/share/OpenMS/examples/BSA/BSA1.mzML', exp)
+
     ms1_df, ms2_df = exp.get_massql_df()
 
-    assert ms1_df.shape == (6,7)
+    assert ms1_df.shape == (355236, 7)
+
+    assert np.allclose(ms2_df, pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/BSA/BSA1_MS2_MassQL.tsv'), sep='\t'))
 
 
 @report
