@@ -1,0 +1,153 @@
+name: sonar-cloud test
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ develop, add/openms_ci_thirdparty_tests ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-lnx:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container: openms/manylinux:latest
+
+    steps:
+    # Cancels older builds if still running
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        SONAR_SCANNER_VERSION: 4.6.1.2450 # Find the latest version in the "Linux" link on this page:
+                                          # https://sonarcloud.io/documentation/analysis/scan/sonarscanner/
+        SONAR_SERVER_URL: "https://sonarcloud.io"
+        BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
+    - uses: actions/checkout@v2
+      name: Checkout sources
+      with:
+        path: OpenMS
+
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+      
+      #  open step log to get ssh access
+      #  If the CI has failed and the branch is ci-debug then start a tmate
+      #  session. SSH rendezvous point is emited continuously in the job output.
+      #  hack needed to fix apt dependency
+#    - name: "Debug: Package dependancies for tmate"
+#      run: |
+#        yum install -y xz
+#        ln -s /bin/true /bin/apt-get      
+#      
+#    - name: "Debug: Start tmate"
+#      uses: mxschmitt/action-tmate@v3.3
+#      with:
+#        limit-access-to-actor: true
+#        sudo: false
+
+    - name: Install Xvfb package
+      run: |
+            yum -y install xorg-x11-server-Xvfb
+
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          # initialize THIRDPARTY
+          cd OpenMS
+          git submodule update --init THIRDPARTY
+          cd ..
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+          cp -R OpenMS/THIRDPARTY/Linux/64bit/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
+          # add third-party binaries to PATH
+          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          do
+            echo $thirdpartytool >> $GITHUB_PATH
+          done
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Download and set up sonar-scanner
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+      - name: Download and set up build-wrapper
+        env:
+          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
+        run: |
+          curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
+          unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+
+    - name: Build and test lnx
+      run: |
+            export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+            mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+            ## TODO allow changing of ctest build site in cmake
+            ## TODO potentially parse some OS infos and add to build name
+            ## TODO allow changing Contrib path to get rid of the extra cmake file!
+            dbus-uuidgen > /var/lib/dbus/machine-id
+            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+
+            FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+            if [ "$FAILED_TEST" -gt "0" ] ; then
+              echo "$FAILED_TEST tests failed"
+              exit -1
+            fi
+            
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          
+      env:
+          CONTRIB_BUILD_DIRECTORY: "/contrib-build"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_GENERATOR: "Unix Makefiles"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "ON"
+          ENABLE_CLASS_TESTING: "ON"
+          WITH_GUI: "ON"
+          ADDRESS_SANITIZER: "Off"
+          BUILD_TYPE: "Release"
+          OPENMP: "On"
+          USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j2"
