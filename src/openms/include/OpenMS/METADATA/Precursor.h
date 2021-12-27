@@ -80,7 +80,6 @@ public:
     /// Move assignment operator
     Precursor& operator=(Precursor&&) & = default;
 
-
     /// Method of activation
     enum ActivationMethod
     {
@@ -117,7 +116,7 @@ public:
     /// returns a mutable reference to the activation methods
     std::set<ActivationMethod>& getActivationMethods();
     /// convenience function, returning string representation of getActivationMethods()
-    StringList getActivationMethodsAsString() const;
+    StringList getActivationMethodsAsString() const;    
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 
