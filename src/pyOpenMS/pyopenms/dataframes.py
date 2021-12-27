@@ -372,7 +372,11 @@ class MSExperimentDF(MSExperiment):
                     if mslevel == 2:
                         cols = 10
                         # data for MS2 only: precmz, ms1scan, charge
-                        data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
                     # create empty ndarr with shape according to MS level
                     ndarr = np.empty(shape=(spec.size(), cols))
                     # set column values
