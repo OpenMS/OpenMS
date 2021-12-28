@@ -2952,8 +2952,6 @@ def testMSExperiment():
 
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/BSA/BSA1.mzML'), exp)
 
-    pyopenms.MzMLFile().load('/home/axel/dev/OpenMS/share/OpenMS/examples/BSA/BSA1.mzML', exp)
-
     ms1_df, ms2_df = exp.get_massql_df()
 
     assert ms1_df.shape == (355236, 7)
