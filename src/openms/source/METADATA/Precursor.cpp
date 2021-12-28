@@ -54,7 +54,7 @@ namespace OpenMS
     "Electron transfer dissociation", 
     "Pulsed q dissociation",
     "trap-type collision-induced dissociation",
-    "beam-type collision-induced dissociation",
+    "beam-type collision-induced dissociation", // == HCD
     "in-source collision-induced dissociation",
     "Bruker proprietary method"
     };
@@ -73,7 +73,7 @@ namespace OpenMS
     "ETD", 
     "PQD",
     "TRAP",
-    "BEAM",
+    "HCD",
     "INSOURCE",
     "LIFT"
     };

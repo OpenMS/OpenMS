@@ -1894,9 +1894,9 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //beam-type collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BEAM);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
@@ -2006,9 +2006,9 @@ namespace OpenMS::Internal
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //beam-type collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::BEAM);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
@@ -3972,7 +3972,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::BEAM) != 0)
+      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
       }

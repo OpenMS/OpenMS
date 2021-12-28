@@ -474,10 +474,10 @@ namespace OpenMS
     // create predicate for spectrum checking
     OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_.empty() ? "any" : selected_activation_) << std::endl;
     
-    // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and BEAM
+    // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
     if (selected_activation_ == "auto") 
     {
-      selected_activation_ = Precursor::NamesOfActivationMethod[Precursor::HCID] + "," + Precursor::NamesOfActivationMethod[Precursor::BEAM];
+      selected_activation_ = Precursor::NamesOfActivationMethod[Precursor::HCID] + "," + Precursor::NamesOfActivationMethod[Precursor::HCD];
     }
 
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));

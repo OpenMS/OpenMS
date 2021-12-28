@@ -97,7 +97,7 @@ public:
       ETD,                      ///< Electron transfer dissociation
       PQD,                      ///< Pulsed q dissociation
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
-      BEAM,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
       INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
       LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
