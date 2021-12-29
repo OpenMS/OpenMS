@@ -43,4 +43,4 @@ namespace OpenMS
   {
     return make_unique<LayerStatisticsIdent>(peptides_);
   }
-}// namespace OpenMS
+} // namespace OpenMS

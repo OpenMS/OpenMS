@@ -144,6 +144,14 @@ namespace OpenMS
     sequence_.trim();
   }
 
+  // sets the protein sequence
+  void ProteinHit::setSequence(String&& sequence)
+  {
+    sequence_ = std::move(sequence);
+    sequence_.trim();
+  }
+
+
   // sets the description of the protein
   void ProteinHit::setDescription(const String& description)
   {

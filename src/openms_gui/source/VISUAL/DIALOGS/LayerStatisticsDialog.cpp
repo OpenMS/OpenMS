@@ -142,7 +142,7 @@ namespace OpenMS
 
     std::pair<double, double> minmax =
       std::visit(overload {
-      [&](auto&& stats) -> std::pair<double,double>{ return {stats.getMin(), stats.getMax()}; },// for RangeStatsInt, RangeStatsDouble
+      [&](auto&& stats) -> std::pair<double, double>{ return {stats.getMin(), stats.getMax()}; }, // for RangeStatsInt, RangeStatsDouble
       }, row_data);
     if (enable_show_button)
     {
