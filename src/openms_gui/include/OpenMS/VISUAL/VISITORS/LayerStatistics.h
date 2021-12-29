@@ -118,7 +118,7 @@ namespace OpenMS
   };
   
   /// Names corresponding to elements of enum RangeStatsSource
-  static std::array<char*, (size_t)RangeStatsSource::SIZE_OF_STATSSOURCE> StatsSourceNames = {"core", "metainfo", "arrayinfo"};
+  static const std::array<const char*, (size_t)RangeStatsSource::SIZE_OF_STATSSOURCE> StatsSourceNames = {"core statistics", "meta values", "data arrays"};
 
   /// Origin and name of a statistic.
   struct RangeStatsType
@@ -137,7 +137,7 @@ namespace OpenMS
     }
   };
 
-  /// collection of Min/Max/Avg statistics from different sources
+  /// collection of Min/Max/Avg statistics from different sources. Note: must be sorted, i.e. do not switch to unordered_map!
   using StatsMap = std::map<RangeStatsType, RangeStatsVariant>;
   /// collection of MetaValues which are not numeric (counts only the number of occurrences per metavalue)
   using StatsCounterMap = std::map<std::string, StatsCounter>;

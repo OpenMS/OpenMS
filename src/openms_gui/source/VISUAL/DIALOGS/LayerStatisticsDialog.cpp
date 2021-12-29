@@ -180,8 +180,15 @@ namespace OpenMS
     const auto& stats_count = stats_->getCountStatistics();
     // add each row
     int row_i = 0;
+    RangeStatsSource old_category = RangeStatsSource::SIZE_OF_STATSSOURCE;
     for (const auto& item : stats_range)
     {
+      // add sections (relies on items being sorted!)
+      if (old_category != item.first.src)
+      {
+        addHeaderRow(ui_->table_, row_i, StatsSourceNames[(size_t)item.first.src]);
+        old_category = item.first.src;
+      }
       bool show_button = (item.first == RangeStatsType{RangeStatsSource::CORE, "intensity"}) || item.first.src == RangeStatsSource::METAINFO;
       addRangeRow(this, ui_->table_, row_i, item.first, item.second, show_button, stats_.get());
     }
