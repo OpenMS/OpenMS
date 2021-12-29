@@ -362,14 +362,7 @@ public:
         }
       }
 
-      if (reverse_) 
-      {
-        return true;
-      }
-      else 
-      {
-        return false;
-      }
+      return reverse_;
     }
 
 protected:
