@@ -199,8 +199,8 @@ namespace OpenMS
     for (ProteinIdentification& prot : proteins)
     {
       // remove protein identification file origin
-      prot_it.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
-      vector<ProteinHit>& protein_hits  = prot_it.getHits();
+      prot.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
+      vector<ProteinHit>& protein_hits  = prot.getHits();
       all_protein_hits.insert(all_protein_hits.end(), protein_hits.begin(), protein_hits.end());
     }
 
@@ -267,7 +267,7 @@ namespace OpenMS
           prot_ident.setHits(protein2accessions);
           prot_tmp.push_back(prot_ident);
         }
-        vector<PeptideIdentification>& pep_tmp = it->second.second;
+        vector<PeptideIdentification>& pep_tmp = it->second.pep_idents;
         pep_tmp.push_back(pep);
       }
       else // otherwise create new entry for file_origin
