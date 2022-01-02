@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,14 +154,58 @@ public:
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    void getAllChildTerms(std::set<String>& terms, const String& parent) const;
+    void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
+
+    /**
+        @brief Iterates over all children of parent recursively.
+        @param lbd Function that gets the child-Strings passed. Must return bool.
+                 Used for comparisons and / or to set captured variables.
+                 If the lambda returns true, the iteration is exited prematurely.
+                 E.g. if you have found your search, you don't need to continue searching.
+                 Otherwise, if you want to go through the whole tree (e.g. to fill a vector)
+                 you can just return false always to not quit early.
+    */
+    template <class LAMBDA>
+    bool iterateAllChildren(const String& parent_id, LAMBDA lbd) const
+    {
+      for (const auto& child_id : getTerm(parent_id).children)
+      {
+        if (lbd(child_id) || iterateAllChildren(child_id, lbd))
+          return true;
+      }
+      return false;
+    }
+
+    /**
+        @brief Searches the existing terms for the given @p name
+
+        @return const Pointer to found term. When term is not found, returns nullptr
+    */
+    const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
 
     /**
         @brief Returns if @p child is a child of @p parent
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */
-    bool isChildOf(const String& child, const String& parent) const;
+    bool isChildOf(const String& child_id, const String& parent_id) const;
+
+
+    /**
+      @brief Returns a CV for parsing/storing PSI-MS related data, e.g. mzML, or handle accessions/ids in datastructures
+
+      The CV will be initialized on first access. Repeated access is therefor cheap.
+
+      It consists of the following CVs:<br>
+      <ul>
+        <li>PSI-MS (psi-ms.obo)</li>
+        <li>PATO (quality.obo)</li>
+        <li>UO (unit.obo)</li>
+        <li>BTO (CV/brenda.obo)</li>
+        <li>GO (goslim_goa.obo)</li>
+      </ul>
+    */
+    static const ControlledVocabulary& getPSIMSCV();
 
 protected:
     /**
@@ -169,7 +213,7 @@ protected:
 
         If the term is not known, 'true' is returned!
     */
-    bool checkName_(const String& id, const String& name, bool ignore_case = true);
+    bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     ///Map from ID to CVTerm
     Map<String, CVTerm> terms_;

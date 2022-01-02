@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,13 +73,14 @@ namespace OpenMS
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
+    editor_->setMinimumSize(500, 500);
     main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load"));
+    QPushButton* load_button = new QPushButton(tr("&Load from file"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store"));
+    QPushButton* store_button = new QPushButton(tr("&Store to file"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
@@ -99,9 +100,6 @@ namespace OpenMS
     setLayout(main_grid);
 
     editor_->load(*param_);
-
-    String str;
-
     editor_->setFocus(Qt::MouseFocusReason);
 
     setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
@@ -147,7 +145,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.what()).c_str());
       arg_param_.clear();
       return;
     }
@@ -190,7 +188,7 @@ namespace OpenMS
     try
     {
       QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
-      if (tool_type_ != "")
+      if (!tool_type_.empty())
       {
         tmp_ini_file += tool_type_.toQString() + "_";
       }
@@ -202,7 +200,7 @@ namespace OpenMS
       QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
-      if (tool_type_ != "")
+      if (!tool_type_.empty())
       {
         args << "-type" << tool_type_.toQString();
       }
@@ -215,7 +213,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.what()).c_str());
       return;
     }
   }

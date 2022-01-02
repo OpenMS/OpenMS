@@ -1,32 +1,33 @@
 <RCC>
     <qresource prefix="/">
         <file>INIFileEditor.png</file>
+        <file>Recycling_symbol.svg</file>
+        <file>SwathWizard.png</file>
         <file>TOPPAS.png</file>
         <file>TOPPAS_Splashscreen.png</file>
         <file>TOPPView.png</file>
         <file>TOPPView_Splashscreen.png</file>
+        <file>TOPP_about.png</file>
         <file>convexhull.png</file>
         <file>convexhulls.png</file>
         <file>cursor_measure.png</file>
         <file>cursor_move.png</file>
         <file>cursor_zoom.png</file>
         <file>elements.png</file>
+        <file>labels.png</file>
         <file>lin.png</file>
         <file>lines.png</file>
-        <file>labels.png</file>
-        <file>unassigned.png</file>
+        <file>log.png</file>
         <file>peaks.png</file>
+        <file>peptidemz.png</file>
         <file>percentage.png</file>
         <file>precursors.png</file>
         <file>projections.png</file>
         <file>reset_zoom.png</file>
         <file>snap.png</file>
+        <file>stop_sign.svg</file>
         <file>tile_horizontal.png</file>
         <file>tile_vertical.png</file>
-        <file>peptidemz.png</file>
-        <file>TOPP_about.png</file>
-        <file>log.png</file>
-        <file>Recycling_symbol.svg</file>
-        <file>stop_sign.svg</file>
+        <file>unassigned.png</file>
     </qresource>
 </RCC>

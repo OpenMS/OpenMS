@@ -9,8 +9,10 @@ from LPWrapper cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "OpenMS":
     
     cdef cppclass PSProteinInference "OpenMS::PSProteinInference":
+        # wrap-doc:
+        # This class implements protein inference for the precursor ion selection strategies
         PSProteinInference() nogil except +
-        PSProteinInference(PSProteinInference) nogil except + #wrap-ignore
+        PSProteinInference(PSProteinInference &) nogil except + # compiler
         Size findMinimalProteinList(libcpp_vector[ PeptideIdentification ] & peptide_ids) nogil except +
         void calculateProteinProbabilities(libcpp_vector[ PeptideIdentification ] & ids) nogil except +
         double getProteinProbability(const String & acc) nogil except +
@@ -18,6 +20,5 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "Op
         Int getNumberOfProtIds(double protein_id_threshold) nogil except +
         # TODO nested STL
         # Int getNumberOfProtIdsPeptideRule(Int min_peptides, libcpp_map[ String, libcpp_set[ String ] ] & prot_id_counter) nogil except +
-        void setSolver(SOLVER solver) nogil except +
         SOLVER getSolver() nogil except +
 

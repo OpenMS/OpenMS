@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,9 +42,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
-// #include <string>
-// #include <cmath>
-
 #include <cassert>
 
 using namespace OpenMS;
@@ -72,11 +69,9 @@ using namespace std;
                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
             </tr>
             <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-            </tr>
-            <tr>
             </tr>
         </table>
     </center>
@@ -87,6 +82,8 @@ using namespace std;
     @htmlinclude TOPP_XFDR.html
 */
 
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPXFDR final :
 public TOPPBase
@@ -94,7 +91,7 @@ public TOPPBase
 public:
 
   TOPPXFDR() :
-    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", false)
+    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", true)
   {
   }
 
@@ -241,11 +238,11 @@ private:
     }
     else if (in_type == FileTypes::MZIDENTML)
     {
-       MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
+      MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
      }
      else if (in_type == FileTypes::IDXML)
      {
-       IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
+      IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
      }
      else
      {
@@ -261,15 +258,15 @@ private:
      // Terminate if no hits could be found
      if (n_pep_ids == 0)
      {
-       logFatal("Input file does not contain any identifications.");
-       return INPUT_FILE_EMPTY;
+      logFatal("Input file does not contain any identifications.");
+      return INPUT_FILE_EMPTY;
      }
 
      // Terminate if do not exactly encounter one protein id
      if (n_prot_ids != 1)
      {
-       logFatal("There is not exactly one protein identification in the input file. This is unsupported!");
-       return INPUT_FILE_CORRUPT;
+      logFatal("There is not exactly one protein identification in the input file. This is unsupported!");
+      return INPUT_FILE_CORRUPT;
      }
      protein_id = protein_ids[0];
 
@@ -318,3 +315,5 @@ int main(int argc, const char ** argv)
   TOPPXFDR tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

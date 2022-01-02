@@ -4,24 +4,37 @@ from libcpp cimport bool
 
 cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
     
-    cdef cppclass RangeManager1 "OpenMS::RangeManager<1>":
+    cdef cppclass RangeManagerRtMzInt "OpenMS::RangeManager<RangeRT, RangeMZ, RangeIntensity>":
         # wrap-ignore
         # no-pxd-import
-        RangeManager1() nogil except +
-        RangeManager1(RangeManager1) nogil except +
-        DPosition1 getMin() nogil except +
-        DPosition1 getMax() nogil except +
-        double getMinInt() nogil except +
-        double getMaxInt() nogil except +
-        void clearRanges() nogil except +
+        RangeManagerRtMzInt() nogil except +
+        RangeManagerRtMzInt(RangeManagerRtMzInt  &) nogil except +
+        double getMinRT() nogil except + # wrap-doc:Returns the minimum RT
+        double getMaxRT() nogil except + # wrap-doc:Returns the maximum RT
+        double getMinMZ() nogil except + # wrap-doc:Returns the minimum m/z
+        double getMaxMZ() nogil except + # wrap-doc:Returns the maximum m/z
+        double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
+        double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
 
-    cdef cppclass RangeManager2 "OpenMS::RangeManager<2>":
+    cdef cppclass RangeManagerMzInt "OpenMS::RangeManager<RangeMZ, RangeIntensity>":
         # wrap-ignore
         # no-pxd-import
-        RangeManager2() nogil except +
-        RangeManager2(RangeManager2) nogil except +
-        DPosition2 getMin() nogil except +
-        DPosition2 getMax() nogil except +
-        double getMinInt() nogil except +
-        double getMaxInt() nogil except +
-        void clearRanges() nogil except +
+        RangeManagerMzInt() nogil except +
+        RangeManagerMzInt(RangeManagerMzInt  &) nogil except +
+        double getMinMZ() nogil except + # wrap-doc:Returns the minimum m/z
+        double getMaxMZ() nogil except + # wrap-doc:Returns the maximum m/z
+        double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
+        double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
+
+    cdef cppclass RangeManagerRtInt "OpenMS::RangeManager<RangeRT, RangeIntensity>":
+        # wrap-ignore
+        # no-pxd-import
+        RangeManagerRtInt() nogil except +
+        RangeManagerRtInt(RangeManagerRtInt  &) nogil except +
+        double getMinRT() nogil except + # wrap-doc:Returns the minimum RT
+        double getMaxRT() nogil except + # wrap-doc:Returns the maximum RT
+        double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
+        double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
+        void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty

@@ -1,0 +1,11 @@
+Name: seqan-consensus
+Author: Tobias Rausch <rausch@embl.de>
+Maintainer: Manuel Holtgrewe <manuel.holtgrewe@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: mature
+Description: Consensus computation and re-alignment.
+ This module contains code for consensus computation and re-alignment of
+ sequences.
+ .
+ It contains most functionality of the seqcons program.

@@ -10,6 +10,7 @@ CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 CruxAdapter
+DatabaseSuitability
 Decharger
 DTAExtractor
 EICExtractor
@@ -42,7 +43,6 @@ IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
 InclusionExclusionListCreator
-InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 LuciphorAdapter

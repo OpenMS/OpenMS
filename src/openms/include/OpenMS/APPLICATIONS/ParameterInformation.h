@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ namespace OpenMS
     /// type of the parameter
     ParameterTypes type;
     /// default value of the parameter stored as string
-    DataValue default_value;
+    ParamValue default_value;
     /// description of the parameter
     String description;
     /// argument in the description
@@ -85,7 +85,7 @@ namespace OpenMS
 
     ///@name Restrictions for different parameter types
     //@{
-    std::vector<String> valid_strings;
+    StringList valid_strings;
     Int min_int;
     Int max_int;
     double min_float;
@@ -93,9 +93,11 @@ namespace OpenMS
     //@}
 
     /// Constructor that takes all members in declaration order
-    ParameterInformation(const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList());
+    ParameterInformation(const String& n, ParameterTypes t, const String& arg, const ParamValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList());
 
     ParameterInformation();
+
+    ParameterInformation(const ParameterInformation& rhs) = default;
 
     ParameterInformation& operator=(const ParameterInformation& rhs);
 

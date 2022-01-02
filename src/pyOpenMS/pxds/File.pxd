@@ -34,9 +34,6 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Returns the path of the file (without the file name).
     String path(String file) nogil except + # wrap-attach:File
 
-    # Returns the file name without the extension
-    String removeExtension(String file) nogil except + # wrap-attach:File
-
     # Return true if the file exists and is readable
     bool readable(String file) nogil except + # wrap-attach:File
 

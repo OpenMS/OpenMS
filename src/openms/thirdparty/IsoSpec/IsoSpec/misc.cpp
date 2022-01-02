@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -16,19 +16,17 @@
 
 
 #include "misc.h"
+#include <utility>
 #include "platform.h"
-#include <stdlib.h>
+#include "isoMath.h"
 
-#define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
 
 namespace IsoSpec
 {
 
-void* quickselect(void** array, int n, int start, int end)
+void* quickselect(void ** array, int n, int start, int end)
 {
-    void* swapspace;
-
     if(start == end)
         return array[start];
 
@@ -39,31 +37,32 @@ void* quickselect(void** array, int n, int start, int end)
 #if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
-	int pivot = rand() % len + start;
+        size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
+                                                    // need a very uniform distribution just for pivot
+                                                    // selection
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
-        mswap(array[pivot], array[end-1]);
+        std::swap(array[pivot], array[end-1]);
         int loweridx = start;
-        for(int i=start; i<end-1; i++)
+        for(int i = start; i < end-1; i++)
         {
             if(getLProb(array[i]) < pprob)
             {
-                mswap(array[i], array[loweridx]);
+                std::swap(array[i], array[loweridx]);
                 loweridx++;
             }
         }
-        mswap(array[end-1], array[loweridx]);
+        std::swap(array[end-1], array[loweridx]);
 
         // Selection part
-        if(n==loweridx)
+        if(n == loweridx)
             return array[n];
-        if(n<loweridx)
+        if(n < loweridx)
             end = loweridx;
         else
             start = loweridx+1;
     };
 }
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

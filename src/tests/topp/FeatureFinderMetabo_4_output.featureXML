@@ -13,7 +13,7 @@
 			<intensity>3.004134e07</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.008402</overallquality>
+			<overallquality>8.402009e-03</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="299.836320000000001" y="109.022347547470218" />
@@ -1029,6 +1029,7 @@
 			</convexhull>
 			<UserParam type="string" name="label" value="T3.1_T13.1"/>
 			<UserParam type="float" name="FWHM" value="7.86652421951294"/>
+			<UserParam type="float" name="max_height" value="4.93544e06"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[3.004134127062392e07, 1.950550826521406e06]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[694.54061999999999, 694.54061999999999]"/>
@@ -1317,6 +1318,7 @@
 			</convexhull>
 			<UserParam type="string" name="label" value="T3.2_T9"/>
 			<UserParam type="float" name="FWHM" value="11.760671615600586"/>
+			<UserParam type="float" name="max_height" value="1.835416e07"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[1.70282708116245e08, 1.282285300484816e07]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[708.238619999999969, 708.238619999999969]"/>
@@ -3494,6 +3496,7 @@
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.1_T2.1"/>
 			<UserParam type="float" name="FWHM" value="8.079785346984863"/>
+			<UserParam type="float" name="max_height" value="7.7424776e07"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[4.702616949926425e08, 3.708323494742271e07]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[694.54061999999999, 694.54061999999999]"/>
@@ -3923,6 +3926,7 @@
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.2_T2.2"/>
 			<UserParam type="float" name="FWHM" value="11.677645683288574"/>
+			<UserParam type="float" name="max_height" value="2.98798208e08"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[2.769460089201361e09, 2.121068742935701e08]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[708.238619999999969, 708.238619999999969]"/>

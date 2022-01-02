@@ -16,7 +16,7 @@
 	<featureList count="3">
 		<feature id="f_5233264595117471314">
 			<position dim="0">3119.09196821987689</position>
-			<position dim="1">0.0</position>
+			<position dim="1">500.0</position>
 			<intensity>3574.232422</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
@@ -96,8 +96,8 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
 		<feature id="f_15004869347769368353">
-			<position dim="0">3055.584481870531818</position>
-			<position dim="1">0.0</position>
+			<position dim="0">3055.584482687115269</position>
+			<position dim="1">501.0</position>
 			<intensity>195.654221</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
@@ -105,7 +105,7 @@
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_15004869347769368353_15157403601844400700">
-					<position dim="0">3055.584481870531818</position>
+					<position dim="0">3055.584482687115269</position>
 					<position dim="1">618.309999999999945</position>
 					<intensity>120.618797</intensity>
 					<quality dim="0">0.0</quality>
@@ -122,7 +122,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_6408859317243173796">
-					<position dim="0">3055.584481870531818</position>
+					<position dim="0">3055.584482687115269</position>
 					<position dim="1">628.434999999999945</position>
 					<intensity>0.472367</intensity>
 					<quality dim="0">0.0</quality>
@@ -139,7 +139,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_474525871221756682">
-					<position dim="0">3055.584481870531818</position>
+					<position dim="0">3055.584482687115269</position>
 					<position dim="1">651.299999999999955</position>
 					<intensity>74.563057</intensity>
 					<quality dim="0">0.0</quality>
@@ -157,7 +157,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.95350659622369" sequence="PEPTIDEB" charge="0">
+				<PeptideHit score="1.95350659484106" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1610.273965954780579"/>
@@ -175,18 +175,18 @@
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.09701368860354"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.357621970266554"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.949274692722253"/>
-			<UserParam type="float" name="delta_rt" value="1055.584481870530453"/>
+			<UserParam type="float" name="delta_rt" value="1055.584482687113905"/>
 			<UserParam type="float" name="assay_rt" value="2000.000000000001364"/>
-			<UserParam type="float" name="norm_RT" value="0.453340275648928"/>
-			<UserParam type="float" name="rt_score" value="0.253340275648928"/>
-			<UserParam type="float" name="var_norm_rt_score" value="0.253340275648928"/>
+			<UserParam type="float" name="norm_RT" value="0.453340275844908"/>
+			<UserParam type="float" name="rt_score" value="0.253340275844908"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.253340275844908"/>
 			<UserParam type="float" name="var_intensity_score" value="0.121503684911807"/>
 			<UserParam type="float" name="nr_peaks" value="3.0"/>
 			<UserParam type="float" name="sn_ratio" value="3.423782669735276"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.95350659622369"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="1.95350659622369"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.953506594841058"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.953506594841058"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -195,7 +195,7 @@
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">3119.063010531068358</position>
-			<position dim="1">0.0</position>
+			<position dim="1">501.0</position>
 			<intensity>1034.553589</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>

@@ -7,23 +7,27 @@ DataFilterDialog.h
 FeatureEditDialog.h
 HistogramDialog.h
 LayerStatisticsDialog.h
+ListFilterDialog.h
+PythonModuleRequirement.h
+PythonSelector.h
 SaveImageDialog.h
-Spectrum1DGoToDialog.h
-Spectrum1DPrefDialog.h
-Spectrum2DGoToDialog.h
-Spectrum2DPrefDialog.h
-Spectrum3DPrefDialog.h
-TOPPViewOpenDialog.h
-TOPPViewPrefDialog.h
-ToolsDialog.h
+Plot1DGoToDialog.h
+Plot1DPrefDialog.h
+Plot2DGoToDialog.h
+Plot2DPrefDialog.h
+Plot3DPrefDialog.h
 SpectrumAlignmentDialog.h
-TheoreticalSpectrumGenerationDialog.h
+SwathTabWidget.h
+TOPPASIOMappingDialog.h
 TOPPASInputFileDialog.h
 TOPPASInputFilesDialog.h
 TOPPASOutputFilesDialog.h
 TOPPASToolConfigDialog.h
-TOPPASIOMappingDialog.h
 TOPPASVertexNameDialog.h
+TOPPViewOpenDialog.h
+TOPPViewPrefDialog.h
+TheoreticalSpectrumGenerationDialog.h
+ToolsDialog.h
 )
 
 ### add path to the filenames

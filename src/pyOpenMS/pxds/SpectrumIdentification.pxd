@@ -10,15 +10,11 @@ cdef extern from "<OpenMS/METADATA/SpectrumIdentification.h>" namespace "OpenMS"
         # wrap-inherits:
         #   MetaInfoInterface
 
-        SpectrumIdentification()   nogil except +
-        SpectrumIdentification(SpectrumIdentification) nogil except + # wrap-ignore
+        SpectrumIdentification() nogil except +
+        SpectrumIdentification(SpectrumIdentification &) nogil except +
 
-        # /// sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
-        void setHits(libcpp_vector[IdentificationHit] & hits) nogil except +
+        void setHits(libcpp_vector[IdentificationHit] & hits) nogil except + # wrap-doc:Sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
 
-        # /// adds a single identification hit to the hits
-        void addHit(IdentificationHit & hit) nogil except +
+        void addHit(IdentificationHit & hit) nogil except + # wrap-doc:Adds a single identification hit to the hits
 
-        # /// returns the identification hits of this spectrum identification
-        libcpp_vector[IdentificationHit] getHits() nogil except +
-
+        libcpp_vector[IdentificationHit] getHits() nogil except + # wrap-doc:Returns the identification hits of this spectrum identification

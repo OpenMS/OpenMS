@@ -15,9 +15,9 @@
  ** This file is part of MIToolbox, licensed under the 3-clause BSD license.
  *******************************************************************************/
 
-#include <errno.h>
-#include "MIToolbox/MIToolbox.h"
 #include "MIToolbox/ArrayOperations.h"
+#include "MIToolbox/MIToolbox.h"
+#include <cerrno>
 
 void* checkedCalloc(size_t vectorLength, size_t sizeOfType) {
     void *allocated = CALLOC_FUNC(vectorLength, sizeOfType);

@@ -26,7 +26,7 @@ The most important CMake variables are:
   <tr>
     <td valign="top">\c Qt5_DIR</td>
     <td>Additional search path for the Qt5 CMake files. Use <tt>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt5</tt> as value.</td>
-  <\tr>
+  </tr>
   <tr>
     <td valign="top">\c HAS_XSERVER=On/Off</td>
     <td>[Linux/MacOS only] Defines if a running X Server is available when building %OpenMS.
@@ -60,13 +60,13 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for OpenMS Updates upon invocation of any TOPP/UTIL.
+    <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
     (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_BUILD_TYPE</td>
-    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
-        precondition/postcondition checks enabled).
+    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled)
+        or 'Debug' (debug info and precondition/postcondition checks enabled).
         @n The default is 'Release'.</td>
   </tr>
   <tr>
@@ -75,7 +75,9 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c MY_CXX_FLAGS</td>
-    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). This might be useful, for example, for adding debug symbols to a Release build, or for performance analysis (e.g. for '... -DMY_CXX_FLAGS="-g;-fno-omit-frame-pointer" ...')</td>
+    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). 
+        This might be useful, for example, for adding debug symbols to a Release build, or for performance 
+        analysis (e.g. for '... -DMY_CXX_FLAGS="-Og;-ggdb;-g3;-fno-omit-frame-pointer" ...')</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_C_COMPILER</td>
@@ -94,8 +96,8 @@ The most important CMake variables are:
     This directory is only needed to include thirdparty tools in the installer for %OpenMS.
   </tr>
   <tr>
-    <td valign="top">\c PYOPENMS</td>
-    <td>Use ON to enable the target for Python bindings, see also @ref pyOpenMS.</td>
+    <td valign="top">\c PYOPENMS=Off/On</td>
+    <td>Create Python bindings, see also @ref pyOpenMS (Default: Off)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_INSTALL_PREFIX</td>

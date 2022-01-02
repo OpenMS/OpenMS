@@ -7,7 +7,6 @@ set(directory source/EXAMPLES)
 set(executables_list
 Tutorial_AASequence
 Tutorial_Clustering
-Tutorial_ComparatorUtils
 Tutorial_DPosition
 Tutorial_DRange
 Tutorial_Element
@@ -47,7 +46,7 @@ set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
 # --------------------------------------------------------------------------
 set(executables_list
-Tutorial_GUI_Spectrum1D
+Tutorial_GUI_Plot1D
 Tutorial_GUI_ParamEditor
 Tutorial_GUI_ListEditor
 )

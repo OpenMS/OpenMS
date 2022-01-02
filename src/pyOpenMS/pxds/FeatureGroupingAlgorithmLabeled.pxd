@@ -8,7 +8,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h
         # wrap-inherits:
         #  FeatureGroupingAlgorithm
         FeatureGroupingAlgorithmLabeled() nogil except +
-        FeatureGroupingAlgorithmLabeled(FeatureGroupingAlgorithmLabeled) nogil except + #wrap-ignore
+        # private
+        FeatureGroupingAlgorithmLabeled(FeatureGroupingAlgorithmLabeled &) nogil except + # wrap-ignore
         void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) nogil except +
         # POINTER # FeatureGroupingAlgorithm * create() nogil except +
         String getProductName() nogil except +

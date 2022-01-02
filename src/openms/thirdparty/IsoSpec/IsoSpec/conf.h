@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *

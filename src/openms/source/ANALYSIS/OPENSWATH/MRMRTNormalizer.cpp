@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,8 @@ namespace OpenMS
           String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>::ransac(pairs, n, k, t, d);
+    Math::RANSAC<Math::RansacModelLinear> r;
+    std::vector<std::pair<double, double> > new_pairs = r.ransac(pairs, n, k, t, d);
     double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
@@ -164,8 +165,6 @@ namespace OpenMS
       lin_reg.computeRegression(confidence_interval, x.begin(), x.end(), y.begin());
 
       rsq = lin_reg.getRSquared();
-
-      std::cout << "rsq: " << rsq << " points: " << x.size() << std::endl;
 
       if (rsq < rsq_limit)
       {

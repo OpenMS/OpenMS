@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FORMAT/DTA2DFile.h>" namespace "OpenMS":
         #    ProgressLogger
 
         DTA2DFile() nogil except +
-        DTA2DFile(DTA2DFile) nogil except +
+        DTA2DFile(DTA2DFile &) nogil except + # compiler
 
         void storeTIC(String filename, MSExperiment & peakmap) nogil except +
         void store(String filename, MSExperiment & peakmap) nogil except +

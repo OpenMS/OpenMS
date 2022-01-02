@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,9 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -99,11 +100,11 @@ using namespace OpenMS;
 using namespace std;
 
 class MyriMatchAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   MyriMatchAdapter() :
-    TOPPBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
+    SearchEngineBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
   {
   }
 
@@ -125,12 +126,24 @@ protected:
 
     bool operator<(const MyriMatchVersion& v) const
     {
-      if (myrimatch_major > v.myrimatch_major) return false;
-      else if (myrimatch_major < v.myrimatch_major) return true;
+      if (myrimatch_major > v.myrimatch_major)
+      {
+        return false;
+      }
+      else if (myrimatch_major < v.myrimatch_major)
+      {
+        return true;
+      }
       else
       {
-        if (myrimatch_minor > v.myrimatch_minor) return false;
-        else if (myrimatch_minor < v.myrimatch_minor) return true;
+        if (myrimatch_minor > v.myrimatch_minor)
+        {
+          return false;
+        }
+        else if (myrimatch_minor < v.myrimatch_minor)
+        {
+          return true;
+        }
         else
         {
           return myrimatch_patch < v.myrimatch_patch;
@@ -144,8 +157,10 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
-
+    if (nums.size() != 3)
+    {
+      return false;
+    }
     myrimatch_version_i.myrimatch_major = nums[0];
     myrimatch_version_i.myrimatch_minor = nums[1];
     myrimatch_version_i.myrimatch_patch = nums[2];
@@ -334,23 +349,29 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String inputfile_name = File::absolutePath(getStringOption_("in"));
+    String inputfile_name = File::absolutePath(getRawfileName());
     String outputfile_name = getStringOption_("out");
-    String db_name = File::absolutePath(String(getStringOption_("database")));
+    String db_name = File::absolutePath(getDBFilename());
 
     // building parameter String
     StringList parameters;
 
-    if (getFlag_("ignoreConfigErrors")) parameters << "-ignoreConfigErrors";
-
+    if (getFlag_("ignoreConfigErrors"))
+    {
+      parameters << "-ignoreConfigErrors";
+    }
     // Common Identification engine options
     StringList static_mod_list;
     StringList dynamic_mod_list;
     translateModifications(static_mod_list, dynamic_mod_list);
     if (!static_mod_list.empty())
+    {
       parameters << "-StaticMods" << ListUtils::concatenate(static_mod_list, " ");
+    }
     if (!dynamic_mod_list.empty())
+    {
       parameters << "-DynamicMods" << ListUtils::concatenate(dynamic_mod_list, " ");
+    }
 
     parameters << "-ProteinDatabase"  << File::absolutePath(db_name);
 
@@ -374,7 +395,7 @@ protected:
     parameters << "-FragmentMzTolerance" << String(getDoubleOption_("fragment_mass_tolerance")) + " " + fragment_mass_tolerance_unit;
 
     StringList slf = getStringList_("SpectrumListFilters");
-    if (slf.size() > 0) 
+    if (!slf.empty()) 
     {
       if (myrimatch_version_i.myrimatch_minor <= 1)
       { // use quotes around the slf arguments (will be added automatically by Qt during call), i.e. "-SpectrumListFilters" "peakPicking false 2-"
@@ -459,7 +480,7 @@ protected:
 
     writeDebug_("Reading output of MyriMatch", 5);
     String exp_name = File::basename(inputfile_name);
-    String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
+    String pep_file = tmp_dir + FileHandler::swapExtension(exp_name, FileTypes::PEPXML);
 
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
@@ -514,6 +535,9 @@ protected:
     if (!protein_identifications.empty())
     {
       protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

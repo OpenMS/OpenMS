@@ -21,8 +21,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
     cdef cppclass IDRipper(DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
-
-        IDRipper() nogil except +
+        
+        IDRipper() nogil except + # wrap-doc:Ripping protein/peptide identification according their file origin
+        # private
         IDRipper(IDRipper) nogil except +   # wrap-ignore
 
         # see additional pyx file in ./addons

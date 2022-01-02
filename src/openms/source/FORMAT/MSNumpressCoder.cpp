@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,10 +89,14 @@ namespace OpenMS
 
   void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
   {
-    if (in.empty()) return;
-
-    if (config.np_compression == NONE) return;
-
+    if (in.empty())
+    {
+      return;
+    }
+    if (config.np_compression == NONE)
+    {
+      return;
+    }
     Size dataSize = in.size();
 
     // using MSNumpress, from johan.teleman@immun.lth.se
@@ -141,7 +145,10 @@ namespace OpenMS
           {
             fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);
             // catch failure
-            if (fixedPoint < 0.0) fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+            if (fixedPoint < 0.0)
+            {
+              fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+            }
           }
           else
           {
@@ -170,7 +177,10 @@ namespace OpenMS
 
       case SLOF:
       {
-        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
+        if (config.estimate_fixed_point)
+        {
+          fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize);
+        }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
         if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
@@ -260,7 +270,7 @@ namespace OpenMS
       if (n >= 0)
       {
         //Comment: throw?
-        std::cerr << "Error occured at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
+        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
       }
       else
       {
@@ -313,7 +323,10 @@ namespace OpenMS
       case LINEAR:
       {
         initialSize = byteCount * 2;
-        if (out.size() < initialSize) { out.resize(initialSize); }
+        if (out.size() < initialSize)
+        { 
+          out.resize(initialSize);
+        }
         size_t count = numpress::MSNumpress::decodeLinear(in, byteCount, &out[0]);
         out.resize(count);
         break;
@@ -322,7 +335,10 @@ namespace OpenMS
       case PIC:
       {
         initialSize = byteCount * 2;
-        if (out.size() < initialSize) { out.resize(initialSize); }
+        if (out.size() < initialSize)
+        { 
+          out.resize(initialSize);
+        }
         size_t count = numpress::MSNumpress::decodePic(in, byteCount, &out[0]);
         out.resize(count);
         break;
@@ -331,7 +347,10 @@ namespace OpenMS
       case SLOF:
       {
         initialSize = byteCount / 2;
-        if (out.size() < initialSize) { out.resize(initialSize); }
+        if (out.size() < initialSize)
+        { 
+          out.resize(initialSize);
+        }
         size_t count = numpress::MSNumpress::decodeSlof(in, byteCount, &out[0]);
         out.resize(count);
         break;

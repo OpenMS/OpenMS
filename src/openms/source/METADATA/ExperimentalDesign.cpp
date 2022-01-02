@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,14 +34,19 @@
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace std;
@@ -284,6 +289,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(factors.size());
         for (const String& fac : factors)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
@@ -344,6 +350,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(nonRepFacs.size());
         for (const String& fac : nonRepFacs)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
@@ -533,7 +540,10 @@ namespace OpenMS
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
-      for (auto const & r : msfile_section_) { unique_paths.insert(r.path); }
+      for (auto const & r : msfile_section_) 
+      { 
+        unique_paths.insert(r.path);
+      }
       return unique_paths.size();
     }
 
@@ -598,8 +608,116 @@ namespace OpenMS
       std::set< std::tuple< std::string, unsigned > > path_label_set;
       std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
 
+      if (msfile_section_.empty())
+      {
+        return;
+      }
+      if (msfile_section_[0].fraction != 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Fractions do not start with 1.",
+            String(msfile_section_[0].fraction));
+      }
+      if (msfile_section_[0].fraction_group != 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Fraction groups do not start with 1.",
+            String(msfile_section_[0].fraction_group));
+      }
+      if (msfile_section_[0].label != 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Fraction groups do not start with 1.",
+            String(msfile_section_[0].fraction_group));
+      }
+
+      Size last_fraction = 1;
+      Size last_label = 1;
+      Size last_fraction_group = 0;
       for (const MSFileSectionEntry& row : msfile_section_)
       {
+        if (row.fraction_group != last_fraction_group)
+        {
+          ++last_fraction_group;
+          last_fraction = 1;
+          last_label = 1;
+          if (row.fraction_group != last_fraction_group)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Fraction groups not consecutive. Expected: " + String(last_fraction_group),
+                String(row.fraction_group));
+          }
+          if (row.fraction != last_fraction)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Fractions inside fraction_group " + String(row.fraction_group) + " not starting with 1.",
+                String(row.fraction));
+          }
+          if (row.label != last_label)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Labels inside fraction_group " + String(row.fraction_group) +
+                "and fraction " + String(row.fraction) + " not starting with 1.",
+                String(row.label));
+          }
+        }
+        else if (row.fraction != last_fraction)
+        {
+          ++last_fraction;
+          last_label = 1;
+
+          if (row.fraction != last_fraction)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Fractions inside fraction group not consecutive. Expected: " + String(last_fraction),
+                String(row.fraction));
+          }
+          if (row.label != last_label)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Labels inside fraction_group " + String(row.fraction_group) +
+                "and fraction " + String(row.fraction) + " not starting with 1.",
+                String(row.fraction));
+          }
+        }
+        else // only label increased
+        {
+          ++last_label;
+          if (row.label != last_label)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Label not consecutive. Expected: " + String(last_label),
+                String(row.label));
+          }
+        }
+
         // FRACTIONGROUP_FRACTION_LABEL TUPLE
         std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
         errorIfAlreadyExists(
@@ -622,106 +740,126 @@ namespace OpenMS
         if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
         {
          OPENMS_LOG_INFO << "Multiple Samples encountered for the same fraction group and the same label"
-                            "Please correct your experimental design if this is a label free experiment." << std::endl;
+                            "Please correct your experimental design if this is a label free experiment."
+                            << std::endl;
         }
       }
     }
 
-  std::vector<unsigned> ExperimentalDesign::getLabels_() const
-  {
-    std::vector<unsigned> labels;
-    for (const MSFileSectionEntry &row : msfile_section_)
+    std::vector<unsigned> ExperimentalDesign::getLabels_() const
     {
-      labels.push_back(row.label);
-    }
-    return labels;
-  }
-
-  std::vector<unsigned> ExperimentalDesign::getFractions_() const
-  {
-    std::vector<unsigned> fractions;
-    for (const MSFileSectionEntry &row : msfile_section_)
-    {
-      fractions.push_back(row.fraction);
-    }
-    return fractions;
-  }
-
-  void ExperimentalDesign::sort_()
-  {
-    std::sort(msfile_section_.begin(), msfile_section_.end(),
-      [](const MSFileSectionEntry& a, const MSFileSectionEntry& b)
+      std::vector<unsigned> labels;
+      for (const MSFileSectionEntry &row : msfile_section_)
       {
-        return std::tie(a.fraction_group, a.fraction, a.label, a.sample, a.path) <
-               std::tie(b.fraction_group, b.fraction, b.label, b.sample, b.path);
-      });
-  }
-
-  /* Implementations of SampleSection */
-
-  std::set<unsigned> ExperimentalDesign::SampleSection::getSamples() const
-  {
-    std::set<unsigned> samples;
-    for (const auto &kv : sample_to_rowindex_)
-    {
-      samples.insert(kv.first);
+        labels.push_back(row.label);
+      }
+      return labels;
     }
-    return samples;
-  }
 
-  std::set< String > ExperimentalDesign::SampleSection::getFactors() const
-  {
-    std::set<String> factors;
-    for (const auto &kv : columnname_to_columnindex_)
+    std::vector<unsigned> ExperimentalDesign::getFractions_() const
     {
-      factors.insert(kv.first);
+      std::vector<unsigned> fractions;
+      for (const MSFileSectionEntry &row : msfile_section_)
+      {
+        fractions.push_back(row.fraction);
+      }
+      return fractions;
     }
-    return factors;
-  }
 
-  bool ExperimentalDesign::SampleSection::hasSample(const unsigned sample) const
-  {
-    return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
-  }
-
-  bool ExperimentalDesign::SampleSection::hasFactor(const String &factor) const
-  {
-    return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
-  }
-
-  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor) const
-  {
-   if (! hasSample(sample))
-   {
-    throw Exception::MissingInformation(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Sample " + String(sample) + " is not present in the Experimental Design");
-   }
-   if (! hasFactor(factor))
-   {
-    throw Exception::MissingInformation(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Factor " + factor + " is not present in the Experimental Design");
-   }
-   const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample));
-   const Size col_index = columnname_to_columnindex_.at(factor);
-   return sample_row[col_index];
-  }
-
-  Size ExperimentalDesign::SampleSection::getFactorColIdx(const String &factor) const
-  {
-    if (! hasFactor(factor))
+    void ExperimentalDesign::sort_()
     {
+      std::sort(msfile_section_.begin(), msfile_section_.end(),
+        [](const MSFileSectionEntry& a, const MSFileSectionEntry& b)
+        {
+          return std::tie(a.fraction_group, a.fraction, a.label, a.sample, a.path) <
+                 std::tie(b.fraction_group, b.fraction, b.label, b.sample, b.path);
+        });
+    }
+
+    Size ExperimentalDesign::filterByBasenames(const set<String>& bns)
+    {
+      Size before = msfile_section_.size();
+      msfile_section_.erase(std::remove_if(msfile_section_.begin(), msfile_section_.end(),
+      [&bns](MSFileSectionEntry& e)
+      {
+        return bns.find(File::basename(e.path)) == bns.end();
+      }), msfile_section_.end());
+
+      OPENMS_LOG_INFO << "Removed " << (before - msfile_section_.size()) << " files from design to match given subset." << std::endl;
+
+      if (msfile_section_.empty())
+      {
+        OPENMS_LOG_FATAL_ERROR << "Given basename set does not overlap with design. Design would be empty." << std::endl;
+      }
+
+      return (before - msfile_section_.size());
+    }
+
+    /* Implementations of SampleSection */
+
+    std::set<unsigned> ExperimentalDesign::SampleSection::getSamples() const
+    {
+      std::set<unsigned> samples;
+      for (const auto &kv : sample_to_rowindex_)
+      {
+        samples.insert(kv.first);
+      }
+      return samples;
+    }
+
+    std::set< String > ExperimentalDesign::SampleSection::getFactors() const
+    {
+      std::set<String> factors;
+      for (const auto &kv : columnname_to_columnindex_)
+      {
+        factors.insert(kv.first);
+      }
+      return factors;
+    }
+
+    bool ExperimentalDesign::SampleSection::hasSample(const unsigned sample) const
+    {
+      return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+    }
+
+    bool ExperimentalDesign::SampleSection::hasFactor(const String &factor) const
+    {
+      return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+    }
+
+    String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor) const
+    {
+     if (! hasSample(sample))
+     {
       throw Exception::MissingInformation(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Factor " + factor + " is not present in the Experimental Design");
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION,
+                  "Sample " + String(sample) + " is not present in the Experimental Design");
+     }
+     if (! hasFactor(factor))
+     {
+      throw Exception::MissingInformation(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION,
+                  "Factor " + factor + " is not present in the Experimental Design");
+     }
+     const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample));
+     const Size col_index = columnname_to_columnindex_.at(factor);
+     return sample_row[col_index];
     }
-    return columnname_to_columnindex_.at(factor);
-  }
+
+    Size ExperimentalDesign::SampleSection::getFactorColIdx(const String &factor) const
+    {
+      if (! hasFactor(factor))
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Factor " + factor + " is not present in the Experimental Design");
+      }
+      return columnname_to_columnindex_.at(factor);
+    }
 }

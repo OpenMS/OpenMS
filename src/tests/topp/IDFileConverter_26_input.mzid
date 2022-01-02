@@ -319,7 +319,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="82"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.0554089E-8"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="0.22233067"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1964"/>
@@ -332,7 +332,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="80"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.3762788E-8"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="0.2952743"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1966"/>
@@ -345,7 +345,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="90"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="2.7136423E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="5.716513"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1957"/>
@@ -358,7 +358,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="74"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="8.2252217E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="16.240004"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1959"/>
@@ -371,7 +371,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="81"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="8.476001E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="17.61635"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1974"/>
@@ -384,7 +384,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="64"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="8.7567236E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="18.199797"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1963"/>
@@ -397,7 +397,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="52"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="8.780003E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="18.495808"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1970"/>
@@ -410,7 +410,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="96"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="9.174196E-7"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="19.591503"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1965"/>
@@ -423,7 +423,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="69"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.293976E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="27.47222"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1956"/>
@@ -436,7 +436,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="90"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.3071013E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="28.043257"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1971"/>
@@ -449,7 +449,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="91"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="2.3158323E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="48.784935"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1968"/>
@@ -462,7 +462,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="89"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="4.096956E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="86.9819"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1972"/>
@@ -475,7 +475,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="70"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="4.1651015E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="86.56663"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1962"/>
@@ -488,7 +488,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="56"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="4.1952444E-6"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="89.06864"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1969"/>
@@ -501,7 +501,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="90"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.0327638E-5"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="221.57472"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1960"/>
@@ -514,7 +514,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="62"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.2744677E-5"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="264.88278"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <SpectrumIdentificationItem chargeState="2" experimentalMassToCharge="466.2185363769531" calculatedMassToCharge="466.21795654296875" peptide_ref="Pep_RYCMER" rank="2" passThreshold="true" id="SII_3_2">
@@ -524,7 +524,7 @@
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="62"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.2744677E-5"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="251.63284"/>
-          <userParam name="IsotopeError" value="0"/>
+          <userParam name="isotope_error" value="0"/>
           <userParam name="AssumedDissociationMethod" value="CID"/>
         </SpectrumIdentificationItem>
         <cvParam cvRef="PSI-MS" accession="MS:1001115" name="scan number(s)" value="1958"/>

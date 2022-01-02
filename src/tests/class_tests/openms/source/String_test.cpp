@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,6 +213,15 @@ START_SECTION((String(float f, bool full_precision = true)))
   TEST_EQUAL(s,"17.0123")
   String s2(float(17.0123), false);
   TEST_EQUAL(s2, "17.012")
+END_SECTION
+
+START_SECTION((String(float f)))
+  float f = 50254.199219;
+  double d = f;
+  String s(f);
+  TEST_EQUAL(s,"5.02542e04")
+  String s2(d);
+  TEST_EQUAL(s2, "5.025419921875e04")
 END_SECTION
 
 START_SECTION((String(double d, bool full_precision = true)))
@@ -487,13 +496,13 @@ START_SECTION((String& unquote(char q = '"', QuotingMethod method = ESCAPE)))
   s = "'\\'\\''";
   s.unquote('\'', String::ESCAPE);
   TEST_EQUAL(s, "''");
-  s = "\"ab\"cd\\ef\"";
+  s = R"("ab"cd\ef")";
   s.unquote('"', String::NONE);
   TEST_EQUAL(s, "ab\"cd\\ef");
-  s = "\"\\\"ab\\\"cd\\\\ef\\\"\"";
+  s = R"("\"ab\"cd\\ef\"")";
   s.unquote('"', String::ESCAPE);
   TEST_EQUAL(s, "\"ab\"cd\\ef\"");
-  s = "\"ab\"\"cd\\ef\"";
+  s = R"("ab""cd\ef")";
   s.unquote('"', String::DOUBLE);
   TEST_EQUAL(s, "ab\"cd\\ef");
 END_SECTION
@@ -570,9 +579,9 @@ START_SECTION((float toFloat() const))
   s = "123.9";
   TEST_REAL_SIMILAR(s.toFloat(),123.9);
   s = "73629.9";
-  TEST_EQUAL(String(s.toFloat()),"73629.898438");
+  TEST_EQUAL(String(s.toFloat()),"7.36299e04");
   s = "47218.8";
-  TEST_EQUAL(String(s.toFloat()),"47218.800781");
+  TEST_EQUAL(String(s.toFloat()),"4.72188e04");
   s = String("nan");
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
@@ -590,9 +599,9 @@ START_SECTION((double toDouble() const))
   s = "123.99999";
   TEST_REAL_SIMILAR(s.toDouble(),123.99999);
   s = "73629.980123";
-  TEST_EQUAL(String(s.toDouble()),"73629.980123000001186");
+  TEST_EQUAL(String(s.toDouble()),"7.3629980123e04");
   s = "47218.890000001";
-  TEST_EQUAL(String(s.toDouble()),"47218.8900000010035");
+  TEST_EQUAL(String(s.toDouble()),"4.7218890000001e04");
   s = "nan";
   TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "NaN";
@@ -662,7 +671,7 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
   TEST_EQUAL(split[1],"world");
   TEST_EQUAL(split[2],"23.3");
 
-  s=" \"hello\", \" donot,splitthis \", \"23.4 \" ";
+  s=R"( "hello", " donot,splitthis ", "23.4 " )";
   result = s.split(',', split, true);
   TEST_EQUAL(result,true);
   TEST_EQUAL(split.size(),3);
@@ -670,7 +679,7 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
   TEST_EQUAL(split[1]," donot,splitthis ");
   TEST_EQUAL(split[2],"23.4 ");
 
-  s=" \"hello\", \" donot,splitthis \", \"23.5 \" ";
+  s=R"( "hello", " donot,splitthis ", "23.5 " )";
   result = s.split(',', split, true);
   TEST_EQUAL(result,true);
   TEST_EQUAL(split.size(),3);
@@ -678,7 +687,7 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
   TEST_EQUAL(split[1]," donot,splitthis ");
   TEST_EQUAL(split[2],"23.5 ");
 
-  s=" \"hello\", \" donot,splitthis \", \"23.6 \" ";
+  s=R"( "hello", " donot,splitthis ", "23.6 " )";
   result = s.split(',', split, true);
   TEST_EQUAL(result,true);
   TEST_EQUAL(split.size(),3);
@@ -692,7 +701,7 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
   TEST_EQUAL(split.size(),1);
 
   // testing invalid quoting...
-  s = " \"first\", \"seconds\"<thisshouldnotbehere>, third";
+  s = R"( "first", "seconds"<thisshouldnotbehere>, third)";
   TEST_EXCEPTION(Exception::ConversionError, s.split(',', split, true));
 END_SECTION
 
@@ -757,7 +766,7 @@ TEST_EQUAL(result, false);
 TEST_EQUAL(substrings.size(), 1);
 TEST_EQUAL(substrings[0], s);
 
-s = "\"a,b,c\",\"d,\\\",f\",\"\"";
+s = R"("a,b,c","d,\",f","")";
 result = s.split_quoted(",", substrings, '"', String::ESCAPE);
 TEST_EQUAL(result, true);
 TEST_EQUAL(substrings.size(), 3);
@@ -765,10 +774,10 @@ TEST_EQUAL(substrings[0], "\"a,b,c\"");
 TEST_EQUAL(substrings[1], "\"d,\\\",f\"");
 TEST_EQUAL(substrings[2], "\"\"");
 
-s = "\"a,\"b\"";
+s = R"("a,"b")";
 TEST_EXCEPTION(Exception::ConversionError, s.split_quoted(",", substrings, '"',
                                                           String::ESCAPE));
-s = "\"ab\"___\"cd\"\"ef\"";
+s = R"("ab"___"cd""ef")";
 result = s.split_quoted("___", substrings, '"', String::DOUBLE);
 TEST_EQUAL(result, true);
 TEST_EQUAL(substrings.size(), 2);
@@ -871,7 +880,7 @@ START_SECTION((String& substitute(const String& from, const String& to)))
   s.substitute("","blblblblbl");
   TEST_EQUAL(s,"xyz!")
 
-  //mutiple occurences
+  //mutiple occurrences
   s = "abcdefgabcdefgabcdefgab";
   s.substitute("ab","x");
   TEST_EQUAL(s,"xcdefgxcdefgxcdefgx")

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,8 +31,10 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
@@ -228,7 +230,6 @@ namespace OpenMS
 
 
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     // add ALL edges first. Their result is what is interesting to us later
@@ -325,7 +326,6 @@ namespace OpenMS
                                         const Size verbose_level) const
   {
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     //------------------------------------objective function-----------------------------------------------
@@ -511,7 +511,7 @@ namespace OpenMS
     String e;
     if (getenv("M") != nullptr)
       e = String(getenv("M"));
-    if (e == "")
+    if (e.empty())
     {
       //std::cout << "1";
       score = pair.getCompomer().getLogP();

@@ -9,7 +9,7 @@ from ProteaseDigestion cimport *
 # cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
 #     
 #     cdef cppclass XLPrecursorComparator "OpenMS::OPXLDataStructs::XLPrecursorComparator":
-#         XLPrecursorComparator(XLPrecursorComparator) nogil except + #wrap-ignore
+#         XLPrecursorComparator(XLPrecursorComparator &) nogil except +
 #         bool operator()(XLPrecursor & a, XLPrecursor & b) nogil except +
 #         bool operator()(XLPrecursor & a, double & b) nogil except +
 #         bool operator()(double & a, XLPrecursor & b) nogil except +

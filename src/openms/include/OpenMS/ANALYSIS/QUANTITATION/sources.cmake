@@ -9,6 +9,7 @@ IsobaricNormalizer.h
 IsobaricQuantifier.h
 IsobaricQuantifierStatistics.h
 IsobaricQuantitationMethod.h
+IsotopeLabelingMDVs.h
 ItraqConstants.h
 ItraqEightPlexQuantitationMethod.h
 ItraqFourPlexQuantitationMethod.h
@@ -19,6 +20,7 @@ ProteinInference.h
 ProteinResolver.h
 QuantitativeExperimentalDesign.h
 TMTElevenPlexQuantitationMethod.h
+TMTSixteenPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
 AbsoluteQuantitation.h

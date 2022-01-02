@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
@@ -41,6 +42,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -62,6 +65,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
@@ -81,9 +88,9 @@ namespace OpenMS
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
+    defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
-    StringList precursor_mass_tolerance_unit_valid_strings;
+    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
     precursor_mass_tolerance_unit_valid_strings.push_back("Da");
 
@@ -101,7 +108,7 @@ namespace OpenMS
 
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
 
-    StringList fragment_mass_tolerance_unit_valid_strings;
+    std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
 
@@ -112,17 +119,34 @@ namespace OpenMS
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
-    defaults_.setValidStrings("modifications:fixed", all_mods);
-    defaults_.setValue("modifications:variable", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
-    defaults_.setValidStrings("modifications:variable", all_mods);
+
+    defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
+
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
-    defaults_.setValidStrings("enzyme", all_enzymes);
+    defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
+
+    defaults_.setValue("decoys", "false", "Should decoys be generated?");
+    defaults_.setValidStrings("decoys", {"true","false"} );
+
+    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM", 
+      std::vector<std::string>{
+        "ALL",
+        Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
+        Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
+        Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
+        Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+      );
+
+    defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
@@ -139,7 +163,7 @@ namespace OpenMS
   void SimpleSearchEngineAlgorithm::updateMembers_()
   {
     precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
-    precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit");
+    precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
 
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
@@ -148,22 +172,37 @@ namespace OpenMS
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
-    fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit");
+    fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
-    modifications_fixed_ = param_.getValue("modifications:fixed");
+    modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
+    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    if (fixed_unique.size() != modifications_fixed_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
+      modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
+    }    
 
-    modifications_variable_ = param_.getValue("modifications:variable");
+    modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
+    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    if (var_unique.size() != modifications_variable_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
+      modifications_variable_.assign(var_unique.begin(), var_unique.end());
+    }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
 
-    enzyme_ = param_.getValue("enzyme");
+    enzyme_ = param_.getValue("enzyme").toString();
 
     peptide_min_size_ = param_.getValue("peptide:min_size");
     peptide_max_size_ = param_.getValue("peptide:max_size");
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
-    peptide_motif_ = param_.getValue("peptide:motif");
+    peptide_motif_ = param_.getValue("peptide:motif").toString();
 
     report_top_hits_ = param_.getValue("report:top_hits");
+
+    decoys_ = param_.getValue("decoys") == "true";
+    annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
   }
 
   // static
@@ -213,7 +252,6 @@ namespace OpenMS
     }
   }
 
-  // static
 void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
@@ -232,7 +270,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const String& enzyme,
-      const String& database_name)
+      const String& database_name) const
   {
     // remove all but top n scoring
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
@@ -245,29 +283,46 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-#pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide)
+    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
+    bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
+
+    // "ALL" adds all annotations
+    if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
+    {
+      annotation_precursor_error_ppm = true;
+      annotation_fragment_error_ppm = true;
+      annotation_prefix_fraction = true;
+      annotation_suffix_fraction = true;
+    }
+
+#pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
       {
+        const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
+        pi.setMetaValue("spectrum_reference", spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
-        pi.setRT(exp[scan_index].getRT());
-        pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-        Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+        double mz = spec.getPrecursors()[0].getMZ();
+        pi.setRT(spec.getRT());
+        pi.setMZ(mz);
+        Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
-        for (vector<AnnotatedHit_>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
           ph.setCharge(charge);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+          AASequence aas = AASequence::fromString(ah.sequence.getString());
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -275,9 +330,48 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
-          ph.setScore(a_it->score);
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
+
+          if (annotation_fragment_error_ppm)
+          {
+            TheoreticalSpectrumGenerator tsg;
+            vector<pair<Size, Size> > alignment;
+            MSSpectrum theoretical_spec;
+            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
+            SpectrumAlignment sa;
+            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+
+            vector<double> err;
+            for (const auto& match : alignment)
+            {
+              double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theoretical_spec[match.first].getMZ()));
+              err.push_back(fragment_error);
+            }
+            double median_ppm_error(0);
+            if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
+            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+          }
+
+          if (annotation_precursor_error_ppm)
+          {
+            double theo_mz = fixed_and_variable_modified_peptide.getMZ(charge);
+            double ppm_difference = Math::getPPM(mz, theo_mz);
+            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+          }
+
+          if (annotation_prefix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+          }
+
+          if (annotation_suffix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+          }
+
+          // store PSM
           phs.push_back(ph);
         }
         pi.setHits(phs);
@@ -290,6 +384,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         }
       }
     }
+
+#ifdef _OPENMP
+    // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
+    if (omp_get_max_threads() > 1)
+    {
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      {
+        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+      });
+    }
+#endif
 
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
@@ -311,6 +416,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
+
+    // add additional percolator features or post-processing
+    StringList feature_set{"score"};
+    if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+    if (annotation_prefix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+    if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+    // note: precursor error is calculated by percolator itself
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
+    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
@@ -320,21 +435,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
-
-    if (fixed_unique.size() != modifications_fixed_.size())
-    {
-      cout << "duplicate fixed modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
-
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
-    if (var_unique.size() != modifications_variable_.size())
-    {
-      cout << "duplicate variable modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
 
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
@@ -400,20 +500,43 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits_); }
 
 #ifdef _OPENMP
-    // we want to do locking at the spectrum level so we get good parallelisation 
+    // we want to do locking at the spectrum level so we get good parallelization
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
+    { 
+      omp_init_lock(&(annotated_hits_lock[i]));
+    }
 #endif
 
-    startProgress(0, 1, "Load database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile::load(in_db, fasta_db);
-    endProgress();
+    FASTAFile().load(in_db, fasta_db);
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
-    digestor.setMissedCleavages(peptide_missed_cleavages_);
+    // generate decoy protein sequences by reversing them
+    if (decoys_)
+    {
+      digestor.setMissedCleavages(0);
+      startProgress(0, 1, "Generate decoys...");
 
+      DecoyGenerator decoy_generator;
+
+      // append decoy proteins
+      const size_t old_size = fasta_db.size();
+      for (size_t i = 0; i != old_size; ++i)
+      {
+        FASTAFile::FASTAEntry e = fasta_db[i];
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        e.identifier = "DECOY_" + e.identifier;
+        fasta_db.push_back(e);
+      }
+      // randomize order of targets and decoys to introduce no global bias in the case that
+      // many targets have the same score as their decoy. (As we always take the first best scoring one)
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
+      endProgress();
+      digestor.setMissedCleavages(peptide_missed_cleavages_);
+    }
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -421,11 +544,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     Size count_proteins(0), count_peptides(0);
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, count_peptides, peptide_motif_regex, spectra, annotated_hits_lock)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, count_peptides, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, peptide_motif_regex, spectra, annotated_hits_lock)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
 
-#pragma omp atomic
+      #pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -439,10 +562,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (auto const & c : current_digest)
       { 
         const String current_peptide = c.getString();
-        if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
+        if (current_peptide.find_first_of("XBZ") != std::string::npos)
+        {
+          continue;
+        }
 
         // if a peptide motif is provided skip all peptides without match
-        if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
+        if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex))
+        {
+          continue;
+        }          
       
         bool already_processed = false;
         #pragma omp critical (processed_peptides_access)
@@ -461,11 +590,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         // skip peptides that have already been processed
         if (already_processed) { continue; }
 
+        #pragma omp atomic
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;
 
-        // this critial section is because ResidueDB is not thread safe and new residues are created based on the PTMs
+        // this critical section is because ResidueDB is not thread safe and new residues are created based on the PTMs
         #pragma omp critical (residuedb_access)
         {
           AASequence aas = AASequence::fromString(current_peptide);
@@ -484,17 +614,20 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (precursor_mass_tolerance_unit_ppm) // ppm
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
           }
           else // Dalton
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance_);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance_);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance_);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance_);
           }
 
           // no matching precursor in data
-          if (low_it == up_it) { continue; }
+          if (low_it == up_it)
+          { 
+            continue;
+          }
 
           // create theoretical spectrum
           PeakSpectrum theo_spectrum;
@@ -510,15 +643,21 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             const Size& scan_index = low_it->second;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
             // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
-            const double& score = HyperScore::compute(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            HyperScore::PSMDetail detail;
+            const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
-            if (score == 0) { continue; } // no hit?
-
+            if (score == 0)
+            { 
+              continue; // no hit?
+            }
             // add peptide hit
             AnnotatedHit_ ah;
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
+            ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
+            ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
+            ah.mean_error = detail.mean_error;            
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));
@@ -526,7 +665,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #endif
               annotated_hits[scan_index].push_back(ah);
 
-              // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
+              // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
               if (annotated_hits[scan_index].size() >= 2 * report_top_hits_)
               {
                 std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits_, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);
@@ -603,7 +742,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
 #ifdef _OPENMP
     // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_destroy_lock(&(annotated_hits_lock[i])); }
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
+    {
+      omp_destroy_lock(&(annotated_hits_lock[i]));
+    }
 #endif
 
     return ExitCodes::EXECUTION_OK;

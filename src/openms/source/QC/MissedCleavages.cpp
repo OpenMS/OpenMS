@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,26 +34,86 @@
 
 #include <OpenMS/QC/MissedCleavages.h>
 
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <iostream>
 
 namespace OpenMS
 {
   typedef std::map<UInt32, UInt32> MapU32;
+  //digests the Sequence in PeptideHit and counts the number of missed cleavages
+  void MissedCleavages::get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id)
+  {
+    if (pep_id.getHits().empty())
+    {
+      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits.\n";
+      return;
+    }
+    std::vector<AASequence> digest_output;
+    digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
+    UInt32 num_mc = UInt32(digest_output.size() - 1);
+
+    // warn if number of missed cleavages is greater than allowed maximum number of missed cleavages
+    if (num_mc > max_mc)
+    {
+      OPENMS_LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence() << "\n";
+    }
+
+    ++result[num_mc];
+
+    pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
+  };
+
+  void MissedCleavages::compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+  {
+    MapU32 result{};
+        
+    //Exception if ProteinIdentification is empty
+    if (prot_ids.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
+    }
+
+    String enzyme = prot_ids[0].getSearchParameters().digestion_enzyme.getName();
+    auto max_mc = prot_ids[0].getSearchParameters().missed_cleavages;
+
+    //Exception if digestion enzyme is not given
+    if (enzyme == "unknown_enzyme")
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in ID data detected. No computation possible.");
+    }
+
+    //create a digestor, which doesn't allow any missed cleavages
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme);
+    digestor.setMissedCleavages(0);
+
+    for (PeptideIdentification& pep_id : pep_ids)
+    {
+      get_missed_cleavages_from_peptide_identification_(digestor, result, max_mc, pep_id);
+    }
+
+    mc_result_.push_back(result);
+  }
+
 
   void MissedCleavages::compute(FeatureMap& fmap)
   {
     MapU32 result{};
 
+    bool has_pepIDs = QCBase::hasPepID(fmap);
+    if (!has_pepIDs)
+    {
+      mc_result_.push_back(result);
+      return;
+    }
+
     // if the FeatureMap is empty, result is 0
     if (fmap.empty())
     {
-      OPENMS_LOG_WARN << "FeatureXML is empty.";
+      OPENMS_LOG_WARN << "FeatureXML is empty.\n";
       mc_result_.push_back(result);
       return;
     }
@@ -73,68 +133,19 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
     }
 
-    //create a digestor, which doesn't allow any missed clevages
+    //create a digestor, which doesn't allow any missed cleavages
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
 
-    //lambda function: digests the Sequence in PeptideHit and counts the number of missed cleavages
-    auto l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
+    // small lambda function to apply get_missed_cleavages_from_peptide_identification on pep_ids
+    auto l = [&](PeptideIdentification& pep_id)
     {
-      if (pep_id.getHits().empty())
-      {
-        OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-        return;
-      }
-      std::vector<AASequence> digest_output;
-      digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
-      UInt32 num_mc = UInt32(digest_output.size() - 1);
-
-      //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
-      if (num_mc > max_mc)
-      {
-        OPENMS_LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
-      }
-
-      ++result[num_mc];
-
-      pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
+      get_missed_cleavages_from_peptide_identification_(digestor, result, max_mc, pep_id);
+      return;
     };
-
-    //function of QCBase, which iterates through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
-    QCBase::iterateFeatureMap(fmap, l);
-
-
-    /// add FWHM to peptides (a bit unrelated)
-    for (auto& f : fmap)
-    {
-      if (f.metaValueExists("FWHM")) // from FF-Centroided
-      {
-        for (auto& pi : f.getPeptideIdentifications())
-        {
-          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
-        }
-      }
-      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
-      {
-        for (auto& pi : f.getPeptideIdentifications())
-        {
-          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make meta value unique for downstream processing
-        }
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
-      }
-    }
-
-    // add experimental mass to PeptideHit (a bit unrelated)
-    QCBase::iterateFeatureMap(fmap, [](PeptideIdentification& pi)
-    {
-      if (pi.getHits().empty()) return;
-      auto& hit = pi.getHits()[0];
-      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-    });
+    // iterate through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
+    fmap.applyFunctionOnPeptideIDs(l);
 
     mc_result_.push_back(result);
   }
@@ -142,7 +153,8 @@ namespace OpenMS
   
   const String& MissedCleavages::getName() const
   {
-    return name_;
+    static const String& name = "MissedCleavages";
+    return name;
   }
   
 

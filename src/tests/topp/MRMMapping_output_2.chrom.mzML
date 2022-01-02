@@ -85,6 +85,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
@@ -117,6 +122,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
@@ -149,6 +159,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
@@ -181,10 +196,10 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">5241</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">8837</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">11699</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">9095</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">12215</offset>
 	</index>
 </indexList>
-<indexListOffset>13810</indexListOffset>
+<indexListOffset>14584</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

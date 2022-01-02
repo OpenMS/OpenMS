@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,14 +139,18 @@ protected:
     bool operator!=(const MaRaClusterResult& rhs) const
     {
       if (file_idx != rhs.file_idx || scan_nr != rhs.scan_nr)
+      {
         return true;
+      }
       return false;
     }
 
     bool operator<(const MaRaClusterResult& rhs) const
     {
       if (file_idx < rhs.file_idx || (file_idx == rhs.file_idx && scan_nr < rhs.scan_nr))
+      {
         return true;
+      }
       return false;
     }
 
@@ -214,7 +218,7 @@ protected:
     for (Size i = 0; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
-      if (row.size() > 0)
+      if (!row.empty())
       {
         row[0] = String(filename_to_idx_map.at(row[0]));
 
@@ -255,23 +259,23 @@ protected:
   {
     Int scan_number = 0;
     StringList fields = ListUtils::create<String>(scan_identifier);
-    for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    for (const String& st : fields)
     {
       // if scan number is not available, use the scan index
       Size idx = 0;
-      if ((idx = it->find("scan=")) != string::npos)
+      if ((idx = st.find("scan=")) != string::npos)
       {
-        scan_number = it->substr(idx + 5).toInt();
+        scan_number = st.substr(idx + 5).toInt();
         break;
       }
-      else if ((idx = it->find("index=")) != string::npos)
+      else if ((idx = st.find("index=")) != string::npos)
       {
-        scan_number = it->substr(idx + 6).toInt();
+        scan_number = st.substr(idx + 6).toInt();
         break;
       }
-      else if ((idx = it->find("spectrum=")) != string::npos)
+      else if ((idx = st.find("spectrum=")) != string::npos)
       {
-        scan_number = it->substr(idx + 9).toInt();
+        scan_number = st.substr(idx + 9).toInt();
       }
     }
     return scan_number;
@@ -310,13 +314,13 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
     String txt_designator = File::getUniqueName();
-    String input_file_list(temp_directory_body + txt_designator + ".file_list.txt");
-    String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
+    String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
@@ -338,7 +342,7 @@ protected:
     {
       arguments << "batch";
       arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << temp_directory_body.toQString();
+      arguments << "-f" << tmp_dir.getPath().toQString();
       arguments << "-a" << txt_designator.toQString();
 
       map<String,int> precursor_tolerance_units;
@@ -351,7 +355,10 @@ protected:
       arguments << "-c" << String(pcut).toQString();
 
       Int verbose_level = getIntOption_("verbose");
-      if (verbose_level != 2) arguments << "-v" << String(verbose_level).toQString();
+      if (verbose_level != 2)
+      {
+        arguments << "-v" << String(verbose_level).toQString();
+      }
     }
     writeLog_("Prepared maracluster command.");
 
@@ -360,7 +367,11 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLog_("Executing maracluster ...");
-    runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -372,7 +383,7 @@ protected:
     //if specified keep original output in designated directory
     if (!maracluster_output_directory.empty())
     {
-      bool copy_status = File::copyDirRecursively(temp_directory_body.toQString(), maracluster_output_directory.toQString());
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
 
       if (copy_status)
       { 
@@ -390,11 +401,12 @@ protected:
       const StringList id_in = getStringList_("id_in");
       vector<PeptideIdentification> all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
-      if (!id_in.empty()) {
-        for (StringList::const_iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx) {
+      if (!id_in.empty())
+      {
+        for (const String& ss : id_in) {
           vector<PeptideIdentification> peptide_ids;
           vector<ProteinIdentification> protein_ids;
-          IdXMLFile().load(*fit, protein_ids, peptide_ids);
+          IdXMLFile().load(ss, protein_ids, peptide_ids);
           for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
@@ -405,14 +417,14 @@ protected:
             String filename = in_list[file_idx];
             it->setMetaValue("file_origin", filename);
           }
-          for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it) {
+          for (ProteinIdentification& prot : protein_ids) {
             String filename = in_list[file_idx];
-            it->setMetaValue("file_origin", filename);
+            prot.setMetaValue("file_origin", filename);
           }
           all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
           all_protein_ids.insert(all_protein_ids.end(), protein_ids.begin(), protein_ids.end());
         }
-
+        ++file_idx;
       }
       else
       {
@@ -431,7 +443,7 @@ protected:
         }
       }
 
-      if (all_protein_ids.size() == 0)
+      if (all_protein_ids.empty())
       {
         ProteinIdentification protid;
         all_protein_ids.push_back(protid);
@@ -458,7 +470,7 @@ protected:
       {
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << temp_directory_body.toQString();
+        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
         arguments_consensus << "-o" << consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();

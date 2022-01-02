@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ using namespace std;
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
   2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
-    Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
+    Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
     Example:
@@ -355,6 +355,10 @@ protected:
     Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
+    if (getFlag_("test"))
+    {
+      MZTrafoModel::setRANSACSeed(0);
+    }
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
@@ -362,7 +366,7 @@ protected:
     String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
     String rscript_executable;
     if (!file_models_plot.empty() || !file_residuals_plot.empty())
-    { // only check for existance of Rscript if output files are requested...
+    { // only check for existence of Rscript if output files are requested...
       rscript_executable = getStringOption_("rscript_executable");
     }
 

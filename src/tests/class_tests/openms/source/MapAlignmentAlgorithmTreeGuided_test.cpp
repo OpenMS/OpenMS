@@ -67,6 +67,8 @@ vector<FeatureMap> maps(3);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in0.featureXML"), maps[0]);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in1.featureXML"), maps[1]);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in2.featureXML"), maps[2]);
+// copy maps for computeTrafosByOriginalRT and computeTransformedFeatureMaps
+vector<FeatureMap> maps_orig = maps;
 
 MapAlignmentAlgorithmTreeGuided aligner;
 aligner.setLogType(ProgressLogger::CMD);
@@ -106,7 +108,7 @@ START_SECTION((static void buildTree(std::vector<FeatureMap>& feature_maps, std:
 }
 END_SECTION
 
-START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap> feature_maps_transformed,
+START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap>& feature_maps_transformed,
         std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed, std::vector<Size>& trafo_order)))
 {
   aligner.treeGuidedAlignment(result_tree, maps, maps_ranges, map_transformed, trafo_order);
@@ -137,7 +139,7 @@ END_SECTION
 START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
         std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order)))
 {
-  aligner.computeTrafosByOriginalRT(maps, map_transformed, trafos, trafo_order);
+  aligner.computeTrafosByOriginalRT(maps_orig, map_transformed, trafos, trafo_order);
 
   TEST_EQUAL(trafos.size(), 3);
 
@@ -145,7 +147,7 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
   {
     // first rt in trafo should be the same as in original map
     Size j = 0;
-    for (auto feature_it = maps[i].begin(); feature_it < maps[i].end(); ++feature_it)
+    for (auto feature_it = maps_orig[i].begin(); feature_it < maps_orig[i].end(); ++feature_it)
     {
       TEST_REAL_SIMILAR(trafos[i].getDataPoints()[j].first, feature_it->getRT());
       ++j;
@@ -156,10 +158,10 @@ END_SECTION
 
 START_SECTION((static void computeTransformedFeatureMaps(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations)))
 {
-  OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(maps, trafos);
+  OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(maps_orig, trafos);
 
   // check storing of original RTs:
-  for (auto& map : maps)
+  for (auto& map : maps_orig)
   {
     for (auto feat_it = map.begin(); feat_it < map.end(); ++feat_it)
     {

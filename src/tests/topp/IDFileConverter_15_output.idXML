@@ -1,77 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1-3" enzyme="trypsin" missed_cleavages="4294967295" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="MS:1001211" value=""/>
 				<UserParam type="string" name="MS:1001256" value=""/>
 				<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
 				<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
 				<UserParam type="string" name="Instrument" value="HighRes"/>
-				<UserParam type="string" name="MaxCharge" value="3"/>
 				<UserParam type="string" name="MaxIsotopeError" value="1"/>
 				<UserParam type="string" name="MaxNumModifications" value="2"/>
 				<UserParam type="string" name="MaxPepLength" value="40"/>
-				<UserParam type="string" name="MinCharge" value="1"/>
 				<UserParam type="string" name="MinIsotopeError" value="0"/>
 				<UserParam type="string" name="MinPepLength" value="6"/>
 				<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
-				<UserParam type="string" name="NumTolerableTermini" value="2"/>
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2017-11-28T11:35:18" search_engine="MS-GF+" search_engine_version="Release (v2017.01.13)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-05-22T11:50:26" search_engine="MS-GF+" search_engine_version="Release (v2020.03.14)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="BSA3" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="BSA2" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="BSA2" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.669" spectrum_reference="spectrum=1" >
-			<PeptideHit score="163" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" start="1" end="28" protein_refs="PH_1" >
-				<UserParam type="float" name="MS:1002049" value="163"/>
-				<UserParam type="float" name="MS:1002050" value="199"/>
-				<UserParam type="float" name="MS:1002052" value="3.864406e-26"/>
-				<UserParam type="float" name="MS:1002053" value="1.5921352e-23"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="1063.2098388671875" RT="4587.668999999999869" spectrum_reference="spectrum=1" >
+			<PeptideHit score="164.0" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" start="1" end="28" protein_refs="PH_1" >
+				<UserParam type="float" name="MS:1002049" value="164.0"/>
+				<UserParam type="float" name="MS:1002050" value="199.0"/>
+				<UserParam type="float" name="MS:1002052" value="2.3492372e-26"/>
+				<UserParam type="float" name="MS:1002053" value="9.678856999999999e-24"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="1063.20935058594"/>
+				<UserParam type="float" name="calcMZ" value="1063.2093505859375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="28"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.7773" spectrum_reference="spectrum=2" >
-			<PeptideHit score="151" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" start="1" end="23" protein_refs="PH_0" >
-				<UserParam type="float" name="MS:1002049" value="151"/>
-				<UserParam type="float" name="MS:1002050" value="188"/>
-				<UserParam type="float" name="MS:1002052" value="1.7573099e-19"/>
-				<UserParam type="float" name="MS:1002053" value="7.0468125e-17"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.777299999999741" spectrum_reference="spectrum=2" >
+			<PeptideHit score="151.0" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" start="1" end="23" protein_refs="PH_0" >
+				<UserParam type="float" name="MS:1002049" value="151.0"/>
+				<UserParam type="float" name="MS:1002050" value="188.0"/>
+				<UserParam type="float" name="MS:1002052" value="1.6242718e-19"/>
+				<UserParam type="float" name="MS:1002053" value="6.513329300000001e-17"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="775.385437011719"/>
+				<UserParam type="float" name="calcMZ" value="775.38543701171875"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="23"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.0957" spectrum_reference="spectrum=0" >
-			<PeptideHit score="123" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" start="1" end="14" >
-				<UserParam type="float" name="MS:1002049" value="123"/>
-				<UserParam type="float" name="MS:1002050" value="125"/>
-				<UserParam type="float" name="MS:1002052" value="4.6521305e-19"/>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0.0" MZ="520.2628173828125" RT="2655.095699999999852" spectrum_reference="spectrum=0" >
+			<PeptideHit score="123.0" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" start="1" end="14" >
+				<UserParam type="float" name="MS:1002049" value="123.0"/>
+				<UserParam type="float" name="MS:1002050" value="125.0"/>
+				<UserParam type="float" name="MS:1002052" value="4.652130499999999e-19"/>
 				<UserParam type="float" name="MS:1002053" value="1.63755e-16"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
 				<UserParam type="string" name="IsotopeError" value="0"/>
-				<UserParam type="float" name="calcMZ" value="520.263549804688"/>
+				<UserParam type="float" name="calcMZ" value="520.2635498046875"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="14"/>

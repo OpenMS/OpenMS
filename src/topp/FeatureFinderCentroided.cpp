@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -139,7 +141,16 @@ class TOPPFeatureFinderCentroided :
 {
 public:
   TOPPFeatureFinderCentroided() :
-    TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
+    TOPPBase("FeatureFinderCentroided", 
+             "Detects two-dimensional features in LC-MS data.",
+             true,
+             {
+               Citation{ "Sturm M",
+                         "A novel feature detection algorithm for centroided data",
+                         "Dissertation, 2010-09-15, p.37 ff",
+                         "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf"
+                       }
+             })
   {}
 
 protected:
@@ -173,11 +184,15 @@ protected:
     String out = getStringOption_("out");
     String out_mzq = getStringOption_("out_mzq");
 
-    //prevent loading of fragment spectra
+    // prevent loading of fragment spectra
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
 
-    //reading input data
+    // filter out zero (and negative) intensities
+    using RP_TYPE = DRange<1>::PositionType;
+    options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
+
+    // reading input data
     MzMLFile f;
     f.getOptions() = options;
     f.setLogType(log_type_);
@@ -204,7 +219,7 @@ protected:
 
     //load seeds
     FeatureMap seeds;
-    if (getStringOption_("seeds") != "")
+    if (!getStringOption_("seeds").empty())
     {
       FeatureXMLFile().load(getStringOption_("seeds"), seeds);
     }
@@ -237,17 +252,16 @@ protected:
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (const Feature& ft : features)
       {
-        if (!it->isMetaEmpty())
+        if (!ft.isMetaEmpty())
         {
           vector<String> keys;
-          it->getKeys(keys);
-          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          ft.getKeys(keys);
+          OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << ft.getMetaValue(keys[i]) << endl;
           }
         }
       }
@@ -268,15 +282,14 @@ protected:
     // unless debugging is turned on.
     if (debug_level_ < 5)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (Feature& ft : features)
       {
-        it->getConvexHull().expandToBoundingBox();
-        for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+        ft.getConvexHull().expandToBoundingBox();
+        for (Size i = 0; i < ft.getConvexHulls().size(); ++i)
         {
-          it->getConvexHulls()[i].expandToBoundingBox();
+          ft.getConvexHulls()[i].expandToBoundingBox();
         }
-        it->getSubordinates().clear();
+        ft.getSubordinates().clear();
       }
     }
 
@@ -297,9 +310,7 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
-
 
 int main(int argc, const char** argv)
 {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,11 +49,11 @@ namespace OpenMS
     setName(ZhangSimilarityScore::getProductName());
     defaults_.setValue("tolerance", 0.2, "defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If set to true, the tolerance is interpreted as relative");
-    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", {"true","false"});
     defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
-    defaults_.setValidStrings("use_linear_factor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_linear_factor", {"true","false"});
     defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
-    defaults_.setValidStrings("use_gaussian_factor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_gaussian_factor", {"true","false"});
     defaultsToParam_();
   }
 
@@ -93,9 +93,9 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
+    for (const Peak1D& it1 : s1)
     {
-      sum1 += it1->getIntensity();
+      sum1 += it1.getIntensity();
       /*
 for (PeakSpectrum::ConstIterator it2 = s1.begin(); it2 != s1.end(); ++it2)
 {
@@ -158,9 +158,9 @@ for (PeakSpectrum::ConstIterator it2 = s1.begin(); it2 != s1.end(); ++it2)
       }
     }*/
 
-    for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
+    for (const Peak1D& it1 : s2)
     {
-      sum2 += it1->getIntensity();
+      sum2 += it1.getIntensity();
       /*
 for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
 {

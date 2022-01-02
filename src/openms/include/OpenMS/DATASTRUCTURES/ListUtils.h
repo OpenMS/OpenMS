@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,10 +39,10 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -93,7 +93,7 @@ private:
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const double& value)
+      inline bool operator()(const double& value) const
       {
         return std::fabs(value - target_) < tolerance_;
       }
@@ -125,7 +125,7 @@ public:
 
     /**
       @brief Converts a vector of strings to a vector of the target type T.
-      @note The strings are not trimmed.
+      @note The strings are trimmed before conversion.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
       @param s The vector of strings that should be converted.
@@ -133,6 +133,22 @@ public:
     */
     template <typename T>
     static std::vector<T> create(const std::vector<String>& s);
+
+
+    /**
+  @brief Converts a vector of T's to a vector of Strings.
+
+  @param s The vector of T's that should be converted.
+  @return A vector containing the elements of input vector converted into Strings.
+*/
+    template <typename T>
+    static std::vector<String> toStringList(const std::vector<T>& s)
+    {
+      StringList out;
+      out.reserve(s.size());
+      for (const auto& elem : s) out.push_back(elem);
+      return out;
+    }
 
     /**
       @brief Checks whether the element @p elem is contained in the given container.
@@ -176,7 +192,7 @@ public:
     static bool contains(const std::vector<String>& container, String elem, const CASE cs)
     {
       if (cs == CASE::SENSITIVE) return contains(container, elem);
-      // case INsensitive ...
+      // case insensitive ...
       elem.toLower();
       return find_if(container.begin(), container.end(), [&elem](String ce) {
         return elem == ce.toLower();
@@ -254,6 +270,11 @@ public:
     inline float convert(const String& s)
     {
       return s.toFloat();
+    }
+    template<>
+    inline std::string convert(const String& s)
+    {
+        return static_cast<std::string>(s);
     }
   }
 

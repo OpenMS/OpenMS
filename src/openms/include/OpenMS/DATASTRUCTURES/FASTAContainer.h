@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <functional>
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -101,7 +101,8 @@ public:
     offsets_(),
     data_fg_(),
     data_bg_(),
-    chunk_offset_(0)
+    chunk_offset_(0),
+    filename_(FASTA_file)
   {
     f_.readStart(FASTA_file);
   }
@@ -126,7 +127,7 @@ public:
     return !data_fg_.empty();
   }
 
-  /** @brief Prefetch a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
+  /** @brief Prefetch a new cache in the background, with up to @p suggested_size entries (or fewer upon reaching end-of-file)
 
      Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
      @param suggested_size Number of FASTA entries to read from disk
@@ -165,9 +166,9 @@ public:
     return data_fg_[pos];
   }
 
-  /** @brief Retrieve a FASTA entry at global position @pos (must not be behind the currently active chunk, but can be smaller)
+  /** @brief Retrieve a FASTA entry at global position @p pos (must not be behind the currently active chunk, but can be smaller)
 
-    This query is fast, if @pos hits the currently active chunk, and slow (read from disk) for
+    This query is fast, if @p pos contains the currently active chunk, and slow (read from disk) for
     earlier entries. Can be used before reaching the end of the file,
     since it will reset the file position after its done reading (if reading from disk is required), but
     must not be used for entries beyond the active chunk (unseen data).
@@ -199,7 +200,7 @@ public:
   }
 
   /// is the FASTA file empty?
-  bool empty() const
+  bool empty()
   { // trusting the FASTA file can be read...
     return f_.atEnd() && offsets_.empty();
   }
@@ -207,11 +208,11 @@ public:
   /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
   void reset()
   {
-    f_.setPosition(0);
     offsets_.clear();
     data_fg_.clear();
     data_bg_.clear();
     chunk_offset_ = 0;
+    f_.readStart(filename_);
   }
 
 
@@ -231,6 +232,7 @@ private:
   std::vector<FASTAFile::FASTAEntry> data_fg_; ///< active (foreground) data
   std::vector<FASTAFile::FASTAEntry> data_bg_; ///< prefetched (background) data; will become the next active data
   size_t chunk_offset_; ///< number of entries before the current chunk
+  std::string filename_;///< FASTA file name
 };
 
 /**
@@ -336,16 +338,16 @@ private:
 };
 
 /**
-  @brief Helper class for calculcations on decoy proteins
+  @brief Helper class for calculations on decoy proteins
 */
 class DecoyHelper
 {
 public:
   struct Result
   {
-    bool success; //< did >=40% of proteins have the *same* prefix or suffix
-    String name; //< on success, what was the decoy string?
-    bool is_prefix; //< on success, was it a prefix or suffix
+    bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
+    String name; ///< on success, what was the decoy string?
+    bool is_prefix; ///< on success, was it a prefix or suffix
   };
 
   /**
@@ -360,7 +362,7 @@ public:
   {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
-    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    static const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
@@ -369,13 +371,13 @@ public:
 
     // setup prefix- and suffix regex strings
     const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
-    const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
+    const std::string regexstr_suffix = std::string("(_") + ListUtils::concatenate<std::string>(affixes, "*|_") + ")$";
 
     // setup regexes
     const boost::regex pattern_prefix(regexstr_prefix);
     const boost::regex pattern_suffix(regexstr_suffix);
 
-    int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
+    Size all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
 
     constexpr size_t PROTEIN_CACHE_SIZE = 4e5;
 
@@ -428,11 +430,14 @@ public:
     }
 
     // DEBUG ONLY: print counts of found decoys
-    for (auto &a : decoy_count) OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    for (auto &a : decoy_count)
+    {
+      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    }
 
     // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values
-    if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count)
+    if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.4 * static_cast<double>(all_proteins_count))
     {
       OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
       return {false, "?", true};
@@ -448,7 +453,7 @@ public:
     for (const auto& pair : decoy_count)
     {
       const std::string & case_insensitive_decoy_string = pair.first;
-      const std::pair<int, int>& prefix_suffix_counts = pair.second;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
       double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
       double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
 
@@ -468,7 +473,7 @@ public:
     for (const auto& pair : decoy_count)
     {
       const std::string& case_insensitive_decoy_string = pair.first;
-      const std::pair<int, int>& prefix_suffix_counts = pair.second;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
       double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
       double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
 
@@ -489,8 +494,8 @@ public:
   }
   
 private:
-  using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
-  using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
+  using DecoyStringToAffixCount = std::unordered_map<std::string, std::pair<Size, Size>>;
+  using CaseInsensitiveToCaseSensitiveDecoy = std::unordered_map<std::string, std::string>;
 };
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 #include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -171,7 +171,7 @@ namespace OpenMS
     using ParentMoleculeGroupings =
       IdentificationDataInternal::ParentMoleculeGroupings;
 
-    using AddressLookup = boost::unordered_set<uintptr_t>;
+    using AddressLookup = std::unordered_set<uintptr_t>;
 
 
     /// Default constructor
@@ -184,7 +184,7 @@ namespace OpenMS
     IdentificationData(const IdentificationData& other) = delete;
 
     /// Move constructor
-    IdentificationData(IdentificationData&& other):
+    IdentificationData(IdentificationData&& other) noexcept :
       input_files_(std::move(other.input_files_)),
       processing_softwares_(std::move(other.processing_softwares_)),
       processing_steps_(std::move(other.processing_steps_)),
@@ -415,7 +415,7 @@ namespace OpenMS
     */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
-    /// Calculate sequence coverages of parent molecules
+    /// Calculate sequence coverage of parent molecules
     void calculateCoverages(bool check_molecule_length = false);
 
     /*!
@@ -485,8 +485,8 @@ namespace OpenMS
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type) const;
 
-    /*!
-      @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+    /**
+      @brief Helper functor for adding processing steps to elements in a @em boost::multi_index_container structure
 
       The validity of the processing step reference cannot be checked here!
     */
@@ -506,8 +506,8 @@ namespace OpenMS
       ProcessingStepRef step_ref;
     };
 
-    /*!
-      @brief Helper functor for adding scores to elements in a @t boost::multi_index_container structure
+    /**
+      @brief Helper functor for adding scores to elements in a @em boost::multi_index_container structure
 
       The validity of the score type reference cannot be checked here!
     */
@@ -536,8 +536,8 @@ namespace OpenMS
       double value;
     };
 
-    /*!
-      @brief Helper functor for removing invalid parent matches from elements in a @t boost::multi_index_container structure
+    /**
+      @brief Helper functor for removing invalid parent matches from elements in a @em boost::multi_index_container structure
 
       Used during filtering, to update parent matches after parents have been removed.
     */
@@ -562,7 +562,7 @@ namespace OpenMS
     };
 
 
-    /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
+    /// Helper function for adding entries (derived from ScoredProcessingResult) to a @em boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
     typename ContainerType::iterator insertIntoMultiIndex_(
       ContainerType& container, const ElementType& element)

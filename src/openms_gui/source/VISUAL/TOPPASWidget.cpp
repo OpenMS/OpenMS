@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ namespace OpenMS
 {
   TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
     QGraphicsView(parent),
+    EnhancedTabBarWidgetInterface(),
     scene_(new TOPPASScene(this, tmp_path.toQString()))
   {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -66,7 +67,6 @@ namespace OpenMS
 
   TOPPASWidget::~TOPPASWidget()
   {
-    emit aboutToBeDestroyed(window_id_);
   }
 
   TOPPASScene * TOPPASWidget::getScene()
@@ -156,7 +156,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::RubberBandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
     else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
@@ -187,7 +190,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::ScrollHandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge)
+      {
+        hover_edge->update();
+      }
       e->accept();
     }
   }
@@ -225,18 +231,6 @@ namespace OpenMS
     {
       e->ignore();
     }
-  }
-
-  // from EnhancedTabBarWidgetInterface
-  void TOPPASWidget::setWindowId(Int window_id)
-  {
-    window_id_ = window_id;
-  }
-
-  // from EnhancedTabBarWidgetInterface
-  Int TOPPASWidget::getWindowId()
-  {
-    return window_id_;
   }
 
 } //Namespace

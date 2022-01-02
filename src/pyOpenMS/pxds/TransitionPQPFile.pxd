@@ -9,11 +9,30 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>" namespace "Op
     cdef cppclass TransitionPQPFile:
 
         TransitionPQPFile() nogil except +
-        TransitionPQPFile(TransitionPQPFile) nogil except + #wrap-ignore
+        TransitionPQPFile(TransitionPQPFile &) nogil except + # compiler
 
         void convertTargetedExperimentToPQP(char * filename, TargetedExperiment & targeted_exp) nogil except +
+        # wrap-doc:
+                #   Write out a targeted experiment (TraML structure) into a PQP file
+                #   -----
+                #   :param filename: The output file
+                #   :param targeted_exp: The targeted experiment
+
         void convertPQPToTargetedExperiment(char * filename, TargetedExperiment & targeted_exp, bool legacy_traml_id) nogil except +
+        # wrap-doc:
+                #   Read in a PQP file and construct a targeted experiment (TraML structure)
+                #   -----
+                #   :param filename: The input file
+                #   :param targeted_exp: The output targeted experiment
+                #   :param legacy_traml_id: Should legacy TraML IDs be used (boolean)?
+
         void convertPQPToTargetedExperiment(char * filename, LightTargetedExperiment & targeted_exp, bool legacy_traml_id) nogil except +
+        # wrap-doc:
+                #   Read in a PQP file and construct a targeted experiment (Light transition structure)
+                #   -----
+                #   :param filename: The input file
+                #   :param targeted_exp: The output targeted experiment
+                #   :param legacy_traml_id: Should legacy TraML IDs be used (boolean)?
 
         # inherited from TransitionTSVFile
         # due to issues with Cython and overloaded inheritance

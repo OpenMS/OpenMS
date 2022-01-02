@@ -10,11 +10,12 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NLargest.h>" namespace "OpenMS"
     cdef cppclass NLargest(DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
+        # wrap-doc:
+        #   NLargest removes all but the n largest peaks
+        
+        NLargest() nogil except + 
+        NLargest(NLargest &) nogil except +
 
-        NLargest()            nogil except +
-        NLargest(NLargest) nogil except + #wrap-ignore
-
-        void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
-
+        void filterSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Keep only n-largest peaks in spectrum
+        void filterPeakSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Keep only n-largest peaks in spectrum
+        void filterPeakMap(MSExperiment & exp) nogil except + # wrap-doc:Keep only n-largest peaks in each spectrum of a peak map

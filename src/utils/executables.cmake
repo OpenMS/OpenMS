@@ -16,7 +16,6 @@ DigestorMotif
 Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
-FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
 IDDecoyProbability
@@ -25,8 +24,6 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 LabeledEval
-LowMemPeakPickerHiRes
-LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
@@ -39,6 +36,7 @@ MultiplexResolver
 MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
+OpenMSDatabasesInfo
 OpenMSInfo
 PeakPickerIterative
 PSMFeatureExtractor
@@ -61,9 +59,11 @@ SimpleSearchEngine
 SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
+StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
+TriqlerConverter
 XMLValidator
 )
 

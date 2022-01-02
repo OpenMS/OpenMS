@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt)
+  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt) const
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
   }
@@ -162,9 +162,10 @@ namespace OpenMS
 
   void IsobaricChannelExtractor::setDefaultParams_()
   {
-    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
-    StringList activation_list;
-    activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
+    defaults_.setValue("select_activation", "auto", "Operate only on MSn scans where any of its precursors features a certain activation method. Setting to \"auto\" uses HCD and HCID spectra. Set to empty string if you want to disable filtering.");
+    std::vector<std::string> activation_list;
+    activation_list.push_back("auto");
+    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this
 
     defaults_.setValidStrings("select_activation", activation_list);
@@ -177,13 +178,13 @@ namespace OpenMS
     defaults_.setMinFloat("min_precursor_intensity", 0.0);
 
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
-    defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("keep_unannotated_precursor", {"true","false"});
 
     defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
     defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in 'min_reporter_intensity'.");
-    defaults_.setValidStrings("discard_low_intensity_quantifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("discard_low_intensity_quantifications", {"true","false"});
 
     defaults_.setValue("min_precursor_purity", 0.0, "Minimum fraction of the total intensity in the isolation window of the precursor spectrum attributable to the selected precursor.");
     defaults_.setMinFloat("min_precursor_purity", 0.0);
@@ -194,7 +195,7 @@ namespace OpenMS
     defaults_.addTag("precursor_isotope_deviation", "advanced");
 
     defaults_.setValue("purity_interpolation", "true", "If set to true the algorithm will try to compute the purity as a time weighted linear combination of the precursor scan and the following scan. If set to false, only the precursor scan will be used.");
-    defaults_.setValidStrings("purity_interpolation", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("purity_interpolation", {"true","false"});
     defaults_.addTag("purity_interpolation", "advanced");
 
     defaultsToParam_();
@@ -202,7 +203,7 @@ namespace OpenMS
 
   void IsobaricChannelExtractor::updateMembers_()
   {
-    selected_activation_ = getParameters().getValue("select_activation");
+    selected_activation_ = getParameters().getValue("select_activation").toString();
     reporter_mass_shift_ = getParameters().getValue("reporter_mass_shift");
     min_precursor_intensity_ = getParameters().getValue("min_precursor_intensity");
     keep_unannotated_precursor_ = getParameters().getValue("keep_unannotated_precursor") == "true";
@@ -471,7 +472,14 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_.empty() ? "any" : selected_activation_) << std::endl;
+    
+    // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
+    if (selected_activation_ == "auto") 
+    {
+      selected_activation_ = Precursor::NamesOfActivationMethod[Precursor::HCID] + "," + Precursor::NamesOfActivationMethod[Precursor::HCD];
+    }
+
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // walk through spectra and count the number of scans with valid activation method per MS-level
@@ -482,7 +490,7 @@ namespace OpenMS
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_ == "" || isValidActivation(*it))
+      if (selected_activation_.empty() || isValidActivation(*it))
       {
         ++ms_level[it->getMSLevel()];
       }

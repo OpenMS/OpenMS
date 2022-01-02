@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_6995089216872835842" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2020-04-16T22:03:17">
+		<software name="MetaboliteAdductDecharger" version="2.6.0-pre-topic-MetaboliteAdductDecharger-write-to-opt-out-2020-04-09" />
+		<processingAction name="Charge deconvolution" />
+		<UserParam type="string" name="parameter: in" value="MetaboliteAdductDecharger_input.featureXML"/>
+	</dataProcessing>
+	<featureList count="24">
+		<feature id="f_9">
+			<position dim="0">100.0</position>
+			<position dim="1">101.007276000000005</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="label" value="M+3H"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H3"/>
+			<UserParam type="stringList" name="adducts" value="[[M+3H]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="3.0234750957"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_10">
+			<position dim="0">100.0</position>
+			<position dim="1">108.334590000000006</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="label" value="M+2H+Na"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+2H+Na]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="25.005419344699998"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_11">
+			<position dim="0">100.0</position>
+			<position dim="1">115.661904000000007</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="label" value="M+H+2Na; Fiehn contained wrong 1 after decimal point!"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H+2Na]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="46.987363593699996"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_12">
+			<position dim="0">100.0</position>
+			<position dim="1">122.989217999999994</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="label" value="M+3Na"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na3"/>
+			<UserParam type="stringList" name="adducts" value="[[M+3Na]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="68.969307842700005"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">100.0</position>
+			<position dim="1">151.00727599999999</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M+2H"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+2H]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.0156500638"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">100.0</position>
+			<position dim="1">159.520549999999986</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M+H+NH4"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H5N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+5H+N]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="19.042199159500001"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">100.0</position>
+			<position dim="1">161.998246999999992</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M+H+Na"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H+Na]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="23.997594312800001"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">100.0</position>
+			<position dim="1">169.985217000000006</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M+H+K"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1K1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H+K]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="39.971531711899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_8">
+			<position dim="0">100.0</position>
+			<position dim="1">172.989217999999994</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M+2Na"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+2Na]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="45.979538561799998"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_15">
+			<position dim="0">100.0</position>
+			<position dim="1">301.00727599999999</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+H; all adducts/masses according to Fiehn MS-Adduct-Calculator"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">100.0</position>
+			<position dim="1">318.033822999999984</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+NH4"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+4H+N]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">100.0</position>
+			<position dim="1">322.989217999999994</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+Na"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">100.0</position>
+			<position dim="1">338.963158000000021</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+K"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="K1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+K]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="38.963706680000001"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="3019959988858701180"/>
+		</feature>
+		<feature id="f_13">
+			<position dim="0">100.0</position>
+			<position dim="1">342.033822999999984</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="M+ACN+H (C2H3N)"/>
+			<UserParam type="string" name="Group" value="4413413049723438427"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+		<feature id="f_14">
+			<position dim="0">100.0</position>
+			<position dim="1">344.971159999999998</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="M+2Na-H. If Na-H not considered as neutral adduct this will lead to split of f_ 8,11,12,14 from other positive mode features, with adduct explanations not matching larger group."/>
+			<UserParam type="string" name="Group" value="5439776886489642090"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+		<feature id="f_107">
+			<position dim="0">102.0</position>
+			<position dim="1">98.992723999999996</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="M-3H"/>
+			<UserParam type="string" name="Group" value="5153478059265498451"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+		<feature id="f_101">
+			<position dim="0">102.0</position>
+			<position dim="1">148.99272400000001</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="M-2H. FFM only knows of positive charges."/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+2H]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.0156500638"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="4365550908806163045"/>
+		</feature>
+		<feature id="f_102">
+			<position dim="0">102.0</position>
+			<position dim="1">280.981609999999989</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M-H2O-H"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="10087491015453642716"/>
+		</feature>
+		<feature id="f_100">
+			<position dim="0">102.0</position>
+			<position dim="1">298.99272400000001</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M-H"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="10087491015453642716"/>
+		</feature>
+		<feature id="f_103">
+			<position dim="0">102.0</position>
+			<position dim="1">320.974666000000013</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+Na-2H. FFM only knows of positive charges."/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="10087491015453642716"/>
+		</feature>
+		<feature id="f_104">
+			<position dim="0">102.0</position>
+			<position dim="1">334.969402000000002</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+Cl. FFM only knows of positive charges."/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="K1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+K]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="38.963706680000001"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="4365550908806163045"/>
+		</feature>
+		<feature id="f_105">
+			<position dim="0">102.0</position>
+			<position dim="1">336.948605999999984</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="M+K-2H"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="K1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+K]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="38.963706680000001"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="string" name="Group" value="10087491015453642716"/>
+		</feature>
+		<feature id="f_108">
+			<position dim="0">102.0</position>
+			<position dim="1">344.998200999999995</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="M+FA-H (CH2O2)"/>
+			<UserParam type="string" name="Group" value="2820981430062431065"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+		<feature id="f_106">
+			<position dim="0">102.0</position>
+			<position dim="1">378.918884999999989</position>
+			<intensity>100.0</intensity>
+			<quality dim="0">1.0</quality>
+			<quality dim="1">1.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="M+Br"/>
+			<UserParam type="string" name="Group" value="1966598418517457993"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+	</featureList>
+</featureMap>

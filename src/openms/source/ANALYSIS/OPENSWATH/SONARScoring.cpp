@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/cast.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 // #define DEBUG_SONAR
 
@@ -55,9 +56,9 @@ namespace OpenMS
     defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
     defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
-    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValidStrings("dia_extraction_unit", {"Th","ppm"});
     defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
-    defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("dia_centroided", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -71,7 +72,7 @@ namespace OpenMS
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                                   double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score) const
   {
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
@@ -130,7 +131,7 @@ namespace OpenMS
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
                                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                        OpenSwath_Scores & scores)
+                                        OpenSwath_Scores & scores) const
   {
     if (transitions.empty()) {return;}
 

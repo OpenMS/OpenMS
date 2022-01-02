@@ -38,6 +38,7 @@ FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
+HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
 IndexedMzMLFileLoader.h
@@ -59,12 +60,14 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzQCFile.h
 MzTab.h
 MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -72,6 +75,7 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
 QcMLFile.h
@@ -85,6 +89,7 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
+TriqlerFile.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h

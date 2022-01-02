@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,8 @@ namespace OpenMS
 {
   class IsotopeDistribution;
 
+
+
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
@@ -61,28 +63,42 @@ public:
   /// Main method for actual FeatureFinder
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
   /// in which case no machine learning or FDR estimation will be performed.
+  /// Optional seeds from e.g. untargeted FeatureFinders can be added with
+  /// @p seeds.
+  /// Results will be written to @p features. 
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// stored in the MSExperiment.
+  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// will be annotated as a fall-back.
+  /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
+  /// and potential seed IDs added.
   void run(
     std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap()
+    const FeatureMap& seeds = FeatureMap(),
+    const String spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);
 
-  PeakMap& getMSData() { return ms_data_; }
-  const PeakMap& getMSData() const { return ms_data_; }
+  PeakMap& getMSData();
+  const PeakMap& getMSData() const;
 
-  PeakMap& getChromatograms() { return chrom_data_; }
-  const PeakMap& getChromatograms() const { return chrom_data_; }
+  /// @brief set the MS data used for feature detection
+  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  PeakMap& getChromatograms();
+  const PeakMap& getChromatograms() const;
 
-  TargetedExperiment& getLibrary() { return library_; }
-  const TargetedExperiment& getLibrary() const { return library_; }
+  ProgressLogger& getProgressLogger();
+  const ProgressLogger& getProgressLogger() const;
+
+  TargetedExperiment& getLibrary();
+  const TargetedExperiment& getLibrary() const;
 
 protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -102,6 +118,7 @@ protected:
   Size n_internal_peps_; ///< number of internal peptide
   Size n_external_peps_; ///< number of external peptides
 
+  Size batch_size_; ///< nr of peptides to use at the same time during chromatogram extraction
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
@@ -200,6 +217,10 @@ protected:
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
   TargetedExperiment library_; ///< accumulated assays for peptides
 
+  bool quantify_decoys_;
+
+  const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
@@ -219,8 +240,8 @@ protected:
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
 
-  /// get regions in which peptide elutes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
+  /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
+  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
@@ -230,16 +251,22 @@ protected:
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
   /// some statistics on detected features
   void statistics_(const FeatureMap& features) const;
 
-  void createAssayLibrary_(PeptideMap& peptide_map, PeptideRefRTMap& ref_rt_map);
+  /// creates an assay library out of the peptide sequences and their RT elution windows
+  /// the PeptideMap is mutable since we clear it on-the-go
+  /// @param clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
-  void addPeptideToMap_(PeptideIdentification& peptide, 
+  /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
+  /// Make sure it stays valid until destruction of the class.
+  /// @todo find better solution
+  void addPeptideToMap_(PeptideIdentification& peptide,
     PeptideMap& peptide_map,
     bool external = false) const;
 
@@ -248,7 +275,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 
@@ -259,7 +286,49 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
-  };
+  /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
+  /// Last batch might be smaller.
+  template <typename It>
+  std::vector<std::pair<It,It>>
+  chunk_(It range_from, It range_to, const std::ptrdiff_t batch_size)
+  {
+    /* Aliases, to make the rest of the code more readable. */
+    using std::vector;
+    using std::pair;
+    using std::make_pair;
+    using std::distance;
+    using diff_t = std::ptrdiff_t;
+
+    /* Total item number and batch_size size. */
+    const diff_t total {distance(range_from, range_to)};
+    const diff_t num {total / batch_size};
+
+    vector<pair<It,It>> chunks(num);
+
+    It batch_end {range_from};
+
+    /* Use the 'generate' algorithm to create batches. */
+    std::generate(begin(chunks), end(chunks), [&batch_end, batch_size]()
+    {
+      It batch_start {batch_end };
+
+      std::advance(batch_end, batch_size);
+      return make_pair(batch_start, batch_end);
+    });
+
+    /* The last batch_size's end must always be 'range_to'. */
+    if (chunks.empty())
+    {
+      chunks.emplace_back(range_from, range_to);
+    }
+    else
+    {
+      chunks.back().second = range_to;
+    }
+
+    return chunks;
+  }
+};
 
 } // namespace OpenMS
 

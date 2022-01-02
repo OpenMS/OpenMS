@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MSDB" db_version="1.0" taxonomy="" mass_type="monoisotopic" charges="+1, +2" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="1" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="MSDB" db_version="1.0" taxonomy="" mass_type="monoisotopic" charges="+1, +2, +3" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="1" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<FixedModification name="Glucuronyl (S)" />
+		<VariableModification name="Oxidation (M)" />
+		<VariableModification name="Deamidated (Q)" />
+	</SearchParameters>
+	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="PROT2" score="0.0" sequence="ABCDEFG" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT1" score="0.0" sequence="ABCDEFG" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[UNKNOWN]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PSM-level search engine specific statistic" higher_score_better="true" significance_threshold="0.0" MZ="675.899999999999977" RT="1234.5" spectrum_reference="17" >
+			<PeptideHit score="0.0" sequence="PEPTIDER" charge="1" aa_before="A X" aa_after="B X" protein_refs="PH_1 PH_0" >
+				<UserParam type="string" name="MOWSE" value="0.9"/>
+				<UserParam type="float" name="calcMZ" value="956.468357540270972"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="name" value="PeptideHit"/>
+			</PeptideHit>
+			<PeptideHit score="0.0" sequence="PEPTIDERR" charge="1" >
+				<UserParam type="string" name="MOWSE" value="1.4"/>
+				<UserParam type="float" name="calcMZ" value="1112.569468923070872"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PSM-level search engine specific statistic" higher_score_better="true" significance_threshold="0.0" spectrum_reference="MZ:nan@RT:nan" >
+			<PeptideHit score="0.0" sequence="PEPTIDERRR" charge="2" >
+				<UserParam type="string" name="MOWSE" value="44.399999999999999"/>
+				<UserParam type="float" name="calcMZ" value="634.838928386320845"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.0" sequence="N[3785.307099999999991]PEPTIDEK" charge="2" >
+				<UserParam type="string" name="MOWSE" value="33.299999999999997"/>
+				<UserParam type="float" name="calcMZ" value="2414.409757099220769"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.0" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_2" accession="PROT3" score="0.0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[UNKNOWN]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PSM-level search engine specific statistic" higher_score_better="true" significance_threshold="0.0" spectrum_reference="MZ:nan@RT:nan" >
+			<PeptideHit score="0.0" sequence="PEPTIDERRRRR" charge="1" protein_refs="PH_2" >
+				<UserParam type="string" name="MOWSE" value="1.4"/>
+				<UserParam type="float" name="calcMZ" value="1580.872803071470571"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

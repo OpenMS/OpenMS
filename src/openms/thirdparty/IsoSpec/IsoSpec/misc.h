@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -17,9 +17,8 @@
 #pragma once
 
 #include <iostream>
-#include <tuple>
 #include <vector>
-#include <fenv.h>
+#include <cstring>
 #include "isoMath.h"
 
 namespace IsoSpec
@@ -29,7 +28,7 @@ inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
 ){
     double res = 0.0;
-    for(int i=0; i<dimNumber;i++)
+    for(int i = 0; i < dimNumber; i++)
         res += (*(valuesContainer[i]))[conf[i]];
     return res;
 }
@@ -52,28 +51,17 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
 {
     double  res = 0.0;
 
-    int curr_method = fegetround();
-
-    fesetround(FE_TOWARDZERO);
-
-    for(int i=0; i < dim; i++)
-        res += minuslogFactorial(conf[i]);
-
-    fesetround(FE_UPWARD);
-
-    for(int i=0; i < dim; i++)
-        res += conf[i] * logProbs[i];
-
-    fesetround(curr_method);
+    for(int i = 0; i < dim; i++)
+        res += minuslogFactorial(conf[i]) + conf[i] * logProbs[i];
 
     return res;
 }
 
-inline double mass(const int* conf, const double* masses, int dim)
+inline double calc_mass(const int* conf, const double* masses, int dim)
 {
     double res = 0.0;
 
-    for(int i=0; i < dim; i++)
+    for(int i = 0; i < dim; i++)
     {
         res += conf[i] * masses[i];
     }
@@ -82,16 +70,12 @@ inline double mass(const int* conf, const double* masses, int dim)
 }
 
 
-inline bool tupleCmp(
-    std::tuple<double,double,int*> t1,
-    std::tuple<double,double,int*> t2
-){
-    return std::get<1>(t1) > std::get<1>(t2);
-}
 
-template<typename T> void printArray(const T* array, int size)
+template<typename T> void printArray(const T* array, int size, const char* prefix = "")
 {
-    for (int i=0; i<size; i++)
+    if (strlen(prefix) > 0)
+        std::cout << prefix << " ";
+    for (int i = 0; i < size; i++)
         std::cout << array[i] << " ";
     std::cout << std::endl;
 }
@@ -101,19 +85,24 @@ template<typename T> void printVector(const std::vector<T>& vec)
     printArray<T>(vec.data(), vec.size());
 }
 
+template<typename T> void printOffsets(const T** array, int size, const T* offset, const char* prefix = "")
+{
+    if (strlen(prefix) > 0)
+        std::cout << prefix << " ";
+    for (int i = 0; i < size; i++)
+        std::cout << array[i] - offset << " ";
+    std::cout << std::endl;
+}
 
 template<typename T> void printNestedArray(const T** array, const int* shape, int size)
 {
-    for (int i=0; i<size; i++)
+    for (int i = 0; i < size; i++)
         printArray(array[i], shape[i]);
     std::cout << std::endl;
 }
 
-#define mswap(x, y) swapspace = x; x = y; y=swapspace;
-
-
 //! Quickly select the n'th positional statistic, including the weights.
-void* quickselect(void** array, int n, int start, int end);
+void* quickselect(const void** array, int n, int start, int end);
 
 
 template <typename T> inline static T* array_copy(const T* A, int size)
@@ -123,14 +112,29 @@ template <typename T> inline static T* array_copy(const T* A, int size)
     return ret;
 }
 
+template <typename T> static T* array_copy_nptr(const T* A, int size)
+{
+    if(A == nullptr)
+        return nullptr;
+    return array_copy(A, size);
+}
+
 template<typename T> void dealloc_table(T* tbl, int dim)
 {
-    for(int i=0; i<dim; i++)
+    for(int i = 0; i < dim; i++)
     {
         delete tbl[i];
     }
     delete[] tbl;
 }
 
-} // namespace IsoSpec
+template<typename T> void realloc_append(T** array, T what, size_t old_array_size)
+{
+    T* newT = new T[old_array_size+1];
+    memcpy(newT, *array, old_array_size*sizeof(T));
+    newT[old_array_size] = what;
+    delete[] *array;
+    *array = newT;
+}
 
+}  // namespace IsoSpec

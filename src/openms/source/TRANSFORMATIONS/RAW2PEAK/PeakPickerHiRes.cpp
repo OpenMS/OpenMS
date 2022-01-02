@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 
 using namespace std;
@@ -54,22 +55,22 @@ namespace OpenMS
     defaults_.setValue("signal_to_noise", 0.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
-    defaults_.setValue("spacing_difference_gap", 4.0, "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("spacing_difference_gap", 4.0, "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.", {"advanced"});
     defaults_.setMinFloat("spacing_difference_gap", 0.0);
 
-    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.", {"advanced"});
     defaults_.setMinFloat("spacing_difference", 0.0);
 
-    defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.", {"advanced"});
     defaults_.setMinInt("missing", 0);
 
     defaults_.setValue("ms_levels", ListUtils::create<Int>(""), "List of MS levels for which the peak picking is applied. If empty, auto mode is enabled, all peaks which aren't picked yet will get picked. Other scans are copied to the output without changes.");
     defaults_.setMinInt("ms_levels", 1);
 
     defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.");
-    defaults_.setValidStrings("report_FWHM", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("report_FWHM", {"true","false"});
     defaults_.setValue("report_FWHM_unit", "relative", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
-    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
+    defaults_.setValidStrings("report_FWHM_unit", {"relative","absolute"});
 
     // parameters for STN estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
@@ -98,13 +99,9 @@ namespace OpenMS
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
   {
     // copy meta data of the input spectrum
-    output.clear(true);
-    output.SpectrumSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setRT(input.getRT());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
+    copySpectrumMeta(input, output);
     output.setType(SpectrumSettings::CENTROID);
+
     pick_(input, output, boundaries, check_spacings);
   }
 
@@ -122,6 +119,7 @@ namespace OpenMS
   template <typename ContainerType>
   void PeakPickerHiRes::pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
   {
+
     if (report_FWHM_)
     {
       output.getFloatDataArrays().resize(1);
@@ -129,8 +127,10 @@ namespace OpenMS
     }
 
     // don't pick a spectrum with less than 5 data points
-    if (input.size() < 5) return;
-
+    if (input.size() < 5)
+    {
+      return;
+    }
     // if both spacing constraints are disabled, don't check spacings at all:
     if ((spacing_difference_ == std::numeric_limits<double>::infinity()) &&
       (spacing_difference_gap_ == std::numeric_limits<double>::infinity()))
@@ -155,9 +155,14 @@ namespace OpenMS
       double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
       // do not interpolate when the left or right support is a zero-data-point
-      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-
+      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
+      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
       // MZ spacing sanity checks
       double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
       if (check_spacings)
@@ -170,9 +175,9 @@ namespace OpenMS
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
       if (signal_to_noise_ > 0.0)
       {
-        act_snt = snt.getSignalToNoise(input[i]);
-        act_snt_l1 = snt.getSignalToNoise(input[i - 1]);
-        act_snt_r1 = snt.getSignalToNoise(input[i + 1]);
+        act_snt = snt.getSignalToNoise(i);
+        act_snt_l1 = snt.getSignalToNoise(i - 1);
+        act_snt_r1 = snt.getSignalToNoise(i + 1);
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
@@ -193,8 +198,8 @@ namespace OpenMS
 
         if (signal_to_noise_ > 0.0)
         {
-          act_snt_l2 = snt.getSignalToNoise(input[i - 2]);
-          act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
+          act_snt_l2 = snt.getSignalToNoise(i - 2);
+          act_snt_r2 = snt.getSignalToNoise(i + 2);
         }
 
         // checking signal-to-noise?
@@ -238,7 +243,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_lk = snt.getSignalToNoise(input[i - k]);
+            act_snt_lk = snt.getSignalToNoise(i - k);
           }
 
           if ((act_snt_lk >= signal_to_noise_) && 
@@ -279,7 +284,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_rk = snt.getSignalToNoise(input[i + k]);
+            act_snt_rk = snt.getSignalToNoise(i + k);
           }
 
           if ((act_snt_rk >= signal_to_noise_) && 
@@ -303,8 +308,10 @@ namespace OpenMS
         }
 
         // skip if the minimal number of 3 points for fitting is not reached
-        if (peak_raw_data.size() < 3) continue;
-
+        if (peak_raw_data.size() < 3)
+        {
+          continue;
+        }
         CubicSpline2d peak_spline (peak_raw_data);
 
         // calculate maximum by evaluating the spline's 1st derivative
@@ -568,9 +575,15 @@ namespace OpenMS
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
     spacing_difference_gap_ = param_.getValue("spacing_difference_gap");
-    if (spacing_difference_gap_ == 0.0) spacing_difference_gap_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_gap_ == 0.0)
+    {
+      spacing_difference_gap_ = std::numeric_limits<double>::infinity();
+    }
     spacing_difference_ = param_.getValue("spacing_difference");
-    if (spacing_difference_ == 0.0) spacing_difference_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_ == 0.0)
+    {
+      spacing_difference_ = std::numeric_limits<double>::infinity();
+    }
     missing_ = param_.getValue("missing");
 
     ms_levels_ = getParameters().getValue("ms_levels");

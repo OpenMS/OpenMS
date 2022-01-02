@@ -110,6 +110,7 @@
         </CvMappingRule>
         <CvMappingRule id="spectrum_may" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="OR">
           <CvTerm termAccession="MS:1000499" useTerm="false" termName="spectrum attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+          <CvTerm termAccession="MS:1003058" useTerm="false" termName="spectrum property" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
           <CvTerm termAccession="MS:1000465" useTerm="false" termName="scan polarity" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
 

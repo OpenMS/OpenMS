@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h>
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <QDir>
@@ -58,7 +56,7 @@ namespace OpenMS
     defaults_.setValue("designer:file", "File", "Identifier for the file name.");
 
     defaults_.setValue("designer:separator", "tab", "Separator, which should be used to split a row into columns");
-    defaults_.setValidStrings("designer:separator", ListUtils::create<String>("tab,semi-colon,comma,whitespace"));
+    defaults_.setValidStrings("designer:separator", {"tab","semi-colon","comma","whitespace"});
 
     defaults_.setSectionDescription("designer", "Additional options for quantitative experimental design");
 
@@ -79,7 +77,7 @@ namespace OpenMS
     map<String, StringList> design2FilePath;
     findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
-    //determine wether we deal with idXML or featureXML
+    //determine whether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
     if (in_type == FileTypes::IDXML)
@@ -117,7 +115,7 @@ namespace OpenMS
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
       //load should clear the map
-      ConsensusXMLFile().load(*file_it, map);
+      FileHandler().loadConsensusFeatures(*file_it, map);
       for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
       {
         it->setMetaValue("experiment", DataValue(experiment));
@@ -137,7 +135,7 @@ namespace OpenMS
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
     {
       // load should clear the vectors
-      IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
+      FileHandler().loadIdentifications(*file_it, additional_proteins, additional_peptides);
 
       for (vector<ProteinIdentification>::iterator prot_it =
              additional_proteins.begin(); prot_it !=
@@ -163,12 +161,11 @@ namespace OpenMS
           // generate a new ID:
           DateTime date_time = prot_it->getDateTime();
           String new_id;
-          String search_engine = prot_it->getSearchEngine();
-          
+          String search_engine = prot_it->getSearchEngine();          
           do
           {
             date_time = date_time.addSecs(1);
-            new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
+            new_id = search_engine + "_" + date_time.toString();
           } while (used_ids.find(new_id) != used_ids.end());
 
           OPENMS_LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
@@ -228,8 +225,8 @@ namespace OpenMS
   void QuantitativeExperimentalDesign::analyzeHeader_(UInt& expCol, UInt& fileCol, StringList& header)
   {
     // read parameter
-    String experiment = param_.getValue("designer:experiment");
-    String fileName = param_.getValue("designer:file");
+    std::string experiment = param_.getValue("designer:experiment");
+    std::string fileName = param_.getValue("designer:file");
 
     // iterate through header strings to look for matching identifier
     UInt col = 0;
@@ -260,7 +257,7 @@ namespace OpenMS
   void QuantitativeExperimentalDesign::getSeparator_(String& separator)
   {
     // get separator from parameter setting
-    String sep = param_.getValue("designer:separator");
+    std::string sep = param_.getValue("designer:separator");
 
     // assign
     if (sep.compare("tab") == 0)

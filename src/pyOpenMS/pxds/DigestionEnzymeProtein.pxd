@@ -4,13 +4,20 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
+from DigestionEnzyme cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS":
 
-    cdef cppclass DigestionEnzymeProtein:
-        DigestionEnzymeProtein() nogil except + # wrap-ignore
+    cdef cppclass DigestionEnzymeProtein(DigestionEnzyme):
+        # wrap-inherits:
+        #    DigestionEnzyme
+        #
+        # wrap-doc:
+        #   Representation of a digestion enzyme for proteins (protease)
 
-        DigestionEnzymeProtein(DigestionEnzymeProtein) nogil except + # wrap-ignore
+        DigestionEnzymeProtein() nogil except +
+
+        DigestionEnzymeProtein(DigestionEnzymeProtein &) nogil except +
 
         # detailed constructor
         DigestionEnzymeProtein(String name,
@@ -24,78 +31,50 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
                                UInt comet_id,
                                UInt omssa_id) nogil except +
 
-        # sets the name of the Enzyme
-        void setName(String name) nogil except +
-
-        # returns the name of the Enzyme
-        String getName() nogil except +
-
-        # sets the synonyms
-        void setSynonyms(libcpp_set[String] synonyms) nogil except +
-
-        # adds a synonym
-        void addSynonym(String synonym) nogil except +
-
-        # returns the sysnonyms
-        libcpp_set[String] getSynonyms() nogil except +
-
-        # sets the name of the Enzyme as three letter code
-        void setRegEx(String three_letter_code) nogil except +
-
-        # returns the name of the Enzyme as three letter code
-        String getRegEx() nogil except +
-
-        # sets the regex description
-        void setRegExDescription(String one_letter_code) nogil except +
-
-        # returns the regex description
-        String getRegExDescription() nogil except +
-
         # sets the N-term gain
-        void setNTermGain(EmpiricalFormula value) nogil except +
+        void setNTermGain(EmpiricalFormula value) nogil except + # wrap-doc:Sets the N-term gain
 
         # sets the C-term gain
-        void setCTermGain(EmpiricalFormula value) nogil except +
+        void setCTermGain(EmpiricalFormula value) nogil except + # wrap-doc:Sets the C-term gain
 
         # returns the N-term gain
-        EmpiricalFormula getNTermGain() nogil except +
+        EmpiricalFormula getNTermGain() nogil except + # wrap-doc:Returns the N-term gain
 
         # returns the C-term gain
-        EmpiricalFormula getCTermGain() nogil except +
+        EmpiricalFormula getCTermGain() nogil except + # wrap-doc:Returns the C-term gain
 
         # sets the PSI ID
-        void setPSIID(String value) nogil except +
+        void setPSIID(String value) nogil except + # wrap-doc:Sets the PSI ID
 
         # returns the PSI ID
-        String getPSIID() nogil except +
+        String getPSIID() nogil except + # wrap-doc:Returns the PSI ID
 
-        void setXTandemID(String value) nogil except +
-        String getXTandemID() nogil except +
+        void setXTandemID(String value) nogil except + # wrap-doc:Sets the X! Tandem enzyme ID
+        String getXTandemID() nogil except + # wrap-doc:Returns the X! Tandem enzyme ID
 
-        String getCruxID() nogil except +
-        void setCruxID(const String & value) nogil except +
+        void setCruxID(const String & value) nogil except + # wrap-doc:Sets the Crux enzyme ID
+        String getCruxID() nogil except + # wrap-doc:Returns the Crux enzyme ID
 
-        void setCometID(int value) nogil except +
-        int getCometID() nogil except +
+        void setCometID(int value) nogil except + # wrap-doc:Sets the Comet enzyme ID
+        int getCometID() nogil except + # wrap-doc:Returns the Comet enzyme ID
 
-        # sets the OMSSA ID
-        void setOMSSAID(int value) nogil except +
-        int getOMSSAID() nogil except +
+        void setOMSSAID(int value) nogil except + # wrap-doc:Sets the OMSSA enzyme ID
+        int getOMSSAID() nogil except + # wrap-doc:Returns the OMSSA enzyme ID
 
-        void setMSGFID(Int value) nogil except +
-        Int getMSGFID() nogil except +
+        void setMSGFID(Int value) nogil except + # wrap-doc:Sets the MSGFPlus enzyme id
+        Int getMSGFID() nogil except + # wrap-doc:Returns the MSGFPlus enzyme id
 
         # equality operator
-        bool operator==(DigestionEnzymeProtein& Enzyme) nogil except +
+        bool operator==(DigestionEnzymeProtein& enzyme) nogil except +
 
         # inequality operator
-        bool operator!=(DigestionEnzymeProtein& Enzyme) nogil except +
+        bool operator!=(DigestionEnzymeProtein& enzyme) nogil except +
+
+        # order operator
+        bool operator<(DigestionEnzymeProtein& enzyme) nogil except +
 
         # equality operator for cleavage regex
-        bool operator==(EmpiricalFormula cleavage_regex) nogil except +
+        bool operator==(String cleavage_regex) nogil except +
 
         # equality operator for cleavage regex
-        bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
-
-        bool setValueFromFile(const String & key, const String & value) nogil except +
-
+        bool operator!=(String cleavage_regex) nogil except +

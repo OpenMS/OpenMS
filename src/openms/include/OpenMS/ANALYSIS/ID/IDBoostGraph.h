@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 //#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -58,9 +57,12 @@
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
 
-namespace OpenMS {
-  namespace Internal
+namespace OpenMS
 {
+  struct ScoreToTgtDecLabelPairs;
+
+  namespace Internal
+  {
 
   /**
    @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
@@ -87,8 +89,13 @@ namespace OpenMS {
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
-    /// indistinguishable protein groups
-    BOOST_STRONG_TYPEDEF(double, ProteinGroup)
+    /// indistinguishable protein groups (size, nr targets, score)
+    struct ProteinGroup
+    {
+      int size = 0;
+      int tgts = 0;
+      double score = 0.;
+    };
 
     /// an (currently unmodified) peptide sequence
     BOOST_STRONG_TYPEDEF(String, Peptide)
@@ -165,8 +172,8 @@ namespace OpenMS {
       std::map<vertex_t, vertex_t> m;
     };
 
-    //TODO group visitors by templates
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    ///@brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    /// e.g. for printing to dot format
     class LabelVisitor:
         public boost::static_visitor<OpenMS::String>
     {
@@ -184,12 +191,12 @@ namespace OpenMS {
 
       OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
       {
-        return String("PG");
+        return "PG";
       }
 
       OpenMS::String operator()(const PeptideCluster& /*pc*/) const
       {
-        return String("PepClust");
+        return "PepClust";
       }
 
       OpenMS::String operator()(const Peptide& peptide) const
@@ -199,17 +206,17 @@ namespace OpenMS {
 
       OpenMS::String operator()(const RunIndex& ri) const
       {
-        return String("rep" + String(ri));
+        return "rep" + String(ri);
       }
 
       OpenMS::String operator()(const Charge& chg) const
       {
-        return String("chg" + String(chg));
+        return "chg" + String(chg);
       }
 
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
+    /// @brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
     /// For debugging purposes only
     template<class CharT>
     class PrintAddressVisitor:
@@ -259,7 +266,8 @@ namespace OpenMS {
       std::basic_ostream<CharT> stream_;
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type sets the posterior
     /// Don't forget to set higherScoreBetter and score names in the parent ID objects.
     class SetPosteriorVisitor:
         public boost::static_visitor<>
@@ -278,7 +286,7 @@ namespace OpenMS {
 
       void operator()(ProteinGroup& pg, double posterior) const
       {
-        pg = posterior;
+        pg.score = posterior;
       }
 
       // Everything else, do nothing for now
@@ -290,6 +298,8 @@ namespace OpenMS {
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior)
     class GetPosteriorVisitor:
         public boost::static_visitor<double>
     {
@@ -307,7 +317,7 @@ namespace OpenMS {
 
       double operator()(ProteinGroup& pg) const
       {
-        return pg;
+        return pg.score;
       }
 
       // Everything else, do nothing for now
@@ -319,11 +329,43 @@ namespace OpenMS {
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
+    /// If not known or not defined, returns (-1.0, false)
+    class GetScoreTgTVisitor:
+    public boost::static_visitor<std::pair<double,bool>>
+        {
+        public:
+
+          std::pair<double,bool> operator()(PeptideHit* pep) const
+          {
+            return {pep->getScore(), pep->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinHit* prot) const
+          {
+            return {prot->getScore(), prot->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinGroup& pg) const
+          {
+            return {pg.score, pg.tgts > 0};
+          }
+
+          // Everything else, do nothing for now
+          template <class T>
+          std::pair<double,bool> operator()(T& /*any node type*/) const
+          {
+            return {-1.0, false};
+          }
+    };
+
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
                 std::vector<PeptideIdentification>& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
+                bool best_psms_annotated,
                 const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
@@ -331,11 +373,15 @@ namespace OpenMS {
                 Size use_top_psms,
                 bool use_run_info,
                 bool use_unassigned_ids,
+                bool best_psms_annotated,
                 const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
 
+    //TODO think about templating to avoid wrapping to std::function
+    // although we usually do long-running tasks per CC such that the extra virtual call does not matter much
+    // Instead we gain type erasure.
     /// Do sth on connected components (your functor object has to inherit from std::function or be a lambda)
-    void applyFunctorOnCCs(const std::function<unsigned long(Graph&)>& functor);
+    void applyFunctorOnCCs(const std::function<unsigned long(Graph&, unsigned int)>& functor);
     /// Do sth on connected components single threaded (your functor object has to inherit from std::function or be a lambda)
     void applyFunctorOnCCsST(const std::function<void(Graph&)>& functor);
 
@@ -346,6 +392,7 @@ namespace OpenMS {
     //TODO create a new class for an extended Graph and try to reuse as much as possible
     // use inheritance or templates
     /// (under development) As above but adds charge, replicate and sequence layer of nodes (untested)
+    /// @todo needs to be finished, updated with latest additions (i.e. check clusterIndistProteinsAndPeptides), and tested
     void clusterIndistProteinsAndPeptidesAndExtendGraph();
 
     /// Annotate indistinguishable proteins by adding the groups to the underlying
@@ -364,19 +411,66 @@ namespace OpenMS {
     /// Splits the initialized graph into connected components and clears it.
     void computeConnectedComponents();
 
+    /// @todo untested
+    /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
+    /// except for the best protein group.
+    /// @pre Graph must contain PeptideCluster nodes (e.g. with clusterIndistProteinsAndPeptides).
+    /// @param removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
+    ///     ID data structure. Only deactivate if you know what you are doing.
+    void resolveGraphPeptideCentric(bool removeAssociationsInData = true);
+
 
 
     /// Zero means the graph was not split yet
     Size getNrConnectedComponents();
 
+    /// @brief Returns a specific connected component of the graph as a graph itself
+    /// @param cc the index of the component
+    /// @return the component as graph
     const Graph& getComponent(Size cc);
 
-    ProteinIdentification& getProteinIDs();
+    /// @brief Returns the underlying protein identifications for viewing
+    /// @return const ref to the protein ID run in this graph (can only be one)
+    const ProteinIdentification& getProteinIDs();
 
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
+    /// @brief Prints a graph (component or if not split, the full graph) in graphviz (i.e. dot) format
+    /// @param out an ostream to print to
+    /// @param fg the graph to print
     static void printGraph(std::ostream& out, const Graph& fg);
+
+    /// @brief Searches for all upstream nodes from a (set of) start nodes that are lower
+    ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
+    /// @param q a queue of start nodes
+    /// @param graph the graph to look in (q has to be part of it)
+    /// @param lvl the level to start reporting from
+    /// @param stop_at_first do you want to stop at the first node <= lvl or also report its
+    ///    upstream "predecessors"
+    /// @param result vector of reported nodes
+    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
+                                      bool stop_at_first, std::vector<vertex_t>& result);
+
+    /// @brief Searches for all downstream nodes from a (set of) start nodes that are higher
+    ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
+    /// @param q a queue of start nodes
+    /// @param graph the graph to look in (q has to be part of it)
+    /// @param lvl the level to start reporting from
+    /// @param stop_at_first do you want to stop at the first node >= lvl or also report its
+    ///    upstream "predecessors"
+    /// @param result vector of reported nodes
+    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
+                                        bool stop_at_first, std::vector<vertex_t>& result);
+
+    /// Gets the scores from the proteins included in the graph.
+    /// The difference to querying the underlying ProteinIdentification structure is that not all
+    /// proteins might be included in the graph due to using only the best psm per peptide
+    void getProteinScores_(ScoreToTgtDecLabelPairs& scores_and_tgt);
+    /// Gets the scores and target decoy fraction from groups and score + binary values for singleton
+    /// proteins. This function is usually used to create input for FDR calculations
+    void getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
+    void getProteinGroupScoresAndHitchhikingTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
 
   private:
 
@@ -413,7 +507,7 @@ namespace OpenMS {
     /* ---------------------------------------------------------------------------- */
 
     #ifdef INFERENCE_BENCH
-    /// nrnodes, nredges, nrmessages and times of last functor execution per connected component
+    /// nrNodes, nrEdges, nrMessages and times of last functor execution per connected component
     std::vector<std::tuple<vertex_t, vertex_t, unsigned long, double>> sizes_and_times_{1};
     #endif
 
@@ -422,7 +516,6 @@ namespace OpenMS {
 
     //TODO think about preallocating it, but the number of peptide hits is not easily computed
     // since they are inside the pepIDs
-
     //TODO would multiple sets be better?
 
     /// if a graph is built with run information, this will store the run, each peptide hit
@@ -440,7 +533,7 @@ namespace OpenMS {
 
     /// helper function to add a vertex if it is not present yet, otherwise return the present one
     /// needs a temporary filled vertex_map that is modifiable
-    vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
+    vertex_t addVertexWithLookup_(const IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
 
 
@@ -453,23 +546,28 @@ namespace OpenMS {
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
+    /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
+    ///  taken into account.
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraph_(ProteinIdentification& proteins,
                     std::vector<PeptideIdentification>& idedSpectra,
-                    Size use_top_psms);
+                    Size use_top_psms,
+                    bool best_psms_annotated = false);
 
     void buildGraph_(ProteinIdentification& proteins,
                     ConsensusMap& cmap,
                     Size use_top_psms,
-                    bool use_unassigned_ids);
+                    bool use_unassigned_ids,
+                    bool best_psms_annotated = false);
 
     /// Used during building
     void addPeptideIDWithAssociatedProteins_(
         PeptideIdentification& spectrum,
         std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
         const std::unordered_map<std::string, ProteinHit*>& accession_map,
-        Size use_top_psms);
+        Size use_top_psms,
+        bool best_psms_annotated);
 
     void addPeptideAndAssociatedProteinsWithRunInfo_(
         PeptideIdentification& spectrum,
@@ -497,13 +595,11 @@ namespace OpenMS {
                                const ExperimentalDesign& ed);
 
 
-    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
-        bool stop_at_first, std::vector<vertex_t>& result);
-
-    void resolveGraphPeptideCentric_(Graph& fg);
+    /// see equivalent public method
+    void resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData);
 
     template<class NodeType>
-    void getDownstreamNodes(vertex_t start, Graph graph, std::vector<NodeType>& result)
+    void getDownstreamNodes(const vertex_t& start, const Graph& graph, std::vector<NodeType>& result)
     {
       Graph::adjacency_iterator adjIt, adjIt_end;
       boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(start, graph);
@@ -521,7 +617,7 @@ namespace OpenMS {
     }
 
     template<class NodeType>
-    void getUpstreamNodes(vertex_t start, Graph graph, std::vector<NodeType>& result)
+    void getUpstreamNodes(const vertex_t& start, const Graph graph, std::vector<NodeType>& result)
     {
       Graph::adjacency_iterator adjIt, adjIt_end;
       boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(start, graph);
@@ -539,5 +635,7 @@ namespace OpenMS {
     }
   };
 
-} } //namespace OpenMS
+    bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs);
+  } //namespace Internal
+} //namespace OpenMS
 

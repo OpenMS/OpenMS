@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,16 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <iterator>
+#include <memory>
 #include <string>
+#include <utility>
+
+// Override IsoSpec's use of mmap whenever it is available
+#define ISOSPEC_GOT_SYSTEM_MMAN false
+#define ISOSPEC_GOT_MMAN false
+#define ISOSPEC_BUILDING_OPENMS true
+
+#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
 
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
@@ -49,14 +58,13 @@
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
 #include "IsoSpec/misc.cpp"
+#include "IsoSpec/fasta.cpp"
 
 using namespace std;
 using namespace IsoSpec;
 
 namespace OpenMS
 {
-
-
   Iso _OMS_IsoFromParameters(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
@@ -78,19 +86,16 @@ namespace OpenMS
     int dimNumber = isotopeNr.size();
 
     // Convert vector of vector to double**
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
+    std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
+    std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
     for (int i=0; i<dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM.get(), IP.get());
     
-    delete[] IM;
-    delete[] IP;
-
     return ret;
   }
 
@@ -124,58 +129,76 @@ namespace OpenMS
     return _OMS_IsoFromParameters(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
   }
 
-
-
-
   IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), threshold, absolute)
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    threshold, 
+    absolute))
   {};
 
   IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute))
   {};
 
+  bool IsoSpecThresholdGeneratorWrapper::nextConf() { return ITG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecThresholdGeneratorWrapper::getConf() { return Peak1D(ITG->mass(), ITG->prob()); };
+  double IsoSpecThresholdGeneratorWrapper::getMass() { return ITG->mass(); };
+  double IsoSpecThresholdGeneratorWrapper::getIntensity() { return ITG->prob(); };
+  double IsoSpecThresholdGeneratorWrapper::getLogIntensity() { return ITG->lprob(); };
+
+  // in this special case it needs to go in cpp file (see e.g., https://stackoverflow.com/questions/38242200/where-should-a-default-destructor-c11-style-go-header-or-cpp)
+  IsoSpecThresholdGeneratorWrapper::~IsoSpecThresholdGeneratorWrapper() = default; 
 
 //  --------------------------------------------------------------------------------
-
-
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob_hint))
   {};
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint))
   {};
 
+  IsoSpecTotalProbGeneratorWrapper::~IsoSpecTotalProbGeneratorWrapper() = default;
+
+  bool IsoSpecTotalProbGeneratorWrapper::nextConf() { return ILG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecTotalProbGeneratorWrapper::getConf() { return Peak1D(ILG->mass(), ILG->prob()); };
+  double IsoSpecTotalProbGeneratorWrapper::getMass() { return ILG->mass(); };
+  double IsoSpecTotalProbGeneratorWrapper::getIntensity() { return ILG->prob(); };
+  double IsoSpecTotalProbGeneratorWrapper::getLogIntensity() { return ILG->lprob(); };
 
 //  --------------------------------------------------------------------------------
-
 
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities) :
-  IOG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities))
+   IOG(std::make_unique<IsoSpec::IsoOrderedGenerator>(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
   {};
 
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
-  IOG(_OMS_IsoFromEmpiricalFormula(formula))
+    IOG(std::make_unique<IsoSpec::IsoOrderedGenerator>(_OMS_IsoFromEmpiricalFormula(formula)))
   {};
+
+  IsoSpecOrderedGeneratorWrapper::~IsoSpecOrderedGeneratorWrapper() = default; // needs to be in cpp file because of incomplete types!
+
+  bool IsoSpecOrderedGeneratorWrapper::nextConf() { return IOG->advanceToNextConfiguration(); };
+  Peak1D IsoSpecOrderedGeneratorWrapper::getConf() { return Peak1D(IOG->mass(), IOG->prob()); };
+  double IsoSpecOrderedGeneratorWrapper::getMass() { return IOG->mass(); };
+  double IsoSpecOrderedGeneratorWrapper::getIntensity() { return IOG->prob(); };
+  double IsoSpecOrderedGeneratorWrapper::getLogIntensity() { return IOG->lprob(); };
 
 //  --------------------------------------------------------------------------------
 
@@ -185,25 +208,30 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double threshold,
                     bool absolute) :
-  ITG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), threshold, absolute)
-  {};
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    threshold, 
+    absolute))
+  {}
 
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const EmpiricalFormula& formula,
                     double threshold,
-                    bool absolute) :
-  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
+                    bool absolute) :                    
+  ITG(std::make_unique<IsoSpec::IsoThresholdGenerator>(
+    _OMS_IsoFromEmpiricalFormula(formula), 
+    threshold, 
+    absolute))
   {};
-
 
   IsotopeDistribution IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
-    distribution.reserve(ITG.count_confs());
+    distribution.reserve(ITG->count_confs());
 
-    ITG.reset();
+    ITG->reset();
 
-    while (ITG.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG.mass(), ITG.prob()));
+    while (ITG->advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
 
     IsotopeDistribution ID;
 
@@ -212,6 +240,8 @@ namespace OpenMS
     return ID;
   }
 
+  IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper() = default;
+  
 //  --------------------------------------------------------------------------------
 
 
@@ -219,17 +249,27 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double _total_prob,
+                    bool _do_p_trim) :
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(
+    _OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 
+    1024, 
+    1024, 
+    true, 
+    _total_prob)),
+  target_prob(_total_prob),
+  do_p_trim(_do_p_trim)
   {};
 
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double _total_prob,
+                    bool _do_p_trim) :
+  ILG(std::make_unique<IsoSpec::IsoLayeredGenerator>(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, _total_prob)),
+  target_prob(_total_prob),
+  do_p_trim(_do_p_trim)
   {};
 
+  IsoSpecTotalProbWrapper::~IsoSpecTotalProbWrapper() = default;
 
   IsotopeDistribution IsoSpecTotalProbWrapper::run()
   {
@@ -237,15 +277,60 @@ namespace OpenMS
     // There is no sensible way to precalculate the number of configurations 
     // in IsoLayeredGenerator
 
-    while (ILG.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+    double acc_prob = 0.0;
+
+    while (acc_prob < target_prob && ILG->advanceToNextConfiguration())
+    {
+        double p = ILG->prob();
+        acc_prob += p;
+        distribution.emplace_back(Peak1D(ILG->mass(), p));
+    }
+
+    if (do_p_trim)
+    {
+        // the p_trim: extract the rest of the last layer, and perform quickselect
+
+        while (ILG->advanceToNextConfigurationWithinLayer())
+            distribution.emplace_back(Peak1D(ILG->mass(), ILG->prob()));
+
+        size_t start = 0;
+        size_t end = distribution.size();
+        double sum_to_start = 0.0;
+
+        while (start < end)
+        {
+            // Partition part
+            size_t pivot = start + (end-start)/2; // middle
+            double pprob = distribution[pivot].getIntensity();
+            std::swap(distribution[pivot], distribution[end-1]);
+
+            double new_csum = sum_to_start;
+
+            size_t loweridx = start;
+            for (size_t ii = start; ii < end-1; ii++)
+                if (distribution[ii].getIntensity() > pprob)
+                {
+                    std::swap(distribution[ii], distribution[loweridx]);
+                    new_csum += distribution[loweridx].getIntensity();
+                    loweridx++;
+                }
+
+            std::swap(distribution[end-1], distribution[loweridx]);
+
+            // Selection part
+            if (new_csum < target_prob)
+            {
+                start = loweridx + 1;
+                sum_to_start = new_csum + distribution[loweridx].getIntensity();
+            }
+            else
+                end = loweridx;
+        }
+        distribution.resize(end);
+    }
 
     IsotopeDistribution ID;
-
     ID.set(std::move(distribution));
-
     return ID;
-  }
-
 }
-
+}  // namespace OpenMS

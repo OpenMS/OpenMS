@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,7 @@ protected:
   bool resolve_ambiguous_mods_;
 
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -284,7 +284,7 @@ protected:
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
-    boost::regex double_digits("(\\d)(?=\\d)");
+    boost::regex double_digits(R"((\d)(?=\d))");
     for (String m : mod_names)
     {
       ConstRibonucleotidePtr mod = 0;
@@ -331,7 +331,7 @@ protected:
       : min_size_(min_size), max_size_(max_size)
     {
     }
-    bool operator()(const NASequence& s) { return (s.size() < min_size_ || s.size() > max_size_); }
+    bool operator()(const NASequence& s) const { return (s.size() < min_size_ || s.size() > max_size_); }
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula

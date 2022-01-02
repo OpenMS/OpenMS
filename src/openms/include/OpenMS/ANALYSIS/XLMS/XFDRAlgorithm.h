@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,6 @@ namespace OpenMS
   //-------------------------------------------------------------
 
   /**
-      @page TOPP_XFDR XFDR
-
       @brief Calculates false discovery rate estimates on crosslink identifications.
 
       This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
@@ -61,27 +59,7 @@ namespace OpenMS
 
       @experimental This tool is work in progress and usage and input requirements might change.
 
-      <center>
-          <table>
-              <tr>
-                  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-                  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ XFDR \f$ \longrightarrow \f$</td>
-                  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-              </tr>
-              <tr>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-              </tr>
-              <tr>
-              </tr>
-          </table>
-      </center>
 
-      <B>The command line parameters of this tool are:</B>
-      @verbinclude UTILS_XFDR.cli
-      <B>INI file documentation of this tool:</B>
-      @htmlinclude UTILS_XFDR.html
   */
 
   class OPENMS_DLLAPI XFDRAlgorithm :
@@ -133,11 +111,11 @@ private:
     void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
 
     /**
-     * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
+     * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
      * @param pep_id Peptide ID to be assigned.
      * @param types Result vector containing the names of the crosslink classes
      */
-    static void assignTypes_(PeptideHit& ph, StringList& types);
+    static void assignTypes_(PeptideHit& pep_id, StringList& types);
 
     /** Target counting as performed by the xProphet software package
      *
@@ -146,7 +124,7 @@ private:
      */
     void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
-                      std::vector< double >& fdr, bool mono);
+                      std::vector< double >& fdr, bool mono) const;
 
     /**
     * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector
@@ -179,7 +157,7 @@ private:
     }
 
     /**
-     *  @brief Determines whether the Petide Evidences belong to the same protein, modulo decoy
+     *  @brief Determines whether the Peptide Evidences belong to the same protein, modulo decoy
      */
     static bool isSameProtein_(
             String prot1,

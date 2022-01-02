@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -35,6 +35,19 @@ void * setupIso(int             dimNumber,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities);
 
+void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
+
+double getLightestPeakMassIso(void* iso);
+double getHeaviestPeakMassIso(void* iso);
+double getMonoisotopicPeakMassIso(void* iso);
+double getModeLProbIso(void* iso);
+double getModeMassIso(void* iso);
+double getTheoreticalAverageMassIso(void* iso);
+double getIsoVariance(void* iso);
+double getIsoStddev(void* iso);
+double* getMarginalLogSizeEstimates(void* iso, double target_total_prob);
+
+
 void deleteIso(void* iso);
 
 #define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
@@ -54,65 +67,74 @@ ISOSPEC_C_FN_HEADER(generatorType, void, delete)
 
 
 
-//______________________________________________________THRESHOLD GENERATOR
+// ______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
                                  int _tabSize,
-                                 int _hashSize);
+                                 int _hashSize,
+                                 bool reorder_marginals);
 ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
-//______________________________________________________LAYERED GENERATOR
+// ______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
-                               double _target_coverage,
-                               double _percentage_to_expand,
                                int _tabSize,
                                int _hashSize,
-                               bool _do_trim);
+                               bool reorder_marginals,
+                               double t_prob_hint);
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
-//______________________________________________________ORDERED GENERATOR
+// ______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
 ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
+void* setupIsoStrochasticGenerator(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias);
+ISOSPEC_C_FN_HEADERS(IsoStochasticGenerator)
 
 
-void* setupThresholdTabulator(void* generator,
-                              bool  get_masses,
-                              bool  get_probs,
-                              bool  get_lprobs,
-                              bool  get_confs);
+void* setupThresholdFixedEnvelope(void* iso,
+                              double threshold,
+                              bool absolute,
+                              bool get_confs);
 
-void deleteThresholdTabulator(void* tabulator);
-
-const double* massesThresholdTabulator(void* tabulator);
-const double* lprobsThresholdTabulator(void* tabulator);
-const double* probsThresholdTabulator(void* tabulator);
-const int*    confsThresholdTabulator(void* tabulator);
-int confs_noThresholdTabulator(void* tabulator);
-
-
-
-void* setupLayeredTabulator(void* generator,
-                              bool  get_masses,
-                              bool  get_probs,
-                              bool  get_lprobs,
-                              bool  get_confs);
-
-void deleteLayeredTabulator(void* tabulator);
-
-const double* massesLayeredTabulator(void* tabulator);
-const double* lprobsLayeredTabulator(void* tabulator);
-const double* probsLayeredTabulator(void* tabulator);
-const int*    confsLayeredTabulator(void* tabulator);
-int confs_noLayeredTabulator(void* tabulator);
+void* setupTotalProbFixedEnvelope(void* iso,
+                              double taget_coverage,
+                              bool optimize,
+                              bool get_confs);
 
 void freeReleasedArray(void* array);
+
+void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
+
+const double* massesFixedEnvelope(void* tabulator);
+const double* probsFixedEnvelope(void* tabulator);
+const int*    confsFixedEnvelope(void* tabulator);
+int confs_noFixedEnvelope(void* tabulator);
+
+double wassersteinDistance(void* tabulator1, void* tabulator2);
+double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
+void* addEnvelopes(void* tabulator1, void* tabulator2);
+void* convolveEnvelopes(void* tabulator1, void* tabulator2);
+
+double getTotalProbOfEnvelope(void* envelope);
+void scaleEnvelope(void* envelope, double factor);
+void normalizeEnvelope(void* envelope);
+void* binnedEnvelope(void* envelope, double width, double middle);
+void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
+
+void sortEnvelopeByMass(void* envelope);
+void sortEnvelopeByProb(void* envelope);
+
+void parse_fasta_c(const char* fasta, int atomCounts[6]);
+
 
 #ifdef __cplusplus
 }
 #endif
-

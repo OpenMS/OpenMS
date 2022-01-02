@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,15 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -48,6 +50,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <algorithm>
 #include <fstream>
@@ -125,6 +128,9 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
+    @note This adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
+
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -134,7 +140,6 @@ using namespace std;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_OMSSAAdapter.html
 
-    @improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -142,11 +147,11 @@ using namespace std;
 
 
 class TOPPOMSSAAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPOMSSAAdapter() :
-    TOPPBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
+    SearchEngineBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
   {
   }
 
@@ -168,12 +173,24 @@ protected:
 
     bool operator<(const OMSSAVersion& v) const
     {
-      if (omssa_major > v.omssa_major) return false;
-      else if (omssa_major < v.omssa_major) return true;
+      if (omssa_major > v.omssa_major)
+      {
+        return false;
+      }
+      else if (omssa_major < v.omssa_major)
+      {
+        return true;
+      }
       else // ==
       {
-        if (omssa_minor > v.omssa_minor) return false;
-        else if (omssa_minor < v.omssa_minor) return true;
+        if (omssa_minor > v.omssa_minor)
+        {
+          return false;
+        }
+        else if (omssa_minor < v.omssa_minor)
+        {
+          return true;
+        }
         else
         {
           return omssa_patch < v.omssa_patch;
@@ -188,8 +205,10 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
-
+    if (nums.size() != 3)
+    {
+      return false;
+    }
     omssa_version_i.omssa_major = nums[0];
     omssa_version_i.omssa_minor = nums[1];
     omssa_version_i.omssa_patch = nums[2];
@@ -432,10 +451,8 @@ protected:
       }
     }
     // parse arguments
-    String inputfile_name = getStringOption_("in");
+    String inputfile_name = getRawfileName();
     String outputfile_name = getStringOption_("out");
-    String db_name = String(getStringOption_("database"));
-    // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
     //-------------------------------------------------------------
     // Validate user parameters
@@ -446,35 +463,28 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+
+    String db_name = getStringOption_("database");
     if (db_name.suffix('.') != "psq")
     {
       db_name += ".psq";
     }
-
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
-
-    db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
+    db_name = getDBFilename(db_name); // resolve (search in DB dirs)
+    db_name = FileHandler::stripExtension(db_name); // OMSSA requires the filename without the .psq part
     // check for .pin and .phr files
     bool has_pin = File::readable(db_name + ".pin");
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
       OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      if (!has_pin)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      }
+      if (!has_phr)
+      {
+        OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      }
       OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -570,7 +580,7 @@ protected:
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         if (split.size() < 2)
         {
@@ -611,7 +621,7 @@ protected:
           writeDebug_("Inserting unknown fixed modification: '" + *it + "' into OMSSA", 1);
         }
       }
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mf" << ListUtils::concatenate(mod_list, ",");
       }
@@ -637,7 +647,7 @@ protected:
         }
       }
 
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mv" << ListUtils::concatenate(mod_list, ",");
       }
@@ -650,7 +660,7 @@ protected:
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
       ofstream out(unique_usermod_name.c_str());
       out << "<?xml version=\"1.0\"?>" << "\n";
-      out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << "\n";
+      out << R"(<MSModSpecSet xmlns="http://www.ncbi.nlm.nih.gov" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.ncbi.nlm.nih.gov OMSSA.xsd">)" << "\n";
 
       UInt user_mod_count(1);
       for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
@@ -684,7 +694,7 @@ protected:
         }
         if (ts == ResidueModification::C_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << "\n";
           }
@@ -695,7 +705,7 @@ protected:
         }
         if (ts == ResidueModification::N_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << "\n";
           }
@@ -711,7 +721,7 @@ protected:
         out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
-        if (origin != "")
+        if (!origin.empty())
         {
           out << "\t<MSModSpec_residues>" << "\n";
           out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << "\n";
@@ -721,8 +731,15 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
+
+          double neutral_loss_mono = 0;
+          double neutral_loss_avg = 0;
+
+          if (!ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas().empty())
+          {
+            neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getMonoWeight();
+            neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getAverageWeight();
+          }
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -777,66 +794,55 @@ protected:
 
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
-    Size ms2_spec_count(0);
-    ProteinIdentification protein_identification;    
+    ProteinIdentification protein_identification;
+    Size cnt(0);
     { // local scope to free memory after conversion to MGF format is done
-      FileHandler fh;
-      FileTypes::Type in_type = fh.getType(inputfile_name);
-      PeakMap peak_map;
-      fh.getOptions().addMSLevel(2);
-      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
-      protein_identification.setPrimaryMSRunPath({inputfile_name}, peak_map);
+        MSDataTransformingConsumer c{};
 
-      ms2_spec_count = peak_map.size();
-      writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
-
-      if (peak_map.getSpectra().empty())
-      {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-      }
-
-      // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = peak_map[0].getType();
-
-      if (spectrum_type == SpectrumSettings::PROFILE)
-      {
-        if (!getFlag_("force"))
+        std::ofstream ofs;
+        MascotGenericFile mgf;
+        int chunk_size(getIntOption_("chunk_size"));
+        int chunk(0);
+        ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
+        bool empty = true;
+        auto f = [&ofs,&unique_input_name,&mgf,&cnt,&chunk,&chunk_size,&empty](const MSSpectrum& s)
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-        }
-      }
+            if (chunk_size > 0 && cnt > 0 && cnt % chunk_size == 0)
+            {
+                ofs.close();
+                ofs.clear();
+                chunk++;
+                ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
+                empty = true;
+            }
 
-      int chunk(0);
-      int chunk_size(getIntOption_("chunk_size"));
-      if (chunk_size <= 0)
-      {
-        writeLog_("Chunk size is <=0; disabling chunking of input! If OMSSA crashes due to memory allocation errors, try setting 'chunk_size' to a value below 30000 (e.g., 10000 is usually ok).");
-        chunk_size = (int) peak_map.getSpectra().size();
-      }
+            UInt lvl = s.getMSLevel();
+            bool profile = s.getType() == MSSpectrum::SpectrumType::PROFILE;
+            if (lvl == 2 && !profile)
+            {
+                mgf.writeSpectrum(ofs, s, "omssainput", "UNKNOWN");
+                ++cnt;
+                empty = false;
+            }
+        };
 
-      for (Size i = 0; i < peak_map.size(); i += chunk_size)
-      {
-        PeakMap map_chunk;
-        PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
-        // prepare a chunk
-        if (static_cast<int>(peak_map.size()) <= chunk_size)
-        { // we have only one chunk; avoid duplicating the whole data (could be a lot)
-          // we do not use swap() since someone might want to access 'map' later and would find it empty
-          chunk_ptr = &peak_map;
-        }
-        else
+        c.setSpectraProcessingFunc(f);
+        MzMLFile().transform(inputfile_name, &c, true);
+        ofs.close();
+        if (empty)
         {
-          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), peak_map.getSpectra().begin() + i, peak_map.getSpectra().begin() + std::min(
-                  peak_map.size(), i + chunk_size));
+          chunk--;
         }
-        MascotGenericFile omssa_infile;
-        String filename_chunk = unique_input_name + String(chunk) + ".mgf";
-        file_spectra_chunks_in.push_back(filename_chunk);
-        writeDebug_("Storing input file: " + filename_chunk, 5);
-        omssa_infile.store(filename_chunk, *chunk_ptr);
-        file_spectra_chunks_out.push_back(unique_output_name + String(chunk) + ".xml");
-        ++chunk;
-      }
+        if (chunk < 0)
+        {
+          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+        }
+        for (Size ch = 0; ch <= Size(chunk); ch++)
+        {
+            String filename_chunk = unique_input_name + String(ch) + ".mgf";
+            file_spectra_chunks_in.push_back(filename_chunk);
+            file_spectra_chunks_out.push_back(unique_output_name + String(ch) + ".xml");
+        }
     }
     //-------------------------------------------------------------
     // calculations
@@ -914,12 +920,12 @@ protected:
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
-      for (vector<PeptideIdentification>::iterator it = peptide_ids_chunk.begin(); it != peptide_ids_chunk.end(); ++it)
+      for (PeptideIdentification& pep : peptide_ids_chunk)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+        vector<PeptideHit> hits = pep.getHits();
+        for (PeptideHit& ptide : hits)
         {
-          AASequence seq = pit->getSequence();
+          AASequence seq = ptide.getSequence();
           for (vector<String>::const_iterator mit = fixed_nterm_mods.begin(); mit != fixed_nterm_mods.end(); ++mit)
           {
             seq.setNTerminalModification(*mit);
@@ -929,18 +935,19 @@ protected:
             seq.setCTerminalModification(*mit);
           }
           UInt pos = 0;
-          for (AASequence::Iterator mit = seq.begin(); mit != seq.end(); ++mit, ++pos)
+          for (const Residue& mm : seq)
           {
-            if (fixed_residue_mods.has(mit->getOneLetterCode()))
+            if (fixed_residue_mods.has(mm.getOneLetterCode()))
             {
-              seq.setModification(pos, fixed_residue_mods[mit->getOneLetterCode()]);
+              seq.setModification(pos, fixed_residue_mods[mm.getOneLetterCode()]);
             }
+            ++pos;
           }
-          pit->setSequence(seq);
+          ptide.setSequence(seq);
         }
-        it->setHits(hits);
+        pep.setHits(hits);
       }
-
+      std::cout << "nr proteins: " << protein_identification_chunk.getHits().size() << std::endl;
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
       // across chunks. So we only retain this information if there is a single chunk (no splitting occurred)
       if (file_spectra_chunks_in.size() == 1)
@@ -956,23 +963,19 @@ protected:
           protein_identification.setHits(std::vector<ProteinHit>()); // remove hits
         }
         // ... and remove any refs from peptides
-        for (vector<PeptideIdentification>::iterator it_pep = peptide_ids_chunk.begin();
-             it_pep != peptide_ids_chunk.end();
-             ++it_pep)
+        for (PeptideIdentification& pep : peptide_ids_chunk)
         {
-          it_pep->setIdentifier(protein_identification.getIdentifier());
+          pep.setIdentifier(protein_identification.getIdentifier());
 
           // clear peptide evidences
-          vector<PeptideHit> pep_hits = it_pep->getHits();
-          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
-             it_pep_hit != pep_hits.end();
-             ++it_pep_hit)
+          vector<PeptideHit> pep_hits = pep.getHits();
+          for (PeptideHit& pep_hit : pep_hits)
           {
-            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+            pep_hit.setPeptideEvidences(std::vector<PeptideEvidence>());
           }
-          it_pep->setHits(pep_hits);
+          pep.setHits(pep_hits);
 
-          peptide_ids.push_back(*it_pep);
+          peptide_ids.push_back(pep);
         }
       }
 
@@ -1033,17 +1036,38 @@ protected:
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");
 
+    // reannotate file origin and native ids
+    MSExperiment exp;
+    MzMLFile mz_file;
+    PeakFileOptions opt;
+    opt.setMetadataOnly(true);
+    mz_file.setOptions(opt);
+    mz_file.load(inputfile_name, exp);
+    protein_identification.setPrimaryMSRunPath({inputfile_name}, exp);
+
+    // add RT and precursor m/z to the peptide IDs (look them up in the spectra):
+    SpectrumMetaDataLookup::addMissingSpectrumReferences(
+        peptide_ids, 
+        inputfile_name,
+        true);
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    OPENMS_LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
-
+    OpenMS_Log_info << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << cnt << " = " << int(peptide_ids.size() * 100.0 / cnt) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

@@ -100,6 +100,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="8" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="500" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
 							<cvParam cvRef="MS" accession="MS:1000282" name="sustained off-resonance irradiation" />
@@ -131,6 +136,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -161,6 +171,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -191,6 +206,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -222,11 +242,11 @@
 	<index name="chromatogram">
 		<offset idRef="tr1">3515</offset>
 		<offset idRef="tr3">6887</offset>
-		<offset idRef="tr2">9920</offset>
-		<offset idRef="tr4">12467</offset>
-		<offset idRef="tr5">15014</offset>
+		<offset idRef="tr2">10169</offset>
+		<offset idRef="tr4">12965</offset>
+		<offset idRef="tr5">15761</offset>
 	</index>
 </indexList>
-<indexListOffset>17594</indexListOffset>
+<indexListOffset>18590</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

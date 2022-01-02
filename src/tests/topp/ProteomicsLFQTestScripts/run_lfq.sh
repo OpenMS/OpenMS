@@ -17,7 +17,7 @@ for f in ${DATA_PATH}/*.mzML; do
   PeptideIndexer -fasta ${DATA_PATH}/iPRG2015_decoy.fasta  -in ${fn}.idXML -out ${fn}.idXML -enzyme:specificity none
   # run percolator so we get well calibrated PEPs and q-values
   PSMFeatureExtractor -in ${fn}.idXML -out ${fn}.idXML 
-  PercolatorAdapter -in ${fn}.idXML -out ${fn}.idXML -percolator_executable percolator -post-processing-tdc -subset-max-train 100000 
+  PercolatorAdapter -in ${fn}.idXML -out ${fn}.idXML -percolator_executable percolator -post_processing_tdc -subset_max_train 100000 
   FalseDiscoveryRate -in ${fn}.idXML -out ${fn}.idXML -algorithm:add_decoy_peptides -algorithm:add_decoy_proteins 
   # pre-filter to 5% PSM-level FDR to reduce data
   IDFilter -in ${fn}.idXML -out ${fn}.idXML -score:pep 0.05 
