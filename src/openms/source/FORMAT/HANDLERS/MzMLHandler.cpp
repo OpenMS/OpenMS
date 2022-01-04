@@ -3883,17 +3883,18 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //
 
+      // precursor m/z may come from "isolation window":
+      mz = precursor.getMetaValue("selected ion m/z",
+                                  precursor.getMZ());
+
       if (options_.getForceTPPCompatability() ||
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
           precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
           !precursor.getPossibleChargeStates().empty() ||
-          precursor.getMZ() > 0.0)
+          mz > 0.0)
       {
-        // precursor m/z may come from "isolation window":
-        mz = precursor.getMetaValue("selected ion m/z",
-                                    precursor.getMZ());
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
