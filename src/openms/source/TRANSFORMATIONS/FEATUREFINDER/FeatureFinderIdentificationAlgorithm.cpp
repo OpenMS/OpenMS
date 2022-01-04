@@ -29,10 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Hendrik Weisser $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
@@ -41,22 +45,15 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h> // for legacy "run" method
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
 #include <vector>
 #include <numeric>
 #include <fstream>
 #include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -64,13 +61,10 @@
 
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
-
 namespace OpenMS
 {
   FeatureFinderIdentificationAlgorithm::FeatureFinderIdentificationAlgorithm() :
-    DefaultParamHandler("FeatureFinderIdentificationAlgorithm"),
-    n_internal_targets_(0), n_external_targets_(0), n_seed_targets_(0)
+    DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
   {
     std::vector<std::string> output_file_tags;
     output_file_tags.push_back("output file");
@@ -80,29 +74,31 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", {"advanced"});
     defaults_.setMinInt("debug", 0);
 
-    defaults_.setValue("extract:batch_size", 5000, "Number of target molecules to consider in each batch of chromatogram extraction."
+    defaults_.setValue("extract:batch_size", 5000, "Nr of peptides used in each batch of chromatogram extraction."
                          " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
-    defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each target molecule assay.");
+    defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
-    defaults_.setValue("extract:max_isotopes", "false", "Be default, isotopes are extracted starting from the monoisotope. Set this flag to extract the most abundant isotopes instead. (Not relevant if advanced parameter 'extract:isotope_pmin' is used.)");
-    defaults_.setValidStrings("extract:max_isotopes", {"true", "false"});
-    defaults_.setValue("extract:isotope_pmin", 0.0, "Minimum probability for an isotope to be included in the assay for a molecule. If set, this parameter takes precedence over 'extract:n_isotopes'.", {"advanced"});
+    defaults_.setValue(
+      "extract:isotope_pmin",
+      0.0, 
+      "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.",
+      {"advanced"});
     defaults_.setMinFloat("extract:isotope_pmin", 0.0);
     defaults_.setMaxFloat("extract:isotope_pmin", 1.0);
     defaults_.setValue(
-      "extract:rt_quantile",
-      0.95,
+      "extract:rt_quantile", 
+      0.95, 
       "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window",
       {"advanced"});
     defaults_.setMinFloat("extract:rt_quantile", 0.0);
     defaults_.setMaxFloat("extract:rt_quantile", 1.0);
 
     defaults_.setValue(
-      "extract:rt_window",
-      0.0,
+      "extract:rt_window", 
+      0.0, 
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
       {"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
@@ -112,19 +108,19 @@ namespace OpenMS
     defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extration window, unless set explicitly via 'extract:rt_window'.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
-      "detect:min_peak_width",
-      0.2,
+      "detect:min_peak_width", 
+      0.2, 
       "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.",
       {"advanced"});
     defaults_.setMinFloat("detect:min_peak_width", 0.0);
 
     defaults_.setValue(
-      "detect:signal_to_noise",
-      0.8,
+      "detect:signal_to_noise", 
+      0.8, 
       "Signal-to-noise threshold for OpenSWATH feature detection",
        {"advanced"});
     defaults_.setMinFloat("detect:signal_to_noise", 0.1);
-    defaults_.setValue("detect:mapping_tolerance", 0.0, "RT tolerance (plus/minus) for mapping molecule IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.");
+    defaults_.setValue("detect:mapping_tolerance", 0.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.");
     defaults_.setMinFloat("detect:mapping_tolerance", 0.0);
 
     defaults_.setSectionDescription("detect", "Parameters for detecting features in extracted ion chromatograms");
@@ -148,14 +144,14 @@ namespace OpenMS
     String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
 
     defaults_.setValue(
-      "svm:predictors",
-      score_metavalues,
+      "svm:predictors", 
+      score_metavalues, 
       "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)",
       {"advanced"});
 
     defaults_.setValue(
-      "svm:min_prob",
-      0.0,
+      "svm:min_prob", 
+      0.0, 
       "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate",
       {"advanced"});
     defaults_.setMinFloat("svm:min_prob", 0.0);
@@ -194,28 +190,28 @@ namespace OpenMS
 
   void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
   {
-    ms_data_ = ms_data;
-
+    ms_data_ = ms_data; 
+    
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
     specs.erase(
       std::remove_if(specs.begin(), specs.end(),
         [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
-      specs.end());
+      specs.end());    
   }
 
   void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
   {
-    ms_data_ = std::move(ms_data);
-
+    ms_data_ = std::move(ms_data); 
+    
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
     specs.erase(
       std::remove_if(specs.begin(), specs.end(),
         [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
-      specs.end());
+      specs.end());    
   }
 
   PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms()
@@ -249,13 +245,15 @@ namespace OpenMS
   }
 
   void FeatureFinderIdentificationAlgorithm::run(
+    vector<PeptideIdentification> peptides,
+    const vector<ProteinIdentification>& proteins,
+    vector<PeptideIdentification> peptides_ext,
+    vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    IdentificationData& id_data,
-    IdentificationData& id_data_ext,
-    const String& spectra_file)
+    const FeatureMap& seeds,
+    const String spectra_file
+    )
   {
-    target_map_.clear();
-
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
       String msg = "Sample size of " + String(svm_n_samples_) +
@@ -300,27 +298,37 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
-                    "corrected");
+                    "corrected");    
     params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // disabled in OpenSWATH
-
+    
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
     // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
 
-    double rt_uncertainty = 0;
-    bool with_external_ids = !id_data_ext.empty();
+    double rt_uncertainty(0);
+    bool with_external_ids = !peptides_ext.empty();
+
+    if (with_external_ids && !seeds.empty())
+    {
+      throw Exception::IllegalArgument(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "Using seeds and external ids is currently not supported.");
+    }
+
     if (with_external_ids)
     {
       // align internal and external IDs to estimate RT shifts:
       MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(id_data_ext); // go from internal to external scale
-      vector<IdentificationData> aligner_ids(1, id_data);
+      aligner.setReference(peptides_ext); // go from internal to external scale
+      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
       vector<TransformationDescription> aligner_trafos;
 
       OPENMS_LOG_INFO << "Realigning internal and external IDs...";
-      aligner.align(aligner_ids, aligner_trafos);
+      aligner.align(aligner_peptides, aligner_trafos);
       trafo_external_ = aligner_trafos[0];
       vector<double> aligned_diffs;
       trafo_external_.getDeviations(aligned_diffs);
@@ -333,7 +341,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external IDs. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
       }
     }
 
@@ -346,66 +354,116 @@ namespace OpenMS
         map_tol *= (2 * peak_width_); // relative tolerance
       }
       rt_window_ = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
-      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds." << endl;
+      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
+               << endl;
     }
 
     //-------------------------------------------------------------
-    // prepare target ion map
+    // prepare peptide map
     //-------------------------------------------------------------
-    OPENMS_LOG_INFO << "Preparing data..." << endl;
-    target_map_.clear();
+    OPENMS_LOG_INFO << "Preparing mapping of peptide data..." << endl;
+    peptide_map_.clear();
 
-    // @TODO: expose score choice to user via a parameter
-    ID::ScoreTypeRef score_ref = id_data.pickScoreType(id_data.getObservationMatches());
-    IDFilter::keepBestMatchPerObservation(id_data, score_ref);
-    for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
-         ref != id_data.getObservationMatches().end(); ++ref)
-    {
-      const String& cat = ref->getMetaValue("FFId_category", "");
-      if (cat == "seed")
-      {
-        n_seed_targets_++;
-      }
-      else if (cat.empty()) // default to "internal"
-      {
-        id_data.setMetaValue(ref, "FFId_category", "internal");
-      }
-      addMatchToTargetMap_(ref);
-    }
-    n_internal_targets_ = target_map_.size() - n_seed_targets_;
+    // Reserve enough space for all possible seeds
+    peptides.reserve(peptides.size() + seeds.size());
 
-    if (with_external_ids)
+    for (auto& pep : peptides)
     {
-      // find the same score type in the external data:
-      String score_name = score_ref->cv_term.getName();
-      score_ref = id_data_ext.findScoreType(score_name);
-      if (score_ref == id_data_ext.getScoreTypes().end()) // not found
+      addPeptideToMap_(pep, peptide_map_);
+      pep.setMetaValue("FFId_category", "internal");
+    }
+
+    // TODO make sure that only assembled traces (more than one trace -> has a charge)
+    // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    Size seeds_added(0);
+
+    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
+    // make them truly unique and not be converted to an actual modification.
+    const String pseudo_mod_name = String(10000);
+    AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
+    for (const Feature& feat : seeds)
+    {
+      // check if already a peptide in peptide_map_ that is close in RT and MZ
+      // if so don't add seed
+      bool peptide_already_exists = false;
+      for (const auto & peptide : peptides)
       {
-        String msg = "score type '" + score_name + "' not found in external IDs";
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+        double seed_RT = feat.getRT();
+        double seed_MZ = feat.getMZ();
+        double seed_charge = feat.getCharge();
+        double peptide_RT = peptide.getRT();
+        double peptide_MZ = peptide.getMZ();
+
+        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
+        // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
+        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
+        if ((fabs(seed_RT - peptide_RT) <= seed_rt_window_ / 2.0) &&
+           ((fabs(seed_MZ - peptide_MZ) <= th_tolerance) ||
+             fabs(seed_MZ - (1.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (2.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (3.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (4.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (5.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance)
+            )
+        {
+          peptide_already_exists = true;
+          String seq = "empty";
+          int chg = 0;
+          if (!peptide.getHits().empty())
+          {
+            seq = peptide.getHits()[0].getSequence().toString();
+            chg = peptide.getHits()[0].getCharge();
+          }
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << String(feat.getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
+
+          break;
+        }
       }
-      IDFilter::keepBestMatchPerObservation(id_data_ext, score_ref);
-      for (ID::ObservationMatchRef ref = id_data_ext.getObservationMatches().begin();
-         ref != id_data_ext.getObservationMatches().end(); ++ref)
+
+      if (!peptide_already_exists)
       {
-        addMatchToTargetMap_(ref, true);
-        id_data_ext.setMetaValue(ref, "FFId_category", "external");
+        // WARNING: Superhack! Store ID generated from seed in the original input peptide
+        // vector to make sure that the pointers that will be added to peptide_map_
+        // stay valid for the duration of the function.
+        peptides.emplace_back();
+        PeptideHit seed_hit;
+        seed_hit.setCharge(feat.getCharge());
+        seed_hit.setSequence(some_seq);
+        peptides.back().getHits().push_back(std::move(seed_hit));
+        peptides.back().setRT(feat.getRT());
+        peptides.back().setMZ(feat.getMZ());
+        peptides.back().setMetaValue("FFId_category", "internal");
+        peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
+        addPeptideToMap_(peptides.back(), peptide_map_);
+        ++seeds_added;
       }
     }
-    n_external_targets_ = target_map_.size() - n_internal_targets_ - n_seed_targets_;
+    OPENMS_LOG_INFO << "#Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
+
+    n_internal_peps_ = peptide_map_.size();
+    for (PeptideIdentification& pep : peptides_ext)
+    {
+      addPeptideToMap_(pep, peptide_map_, true);
+      pep.setMetaValue("FFId_category", "external");
+    }
+    n_external_peps_ = peptide_map_.size() - n_internal_peps_;
 
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-    OpenSwath::SpectrumAccessPtr spec_temp = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-    auto chunks = chunk_(target_map_.begin(), target_map_.end(), batch_size_);
+    OpenSwath::SpectrumAccessPtr spec_temp =
+        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+    auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
-    if (debug_level_ >= 666)
+    PeptideRefRTMap ref_rt_map;
+    if (debug_level_ >= 668)
     {
       OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
-      createAssayLibrary_(target_map_.begin(), target_map_.end());
-      OPENMS_LOG_DEBUG << "Writing debug.traml file..." << endl;
-      TraMLFile().store("debug.traml", library_);
+      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, false);
+      cout << "Writing debug.traml file." << endl;
+      FileHandler().storeTransitions("debug.traml", library_);
+      ref_rt_map.clear();
       library_.clear(true);
     }
 
@@ -417,29 +475,31 @@ namespace OpenMS
     Size chunk_count = 0;
     for (auto& chunk : chunks)
     {
-      OPENMS_LOG_INFO << "Creating assay library..." << endl;
-      createAssayLibrary_(chunk.first, chunk.second);
+      //TODO since ref_rt_map is only used after chunking, we could create
+      // maps per chunk and merge them in the end. Would help in parallelizing as well.
+      createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
       OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
-      OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
       {
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-        // take entries in library_ and write to chrom_temp and coords
+        // take entries in library_ and put to chrom_temp and coords
         extractor.prepare_coordinates(chrom_temp, coords, library_,
                                       numeric_limits<double>::quiet_NaN(), false);
+
+
         extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                        mz_window_ppm_, "tophat");
         extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                       chrom_data_.getChromatograms(), false);
       }
 
-      OPENMS_LOG_INFO << "Extracted " << chrom_data_.getNrChromatograms()
-                      << " chromatogram(s)." << endl;
+      OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+                       << " chromatogram(s)." << endl;
 
-      OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
+      OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
       if (debug_level_ < 1)
       {
@@ -452,7 +512,6 @@ namespace OpenMS
         OpenMS_Log_info.insert(cout); // revert logging change
       }
       chrom_data_.clear(true);
-      combined_library_ += library_;
       library_.clear(true);
       // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
       // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
@@ -463,146 +522,81 @@ namespace OpenMS
     }
     getProgressLogger().endProgress();
 
-    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
-    // if (!candidates_out_.empty()) FeatureXMLFile().store(candidates_out_, features);
+    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
+                    << endl;
 
     ms_data_.reset(); // not needed anymore, free up the memory
-
     // complete feature annotation:
-    annotateFeatures_(features);
+    annotateFeatures_(features, ref_rt_map);
+
     // sort everything:
+    sort(features.getUnassignedPeptideIdentifications().begin(),
+         features.getUnassignedPeptideIdentifications().end(),
+         peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
     postProcess_(features, with_external_ids);
-    statistics_(features, with_external_ids);
+    statistics_(features);
 
-    // move IDs:
-    IdentificationData& feat_ids = features.getIdentificationData();
-    feat_ids.swap(id_data);
-    if (with_external_ids)
+    features.setProteinIdentifications(proteins);
+    // add external IDs (if any):
+    features.getProteinIdentifications().insert(
+      features.getProteinIdentifications().end(), proteins_ext.begin(),
+      proteins_ext.end());
+    features.getUnassignedPeptideIdentifications().insert(
+      features.getUnassignedPeptideIdentifications().end(),
+      peptides_ext.begin(), peptides_ext.end());
+
+    // remove all hits with pseudo ids (seeds)
+    for (Feature& f : features)
     {
-      ID::RefTranslator trans = feat_ids.merge(id_data_ext);
-      // references to internal IDs don't need to be translated:
-      trans.allow_missing = true;
-      for (Feature& feature : features)
+      std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+      for (auto & pid : ids)
       {
-        feature.updateAllIDReferences(trans);
-      }
-    }
-  }
-
-  // represent seeds in IdentificationData format
-  void FeatureFinderIdentificationAlgorithm::convertSeeds(
-    const FeatureMap& seeds, IdentificationData& id_data,
-    const String& input_file, Size n_overlap_traces)
-  {
-    // TODO make sure that only assembled traces (more than one trace -> has a charge) are used
-    // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
-
-    ID::ProcessingSoftware software("FeatureFinderIdentification", VersionInfo::getVersion());
-    ID::ProcessingSoftwareRef sw_ref = id_data.registerProcessingSoftware(software);
-    ID::InputFile input(input_file);
-    if (input.name.empty())
-    {
-      input.name = seeds.getLoadedFilePath();
-    }
-    if (input.name.empty())
-    {
-      input.name = "UNKNOWN_SEEDS_INPUT";
-    }
-    ID::InputFileRef file_ref = id_data.registerInputFile(input);
-    ID::ProcessingStep step(sw_ref, {file_ref});
-    ID::ProcessingStepRef step_ref = id_data.registerProcessingStep(step);
-    id_data.setCurrentProcessingStep(step_ref);
-
-    Size seeds_added(0);
-    vector<bool> target_already_exists(seeds.size(), false);
-    Size feature_index = 0;
-    double rt_tolerance = rt_window_seeds_ / 2.0;
-    for (const Feature& seed : seeds)
-    {
-      double seed_rt = seed.getRT();
-      double seed_mz = seed.getMZ();
-      double seed_charge = seed.getCharge();
-
-      // consider multiple isotopic traces when checking m/z overlap
-      vector<double> isotopes_mz(n_overlap_traces, seed_mz);
-      for (Size i = 1; i < n_overlap_traces; ++i)
-      {
-        isotopes_mz[i] -= double(i) / seed_charge * Constants::C13C12_MASSDIFF_U;
+        std::vector<PeptideHit>& hits = pid.getHits();
+        auto it = remove_if(hits.begin(), hits.end(),
+          [](const PeptideHit & ph)
+          {
+            return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
+          });
+        hits.erase(it, hits.end()); // remove / erase idiom
       }
 
-      // check if there's already a target that is close in RT and MZ; if so, don't add seed
-      // @TODO: this checks every observation for every seed; can we be more efficient?
-      // (doing this after we have RT regions for the "real" IDs would be ideal)
-      for (ID::ObservationRef ref = id_data.getObservations().begin();
-           ref != id_data.getObservations().end(); ++ref)
-      {
-        auto pair = id_data.getMatchesForObservation(ref);
-        if (pair.first == pair.second) continue; // no matches for this observation
-
-        // RT or MZ values of seed match in range -> target already exists -> don't add seed
-        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * ref->mz : mz_window_;
-        if ((fabs(seed_rt - ref->rt) <= rt_tolerance) &&
-            any_of(isotopes_mz.begin(), isotopes_mz.end(), [&](double isotope_mz)
-            {
-              return fabs(isotope_mz - ref->mz) <= th_tolerance;
-            }))
+      // remove empty PeptideIdentifications
+      auto it = remove_if(ids.begin(), ids.end(),
+        [](const PeptideIdentification & pid)
         {
-          target_already_exists[feature_index] = true;
-          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from feature " << String(seed.getUniqueId())
-                                  << " with z=" << seed_charge << ", RT=" << seed_rt << ", m/z=" << seed_mz
-                                  << " due to overlap with observation " << ref->data_id
-                                  << " at RT=" << ref->rt << ", m/z=" << ref->mz << endl;
-          break;
-        }
-      }
-      ++feature_index;
+          return pid.empty();
+        });
+      ids.erase(it, ids.end()); // remove / erase idiom
     }
 
-    for (feature_index = 0; feature_index < seeds.size(); ++feature_index)
+    // clean up unassigned PeptideIdentifications
+    std::vector<PeptideIdentification>& ids = features.getUnassignedPeptideIdentifications();
+    for (auto & pid : ids)
     {
-      if (!target_already_exists[feature_index])
+      std::vector<PeptideHit>& hits = pid.getHits();
+      auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
       {
-        const Feature& seed = seeds[feature_index];
-        ++seeds_added; // count from 1
-        String id = String(seed.getUniqueId());
-        ID::Observation query(id, file_ref, seed.getRT(), seed.getMZ());
-        ID::ObservationRef query_ref = id_data.registerObservation(query);
-
-        // represent seeds as compounds - no need to fake a peptide sequence:
-        ID::IdentifiedCompound compound("SEED:" + String(seeds_added));
-        ID::IdentifiedCompoundRef com_ref =
-          id_data.registerIdentifiedCompound(compound);
-
-        ID::ObservationMatch match(com_ref, query_ref, seed.getCharge());
-        match.setMetaValue("FFId_category", "seed");
-        ID::ObservationMatchRef match_ref =
-          id_data.registerObservationMatch(match);
-        addMatchToTargetMap_(match_ref);
-      }
+        return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
+      });
+      hits.erase(it, hits.end());
     }
-    OPENMS_LOG_INFO << seeds_added << " seeds without RT and m/z overlap with existing IDs added" << endl;
+
+    // remove empty PeptideIdentifications
+    auto it = remove_if(ids.begin(), ids.end(),
+      [](const PeptideIdentification & pid)
+      {
+        return pid.empty();
+      });
+    ids.erase(it, ids.end()); // remove / erase idiom
+
+    features.ensureUniqueId();
   }
 
-  pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
-    const Feature& feature, bool extract_charge)
-  {
-    String target_id = feature.getMetaValue("PeptideRef"); // e.g. "PEP:XXXXX/2#1"
-    Size pos_slash = target_id.rfind('/');
-    Int charge = 0;
-    if (extract_charge)
-    {
-      Size pos_hash = target_id.find('#', pos_slash + 2);
-      // second arg. to "substr" is "count", not "end_pos"!
-      charge = target_id.substr(pos_slash + 1, pos_hash - pos_slash - 1).toInt();
-    }
-    return make_pair(target_id.substr(0, pos_slash), charge);
-  }
-
-
-  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap& features,
-                                                          bool with_external_ids)
+  void FeatureFinderIdentificationAlgorithm::postProcess_(
+   FeatureMap & features,
+   bool with_external_ids)
   {
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids)
@@ -621,25 +615,11 @@ namespace OpenMS
     filterFeatures_(features, with_external_ids);
     OPENMS_LOG_INFO << features.size() << " features left after filtering." << endl;
 
-    // fill in meta data for the features that are left:
-    for (auto& feature : features)
+    if (!svm_probs_internal_.empty())
     {
-      ensureConvexHulls_(feature);
-      // annotate subordinates with theoretical isotope intensities:
-      for (Feature& sub_feature : feature.getSubordinates())
-      {
-        String native_id = sub_feature.getMetaValue("native_id");
-        sub_feature.setMetaValue("isotope_probability", isotope_probs_[native_id]);
-      }
-      // add label:
-      String target_id = extractTargetID_(feature).first;
-      target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
-      feature.setMetaValue("label", target_id);
+      calculateFDR_(features);
     }
-
-    if (!svm_probs_internal_.empty()) calculateFDR_(features);
-
-    // TODO: MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
     // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
     // What is the intention of this post-processing here anyway? Does it filter anything?
     // If so, why not filter based on the corresponding Swath/MRM score?
@@ -655,17 +635,17 @@ namespace OpenMS
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
-      for (auto& feat : features)
+      for (auto & feat : features)
       {
-        for (auto& sub : feat.getSubordinates())
+        for (auto & sub : feat.getSubordinates())
         {
           sub.getConvexHulls().clear();
         }
       }
     }
+
   }
 
-/*
   void FeatureFinderIdentificationAlgorithm::runOnCandidates(FeatureMap & features)
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -680,7 +660,7 @@ namespace OpenMS
     bool with_external_ids = (!features.empty() && features[0].metaValueExists("predicted_class"));
 
     // extract ID information for statistics:
-    molecule_map_.clear();
+    peptide_map_.clear();
     set<AASequence> internal_seqs;
     for (PeptideIdentification& pep : features.getUnassignedPeptideIdentifications())
     {
@@ -689,7 +669,7 @@ namespace OpenMS
       {
         internal_seqs.insert(seq);
       }
-      molecule_map_[seq];
+      peptide_map_[seq];
     }
     for (const Feature& feat : features)
     {
@@ -703,10 +683,10 @@ namespace OpenMS
       {
         internal_seqs.insert(seq);
       }
-      molecule_map_[seq];
+      peptide_map_[seq];
     }
-    n_internal_molecules_ = internal_seqs.size();
-    n_external_molecules_ = molecule_map_.size() - internal_seqs.size();
+    n_internal_peps_ = internal_seqs.size();
+    n_external_peps_ = peptide_map_.size() - internal_seqs.size();
 
     // sort everything:
     sort(features.getUnassignedPeptideIdentifications().begin(),
@@ -717,400 +697,462 @@ namespace OpenMS
     postProcess_(features, with_external_ids);
 
     statistics_(features);
-  }
-*/
 
-  void FeatureFinderIdentificationAlgorithm::statistics_(
-    const FeatureMap& features, bool with_external_ids) const
+  }
+
+  void FeatureFinderIdentificationAlgorithm::statistics_(FeatureMap const & features) const
   {
-    // same molecule may be quantified based on internal and external IDs if
-    // charge states differ!
-    set<String> quantified_internal, quantified_seed, quantified_all;
-    for (const Feature& feature : features)
+    // same peptide sequence may be quantified based on internal and external
+    // IDs if charge states differ!
+    set<AASequence> quantified_internal, quantified_all;
+    for (const auto& f : features)
     {
-      String target_id = extractTargetID_(feature, false).first;
-      if (feature.getIntensity() > 0.0)
+      const PeptideIdentification& pep_id = f.getPeptideIdentifications()[0];
+      const AASequence& seq = pep_id.getHits()[0].getSequence();
+      if (f.getIntensity() > 0.0)
       {
-        quantified_all.insert(target_id);
-        if (feature.getIDMatches().empty()) continue;
-        String category = (*feature.getIDMatches().begin())->getMetaValue("FFId_category");
-        // @TODO: we might need to introduce another category for transfers or even declare them external
-        // but we do not always want to trigger the SVM due to runtime.
-        if (category == "internal" || category == "transfer")
+        quantified_all.insert(seq);
+        if (pep_id.getMetaValue("FFId_category") == "internal")
         {
-          quantified_internal.insert(target_id);
-        }
-        else if (category == "seed")
-        {
-          quantified_seed.insert(target_id);
+          quantified_internal.insert(seq);
         }
       }
     }
-    Size n_quant_external = quantified_all.size() - quantified_internal.size() -
-      quantified_seed.size();
+    Size n_quant_external = quantified_all.size() - quantified_internal.size();
     // If internal and external IDs for a peptide map to different RT regions,
     // it is possible that there is a quantification from the "external" region,
     // but not from the "internal" region (no matching feature) - therefore the
     // number of "missing" external peptides can be negative!
-    Int n_missing_external = Int(n_external_targets_) - n_quant_external;
+    Int n_missing_external = Int(n_external_peps_) - n_quant_external;
 
-    // @TODO: break targets down into peptides, compounds, RNA oligos?
-    OPENMS_LOG_INFO << "\nSummary statistics (counting distinct targets including modifications):\n"
-                    << target_map_.size() << " targets identified";
-    if (with_external_ids || (n_seed_targets_ > 0))
-    {
-      OPENMS_LOG_INFO << " (" << n_internal_targets_ << " internal";
-      if (with_external_ids)
-      {
-        OPENMS_LOG_INFO << ", " << n_external_targets_ << " additional external";
-      }
-      if (n_seed_targets_ > 0)
-      {
-        OPENMS_LOG_INFO << ", " << n_seed_targets_ << " seed-based";
-      }
-      OPENMS_LOG_INFO << ")";
-    }
-    OPENMS_LOG_INFO << "\n" << quantified_all.size() << " targets with features";
-    if (with_external_ids || (n_seed_targets_ > 0))
-    {
-      OPENMS_LOG_INFO << " (" << quantified_internal.size() << " internal";
-      if (with_external_ids)
-      {
-        OPENMS_LOG_INFO << ", " << n_quant_external << " external";
-      }
-      if (n_seed_targets_ > 0)
-      {
-        OPENMS_LOG_INFO << ", " << quantified_seed.size() << " seed-based";
-      }
-      OPENMS_LOG_INFO << ")";
-    }
-    OPENMS_LOG_INFO << "\n" << target_map_.size() - quantified_all.size()
-                    << " targets without features";
-    if (with_external_ids || (n_seed_targets_ > 0))
-    {
-      OPENMS_LOG_INFO << " (" << n_internal_targets_ - quantified_internal.size() << " internal";
-      if (with_external_ids)
-      {
-        OPENMS_LOG_INFO << ", " << n_missing_external << " external";
-        if (n_missing_external < 0) OPENMS_LOG_INFO << "*";
-      }
-      if (n_seed_targets_ > 0)
-      {
-        OPENMS_LOG_INFO << ", " << n_seed_targets_ - quantified_seed.size() << " seed-based";
-      }
-      OPENMS_LOG_INFO << ")";
-    }
-    if (n_missing_external < 0)
-    {
-      OPENMS_LOG_INFO << "\n*: At least " << -n_missing_external << " targets without valid features based on internal IDs were quantified based on external IDs (in a different charge state) instead.";
-    }
-    OPENMS_LOG_INFO << "\n" << endl;
+    OPENMS_LOG_INFO << "\nSummary statistics (counting distinct peptides including "
+      "PTMs):\n"
+             << peptide_map_.size() << " peptides identified ("
+             << n_internal_peps_ << " internal, " << n_external_peps_
+             << " additional external)\n"
+             << quantified_all.size() << " peptides with features ("
+             << quantified_internal.size() << " internal, "
+             << n_quant_external << " external)\n"
+             << peptide_map_.size() - quantified_all.size()
+             << " peptides without features ("
+             << n_internal_peps_ - quantified_internal.size() << " internal, "
+             << n_missing_external << " external)\n" << endl;
+
   }
 
-
-  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
-    TargetMap::iterator begin, TargetMap::iterator end)
+  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs)
   {
-    Size n_isotopes = 10;
-    if (!max_isotopes_ && (isotope_pmin_ == 0.0)) n_isotopes = n_isotopes_;
-    CoarseIsotopePatternGenerator iso_gen(n_isotopes);
-    iso_gen.setRoundMasses(false); // this is already the default, but be explicit
+    std::set<String> protein_accessions;
 
-    for (auto target_it = begin; target_it != end; ++target_it)
+    Size seedcount = 0;
+    for (auto pm_it = begin;
+         pm_it != end; ++pm_it)
     {
-      const String& target_id = target_it->first;
-      OPENMS_LOG_DEBUG << "\nTarget molecule: " << target_id << endl;
-      const ID::IdentifiedMolecule& molecule = target_it->second.molecule;
-      const ID::AdductOpt& adduct = target_it->second.adduct;
-      ID::MoleculeType molecule_type = molecule.getMoleculeType();
-      // special case: peptides can contain custom modifications that are
-      // only defined by mass shift; these get lost during conversion to an
-      // empirical formula, but are correctly included in the mass here:
-      double mass = (molecule_type == ID::MoleculeType::PROTEIN) ?
-        molecule.getIdentifiedPeptideRef()->sequence.getMonoWeight() : 0.0;
+      TargetedExperiment::Peptide peptide;
+      const AASequence &seq = pm_it->first;
 
-      // @TODO: use "TargetedExperiment::Peptide" for peptides?
-      TargetedExperiment::Compound target;
-      IsotopeDistribution iso_dist;
-      EmpiricalFormula formula = molecule.getFormula();
-      if (!formula.isEmpty())
+
+      // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
+      // sequence and the modifications separately. Unfortunately, creating the
+      // modifications vector is complex and there is currently no convenient
+      // conversion function (see "TargetedExperimentHelper::getAASequence" for
+      // the reverse conversion). However, "Peptide" is later converted to
+      // "OpenSwath::LightPeptide" anyway, and this is done via "AASequence"
+      // (see "OpenSwathDataAccessHelper::convertTargetedPeptide"). So for our
+      // purposes it works to just store the sequence including modifications in
+      // "Peptide".
+
+      // for now, seeds are stored in the same PeptideRefMap, all
+      // under the same fake sequence key entry
+      // TODO add own data structure for them
+      if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
       {
-        target.theoretical_mass = (mass > 0.0) ? mass : formula.getMonoWeight();
-        if (adduct)
+        // This will force the SWATH scores to consider it like an unidentified peptide and e.g. use averagine isotopes
+        peptide.sequence = "";
+        // we do not have to aggregate their retention times, therefore just
+        // iterate over the entries
+        const ChargeMap& cm = pm_it->second;
+        for (const auto& charge_rtmap : cm)
         {
-          target.theoretical_mass += (*adduct)->getMassShift();
-          // when adding sum formulas, balance adduct charge with hydrogens:
-          formula += (*adduct)->getEmpiricalFormula() -
-            EmpiricalFormula::hydrogen((*adduct)->getCharge());
-        }
-        target.molecular_formula = formula.toString();
-        iso_dist = formula.getIsotopeDistribution(iso_gen);
-      }
-      else // seed
-      {
-        if (!target_id.hasPrefix("SEED:"))
-        {
-          OPENMS_LOG_WARN
-            << "Warning: no chemical formula given for compound '" << target_id
-            << "'; estimating isotopic distribution based on peptide averagine" << endl;
-        }
-        // find m/z from an "input item" that we generated for the seed:
-        ID::ObservationMatchRef match_ref = target_it->second.hits_by_charge.begin()->second.first.begin()->second;
-        ID::ObservationRef obs_ref = match_ref->observation_ref;
-        target.theoretical_mass = (obs_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;
-        // @TODO: add support for RNA "averagine" option
-        iso_dist = iso_gen.estimateFromPeptideWeight(target.theoretical_mass);
-      }
-
-      // mass difference between molecule and isotopic distribution can occur
-      // when "anonymous" modifications are used in peptides (see comment above):
-      double mass_diff = target.theoretical_mass - iso_dist[0].getMZ();
-      double epsilon = numeric_limits<double>::epsilon() * target.theoretical_mass * 2;
-      if (mass_diff > epsilon)
-      {
-        OPENMS_LOG_DEBUG << "Mass shift for target " << target_id << ": " << mass_diff << endl;
-        for (Peak1D& pair : iso_dist)
-        {
-          pair.setMZ(pair.getMZ() + mass_diff);
-        }
-      }
-
-      if (isotope_pmin_ > 0.0)
-      {
-        iso_dist.trimIntensities(isotope_pmin_);
-        iso_dist.renormalize(); // @TODO: is this useful here?
-      }
-      else if (max_isotopes_)
-      {
-        iso_dist.sortByIntensity();
-        iso_dist.resize(n_isotopes_);
-      }
-
-      // get regions in which target elutes (ideally only one):
-      vector<RTRegion> rt_regions;
-      bool is_seed = target_id.hasPrefix("SEED:");
-      makeRTRegions_(target_it->second.hits_by_charge, rt_regions, is_seed);
-      OPENMS_LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
-
-      // go through different charge states:
-      for (const auto& charge_pair : target_it->second.hits_by_charge)
-      {
-        Int charge = charge_pair.first; // note that charge may be negative
-        target.setChargeState(charge);
-        OPENMS_LOG_DEBUG << "Charge: " << charge << endl;
-        String ion_id = target_id + "/" + String(charge);
-
-        // we want to detect one feature per peptide and charge state - if there
-        // are multiple RT regions, group them together:
-        // peptide.setPeptideGroupLabel(peptide_id);
-        target.rts.clear();
-        Size counter = 0;
-        for (auto& region : rt_regions)
-        {
-          if (region.ids.count(charge))
+          Int charge = charge_rtmap.first;
+          // only go through internals for seeds (->first). External seeds are not supported
+          for (const auto& rt_pep : charge_rtmap.second.first)
           {
-            OPENMS_LOG_DEBUG
-              << "Region " << counter + 1 << " (RT: " << float(region.start)
-              << "-" << float(region.end) << ", size "
-              << float(region.end - region.start) << ")" << endl;
+            // since we don't know their IDs, seeds will all need a different grouplabel in SWATH
+            // to not be combined
+            seedcount++;
 
-            target.id = ion_id;
-            if (rt_regions.size() > 1) target.id += "#" + String(++counter);
+            double mz = rt_pep.second->getMZ();
+            double rt = rt_pep.second->getRT();
+            String uid = rt_pep.second->getMetaValue("SeedFeatureID");
 
-            // store beginning and end of RT region:
-            target.rts.clear();
-            addTargetRT_(target, region.start);
-            addTargetRT_(target, region.end);
-            library_.addCompound(target);
-            generateTransitions_(target.id, target.theoretical_mass, charge, iso_dist);
+            // UID should be enough, but let's add the seed count to be sure.
+            String peptide_id = peptide.sequence + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
+            peptide.setChargeState(charge);
+            peptide.id = peptide_id;
+            peptide.protein_refs = {"not_available"};
+            peptide.setPeptideGroupLabel(peptide_id);
+
+            //create an entry in the "output" ref_rt_map for internals
+            RTMap &internal_ids = ref_rt_map[peptide_id].first;
+
+            // get isotope distribution for peptide:
+            //TODO Why 10? Document constant?
+            Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+            CoarseIsotopePatternGenerator generator(n_isotopes);
+            IsotopeDistribution iso_dist = generator
+                .estimateFromPeptideWeight(mz * charge - charge * Constants::PROTON_MASS_U);
+            if (isotope_pmin_ > 0.0)
+            {
+              iso_dist.trimLeft(isotope_pmin_);
+              iso_dist.trimRight(isotope_pmin_);
+              iso_dist.renormalize();
+            }
+
+            double rt_tolerance = seed_rt_window_ / 2.0;
+
+            // store beginning and end of RT region: here we only need one entry
+            peptide.rts.clear();
+            addPeptideRT_(peptide, rt - rt_tolerance);
+            addPeptideRT_(peptide, rt + rt_tolerance);
+            library_.addPeptide(peptide);
+            generateTransitions_(peptide.id, mz, charge, iso_dist);
+            internal_ids.emplace(rt_pep);
+          }
+        }
+      }
+      else
+      {
+        peptide.sequence = seq.toString();
+        // keep track of protein accessions:
+        set<String> current_accessions;
+        // internal/external pair
+        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second;
+
+        // WARNING: This assumes that at least one hit is present.
+        const PeptideHit &hit = (pair.first.empty() ?
+                                 pair.second.begin()->second->getHits()[0] :
+                                 pair.first.begin()->second->getHits()[0]);
+        current_accessions = hit.extractProteinAccessionsSet();
+        protein_accessions.insert(current_accessions.begin(),
+                                  current_accessions.end());
+        // missing protein accession would crash OpenSWATH algorithms:
+        if (current_accessions.empty())
+        {
+          current_accessions.insert("not_available");
+        }
+
+        peptide.protein_refs = vector<String>(current_accessions.begin(),
+                                              current_accessions.end());
+        // get regions in which peptide eludes (ideally only one):
+        std::vector<RTRegion> rt_regions;
+        getRTRegions_(pm_it->second, rt_regions, clear_IDs);
+
+        // get isotope distribution for peptide:
+        Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+        IsotopeDistribution iso_dist =
+            seq.getFormula(Residue::Full, 0).getIsotopeDistribution(CoarseIsotopePatternGenerator(n_isotopes));
+        if (isotope_pmin_ > 0.0)
+        {
+          iso_dist.trimLeft(isotope_pmin_);
+          iso_dist.trimRight(isotope_pmin_);
+          iso_dist.renormalize();
+        }
+
+        // go through different charge states:
+        for (ChargeMap::const_iterator cm_it = pm_it->second.begin();
+             cm_it != pm_it->second.end(); ++cm_it)
+        {
+          Int charge = cm_it->first;
+
+          double mz = seq.getMZ(charge);
+          OPENMS_LOG_DEBUG << "\nPeptide " << peptide.sequence << "/" << charge << " (m/z: " << mz << "):" << endl;
+          peptide.setChargeState(charge);
+          String peptide_id = peptide.sequence + "/" + String(charge);
+
+          // we want to detect one feature per peptide and charge state - if there
+          // are multiple RT regions, group them together:
+          peptide.setPeptideGroupLabel(peptide_id);
+          peptide.rts.clear();
+          Size counter = 0;
+          // accumulate IDs over multiple regions:
+          RTMap &internal_ids = ref_rt_map[peptide_id].first;
+          RTMap &external_ids = ref_rt_map[peptide_id].second;
+          for (RTRegion& reg : rt_regions)
+          {
+            if (reg.ids.count(charge))
+            {
+              OPENMS_LOG_DEBUG_NOFILE << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
+                               << float(reg.start) << "-" << float(reg.end)
+                               << ", size " << float(reg.end - reg.start) << ")"
+                               << endl;
+
+              peptide.id = peptide_id;
+              if (rt_regions.size() > 1)
+                peptide.id += ":" + String(++counter);
+
+              // store beginning and end of RT region:
+              peptide.rts.clear();
+              addPeptideRT_(peptide, reg.start);
+              addPeptideRT_(peptide, reg.end);
+              library_.addPeptide(peptide);
+              generateTransitions_(peptide.id, mz, charge, iso_dist);
+            }
+            internal_ids.insert(reg.ids[charge].first.begin(),
+                                reg.ids[charge].first.end());
+            external_ids.insert(reg.ids[charge].second.begin(),
+                                reg.ids[charge].second.end());
           }
         }
       }
     }
+    // add proteins to library:
+    for (String const &acc : protein_accessions)
+    {
+      TargetedExperiment::Protein protein;
+      protein.id = acc;
+      library_.addProtein(protein);
+    }
   }
 
-
-  void FeatureFinderIdentificationAlgorithm::makeRTRegions_(
-    const ChargeMap& charge_data, vector<RTRegion>& rt_regions, bool is_seed) const
+  void FeatureFinderIdentificationAlgorithm::getRTRegions_(
+    ChargeMap& peptide_data,
+    std::vector<RTRegion>& rt_regions,
+    bool clear_IDs) const
   {
     // use RTs from all charge states here to get a more complete picture:
-    vector<double> rts;
-    for (const auto& charge_pair : charge_data)
+    std::vector<double> rts;
+    for (auto& cm : peptide_data)
     {
-      for (const auto& rt_pair : charge_pair.second.first) // "internal" IDs
+      // "internal" IDs:
+      for (auto& rt : cm.second.first)
       {
-        rts.push_back(rt_pair.first);
+        rts.push_back(rt.first);
       }
-      for (const auto& rt_pair : charge_pair.second.second) // "external" IDs
+      // "external" IDs:
+      for (auto& rt : cm.second.second)
       {
-        rts.push_back(rt_pair.first);
+        rts.push_back(rt.first);
       }
     }
     sort(rts.begin(), rts.end());
-    double rt_tolerance = (is_seed ? rt_window_seeds_ : rt_window_) / 2.0;
+    double rt_tolerance = rt_window_ / 2.0;
 
-    // create RT regions based on how close together the RTs are:
-    for (double rt : rts)
+    for (auto& rt : rts)
     {
       // create a new region?
       if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
       {
         RTRegion region;
         region.start = rt - rt_tolerance;
+        // TODO
         // cppcheck-suppress uninitStructMember
         rt_regions.push_back(region);
       }
       rt_regions.back().end = rt + rt_tolerance;
     }
 
-    // sort the IDs into the regions:
-    for (const auto& charge_pair : charge_data)
+    // sort the peptide IDs into the regions:
+    for (auto& cm : peptide_data)
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
       auto reg_it = rt_regions.begin();
       // "internal" IDs:
-      for (auto rt_it = charge_pair.second.first.begin();
-           rt_it != charge_pair.second.first.end(); ++rt_it)
+      for (auto& rt : cm.second.first)
       {
-        while (rt_it->first > reg_it->end) ++reg_it;
-        reg_it->ids[charge_pair.first].first.insert(*rt_it);
+        while (rt.first > reg_it->end)
+        {
+          ++reg_it;
+        }
+        reg_it->ids[cm.first].first.insert(rt);
       }
       reg_it = rt_regions.begin(); // reset to start
       // "external" IDs:
-      for (auto rt_it = charge_pair.second.second.begin();
-           rt_it != charge_pair.second.second.end(); ++rt_it)
+      for (auto& rt : cm.second.second)
       {
-        while (rt_it->first > reg_it->end) ++reg_it;
-        reg_it->ids[charge_pair.first].second.insert(*rt_it);
+        while (rt.first > reg_it->end)
+        {
+          ++reg_it;
+        }
+        reg_it->ids[cm.first].second.insert(rt);
+      }
+      if (clear_IDs)
+      {
+        // ID references no longer needed (now stored in the RT regions):
+        cm.second.first.clear();
+        cm.second.second.clear();
       }
     }
   }
 
-
-  void FeatureFinderIdentificationAlgorithm::addTargetRT_(
-    TargetedExperiment::Compound& target, double rt) const
+  void FeatureFinderIdentificationAlgorithm::addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const
   {
     TargetedExperiment::RetentionTime te_rt;
     te_rt.setRT(rt);
-    te_rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
-    te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
-    target.rts.push_back(te_rt);
+    te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
+    peptide.rts.push_back(te_rt);
   }
 
-
-  /// generate transitions (isotopic traces) for an ion and add them to the library:
+  /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
   void FeatureFinderIdentificationAlgorithm::generateTransitions_(
-    const String& target_id, double target_mass, Int charge, const IsotopeDistribution& iso_dist)
+    const String& peptide_id, 
+    double mz, 
+    Int charge,
+    const IsotopeDistribution& iso_dist)
   {
     // go through different isotopes:
     Size counter = 0;
-    double precursor_mz = (target_mass + charge * Constants::PROTON_MASS_U) / abs(charge);
-    for (const auto& isotope : iso_dist)
+    for (const Peak1D& iso : iso_dist)
     {
       ReactionMonitoringTransition transition;
       String annotation = "i" + String(counter + 1);
-      String transition_name = target_id + "_" + annotation;
+      String transition_name = peptide_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
-      transition.setPrecursorMZ(precursor_mz);
-      // transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
-      //                         float(counter) / abs(charge));
-      transition.setProductMZ((isotope.getMZ() + charge * Constants::PROTON_MASS_U) / abs(charge));
-      transition.setLibraryIntensity(isotope.getIntensity());
+      transition.setPrecursorMZ(mz);
+      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * float(counter) / charge);
+      transition.setLibraryIntensity(iso.getIntensity());
       transition.setMetaValue("annotation", annotation);
-      transition.setCompoundRef(target_id);
+      transition.setPeptideRef(peptide_id);
+
       //TODO what about transition charge? A lot of DIA scores depend on it and default to charge 1 otherwise.
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = isotope.getIntensity();
+      isotope_probs_[transition_name] = iso.getIntensity();
       ++counter;
     }
   }
 
-
-  void FeatureFinderIdentificationAlgorithm::checkNumObservations_(
-    Size n_pos, Size n_neg, const String& note) const
+  void FeatureFinderIdentificationAlgorithm::checkNumObservations_(Size n_pos, Size n_neg, const String& note) const
   {
     if (n_pos < svm_n_parts_)
     {
-      String msg = "Not enough positive observations for " +
+      String msg = "Not enough positive observations for " + 
         String(svm_n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__,
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     if (n_neg < svm_n_parts_)
     {
-      String msg = "Not enough negative observations for " +
+      String msg = "Not enough negative observations for " + 
         String(svm_n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__,
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
   }
 
+  void FeatureFinderIdentificationAlgorithm::annotateFeaturesFinalizeAssay_(
+    FeatureMap& features, map<Size, vector<PeptideIdentification*> >& feat_ids,
+    RTMap& rt_internal)
+  {
+    set<PeptideIdentification*> assigned_ids;
+    if (!feat_ids.empty())
+    {
+      // find the "best" feature (with the most IDs):
+      Size best_index = 0;
+      Size best_count = 0;
+      for (map<Size, vector<PeptideIdentification*> >::iterator fi_it =
+             feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
+      {
+        Size current_index = fi_it->first;
+        Size current_count = fi_it->second.size();
+        if ((current_count > best_count) ||
+            ((current_count == best_count) && // break ties by intensity
+             (features[current_index].getIntensity() >
+              features[best_index].getIntensity())))
+        {
+          best_count = current_count;
+          best_index = current_index;
+        }
+      }
+      // assign IDs:
+      if (best_count > 0)
+      {
+        // we define the (one) feature with most matching IDs as correct:
+        features[best_index].setMetaValue("feature_class", "positive");
+        features[best_index].getPeptideIdentifications().resize(best_count);
+        for (Size i = 0; i < best_count; ++i)
+        {
+          features[best_index].getPeptideIdentifications()[i] =
+              *(feat_ids[best_index][i]);
+        }
+        assigned_ids.insert(feat_ids[best_index].begin(),
+                            feat_ids[best_index].end());
+      }
+    }
+    // store unassigned IDs from the current RT region:
+    for (RTMap::const_iterator rt_it = rt_internal.begin();
+         rt_it != rt_internal.end(); ++rt_it)
+    {
+      if (!assigned_ids.count(rt_it->second))
+      {
+        const PeptideIdentification& pep_id = *(rt_it->second);
+        features.getUnassignedPeptideIdentifications().push_back(pep_id);
+      }
+    }
+    // clean-up:
+    feat_ids.clear();
+    rt_internal.clear();
+  }
 
   /// annotate identified features with m/z, isotope probabilities, etc.
-  void FeatureFinderIdentificationAlgorithm::annotateFeatures_(FeatureMap& features)
+  void FeatureFinderIdentificationAlgorithm::annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map)
   {
-    // map indexes of features to the targets (ID, charge) that generated them:
-    map<pair<String, Int>, vector<Size>> features_per_target;
-    for (Size index = 0; index < features.size(); ++index)
+    String previous_ref, peptide_ref;
+    RTMap transformed_internal;
+    Size i = 0;
+    map<Size, vector<PeptideIdentification*> > feat_ids;
+    for (Feature& feat : features)
     {
-      Feature& feature = features[index];
-      // to which target does this feature (candidate) belong?
-      pair<String, Int> target_id_pair = extractTargetID_(feature, true);
-      feature.setCharge(target_id_pair.second);
-      feature.setMZ(feature.getMetaValue("PrecursorMZ"));
+      feat.setMZ(feat.getMetaValue("PrecursorMZ"));
+      feat.setCharge(feat.getPeptideIdentifications()[0].getHits()[0].
+                         getCharge());
+      ensureConvexHulls_(feat);
       // remove "fake" IDs generated by OpenSWATH (they would be removed with
       // a warning when writing output, because of missing protein
       // identification with corresponding identifier):
-      feature.getPeptideIdentifications().clear();
-      features_per_target[target_id_pair].push_back(index);
-    }
-
-    for (const auto& element : features_per_target)
-    {
-      annotateFeaturesOneTarget_(features, element.first.first,
-                                 element.first.second, element.second);
-    }
-  }
-
-
-  // process feature candidates from the same target together:
-  void FeatureFinderIdentificationAlgorithm::annotateFeaturesOneTarget_(
-    FeatureMap& features, const String& target_id, Int charge, const vector<Size>& indexes)
-  {
-    // @TODO: how much of this makes sense for features derived from seeds?
-    RTMap transformed_internal;
-    TargetData& target_data = target_map_.at(target_id);
-    auto& rt_maps = target_data.hits_by_charge.at(charge);
-    RTMap& rt_internal = rt_maps.first;
-    RTMap& rt_external = rt_maps.second;
-
-    // track which feature candidate (index) has most matching internal IDs:
-    Size best_index = 0, best_count = 0;
-
-    for (Size index : indexes)
-    {
-      Feature& feature = features[index];
-      if (rt_internal.empty() && rt_external.empty()) // this shouldn't happen
+      feat.getPeptideIdentifications().clear();
+      // annotate subordinates with theoretical isotope intensities:
+      for (Feature& sub : feat.getSubordinates())
       {
-        OPENMS_LOG_DEBUG << "Valid target IDs ('PeptideRef'):" << endl;
-        for (const auto& pair : target_map_)
-        {
-          OPENMS_LOG_DEBUG << pair.first << endl;
-        }
-        String msg = "No internal or external RTs for target '" + target_id +
-          "', charge " + String(charge) + ", stored as '" +
-          String(feature.getMetaValue("PeptideRef")) + "'";
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+        String native_id = sub.getMetaValue("native_id");
+        sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
       }
 
-      // RT span of feature including tolerance for mapping IDs:
-      double rt_min = 0, rt_max = 0;
-      // calculate values only if needed below:
-      if (!rt_internal.empty() || !trafo_external_.getDataPoints().empty())
+      peptide_ref = feat.getMetaValue("PeptideRef");
+      // remove region number, if present:
+      Size pos_slash = peptide_ref.rfind('/');
+      Size pos_colon = peptide_ref.find(':', pos_slash + 2);
+      peptide_ref = peptide_ref.substr(0, pos_colon);
+
+      if (peptide_ref != previous_ref)
       {
-        rt_min = feature.getMetaValue("leftWidth");
-        rt_max = feature.getMetaValue("rightWidth");
+        if (!previous_ref.empty())
+        {
+          annotateFeaturesFinalizeAssay_(
+            features, feat_ids, ref_rt_map[previous_ref].first);
+        }
+        previous_ref = peptide_ref;
+      }
+
+      RTMap& rt_internal = ref_rt_map[peptide_ref].first;
+      RTMap& rt_external = ref_rt_map[peptide_ref].second;
+
+      if (rt_internal.empty() && rt_external.empty())
+      {
+        OPENMS_LOG_DEBUG << "PeptideRefs in RTMap:" << endl;
+        for (const auto& rtm : ref_rt_map)
+        {
+          OPENMS_LOG_DEBUG << rtm.first << endl;
+        }
+
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + String(peptide_ref) + "' stored as '" + String(feat.getMetaValue("PeptideRef")) + "'.");
+      }
+
+      if (!rt_internal.empty()) // validate based on internal IDs
+      {
+        // map IDs to features (based on RT):
+        double rt_min = features[i].getMetaValue("leftWidth");
+        double rt_max = features[i].getMetaValue("rightWidth");
         if (mapping_tolerance_ > 0.0)
         {
           double abs_tol = mapping_tolerance_;
@@ -1121,67 +1163,81 @@ namespace OpenMS
           rt_min -= abs_tol;
           rt_max += abs_tol;
         }
-      }
-
-      if (!rt_internal.empty()) // validate based on internal IDs
-      {
-        // map IDs to features based on RT:
         RTMap::const_iterator lower = rt_internal.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_internal.upper_bound(rt_max);
-        Size id_count = 0;
+        int id_count = 0;
         for (; lower != upper; ++lower)
         {
-          feature.addIDMatch(lower->second);
+          feat_ids[i].push_back(lower->second);
           ++id_count;
         }
         // "total" only includes IDs from this RT region:
-        feature.setMetaValue("n_total_ids", rt_internal.size());
-        feature.setMetaValue("n_matching_ids", id_count);
-        if (id_count > 0) // matching IDs -> feature may be "correct"
+        feat.setMetaValue("n_total_ids", rt_internal.size());
+        feat.setMetaValue("n_matching_ids", id_count);
+        if (id_count > 0) // matching IDs -> feature may be correct
         {
-          feature.setMetaValue("feature_class", "ambiguous");
-          // is this the new "best" feature candidate (with most matching IDs)?
-          if ((id_count > best_count) ||
-              ((id_count == best_count) && // break ties by intensity
-               (feature.getIntensity() > features[best_index].getIntensity())))
-          {
-            best_count = id_count;
-            best_index = index;
-          }
+          feat.setMetaValue("feature_class", "ambiguous");
         }
         else // no matching IDs -> feature is wrong
         {
-          feature.setMetaValue("feature_class", "negative");
+          feat.setMetaValue("feature_class", "negative");
         }
       }
       else // only external IDs -> no validation possible
       {
-        feature.setMetaValue("n_total_ids", 0);
-        feature.setMetaValue("n_matching_ids", -1);
-        feature.setMetaValue("feature_class", "unknown");
+        feat.setMetaValue("n_total_ids", 0);
+        feat.setMetaValue("n_matching_ids", -1);
+        feat.setMetaValue("feature_class", "unknown");
+        // add "dummy" peptide identification:
+        PeptideIdentification id = *(rt_external.begin()->second);
+        id.clearMetaInfo();
+        id.setMetaValue("FFId_category", "implied");
+        id.setRT(feat.getRT());
+        id.setMZ(feat.getMZ());
+        // only one peptide hit per ID - see function "addPeptideToMap_":
+        PeptideHit& hit = id.getHits()[0];
+        hit.clearMetaInfo();
+        hit.setScore(0.0);
+        feat.getPeptideIdentifications().push_back(id);
       }
 
-      // distance from feature to closest peptide ID (for training classifier):
+      // distance from feature to closest peptide ID:
       if (!trafo_external_.getDataPoints().empty())
       {
         // use external IDs if available, otherwise RT-transformed internal IDs
         // (but only compute the transform if necessary, once per assay!):
-        if (rt_external.empty() && transformed_internal.empty())
+        if (rt_external.empty() && (transformed_internal.empty() ||
+                                    (peptide_ref != previous_ref)))
         {
           transformed_internal.clear();
-          for (const auto& rt_pair : rt_internal)
+          for (RTMap::const_iterator it = rt_internal.begin();
+               it != rt_internal.end(); ++it)
           {
-            double transformed_rt = trafo_external_.apply(rt_pair.first);
-            RTMap::value_type new_pair = make_pair(transformed_rt, rt_pair.second);
-            transformed_internal.insert(transformed_internal.end(), new_pair);
+            double transformed_rt = trafo_external_.apply(it->first);
+            RTMap::value_type pair = make_pair(transformed_rt, it->second);
+            transformed_internal.insert(transformed_internal.end(), pair);
           }
         }
-        const RTMap& rt_ref = (rt_external.empty() ? transformed_internal : rt_external);
+        const RTMap& rt_ref = (rt_external.empty() ? transformed_internal :
+                               rt_external);
+
+        double rt_min = feat.getMetaValue("leftWidth");
+        double rt_max = feat.getMetaValue("rightWidth");
+        if (mapping_tolerance_ > 0.0)
+        {
+          double abs_tol = mapping_tolerance_;
+          if (abs_tol < 1.0)
+          {
+            abs_tol *= (rt_max - rt_min);
+          }
+          rt_min -= abs_tol;
+          rt_max += abs_tol;
+        }
         RTMap::const_iterator lower = rt_ref.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_ref.upper_bound(rt_max);
         if (lower != upper) // there's at least one ID within the feature
         {
-          feature.setMetaValue("rt_delta", 0.0);
+          feat.setMetaValue("rt_delta", 0.0);
         }
         else // check closest ID
         {
@@ -1195,24 +1251,31 @@ namespace OpenMS
           {
             rt_delta2 = fabs(upper->first - rt_min);
           }
-          feature.setMetaValue("rt_delta", min(rt_delta1, rt_delta2));
+          feat.setMetaValue("rt_delta", min(rt_delta1, rt_delta2));
+        }
+      }
+      ++i;
+    }
+    // set of features from the last assay:
+    annotateFeaturesFinalizeAssay_(features, feat_ids,
+                                   ref_rt_map[peptide_ref].first);
+    // store unassigned peptide IDs from assays that did not generate any
+    // feature candidates:
+    for (PeptideRefRTMap::iterator ref_it = ref_rt_map.begin();
+         ref_it != ref_rt_map.end(); ++ref_it)
+    {
+      RTMap& rt_internal = ref_it->second.first;
+      if (!rt_internal.empty()) // not cleared by '...FinalizeAssay()'
+      {
+        for (RTMap::const_iterator rt_it = rt_internal.begin();
+             rt_it != rt_internal.end(); ++rt_it)
+        {
+          const PeptideIdentification& pep_id = *(rt_it->second);
+          features.getUnassignedPeptideIdentifications().push_back(pep_id);
         }
       }
     }
-
-    // if internal IDs matched to feature candidates, select the best candidate:
-    // (with the most IDs):
-    if (best_count > 0)
-    {
-      // we define the (one) feature with most matching IDs as correct:
-      features[best_index].setMetaValue("feature_class", "positive");
-      features[best_index].setPrimaryID(target_data.molecule);
-    }
-
-    // clear internal IDs for this target (no longer needed):
-    rt_internal.clear();
   }
-
 
   void FeatureFinderIdentificationAlgorithm::ensureConvexHulls_(Feature& feature) const
   {
@@ -1237,69 +1300,46 @@ namespace OpenMS
     }
   }
 
-
-  String makeTargetID(ID::ObservationMatchRef ref)
+  void FeatureFinderIdentificationAlgorithm::addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map, bool external) const
   {
-    const ID::IdentifiedMolecule& molecule = ref->identified_molecule_var;
-    const ID::AdductOpt& adduct = ref->adduct_opt;
-    ID::MoleculeType molecule_type = molecule.getMoleculeType();
-    String target_id;
-    switch (molecule_type)
+    if (peptide.getHits().empty())
     {
-      case ID::MoleculeType::PROTEIN:
-        target_id = "PEP:" + molecule.getIdentifiedPeptideRef()->sequence.toString();
-        break;
-      case ID::MoleculeType::COMPOUND: // actual compound or seed?
-        target_id = molecule.getIdentifiedCompoundRef()->identifier;
-        if (!target_id.hasPrefix("SEED:")) target_id = "COM:" + target_id;
-        break;
-      case ID::MoleculeType::RNA:
-        target_id = "RNA:" + molecule.getIdentifiedOligoRef()->sequence.toString();
-        break;
-      default: // avoid compiler warning
-        break;
+      return;
     }
-    if (adduct) target_id += "+[" + (*adduct)->getName() + "]";
-    return target_id;
-  }
+    peptide.sort();
+    PeptideHit& hit = peptide.getHits()[0];
 
-
-  void FeatureFinderIdentificationAlgorithm::addMatchToTargetMap_(
-    ID::ObservationMatchRef ref, bool external)
-  {
-    String target_id = makeTargetID(ref);
-    auto pos = target_map_.find(target_id);
-    if (pos == target_map_.end()) // no entry for this target yet
+    // if we don't quantify decoys we don't add them to the peptide list
+    if (!quantify_decoys_)
     {
-      if (!quantify_decoys_)
-      {
-        // check target/decoy status of molecule, skip decoys:
-        const ID::IdentifiedMolecule& molecule = ref->identified_molecule_var;
-        ID::MoleculeType type = molecule.getMoleculeType();
-        if ((type == ID::MoleculeType::PROTEIN) &&
-            (molecule.getIdentifiedPeptideRef()->allParentsAreDecoys())) return;
-        if ((type == ID::MoleculeType::RNA) &&
-            (molecule.getIdentifiedOligoRef()->allParentsAreDecoys())) return;
+      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy")
+      { 
+        return;
       }
-
-      TargetData data;
-      data.molecule = ref->identified_molecule_var;
-      data.adduct = ref->adduct_opt;
-      pos = target_map_.emplace(target_id, data).first;
     }
 
-    double rt = ref->observation_ref->rt;
+    peptide.getHits().resize(1);
+    Int charge = hit.getCharge();
+    double rt = peptide.getRT();
+    double mz = peptide.getMZ();
     if (!external)
     {
-      OPENMS_LOG_DEBUG << "Adding " << target_id << " " << ref->charge << " " << rt << endl;
-      pos->second.hits_by_charge[ref->charge].first.emplace(rt, ref);
+      if (peptide.metaValueExists("SeedFeatureID"))
+      {
+        OPENMS_LOG_DEBUG_NOFILE << "Adding seed (internal) from FeatureID " << peptide.getMetaValue("SeedFeatureID") << ": " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
+      else
+      {
+        OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
+      peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
     }
     else
     {
-      pos->second.hits_by_charge[ref->charge].second.emplace(rt, ref);
+      OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }
-
 
   void FeatureFinderIdentificationAlgorithm::updateMembers_()
   {
@@ -1312,11 +1352,9 @@ namespace OpenMS
     rt_window_ = param_.getValue("extract:rt_window");
     mz_window_ = param_.getValue("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
-    rt_window_seeds_ = 2.0 * peak_width_; // @TODO: add a parameter for this?
 
-    n_isotopes_ = param_.getValue("extract:n_isotopes");
-    max_isotopes_ = param_.getValue("extract:max_isotopes") == "true";
     isotope_pmin_ = param_.getValue("extract:isotope_pmin");
+    n_isotopes_ = param_.getValue("extract:n_isotopes");
 
     mapping_tolerance_ = param_.getValue("detect:mapping_tolerance");
 
@@ -1337,10 +1375,8 @@ namespace OpenMS
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
   }
 
-
-  void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(
-    const multimap<double, pair<Size, bool>>& valid_obs,
-    map<Size, Int>& training_labels)
+  void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
+                          map<Size, Int>& training_labels)
   {
     // Create an unbiased training sample:
     // - same number of pos./neg. observations (approx.),
@@ -1355,7 +1391,7 @@ namespace OpenMS
     if (valid_obs.size() < half_win_size + 1)
     {
       String msg = "Not enough observations for intensity-bias filtering.";
-      throw Exception::MissingInformation(__FILE__, __LINE__,
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     srand(time(nullptr)); // seed random number generator
@@ -1411,14 +1447,15 @@ namespace OpenMS
     checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
   }
 
+
   void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, Int>& training_labels) const
   {
     // @TODO: can this be done with less copying back and forth of data?
     // Pick a random subset of size "svm_n_samples_" for training: Shuffle the whole
     // sequence, then select the first "svm_n_samples_" elements.
-    vector<Size> selection;
+    std::vector<Size> selection;
     selection.reserve(training_labels.size());
-    for (map<Size, Int>::iterator it = training_labels.begin();
+    for (std::map<Size, Int>::iterator it = training_labels.begin();
          it != training_labels.end(); ++it)
     {
       selection.push_back(it->first);
@@ -1439,7 +1476,7 @@ namespace OpenMS
         Size obs_index = selection[i];
         if (training_labels[obs_index] == label)
         {
-          swap(selection[i], selection[n_obs[label]]);
+          std::swap(selection[i], selection[n_obs[label]]);
           ++n_obs[label];
         }
         if (n_obs[label] == svm_n_parts_)
@@ -1450,7 +1487,7 @@ namespace OpenMS
     }
     selection.resize(svm_n_samples_);
     // copy the selected subset back:
-    map<Size, Int> temp;
+    std::map<Size, Int> temp;
     for (vector<Size>::iterator it = selection.begin(); it != selection.end();
          ++it)
     {
@@ -1458,7 +1495,6 @@ namespace OpenMS
     }
     training_labels.swap(temp);
   }
-
 
   void FeatureFinderIdentificationAlgorithm::classifyFeatures_(FeatureMap& features)
   {
@@ -1468,8 +1504,7 @@ namespace OpenMS
     }
     if (features[0].metaValueExists("rt_delta")) // include RT feature
     {
-      if (find(svm_predictor_names_.begin(), svm_predictor_names_.end(), "rt_delta") ==
-          svm_predictor_names_.end())
+      if (std::find(svm_predictor_names_.begin(), svm_predictor_names_.end(), "rt_delta") == svm_predictor_names_.end())
       {
         svm_predictor_names_.push_back("rt_delta");
       }
@@ -1494,10 +1529,10 @@ namespace OpenMS
     }
 
     // get labels for SVM:
-    map<Size, Int> training_labels;
-    bool no_selection = param_.getValue("svm:no_selection") == "true";
+    std::map<Size, Int> training_labels;
+    bool no_selection = param_.getValue("svm:no_selection") == "true" ? true : false;
     // mapping (for bias correction): intensity -> (index, positive?)
-    multimap<double, pair<Size, bool> > valid_obs;
+    std::multimap<double, pair<Size, bool> > valid_obs;
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
@@ -1537,7 +1572,7 @@ namespace OpenMS
       if (training_labels.size() < svm_n_samples_)
       {
         OPENMS_LOG_WARN << "Warning: There are only " << training_labels.size()
-                        << " valid observations for training." << endl;
+                 << " valid observations for training." << endl;
       }
       else if (training_labels.size() > svm_n_samples_)
       {
@@ -1558,19 +1593,19 @@ namespace OpenMS
     }
     if ((debug_level_ > 0) && svm_params.getValue("kernel") == "linear")
     {
-      map<String, double> feature_weights;
+      std::map<String, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
       OPENMS_LOG_DEBUG << "SVM feature weights:" << endl;
-      for (map<String, double>::iterator it = feature_weights.begin();
+      for (std::map<String, double>::iterator it = feature_weights.begin();
            it != feature_weights.end(); ++it)
       {
         OPENMS_LOG_DEBUG << "- " << it->first << ": " << it->second << endl;
       }
     }
 
-    vector<SimpleSVM::Prediction> predictions;
+    std::vector<SimpleSVM::Prediction> predictions;
     svm.predict(predictions);
-    OPENMS_POSTCONDITION(predictions.size() == features.size(),
+    OPENMS_POSTCONDITION(predictions.size() == features.size(), 
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
@@ -1583,15 +1618,13 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::filterFeaturesFinalizeAssay_(
-    Feature& best_feature, double best_quality, const double quality_cutoff,
-    const String& target_id)
+  void FeatureFinderIdentificationAlgorithm::filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
+                                    const double quality_cutoff)
   {
     const String& feature_class = best_feature.getMetaValue("feature_class");
     if (feature_class == "positive") // true positive prediction
     {
       svm_probs_internal_[best_quality].first++;
-      // feature primary ID is already set in this case
     }
     else if ((feature_class == "negative")  || // false positive prediction
              (feature_class == "ambiguous")) // let's be strict about this
@@ -1601,14 +1634,13 @@ namespace OpenMS
     else if (feature_class == "unknown")
     {
       svm_probs_external_.insert(best_quality);
-      if (best_quality >= quality_cutoff) // winning prediction for this assay
+      if (best_quality >= quality_cutoff) 
       {
-        best_feature.setPrimaryID(target_map_.at(target_id).molecule);
+        best_feature.setOverallQuality(best_quality);
         ++n_external_features_;
       }
     }
   }
-
 
   void FeatureFinderIdentificationAlgorithm::filterFeatures_(FeatureMap& features, bool classified)
   {
@@ -1626,27 +1658,30 @@ namespace OpenMS
       n_internal_features_ = n_external_features_ = 0;
       FeatureMap::Iterator best_it = features.begin();
       double best_quality = 0.0;
-      String previous_id;
-      pair<String, Int> target_id_pair;
-      for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+      String previous_ref;
+      for (FeatureMap::Iterator it = features.begin(); it != features.end();
+           ++it)
       {
         // features from same assay (same "PeptideRef") appear consecutively;
         // if this is a new assay, finalize the previous one:
-        target_id_pair = extractTargetID_(*it, true);
-        // target ID incl. charge:
-        String target_id = target_id_pair.first + "/" + String(target_id_pair.second);
-        if (target_id != previous_id)
+        String peptide_ref = it->getMetaValue("PeptideRef");
+        // remove region number, if present:
+        Size pos_slash = peptide_ref.rfind('/');
+        Size pos_colon = peptide_ref.find(':', pos_slash + 2);
+        peptide_ref = peptide_ref.substr(0, pos_colon);
+
+        if (peptide_ref != previous_ref)
         {
-          if (!previous_id.empty())
+          if (!previous_ref.empty())
           {
-            filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff,
-                                         target_id_pair.first);
+            filterFeaturesFinalizeAssay_(*best_it, best_quality,
+                                         svm_quality_cutoff);
             best_quality = 0.0;
           }
-          previous_id = target_id;
+          previous_ref = peptide_ref;
         }
 
-        // find feature with best quality (from SVM prediction):
+        // update qualities:
         if ((it->getOverallQuality() > best_quality) ||
             // break ties by intensity:
             ((it->getOverallQuality() == best_quality) &&
@@ -1659,17 +1694,23 @@ namespace OpenMS
         {
           n_internal_features_++;
         }
+        else
+        {
+          it->setOverallQuality(0.0); // gets overwritten for "best" candidate
+        }
       }
-      // finalize set of features from the last assay:
-      filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff,
-                                   target_id_pair.first);
-    }
+      // set of features from the last assay:
+      filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff);
 
-    // remove "losing" feature candidates (without assigned primary ID):
-    features.erase(remove_if(features.begin(), features.end(),
-                             [](const Feature& feature)
-                             { return !feature.hasPrimaryID(); }),
-                   features.end());
+      features.erase(remove_if(features.begin(), features.end(),
+                               feature_filter_quality_), features.end());
+    }
+    else
+    {
+      // remove features without ID (or pseudo ID from seeds)
+      features.erase(remove_if(features.begin(), features.end(),
+                               feature_filter_peptides_), features.end());
+    }
   }
 
 
@@ -1677,7 +1718,7 @@ namespace OpenMS
   {
     // cumulate the true/false positive counts, in decreasing probability order:
     Size n_false = 0, n_true = 0;
-    for (map<double, pair<Size, Size> >::reverse_iterator prob_it =
+    for (std::map<double, pair<Size, Size> >::reverse_iterator prob_it =
            svm_probs_internal_.rbegin(); prob_it != svm_probs_internal_.rend();
          ++prob_it)
     {
@@ -1688,22 +1729,22 @@ namespace OpenMS
     }
 
     // print FDR for features that made the cut-off:
-    map<double, pair<Size, Size> >::iterator prob_it =
+    std::map<double, pair<Size, Size> >::iterator prob_it =
       svm_probs_internal_.lower_bound(svm_min_prob_);
     if (prob_it != svm_probs_internal_.end())
     {
       float fdr = float(prob_it->second.second) / (prob_it->second.first +
                                                    prob_it->second.second);
       OPENMS_LOG_INFO << "Estimated FDR of features detected based on 'external' IDs: "
-                      << fdr * 100.0 << "%" << endl;
-      fdr = (fdr * n_external_features_) / (n_external_features_ +
+               << fdr * 100.0 << "%" << endl;
+      fdr = (fdr * n_external_features_) / (n_external_features_ + 
                                             n_internal_features_);
-      OPENMS_LOG_INFO << "Estimated FDR of all detected features: "
-                      << fdr * 100.0 << "%" << endl;
+      OPENMS_LOG_INFO << "Estimated FDR of all detected features: " << fdr * 100.0
+               << "%" << endl;
     }
 
     // calculate q-values:
-    vector<double> qvalues;
+    std::vector<double> qvalues;
     qvalues.reserve(svm_probs_internal_.size());
     double min_fdr = 1.0;
     for (prob_it = svm_probs_internal_.begin();
@@ -1718,8 +1759,8 @@ namespace OpenMS
       qvalues.push_back(min_fdr);
     }
     // record only probabilities where q-value changes:
-    vector<double> fdr_probs, fdr_qvalues;
-    vector<double>::iterator qv_it = qvalues.begin();
+    std::vector<double> fdr_probs, fdr_qvalues;
+    std::vector<double>::iterator qv_it = qvalues.begin();
     double previous_qvalue = -1.0;
     for (prob_it = svm_probs_internal_.begin();
          prob_it != svm_probs_internal_.end(); ++prob_it, ++qv_it)
@@ -1737,7 +1778,7 @@ namespace OpenMS
     // FDRs are estimated from "internal" features, but apply only to "external"
     // ones. "Internal" features are considered "correct" by definition.
     // We need to adjust the q-values to take this into account:
-    multiset<double>::reverse_iterator ext_it = svm_probs_external_.rbegin();
+    std::multiset<double>::reverse_iterator ext_it = svm_probs_external_.rbegin();
     Size external_count = 0;
     for (Int i = fdr_probs.size() - 1; i >= 0; --i)
     {
@@ -1764,7 +1805,7 @@ namespace OpenMS
       {
         double prob = feat.getOverallQuality();
         // find highest FDR prob. that is less-or-equal to the feature prob.:
-        vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
+        std::vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
                                                    fdr_probs.end(), prob);
         if (pos != fdr_probs.begin())
         {
@@ -1775,28 +1816,4 @@ namespace OpenMS
       }
     }
   }
-
-
-  void FeatureFinderIdentificationAlgorithm::run(FeatureMap& features,
-                                                 const vector<PeptideIdentification>& peptides,
-                                                 const vector<ProteinIdentification>& proteins,
-                                                 const vector<PeptideIdentification>& peptides_ext,
-                                                 const vector<ProteinIdentification>& proteins_ext,
-                                                 const FeatureMap& seeds,
-                                                 const String& spectra_file) {
-    IdentificationData id_data, id_data_ext;
-    IdentificationDataConverter::importIDs(id_data, proteins, peptides);
-    if (!peptides_ext.empty())
-    {
-      IdentificationDataConverter::importIDs(id_data_ext, proteins_ext, peptides_ext);
-    }
-    if (!seeds.empty())
-    {
-      convertSeeds(seeds, id_data, spectra_file);
-    }
-
-    run(features, id_data, id_data_ext, spectra_file);
-    IdentificationDataConverter::exportFeatureIDs(features);
-  }
-
 }
