@@ -156,11 +156,11 @@ protected:
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
         num_maps = consensus.getColumnHeaders().size();
-	ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
-	for(ConsensusMap::ColumnHeaders::iterator it = ch.begin(); it != ch.end(); ++it)
+        ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
+        for(const auto& header : ch)
         {
-	  out.push_back(out_prefix + File::removeExtension(File::basename(it->second.filename)));
-	}
+          out.push_back(out_prefix + FileHandler::stripExtension(File::basename(header.second.filename)));
+        }
 
         if (out.size() != num_maps)
         {
@@ -212,11 +212,8 @@ protected:
 
       return EXECUTION_OK;
     }
-
   };
-
 }
-
 
 int main(int argc, const char ** argv)
 {
