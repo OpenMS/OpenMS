@@ -478,7 +478,7 @@ namespace OpenMS
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
-           RangeManager<1>::operator==(rhs) &&
+           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -498,7 +498,7 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManager<1>::operator=(source);
+    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
 
     retention_time_ = source.retention_time_;
@@ -515,7 +515,7 @@ namespace OpenMS
 
   MSSpectrum::MSSpectrum() :
     ContainerType(),
-    RangeManager<1>(),
+    RangeManagerContainerType(),
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
@@ -529,7 +529,7 @@ namespace OpenMS
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) :
     ContainerType(source),
-    RangeManager<1>(source),
+    RangeManagerContainerType(source),
     SpectrumSettings(source),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
@@ -549,8 +549,12 @@ namespace OpenMS
 
   void MSSpectrum::updateRanges()
   {
-    this->clearRanges();
-    updateRanges_(ContainerType::begin(), ContainerType::end());
+    clearRanges();
+    for (const auto& peak : (ContainerType&)*this)
+    {
+      extendMZ(peak.getMZ()); 
+      extendIntensity(peak.getIntensity());
+    }
   }
 
   double MSSpectrum::getRT() const

@@ -37,6 +37,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -1101,13 +1102,11 @@ namespace OpenMS
 
   void PeakPickerCWT::pick(const MSSpectrum & input, MSSpectrum & output) const
   {
+    // nearly empty spectra shouldn't be picked
+    if (input.size() < 2) return;
+
     // copy the spectrum meta data
-    output.clear(true);
-    output.SpectrumSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setRT(input.getRT());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
+    copySpectrumMeta(input, output);
     //make sure the data type is set correctly
     output.setType(SpectrumSettings::CENTROID);
 
@@ -1116,6 +1115,7 @@ namespace OpenMS
     {
       return;
     }
+
     //set up meta data arrays
     output.getFloatDataArrays().clear();
     output.getFloatDataArrays().resize(7);

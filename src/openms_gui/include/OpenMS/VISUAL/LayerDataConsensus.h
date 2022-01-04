@@ -48,8 +48,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataConsensus() :
-        LayerDataBase(LayerDataBase::DT_CONSENSUS){};
+    LayerDataConsensus(ConsensusMapSharedPtrType& map);
     /// no Copy-ctor (should not be needed)
     LayerDataConsensus(const LayerDataConsensus& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -64,15 +63,14 @@ namespace OpenMS
       consensus_map_->updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getConsensusMap()->getMinInt();
+      RangeAllType r;
+      r.assign(*getConsensusMap());
+      return r;
     }
 
-    float getMaxIntensity() const override
-    {
-      return getConsensusMap()->getMaxInt();
-    }
+    std::unique_ptr<LayerStatistics> getStats() const override;
   };
 
 }// namespace OpenMS

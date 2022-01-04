@@ -63,9 +63,9 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSSpectrum :
+  class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {
 public:
@@ -108,6 +108,9 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -173,8 +176,7 @@ public:
     MSSpectrum(MSSpectrum&&) = default;
 
     /// Destructor
-    ~MSSpectrum() override
-    {}
+    ~MSSpectrum() = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);

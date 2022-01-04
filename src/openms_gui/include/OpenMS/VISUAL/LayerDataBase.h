@@ -61,7 +61,7 @@ class QWidget;
 
 namespace OpenMS
 {
-
+  class LayerStatistics;
   class OnDiscMSExperiment;
   class OSWData;
 
@@ -413,10 +413,19 @@ namespace OpenMS
     virtual void updateRanges() = 0;
 
     /// Returns the minimum intensity of the internal data, depending on type
-    virtual float getMinIntensity() const = 0;
+    float getMinIntensity() const;
 
     /// Returns the maximum intensity of the internal data, depending on type
-    virtual float getMaxIntensity() const = 0;
+    float getMaxIntensity() const;
+
+    using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+
+    /// Returns the data range in all known dimensions. If a layer does not support the dimension (or the layer is empty)
+    /// the dimension will be empty
+    virtual RangeAllType getRange() const = 0;
+
+    /// compute layer statistics (via visitor)
+    virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated

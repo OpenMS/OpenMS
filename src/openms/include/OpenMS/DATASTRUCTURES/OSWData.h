@@ -310,6 +310,12 @@ namespace OpenMS
           transitions_.emplace(tr.getID(), tr);
         }
 
+        void addTransition(OSWTransition&& tr)
+        {
+          UInt32 id = tr.getID();
+          transitions_.emplace(id, std::move(tr));
+        }
+
         /// Adds a protein, which has all its subcomponents already populated
         /// All transition references internally are checked to make sure
         /// they are valid.
