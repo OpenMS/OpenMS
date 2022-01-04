@@ -146,7 +146,7 @@ TEST_EXCEPTION(Exception::MissingInformation, IMDataConverter::splitByIonMobilit
 		TEST_EQUAL(exp[2].size(), 2);
 		TEST_EQUAL(exp[0][0].getIntensity(), 29.0f);
 
-		TEST_EQUAL(exp[0].getDriftTime(), 1.1f);
+		TEST_EQUAL(exp[0].getDriftTime(), 1.1);
 		TEST_EQUAL(exp[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
 		TEST_EQUAL(exp[0].getRT(), 1);
 
@@ -178,7 +178,7 @@ START_SECTION(static MSExperiment splitByIonMobility(MSExperiment&& in, UInt num
 	TEST_EQUAL(exp[0].size(), 1);
 	TEST_EQUAL(exp[2].size(), 2);
 	TEST_EQUAL(exp[0][0].getIntensity(), 29.0f);
-  TEST_EQUAL(exp[0].getDriftTime(), 1.1f);
+  TEST_EQUAL(exp[0].getDriftTime(), 1.1);
   TEST_EQUAL(exp[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(exp[0].getRT(), 1);
   
