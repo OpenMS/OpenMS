@@ -1221,63 +1221,14 @@ namespace OpenMS
     selected_peak_.clear();
     measurement_start_.clear();
 
-    if (getCurrentLayer().type == LayerDataBase::DT_PEAK)   // peak data
+    auto& layer = getCurrentLayer();
+    layer.updateRanges(); // required for minIntensity() below and hasRange()
+    if (layer.getRange().hasRange() == HasRangeType::NONE)
     {
-      update_buffer_ = true;
-      // Abort if no data points are contained (note that all data could be on disk)
-      if (getCurrentLayer().getPeakData()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
-        return false;
-      }
-      if ((getCurrentLayer().getPeakData()->getSize() == 0) && (getCurrentLayer().getPeakData()->hasRange() != HasRangeType::NONE))
-      {
-        setLayerFlag(LayerDataBase::P_PRECURSORS, true); // show precursors if no MS1 data is contained
-      }
+      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
+      return false;
     }
-    else if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)  // feature data
-    {
-      getCurrentLayer().getFeatureMap()->updateRanges();
-      setLayerFlag(LayerDataBase::F_HULL, true);
-
-      // Abort if no data points are contained
-      if (getCurrentLayer().getFeatureMap()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)  // consensus feature data
-    {
-      getCurrentLayer().getConsensusMap()->updateRanges();
-
-      // abort if no data points are contained
-      if (getCurrentLayer().getConsensusMap()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)  // chromatogram data
-    {
-      update_buffer_ = true;
-
-      // abort if no data points are contained
-      if (getCurrentLayer().getPeakData()->getChromatograms().empty())
-      {
-        popIncompleteLayer_("Cannot add a dataset that contains no chromatograms. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)   // identification data
-    {
-      // abort if no data points are contained
-      if (dynamic_cast<IPeptideIds*>(&getCurrentLayer())->getPeptideIds().empty())
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
+    update_buffer_ = true;
 
     // overall values update
     recalculateRanges_(0, 1, 2);

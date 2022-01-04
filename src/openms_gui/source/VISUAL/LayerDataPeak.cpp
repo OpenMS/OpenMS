@@ -39,6 +39,13 @@ using namespace std;
 
 namespace OpenMS
 {
+  /// Default constructor
+
+  LayerDataPeak::LayerDataPeak() : LayerDataBase(LayerDataBase::DT_PEAK)
+  {
+    flags.set(LayerDataBase::P_PRECURSORS);
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);

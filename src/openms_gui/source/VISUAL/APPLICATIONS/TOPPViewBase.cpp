@@ -34,19 +34,13 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -64,13 +58,10 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
@@ -82,8 +73,6 @@
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -96,28 +85,17 @@
 
 //Qt
 #include <QCloseEvent>
-#include <QPainter>
-#include <QtCore/QDate>
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
-#include <QtCore/QTime>
 #include <QtCore/QUrl>
-#include <QTextCodec>
-#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QToolTip>
-#include <QtWidgets/QTreeWidget>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QWhatsThis>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
+#include <cmath>
 #include <utility>
 
 using namespace std;
@@ -141,7 +119,6 @@ namespace OpenMS
     scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
-    recent_files_(),
     menu_(this, &ws_, &recent_files_)
   {
     setWindowTitle("TOPPView");
@@ -1066,7 +1043,7 @@ namespace OpenMS
     {
       mz_label_->setText("m/z: ");
     }
-    else if (boost::math::isinf(mz) || boost::math::isnan(mz))
+    else if (isinf(mz) || isnan(mz))
     {
       mz_label_->setText("m/z: n/a");
     }
@@ -1079,7 +1056,7 @@ namespace OpenMS
     {
       rt_label_->setText("RT: ");
     }
-    else if (boost::math::isinf(rt) || boost::math::isnan(rt))
+    else if (isinf(rt) || isnan(rt))
     {
       rt_label_->setText("RT: n/a");
     }
