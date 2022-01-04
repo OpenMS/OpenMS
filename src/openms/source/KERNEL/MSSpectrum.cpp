@@ -55,7 +55,7 @@ namespace OpenMS
     }
     ContainerType::swap(tmp);
 
-    std::vector<float> mda_tmp_float;
+    std::vector<double> mda_tmp_float;
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
       if (float_data_arrays_[i].empty())
