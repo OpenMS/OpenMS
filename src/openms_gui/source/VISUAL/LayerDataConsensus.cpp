@@ -39,6 +39,12 @@ using namespace std;
 
 namespace OpenMS
 {
+  /// Default constructor
+
+  LayerDataConsensus::LayerDataConsensus(ConsensusMapSharedPtrType& map) : LayerDataBase(LayerDataBase::DT_CONSENSUS)
+  {
+    consensus_map_ = map;
+  }
   std::unique_ptr<LayerStatistics> LayerDataConsensus::getStats() const
   {
     return make_unique<LayerStatisticsConsensusMap>(*consensus_map_);

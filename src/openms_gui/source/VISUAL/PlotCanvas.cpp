@@ -418,8 +418,7 @@ namespace OpenMS
 
   bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    LayerDataBaseUPtr new_layer(new LayerDataConsensus);
-    new_layer->getConsensusMap() = map;
+    LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
