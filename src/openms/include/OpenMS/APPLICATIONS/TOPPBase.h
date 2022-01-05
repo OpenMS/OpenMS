@@ -545,6 +545,8 @@ protected:
       Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
       This check is performed only, when the option is accessed in the TOPP tool.
       When @p force_OpenMS_format is set, only formats known to OpenMS internally are allowed (default).
+      
+      Note: Formats for output file prefixes are exported to e.g. CTD but no checks are performed (as they don't contain a file extension)
 
       @exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
       @exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
