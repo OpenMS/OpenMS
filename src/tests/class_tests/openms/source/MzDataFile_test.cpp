@@ -210,7 +210,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //acquisition
   //---------------------------------------------------------------------------
   TEST_EQUAL(e[0].getAcquisitionInfo().size(), 0)
-  ABORT_IF(e[0].getAcquisitionInfo().size() != 0);
+  ABORT_IF(!e[0].getAcquisitionInfo().empty());
   TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size() != 2);

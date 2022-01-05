@@ -201,7 +201,7 @@ class TOPPOpenSwathRewriteToFeatureXML :
   FeatureMap feature_map;
   FeatureXMLFile().load(feature_file, feature_map);
 
-  if (csv.size() > 0)
+  if (!csv.empty())
   {
     processInput(csv.c_str(), feature_map);
   }

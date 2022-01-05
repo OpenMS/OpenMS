@@ -190,7 +190,7 @@ public:
       MinimumDistance zero_distance(-1, -1, 0);
 
       // combine clusters until all have been moved to the final list
-      while (clusters_.size() > 0)
+      while (!clusters_.empty())
       {
         setProgress(clusters_start - clusters_.size());
 

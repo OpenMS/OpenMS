@@ -448,7 +448,7 @@ namespace OpenMS
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      FeatureMapping::FeatureMappingInfo& fm_info,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
+                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping) const
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -500,7 +500,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
                                                          const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                                         const MSExperiment& spectra)
+                                                         const MSExperiment& spectra) const
     {
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())

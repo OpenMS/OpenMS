@@ -259,7 +259,7 @@ protected:
     String in_featureXML = getStringOption_("in_featureXML");
     String out = getStringOption_("out");
     String format = getStringOption_("out_type");
-    if (format.trim() == "") // get from filename
+    if (format.trim().empty()) // get from filename
     {
       try
       {
@@ -360,7 +360,7 @@ protected:
 
     MultiGradient gradient;
     String gradient_str = getStringOption_("gradient");
-    if (gradient_str != "")
+    if (!gradient_str.empty())
     {
       gradient.fromString(String("Linear|") + gradient_str);
     }

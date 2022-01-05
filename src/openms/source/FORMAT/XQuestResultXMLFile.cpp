@@ -236,7 +236,7 @@ namespace OpenMS
 
     double precursor_mz = 0;
     double precursor_z = 0;
-    if (spec.getPrecursors().size() > 0)
+    if (!spec.getPrecursors().empty())
     {
       precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -9);
       precursor_z = spec.getPrecursors()[0].getCharge();
@@ -255,7 +255,7 @@ namespace OpenMS
     }
 
     PeakSpectrum::IntegerDataArray charges;
-    if (spec.getIntegerDataArrays().size() > 0)
+    if (!spec.getIntegerDataArrays().empty())
     {
       charges = spec.getIntegerDataArrays()[0];
     }
@@ -267,7 +267,7 @@ namespace OpenMS
       s += String(Math::roundDecimal(spec[i].getMZ(), -9)) + "\t";
       s += String(spec[i].getIntensity()) + "\t";
 
-      if (charges.size() > 0)
+      if (!charges.empty())
       {
         s += String(charges[i]);
       }

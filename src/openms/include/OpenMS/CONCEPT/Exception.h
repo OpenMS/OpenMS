@@ -279,6 +279,7 @@ public:
     {
 public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
+      InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
 

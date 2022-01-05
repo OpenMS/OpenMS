@@ -44,7 +44,7 @@
 namespace OpenMS
 {
   class DIATreeTab;
-  class LayerData;
+  class LayerDataBase;
   class SpectraTreeTab;
   class SpectraIDViewTab;
   class TVDIATreeTabController;
@@ -58,11 +58,11 @@ namespace OpenMS
   public:
     /// given a layer, determine if the tab could use it to show data (useful to decide if the tab should be enabled/disabled)
     /// If a nullptr is given, it HAS to return false!
-    virtual bool hasData(const LayerData* layer) = 0;
+    virtual bool hasData(const LayerDataBase* layer) = 0;
 
     /// populate the tab using date from @p layer
     /// Should handle nullptr well (by calling clear())
-    virtual void updateEntries(LayerData* layer) = 0;
+    virtual void updateEntries(LayerDataBase* layer) = 0;
 
     /// explicitly show no data at all
     virtual void clear() = 0;

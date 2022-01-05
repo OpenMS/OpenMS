@@ -346,11 +346,11 @@ namespace OpenMS::Internal
       }
 
       // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
-      if ((input_data[mz_index].ints_32.size() > 0) || (input_data[mz_index].ints_64.size() > 0))
+      if ((!input_data[mz_index].ints_32.empty()) || (!input_data[mz_index].ints_64.empty()))
       {
         fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
       }
-      if ((input_data[int_index].ints_32.size() > 0) || (input_data[int_index].ints_64.size() > 0))
+      if ((!input_data[int_index].ints_32.empty()) || (!input_data[int_index].ints_64.empty()))
       {
         fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
       }
@@ -1388,7 +1388,7 @@ namespace OpenMS::Internal
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
         }
         //values used in wrong places and wrong value types
-        if (value != "")
+        if (!value.empty())
         {
           if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
           {
@@ -1467,7 +1467,7 @@ namespace OpenMS::Internal
         }
       }
 
-      if (unit_accession != "")
+      if (!unit_accession.empty())
       {
         if (unit_accession.hasPrefix("UO:"))
         {
@@ -1894,7 +1894,15 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::TRAP);
+          }          
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
           }
@@ -1914,6 +1922,14 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
@@ -1990,7 +2006,15 @@ namespace OpenMS::Internal
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+          }
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation          
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
           }
@@ -2010,8 +2034,18 @@ namespace OpenMS::Internal
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
+          {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          }
         }
       }
       //------------------------- isolationWindow ----------------------------
@@ -3270,7 +3304,7 @@ namespace OpenMS::Internal
         data_value = DataValue(value);
       }
 
-      if (unit_accession != "")
+      if (!unit_accession.empty())
       {
         if (unit_accession.hasPrefix("UO:"))
         {
@@ -3608,11 +3642,11 @@ namespace OpenMS::Internal
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
-      if (so_term.id == "")
+      if (so_term.id.empty())
       {
         so_term = getChildWithName_("MS:1000531", software.getName() + " software"); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
-      if (so_term.id == "")
+      if (so_term.id.empty())
       {
         so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
@@ -3620,7 +3654,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\" />\n";
       }
-      else if (so_term.id != "")
+      else if (!so_term.id.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << writeXMLEscape(so_term.name) << "\" />\n";
       }
@@ -3654,7 +3688,7 @@ namespace OpenMS::Internal
       {
         ft_term = getChildWithName_("MS:1000560", source_file.getFileType().chop(4) + "format");   // this is born out of desperation that sourcefile has a string interface for its filetype and not the enum, which could have been easily manipulated to the updated cv
       }
-      if (ft_term.id != "")
+      if (!ft_term.id.empty())
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << ft_term.id << "\" name=\"" << ft_term.name << "\" />\n";
       }
@@ -3664,7 +3698,7 @@ namespace OpenMS::Internal
       }
       //native ID format
       ControlledVocabulary::CVTerm id_term = getChildWithName_("MS:1000767", source_file.getNativeIDType());
-      if (id_term.id != "")
+      if (!id_term.id.empty())
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << id_term.id << "\" name=\"" << id_term.name << "\" />\n";
       }
@@ -3846,7 +3880,7 @@ namespace OpenMS::Internal
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
           precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
-          precursor.getPossibleChargeStates().size() > 0 ||
+          !precursor.getPossibleChargeStates().empty() ||
           precursor.getMZ() > 0.0)
       {
         // precursor m/z may come from "isolation window":
@@ -3936,7 +3970,15 @@ namespace OpenMS::Internal
       }
       if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
       {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
+      {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::TRAP) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
       {
@@ -3954,6 +3996,14 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
       }
+      if (precursor.getActivationMethods().count(Precursor::INSOURCE) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::LIFT) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
+      }      
       if (precursor.getActivationMethods().empty())
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
@@ -4003,7 +4053,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // spectra
       //--------------------------------------------------------------------------------------------
-      if (exp.size() != 0)
+      if (!exp.empty())
       {
         // INFO : do not try to be smart and skip empty spectra or
         // chromatograms. There can be very good reasons for this (e.g. if the
@@ -4173,7 +4223,7 @@ namespace OpenMS::Internal
           ++sf_sp_count;
         }
       }
-      if (exp.getSourceFiles().size() > 0 || sf_sp_count > 0)
+      if (!exp.getSourceFiles().empty() || sf_sp_count > 0)
       {
         os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
 
@@ -4209,19 +4259,19 @@ namespace OpenMS::Internal
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << writeXMLEscape(cp.getLastName()) << ", " << writeXMLEscape(cp.getFirstName()) << "\" />\n";
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact affiliation\" value=\"" << writeXMLEscape(cp.getInstitution()) << "\" />\n";
 
-        if (cp.getAddress() != "")
+        if (!cp.getAddress().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << writeXMLEscape(cp.getAddress()) << "\" />\n";
         }
-        if (cp.getURL() != "")
+        if (!cp.getURL().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << writeXMLEscape(cp.getURL()) << "\" />\n";
         }
-        if (cp.getEmail() != "")
+        if (!cp.getEmail().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << writeXMLEscape(cp.getEmail()) << "\" />\n";
         }
-        if (cp.getContactInfo() != "")
+        if (!cp.getContactInfo().empty())
         {
           os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << writeXMLEscape(cp.getContactInfo()) << "\" />\n";
         }
@@ -4236,7 +4286,7 @@ namespace OpenMS::Internal
       const Sample& sa = exp.getSample();
       os << "\t<sampleList count=\"1\">\n";
       os << "\t\t<sample id=\"sa_0\" name=\"" << writeXMLEscape(sa.getName()) << "\">\n";
-      if (sa.getNumber() != "")
+      if (!sa.getNumber().empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << writeXMLEscape(sa.getNumber()) << "\" />\n";
       }
@@ -4267,7 +4317,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000052\" name=\"suspension\" />\n";
       }
-      if (sa.getComment() != "")
+      if (!sa.getComment().empty())
       {
         os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << writeXMLEscape(sa.getComment()) << "\" />\n";
       }
@@ -4368,7 +4418,7 @@ namespace OpenMS::Internal
       os << "\t<instrumentConfigurationList count=\"1\">\n";
       os << "\t\t<instrumentConfiguration id=\"ic_0\">\n";
       ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031", in.getName());
-      if (in_term.id != "")
+      if (!in_term.id.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << writeXMLEscape(in_term.name) << "\" />\n";
       }
@@ -4377,7 +4427,7 @@ namespace OpenMS::Internal
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000031\" name=\"instrument model\" />\n";
       }
 
-      if (in.getCustomizations() != "")
+      if (!in.getCustomizations().empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << writeXMLEscape(in.getCustomizations()) << "\" />\n";
       }
@@ -4983,14 +5033,14 @@ namespace OpenMS::Internal
       {
         os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ', 'T') << "\"";
       }
-      if (exp.getSourceFiles().size() > 0)
+      if (!exp.getSourceFiles().empty())
       {
         os << " defaultSourceFileRef=\"sf_ru_0\"";
       }
       os << ">\n";
 
       //run attributes
-      if (exp.getFractionIdentifier() != "")
+      if (!exp.getFractionIdentifier().empty())
       {
         os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getFractionIdentifier() << "\" />\n";
       }
@@ -5140,7 +5190,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t<scanList count=\"" << (std::max)((Size)1, spec.getAcquisitionInfo().size()) << "\">\n";
       ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570", spec.getAcquisitionInfo().getMethodOfCombination());
-      if (ai_term.id != "")
+      if (!ai_term.id.empty())
       {
         os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << ai_term.id << "\" name=\"" << ai_term.name << "\" />\n";
       }
@@ -5157,7 +5207,7 @@ namespace OpenMS::Internal
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
         os << "\t\t\t\t\t<scan "; // TODO
-        if (ac.getIdentifier() != "")
+        if (!ac.getIdentifier().empty())
         {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
         }
@@ -5201,7 +5251,7 @@ namespace OpenMS::Internal
         }
 
         //scan windows
-        if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
+        if (j == 0 && !spec.getInstrumentSettings().getScanWindows().empty())
         {
           os << "\t\t\t\t\t\t<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
           for (Size k = 0; k < spec.getInstrumentSettings().getScanWindows().size(); ++k)
@@ -5227,7 +5277,7 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
         }
         //scan windows
-        if (spec.getInstrumentSettings().getScanWindows().size() != 0)
+        if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
           os << "\t\t\t\t\t\t<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
           for (Size j = 0; j < spec.getInstrumentSettings().getScanWindows().size(); ++j)
@@ -5260,7 +5310,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //product list
       //--------------------------------------------------------------------------------------------
-      if (spec.getProducts().size() != 0)
+      if (!spec.getProducts().empty())
       {
         os << "\t\t\t\t<productList count=\"" << spec.getProducts().size() << "\">\n";
         for (Size p = 0; p < spec.getProducts().size(); ++p)
@@ -5273,7 +5323,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //binary data array list
       //--------------------------------------------------------------------------------------------
-      if (spec.size() != 0)
+      if (!spec.empty())
       {
         String encoded_string;
         os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << "\">\n";
@@ -5300,7 +5350,7 @@ namespace OpenMS::Internal
           Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 
           String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
+          if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
@@ -5308,7 +5358,7 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
           os << "\t\t\t\t\t\t" << compression_term << "\n";
           ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-          if (bi_term.id != "")
+          if (!bi_term.id.empty())
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
           }
@@ -5330,7 +5380,7 @@ namespace OpenMS::Internal
             data_to_encode[p] = array[p];
           Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
+          if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
@@ -5507,7 +5557,7 @@ namespace OpenMS::Internal
           array_metadata.removeMetaValue("unit_accession"); // prevent this from being written as userParam
         }
 
-        if (bi_term.id != "")
+        if (!bi_term.id.empty())
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\"" + unit_cv_term + " />\n";
         }
@@ -5523,7 +5573,7 @@ namespace OpenMS::Internal
       }
 
       String data_processing_ref_string = "";
-      if (array.getDataProcessing().size() != 0)
+      if (!array.getDataProcessing().empty())
       {
         data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
       }
@@ -5672,7 +5722,7 @@ namespace OpenMS::Internal
         }
         Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
+        if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }
@@ -5680,7 +5730,7 @@ namespace OpenMS::Internal
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
         os << "\t\t\t\t\t\t" << compression_term << "\n";
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-        if (bi_term.id != "")
+        if (!bi_term.id.empty())
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
         }
@@ -5704,7 +5754,7 @@ namespace OpenMS::Internal
         }
         Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
+        if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }

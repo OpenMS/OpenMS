@@ -128,7 +128,7 @@ protected:
 
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
 

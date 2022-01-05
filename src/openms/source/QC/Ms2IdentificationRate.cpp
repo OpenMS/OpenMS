@@ -102,7 +102,7 @@ namespace OpenMS
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-  void Ms2IdentificationRate::addMetaDataMetricsToMzTab(MzTabMetaData& meta)
+  void Ms2IdentificationRate::addMetaDataMetricsToMzTab(MzTabMetaData& meta) const
   {
     // Adding MS2_ID_Rate to meta data
     const auto& ms2_irs = this->getResults();

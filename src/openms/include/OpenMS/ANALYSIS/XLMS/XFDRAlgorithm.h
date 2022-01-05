@@ -124,7 +124,7 @@ private:
      */
     void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
-                      std::vector< double >& fdr, bool mono);
+                      std::vector< double >& fdr, bool mono) const;
 
     /**
     * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector

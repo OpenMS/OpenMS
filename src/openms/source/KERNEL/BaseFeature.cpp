@@ -171,11 +171,11 @@ namespace OpenMS
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
-    if (peptides_.size() == 0)
+    if (peptides_.empty())
     {
       return FEATURE_ID_NONE;
     }
-    else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+    else if (peptides_.size() == 1 && !peptides_[0].getHits().empty())
     {
       return FEATURE_ID_SINGLE;
     }
@@ -184,7 +184,7 @@ namespace OpenMS
       std::set<String> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
       {
-        if (peptides_[i].getHits().size() > 0)
+        if (!peptides_[i].getHits().empty())
         {
           PeptideIdentification id_tmp = peptides_[i];
           id_tmp.sort();  // look at best hit only - requires sorting

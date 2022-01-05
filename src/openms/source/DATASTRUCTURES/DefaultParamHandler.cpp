@@ -128,7 +128,7 @@ namespace OpenMS
     for (Param::ParamIterator it = defaults_.begin(); it != defaults_.end(); ++it)
     {
       //cout << "Name: " << it->getName() << endl;
-      if (it->description == "")
+      if (it->description.empty())
       {
         description_missing = true;
         missing_parameters += it.getName() + ",";

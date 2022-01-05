@@ -18,7 +18,12 @@ HistogramWidget.h
 InputFile.h
 InputFileList.h
 LayerListView.h
-LayerData.h
+LayerDataBase.h
+LayerDataChrom.h
+LayerDataConsensus.h
+LayerDataFeature.h
+LayerDataIdent.h
+LayerDataPeak.h
 ListEditor.h
 LogWindow.h
 MetaDataBrowser.h

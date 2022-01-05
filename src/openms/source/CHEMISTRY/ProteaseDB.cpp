@@ -49,7 +49,7 @@ namespace OpenMS
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getXTandemID() != "")
+      if (!(*it)->getXTandemID().empty())
       {
         all_names.push_back((*it)->getName());
       }
@@ -62,7 +62,7 @@ namespace OpenMS
     all_names.push_back("custom-enzyme");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getCruxID() != "")
+      if (!(*it)->getCruxID().empty())
       {
         all_names.push_back((*it)->getCruxID());
       }

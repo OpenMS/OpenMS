@@ -161,7 +161,7 @@ public:
       ///Writes the log distributions of gumbel and gauss densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
       void fillLogDensitiesGumbel(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
       ///computes the Likelihood with a log-likelihood function.
-      double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density);
+      double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density) const;
       
       /**computes the posteriors for the datapoints to belong to the incorrect distribution
        * @param incorrect_posterior resulting posteriors
@@ -170,7 +170,7 @@ public:
       double computeLLAndIncorrectPosteriorsFromLogDensities(
           const std::vector<double>& incorrect_log_density,
           const std::vector<double>& correct_log_density,
-          std::vector<double>& incorrect_posterior);
+          std::vector<double>& incorrect_posterior) const;
 
       /**
        * @param x_scores Scores observed "on the x-axis"
@@ -244,7 +244,7 @@ public:
       void plotTargetDecoyEstimation(std::vector<double> & target, std::vector<double> & decoy);
 
       /// returns the smallest score used in the last fit
-      inline double getSmallestScore()
+      inline double getSmallestScore() const
       {
         return smallest_score_;
       }

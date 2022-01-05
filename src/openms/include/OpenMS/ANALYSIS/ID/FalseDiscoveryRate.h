@@ -127,7 +127,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
     /**
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
      and the ROC-N value (AUC up to first N false positives).
@@ -137,7 +137,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
     /**
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
@@ -148,7 +148,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
     /// simpler reimplementation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);

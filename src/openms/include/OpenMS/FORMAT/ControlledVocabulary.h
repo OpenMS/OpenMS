@@ -213,7 +213,7 @@ protected:
 
         If the term is not known, 'true' is returned!
     */
-    bool checkName_(const String& id, const String& name, bool ignore_case = true);
+    bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     ///Map from ID to CVTerm
     Map<String, CVTerm> terms_;

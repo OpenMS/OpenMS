@@ -189,7 +189,7 @@ namespace OpenMS
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
-        if (index_to_precursor.size()>0)
+        if (!index_to_precursor.empty())
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {

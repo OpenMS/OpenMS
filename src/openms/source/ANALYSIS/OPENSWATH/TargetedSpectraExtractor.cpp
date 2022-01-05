@@ -648,7 +648,7 @@ namespace OpenMS
     const MSSpectrum& input_spectrum,
     const Comparator& cmp,
     std::vector<Match>& matches
-  )
+  ) const
   {
     // TODO: remove times debug info
     // std::clock_t start;

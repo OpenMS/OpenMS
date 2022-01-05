@@ -206,7 +206,7 @@ namespace OpenMS
       String temp_description = "";
       String origin = temp_aa_sequence[position - 1].getOneLetterCode();
       matchModification_(mass, origin, temp_description);
-      if (temp_description.size() > 0) // only if a mod was found
+      if (!temp_description.empty()) // only if a mod was found
       {
         // e.g. Carboxymethyl (C)
         vector<String> mod_split;

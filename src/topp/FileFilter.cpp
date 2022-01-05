@@ -247,7 +247,7 @@ private:
       }
     }
     //flag: sequences or accessions
-    if (sequences.size() > 0 || accessions.size() > 0)
+    if (!sequences.empty() || !accessions.empty())
     {
       bool sequen = false;
       bool access = false;
@@ -277,11 +277,11 @@ private:
           }
         }
       }
-      if (sequences.size() > 0 && accessions.size() > 0)
+      if (!sequences.empty() && !accessions.empty())
       {
         return sequen && access;
       }
-      if (sequences.size() > 0)
+      if (!sequences.empty())
       {
         return sequen;
       }
@@ -651,7 +651,7 @@ protected:
 
     // handle remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
-    bool remove_meta_enabled = (meta_info.size() > 0);
+    bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
       writeLog_("Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
@@ -752,7 +752,7 @@ protected:
 
       // remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
-      if (rm_pc_charge.size() > 0)
+      if (!rm_pc_charge.empty())
       {
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
       }

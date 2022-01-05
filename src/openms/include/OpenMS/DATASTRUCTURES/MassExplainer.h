@@ -120,7 +120,7 @@ public:
 protected:
 
     ///check if the generated compomer is valid judged by its probability, charges etc
-    bool compomerValid_(const Compomer& cmp);
+    bool compomerValid_(const Compomer& cmp) const;
 
     /// create a proper adduct from formula and charge and probability
     Adduct createAdduct_(const String& formula, const Int charge, const double p) const;

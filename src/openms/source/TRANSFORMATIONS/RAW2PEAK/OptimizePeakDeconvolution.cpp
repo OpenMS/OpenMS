@@ -60,7 +60,7 @@ namespace OpenMS
       m_inputs(dimensions), m_values(numDataPoints), m_data(data)
     {}
 
-    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
     {
       //TODO: holding the parameters to be optimized and additional values in the same vector is
       //      most likely not the best idea. should be split in two vectors.
@@ -175,7 +175,7 @@ namespace OpenMS
     }
 
     // compute Jacobian matrix for the different parameters
-    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //

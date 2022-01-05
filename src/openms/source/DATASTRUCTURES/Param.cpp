@@ -85,7 +85,7 @@ namespace OpenMS
   {
     if (value.valueType() == ParamValue::STRING_VALUE)
     {
-      if (valid_strings.size() != 0)
+      if (!valid_strings.empty())
       {
         bool ok = false;
         if (std::find(valid_strings.begin(), valid_strings.end(), value) != valid_strings.end())
@@ -117,7 +117,7 @@ namespace OpenMS
       {
         str_value = ls_value[i];
 
-        if (valid_strings.size() != 0)
+        if (!valid_strings.empty())
         {
           bool ok = false;
           if (std::find(valid_strings.begin(), valid_strings.end(), str_value) != valid_strings.end())
@@ -364,7 +364,7 @@ namespace OpenMS
       {
         it->insert(*it2);
       }
-      if (it->description == "" || node.description != "") //replace description if not empty in new node
+      if (it->description.empty() || !node.description.empty()) //replace description if not empty in new node
       {
         it->description = node.description;
       }
@@ -413,7 +413,7 @@ namespace OpenMS
     {
       it->value = entry.value;
       it->tags = entry.tags;
-      if (it->description == "" || entry.description != "") //replace description if not empty in new entry
+      if (it->description.empty() || !entry.description.empty()) //replace description if not empty in new entry
       {
         it->description = entry.description;
       }
@@ -575,7 +575,7 @@ namespace OpenMS
   void Param::setDefaults(const Param& defaults, const std::string& prefix, bool showMessage)
   {
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       if (prefix2.back() != ':')
       {
@@ -627,11 +627,11 @@ namespace OpenMS
           pathname.resize(pathname.size() - it2->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.length() - 1); //remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = defaults.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
             //std::cerr << "## " << description_new << std::endl;
@@ -841,7 +841,7 @@ namespace OpenMS
   {
     //determine prefix
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       //prefix2.ensureLastChar(':');
       if (prefix2.back() != ':')
@@ -1036,7 +1036,7 @@ namespace OpenMS
         os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
       os  << it->name << "\" -> \"" << it->value << '"';
-      if (it->description != "")
+      if (!it->description.empty())
       {
         os << " (" << it->description << ")";
       }
@@ -1064,7 +1064,7 @@ namespace OpenMS
   {
     //Extract right parameters
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       if (prefix2.back() != ':') 
       {
@@ -1407,11 +1407,11 @@ OPENMS_THREAD_CRITICAL(oms_log)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.size() - 1);//remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = toMerge.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             setSectionDescription(real_pathname, description_new);
           }

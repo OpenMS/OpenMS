@@ -96,7 +96,7 @@ namespace OpenMS
   class FeatureMap :
     private std::vector<Feature>,
     public MetaInfoInterface,
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
     public UniqueIdInterface,
     public UniqueIdIndexer<FeatureMap>,
@@ -137,7 +137,8 @@ public:
 
     //@{
     typedef Feature FeatureType;
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef std::vector<FeatureType> Base;
     typedef Base::iterator Iterator;
     typedef Base::const_iterator ConstIterator;

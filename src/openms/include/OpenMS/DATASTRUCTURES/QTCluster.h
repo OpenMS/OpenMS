@@ -251,7 +251,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(const QTCluster& cluster);
+    bool operator<(const QTCluster& cluster) const;
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -367,6 +367,4 @@ public:
       bool finalized_;
   };
 
-  // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS
