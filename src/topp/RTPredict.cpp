@@ -299,17 +299,16 @@ protected:
       Param additional_parameters;
       ParamXMLFile paramFile;
       paramFile.load(in_params_name, additional_parameters);
-      if (additional_parameters.exists("first_dim_rt")
-         && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
+      if (additional_parameters.exists("first_dim_rt") && additional_parameters.getValue("first_dim_rt") != ParamValue::EMPTY)
       {
         first_dim_rt = additional_parameters.getValue("first_dim_rt").toBool();
       }
-      if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
+      if (additional_parameters.getValue("kernel_type") != ParamValue::EMPTY)
       {
         svm.setParameter(SVMWrapper::KERNEL_TYPE, String(additional_parameters.getValue("kernel_type").toString()).toInt());
       }
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         writeLog_("No border length saved in additional parameters file. Aborting!");
@@ -317,7 +316,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       border_length = String(additional_parameters.getValue("border_length").toString()).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         writeLog_("No k-mer length saved in additional parameters file. Aborting!");
@@ -325,7 +324,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       k_mer_length = String(additional_parameters.getValue("k_mer_length").toString()).toInt();
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+      if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         writeLog_("No sigma saved in additional parameters file. Aborting!");
@@ -333,23 +332,23 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       sigma = String(additional_parameters.getValue("sigma").toString()).toDouble();
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_0") == ParamValue::EMPTY)
       {
         writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
         cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") != DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_0") != ParamValue::EMPTY)
       {
         sigma_0 = additional_parameters.getValue("sigma_0");
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_max") == ParamValue::EMPTY)
       {
         writeLog_("No sigma_max saved in additional parameters file. Aborting!");
         cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") != DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_max") != ParamValue::EMPTY)
       {
         sigma_max = additional_parameters.getValue("sigma_max");
       }

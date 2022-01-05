@@ -218,15 +218,15 @@ set_tests_properties("TOPP_MapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_MapNor
 #------------------------------------------------------------------------------
 # DatabaseSuitability tests
 # test default
-add_test("TOPP_DatabaseSuitability_1" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -algorithm:FDR 0.8 -out DatabaseSuitability_1.tmp)
+add_test("TOPP_DatabaseSuitability_1" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/DatabaseSuitability_novo_database.FASTA -out DatabaseSuitability_1.tmp)
 add_test("TOPP_DatabaseSuitability_1_out" ${DIFF} -in1 DatabaseSuitability_1.tmp -in2 ${DATA_DIR_TOPP}/DatabaseSuitability_out_1.tsv )
 set_tests_properties("TOPP_DatabaseSuitability_1_out" PROPERTIES DEPENDS "TOPP_DatabaseSuitability_1")
-# test with custom novor_fract
-add_test("TOPP_DatabaseSuitability_2" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -algorithm:FDR 1 -algorithm:reranking_cutoff_percentile 0.9 -out DatabaseSuitability_2.tmp)
+# test with custom reranking_cutoff_percentile
+add_test("TOPP_DatabaseSuitability_2" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/DatabaseSuitability_novo_database.FASTA -algorithm:FDR 0.05 -out DatabaseSuitability_2.tmp)
 add_test("TOPP_DatabaseSuitability_2_out" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 DatabaseSuitability_2.tmp -in2 ${DATA_DIR_TOPP}/DatabaseSuitability_out_2.tsv )
 set_tests_properties("TOPP_DatabaseSuitability_2_out" PROPERTIES DEPENDS "TOPP_DatabaseSuitability_2")
-# test without re-ranking
-add_test("TOPP_DatabaseSuitability_3" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -algorithm:FDR 0.9 -algorithm:no_rerank -out DatabaseSuitability_3.tmp)
+# test with custom FDR
+add_test("TOPP_DatabaseSuitability_3" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/DatabaseSuitability_novo_database.FASTA -algorithm:FDR 0.5 -algorithm:reranking_cutoff_percentile 0.5 -out DatabaseSuitability_3.tmp)
 add_test("TOPP_DatabaseSuitability_3_out" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 DatabaseSuitability_3.tmp -in2 ${DATA_DIR_TOPP}/DatabaseSuitability_out_3.tsv )
 set_tests_properties("TOPP_DatabaseSuitability_3_out" PROPERTIES DEPENDS "TOPP_DatabaseSuitability_3")
 
