@@ -531,12 +531,15 @@ protected:
       For example, a tool that splits mzML files into multiple mgf files should create files:
       splitted_0.mgf, splitted_1.mgf, ... if splitted got passed as prefix.
       
-      Note: setting format(s) via setValidFormat_ for an output prefix will can used to export
-            e.g. valid CTD files that contain information on the expected output file types.            
+      Note: setting format(s) via setValidFormat_ for an output prefix can be used to export
+            e.g. valid CTD files that contain information on the expected output file types. In theory, it is possible
+            to output different types and list them here but this should be avoided for cleanlyness (prefer multiple
+            separate outputs). This could be left empty in case of an unknown amount of different extensions that
+            are produced but is highly recommended.
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
-      @param default_value Default argument
+      @param default_value Default value (remember, no extension is specified here)
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.

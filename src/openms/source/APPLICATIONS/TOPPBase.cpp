@@ -1373,7 +1373,7 @@ namespace OpenMS
     }
     else if (p.type == ParameterInformation::OUTPUT_PREFIX)
     {
-      outputFileWritable_(param_value + "_0", param_name);
+      outputFileWritable_(param_value + "_0", param_name); // only test one file
     }
 
     // check restrictions
