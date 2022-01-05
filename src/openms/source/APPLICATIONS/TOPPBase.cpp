@@ -1987,13 +1987,28 @@ namespace OpenMS
       String name = loc + it->name;
       std::vector<std::string> tags;
       if (it->advanced)
+      {
         tags.push_back("advanced");
+      }
       if (it->required)
+      {
         tags.push_back("required");
+      }
+
       if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
+      {
         tags.push_back("input file");
+      }
+      
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+      {
         tags.push_back("output file");
+      }
+
+      if (it->type == ParameterInformation::OUTPUT_PREFIX)
+      {
+        tags.push_back("output prefix");
+      }        
 
       switch (it->type)
       {
