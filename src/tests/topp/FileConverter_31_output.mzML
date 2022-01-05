@@ -12,13 +12,6 @@
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
-		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_30_output.mzML" location="file:///home/hr/openmsall/source/OpenMS_experimental/src/tests/topp">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="941fccdd35f63069f09b1e4f2b68aba229e4dd6f" />
-				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
-			</sourceFile>
-		</sourceFileList>
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
@@ -131,7 +124,7 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
@@ -179,7 +172,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<spectrumList count="8" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="spectrum=10" index="0" defaultArrayLength="100" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
@@ -223,6 +216,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -242,7 +240,7 @@
 						<binary>AAAAQAAAgEAAAMBAAAAAQQAAIEEAAIBAAAAAQQAAQEEAAIBBAACgQQAAwEAAAEBBAACQQQAAwEEAAPBBAAAAQQAAgEEAAMBBAAAAQgAAIEIAACBBAACgQQAA8EEAACBCAABIQgAAQEEAAMBBAAAQQgAAQEIAAHBCAABgQQAA4EEAAChCAABgQgAAjEIAAIBBAAAAQgAAQEIAAIBCAACgQgAAkEEAABBCAABYQgAAkEIAALRCAACgQQAAIEIAAHBCAACgQgAAyEIAAJBBAAAQQgAAWEIAAJBCAAC0QgAAgEEAAABCAABAQgAAgEIAAKBCAABgQQAA4EEAAChCAABgQgAAjEIAAEBBAADAQQAAEEIAAEBCAABwQgAAIEEAAKBBAADwQQAAIEIAAEhCAAAAQQAAgEEAAMBBAAAAQgAAIEIAAMBAAABAQQAAkEEAAMBBAADwQQAAgEAAAABBAABAQQAAgEEAAKBBAAAAQAAAgEAAAMBAAAAAQQAAIEEAAIA/AAAAQAAAQEAAAIBAAACgQAAAAEAAAIBAAADAQAAAAEEAACBBAABAQAAAwEAAABBBAABAQQAAcEEAAIBAAAAAQQAAQEEAAIBBAACgQQAAoEAAACBBAABwQQAAoEEAAMhBAADAQAAAQEEAAJBBAADAQQAA8EEAAOBAAABgQQAAqEEAAOBBAAAMQgAAAEEAAIBBAADAQQAAAEIAACBCAAAQQQAAkEEAANhBAAAQQgAANEIAACBBAACgQQAA8EEAACBCAABIQgAAMEEAALBBAAAEQgAAMEIAAFxCAABAQQAAwEEAABBCAABAQgAAcEIAAFBBAADQQQAAHEIAAFBCAACCQgAAYEEAAOBBAAAoQgAAYEIAAIxCAABwQQAA8EEAADRCAABwQgAAlkIAAIBBAAAAQgAAQEIAAIBCAACgQgAAiEEAAAhCAABMQgAAiEIAAKpCAACQQQAAEEIAAFhCAACQQgAAtEIAAJhBAAAYQgAAZEIAAJhCAAC+QgAAoEEAACBCAABwQgAAoEIAAMhCAACYQQAAGEIAAGRCAACYQgAAvkIAAJBBAAAQQgAAWEIAAJBCAAC0QgAAiEEAAAhCAABMQgAAiEIAAKpCAACAQQAAAEIAAEBCAACAQgAAoEIAAHBBAADwQQAANEIAAHBCAACWQgAAYEEAAOBBAAAoQgAAYEIAAIxCAABQQQAA0EEAABxCAABQQgAAgkIAAEBBAADAQQAAEEIAAEBCAABwQgAAMEEAALBBAAAEQgAAMEIAAFxCAAAgQQAAoEEAAPBBAAAgQgAASEIAABBBAACQQQAA2EEAABBCAAA0QgAAAEEAAIBBAADAQQAAAEIAACBCAADgQAAAYEEAAKhBAADgQQAADEIAAMBAAABAQQAAkEEAAMBBAADwQQAAoEAAACBBAABwQQAAoEEAAMhBAACAQAAAAEEAAEBBAACAQQAAoEEAAEBAAADAQAAAEEEAAEBBAABwQQAAAEAAAIBAAADAQAAAAEEAACBBAACAPwAAAEAAAEBAAACAQAAAoEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="290" encodedLength="3096" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility (MS:1002476)"  />
+						<cvParam cvRef="MS" accession="MS:1002816" name="mean ion mobility array" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>////n8ZLxz////+fxkvHP////5/GS8c/////n8ZLxz////+fxkvHPwUAAOBPjcc/BQAA4E+Nxz8FAADgT43HPwUAAOBPjcc/BQAA4E+Nxz8KAAAg2c7HPwoAACDZzsc/CgAAINnOxz8KAAAg2c7HPwoAACDZzsc/8///P2IQyD/z//8/YhDIP/P//z9iEMg/8///P2IQyD/z//8/YhDIP/j//3/rUcg/+P//f+tRyD/4//9/61HIP/j//3/rUcg/+P//f+tRyD/+//+/dJPIP/7//790k8g//v//v3STyD/+//+/dJPIP/7//790k8g/BAAAAP7UyD8EAAAA/tTIPwQAAAD+1Mg/BAAAAP7UyD8EAAAA/tTIPxAAACCHFsk/EAAAIIcWyT8QAAAghxbJPxAAACCHFsk/EAAAIIcWyT/y//9fEFjJP/L//18QWMk/8v//XxBYyT/y//9fEFjJP/L//18QWMk/9///n5mZyT/3//+fmZnJP/f//5+Zmck/9///n5mZyT/3//+fmZnJP/3//98i28k//f//3yLbyT/9///fItvJP/3//98i28k//f//3yLbyT8KAAAArBzKPwoAAACsHMo/CgAAAKwcyj8KAAAArBzKPwoAAACsHMo/DwAAQDVeyj8PAABANV7KPw8AAEA1Xso/DwAAQDVeyj8PAABANV7KP/H//3++n8o/8f//f76fyj/x//9/vp/KP/H//3++n8o/8f//f76fyj/9//+fR+HKP/3//59H4co//f//n0fhyj/9//+fR+HKP/3//59H4co/AwAA4NAiyz8DAADg0CLLPwMAAODQIss/AwAA4NAiyz8DAADg0CLLPwgAACBaZMs/CAAAIFpkyz8IAAAgWmTLPwgAACBaZMs/CAAAIFpkyz8OAABg46XLPw4AAGDjpcs/DgAAYOOlyz8OAABg46XLPw4AAGDjpcs/9///f2znyz/3//9/bOfLP/f//39s58s/9///f2znyz/3//9/bOfLPwYAAKCbxNA/BgAAoJvE0D8GAACgm8TQPwYAAKCbxNA/BgAAoJvE0D8JAABAYOXQPwkAAEBg5dA/CQAAQGDl0D8JAABAYOXQPwkAAEBg5dA/+f//3yQG0T/5///fJAbRP/n//98kBtE/+f//3yQG0T/5///fJAbRP/z//3/pJtE//P//f+km0T/8//9/6SbRP/z//3/pJtE//P//f+km0T////8frkfRP////x+uR9E/////H65H0T////8frkfRP////x+uR9E/AgAAwHJo0T8CAADAcmjRPwIAAMByaNE/AgAAwHJo0T8CAADAcmjRP/n//z83idE/+f//PzeJ0T/5//8/N4nRP/n//z83idE/+f//PzeJ0T/8///f+6nRP/z//9/7qdE//P//3/up0T/8///f+6nRP/z//9/7qdE/////f8DK0T////9/wMrRP////3/AytE/////f8DK0T////9/wMrRPwIAACCF69E/AgAAIIXr0T8CAAAghevRPwIAACCF69E/AgAAIIXr0T8FAADASQzSPwUAAMBJDNI/BQAAwEkM0j8FAADASQzSPwUAAMBJDNI/BwAAYA4t0j8HAABgDi3SPwcAAGAOLdI/BwAAYA4t0j8HAABgDi3SP/j////STdI/+P///9JN0j/4////0k3SP/j////STdI/+P///9JN0j8CAACAl27SPwIAAICXbtI/AgAAgJdu0j8CAACAl27SPwIAAICXbtI/BQAAIFyP0j8FAAAgXI/SPwUAACBcj9I/BQAAIFyP0j8FAAAgXI/SPwgAAMAgsNI/CAAAwCCw0j8IAADAILDSPwgAAMAgsNI/CAAAwCCw0j/4//9f5dDSP/j//1/l0NI/+P//X+XQ0j/4//9f5dDSP/j//1/l0NI/+////6nx0j/7////qfHSP/v///+p8dI/+////6nx0j/7////qfHSP/7//59uEtM//v//n24S0z/+//+fbhLTP/7//59uEtM//v//n24S0z8BAABAMzPTPwEAAEAzM9M/AQAAQDMz0z8BAABAMzPTPwEAAEAzM9M/+f//v/dT0z/5//+/91PTP/n//7/3U9M/+f//v/dT0z/5//+/91PTP/v//1+8dNM/+///X7x00z/7//9fvHTTP/v//1+8dNM/+///X7x00z/+////gJXTP/7///+AldM//v///4CV0z/+////gJXTP/7///+AldM/AQAAoEW20z8BAACgRbbTPwEAAKBFttM/AQAAoEW20z8BAACgRbbTPwQAAEAK19M/BAAAQArX0z8EAABACtfTPwQAAEAK19M/BAAAQArX0z8HAADgzvfTPwcAAODO99M/BwAA4M730z8HAADgzvfTPwcAAODO99M/9///f5MY1D/3//9/kxjUP/f//3+TGNQ/9///f5MY1D/3//9/kxjUP/r//x9YOdQ/+v//H1g51D/6//8fWDnUP/r//x9YOdQ/+v//H1g51D8EAACgHFrUPwQAAKAcWtQ/BAAAoBxa1D8EAACgHFrUPwQAAKAcWtQ/BwAAQOF61D8HAABA4XrUPwcAAEDhetQ/BwAAQOF61D8HAABA4XrUP/j//9+lm9Q/+P//36Wb1D/4///fpZvUP/j//9+lm9Q/+P//36Wb1D/6//9/arzUP/r//39qvNQ/+v//f2q81D/6//9/arzUP/r//39qvNQ//f//Hy/d1D/9//8fL93UP/3//x8v3dQ//f//Hy/d1D/9//8fL93UPwAAAMDz/dQ/AAAAwPP91D8AAADA8/3UPwAAAMDz/dQ/AAAAwPP91D8DAABguB7VPwMAAGC4HtU/AwAAYLge1T8DAABguB7VPwMAAGC4HtU/+v//33w/1T/6///ffD/VP/r//998P9U/+v//33w/1T/6///ffD/VP/3//39BYNU//f//f0Fg1T/9//9/QWDVP/3//39BYNU//f//f0Fg1T8AAAAgBoHVPwAAACAGgdU/AAAAIAaB1T8AAAAgBoHVPwAAACAGgdU/AwAAwMqh1T8DAADAyqHVPwMAAMDKodU/AwAAwMqh1T8DAADAyqHVPw==</binary>
@@ -291,6 +289,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -310,7 +313,7 @@
 						<binary>mpkZQJqZmUBmZuZAmpkZQQAAQEGamZlAmpkZQWZmZkGamZlBAADAQWZm5kBmZmZBzcysQWZm5kEAABBCmpkZQZqZmUFmZuZBmpkZQgAAQEIAAEBBAADAQQAAEEIAAEBCAABwQmZmZkFmZuZBzcwsQmZmZkIAAJBCZmaGQWZmBkKamUlCZmaGQgAAqEKamZlBmpkZQmZmZkKamZlCAADAQs3MrEHNzCxCmpmBQs3MrEIAANhCAADAQQAAQEIAAJBCAADAQgAA8ELNzKxBzcwsQpqZgULNzKxCAADYQpqZmUGamRlCZmZmQpqZmUIAAMBCZmaGQWZmBkKamUlCZmaGQgAAqEJmZmZBZmbmQc3MLEJmZmZCAACQQgAAQEEAAMBBAAAQQgAAQEIAAHBCmpkZQZqZmUFmZuZBmpkZQgAAQEJmZuZAZmZmQc3MrEFmZuZBAAAQQpqZmUCamRlBZmZmQZqZmUEAAMBBmpkZQJqZmUBmZuZAmpkZQQAAQEGamZk/mpkZQGZmZkCamZlAAADAQJqZGUCamZlAZmbmQJqZGUEAAEBBZmZmQGZm5kDNzCxBZmZmQQAAkEGamZlAmpkZQWZmZkGamZlBAADAQQAAwEAAAEBBAACQQQAAwEEAAPBBZmbmQGZmZkHNzKxBZmbmQQAAEEJmZgZBZmaGQZqZyUFmZgZCAAAoQpqZGUGamZlBZmbmQZqZGUIAAEBCzcwsQc3MrEGamQFCzcwsQgAAWEIAAEBBAADAQQAAEEIAAEBCAABwQjMzU0EzM9NBZmYeQjMzU0IAAIRCZmZmQWZm5kHNzCxCZmZmQgAAkEKamXlBmpn5QTMzO0KamXlCAACcQmZmhkFmZgZCmplJQmZmhkIAAKhCAACQQQAAEEIAAFhCAACQQgAAtEKamZlBmpkZQmZmZkKamZlCAADAQjMzo0EzMyNCzcx0QjMzo0IAAMxCzcysQc3MLEKamYFCzcysQgAA2EJmZrZBZmY2Qs3MiEJmZrZCAADkQgAAwEEAAEBCAACQQgAAwEIAAPBCZma2QWZmNkLNzIhCZma2QgAA5ELNzKxBzcwsQpqZgULNzKxCAADYQjMzo0EzMyNCzcx0QjMzo0IAAMxCmpmZQZqZGUJmZmZCmpmZQgAAwEIAAJBBAAAQQgAAWEIAAJBCAAC0QmZmhkFmZgZCmplJQmZmhkIAAKhCmpl5QZqZ+UEzMztCmpl5QgAAnEJmZmZBZmbmQc3MLEJmZmZCAACQQjMzU0EzM9NBZmYeQjMzU0IAAIRCAABAQQAAwEEAABBCAABAQgAAcELNzCxBzcysQZqZAULNzCxCAABYQpqZGUGamZlBZmbmQZqZGUIAAEBCZmYGQWZmhkGamclBZmYGQgAAKEJmZuZAZmZmQc3MrEFmZuZBAAAQQgAAwEAAAEBBAACQQQAAwEEAAPBBmpmZQJqZGUFmZmZBmpmZQQAAwEFmZmZAZmbmQM3MLEFmZmZBAACQQZqZGUCamZlAZmbmQJqZGUEAAEBBmpmZP5qZGUBmZmZAmpmZQAAAwEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="290" encodedLength="3096" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility (MS:1002476)"  />
+						<cvParam cvRef="MS" accession="MS:1002816" name="mean ion mobility array" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>////n8ZLxz////+fxkvHP////5/GS8c/////n8ZLxz////+fxkvHPwUAAOBPjcc/BQAA4E+Nxz8FAADgT43HPwUAAOBPjcc/BQAA4E+Nxz8KAAAg2c7HPwoAACDZzsc/CgAAINnOxz8KAAAg2c7HPwoAACDZzsc/8///P2IQyD/z//8/YhDIP/P//z9iEMg/8///P2IQyD/z//8/YhDIP/j//3/rUcg/+P//f+tRyD/4//9/61HIP/j//3/rUcg/+P//f+tRyD/+//+/dJPIP/7//790k8g//v//v3STyD/+//+/dJPIP/7//790k8g/BAAAAP7UyD8EAAAA/tTIPwQAAAD+1Mg/BAAAAP7UyD8EAAAA/tTIPxAAACCHFsk/EAAAIIcWyT8QAAAghxbJPxAAACCHFsk/EAAAIIcWyT/y//9fEFjJP/L//18QWMk/8v//XxBYyT/y//9fEFjJP/L//18QWMk/9///n5mZyT/3//+fmZnJP/f//5+Zmck/9///n5mZyT/3//+fmZnJP/3//98i28k//f//3yLbyT/9///fItvJP/3//98i28k//f//3yLbyT8KAAAArBzKPwoAAACsHMo/CgAAAKwcyj8KAAAArBzKPwoAAACsHMo/DwAAQDVeyj8PAABANV7KPw8AAEA1Xso/DwAAQDVeyj8PAABANV7KP/H//3++n8o/8f//f76fyj/x//9/vp/KP/H//3++n8o/8f//f76fyj/9//+fR+HKP/3//59H4co//f//n0fhyj/9//+fR+HKP/3//59H4co/AwAA4NAiyz8DAADg0CLLPwMAAODQIss/AwAA4NAiyz8DAADg0CLLPwgAACBaZMs/CAAAIFpkyz8IAAAgWmTLPwgAACBaZMs/CAAAIFpkyz8OAABg46XLPw4AAGDjpcs/DgAAYOOlyz8OAABg46XLPw4AAGDjpcs/9///f2znyz/3//9/bOfLP/f//39s58s/9///f2znyz/3//9/bOfLPwYAAKCbxNA/BgAAoJvE0D8GAACgm8TQPwYAAKCbxNA/BgAAoJvE0D8JAABAYOXQPwkAAEBg5dA/CQAAQGDl0D8JAABAYOXQPwkAAEBg5dA/+f//3yQG0T/5///fJAbRP/n//98kBtE/+f//3yQG0T/5///fJAbRP/z//3/pJtE//P//f+km0T/8//9/6SbRP/z//3/pJtE//P//f+km0T////8frkfRP////x+uR9E/////H65H0T////8frkfRP////x+uR9E/AgAAwHJo0T8CAADAcmjRPwIAAMByaNE/AgAAwHJo0T8CAADAcmjRP/n//z83idE/+f//PzeJ0T/5//8/N4nRP/n//z83idE/+f//PzeJ0T/8///f+6nRP/z//9/7qdE//P//3/up0T/8///f+6nRP/z//9/7qdE/////f8DK0T////9/wMrRP////3/AytE/////f8DK0T////9/wMrRPwIAACCF69E/AgAAIIXr0T8CAAAghevRPwIAACCF69E/AgAAIIXr0T8FAADASQzSPwUAAMBJDNI/BQAAwEkM0j8FAADASQzSPwUAAMBJDNI/BwAAYA4t0j8HAABgDi3SPwcAAGAOLdI/BwAAYA4t0j8HAABgDi3SP/j////STdI/+P///9JN0j/4////0k3SP/j////STdI/+P///9JN0j8CAACAl27SPwIAAICXbtI/AgAAgJdu0j8CAACAl27SPwIAAICXbtI/BQAAIFyP0j8FAAAgXI/SPwUAACBcj9I/BQAAIFyP0j8FAAAgXI/SPwgAAMAgsNI/CAAAwCCw0j8IAADAILDSPwgAAMAgsNI/CAAAwCCw0j/4//9f5dDSP/j//1/l0NI/+P//X+XQ0j/4//9f5dDSP/j//1/l0NI/+////6nx0j/7////qfHSP/v///+p8dI/+////6nx0j/7////qfHSP/7//59uEtM//v//n24S0z/+//+fbhLTP/7//59uEtM//v//n24S0z8BAABAMzPTPwEAAEAzM9M/AQAAQDMz0z8BAABAMzPTPwEAAEAzM9M/+f//v/dT0z/5//+/91PTP/n//7/3U9M/+f//v/dT0z/5//+/91PTP/v//1+8dNM/+///X7x00z/7//9fvHTTP/v//1+8dNM/+///X7x00z/+////gJXTP/7///+AldM//v///4CV0z/+////gJXTP/7///+AldM/AQAAoEW20z8BAACgRbbTPwEAAKBFttM/AQAAoEW20z8BAACgRbbTPwQAAEAK19M/BAAAQArX0z8EAABACtfTPwQAAEAK19M/BAAAQArX0z8HAADgzvfTPwcAAODO99M/BwAA4M730z8HAADgzvfTPwcAAODO99M/9///f5MY1D/3//9/kxjUP/f//3+TGNQ/9///f5MY1D/3//9/kxjUP/r//x9YOdQ/+v//H1g51D/6//8fWDnUP/r//x9YOdQ/+v//H1g51D8EAACgHFrUPwQAAKAcWtQ/BAAAoBxa1D8EAACgHFrUPwQAAKAcWtQ/BwAAQOF61D8HAABA4XrUPwcAAEDhetQ/BwAAQOF61D8HAABA4XrUP/j//9+lm9Q/+P//36Wb1D/4///fpZvUP/j//9+lm9Q/+P//36Wb1D/6//9/arzUP/r//39qvNQ/+v//f2q81D/6//9/arzUP/r//39qvNQ//f//Hy/d1D/9//8fL93UP/3//x8v3dQ//f//Hy/d1D/9//8fL93UPwAAAMDz/dQ/AAAAwPP91D8AAADA8/3UPwAAAMDz/dQ/AAAAwPP91D8DAABguB7VPwMAAGC4HtU/AwAAYLge1T8DAABguB7VPwMAAGC4HtU/+v//33w/1T/6///ffD/VP/r//998P9U/+v//33w/1T/6///ffD/VP/3//39BYNU//f//f0Fg1T/9//9/QWDVP/3//39BYNU//f//f0Fg1T8AAAAgBoHVPwAAACAGgdU/AAAAIAaB1T8AAAAgBoHVPwAAACAGgdU/AwAAwMqh1T8DAADAyqHVPwMAAMDKodU/AwAAwMqh1T8DAADAyqHVPw==</binary>
@@ -359,6 +362,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -378,7 +386,7 @@
 						<binary>MzMzQDMzs0BmZgZBMzMzQQAAYEEzM7NAMzMzQWZmhkEzM7NBAADgQWZmBkFmZoZBmpnJQWZmBkIAAChCMzMzQTMzs0FmZgZCMzMzQgAAYEIAAGBBAADgQQAAKEIAAGBCAACMQmZmhkFmZgZCmplJQmZmhkIAAKhCzcycQc3MHEIzM2tCzcycQgAAxEIzM7NBMzMzQmZmhkIzM7NCAADgQpqZyUGamUlCMzOXQpqZyUIAAPxCAADgQQAAYEIAAKhCAADgQgAADEOamclBmplJQjMzl0KamclCAAD8QjMzs0EzMzNCZmaGQjMzs0IAAOBCzcycQc3MHEIzM2tCzcycQgAAxEJmZoZBZmYGQpqZSUJmZoZCAACoQgAAYEEAAOBBAAAoQgAAYEIAAIxCMzMzQTMzs0FmZgZCMzMzQgAAYEJmZgZBZmaGQZqZyUFmZgZCAAAoQjMzs0AzMzNBZmaGQTMzs0EAAOBBMzMzQDMzs0BmZgZBMzMzQQAAYEEzM7M/MzMzQGZmhkAzM7NAAADgQDMzM0AzM7NAZmYGQTMzM0EAAGBBZmaGQGZmBkGamUlBZmaGQQAAqEEzM7NAMzMzQWZmhkEzM7NBAADgQQAA4EAAAGBBAACoQQAA4EEAAAxCZmYGQWZmhkGamclBZmYGQgAAKELNzBxBzcycQTMz60HNzBxCAABEQjMzM0EzM7NBZmYGQjMzM0IAAGBCmplJQZqZyUEzMxdCmplJQgAAfEIAAGBBAADgQQAAKEIAAGBCAACMQmZmdkFmZvZBzcw4QmZmdkIAAJpCZmaGQWZmBkKamUlCZmaGQgAAqEKamZFBmpkRQmZmWkKamZFCAAC2Qs3MnEHNzBxCMzNrQs3MnEIAAMRCAACoQQAAKEIAAHxCAACoQgAA0kIzM7NBMzMzQmZmhkIzM7NCAADgQmZmvkFmZj5CzcyOQmZmvkIAAO5CmpnJQZqZSUIzM5dCmpnJQgAA/ELNzNRBzcxUQpqZn0LNzNRCAAAFQwAA4EEAAGBCAACoQgAA4EIAAAxDzczUQc3MVEKamZ9CzczUQgAABUOamclBmplJQjMzl0KamclCAAD8QmZmvkFmZj5CzcyOQmZmvkIAAO5CMzOzQTMzM0JmZoZCMzOzQgAA4EIAAKhBAAAoQgAAfEIAAKhCAADSQs3MnEHNzBxCMzNrQs3MnEIAAMRCmpmRQZqZEUJmZlpCmpmRQgAAtkJmZoZBZmYGQpqZSUJmZoZCAACoQmZmdkFmZvZBzcw4QmZmdkIAAJpCAABgQQAA4EEAAChCAABgQgAAjEKamUlBmpnJQTMzF0KamUlCAAB8QjMzM0EzM7NBZmYGQjMzM0IAAGBCzcwcQc3MnEEzM+tBzcwcQgAAREJmZgZBZmaGQZqZyUFmZgZCAAAoQgAA4EAAAGBBAACoQQAA4EEAAAxCMzOzQDMzM0FmZoZBMzOzQQAA4EFmZoZAZmYGQZqZSUFmZoZBAACoQTMzM0AzM7NAZmYGQTMzM0EAAGBBMzOzPzMzM0BmZoZAMzOzQAAA4EA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="290" encodedLength="3096" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility (MS:1002476)"  />
+						<cvParam cvRef="MS" accession="MS:1002816" name="mean ion mobility array" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>////n8ZLxz////+fxkvHP////5/GS8c/////n8ZLxz////+fxkvHPwUAAOBPjcc/BQAA4E+Nxz8FAADgT43HPwUAAOBPjcc/BQAA4E+Nxz8KAAAg2c7HPwoAACDZzsc/CgAAINnOxz8KAAAg2c7HPwoAACDZzsc/8///P2IQyD/z//8/YhDIP/P//z9iEMg/8///P2IQyD/z//8/YhDIP/j//3/rUcg/+P//f+tRyD/4//9/61HIP/j//3/rUcg/+P//f+tRyD/+//+/dJPIP/7//790k8g//v//v3STyD/+//+/dJPIP/7//790k8g/BAAAAP7UyD8EAAAA/tTIPwQAAAD+1Mg/BAAAAP7UyD8EAAAA/tTIPxAAACCHFsk/EAAAIIcWyT8QAAAghxbJPxAAACCHFsk/EAAAIIcWyT/y//9fEFjJP/L//18QWMk/8v//XxBYyT/y//9fEFjJP/L//18QWMk/9///n5mZyT/3//+fmZnJP/f//5+Zmck/9///n5mZyT/3//+fmZnJP/3//98i28k//f//3yLbyT/9///fItvJP/3//98i28k//f//3yLbyT8KAAAArBzKPwoAAACsHMo/CgAAAKwcyj8KAAAArBzKPwoAAACsHMo/DwAAQDVeyj8PAABANV7KPw8AAEA1Xso/DwAAQDVeyj8PAABANV7KP/H//3++n8o/8f//f76fyj/x//9/vp/KP/H//3++n8o/8f//f76fyj/9//+fR+HKP/3//59H4co//f//n0fhyj/9//+fR+HKP/3//59H4co/AwAA4NAiyz8DAADg0CLLPwMAAODQIss/AwAA4NAiyz8DAADg0CLLPwgAACBaZMs/CAAAIFpkyz8IAAAgWmTLPwgAACBaZMs/CAAAIFpkyz8OAABg46XLPw4AAGDjpcs/DgAAYOOlyz8OAABg46XLPw4AAGDjpcs/9///f2znyz/3//9/bOfLP/f//39s58s/9///f2znyz/3//9/bOfLPwYAAKCbxNA/BgAAoJvE0D8GAACgm8TQPwYAAKCbxNA/BgAAoJvE0D8JAABAYOXQPwkAAEBg5dA/CQAAQGDl0D8JAABAYOXQPwkAAEBg5dA/+f//3yQG0T/5///fJAbRP/n//98kBtE/+f//3yQG0T/5///fJAbRP/z//3/pJtE//P//f+km0T/8//9/6SbRP/z//3/pJtE//P//f+km0T////8frkfRP////x+uR9E/////H65H0T////8frkfRP////x+uR9E/AgAAwHJo0T8CAADAcmjRPwIAAMByaNE/AgAAwHJo0T8CAADAcmjRP/n//z83idE/+f//PzeJ0T/5//8/N4nRP/n//z83idE/+f//PzeJ0T/8///f+6nRP/z//9/7qdE//P//3/up0T/8///f+6nRP/z//9/7qdE/////f8DK0T////9/wMrRP////3/AytE/////f8DK0T////9/wMrRPwIAACCF69E/AgAAIIXr0T8CAAAghevRPwIAACCF69E/AgAAIIXr0T8FAADASQzSPwUAAMBJDNI/BQAAwEkM0j8FAADASQzSPwUAAMBJDNI/BwAAYA4t0j8HAABgDi3SPwcAAGAOLdI/BwAAYA4t0j8HAABgDi3SP/j////STdI/+P///9JN0j/4////0k3SP/j////STdI/+P///9JN0j8CAACAl27SPwIAAICXbtI/AgAAgJdu0j8CAACAl27SPwIAAICXbtI/BQAAIFyP0j8FAAAgXI/SPwUAACBcj9I/BQAAIFyP0j8FAAAgXI/SPwgAAMAgsNI/CAAAwCCw0j8IAADAILDSPwgAAMAgsNI/CAAAwCCw0j/4//9f5dDSP/j//1/l0NI/+P//X+XQ0j/4//9f5dDSP/j//1/l0NI/+////6nx0j/7////qfHSP/v///+p8dI/+////6nx0j/7////qfHSP/7//59uEtM//v//n24S0z/+//+fbhLTP/7//59uEtM//v//n24S0z8BAABAMzPTPwEAAEAzM9M/AQAAQDMz0z8BAABAMzPTPwEAAEAzM9M/+f//v/dT0z/5//+/91PTP/n//7/3U9M/+f//v/dT0z/5//+/91PTP/v//1+8dNM/+///X7x00z/7//9fvHTTP/v//1+8dNM/+///X7x00z/+////gJXTP/7///+AldM//v///4CV0z/+////gJXTP/7///+AldM/AQAAoEW20z8BAACgRbbTPwEAAKBFttM/AQAAoEW20z8BAACgRbbTPwQAAEAK19M/BAAAQArX0z8EAABACtfTPwQAAEAK19M/BAAAQArX0z8HAADgzvfTPwcAAODO99M/BwAA4M730z8HAADgzvfTPwcAAODO99M/9///f5MY1D/3//9/kxjUP/f//3+TGNQ/9///f5MY1D/3//9/kxjUP/r//x9YOdQ/+v//H1g51D/6//8fWDnUP/r//x9YOdQ/+v//H1g51D8EAACgHFrUPwQAAKAcWtQ/BAAAoBxa1D8EAACgHFrUPwQAAKAcWtQ/BwAAQOF61D8HAABA4XrUPwcAAEDhetQ/BwAAQOF61D8HAABA4XrUP/j//9+lm9Q/+P//36Wb1D/4///fpZvUP/j//9+lm9Q/+P//36Wb1D/6//9/arzUP/r//39qvNQ/+v//f2q81D/6//9/arzUP/r//39qvNQ//f//Hy/d1D/9//8fL93UP/3//x8v3dQ//f//Hy/d1D/9//8fL93UPwAAAMDz/dQ/AAAAwPP91D8AAADA8/3UPwAAAMDz/dQ/AAAAwPP91D8DAABguB7VPwMAAGC4HtU/AwAAYLge1T8DAABguB7VPwMAAGC4HtU/+v//33w/1T/6///ffD/VP/r//998P9U/+v//33w/1T/6///ffD/VP/3//39BYNU//f//f0Fg1T/9//9/QWDVP/3//39BYNU//f//f0Fg1T8AAAAgBoHVPwAAACAGgdU/AAAAIAaB1T8AAAAgBoHVPwAAACAGgdU/AwAAwMqh1T8DAADAyqHVPwMAAMDKodU/AwAAwMqh1T8DAADAyqHVPw==</binary>
@@ -427,6 +435,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -446,7 +459,7 @@
 						<binary>zcxMQM3MzECamRlBzcxMQQAAgEHNzMxAzcxMQZqZmUHNzMxBAAAAQpqZGUGamZlBZmbmQZqZGUIAAEBCzcxMQc3MzEGamRlCzcxMQgAAgEIAAIBBAAAAQgAAQEIAAIBCAACgQpqZmUGamRlCZmZmQpqZmUIAAMBCMzOzQTMzM0JmZoZCMzOzQgAA4ELNzMxBzcxMQpqZmULNzMxCAAAAQ2Zm5kFmZmZCzcysQmZm5kIAABBDAAAAQgAAgEIAAMBCAAAAQwAAIENmZuZBZmZmQs3MrEJmZuZCAAAQQ83MzEHNzExCmpmZQs3MzEIAAABDMzOzQTMzM0JmZoZCMzOzQgAA4EKamZlBmpkZQmZmZkKamZlCAADAQgAAgEEAAABCAABAQgAAgEIAAKBCzcxMQc3MzEGamRlCzcxMQgAAgEKamRlBmpmZQWZm5kGamRlCAABAQs3MzEDNzExBmpmZQc3MzEEAAABCzcxMQM3MzECamRlBzcxMQQAAgEHNzMw/zcxMQJqZmUDNzMxAAAAAQc3MTEDNzMxAmpkZQc3MTEEAAIBBmpmZQJqZGUFmZmZBmpmZQQAAwEHNzMxAzcxMQZqZmUHNzMxBAAAAQgAAAEEAAIBBAADAQQAAAEIAACBCmpkZQZqZmUFmZuZBmpkZQgAAQEIzMzNBMzOzQWZmBkIzMzNCAABgQs3MTEHNzMxBmpkZQs3MTEIAAIBCZmZmQWZm5kHNzCxCZmZmQgAAkEIAAIBBAAAAQgAAQEIAAIBCAACgQs3MjEHNzAxCMzNTQs3MjEIAALBCmpmZQZqZGUJmZmZCmpmZQgAAwEJmZqZBZmYmQpqZeUJmZqZCAADQQjMzs0EzMzNCZmaGQjMzs0IAAOBCAADAQQAAQEIAAJBCAADAQgAA8ELNzMxBzcxMQpqZmULNzMxCAAAAQ5qZ2UGamVlCMzOjQpqZ2UIAAAhDZmbmQWZmZkLNzKxCZmbmQgAAEEMzM/NBMzNzQmZmtkIzM/NCAAAYQwAAAEIAAIBCAADAQgAAAEMAACBDMzPzQTMzc0JmZrZCMzPzQgAAGENmZuZBZmZmQs3MrEJmZuZCAAAQQ5qZ2UGamVlCMzOjQpqZ2UIAAAhDzczMQc3MTEKamZlCzczMQgAAAEMAAMBBAABAQgAAkEIAAMBCAADwQjMzs0EzMzNCZmaGQjMzs0IAAOBCZmamQWZmJkKamXlCZmamQgAA0EKamZlBmpkZQmZmZkKamZlCAADAQs3MjEHNzAxCMzNTQs3MjEIAALBCAACAQQAAAEIAAEBCAACAQgAAoEJmZmZBZmbmQc3MLEJmZmZCAACQQs3MTEHNzMxBmpkZQs3MTEIAAIBCMzMzQTMzs0FmZgZCMzMzQgAAYEKamRlBmpmZQWZm5kGamRlCAABAQgAAAEEAAIBBAADAQQAAAEIAACBCzczMQM3MTEGamZlBzczMQQAAAEKamZlAmpkZQWZmZkGamZlBAADAQc3MTEDNzMxAmpkZQc3MTEEAAIBBzczMP83MTECamZlAzczMQAAAAEE=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="290" encodedLength="3096" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility (MS:1002815)"  />
+						<cvParam cvRef="MS" accession="MS:1003008" name="raw inverse reduced ion mobility array" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>////n8ZLxz////+fxkvHP////5/GS8c/////n8ZLxz////+fxkvHPwUAAOBPjcc/BQAA4E+Nxz8FAADgT43HPwUAAOBPjcc/BQAA4E+Nxz8KAAAg2c7HPwoAACDZzsc/CgAAINnOxz8KAAAg2c7HPwoAACDZzsc/8///P2IQyD/z//8/YhDIP/P//z9iEMg/8///P2IQyD/z//8/YhDIP/j//3/rUcg/+P//f+tRyD/4//9/61HIP/j//3/rUcg/+P//f+tRyD/+//+/dJPIP/7//790k8g//v//v3STyD/+//+/dJPIP/7//790k8g/BAAAAP7UyD8EAAAA/tTIPwQAAAD+1Mg/BAAAAP7UyD8EAAAA/tTIPxAAACCHFsk/EAAAIIcWyT8QAAAghxbJPxAAACCHFsk/EAAAIIcWyT/y//9fEFjJP/L//18QWMk/8v//XxBYyT/y//9fEFjJP/L//18QWMk/9///n5mZyT/3//+fmZnJP/f//5+Zmck/9///n5mZyT/3//+fmZnJP/3//98i28k//f//3yLbyT/9///fItvJP/3//98i28k//f//3yLbyT8KAAAArBzKPwoAAACsHMo/CgAAAKwcyj8KAAAArBzKPwoAAACsHMo/DwAAQDVeyj8PAABANV7KPw8AAEA1Xso/DwAAQDVeyj8PAABANV7KP/H//3++n8o/8f//f76fyj/x//9/vp/KP/H//3++n8o/8f//f76fyj/9//+fR+HKP/3//59H4co//f//n0fhyj/9//+fR+HKP/3//59H4co/AwAA4NAiyz8DAADg0CLLPwMAAODQIss/AwAA4NAiyz8DAADg0CLLPwgAACBaZMs/CAAAIFpkyz8IAAAgWmTLPwgAACBaZMs/CAAAIFpkyz8OAABg46XLPw4AAGDjpcs/DgAAYOOlyz8OAABg46XLPw4AAGDjpcs/9///f2znyz/3//9/bOfLP/f//39s58s/9///f2znyz/3//9/bOfLPwYAAKCbxNA/BgAAoJvE0D8GAACgm8TQPwYAAKCbxNA/BgAAoJvE0D8JAABAYOXQPwkAAEBg5dA/CQAAQGDl0D8JAABAYOXQPwkAAEBg5dA/+f//3yQG0T/5///fJAbRP/n//98kBtE/+f//3yQG0T/5///fJAbRP/z//3/pJtE//P//f+km0T/8//9/6SbRP/z//3/pJtE//P//f+km0T////8frkfRP////x+uR9E/////H65H0T////8frkfRP////x+uR9E/AgAAwHJo0T8CAADAcmjRPwIAAMByaNE/AgAAwHJo0T8CAADAcmjRP/n//z83idE/+f//PzeJ0T/5//8/N4nRP/n//z83idE/+f//PzeJ0T/8///f+6nRP/z//9/7qdE//P//3/up0T/8///f+6nRP/z//9/7qdE/////f8DK0T////9/wMrRP////3/AytE/////f8DK0T////9/wMrRPwIAACCF69E/AgAAIIXr0T8CAAAghevRPwIAACCF69E/AgAAIIXr0T8FAADASQzSPwUAAMBJDNI/BQAAwEkM0j8FAADASQzSPwUAAMBJDNI/BwAAYA4t0j8HAABgDi3SPwcAAGAOLdI/BwAAYA4t0j8HAABgDi3SP/j////STdI/+P///9JN0j/4////0k3SP/j////STdI/+P///9JN0j8CAACAl27SPwIAAICXbtI/AgAAgJdu0j8CAACAl27SPwIAAICXbtI/BQAAIFyP0j8FAAAgXI/SPwUAACBcj9I/BQAAIFyP0j8FAAAgXI/SPwgAAMAgsNI/CAAAwCCw0j8IAADAILDSPwgAAMAgsNI/CAAAwCCw0j/4//9f5dDSP/j//1/l0NI/+P//X+XQ0j/4//9f5dDSP/j//1/l0NI/+////6nx0j/7////qfHSP/v///+p8dI/+////6nx0j/7////qfHSP/7//59uEtM//v//n24S0z/+//+fbhLTP/7//59uEtM//v//n24S0z8BAABAMzPTPwEAAEAzM9M/AQAAQDMz0z8BAABAMzPTPwEAAEAzM9M/+f//v/dT0z/5//+/91PTP/n//7/3U9M/+f//v/dT0z/5//+/91PTP/v//1+8dNM/+///X7x00z/7//9fvHTTP/v//1+8dNM/+///X7x00z/+////gJXTP/7///+AldM//v///4CV0z/+////gJXTP/7///+AldM/AQAAoEW20z8BAACgRbbTPwEAAKBFttM/AQAAoEW20z8BAACgRbbTPwQAAEAK19M/BAAAQArX0z8EAABACtfTPwQAAEAK19M/BAAAQArX0z8HAADgzvfTPwcAAODO99M/BwAA4M730z8HAADgzvfTPwcAAODO99M/9///f5MY1D/3//9/kxjUP/f//3+TGNQ/9///f5MY1D/3//9/kxjUP/r//x9YOdQ/+v//H1g51D/6//8fWDnUP/r//x9YOdQ/+v//H1g51D8EAACgHFrUPwQAAKAcWtQ/BAAAoBxa1D8EAACgHFrUPwQAAKAcWtQ/BwAAQOF61D8HAABA4XrUPwcAAEDhetQ/BwAAQOF61D8HAABA4XrUP/j//9+lm9Q/+P//36Wb1D/4///fpZvUP/j//9+lm9Q/+P//36Wb1D/6//9/arzUP/r//39qvNQ/+v//f2q81D/6//9/arzUP/r//39qvNQ//f//Hy/d1D/9//8fL93UP/3//x8v3dQ//f//Hy/d1D/9//8fL93UPwAAAMDz/dQ/AAAAwPP91D8AAADA8/3UPwAAAMDz/dQ/AAAAwPP91D8DAABguB7VPwMAAGC4HtU/AwAAYLge1T8DAABguB7VPwMAAGC4HtU/+v//33w/1T/6///ffD/VP/r//998P9U/+v//33w/1T/6///ffD/VP/3//39BYNU//f//f0Fg1T/9//9/QWDVP/3//39BYNU//f//f0Fg1T8AAAAgBoHVPwAAACAGgdU/AAAAIAaB1T8AAAAgBoHVPwAAACAGgdU/AwAAwMqh1T8DAADAyqHVPwMAAMDKodU/AwAAwMqh1T8DAADAyqHVPw==</binary>
@@ -458,16 +471,16 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=10">13722</offset>
-		<offset idRef="spectrum=11">16765</offset>
-		<offset idRef="spectrum=12">27027</offset>
-		<offset idRef="spectrum=13">30042</offset>
-		<offset idRef="spectrum=14">40304</offset>
-		<offset idRef="spectrum=15">43319</offset>
-		<offset idRef="spectrum=16">53581</offset>
-		<offset idRef="spectrum=17">56596</offset>
+		<offset idRef="spectrum=10">13209</offset>
+		<offset idRef="spectrum=11">16252</offset>
+		<offset idRef="spectrum=12">26730</offset>
+		<offset idRef="spectrum=13">29745</offset>
+		<offset idRef="spectrum=14">40223</offset>
+		<offset idRef="spectrum=15">43238</offset>
+		<offset idRef="spectrum=16">53716</offset>
+		<offset idRef="spectrum=17">56731</offset>
 	</index>
 </indexList>
-<indexListOffset>66888</indexListOffset>
+<indexListOffset>67254</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
