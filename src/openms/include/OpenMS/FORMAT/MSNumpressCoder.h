@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 

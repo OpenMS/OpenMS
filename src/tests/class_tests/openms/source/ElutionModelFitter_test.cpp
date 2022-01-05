@@ -66,11 +66,14 @@ END_SECTION
 
 START_SECTION((void fitElutionModels(FeatureMap& features)))
 {
+  ElutionModelFitter emf;
+
   FeatureMap features;
+  // test if exception is thrown on empty featuremap
+  TEST_EXCEPTION(Exception::MissingInformation, emf.fitElutionModels(features));  
+
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ElutionModelFitter_test.featureXML"), features);
   ABORT_IF(features.size() != 25);
-
-  ElutionModelFitter emf;
 
   // symmetric model (default):
   emf.fitElutionModels(features);

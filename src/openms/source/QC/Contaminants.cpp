@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/Contaminants.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <include/OpenMS/METADATA/ProteinIdentification.h>
 #include <algorithm>
 
-
 using namespace std;
-
 
 namespace OpenMS
 {

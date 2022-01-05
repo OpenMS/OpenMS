@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {

@@ -40,7 +40,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <vector>
 #include <unordered_set>
@@ -201,7 +201,7 @@ public:
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_key) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs

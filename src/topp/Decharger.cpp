@@ -38,9 +38,10 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+// #include <OpenMS/FORMAT/FeatureXMLFile.h>
+// #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -152,7 +153,7 @@ protected:
 
     typedef FeatureMap FeatureMapType;
     FeatureMapType map_in, map_out;
-    FeatureXMLFile().load(infile, map_in);
+    FileHandler().loadFeatures(infile, map_in);
 
     //-------------------------------------------------------------
     // calculations
@@ -179,16 +180,15 @@ protected:
     addDataProcessing_(cm2, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 
 
-    ConsensusXMLFile f;
-    f.store(outfile_cm, cm);
+    FileHandler().storeConsensusFeatures(outfile_cm, cm);
 
     if (!outfile_p.empty())
     {
-      f.store(outfile_p, cm2);
+      FileHandler().storeConsensusFeatures(outfile_p, cm2);
     }
     if (!outfile_fm.empty())
     {
-      FeatureXMLFile().store(outfile_fm, map_out);
+      FileHandler().storeFeatures(outfile_fm, map_out);
     }
     return EXECUTION_OK;
   }

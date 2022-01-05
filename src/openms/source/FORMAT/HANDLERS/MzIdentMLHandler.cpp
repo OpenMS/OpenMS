@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>

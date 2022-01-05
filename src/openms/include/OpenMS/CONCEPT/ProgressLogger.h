@@ -36,8 +36,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <map>
-
 namespace OpenMS
 {
   class String;

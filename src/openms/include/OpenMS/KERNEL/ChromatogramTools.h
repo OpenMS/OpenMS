@@ -132,6 +132,7 @@ public:
 
       @param exp the experiment to be converted.
       @param remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
+      @param force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
     */
     template <typename ExperimentType>
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)

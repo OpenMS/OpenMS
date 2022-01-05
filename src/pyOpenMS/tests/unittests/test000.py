@@ -855,6 +855,17 @@ def testConsensusMap():
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
+    
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+    intydf = m.get_intensity_df()
+    metadf = m.get_metadata_df()
+    assert intydf.shape[0] == 2
+    assert metadf.shape[0] == 2
 
     assert m == m
     assert not m != m
@@ -2095,6 +2106,26 @@ def testFeatureXMLFile():
 
     fm = pyopenms.FeatureMap()
     fm.setUniqueIds()
+
+    f = pyopenms.Feature()
+    f.setMZ(200)
+    f.setCharge(1)
+    f.setRT(10)
+    f.setIntensity(10000)
+    f.setOverallQuality(10)
+
+    ch = pyopenms.ConvexHull2D()
+    ch.setHullPoints(np.asarray([[8,199],[12,201]], dtype='f'))
+    f.setConvexHulls([ch])
+
+    f.setMetaValue(b'mv1', 1)
+    f.setMetaValue(b'mv2', 2)
+
+    fm.push_back(f)
+    fm.push_back(f)
+
+    assert fm.get_df(meta_values='all').shape == (2, 12)
+
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
@@ -2207,6 +2238,29 @@ def testIdXMLFile():
     """
     assert pyopenms.IdXMLFile().load is not None
     assert pyopenms.IdXMLFile().store is not None
+
+@report
+def test_peptide_identifications_to_df():
+    peps = []
+
+    p = pyopenms.PeptideIdentification()
+    p.setRT(1243.56)
+    p.setMZ(440.0)
+    p.setScoreType("ScoreType")
+    p.setHigherScoreBetter(False)
+    p.setIdentifier("IdentificationRun1")
+
+    h = pyopenms.PeptideHit()
+    h.setScore(1.0)
+    h.setCharge(2)
+    h.setMetaValue("StringMetaValue", "Value")
+    h.setMetaValue("IntMetaValue", 2)
+    p.insertHit(h)
+
+    peps.append(p)
+    peps.append(p)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,7)
 
 @report
 def testPepXMLFile():
@@ -2781,6 +2835,8 @@ def testMSExperiment():
      MSExperiment.removeMetaValue
      MSExperiment.getSize
      MSExperiment.isSorted
+     MSExperiment.get2DPeakDataLong
+     MSExperiment.get_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2812,10 +2868,22 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    mse.addSpectrum(pyopenms.MSSpectrum())
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mse.addSpectrum(spec)
     assert mse.size() == 1
 
     assert mse[0] is not None
+
+    mse.updateRanges()
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape[0] == 2
+    assert mz.shape[0] == 2
+    assert inty.shape[0] == 2
+
 
     assert isinstance(list(mse), list)
 
@@ -2829,6 +2897,22 @@ def testMSExperiment():
 
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
+
+    exp = pyopenms.MSExperiment()
+    for i in range(3):
+        s = pyopenms.MSSpectrum()
+        s.setRT(i)
+        s.setMSLevel(1)
+
+        for mz in (500, 600):
+            p = pyopenms.Peak1D()
+            p.setMZ(mz + i)
+            p.setIntensity(i + 10)
+            s.push_back(p)
+
+        exp.addSpectrum(s)
+
+    assert exp.get_df().shape == (3,3)
 
 
 @report

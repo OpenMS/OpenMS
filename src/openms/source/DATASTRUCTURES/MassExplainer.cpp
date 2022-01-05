@@ -32,9 +32,11 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 

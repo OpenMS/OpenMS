@@ -403,7 +403,6 @@ namespace OpenMS
       const ProteinIdentification& ref_run,
       bool remove_peptides_without_reference)
   {
-    vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
     // collect valid protein accessions for each ID run:
     unordered_set<String> accessions_avail;
 
@@ -416,7 +415,7 @@ namespace OpenMS
     auto check_prots_avail = [&accessions_avail, &remove_peptides_without_reference]
         (PeptideIdentification& pep_it) -> void
       {
-          const String& run_id = pep_it.getIdentifier();
+          // const String& run_id = pep_it.getIdentifier();
           const unordered_set<String>& accessions = accessions_avail;
           struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
           // check protein accessions of each peptide hit

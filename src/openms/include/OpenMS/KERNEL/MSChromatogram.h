@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 

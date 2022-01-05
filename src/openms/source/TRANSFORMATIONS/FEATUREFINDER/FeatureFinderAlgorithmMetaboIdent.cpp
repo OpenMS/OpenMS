@@ -43,9 +43,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
 #include <numeric>
@@ -184,6 +184,8 @@ namespace OpenMS
     // totally breaks the OpenSWATH feature detection (no features found)!
     params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
                     signal_to_noise_);
+    
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false");     
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
@@ -235,7 +237,7 @@ namespace OpenMS
 
     if (!candidates_out_.empty()) // store feature candidates
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     selectFeaturesFromCandidates_(features);
@@ -270,7 +272,14 @@ namespace OpenMS
                << " features left after resolving overlaps (involving "
                << n_overlap_features << " features in " << n_overlap_groups
                << " groups)." << endl;
+      if (features.empty())
+      {
+        OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      }    
     }
+
+    if (features.empty()) return;
+
     n_shared_ = addTargetAnnotations_(features);
 
     if (elution_model_ != "none")
@@ -893,6 +902,31 @@ namespace OpenMS
     trafo_.setDataPoints(points);
   }
 
+  void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
+  { 
+    ms_data_ = m; 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
+  { 
+    ms_data_ = std::move(m); 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
 
 }
 

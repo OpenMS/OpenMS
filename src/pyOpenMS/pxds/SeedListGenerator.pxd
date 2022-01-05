@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>" na
         void generateSeedList(MSExperiment exp, libcpp_vector[DPosition2] & seeds) nogil except + # wrap-doc:Generate a seed list based on an MS experiment
         void generateSeedList(libcpp_vector[PeptideIdentification] & peptides, libcpp_vector[DPosition2] & seeds, bool use_peptide_mass) nogil except + # wrap-doc:Generates a seed list based on a list of peptide identifications
         # TODO map with UInt64
-        void generateSeedList(ConsensusMap & consensus, Map[unsigned long, libcpp_vector[DPosition2] ] & seeds) nogil except +  # wrap-ignore
+        void generateSeedList(ConsensusMap & consensus, Map[UInt64, libcpp_vector[DPosition2] ] & seeds) nogil except +  # wrap-ignore
 
         # TODO nested STL
         # void generateSeedLists(ConsensusMap & consensus, Map[ UInt64, libcpp_vector[ DPosition2] ] & seed_lists) nogil except + # wrap-doc:Generates seed lists based on a consensus map

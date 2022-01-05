@@ -38,7 +38,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -46,10 +46,14 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtCore/QDir>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 #ifdef _OPENMP
+#include <omp.h>
 #endif
 
 namespace OpenMS
@@ -589,7 +593,7 @@ namespace OpenMS
           tmp.setMetaValue("trace_score", meta[0][peak]);
           seed_map.push_back(tmp);
         }
-        FeatureXMLFile().store(String("debug/seeds_") + String(c) + ".featureXML", seed_map);
+        FileHandler().storeFeatures(String("debug/seeds_") + String(c) + ".featureXML", seed_map);
       }
 
       ff_->endProgress();
@@ -1027,7 +1031,7 @@ namespace OpenMS
         abort_map.push_back(f);
       }
       abort_map.setUniqueId();
-      FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
+      FileHandler().storeFeatures("debug/abort_reasons.featureXML", abort_map);
 
       //store input map with calculated scores (without overall score)
       for (auto& s : map_)

@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 

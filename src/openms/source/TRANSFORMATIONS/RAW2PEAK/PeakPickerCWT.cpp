@@ -32,12 +32,15 @@
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
+#include <cmath>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -1487,7 +1490,7 @@ namespace OpenMS
     }
 
     // now sort the index_tic_vec according to tic and get the three highest spectra
-    sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
+    sort(index_tic_vec.begin(), index_tic_vec.end(), [](auto& left, auto& right){return left.second < right.second;});
     
     std::vector<double> best_FWHMs;
     for (Size vec_idx = 0; vec_idx < 3 && vec_idx < index_tic_vec.size(); ++vec_idx)

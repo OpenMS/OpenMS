@@ -38,7 +38,6 @@
 //#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>

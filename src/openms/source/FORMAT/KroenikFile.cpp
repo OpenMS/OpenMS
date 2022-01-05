@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/KroenikFile.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/FORMAT/TextFile.h>

@@ -32,8 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CHEMISTRY/ResidueModification.h"
-#include "OpenMS/CONCEPT/Exception.h"
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
@@ -45,6 +45,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 

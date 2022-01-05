@@ -48,7 +48,7 @@
 #include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -171,7 +171,7 @@ namespace OpenMS
     using ParentMoleculeGroupings =
       IdentificationDataInternal::ParentMoleculeGroupings;
 
-    using AddressLookup = boost::unordered_set<uintptr_t>;
+    using AddressLookup = std::unordered_set<uintptr_t>;
 
 
     /// Default constructor

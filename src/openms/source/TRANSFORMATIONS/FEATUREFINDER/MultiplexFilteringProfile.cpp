@@ -40,6 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <sstream>
+
 //#define DEBUG
 
 using namespace std;

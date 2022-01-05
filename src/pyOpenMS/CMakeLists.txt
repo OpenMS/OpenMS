@@ -71,18 +71,18 @@ message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} 
 if(WIN32)
     if(SKIP_WIN_COMPILERCHECK)
         message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
-    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ))
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" OR ${PY_VERSION} STREQUAL "3.9" ))
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} VERSION_GREATER_EQUAL "3.5" ))
+        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions")
+        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions")
         message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
-        message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
+        message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
     # Try to find MSVS runtime libs
@@ -153,7 +153,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 18, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 2))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -168,7 +168,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.18.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.2 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()

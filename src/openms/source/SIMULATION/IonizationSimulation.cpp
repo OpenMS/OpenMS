@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 #include <boost/bind.hpp>

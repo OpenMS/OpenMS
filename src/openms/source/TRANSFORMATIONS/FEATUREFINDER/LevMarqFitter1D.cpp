@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+
+#include <unsupported/Eigen/NonLinearOptimization>
 #include <fstream>
 
 namespace OpenMS
@@ -71,3 +73,4 @@ namespace OpenMS
 
 
 } // namespace OpenMS
+
