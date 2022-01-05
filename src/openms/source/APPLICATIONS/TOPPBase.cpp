@@ -999,7 +999,8 @@ namespace OpenMS
     if (p.type != ParameterInformation::INPUT_FILE
        && p.type != ParameterInformation::OUTPUT_FILE
        && p.type != ParameterInformation::INPUT_FILE_LIST
-       && p.type != ParameterInformation::OUTPUT_FILE_LIST)
+       && p.type != ParameterInformation::OUTPUT_FILE_LIST
+       && p.type != ParameterInformation::OUTPUT_PREFIX)
     {
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1228,7 +1229,10 @@ namespace OpenMS
   String TOPPBase::getStringOption_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
-    if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::INPUT_FILE && p.type != ParameterInformation::OUTPUT_FILE && p.type != ParameterInformation::OUTPUT_PREFIX)
+    if (p.type != ParameterInformation::STRING 
+      && p.type != ParameterInformation::INPUT_FILE 
+      && p.type != ParameterInformation::OUTPUT_FILE 
+      && p.type != ParameterInformation::OUTPUT_PREFIX)
     {
       throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1369,8 +1373,9 @@ namespace OpenMS
     }
     else if (p.type == ParameterInformation::OUTPUT_PREFIX)
     {
-      outputFileWritable_(param_value + "write_test", param_name);
+      outputFileWritable_(param_value + "_0", param_name);
     }
+
     // check restrictions
     if (p.valid_strings.empty()) return;
 
@@ -1410,7 +1415,8 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
-        if (f_type != FileTypes::UNKNOWN && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        if (f_type != FileTypes::UNKNOWN 
+          && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
@@ -1428,7 +1434,9 @@ namespace OpenMS
   StringList TOPPBase::getStringList_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
-    if (p.type != ParameterInformation::STRINGLIST && p.type != ParameterInformation::INPUT_FILE_LIST && p.type != ParameterInformation::OUTPUT_FILE_LIST)
+    if (p.type != ParameterInformation::STRINGLIST 
+      && p.type != ParameterInformation::INPUT_FILE_LIST 
+      && p.type != ParameterInformation::OUTPUT_FILE_LIST)
     {
       throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1507,10 +1515,8 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    Int tmp;
-    for (IntList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (const Int tmp : tmp_list)
     {
-      tmp = *it;
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range

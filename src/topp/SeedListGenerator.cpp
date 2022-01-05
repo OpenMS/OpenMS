@@ -143,7 +143,7 @@ protected:
     {
       String in = getStringOption_("in");
       String out_prefix = getStringOption_("out_prefix");
-      StringList out;
+
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
       Map<UInt64, SeedListGenerator::SeedList> seed_lists;
@@ -151,15 +151,17 @@ protected:
       Size num_maps = 0;
       FileTypes::Type in_type = FileHandler::getType(in);
 
+      StringList out;
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
         num_maps = consensus.getColumnHeaders().size();
         ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
+        size_t map_count = 0;
         for(const auto& header : ch)
         {
-          out.push_back(out_prefix + FileHandler::stripExtension(File::basename(header.second.filename)));
+          out.push_back(out_prefix + "_" + String(map_count) + ".featureXML"); // we manually set the name here
         }
 
         if (out.size() != num_maps)
