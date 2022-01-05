@@ -48,8 +48,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataConsensus() :
-        LayerDataBase(LayerDataBase::DT_CONSENSUS){};
+    LayerDataConsensus(ConsensusMapSharedPtrType& map);
     /// no Copy-ctor (should not be needed)
     LayerDataConsensus(const LayerDataConsensus& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -71,7 +70,7 @@ namespace OpenMS
       return r;
     }
 
-    void computeStats(LayerStatistics& visitor) const override;
+    std::unique_ptr<LayerStatistics> getStats() const override;
   };
 
 }// namespace OpenMS
