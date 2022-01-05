@@ -525,10 +525,14 @@ protected:
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
-      @brief Registers an output file prefix.
+      @brief Registers an output file prefix used for tools with multiple file output.
 
-      Output files behave like string options,
-      when the option is accessed in the TOPP tool.
+      Tools should follow the convention to name output files PREFIX_[0..N-1].EXTENSION.
+      For example, a tool that splits mzML files into multiple mgf files should create files:
+      splitted_0.mgf, splitted_1.mgf, ... if splitted got passed as prefix.
+      
+      Note: setting format(s) via setValidFormat_ for an output prefix will can used to export
+            e.g. valid CTD files that contain information on the expected output file types.            
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
