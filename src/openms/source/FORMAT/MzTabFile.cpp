@@ -2918,9 +2918,11 @@ namespace OpenMS
     }
 
     vector<const PeptideIdentification*> pep_ids_ptr;
+    pep_ids_ptr.reserve(peptide_identifications.size());
     for (const PeptideIdentification& pi : peptide_identifications) { pep_ids_ptr.push_back(&pi); }
 
     vector<const ProteinIdentification*> prot_ids_ptr;
+    prot_ids_ptr.reserve(protein_identifications.size());
     for (const ProteinIdentification& pi : protein_identifications) { prot_ids_ptr.push_back(&pi); }
 
     ofstream tab_file;

@@ -70,7 +70,7 @@ namespace OpenMS
 
   void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map, 
       const OpenMS::TargetedExperiment& targeted_exp,
-      OpenMS::PeakMap& output)
+      OpenMS::PeakMap& output) const
   {
     // copy all meta data from old MSExperiment
     output = (ExperimentalSettings)chromatogram_map;

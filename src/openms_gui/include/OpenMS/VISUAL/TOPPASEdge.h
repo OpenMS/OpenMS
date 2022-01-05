@@ -121,13 +121,13 @@ public:
     /// Sets the source output parameter index
     void setSourceOutParam(int out);
     /// Returns the source output parameter index
-    int getSourceOutParam();
+    int getSourceOutParam() const;
     /// Returns the source output parameter name
     QString getSourceOutParamName();
     /// Sets the target input parameter index
     void setTargetInParam(int in);
     /// Returns the target input parameter index
-    int getTargetInParam();
+    int getTargetInParam() const;
     /// Returns the target input parameter index
     QString getTargetInParamName();
     /// Updates the edge color

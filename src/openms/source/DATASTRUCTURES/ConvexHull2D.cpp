@@ -106,7 +106,7 @@ namespace OpenMS
   const ConvexHull2D::PointArrayType& ConvexHull2D::getHullPoints() const
   {
     // construct outer hull if required
-    if (outer_points_.empty() && map_points_.size() > 0)
+    if (outer_points_.empty() && !map_points_.empty())
     {
       // walk the outer hull
       outer_points_.reserve(map_points_.size() * 2);
@@ -165,7 +165,7 @@ namespace OpenMS
     DBoundingBox<2> bb;
 
     // the internal structure might not be defined, but we try it first
-    if (map_points_.size() > 0)
+    if (!map_points_.empty())
     {
       for (HullPointType::ConstIterator it = map_points_.begin(); it != map_points_.end(); ++it)
       {
@@ -173,7 +173,7 @@ namespace OpenMS
         bb.enlarge(it->first, it->second.maxPosition()[0]);
       }
     }
-    else if (outer_points_.size() > 0)
+    else if (!outer_points_.empty())
     {
       for (PointArrayType::const_iterator it = outer_points_.begin(); it != outer_points_.end(); ++it)
       {
@@ -257,7 +257,7 @@ namespace OpenMS
 
   bool ConvexHull2D::encloses(const PointType& point) const
   {
-    if ((map_points_.empty()) && outer_points_.size() > 0) // we cannot answer the query as we lack the internal data structure
+    if ((map_points_.empty()) && !outer_points_.empty()) // we cannot answer the query as we lack the internal data structure
     { // (if you need this you need to augment encloses() to work on outer_points_ only)
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

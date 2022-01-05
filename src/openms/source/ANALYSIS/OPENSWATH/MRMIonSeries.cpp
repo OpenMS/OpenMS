@@ -246,7 +246,7 @@ namespace OpenMS
     double pos = -1;
     String ionstring;
 
-    if (tr.getProduct().getInterpretationList().size() > 0)
+    if (!tr.getProduct().getInterpretationList().empty())
     {
       interpretation = tr.getProduct().getInterpretationList()[0];
       AASequence ion;

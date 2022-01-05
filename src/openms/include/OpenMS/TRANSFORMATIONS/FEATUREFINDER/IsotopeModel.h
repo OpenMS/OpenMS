@@ -77,7 +77,7 @@ public:
     /// assignment operator
     virtual IsotopeModel & operator=(const IsotopeModel & source);
 
-    UInt getCharge();
+    UInt getCharge() const;
 
     /// create new IsotopeModel object (needed by Factory)
     static BaseModel<1> * create()

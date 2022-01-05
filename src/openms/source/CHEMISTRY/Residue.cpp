@@ -485,7 +485,7 @@ namespace OpenMS
       updated_formula = true;
       setFormula(getFormula() + mod->getDiffFormula());
     }
-    else if (mod->getFormula() != "")
+    else if (!mod->getFormula().empty())
     {
       updated_formula = true;
       String formula = mod->getFormula();

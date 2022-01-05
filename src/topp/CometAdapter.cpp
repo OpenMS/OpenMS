@@ -343,7 +343,7 @@ protected:
     }
 
     IntList binary_modifications = getIntList_("binary_modifications");
-    if (binary_modifications.size() != 0 && binary_modifications.size() != variable_modifications.size())
+    if (!binary_modifications.empty() && binary_modifications.size() != variable_modifications.size())
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: List of binary modifications needs to have same size as variable modifications.");
     }

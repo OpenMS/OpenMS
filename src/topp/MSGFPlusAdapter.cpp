@@ -347,7 +347,7 @@ protected:
       for (MSSpectrum& ms : exp)
       {
         String id = ms.getNativeID(); // expected format: "... scan=#"
-        if (id != "")
+        if (!id.empty())
         {
           rt_mapping[id].push_back(ms.getRT());
           rt_mapping[id].push_back(ms.getPrecursors()[0].getMZ());
@@ -659,7 +659,7 @@ protected:
           }
 
           int scan_number = 0;
-          if ((elements[2] == "") || (elements[2] == "-1"))
+          if ((elements[2].empty()) || (elements[2] == "-1"))
           {
             scan_number = elements[1].suffix('=').toInt();
           }

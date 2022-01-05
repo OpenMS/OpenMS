@@ -160,9 +160,14 @@ namespace OpenMS
     candidates_out_ = (string)param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features)
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
+    FeatureMap& features, 
+    String spectra_file)
   {
-    for (const FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& c : metaboIdentTable)
+    // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
+
+    for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
                       c.iso_distrib);

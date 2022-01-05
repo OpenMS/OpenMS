@@ -75,7 +75,7 @@ public:
     MSPGenericFile(const String& filename, MSExperiment& library);
 
     /// Destructor
-    ~MSPGenericFile() = default;
+    ~MSPGenericFile() override = default;
 
     /// Get the class' default parameters
     void getDefaultParameters(Param& params);
@@ -105,7 +105,7 @@ public:
   
   private:
     /// Overrides `DefaultParamHandler`'s method
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       Validate and add a spectrum to a spectral library

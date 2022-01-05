@@ -830,7 +830,7 @@ protected:
       OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
-    if (run_paths.size() == 0)
+    if (run_paths.empty())
     {
       OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: " << id_file_abs_path << endl;
     }
@@ -1098,10 +1098,7 @@ protected:
 
       // create empty feature map and annotate MS file
       FeatureMap seeds;
-
-      StringList sl;
-      sl.push_back(mz_file);
-      seeds.setPrimaryMSRunPath(sl);
+      seeds.setPrimaryMSRunPath({mz_file});
 
       if (getStringOption_("targeted_only") == "false")
       {
@@ -1116,9 +1113,6 @@ protected:
       // Run FeatureFinderIdentification
 
       FeatureMap fm;
-      StringList feature_msfile_ref;
-      feature_msfile_ref.push_back(mz_file);
-      fm.setPrimaryMSRunPath(feature_msfile_ref);
 
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
@@ -1140,7 +1134,8 @@ protected:
         ext_peptide_ids, 
         ext_protein_ids, 
         tmp,
-        seeds);          
+        seeds,
+        mz_file);
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)

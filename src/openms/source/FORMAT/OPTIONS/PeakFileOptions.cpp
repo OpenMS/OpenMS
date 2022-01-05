@@ -362,7 +362,7 @@ namespace OpenMS
     precursor_mz_selected_ion_ = choice;
   }
 
-  bool PeakFileOptions::hasFilters()
+  bool PeakFileOptions::hasFilters() const
   {
     return (has_rt_range_ || hasMSLevels());
   }

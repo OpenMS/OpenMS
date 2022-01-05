@@ -102,12 +102,18 @@ public:
     /// copy constructor
     TargetedExperiment(const TargetedExperiment & rhs);
 
+    /// move constructor
+    TargetedExperiment(TargetedExperiment && rhs) noexcept;
+
     /// destructor
     virtual ~TargetedExperiment();
     //@}
 
     /// assignment operator
     TargetedExperiment & operator=(const TargetedExperiment & rhs);
+
+    /// move assignment operator
+    TargetedExperiment & operator=(TargetedExperiment && rhs) noexcept;
 
     /** @name Predicates
     */

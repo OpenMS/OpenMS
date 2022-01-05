@@ -363,7 +363,7 @@ namespace OpenMS
     const std::vector<double>& ys
   ) const
   {
-    if (xs.size() == 0)
+    if (xs.empty())
     {
       throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }

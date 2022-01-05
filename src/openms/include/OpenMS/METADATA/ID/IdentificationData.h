@@ -184,7 +184,7 @@ namespace OpenMS
     IdentificationData(const IdentificationData& other) = delete;
 
     /// Move constructor
-    IdentificationData(IdentificationData&& other):
+    IdentificationData(IdentificationData&& other) noexcept :
       input_files_(std::move(other.input_files_)),
       processing_softwares_(std::move(other.processing_softwares_)),
       processing_steps_(std::move(other.processing_steps_)),

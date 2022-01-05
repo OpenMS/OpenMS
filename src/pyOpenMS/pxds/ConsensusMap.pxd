@@ -37,12 +37,12 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #   MetaInfoInterface
         #
         # wrap-doc:

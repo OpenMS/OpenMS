@@ -41,6 +41,7 @@
 #include <QCoreApplication>
 
 #include <iostream>
+#include <thread>
 
 namespace OpenMS
 {

@@ -67,7 +67,7 @@ namespace OpenMS::Internal
   {
   }
 
-  Size FidHandler::getIndex()
+  Size FidHandler::getIndex() const
   {
     return index_;
   }

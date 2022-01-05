@@ -238,7 +238,7 @@ public:
     }*/
 
     // number of header files and input files must be identical
-    if (in_header.size() > 0 && in.size() != in_header.size())
+    if (!in_header.empty() && in.size() != in_header.size())
     {
       OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
@@ -315,7 +315,7 @@ public:
         pp.setParameters(p);
         pp.pick(tic_gf, tics_pp);
 
-        if (tics_pp.size())
+        if (!tics_pp.empty())
         {
           OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
           for (Size ipp = 0; ipp != tics_pp.size(); ++ipp)

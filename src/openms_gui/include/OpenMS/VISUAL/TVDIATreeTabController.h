@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/TVControllerBase.h>
 #include <vector>
 

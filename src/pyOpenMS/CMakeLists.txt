@@ -457,7 +457,8 @@ set(PYOPENMS_INCLUDE_DIRS
 
 list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
 
-set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
+## use / instead of \ because a path might end in / and thus might generate invalid python code in env.py: r"C:\dev\contrib_build;c:\dev\Qt5.6.2_\5.6\msvc2015_64\"
+file(TO_CMAKE_PATH "${CMAKE_PREFIX_PATH}" CONTRIB_DIR)
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 add_custom_target(

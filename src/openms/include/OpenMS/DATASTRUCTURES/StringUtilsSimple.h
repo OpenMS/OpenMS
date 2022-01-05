@@ -562,7 +562,7 @@ namespace OpenMS
 
     static inline String& firstToUpper(String & this_s)
     {
-      if (this_s.size() != 0)
+      if (!this_s.empty())
       {
         this_s[0] = toupper(this_s[0]);
       }

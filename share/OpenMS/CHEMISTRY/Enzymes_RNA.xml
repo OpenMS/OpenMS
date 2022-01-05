@@ -90,6 +90,8 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
       <ITEM name="RegExDescription" value="Unspecific cleavage cuts at every site." type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />      
     </NODE>
   </NODE>
 </PARAMETERS>

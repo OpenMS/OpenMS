@@ -65,7 +65,11 @@ public:
   /// in which case no machine learning or FDR estimation will be performed.
   /// Optional seeds from e.g. untargeted FeatureFinders can be added with
   /// @p seeds.
-  /// Results will be written to @p features.
+  /// Results will be written to @p features. 
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// stored in the MSExperiment.
+  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// will be annotated as a fall-back.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
   void run(
@@ -74,7 +78,8 @@ public:
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap()
+    const FeatureMap& seeds = FeatureMap(),
+    const String spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);
@@ -246,7 +251,7 @@ protected:
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -270,7 +275,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

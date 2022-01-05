@@ -91,7 +91,7 @@ public:
     ReactionMonitoringTransition & operator=(const ReactionMonitoringTransition & rhs);
 
     /// move assignment operator
-    ReactionMonitoringTransition & operator=(ReactionMonitoringTransition && rhs);
+    ReactionMonitoringTransition & operator=(ReactionMonitoringTransition && rhs) noexcept ;
 
     /** @name Accessors
     */

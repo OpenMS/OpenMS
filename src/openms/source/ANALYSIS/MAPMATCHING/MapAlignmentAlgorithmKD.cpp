@@ -270,7 +270,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
 void MapAlignmentAlgorithmKD::updateMembers_()
 {
-  if (param_ == Param()) return;
+  if (param_.empty()) return;
 
   rt_tol_secs_ = (double)(param_.getValue("warp:rt_tol"));
   mz_tol_ = (double)(param_.getValue("warp:mz_tol"));

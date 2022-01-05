@@ -671,7 +671,7 @@ namespace OpenMS
     source_out_param_ = out;
   }
 
-  int TOPPASEdge::getSourceOutParam()
+  int TOPPASEdge::getSourceOutParam() const
   {
     return source_out_param_;
   }
@@ -681,7 +681,7 @@ namespace OpenMS
     target_in_param_ = in;
   }
 
-  int TOPPASEdge::getTargetInParam()
+  int TOPPASEdge::getTargetInParam() const
   {
     return target_in_param_;
   }
