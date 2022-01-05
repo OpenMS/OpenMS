@@ -291,7 +291,7 @@ namespace OpenSwath
       for (auto e : xcorr_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
-        deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));          //(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
+        deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));  
 #ifdef MRMSCORING_TESTING
         std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_contrast_matrix_[i][j])->first) << std::endl;
 #endif
@@ -497,9 +497,13 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_precursor_matrix_.rows() > 1, "Expect cross-correlation matrix of at least 2x2");
 
       double intensities{0};
-      for(auto e : xcorr_precursor_matrix_)
+      for(size_t i = 0; i < xcorr_precursor_matrix_.rows(); i++)
       {
-        intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
+        for(size_t j = i; j < xcorr_precursor_matrix_.cols(); j++)
+        {
+          auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_.getValue(i, j));
+          intensities += x->second;
+        }
       }
       //xcorr_precursor_matrix_ is a triangle matrix
       size_t element_number = xcorr_precursor_matrix_.rows()*xcorr_precursor_matrix_.rows()/2 + (xcorr_precursor_matrix_.rows()+1)/2;
@@ -689,21 +693,12 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks)
-    {
-      ranks.resize(intensity.size());
-      for (std::size_t i = 0; i < intensity.size(); i++)
-      {
-        Scoring::computeRank(intensity[i], ranks[i]);
-      }
-    }
-
     void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
     {
       std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec;
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
-      computeRankVector(intensity, rank_vec);
+      Scoring::computeRankVector(intensity, rank_vec);
 
       mi_matrix_.resize(native_ids.size(),native_ids.size());  
       for (std::size_t i = 0; i < native_ids.size(); i++)
@@ -721,8 +716,8 @@ namespace OpenSwath
       std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
       fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
-      computeRankVector(intensityi, rank_vec1);
-      computeRankVector(intensityj, rank_vec2);
+      Scoring::computeRankVector(intensityi, rank_vec1);
+      Scoring::computeRankVector(intensityj, rank_vec2);
 
       mi_contrast_matrix_.resize(native_ids_set1.size(), native_ids_set2.size());
       for (std::size_t i = 0; i < native_ids_set1.size(); i++)
@@ -740,7 +735,7 @@ namespace OpenSwath
       std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
-      computeRankVector(intensity, rank_vec);
+      Scoring::computeRankVector(intensity, rank_vec);
 
       mi_precursor_matrix_.resize(precursor_ids.size(),precursor_ids.size());
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
@@ -759,8 +754,8 @@ namespace OpenSwath
       std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
-      computeRankVector(intensityi, rank_vec1);
-      computeRankVector(intensityj, rank_vec2);
+      Scoring::computeRankVector(intensityi, rank_vec1);
+      Scoring::computeRankVector(intensityj, rank_vec2);
 
       mi_precursor_contrast_matrix_.resize(precursor_ids.size(), native_ids.size());
       for (std::size_t i = 0; i < precursor_ids.size(); i++)
@@ -789,7 +784,7 @@ namespace OpenSwath
         combined_intensity.push_back(intensityj[j]);
       }
       std::vector<std::vector<unsigned int>> rank_vec;
-      computeRankVector(combined_intensity, rank_vec);
+      Scoring::computeRankVector(combined_intensity, rank_vec);
 
       mi_precursor_combined_matrix_.resize(rank_vec.size(), rank_vec.size());
       for (std::size_t i = 0; i < rank_vec.size(); i++)

@@ -239,7 +239,6 @@ namespace OpenSwath
 
         void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
         void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
-        void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
 
         /// Initialize the scoring object and building the MI matrix
         void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
@@ -274,12 +273,14 @@ namespace OpenSwath
         /// contains max Peaks from xcorr_matrix_
         OpenMS::Matrix<int> xcorr_matrix_max_peak_;
         OpenMS::Matrix<double> xcorr_matrix_max_peak_sec_;
+
         /// the precomputed contrast cross correlation
         XCorrMatrixType xcorr_contrast_matrix_;
         //@}
 
         /// contains max Peaks from xcorr_contrast_matrix_
         OpenMS::Matrix<double > xcorr_contrast_matrix_max_peak_sec_;
+
         /// the precomputed cross correlation matrix of the MS1 trace
         XCorrMatrixType xcorr_precursor_matrix_;
 

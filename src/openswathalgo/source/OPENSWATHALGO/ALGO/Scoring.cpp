@@ -293,6 +293,15 @@ namespace OpenSwath::Scoring
       }
     }
 
+    void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks)
+    {
+      ranks.resize(intensity.size());
+      for (std::size_t i = 0; i < intensity.size(); i++)
+      {
+        computeRank(intensity[i], ranks[i]);
+      }
+    }
+
     double rankedMutualInformation(std::vector<unsigned int>& data1, std::vector<unsigned int>& data2)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
