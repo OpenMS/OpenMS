@@ -415,9 +415,6 @@ namespace OpenMS
     //################## DEFAULTS #################
     initializeDefaultParameters_();
 
-    // store defaults in param_
-    defaultsToParam_();
-
     // load param file
     loadPreferences();
 
@@ -471,6 +468,9 @@ namespace OpenMS
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
+
+    // store defaults in param_
+    defaultsToParam_();
   }
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
