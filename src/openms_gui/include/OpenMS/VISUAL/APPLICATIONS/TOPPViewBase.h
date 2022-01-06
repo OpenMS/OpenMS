@@ -238,7 +238,7 @@ public:
     void savePreferences();
 
     /// Returns the parameters for a PlotCanvas of dimension @p dim
-    Param getSpectrumParameters(UInt dim);
+    Param getCanvasParameters(UInt dim) const;
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerDataBase* getCurrentLayer() const;

@@ -878,15 +878,15 @@ namespace OpenMS
     {
       if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Plot1DWidget(getSpectrumParameters(1), &ws_);
+        target_window = new Plot1DWidget(getCanvasParameters(1), &ws_);
       }
       else if (maps_as_2d || mergeable) //2d or features/IDs
       {
-        target_window = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+        target_window = new Plot2DWidget(getCanvasParameters(2), &ws_);
       }
       else // 3d
       {
-        target_window = new Plot3DWidget(getSpectrumParameters(3), &ws_);
+        target_window = new Plot3DWidget(getCanvasParameters(3), &ws_);
       }
     }
 
@@ -2078,7 +2078,7 @@ namespace OpenMS
     ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     //open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     //add data
     if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
@@ -2110,7 +2110,7 @@ namespace OpenMS
     for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
     if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
@@ -2194,7 +2194,7 @@ namespace OpenMS
     tmpe->updateRanges();
 
     // open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
     if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
@@ -2253,7 +2253,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
     //open new 3D widget
-    Plot3DWidget* w = new Plot3DWidget(getSpectrumParameters(3), &ws_);
+    Plot3DWidget* w = new Plot3DWidget(getCanvasParameters(3), &ws_);
 
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
 
@@ -2303,8 +2303,9 @@ namespace OpenMS
     log_->appendText(topp_.process->readAllStandardOutput());
   }
 
-  Param TOPPViewBase::getSpectrumParameters(UInt dim)
+  Param TOPPViewBase::getCanvasParameters(UInt dim) const
   {
+    // FIXME
     Param out = param_.copy(String("preferences:") + dim + "d:", true);
     out.setValue("default_path", param_.getValue("preferences:default_path").toString());
     return out;
