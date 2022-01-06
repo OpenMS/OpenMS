@@ -110,9 +110,6 @@ namespace OpenSwath
 
         /** @name Scores */
         //@{
-      //   void setValueGeneralXCorrMatrix(XCorrMatrixType& matrix, 
-      //                               const std::vector<std::vector<double>>& intensityi, 
-      //                               const std::vector<std::vector<double>>& intensityj);
       
         /// Initialize the scoring object and building the cross-correlation matrix
         void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);

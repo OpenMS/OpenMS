@@ -136,9 +136,8 @@ public:
     // Compute rank of vector elements for each row in a 2D array
     OPENSWATHALGO_DLLAPI void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
 
-    // Estimate rank-transformed mutual information between two vectors of data points
-    //OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
-    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& data1, std::vector<unsigned int>& data2);
+    // Estimate mutual information between two vectors of ranks
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2);
 
     //@}
 
