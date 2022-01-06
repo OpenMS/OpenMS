@@ -35,6 +35,9 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 
 #include <OpenMS/VISUAL/TableView.h>
+
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
@@ -77,27 +80,9 @@ namespace OpenMS
     // make sure they are in sync
     assert(Clmn::HEADER_NAMES.size() == Clmn::HeaderNames::SIZE_OF_HEADERNAMES);
 
-    // id view
-    defaults_.setValue("a_intensity", 1.0, "Default intensity of a-ions");
-    defaults_.setValue("b_intensity", 1.0, "Default intensity of b-ions");
-    defaults_.setValue("c_intensity", 1.0, "Default intensity of c-ions");
-    defaults_.setValue("x_intensity", 1.0, "Default intensity of x-ions");
-    defaults_.setValue("y_intensity", 1.0, "Default intensity of y-ions");
-    defaults_.setValue("z_intensity", 1.0, "Default intensity of z-ions");
-    defaults_.setValue("relative_loss_intensity", 0.1, "Relative loss in percent");
-    defaults_.setValue("max_isotope", 2, "Maximum number of isotopes");
-    defaults_.setValue("charge", 1, "Charge state");
-    defaults_.setValue("show_a_ions", "false", "Show a-ions");
-    defaults_.setValue("show_b_ions", "true", "Show b-ions");
-    defaults_.setValue("show_c_ions", "false", "Show c-ions");
-    defaults_.setValue("show_x_ions", "false", "Show x-ions");
-    defaults_.setValue("show_y_ions", "true", "Show y-ions");
-    defaults_.setValue("show_z_ions", "false", "Show z-ions");
-    defaults_.setValue("show_precursor", "false", "Show precursor");
-    defaults_.setValue("add_losses", "false", "Show neutral losses");
-    defaults_.setValue("add_isotopes", "false", "Show isotopes");
-    defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("tolerance", 0.5, "Mass tolerance in Th used in the automatic alignment."); // unfortunately we don't support alignment with ppm error
+    // id view parameters (warning: must be matched in TOPPViewPrefDialog)
+    defaults_.insert("tsg:", TheoreticalSpectrumGenerator().getParameters());
+    defaults_.insert("align:", SpectrumAlignment().getParameters());
 
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new TableView(this);
