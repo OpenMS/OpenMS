@@ -493,6 +493,17 @@ namespace OpenMS
     entry.valid_strings = strings;
   }
 
+  const std::vector<std::string>& Param::getValidStrings(const std::string& key) const
+  {
+    ParamEntry& entry = getEntry_(key);
+    // check if correct parameter type
+    if (entry.value.valueType() != ParamValue::STRING_VALUE && entry.value.valueType() != ParamValue::STRING_LIST)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
+    }
+    return entry.valid_strings;
+  }
+
   void Param::setMinInt(const std::string& key, int min)
   {
     ParamEntry& entry = getEntry_(key);
