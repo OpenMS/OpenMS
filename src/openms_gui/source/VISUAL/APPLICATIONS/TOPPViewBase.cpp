@@ -107,6 +107,8 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
+  const std::string user_section = "preferences:user:";
+
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
@@ -419,7 +421,7 @@ namespace OpenMS
     loadPreferences();
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path").toString();
+    current_path_ = param_.getValue(user_section + "default_path").toString();
 
     // update the menu
     updateMenu();
@@ -436,36 +438,49 @@ namespace OpenMS
     connect(watcher_, &FileWatcher::fileChanged, this, &TOPPViewBase::fileChanged_);
   }
 
+
   void TOPPViewBase::initializeDefaultParameters_()
   {
+    // FIXME: these parameters are declared again in TOPPViewPrefDialog, incl. their allowed values
+    //        There should be one place to do this. E.g. generate the GUI automatically from a Param (or simply use ParamEditor for the whole thing)
+    
+    // all parameters in preferences:user: can be edited by the user in the preferences dialog 
+    
     //general
-    defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
-    defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
-    defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
-    defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
-    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
-    defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
-    defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
+    defaults_.setValue(user_section + "default_map_view", "2d", "Default visualization mode for maps.");
+    defaults_.setValidStrings(user_section + "default_map_view", {"2d","3d"});
+    defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
+    defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
+    defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
+    defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
+    defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
+    defaults_.setValidStrings(user_section + "on_file_change", {"none","ask","update automatically"});
+    defaults_.setValue(user_section + "use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
+    defaults_.setValidStrings(user_section + "use_cached_ms2", {"true","false"});
+    defaults_.setValue(user_section + "use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
+    defaults_.setValidStrings(user_section + "use_cached_ms1", {"true","false"});
+   
+    // FIXME: getCanvasParameters() depends on the exact naming of the param sections below!
     // 1d view
-    defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
+    defaults_.insert(user_section + "1d:", Plot1DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "1d", "Settings for single spectrum view.");
     // 2d view
-    defaults_.insert("preferences:2d:", Plot2DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:2d", "Settings for 2D map view.");
+    defaults_.insert(user_section + "2d:", Plot2DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "2d", "Settings for 2D map view.");
     // 3d view
-    defaults_.insert("preferences:3d:", Plot3DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
+    defaults_.insert(user_section + "3d:", Plot3DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "3d", "Settings for 3D map view.");
     // identification view
-    defaults_.insert("preferences:idview:", SpectraIDViewTab(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
+    defaults_.insert(user_section + "idview:", SpectraIDViewTab(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "idview", "Settings for identification view.");
+
+    // non-editable parameters
+
+    // not in Dialog (yet?)
+    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
+
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
 
@@ -485,13 +500,14 @@ namespace OpenMS
   void TOPPViewBase::preferencesDialog()
   {
     Internal::TOPPViewPrefDialog dlg(this);
-    dlg.setParam(param_);
+    dlg.setParam(param_.copy(user_section, true));
 
     // --------------------------------------------------------------------
     // Execute dialog and update parameter object with user modified values
     if (dlg.exec())
     {
-      param_ = dlg.getParam();
+      param_.remove(user_section);
+      param_.insert(user_section, dlg.getParam());
       savePreferences();
     }
   }
@@ -546,8 +562,8 @@ namespace OpenMS
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
 
-    bool cache_ms2_on_disc = (param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = (param_.getValue("preferences:use_cached_ms1") == "true");
+    bool cache_ms2_on_disc = (param_.getValue(user_section + "use_cached_ms2") == "true");
+    bool cache_ms1_on_disc = (param_.getValue(user_section + "use_cached_ms1") == "true");
 
     try
     {
@@ -783,9 +799,9 @@ namespace OpenMS
                              Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
-    bool maps_as_2d = (param_.getValue("preferences:default_map_view") == "2d");
+    bool maps_as_2d = (param_.getValue(user_section + "default_map_view") == "2d");
     bool maps_as_1d = false;
-    bool use_intensity_cutoff = (param_.getValue("preferences:intensity_cutoff") == "on");
+    bool use_intensity_cutoff = (param_.getValue(user_section + "intensity_cutoff") == "on");
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
@@ -2305,9 +2321,8 @@ namespace OpenMS
 
   Param TOPPViewBase::getCanvasParameters(UInt dim) const
   {
-    // FIXME
-    Param out = param_.copy(String("preferences:") + dim + "d:", true);
-    out.setValue("default_path", param_.getValue("preferences:default_path").toString());
+    Param out = param_.copy(String(user_section + "") + dim + "d:", true);
+    out.setValue("default_path", param_.getValue(user_section + "default_path").toString());
     return out;
   }
 
@@ -2552,13 +2567,13 @@ namespace OpenMS
   void TOPPViewBase::updateCurrentPath()
   {
     //do not update if the user disabled this feature.
-    if (param_.getValue("preferences:default_path_current") != "true")
+    if (param_.getValue(user_section + "default_path_current") != "true")
     {
       return;
     }
 
     //reset
-    current_path_ = param_.getValue("preferences:default_path").toString();
+    current_path_ = param_.getValue(user_section + "default_path").toString();
 
     //update if the current layer has a path associated
     if (getActiveCanvas() && getActiveCanvas()->getLayerCount() != 0 && getActiveCanvas()->getCurrentLayer().filename != "")
@@ -2612,11 +2627,11 @@ namespace OpenMS
     Size layer_index = slp.second;
 
     bool user_wants_update = false;
-    if (param_.getValue("preferences:on_file_change") == "update automatically") //automatically update
+    if (param_.getValue(user_section + "on_file_change") == "update automatically") //automatically update
     {
       user_wants_update = true;
     }
-    else if (param_.getValue("preferences:on_file_change") == "ask") //ask the user if the layer should be updated
+    else if (param_.getValue(user_section + "on_file_change") == "ask") //ask the user if the layer should be updated
     {
       if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {

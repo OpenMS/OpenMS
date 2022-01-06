@@ -86,7 +86,7 @@ namespace OpenMS
     if (layer.type == LayerDataBase::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
+      Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace());
 
       // add data and return if something went wrong
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
@@ -938,43 +938,16 @@ namespace OpenMS
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
+    Param tag_params = tv_params.copy("preferences:user:idview:tsg:", true);
 
     PeakSpectrum spectrum;
     TheoreticalSpectrumGenerator generator;
-    Param p;
-    p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-    // these two are true by default, initialize to false here and set to true in the loop below
-    p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
-    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-
-    p.setValue("max_isotope", tv_params.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
-    p.setValue("add_losses", tv_params.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
-    p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
-
-    p.setValue("a_intensity", current_spectrum.getMaxIntensity() * (double)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-    p.setValue("b_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-    p.setValue("c_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-    p.setValue("x_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-    p.setValue("y_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-    p.setValue("z_intensity", current_spectrum.getMaxIntensity() * (double) tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
-    p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
-
-    p.setValue("add_a_ions", tv_params.getValue("preferences:idview:show_a_ions"), "Add peaks of a-ions to the spectrum");
-    p.setValue("add_b_ions", tv_params.getValue("preferences:idview:show_b_ions"), "Add peaks of b-ions to the spectrum");
-    p.setValue("add_c_ions", tv_params.getValue("preferences:idview:show_c_ions"), "Add peaks of c-ions to the spectrum");
-    p.setValue("add_x_ions", tv_params.getValue("preferences:idview:show_x_ions"), "Add peaks of x-ions to the spectrum");
-    p.setValue("add_y_ions", tv_params.getValue("preferences:idview:show_y_ions"), "Add peaks of y-ions to the spectrum");
-    p.setValue("add_z_ions", tv_params.getValue("preferences:idview:show_z_ions"), "Add peaks of z-ions to the spectrum");
-    p.setValue("add_precursor_peaks", tv_params.getValue("preferences:idview:show_precursor"), "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-
     try
     {
       Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
       // generate mass ladder for all charge states
-      generator.setParameters(p);
+      generator.setParameters(tag_params);
       generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
 
     }
@@ -1046,12 +1019,8 @@ namespace OpenMS
       tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
       // spectra alignment
-      Param param;
-
-      double tolerance = tv_params.getValue("preferences:idview:tolerance");
-
-      param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-      tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+      Param p_align = tv_params.copy("preferences:user:idview:align", true);
+      tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, p_align);
 
       vector<pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
 
