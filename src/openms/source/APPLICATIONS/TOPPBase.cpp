@@ -669,6 +669,7 @@ namespace OpenMS
       case ParameterInformation::STRING:
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
+      case ParameterInformation::OUTPUT_PREFIX:
       case ParameterInformation::STRINGLIST:
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
@@ -682,8 +683,11 @@ namespace OpenMS
           }
 
           String add = "";
-          if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
-              it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+          if (it->type == ParameterInformation::INPUT_FILE 
+            || it->type == ParameterInformation::OUTPUT_FILE
+            || it->type == ParameterInformation::OUTPUT_PREFIX
+            || it->type == ParameterInformation::INPUT_FILE_LIST 
+            || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
           addons.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
@@ -777,6 +781,7 @@ namespace OpenMS
 
     bool input_file = entry.tags.count("input file");
     bool output_file = entry.tags.count("output file");
+    bool output_prefix = entry.tags.count("output prefix");
     if (input_file && output_file)
     {
       throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parameter '" + full_name + "' marked as both input and output file");
@@ -789,6 +794,8 @@ namespace OpenMS
         type = ParameterInformation::INPUT_FILE;
       else if (output_file)
         type = ParameterInformation::OUTPUT_FILE;
+      else if (output_prefix)
+        type = ParameterInformation::OUTPUT_PREFIX;
       else
         type = ParameterInformation::STRING;
       break;
@@ -1790,6 +1797,7 @@ namespace OpenMS
         case ParameterInformation::STRING:
         case ParameterInformation::INPUT_FILE:
         case ParameterInformation::OUTPUT_FILE:
+        case ParameterInformation::OUTPUT_PREFIX:
         case ParameterInformation::FLAG:
           if (it->value.valueType() != ParamValue::STRING_VALUE)
           {
@@ -2022,6 +2030,7 @@ namespace OpenMS
 
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
+      case ParameterInformation::OUTPUT_PREFIX:
         tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
         if (!it->valid_strings.empty())
         {
@@ -2400,6 +2409,7 @@ namespace OpenMS
             case ParameterInformation::STRING:
             case ParameterInformation::INPUT_FILE:
             case ParameterInformation::OUTPUT_FILE:
+            case ParameterInformation::OUTPUT_PREFIX:
               if (queue.empty())
                 value = std::string();
               else

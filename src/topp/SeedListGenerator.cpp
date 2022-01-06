@@ -152,6 +152,8 @@ protected:
       FileTypes::Type in_type = FileHandler::getType(in);
 
       StringList out;
+      out.push_back(out_prefix + "_0.featureXML"); // we manually set the name here
+
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
@@ -159,9 +161,12 @@ protected:
         num_maps = consensus.getColumnHeaders().size();
         ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
         size_t map_count = 0;
-        for(const auto& header : ch)
-        {
+        // we have multiple out files
+        out.clear();
+        for([[maybe_unused]] const auto& header : ch)
+        {           
           out.push_back(out_prefix + "_" + String(map_count) + ".featureXML"); // we manually set the name here
+          ++map_count;
         }
 
         if (out.size() != num_maps)
@@ -209,6 +214,7 @@ protected:
         //annotate output with data processing info:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
+        OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
         FeatureXMLFile().store(out[num_maps], features);
       }
 
