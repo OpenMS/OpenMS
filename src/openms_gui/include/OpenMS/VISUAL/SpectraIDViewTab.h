@@ -105,6 +105,11 @@ namespace OpenMS
     /// open browser to navigate to uniport site with accession
     void openUniProtSiteWithAccession_(const QString& accession);
 
+    class SelfResizingTableView_ : TableView
+    {
+      void resizeEvent(QResizeEvent * event) override;
+    };
+
     LayerDataBase* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
@@ -114,6 +119,8 @@ namespace OpenMS
     QSplitter* tables_splitter_ = nullptr;
     bool is_first_time_loading_ = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
+
+
 
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file

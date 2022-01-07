@@ -140,15 +140,16 @@ namespace OpenMS
     QVBoxLayout* all = new QVBoxLayout(this);
     tables_splitter_ = new QSplitter(Qt::Horizontal);
 
-    table_widget_ = new TableView(this);
+    QHBoxLayout* tables = new QHBoxLayout(tables_splitter_);
+    table_widget_ = new TableView(tables_splitter_);
     table_widget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
-
     tables_splitter_->addWidget(table_widget_);
 
-    protein_table_widget_ = new TableView(this);
+    protein_table_widget_ = new TableView(tables_splitter_);
     protein_table_widget_->setWhatsThis("Protein selection bar<BR><BR>Here all proteins of the current experiment are shown. TODO what can you do with it");
 
     tables_splitter_->addWidget(protein_table_widget_);
+    tables_splitter_->setLayout(tables);
     all->addWidget(tables_splitter_);
     
     ////////////////////////////////////
@@ -377,7 +378,8 @@ namespace OpenMS
           }
         }
 
-        auto* widget = new SequenceVisualizer(); // no parent since we want a new window
+        auto* widget = new SequenceVisualizer(this); // no parent since we want a new window
+        widget->setWindowFlags(Qt::Window);
         widget->resize(1500,500); // make a bit bigger
         widget->setProteinPeptideDataToJsonObj(accession_num, protein_sequence, peptides_data);
         widget->show();
@@ -682,6 +684,8 @@ namespace OpenMS
 
     protein_table_widget_->blockSignals(false);
     protein_table_widget_->setUpdatesEnabled(true);
+    protein_table_widget_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    protein_table_widget_->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   }
 
   void SpectraIDViewTab::updateEntries_()
@@ -872,7 +876,7 @@ namespace OpenMS
                     String(pa.charge).toQString() + "|" +
                     pa.annotation.toQString() + ";";
                 }
-                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color);
+                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color, Qt::blue);
                 item->setData(Qt::UserRole, annotation);
                 ++current_col;
               }
@@ -914,7 +918,6 @@ namespace OpenMS
                                              << "#PH");
     if (has_peak_annotations) table_widget_->setHeaderExportName(Clmn::PEAK_ANNOTATIONS, "PeakAnnotations(mz|intensity|charge|annotation");
 
-    table_widget_->resizeColumnsToContents();
     table_widget_->setSortingEnabled(true);
     table_widget_->sortByColumn(Clmn::SPEC_INDEX, Qt::AscendingOrder);
 
@@ -928,6 +931,7 @@ namespace OpenMS
       currentCellChanged_(selected_row, 0, 0, 0); // simulate cell change to trigger repaint and reannotation of spectrum 1D view
     }
 
+    table_widget_->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
 
@@ -1071,5 +1075,10 @@ namespace OpenMS
       // set precursor intensity
       table_widget_->setAtBottomRow(first_precursor.getIntensity(), Clmn::PREC_INT, background_color);
     }
+  }
+
+  void SpectraIDViewTab::SelfResizingTableView_::resizeEvent(QResizeEvent * /*event*/)
+  {
+
   }
 }

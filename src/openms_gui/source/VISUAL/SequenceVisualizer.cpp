@@ -49,29 +49,36 @@ namespace OpenMS
       QWidget(parent), ui_(new Ui::SequenceVisualizer)
   {
     ui_->setupUi(this);
-    auto* view = new QWebEngineView(parent);
-    auto* channel = new QWebChannel(this); // setup Qt WebChannel API
-    view->page()->setWebChannel(channel);
-    channel->registerObject(QString("SequenceVisualizer"), this); // This object will be available in HTML file.
-    view->load(QUrl("qrc:/new/sequence_viz.html"));
-    ui_->gridLayout->addWidget(view);
+    view_ = new QWebEngineView(this);
+    channel_ = new QWebChannel(&backend_); // setup Qt WebChannel API
+    view_->page()->setWebChannel(channel_);
+    channel_->registerObject(QString("Backend"), &backend_); // This object will be available in HTML file.
+    view_->load(QUrl("qrc:/new/sequence_viz.html"));
+    ui_->gridLayout->addWidget(view_);
   }
 
   SequenceVisualizer::~SequenceVisualizer()
   {
+    channel_->deleteLater();
+    view_->close();
+    view_->deleteLater();
     delete ui_;
+    deleteLater();
   }
 
   // Get protein and peptide data from the protein table and store inside the m_json_data_obj_ object. 
   // Inside the HTML file, this QObject will be available and we'll access these protein and 
   // peptide data using the qtWebEngine and webChannel API.
-  void SequenceVisualizer::setProteinPeptideDataToJsonObj(const QString& accession_num,
+  void SequenceVisualizer::setProteinPeptideDataToJsonObj(
+      const QString& accession_num,
       const QString& pro_seq,
       const QJsonArray& pep_data)
   {
-    m_json_data_obj_["accession_num"] = accession_num;
-    m_json_data_obj_["protein_sequence_data"] = pro_seq;
-    m_json_data_obj_["peptides_data"] = pep_data;
+    QJsonObject j;
+    j["accession_num"] = accession_num;
+    j["protein_sequence_data"] = pro_seq;
+    j["peptides_data"] = pep_data;
+    backend_.m_json_data_obj_ = j;
   }
 }// namespace OpenMS
 #endif

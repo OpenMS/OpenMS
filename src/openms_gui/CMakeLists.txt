@@ -56,12 +56,13 @@ find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
 
 IF (NOT Qt5Widgets_FOUND)
-  message(STATUS "QT5Widgets not found!")
+  message(STATUS "Qt5Widgets not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
-if(Qt5_WebEngineWidgets_NOTFOUND) 
-    set(OpenMS_GUI_QT_COMPONENTS_OPT "")
+if(Qt5_WebEngineWidgets_NOTFOUND)
+  message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+  set(OpenMS_GUI_QT_COMPONENTS_OPT "")
 endif()
 
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
