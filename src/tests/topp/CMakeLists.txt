@@ -2202,16 +2202,24 @@ set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5"
 
 #------------------------------------------------------------------------------
 # IDRipper tests
-add_test("TOPP_IDRipper_1" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_1_input.idXML -out dummy.tmp )
-add_test("TOPP_IDRipper_1_out1" ${DIFF} -in1 IDRipper_1_output_1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output1.idXML )
+add_test("TOPP_IDRipper_1" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_1_input.idXML -out ./ )
+add_test("TOPP_IDRipper_1_out1" ${DIFF} -in1 IDRipper_1_output_1.idXML  -in2 ${DATA_DIR_TOPP}/IDRipper_1_output1.idXML )
 set_tests_properties("TOPP_IDRipper_1_out1" PROPERTIES DEPENDS "TOPP_IDRipper_1")
-add_test("TOPP_IDRipper_1_out2" ${DIFF} -in1 IDRipper_1_output_2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output2.idXML )
+add_test("TOPP_IDRipper_1_out2" ${DIFF} -in1 IDRipper_1_output_2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_1_output2.idXML )
 set_tests_properties("TOPP_IDRipper_1_out2" PROPERTIES DEPENDS "TOPP_IDRipper_1")
-add_test("TOPP_IDRipper_2" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_2_input.idXML -out_path dummy.tmp)
-add_test("TOPP_IDRipper_2_out1" ${DIFF} -in1 IDRipper_2_output_1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_2_output1.idXML )
+add_test("TOPP_IDRipper_2" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_2_input.idXML -out ./ -numeric_filenames -split_ident_runs )
+add_test("TOPP_IDRipper_2_out1" ${DIFF} -in1 IDRipper_2_input_0_0.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_2_input_0_0.idXML )
 set_tests_properties("TOPP_IDRipper_2_out1" PROPERTIES DEPENDS "TOPP_IDRipper_2")
-add_test("TOPP_IDRipper_2_out2" ${DIFF} -in1 IDRipper_2_output_2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_2_output2.idXML )
+add_test("TOPP_IDRipper_2_out2" ${DIFF} -in1 IDRipper_2_input_1_0.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_2_input_1_0.idXML )
 set_tests_properties("TOPP_IDRipper_2_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2")
+add_test("TOPP_IDRipper_2_out3" ${DIFF} -in1 IDRipper_2_input_2_1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_2_input_2_1.idXML )
+set_tests_properties("TOPP_IDRipper_2_out3" PROPERTIES DEPENDS "TOPP_IDRipper_2")
+add_test("TOPP_IDRipper_2a" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_2_input.idXML -out ./ -numeric_filenames )
+add_test("TOPP_IDRipper_2a_out1" ${DIFF} -in1 IDRipper_2_input_0.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_2a_output_0.idXML )
+set_tests_properties("TOPP_IDRipper_2a_out1" PROPERTIES DEPENDS "TOPP_IDRipper_2a")
+add_test("TOPP_IDRipper_2a_out2" ${DIFF} -in1 IDRipper_2_input_1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_2a_output_1.idXML )
+set_tests_properties("TOPP_IDRipper_2a_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2a")
+
 # use IDMerger results to test. Input -> IDMerger -> IDRipper -> Output == Input
 add_test("TOPP_IDRipper_3_prep" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML -out IDRipper_3_output.tmp)
 add_test("TOPP_IDRipper_3_prep_out1" ${DIFF} -whitelist "?xml-stylesheet" "file_origin" -in1 IDRipper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_output.idXML)
@@ -2219,12 +2227,13 @@ set_tests_properties("TOPP_IDRipper_3_prep_out1" PROPERTIES DEPENDS "TOPP_IDRipp
 ## create an output directory during configure time in the binary tree
 set(TMP_RIP_PATH ${PROJECT_BINARY_DIR}/tmp_path/) ## ${PROJECT_BINARY_DIR} already includes '/src/tests/topp/'
 file(MAKE_DIRECTORY ${TMP_RIP_PATH})
-add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_3_output.idXML -out_path ${TMP_RIP_PATH})
+add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_3_output.idXML -out ${TMP_RIP_PATH})
 set_tests_properties("TOPP_IDRipper_3" PROPERTIES DEPENDS "TOPP_IDRipper_3_prep")
 add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 ${TMP_RIP_PATH}/IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML)
 set_tests_properties("TOPP_IDRipper_3_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3")
 add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 ${TMP_RIP_PATH}/IDRipper_3_input2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML)
 set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3")
+
 
 #------------------------------------------------------------------------------
 # ConsensusID tests
