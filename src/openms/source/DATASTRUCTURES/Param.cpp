@@ -92,7 +92,9 @@ namespace OpenMS
         {
           ok = true;
         }
-        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+          || std::find(tags.begin(), tags.end(), "output file") != tags.end()
+          || std::find(tags.begin(), tags.end(), "output prefix") != tags.end())
         {
           //do not check restrictions on file names for now
           ok = true;
@@ -124,7 +126,8 @@ namespace OpenMS
           {
             ok = true;
           }
-          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+            || std::find(tags.begin(), tags.end(), "output file") != tags.end())
           {
             //do not check restrictions on file names for now
             ok = true;
