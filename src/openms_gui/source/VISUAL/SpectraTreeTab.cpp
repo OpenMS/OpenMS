@@ -47,9 +47,9 @@ namespace OpenMS
   std::vector<int> listToVec(const QList<QVariant>& in)
   {
     std::vector<int> out;
-    for (Int i = 0; i != in.size(); ++i)
+    for (const auto & i : in)
     {
-      out.push_back(in[i].toInt());
+      out.push_back(i.toInt());
     }
     return out;
   }
@@ -192,7 +192,6 @@ namespace OpenMS
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
         the execution of a TOPP tool on the whole data */
-    // WUT????
     if (current == nullptr)
     {
       return;
@@ -438,6 +437,8 @@ namespace OpenMS
       {
         // now, select and scroll down to item
         selected_item->setSelected(true);
+        // selected = for mouse clicks and multiselection,
+        // current = for arrow navigation and signifies THE ONE active item
         spectra_treewidget_->setCurrentItem(selected_item);
         spectra_treewidget_->scrollToItem(selected_item);
       }
@@ -468,11 +469,11 @@ namespace OpenMS
       // whether multiple ones are selected.
       bool multiple_select = false;
       int this_selected_item = -1;
-      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("multiple_select"))
+      if (!cl.getPeakData()->empty() && cl.getPeakData()->metaValueExists("multiple_select"))
       {
         multiple_select = cl.getPeakData()->getMetaValue("multiple_select").toBool();
       }
-      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("selected_chromatogram"))
+      if (!cl.getPeakData()->empty() && cl.getPeakData()->metaValueExists("selected_chromatogram"))
       {
         this_selected_item = (int)cl.getPeakData()->getMetaValue("selected_chromatogram");
       }

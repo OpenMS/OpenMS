@@ -318,9 +318,9 @@ namespace OpenMS
       return; 
     }
 
-    // lambda which returns the current layer
-    // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
-    // TODO if this needs to be done like that (e.g. for thread safety), why not in the other 10 occurrences of getting the layer in this class??
+    // lambda which returns the current layer. This has to be used throughout this function to ensure
+    // being up-to-date (no invalidated pointer etc.)
+    // even after adding a layer with e.g. addTheoreticalSpectrumLayer_ in L372.
     auto current_layer = [&]() -> LayerDataBase& { return widget_1D->canvas()->getCurrentLayer(); };
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);

@@ -178,21 +178,10 @@ namespace OpenMS
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
-    //Trigger updates only when the active subWindow index changes and update it
+    //Trigger updates only when the active subWindow changes and update it
     connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) {
-      Size s = 0;
-      int oldactiveSubwindowID = activeSubwindowID_;
-      for (const auto& child : ws_.subWindowList())
-      {
-        if (child == window)
-        {
-          activeSubwindowID_ = s;
-          break;
-        }
-        ++s;
-      }
-      if (window != nullptr && (oldactiveSubwindowID != activeSubwindowID_)) /* 0 upon terminate */ updateBarsAndMenus();
-
+      if (window && lastActiveSubwindow_ != window) /* 0 upon terminate */ updateBarsAndMenus();
+      lastActiveSubwindow_ = window;
     });
     connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&ws_);
@@ -1499,11 +1488,18 @@ namespace OpenMS
 
   PlotWidget* TOPPViewBase::getActivePlotWidget() const
   {
+    // If the MDI window that holds all the subwindows for layers/spectra
+    // is out-of-focus (e.g. because the table below was clicked and you moved out and into TOPPView),
+    // currentSubWindow returns nullptr (i.e. no window is ACTIVE). In this case we get the one that is active
+    // in the tabs (which SHOULD in theory be in-sync; due to a bug the way subwindow->tab does not work).
+    // TODO check if we can reactivate automatically (e.g. double-check when TOPPView reacquires focus)
     if (!ws_.currentSubWindow())
     {
-      if (activeSubwindowID_ < (Size) ws_.subWindowList().size())
+      // TODO think about using lastActivatedSubwindow_
+      const auto id = tab_bar_.currentIndex();
+      if (id < (Size) ws_.subWindowList().size())
       {
-        return qobject_cast<PlotWidget*>(ws_.subWindowList()[int(activeSubwindowID_)]->widget());
+        return qobject_cast<PlotWidget*>(ws_.subWindowList()[id]->widget());
       }
       return nullptr;
     }
@@ -1890,7 +1886,14 @@ namespace OpenMS
                       QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
                               " or enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
     }
-    else if (topp_.out != "")
+    else if (topp_.process->exitCode() != 0) //NormalExit with non-zero exit code
+    {
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
+                            QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
+                            QString("If you want to debug this, check the input files in '%1' or"
+                                    " enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+    }
+    else if (!topp_.out.empty())
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));

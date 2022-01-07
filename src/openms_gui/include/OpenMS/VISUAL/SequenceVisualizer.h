@@ -35,7 +35,7 @@
 #ifdef QT_WEBENGINEWIDGETS_LIB
 #pragma once
 
-// OpenMS_GUI configg
+// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>

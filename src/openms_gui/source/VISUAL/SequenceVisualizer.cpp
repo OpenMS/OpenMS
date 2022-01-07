@@ -78,7 +78,7 @@ namespace OpenMS
     j["accession_num"] = accession_num;
     j["protein_sequence_data"] = pro_seq;
     j["peptides_data"] = pep_data;
-    backend_.m_json_data_obj_ = j;
+    backend_.m_json_data_obj_ = std::move(j);
   }
 }// namespace OpenMS
 #endif
