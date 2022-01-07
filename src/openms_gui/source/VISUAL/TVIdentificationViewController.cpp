@@ -164,6 +164,7 @@ namespace OpenMS
         }
       }
 
+      // TODO Why would this need to trigger an update in e.g. the Tab Views??
       tv_->updateLayerBar(); // todo replace
       tv_->updateViewBar();
       tv_->updateFilterBar();
@@ -175,9 +176,9 @@ namespace OpenMS
   void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
-    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    auto getCurrentLayer = [&]() -> LayerDataBase& { return tv_->getActive1DWidget()->canvas()->getCurrentLayer(); };
 
-    if (current_layer.getCurrentSpectrum().empty())
+    if (getCurrentLayer().getCurrentSpectrum().empty())
     {
       OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
@@ -188,7 +189,7 @@ namespace OpenMS
 
     vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
-    if (!current_layer.getCurrentSpectrum().isSorted())
+    if (!getCurrentLayer().getCurrentSpectrum().isSorted())
     {
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
@@ -202,14 +203,15 @@ namespace OpenMS
         continue;
       }
       double mz = it->getMZ();
-      Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
+      Size peak_idx = getCurrentLayer().getCurrentSpectrum().findNearest(mz);
 
       // m/z fits ?
-      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm)
+      if (Math::getPPMAbs(mz, getCurrentLayer().getCurrentSpectrum()[peak_idx].getMZ()) > ppm)
       {
         continue;
       }
-      double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
+
+      double peak_int = getCurrentLayer().getCurrentSpectrum()[peak_idx].getIntensity();
 
       Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
@@ -271,14 +273,15 @@ namespace OpenMS
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
                                                          QString(),
                                                          cols[i],
-                                                         String(current_layer.param.getValue("peak_color").toString()).toQString());
+                                                         String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==nullptr)
+        getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
+        if (first_dit == nullptr) 
         {
           first_dit = ditem; // remember first item (we append the text, when ready)
         }
+
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
         {
@@ -309,14 +312,17 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr)
-    { 
-      return;
+    if (widget_1D == nullptr) 
+    {
+      std::cout << "Current widget is nullptr" << std::endl;
+      return; 
     }
 
-    // lambda which returns the current layer
-    // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
+    // lambda which returns the current layer. This has to be used throughout this function to ensure
+    // being up-to-date (no invalidated pointer etc.)
+    // even after adding a layer with e.g. addTheoreticalSpectrumLayer_ in L372.
     auto current_layer = [&]() -> LayerDataBase& { return widget_1D->canvas()->getCurrentLayer(); };
+
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     current_layer().peptide_id_index = peptide_id_index;
     current_layer().peptide_hit_index = peptide_hit_index;
@@ -931,7 +937,7 @@ namespace OpenMS
     LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
-    AASequence aa_sequence = ph.getSequence();
+    const AASequence& aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
     Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();
@@ -1260,6 +1266,7 @@ namespace OpenMS
     }
 
     // Block update events for identification widget
+    // TODO: Why? If it is to avoid a new selection while repainting, why just do it now and not much earlier??
     spec_id_view_->ignore_update = true;
     RAIICleanup cleanup([&]() {spec_id_view_->ignore_update = false; });
 
@@ -1366,5 +1373,4 @@ namespace OpenMS
     tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
     tv_->getActive1DWidget()->canvas()->repaint();
   }
-
 }

@@ -81,6 +81,7 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # QT dependencies
     find_package(Qt5 COMPONENTS Core Network Svg OpenGL REQUIRED)
+    find_package(Qt5 COMPONENTS WebEngineWidgets)
     set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
     set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
   else()

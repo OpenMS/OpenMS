@@ -324,7 +324,7 @@ protected:
     /// Shows dialog and calls addLabelAnnotation_
     void addUserLabelAnnotation_(const QPoint& screen_position);
     /// Adds an annotation item at the given screen position
-    void addLabelAnnotation_(const QPoint& screen_position, QString label_text);
+    void addLabelAnnotation_(const QPoint& screen_position, const QString& label_text);
     /// Shows dialog and calls addPeakAnnotation_
     void addUserPeakAnnotation_(PeakIndex near_peak);
 
