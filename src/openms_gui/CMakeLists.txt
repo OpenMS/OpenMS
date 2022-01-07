@@ -48,12 +48,22 @@ endif()
 
 set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
+set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+
 find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
 
+find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+
+
 IF (NOT Qt5Widgets_FOUND)
-  message(STATUS "QT5Widgets not found!")
+  message(STATUS "Qt5Widgets not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
+
+if(Qt5_WebEngineWidgets_NOTFOUND)
+  message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+  set(OpenMS_GUI_QT_COMPONENTS_OPT "")
+endif()
 
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
@@ -65,6 +75,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_definitions(${Qt5Widgets_DEFINITIONS})
 add_definitions(${Qt5Svg_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
+add_definitions(${Qt5WebEngineWidgets_DEFINITIONS})
 
 # Executables fail to build with Qt 5 in the default configuration
 # without -fPIE. We add that here.
@@ -92,6 +103,7 @@ set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                              ${Qt5Widgets_LIBRARIES}
                              ${Qt5Svg_LIBRARIES}
                              ${Qt5Network_LIBRARIES}
+                             ${Qt5WebEngineWidgets_LIBRARIES}
                             )
 set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 
@@ -113,6 +125,7 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                                      ${Qt5Widgets_INCLUDE_DIRS}
 				                     ${Qt5Svg_INCLUDE_DIRS}
 				                     ${Qt5Network_INCLUDE_DIRS}
+                                     ${Qt5WebEngineWidgets_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")

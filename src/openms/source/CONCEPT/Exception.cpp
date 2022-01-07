@@ -256,6 +256,11 @@ namespace OpenMS
     {
     }
 
+    InternalToolError::InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept:
+      BaseException(file, line, function, "InternalToolError", error_message)
+    {
+    }
+
     MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) noexcept :
       BaseException(file, line, function, "MissingInformation", error_message)
     {

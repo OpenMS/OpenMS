@@ -238,7 +238,7 @@ public:
     void savePreferences();
 
     /// Returns the parameters for a PlotCanvas of dimension @p dim
-    Param getSpectrumParameters(UInt dim);
+    Param getCanvasParameters(UInt dim) const;
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerDataBase* getCurrentLayer() const;
@@ -476,6 +476,10 @@ protected:
 
     /// Main workspace
     EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
+    /// LAST active subwindow (~ corresponding to tab) in the MDI container. Since subwindows can lose focus,
+    /// we want to make sure that things like the ID tables only update when a NEW window is activated. (Actually,
+    /// we should check for the underlying data but this might be a @todo).
+    QMdiSubWindow* lastActiveSubwindow_ = nullptr; // due to Qt bugs or confusing features we need to save the current Window id in the children of the workspace;
     /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
     /// manages recent list of filenames and the menu that goes with it

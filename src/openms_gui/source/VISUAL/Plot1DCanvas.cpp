@@ -457,6 +457,7 @@ namespace OpenMS
           newHi = overall_data_range_.maxX();
           newLo = newHi - visible_area_.width();
         }
+
         // change data area
         changeVisibleArea_(newLo, newHi);
         last_mouse_pos_ = p;
@@ -811,7 +812,7 @@ namespace OpenMS
             }
 
             // Warn if non-empty peak color array present but size doesn't match number of peaks
-            // This indicates a bug but we gracefuly just issue a warning
+            // This indicates a bug but we gracefully just issue a warning
             if (!layer.peak_colors_1d.empty() &&
                 layer.peak_colors_1d.size() < spectrum.size())
             {
@@ -984,7 +985,7 @@ namespace OpenMS
       if (peak.peak >= spec.size())
       {
         // somehow the peak is invalid. This happens from time to time and should be tracked down elsewhere
-        // but its hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
+        // but it's hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
         return;
       }
       const ExperimentType::PeakType& sel = spec[peak.peak];
@@ -1612,7 +1613,7 @@ namespace OpenMS
     }
   }
 
-  void Plot1DCanvas::addLabelAnnotation_(const QPoint& screen_position, QString text)
+  void Plot1DCanvas::addLabelAnnotation_(const QPoint& screen_position, const QString& text)
   {
     updatePercentageFactor_(getCurrentLayerIndex());
 
@@ -2090,6 +2091,7 @@ namespace OpenMS
     // be an in-memory representation in the peak data structure. Using
     // setCurrentSpectrumIndex will select the appropriate spectrum and load it
     // into memory.
+    
     if (index < getCurrentLayer().getPeakData()->size())
     {
       getCurrentLayer().setCurrentSpectrumIndex(index);
