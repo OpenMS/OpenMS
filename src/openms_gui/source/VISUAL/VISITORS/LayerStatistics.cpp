@@ -155,8 +155,8 @@ namespace OpenMS
     {  
       for (const auto& spec : *pm_)
       {
-        std::visit(overload {[&](const RangeStatsInt& int_range) { updateHistFromDataArray(spec.getIntegerDataArrays(), which.name, result); },
-                             [&](const RangeStatsDouble& int_range) { updateHistFromDataArray(spec.getFloatDataArrays(), which.name, result); }}
+        std::visit(overload {[&](const RangeStatsInt& /*int_range*/) { updateHistFromDataArray(spec.getIntegerDataArrays(), which.name, result); },
+                             [&](const RangeStatsDouble& /*double_range*/) { updateHistFromDataArray(spec.getFloatDataArrays(), which.name, result); }}
                    , overview_range_data_.at(which));
       }
     }
