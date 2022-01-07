@@ -295,7 +295,9 @@ namespace OpenMS
           if (!restrictions.empty())
           {
             if (param_it->tags.find("input file") != param_it->tags.end() ||
-                param_it->tags.find("output file") != param_it->tags.end())
+                param_it->tags.find("output file") != param_it->tags.end() ||
+                param_it->tags.find("output prefix") != param_it->tags.end()                
+               )
             {
               os << " supported_formats=\"" << escapeXML(restrictions) << "\"";
             }
