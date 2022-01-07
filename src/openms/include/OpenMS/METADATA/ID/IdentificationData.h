@@ -92,7 +92,10 @@ namespace OpenMS
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
-
+    
+    // to be able to add overloads and still find the inherited ones
+    using MetaInfoInterface::setMetaValue;
+    
     // type definitions:
     using MoleculeType = IdentificationDataInternal::MoleculeType;
     using MassType = IdentificationDataInternal::MassType;
