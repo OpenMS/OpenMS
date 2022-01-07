@@ -939,8 +939,11 @@ namespace OpenMS
 
     const Param& tv_params = tv_->getParameters();
     Param tag_params = tv_params.copy("preferences:user:idview:tsg:", true);
+    // override: enable metavalues for simulated peaks (needed for annotation)
+    assert(tag_params.exists("add_metainfo"));
+    tag_params.setValue("add_metainfo", "true");
 
-    PeakSpectrum spectrum;
+    PeakSpectrum theo_spectrum;
     TheoreticalSpectrumGenerator generator;
     try
     {
@@ -948,8 +951,11 @@ namespace OpenMS
 
       // generate mass ladder for all charge states
       generator.setParameters(tag_params);
-      generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
+      generator.getSpectrum(theo_spectrum, aa_sequence, 1, max_charge);
 
+      // scale spectrum to maximum peak intensity of real spectrum
+      auto scale_by = current_spectrum.getMaxIntensity();
+      std::for_each(theo_spectrum.begin(), theo_spectrum.end(), [scale_by](Peak1D& p) { p.setIntensity(p.getIntensity() * scale_by); });
     }
     catch (Exception::BaseException& e)
     {
@@ -958,7 +964,7 @@ namespace OpenMS
     }
 
     PeakMap new_exp;
-    new_exp.addSpectrum(spectrum);
+    new_exp.addSpectrum(theo_spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -976,18 +982,18 @@ namespace OpenMS
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
-    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !theo_spectrum.getStringDataArrays().empty())
     {
       // Ensure theoretical spectrum is drawn as dashed sticks
       tv_->setDrawMode1D(Plot1DCanvas::DM_PEAKS);
       tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
 
       // Add ion names as annotations to the theoretical spectrum
-      PeakSpectrum::StringDataArray sa = spectrum.getStringDataArrays()[0];
+      PeakSpectrum::StringDataArray sa = theo_spectrum.getStringDataArrays()[0];
 
-      for (Size i = 0; i != spectrum.size(); ++i)
+      for (Size i = 0; i != theo_spectrum.size(); ++i)
       {
-        DPosition<2> position = DPosition<2>(spectrum[i].getMZ(), spectrum[i].getIntensity());
+        DPosition<2> position = DPosition<2>(theo_spectrum[i].getMZ(), theo_spectrum[i].getIntensity());
         QString s(sa[i].c_str());
 
         if (s.at(0) == 'y')
