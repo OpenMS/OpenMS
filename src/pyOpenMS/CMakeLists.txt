@@ -61,6 +61,10 @@ execute_process(
 
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
+if(UNIX AND NOT APPLE AND NOT CYGWIN)
+    set(LINUX TRUE)
+endif()
+
 #------------------------------------------------------------------------------
 # See https://wiki.python.org/moin/WindowsCompilers
 # Windows support requires that the correct Python version is matched to the
@@ -153,7 +157,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 2))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 4))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -412,6 +416,20 @@ if(NOT PY_NUM_MODULES)
   set(PY_NUM_MODULES 8)
 endif()
 
+set(PYCPPFILES "")
+set(PYPYXFILES "")
+set(PYSOFILES "")
+foreach(NUM RANGE 1 ${PY_NUM_MODULES})
+  list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.cpp")
+  list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.pyx")
+  if (WIN32)
+    list(APPEND PYSOFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.dll")
+  else()
+    list(APPEND PYSOFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.so")
+  endif()
+endforeach()
+
+
 # set data variable nightly builds use repository last change date
 # yyyy-mm-dd 08:04:17 +0200 -> yyyymmdd
 string(REPLACE "-" "" OPENMS_GIT_LC_DATE_REPLACED ${OPENMS_GIT_LC_DATE})
@@ -505,59 +523,66 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms_create_cpp
+IF(LINUX AND PY_NO_OUTPUT)
+  add_custom_command(
+    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    DEPENDS OpenMS # fake dependency to see if a header file has changed
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
-    DEPENDS prepare_pyopenms_libs
+    COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-  add_custom_target(pyopenms_create_cpp
+  add_custom_command(
+    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    DEPENDS OpenMS # fake dependency to see if a header file has changed
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-    DEPENDS prepare_pyopenms_libs
+    COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
+add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
 set(PY_EXTRA_ARGS "")
-if(PY_SINGLE_THREADED)
-  message(STATUS "Turning off multi-threaded python module compilation")
-  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--single-threaded")
-endif()
+
 if(PY_NO_OPTIMIZATION)
   message(STATUS "Turning off optimization for faster python module compile time")
   set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--no-optimization")
 endif()
+
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms_build
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS} 2> /dev/null
-            DEPENDS pyopenms_create_cpp
+IF(LINUX AND PY_NO_OUTPUT)
+  add_custom_command(
+            OUTPUT ${PYSOFILES}
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
+            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+            DEPENDS compile_pxds OpenMS
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSEIF(APPLE) # We need to still copy libs with our script
+  add_custom_command(
+            OUTPUT ${PYSOFILES}
+            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+            DEPENDS compile_pxds OpenMS
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-  add_custom_target(pyopenms_build
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-            DEPENDS pyopenms_create_cpp
+  add_custom_command(
+            OUTPUT ${PYSOFILES}
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+            DEPENDS compile_pxds OpenMS
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
-add_dependencies(pyopenms_build OpenMS)
 
-if(APPLE)
-add_custom_command(
-  TARGET pyopenms_create_cpp POST_BUILD
-  COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
-  )
-endif()
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+IF(LINUX AND PY_NO_OUTPUT)
   add_custom_target(pyopenms
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
-            DEPENDS pyopenms_build
+            DEPENDS ${PYSOFILES}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_target(pyopenms
@@ -565,7 +590,7 @@ ELSE()
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-            DEPENDS pyopenms_build
+            DEPENDS ${PYSOFILES}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
