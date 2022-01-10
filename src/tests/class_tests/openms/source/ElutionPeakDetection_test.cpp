@@ -175,10 +175,6 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     TEST_EQUAL(maxes.size(), 4);
     TEST_EQUAL(mins.size(), 2);
 
-    std::cout << "maxima: " << maxes[0] << ", " << maxes[1] << ", "
-      << maxes[2] << ", " << maxes[3] << std::endl;
-    std::cout << "minima: " << mins[0] << ", " << mins[1] << std::endl;
-
     // test window overlap
     mt = output_mt[0];
     test_epd.smoothData(mt, win_size);
@@ -188,8 +184,6 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     test_epd.findLocalExtrema(mt, distance_between_peaks, maxes, mins);
     TEST_EQUAL(maxes.size(), 2);
     TEST_EQUAL(mins.size(), 1);
-    std::cout << "maxima: " << maxes[0] << ", " << maxes[1] << std::endl;
-    std::cout << "minimum: " << mins[0] << std::endl;
 
     // lowess with regression
     //TEST_EQUAL(maxes.size(), 10);
