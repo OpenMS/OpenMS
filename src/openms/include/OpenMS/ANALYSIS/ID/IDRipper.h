@@ -60,7 +60,7 @@ public:
     static const std::array<std::string, SIZE_OF_ORIGIN_ANNOTATION_FORMAT> names_of_OriginAnnotationFormat;
 
     /// Represents a set of IdentificationRuns
-    struct IdentificationRuns
+    struct OPENMS_DLLAPI IdentificationRuns
     {
         /// Maps a unique index to every IdentificationRun string representation (getIdentifier()).
         std::map<String, UInt> index_map;
@@ -72,7 +72,7 @@ public:
     };
 
     /// Identifies an IDRipper output file
-    struct RipFileIdentifier
+    struct OPENMS_DLLAPI RipFileIdentifier
     {
         /// The numerical index of the source IdentificationRun
         UInt ident_run_idx;
@@ -106,7 +106,7 @@ public:
     };
 
     /// Represents the content of an IDRipper output file
-    struct RipFileContent
+    struct OPENMS_DLLAPI RipFileContent
     {
         /// Protein identifications
         std::vector<ProteinIdentification> prot_idents;
@@ -194,4 +194,3 @@ private:
   };
 
 } // namespace OpenMS
-
