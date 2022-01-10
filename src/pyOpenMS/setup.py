@@ -235,9 +235,11 @@ for module in mnames:
         extra_compile_args=extra_compile_args,
         extra_objects=objects,
         extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		define_macros=[('BOOST_ALL_NO_LIB', None),('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')] ## Deactivates boost autolink (esp. on win).
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
-		## TODO just take over compile definitions from OpenMS (CMake)
+		## TODO just take over compile definitions from OpenMS (i.e. integrate Cython compilation directly into CMake)
+	    	## For NPY macro see this SO post and the linked Cython issue: https://stackoverflow.com/questions/52749662.
+	        ## Can be removed after switching to Cython3
     ))
 
 share_data = []
