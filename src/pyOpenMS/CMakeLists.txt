@@ -61,6 +61,10 @@ execute_process(
 
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
+if(UNIX AND NOT APPLE AND NOT CYGWIN)
+    set(LINUX TRUE)
+endif()
+
 #------------------------------------------------------------------------------
 # See https://wiki.python.org/moin/WindowsCompilers
 # Windows support requires that the correct Python version is matched to the
@@ -153,7 +157,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 2))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 4))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -519,10 +523,12 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms_create_cpp
+IF(LINUX AND PY_NO_OUTPUT)
+  add_custom_command(
+    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    DEPENDS OpenMS # fake dependency to see if a header file has changed
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
-    DEPENDS prepare_pyopenms_libs
+    COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
@@ -533,13 +539,7 @@ ELSE()
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
-add_custom_target(compile_pxds DEPENDS ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_1.cpp)
-#if(APPLE)
-#  add_custom_command(
-#    TARGET pyopenms_create_cpp POST_BUILD
-#    COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
-#  )
-#endif()
+add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
 set(PY_EXTRA_ARGS "")
 
@@ -551,12 +551,14 @@ endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms_build
+IF(LINUX AND PY_NO_OUTPUT)
+  add_custom_command(
+            OUTPUT ${PYSOFILES}
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
-            DEPENDS pyopenms_create_cpp
+            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+            DEPENDS compile_pxds OpenMS
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
+ELSEIF(APPLE) # We need to still copy libs with our script
   add_custom_command(
             OUTPUT ${PYSOFILES}
             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
@@ -564,16 +566,23 @@ ELSE()
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds OpenMS
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_command(
+            OUTPUT ${PYSOFILES}
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+            DEPENDS compile_pxds OpenMS
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+IF(LINUX AND PY_NO_OUTPUT)
   add_custom_target(pyopenms
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
-            DEPENDS pyopenms_build
+            DEPENDS ${PYSOFILES}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_target(pyopenms
