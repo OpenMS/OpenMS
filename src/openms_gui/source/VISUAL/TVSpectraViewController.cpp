@@ -63,7 +63,7 @@ namespace OpenMS
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
-    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
 
     if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
@@ -140,7 +140,7 @@ namespace OpenMS
     String caption = layer.getName();
 
     //open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget *)tv_->getWorkspace());
 
     for (const auto& index : indices)
     {

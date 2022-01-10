@@ -161,8 +161,8 @@ namespace OpenMS
       double ref_int = c_it->first;
       Size ref_idx = c_it->second;
 
-      if (!(used_idx[ref_idx]) && ref_int > 0.0)
-      {
+      if (!(used_idx[ref_idx]) && ref_int > 0.0) 
+      { // only allow unused points as seeds (potential local maximum)
         bool real_max = true;
 
         // Get start_idx and end_idx based on expected peak width
@@ -183,20 +183,28 @@ namespace OpenMS
         // boundaries).
         for (Size j = start_idx; j < end_idx; ++j)
         {
-          if (used_idx[j])
-          {
-            real_max = false;
-            break;
+          if (j == ref_idx)
+          { // skip seed
+            continue;
           }
 
-          if (j == ref_idx)
-          {
-            continue;
+          if (used_idx[j])
+          { // peak has already been collected?
+            if (smoothed_ints_vec[j] > ref_int)
+            { // break if higher intensity
+              real_max = false;
+              break;
+            }
+            else
+            { // skip if only a low intensity peak (e.g. flanks of elution profile)
+              continue;
+            }
           }
 
           if (smoothed_ints_vec[j] > ref_int)
           {
             real_max = false;
+            break;
           }
         }
 

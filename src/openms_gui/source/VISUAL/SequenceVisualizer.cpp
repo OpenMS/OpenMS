@@ -28,55 +28,57 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Dhanmoni Nath, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#pragma once
+#ifdef QT_WEBENGINEWIDGETS_LIB
+#include <OpenMS/VISUAL/SequenceVisualizer.h>
+#include <ui_SequenceVisualizer.h>
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QWebChannel>
+#include <QString>
 
+#include <QtWebEngineWidgets/QWebEngineView>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPViewPrefDialogTemplate;
-}
+// This is the window that appears when we click on 'show' in the 'sequence' column of the protein table
 
 namespace OpenMS
 {
-  namespace Internal
+  SequenceVisualizer::SequenceVisualizer(QWidget* parent) :
+      QWidget(parent), ui_(new Ui::SequenceVisualizer)
   {
-    /**
-        @brief Preferences dialog for TOPPView
-
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
-    {
-      Q_OBJECT
-
-public:
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
-
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
-
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
-
-protected slots:
-      void browseDefaultPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
+    ui_->setupUi(this);
+    view_ = new QWebEngineView(this);
+    channel_ = new QWebChannel(&backend_); // setup Qt WebChannel API
+    view_->page()->setWebChannel(channel_);
+    channel_->registerObject(QString("Backend"), &backend_); // This object will be available in HTML file.
+    view_->load(QUrl("qrc:/new/sequence_viz.html"));
+    ui_->gridLayout->addWidget(view_);
   }
-}
+
+  SequenceVisualizer::~SequenceVisualizer()
+  {
+    channel_->deleteLater();
+    view_->close();
+    view_->deleteLater();
+    delete ui_;
+    deleteLater();
+  }
+
+  // Get protein and peptide data from the protein table and store inside the m_json_data_obj_ object. 
+  // Inside the HTML file, this QObject will be available and we'll access these protein and 
+  // peptide data using the qtWebEngine and webChannel API.
+  void SequenceVisualizer::setProteinPeptideDataToJsonObj(
+      const QString& accession_num,
+      const QString& pro_seq,
+      const QJsonArray& pep_data)
+  {
+    QJsonObject j;
+    j["accession_num"] = accession_num;
+    j["protein_sequence_data"] = pro_seq;
+    j["peptides_data"] = pep_data;
+    backend_.m_json_data_obj_ = std::move(j);
+  }
+}// namespace OpenMS
+#endif

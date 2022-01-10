@@ -28,55 +28,64 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Dhanmoni Nath, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#ifdef QT_WEBENGINEWIDGETS_LIB
 #pragma once
 
+// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <QWidget>
+#include <QJsonObject>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
+class QWebEngineView;
+class QWebChannel;
 
 namespace Ui
 {
-  class TOPPViewPrefDialogTemplate;
+  class SequenceVisualizer;
 }
 
 namespace OpenMS
 {
-  namespace Internal
+  class OPENMS_GUI_DLLAPI Backend : public QObject
   {
-    /**
-        @brief Preferences dialog for TOPPView
+    Q_OBJECT
 
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
-    {
-      Q_OBJECT
+    // We can access the protein and peptide data using SequenceVisualizer.json_data_obj inside JS/HTML resource file
+    Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj_ NOTIFY dataChanged_)
+    signals:
+      void dataChanged_();
 
-public:
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
+  public:
+    QJsonObject m_json_data_obj_;
+  };
 
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
+  class OPENMS_GUI_DLLAPI SequenceVisualizer : public QWidget
+  {
+    Q_OBJECT
 
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
+  public:
+    explicit SequenceVisualizer(QWidget* parent = nullptr);
+    ~SequenceVisualizer() override;
 
-protected slots:
-      void browseDefaultPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
-  }
-}
+
+  public slots:
+    // this method sets protein and peptide data to m_json_data_obj_.
+    void setProteinPeptideDataToJsonObj(
+        const QString& accession_num, 
+        const QString& pro_seq, 
+        const QJsonArray& peptides_data);
+
+  private:
+
+    Ui::SequenceVisualizer* ui_;
+    Backend backend_;
+    QWebEngineView* view_;
+    QWebChannel* channel_;
+  };
+}// namespace OpenMS
+#endif

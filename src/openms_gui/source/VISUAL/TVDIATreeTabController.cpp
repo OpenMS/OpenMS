@@ -173,7 +173,7 @@ namespace OpenMS
     LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     MiniLayer ml(layer);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
-    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
 
     if (showChromatogramsInCanvas_(trace, ml, w.get()))
     { // success!

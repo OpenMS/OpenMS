@@ -41,6 +41,7 @@ Plot3DWidget.h
 PlotCanvas.h
 PlotWidget.h
 RecentFilesMenu.h
+SequenceVisualizer.h
 SpectraTreeTab.h
 SpectraIDViewTab.h
 SwathLibraryStats.h

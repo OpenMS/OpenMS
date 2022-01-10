@@ -51,11 +51,13 @@ Please cite our preprint:
 Nothias, LF., Petras, D., Schmid, R. et al. Feature-based molecular networking in the GNPS analysis environment.
 Nat Methods 17, 905–908 (2020). https://doi.org/10.1038/s41592-020-0933-6
 See the FBMN workflow documentation here (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/)
+
 In brief, after running an OpenMS "metabolomics" pipeline, the GNPSExport, together with the TextExporter TOPP tool, can be used
 on the consensusXML file and the mzML files to generate the files needed for FBMN.
 These two files are:
 	- The MS/MS spectral data file (.MGF format) which is generated  with the GNPSExport util.
 	- The feature quantification table (.TXT format) which is generated with the TextExport util.
+  
 For each consensusElement in the consensusXML file, the GNPSExport produces one representative consensus
 MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file).
 An example command is available and described below.
@@ -64,6 +66,7 @@ Representative command:
 @code
 GNPSExport -ini iniFile-GNPSExport.ini -in_cm filefilter.consensusXML -in_mzml inputFile0.mzML inputFile1.mzML -out GNPSExport_output.mgf
 @endcode
+
 Requirements:
 	- The IDMapper needs to be run on the featureXML files in order to associate MS2 scan(s) (peptide annotations) with each
 	feature for FBMN. An empty idXML or mzid (peptide annotation format) file is needed as an input.
@@ -119,7 +122,7 @@ The GNPS paper is available here (https://www.nature.com/articles/nbt.3597)
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_GNPSExport.html
  */
- 
+
 class TOPPGNPSExport : public TOPPBase
 {
 public:

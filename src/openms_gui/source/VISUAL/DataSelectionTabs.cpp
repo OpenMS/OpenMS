@@ -128,7 +128,7 @@ namespace OpenMS
 
   // called externally
   // and internally by signals
-  void DataSelectionTabs::update()
+  void DataSelectionTabs::callUpdateEntries()
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
     this->blockSignals(true);
@@ -164,7 +164,6 @@ namespace OpenMS
       setCurrentIndex(highest_data_index);
     }
     Size current_index = currentIndex();
-
     // update the currently visible tab (might be disabled if no data is shown)
     tab_ptrs_[current_index]->updateEntries(layer_ptr);
   }
@@ -182,7 +181,7 @@ namespace OpenMS
     case IDENT_IDX:
       spectraview_controller_->deactivateBehavior();
       diatab_controller_->deactivateBehavior();
-      if (tv_->getActive2DWidget()) // currently 2D window is open
+      if (tv_->getActive2DWidget()) // currently, 2D window is open
       {
         idview_controller_->showSpectrumAsNew1D(0);
       }
@@ -197,7 +196,12 @@ namespace OpenMS
       std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    update();
+    callUpdateEntries(); //TODO actually this is overkill. Why would you load the entire table again
+    // when you only switched tabs? The TabView should get notified when the layer data changes, so it only
+    // updates when necessary...
+    // The only thing that maybe needs to happen when switching tabs is to sync the index across the tables in the different tabs.
+    // which is the only reason why we need to actually use callUpdateEntries here.
+    // At least we reduced it to only updateEntries during tab switch, not EVERY update() [e.g. when resizing, refocussing...]
   }
 
   void DataSelectionTabs::showSpectrumAsNew1D(int index)
