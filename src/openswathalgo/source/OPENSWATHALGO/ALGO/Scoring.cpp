@@ -168,11 +168,17 @@ namespace OpenSwath::Scoring
       // normalize the data
       standardize_data(data1);
       standardize_data(data2);
-      XCorrArrayType result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
+      return normalizedCrossCorrelationPost(data1, data2, maxdelay, lag);
+    }
+
+    XCorrArrayType normalizedCrossCorrelationPost(std::vector<double>& normalized_data1,
+                                                  std::vector<double>& normalized_data2, const int maxdelay, const int lag = 1)
+    {
+      XCorrArrayType result = calculateCrossCorrelation(normalized_data1, normalized_data2, maxdelay, lag);
 
       for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
       {
-        it->second /= data1.size();
+        it->second /= normalized_data1.size();
       }
       return result;
     }
@@ -295,10 +301,11 @@ namespace OpenSwath::Scoring
 
     void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks)
     {
-      ranks.resize(intensity.size());
+      unsigned int pre_rank_size = ranks.size();
+      ranks.resize(pre_rank_size + intensity.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
-        computeRank(intensity[i], ranks[i]);
+        computeRank(intensity[i], ranks[pre_rank_size + i]);
       }
     }
 

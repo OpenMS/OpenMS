@@ -324,30 +324,21 @@ mean(xcorr_max) # shape score
             sum_matrix.push_back(sum);
           }
 
+          // Check upper triangular matrix 
           TEST_REAL_SIMILAR(sum_matrix[0], 5.86440677)
           TEST_REAL_SIMILAR(sum_matrix[1], 6.05410398)
           TEST_REAL_SIMILAR(sum_matrix[2], 0)
           TEST_REAL_SIMILAR(sum_matrix[3], 3.40949220)
           TEST_REAL_SIMILAR(sum_matrix[4], 6.19794611)
-          TEST_REAL_SIMILAR(sum_matrix[5], 6.05410398)
           TEST_REAL_SIMILAR(sum_matrix[6], 6.30751744)
           TEST_REAL_SIMILAR(sum_matrix[7], 0)
           TEST_REAL_SIMILAR(sum_matrix[8], 3.68912454)
           TEST_REAL_SIMILAR(sum_matrix[9], 6.60757921)
-          TEST_REAL_SIMILAR(sum_matrix[10], 0)
-          TEST_REAL_SIMILAR(sum_matrix[11], 0)
           TEST_REAL_SIMILAR(sum_matrix[12], 0)
           TEST_REAL_SIMILAR(sum_matrix[13], 0)
           TEST_REAL_SIMILAR(sum_matrix[14], 0)
-          TEST_REAL_SIMILAR(sum_matrix[15], 3.40949220)
-          TEST_REAL_SIMILAR(sum_matrix[16], 3.68912454)
-          TEST_REAL_SIMILAR(sum_matrix[17], 0)
           TEST_REAL_SIMILAR(sum_matrix[18], 3.13711983)
           TEST_REAL_SIMILAR(sum_matrix[19], 3.57832717)
-          TEST_REAL_SIMILAR(sum_matrix[20], 6.19794611)
-          TEST_REAL_SIMILAR(sum_matrix[21], 6.60757921)
-          TEST_REAL_SIMILAR(sum_matrix[22], 0)
-          TEST_REAL_SIMILAR(sum_matrix[23], 3.57832717)
           TEST_REAL_SIMILAR(sum_matrix[24], 6.78303987)
         }
     END_SECTION
