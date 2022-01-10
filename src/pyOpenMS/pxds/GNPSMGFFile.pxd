@@ -1,5 +1,6 @@
 from String cimport *
 from Types cimport *
+from StringList cimport *
 
 cdef extern from "<OpenMS/FORNAT/GNPSMGFFile.h>" namespace "OpenMS":
 
