@@ -42,7 +42,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>
@@ -65,9 +64,6 @@ namespace OpenMS
     defaults_.setValue("ms2_bin_size", DEF_MERGE_BIN_SIZE, "Bin size (Da) for fragment ions when merging ms2 scans.");
     defaults_.setMinFloat("ms2_bin_size", 0);
 
-// Not used?
-//    defaults_.setValue("merged_spectra:precursor_mass_tolerance", DEF_PREC_MASS_TOL, "Precursor mass tolerance (Da) for ms annotations.");
-//    defaults_.setMinFloat("merged_spectra:precursor_mass_tolerance", 0.0);
     defaults_.setValue("merged_spectra:cos_similarity", DEF_COSINE_SIMILARITY, "Cosine similarity threshold for merged_spectra output.");
     defaults_.setMinFloat("merged_spectra:cos_similarity", 0);
 
@@ -402,4 +398,3 @@ namespace OpenMS
     output_file.close();
   }
 }
-

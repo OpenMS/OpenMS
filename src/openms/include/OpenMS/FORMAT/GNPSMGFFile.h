@@ -49,6 +49,12 @@ namespace OpenMS
       GNPSMGFFile();
 
       // see GNPSExport tool documentation
+      /**
+      * @brief Create file for GNPS molecular networking.
+      * @param consensus_file_path path to consensusXML with spectrum references
+      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
+      * @param out MGF file with MS2 peak data for molecular networking.
+      */
       void run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 
     private:
