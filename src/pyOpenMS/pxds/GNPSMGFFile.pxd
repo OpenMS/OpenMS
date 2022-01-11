@@ -1,6 +1,9 @@
-from String cimport *
 from Types cimport *
+from String cimport *
 from StringList cimport *
+
+from DefaultParamHandler cimport *
+from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/FORNAT/GNPSMGFFile.h>" namespace "OpenMS":
 
