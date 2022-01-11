@@ -50,7 +50,7 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add the targets
 foreach(i ${EXAMPLES_executables})

@@ -34,45 +34,59 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief: Group of ambiguously identified parent molecules (e.g. protein group)
+    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
     */
-    // @TODO: derive from MetaInfoInterface?
-    struct ParentMoleculeGroup
+    struct ProcessingStep: public MetaInfoInterface
     {
-      std::map<ScoreTypeRef, double> scores;
-      // @TODO: does this need a "leader" or some such?
-      std::set<ParentMoleculeRef> parent_molecule_refs;
+      ProcessingSoftwareRef software_ref;
+
+      std::vector<InputFileRef> input_file_refs;
+
+      DateTime date_time;
+
+      // @TODO: add processing actions that are relevant for ID data
+      std::set<DataProcessing::ProcessingAction> actions;
+
+      explicit ProcessingStep(
+        ProcessingSoftwareRef software_ref,
+        const std::vector<InputFileRef>& input_file_refs =
+        std::vector<InputFileRef>(), const DateTime& date_time =
+        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
+        software_ref(software_ref), input_file_refs(input_file_refs),
+        date_time(date_time), actions(actions)
+      {
+      }
+
+      ProcessingStep(const ProcessingStep& other) = default;
+
+      // order by date/time first, don't compare meta data (?):
+      bool operator<(const ProcessingStep& other) const
+      {
+        return (std::tie(date_time, software_ref, input_file_refs, actions) <
+                std::tie(other.date_time, other.software_ref,
+                         other.input_file_refs, other.actions));
+      }
+
+      // don't compare meta data (?):
+      bool operator==(const ProcessingStep& other) const
+      {
+        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
+                std::tie(other.software_ref, other.input_file_refs,
+                         other.date_time, other.actions));
+      }
     };
 
-    typedef boost::multi_index_container<
-      ParentMoleculeGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-        boost::multi_index::member<
-          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
-          &ParentMoleculeGroup::parent_molecule_refs>>>
-      > ParentMoleculeGroups;
-    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
-
-    /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
-    */
-    struct ParentMoleculeGrouping: public ScoredProcessingResult
-    {
-      String label; // @TODO: use "label" as a uniqueness constraint?
-      ParentMoleculeGroups groups;
-    };
-
-    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
+    typedef std::set<ProcessingStep> ProcessingSteps;
+    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
 
   }
 }

@@ -51,21 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator() : 
-    IsotopePatternGenerator(),
-    max_isotope_(0),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope) :
-    IsotopePatternGenerator(),
-    max_isotope_(max_isotope),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses) :
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size max_isotope, const bool round_masses) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope),
     round_masses_(round_masses)
@@ -104,8 +90,8 @@ namespace OpenMS
     for (; it != formula.end(); ++it)
     {
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
-      result.set(convolve_(result.getContainer(),
-                           convolvePow_(tmp.getContainer(), it->second)));
+      result.set(convolve(result.getContainer(),
+                          convolvePow_(tmp.getContainer(), it->second)));
     }
 
     // replace atomic numbers with masses.
@@ -273,7 +259,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolve(const IsotopeDistribution::ContainerType& left, const IsotopeDistribution::ContainerType& right) const
   {
     IsotopeDistribution::ContainerType result;
 
@@ -316,7 +302,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType& input, Size n) const
   {
     IsotopeDistribution::ContainerType result;
     if (input.empty())
@@ -365,7 +351,7 @@ namespace OpenMS
     {
       if (n & (Size(1) << i))
       {
-        result = convolve_(result, convolution_power);
+        result = convolve(result, convolution_power);
       }
       // check the loop condition
       if (i >= log2n)
@@ -378,7 +364,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolveSquare_(const IsotopeDistribution::ContainerType & input) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolveSquare_(const IsotopeDistribution::ContainerType& input) const
   {
     IsotopeDistribution::ContainerType result;
     IsotopeDistribution::ContainerType::size_type r_max = 2 * input.size() - 1;
@@ -409,9 +395,9 @@ namespace OpenMS
 
   IsotopeDistribution CoarseIsotopePatternGenerator::calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes) const
   {
-    
+
     IsotopeDistribution result;
-    
+
     if (fragment_isotope_dist.empty() || comp_fragment_isotope_dist.empty())
     {
       result.clear();
@@ -527,4 +513,3 @@ namespace OpenMS
     return result;
   }
 }
-

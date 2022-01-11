@@ -164,8 +164,6 @@ public:
     typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
     /// Peak type
     typedef SpectrumType::PeakType PeakType;
-    /// Feature type
-    typedef FeatureMapType::FeatureType FeatureType;
 
     ///Type of the Points
     typedef DPosition<2> PointType;
@@ -968,4 +966,3 @@ protected:
 
   };
 }
-

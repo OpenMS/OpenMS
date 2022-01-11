@@ -977,7 +977,7 @@ namespace OpenMS
         continue;
       }
       // ... create contaminants...
-      SimTypes::FeatureMapSim::FeatureType feature;
+      Feature feature;
       feature.setRT((contaminants_[i].rt_end + contaminants_[i].rt_start) / 2);
       feature.setMZ((contaminants_[i].sf.getMonoWeight() / contaminants_[i].q) + Constants::PROTON_MASS_U); // m/z (incl. protons)
       if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))

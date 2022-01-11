@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
+#include <OpenMS/METADATA/ID/ObservationMatch.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -43,24 +43,24 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief: Group of related (co-identified) molecule-query matches
+    /** @brief: Group of related (co-identified) input matches
 
       E.g. for cross-linking data or multiplexed spectra.
     */
-    struct QueryMatchGroup: public ScoredProcessingResult
+    struct ObservationMatchGroup: public ScoredProcessingResult
     {
-      std::set<QueryMatchRef> query_match_refs;
+      std::set<ObservationMatchRef> observation_match_refs;
 
       bool allSameMolecule() const
       {
         // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
-        const IdentifiedMoleculeRef ref =
-          (*query_match_refs.begin())->identified_molecule_ref;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
-             ++it)
+        if (observation_match_refs.size() <= 1) return true;
+        const IdentifiedMolecule var =
+          (*observation_match_refs.begin())->identified_molecule_var;
+        for (auto it = ++observation_match_refs.begin();
+             it != observation_match_refs.end(); ++it)
         {
-          if (!((*it)->identified_molecule_ref == ref)) return false;
+          if (!((*it)->identified_molecule_var == var)) return false;
         }
         return true;
       }
@@ -68,36 +68,35 @@ namespace OpenMS
       bool allSameQuery() const
       {
         // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
-        DataQueryRef ref = (*query_match_refs.begin())->data_query_ref;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
-             ++it)
+        if (observation_match_refs.size() <= 1) return true;
+        ObservationRef ref = (*observation_match_refs.begin())->observation_ref;
+        for (auto it = ++observation_match_refs.begin();
+             it != observation_match_refs.end(); ++it)
         {
-          if ((*it)->data_query_ref != ref) return false;
+          if ((*it)->observation_ref != ref) return false;
         }
         return true;
       }
 
-      bool operator==(const QueryMatchGroup rhs) const
+      bool operator==(const ObservationMatchGroup rhs) const
       {
-        return ((rhs.query_match_refs == query_match_refs) &&
+        return ((rhs.observation_match_refs == observation_match_refs) &&
                 (rhs.steps_and_scores == steps_and_scores));
       }
 
-      bool operator!=(const QueryMatchGroup& rhs) const
+      bool operator!=(const ObservationMatchGroup& rhs) const
       {
         return !operator==(rhs);
       }
     };
 
     typedef boost::multi_index_container<
-      QueryMatchGroup,
+      ObservationMatchGroup,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
-          boost::multi_index::member<QueryMatchGroup, std::set<QueryMatchRef>,
-                                     &QueryMatchGroup::query_match_refs>>>
-      > QueryMatchGroups;
-    typedef IteratorWrapper<QueryMatchGroups::iterator> MatchGroupRef;
-
+          boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
+                                     &ObservationMatchGroup::observation_match_refs>>>
+      > ObservationMatchGroups;
+    typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
   }
 }

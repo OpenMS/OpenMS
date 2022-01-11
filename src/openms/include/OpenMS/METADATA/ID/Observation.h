@@ -34,60 +34,66 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
 #include <boost/optional.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Search query, e.g. spectrum or feature.
+    /*!
+      @brief Representation of an observation, e.g. a spectrum or feature, in an input data file.
     */
-    struct DataQuery: public MetaInfoInterface
+    struct Observation: public MetaInfoInterface
     {
-      /// spectrum or feature ID (from the file referenced by "input_file_ref"):
+      /// Spectrum or feature ID (from the file referenced by @t input_file)
       String data_id;
 
-      // @TODO: make this non-optional (i.e. required)?
-      boost::optional<InputFileRef> input_file_opt;
+      /// Reference to the input file
+      InputFileRef input_file;
 
-      double rt, mz; // position
+      double rt, mz; //< Position
 
-      explicit DataQuery(
+      /// Constructor
+      explicit Observation(
         const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
+        const InputFileRef& input_file,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
+        data_id(data_id), input_file(input_file), rt(rt), mz(mz)
       {
       }
 
-      DataQuery(const DataQuery& other) = default;
-
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator<(const DataQuery& other) const
+      /// Merge in data from another object
+      Observation& merge(const Observation& other)
       {
-        // can't compare references directly, so compare addresses:
-        const String* sp = input_file_opt ? &(**input_file_opt) : nullptr;
-        const String* o_sp = other.input_file_opt ? &(**other.input_file_opt) :
-          nullptr;
-        return std::tie(sp, data_id) < std::tie(o_sp, other.data_id);
+        // merge meta info - existing entries may be overwritten:
+        addMetaValues(other);
+        rt = other.rt;
+        mz = other.mz;
+        return *this;
       }
-
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator==(const DataQuery& other) const
-      {
-        return std::tie(input_file_opt, data_id) ==
-          std::tie(other.input_file_opt, other.data_id);
-      }
-
-      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
-      // if yes, should it be stored here or together with the input file?
     };
 
-    typedef std::set<DataQuery> DataQueries;
-    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
-
+    // combination of input file and data ID must be unique:
+    typedef boost::multi_index_container<
+      Observation,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+          boost::multi_index::composite_key<
+            Observation,
+            boost::multi_index::member<Observation, InputFileRef,
+                                       &Observation::input_file>,
+            boost::multi_index::member<Observation, String,
+                                       &Observation::data_id>>>>
+      > Observations;
+    typedef IteratorWrapper<Observations::iterator> ObservationRef;
   }
 }

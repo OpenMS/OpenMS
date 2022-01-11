@@ -34,15 +34,15 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/ParentSequence.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Meta data for the association between an identified molecule (e.g. peptide) and a parent molecule (e.g. protein).
+    /** @brief Meta data for the association between an identified molecule (e.g. peptide) and a parent sequence (e.g. protein).
     */
-    struct MoleculeParentMatch: public MetaInfoInterface
+    struct ParentMatch: public MetaInfoInterface
     {
       // in extraordinary cases (e.g. database searches that allow insertions/
       // deletions), the length of the identified molecule may differ from the
@@ -57,7 +57,7 @@ namespace OpenMS
       static constexpr char LEFT_TERMINUS = '[';
       static constexpr char RIGHT_TERMINUS = ']';
 
-      explicit MoleculeParentMatch(Size start_pos = UNKNOWN_POSITION,
+      explicit ParentMatch(Size start_pos = UNKNOWN_POSITION,
                                    Size end_pos = UNKNOWN_POSITION,
                                    String left_neighbor = UNKNOWN_NEIGHBOR,
                                    String right_neighbor = UNKNOWN_NEIGHBOR):
@@ -66,14 +66,14 @@ namespace OpenMS
       {
       }
 
-      bool operator<(const MoleculeParentMatch& other) const
+      bool operator<(const ParentMatch& other) const
       {
         // positions determine neighbors - no need to compare those:
         return (std::tie(start_pos, end_pos) <
                 std::tie(other.start_pos, other.end_pos));
       }
 
-      bool operator==(const MoleculeParentMatch& other) const
+      bool operator==(const ParentMatch& other) const
       {
         // positions determine neighbors - no need to compare those:
         return (std::tie(start_pos, end_pos) ==
@@ -96,9 +96,9 @@ namespace OpenMS
       }
     };
 
-    /// mapping: parent molecule -> match information
-    typedef std::map<ParentMoleculeRef,
-                     std::set<MoleculeParentMatch>> ParentMatches;
+    /// mapping: parent sequence -> match information
+    typedef std::map<ParentSequenceRef,
+                     std::set<ParentMatch>> ParentMatches;
 
   }
 }

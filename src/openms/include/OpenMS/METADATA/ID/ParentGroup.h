@@ -34,63 +34,52 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/ParentSequence.h>
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
+    /** @brief: Group of ambiguously identified parent sequences (e.g. protein group)
     */
-    struct DataProcessingStep: public MetaInfoInterface
+    // @TODO: derive from MetaInfoInterface?
+    struct ParentGroup
     {
-      ProcessingSoftwareRef software_ref;
+      std::map<ScoreTypeRef, double> scores;
+      // @TODO: does this need a "leader" or some such?
+      std::set<ParentSequenceRef> parent_refs;
+    };
 
-      std::vector<InputFileRef> input_file_refs;
+    typedef boost::multi_index_container<
+      ParentGroup,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+        boost::multi_index::member<
+          ParentGroup, std::set<ParentSequenceRef>,
+          &ParentGroup::parent_refs>>>
+      > ParentGroups;
+    typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
 
-      std::vector<String> primary_files; // path(s) to primary MS data
+    /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)
+    */
+    struct ParentGroupSet: public ScoredProcessingResult
+    {
+      String label; // @TODO: use "label" as a uniqueness constraint?
+      ParentGroups groups;
 
-      DateTime date_time;
-
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
-
-      explicit DataProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now(),
-        std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        primary_files(primary_files), date_time(date_time), actions(actions)
+      explicit ParentGroupSet(
+        const String& label = "",
+        const ParentGroups& groups = ParentGroups()):
+        label(label), groups(groups)
       {
-      }
-
-      DataProcessingStep(const DataProcessingStep& other) = default;
-
-      // don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
-      }
-
-      // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
       }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
+    typedef std::vector<ParentGroupSet> ParentGroupSets;
 
   }
 }

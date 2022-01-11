@@ -44,9 +44,9 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+    /** @brief Representation of a parent sequence that is identified only indirectly (e.g. a protein).
     */
-    struct ParentMolecule: public ScoredProcessingResult
+    struct ParentSequence: public ScoredProcessingResult
     {
       String accession;
 
@@ -62,26 +62,47 @@ namespace OpenMS
 
       bool is_decoy;
 
-      explicit ParentMolecule(
+      explicit ParentSequence(
         const String& accession,
         MoleculeType molecule_type = MoleculeType::PROTEIN,
         const String& sequence = "", const String& description = "",
         double coverage = 0.0, bool is_decoy = false,
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps()):
+        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()):
         ScoredProcessingResult(steps_and_scores), accession(accession),
         molecule_type(molecule_type), sequence(sequence),
         description(description), coverage(coverage), is_decoy(is_decoy)
       {
       }
 
-      ParentMolecule(const ParentMolecule&) = default;
+      ParentSequence(const ParentSequence&) = default;
 
-      ParentMolecule& operator+=(const ParentMolecule& other)
+      ParentSequence& merge(const ParentSequence& other)
       {
-        ScoredProcessingResult::operator+=(other);
-        if (sequence.empty()) sequence = other.sequence;
-        if (description.empty()) description = other.description;
+        ScoredProcessingResult::merge(other);
+        if (sequence.empty()) 
+        {
+          sequence = other.sequence;
+        } 
+        else if (!other.sequence.empty() && sequence != other.sequence) // differ and none is empty
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ParentSequence sequence '" + sequence + "' with conflicting value.", 
+                                        other.sequence);
+        } 
+
+        if (description.empty())
+        {
+          description = other.description;
+        } 
+        else if (!other.description.empty() && description != other.description) // differ and none is empty
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ParentSequence description '" + description + "' with conflicting value.", 
+                                        other.description);
+        } 
+
         if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
         // @TODO: what about coverage? (not reliable if we're merging data)
 
@@ -89,15 +110,15 @@ namespace OpenMS
       }
     };
 
-    // parent molecules indexed by their accessions:
+    // parent sequences indexed by their accessions:
     // @TODO: allow querying/iterating over proteins and RNAs separately
     typedef boost::multi_index_container<
-      ParentMolecule,
+      ParentSequence,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentMolecule, String, &ParentMolecule::accession>>>
-      > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+          ParentSequence, String, &ParentSequence::accession>>>
+      > ParentSequences;
+    typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
 
   }
 }
