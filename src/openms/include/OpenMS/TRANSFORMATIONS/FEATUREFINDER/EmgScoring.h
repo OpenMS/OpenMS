@@ -34,8 +34,6 @@
 
 #pragma once
 
-#include <vector>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -45,6 +43,9 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <vector>
+#include <cmath> // for isnan
 
 namespace OpenMS
 {
@@ -133,7 +134,7 @@ namespace OpenMS
       EmgFitter1D fitter_emg1D;
       fitter_emg1D.setParameters(fitter_emg1D_params_);
       // Construct model for rt
-      // NaN is checked in fit1d: if (boost::math::isnan(quality)) quality = -1.0;
+      // NaN is checked in fit1d: if (std::isnan(quality)) quality = -1.0;
       return fitter_emg1D.fit1d(rt_input_data, model);
     }
 

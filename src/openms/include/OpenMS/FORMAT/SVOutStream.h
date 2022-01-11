@@ -170,10 +170,10 @@ public:
     template <typename NumericT>
     SVOutStream& writeValueOrNan(NumericT thing)
     {
-      if ((boost::math::isfinite)(thing)) return operator<<(thing);
+      if ((std::isfinite)(thing)) return operator<<(thing);
 
       bool old = modifyStrings(false);
-      if ((boost::math::isnan)(thing)) operator<<(nan_);
+      if ((std::isnan)(thing)) operator<<(nan_);
       else if (thing < 0) operator<<("-" + inf_);
       else operator<<(inf_);
       modifyStrings(old);

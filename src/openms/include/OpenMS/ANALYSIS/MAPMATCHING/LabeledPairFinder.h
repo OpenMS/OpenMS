@@ -36,7 +36,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 
-#include <boost/math/tr1.hpp>
 #include <cmath>
 
 namespace OpenMS
@@ -98,11 +97,11 @@ protected:
     {
       if (m < x)
       {
-        return 1 - boost::math::tr1::erf((x - m) / sig2 / 0.707106781);
+        return 1 - std::erf((x - m) / sig2 / 0.707106781);
       }
       else
       {
-        return 1 - boost::math::tr1::erf((m - x) / sig1 / 0.707106781);
+        return 1 - std::erf((m - x) / sig1 / 0.707106781);
       }
     }
 

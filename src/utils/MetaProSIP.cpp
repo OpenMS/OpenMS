@@ -2316,7 +2316,7 @@ protected:
       }
 
       // cout << ii << "\t" << std::distance(intensities_end, intensities_begin) << "\t" << std::distance(intensities_begin, isotopic_intensities.begin()) << "\t" << std::distance(intensities_end, isotopic_intensities.begin()) << endl;
-      if (boost::math::isnan(correlation_score))
+      if (std::isnan(correlation_score))
       {
         correlation_score = 0.0;
       }
