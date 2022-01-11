@@ -28,51 +28,57 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Dhanmoni Nath, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#pragma once
+#ifdef QT_WEBENGINEWIDGETS_LIB
+#include <OpenMS/VISUAL/SequenceVisualizer.h>
+#include <ui_SequenceVisualizer.h>
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <QWebChannel>
+#include <QString>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+#include <QtWebEngineWidgets/QWebEngineView>
+
+// This is the window that appears when we click on 'show' in the 'sequence' column of the protein table
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+  SequenceVisualizer::SequenceVisualizer(QWidget* parent) :
+      QWidget(parent), ui_(new Ui::SequenceVisualizer)
   {
-    /** @brief: Group of ambiguously identified parent molecules (e.g. protein group)
-    */
-    // @TODO: derive from MetaInfoInterface?
-    struct ParentMoleculeGroup
-    {
-      std::map<ScoreTypeRef, double> scores;
-      // @TODO: does this need a "leader" or some such?
-      std::set<ParentMoleculeRef> parent_molecule_refs;
-    };
-
-    typedef boost::multi_index_container<
-      ParentMoleculeGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-        boost::multi_index::member<
-          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
-          &ParentMoleculeGroup::parent_molecule_refs>>>
-      > ParentMoleculeGroups;
-    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
-
-    /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
-    */
-    struct ParentMoleculeGrouping: public ScoredProcessingResult
-    {
-      String label; // @TODO: use "label" as a uniqueness constraint?
-      ParentMoleculeGroups groups;
-    };
-
-    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
-
+    ui_->setupUi(this);
+    view_ = new QWebEngineView(this);
+    channel_ = new QWebChannel(&backend_); // setup Qt WebChannel API
+    view_->page()->setWebChannel(channel_);
+    channel_->registerObject(QString("Backend"), &backend_); // This object will be available in HTML file.
+    view_->load(QUrl("qrc:/new/sequence_viz.html"));
+    ui_->gridLayout->addWidget(view_);
   }
-}
+
+  SequenceVisualizer::~SequenceVisualizer()
+  {
+    channel_->deleteLater();
+    view_->close();
+    view_->deleteLater();
+    delete ui_;
+    deleteLater();
+  }
+
+  // Get protein and peptide data from the protein table and store inside the m_json_data_obj_ object. 
+  // Inside the HTML file, this QObject will be available and we'll access these protein and 
+  // peptide data using the qtWebEngine and webChannel API.
+  void SequenceVisualizer::setProteinPeptideDataToJsonObj(
+      const QString& accession_num,
+      const QString& pro_seq,
+      const QJsonArray& pep_data)
+  {
+    QJsonObject j;
+    j["accession_num"] = accession_num;
+    j["protein_sequence_data"] = pro_seq;
+    j["peptides_data"] = pep_data;
+    backend_.m_json_data_obj_ = std::move(j);
+  }
+}// namespace OpenMS
+#endif

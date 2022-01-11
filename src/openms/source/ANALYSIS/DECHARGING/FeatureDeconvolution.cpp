@@ -135,7 +135,7 @@ namespace OpenMS
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
     defaults_.setValidStrings("intensity_filter", {"true","false"});
 
-    defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");    
+    defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
@@ -235,15 +235,15 @@ namespace OpenMS
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
-        }        
+        }
       }
       else//pos,neg == 0
       { //in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
         EmpiricalFormula ef(adduct[0]);
         ef -= EmpiricalFormula("H" + String(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
-        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));      
-      }    
+        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+      }
 
       verbose_level_ = param_.getValue("verbose_level");
     }
@@ -306,7 +306,7 @@ namespace OpenMS
 
   //@}
 
-  void FeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
+  void FeatureDeconvolution::compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     ConsensusMap cons_map_p_neg; // tmp
@@ -330,7 +330,7 @@ namespace OpenMS
     fm_out = fm_in;
     fm_out.sortByPosition();
     fm_out.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-    FeatureMapType fm_out_untouched = fm_out;
+    FeatureMap fm_out_untouched = fm_out;
 
 
     // search for most & least probable adduct to fix p threshold
@@ -356,20 +356,20 @@ namespace OpenMS
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
-    
+
 
 
 
     // create mass difference list
     OPENMS_LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
-    
+
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
     {
        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Min and max charge switch charge signs! Please use same charge sign."), String(q_min)+" "+String(q_max));
     }
-    
-    
+
+
     int small, large;
     small = q_min;
     large = q_max;
@@ -455,7 +455,7 @@ namespace OpenMS
             // find possible adduct combinations
             CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
             double abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2); // tolerance must increase when looking at M instead of m/z, as error margins increase as well
-            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case? 
+            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "FeatureDeconvolution querying #hits got negative result!");
 
@@ -463,7 +463,7 @@ namespace OpenMS
             // choose most probable hit (TODO think of something clever here)
             // for now, we take the one that has highest p in terms of the compomer structure
             if (hits > 0)
-            {      
+            {
               Compomer best_hit = null_compomer;
               for (; md_s != md_e; ++md_s)
               {
@@ -476,12 +476,12 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)                                
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)
                 }
                 else
                 {
                   left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
-                  right_charges = md_s->getPositiveCharges();                   
+                  right_charges = md_s->getPositiveCharges();
                 }
 
                 if ( // compomer fits charge assignment of left & right feature. doesn't consider charge sign switch over span!
@@ -500,12 +500,12 @@ namespace OpenMS
                   if (is_neg)
                   {
                     left_charges = -cmp.getPositiveCharges();
-                    right_charges = -cmp.getNegativeCharges();                                   
+                    right_charges = -cmp.getNegativeCharges();
                   }
                   else
                   {
                     left_charges = cmp.getNegativeCharges();
-                    right_charges = cmp.getPositiveCharges();                   
+                    right_charges = cmp.getPositiveCharges();
                   }
 
                   //this block should only be of interest if we have something multiply charges instead of protonation or deprotonation
@@ -1004,7 +1004,7 @@ namespace OpenMS
       if (clique_register.count(i) > 0)
         continue;
 
-      FeatureMapType::FeatureType f_single = fm_out_untouched[i];
+      Feature f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
       f_single.setMetaValue("charge", f_single.getCharge());
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
@@ -1036,7 +1036,7 @@ namespace OpenMS
 
 #ifdef DC_DEVEL
     ChargeLadder cl;
-    FeatureMapType fm_missing;
+    FeatureMap fm_missing;
     cl.suggestMissingFeatures(fm_out, cons_map, fm_missing);
 
     FileHandler.storeFeatures("fm_missing.featureXML", fm_missing);
@@ -1060,7 +1060,7 @@ namespace OpenMS
   void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct;
-    
+
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     if (is_neg)
     {
@@ -1068,7 +1068,7 @@ namespace OpenMS
     }
     else
     {
-      default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);    
+      default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
     }
 
     int left_charges, right_charges;
@@ -1098,12 +1098,12 @@ namespace OpenMS
         {
           it->second.setLogProb(0);
         }
-        ChargePair cp(edges[i]); // make a copy       
+        ChargePair cp(edges[i]); // make a copy
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
 
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
-        
+
         //We again need to consider inverted behavior (but cp.getCharge(x) gets negative charges as assigned before!
         if (is_neg)
         {
@@ -1191,7 +1191,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2) const
+  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
     if (!enable_intensity_filter_)
       return true;
@@ -1288,6 +1288,5 @@ namespace OpenMS
     }
 
   }
-
 
 }

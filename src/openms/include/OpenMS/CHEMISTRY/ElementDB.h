@@ -69,7 +69,7 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-    
+
     /** @name Accessors
     */
     //@{
@@ -78,22 +78,22 @@ public:
     static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
-    const std::map<std::string, const Element *> & getNames() const;
+    const std::map<std::string, const Element*>& getNames() const;
 
     /// returns a hashmap that contains symbols mapped to pointers to the elements
-    const std::map<std::string, const Element *> & getSymbols() const;
+    const std::map<std::string, const Element*>& getSymbols() const;
 
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-    const std::map<unsigned int, const Element *> & getAtomicNumbers() const;
+    const std::map<unsigned int, const Element*>& getAtomicNumbers() const;
 
     /** returns a pointer to the element with name or symbol given in parameter name;
         *	if no element exists with that name or symbol 0 is returned
         *	@param name: name or symbol of the element
     */
-    const Element * getElement(const std::string & name) const;
+    const Element* getElement(const std::string& name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
-    const Element * getElement(unsigned int atomic_number) const;
+    const Element* getElement(unsigned int atomic_number) const;
 
     //@}
 
@@ -117,11 +117,11 @@ protected:
 
     /*_ calculates the average weight based on isotope abundance and mass
      */
-    double calculateAvgWeight_(const std::map<unsigned int, double> & abundance, const std::map<unsigned int, double> & mass);
+    double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
     /*_ calculates the mono weight based on the smallest isotope mass
      */
-    double calculateMonoWeight_(const std::map<unsigned int, double> & Z_to_mass);
+    double calculateMonoWeight_(const std::map<unsigned int, double>& Z_to_mass);
 
 	// constructs element objects
     void storeElements_();
@@ -139,11 +139,11 @@ protected:
      */
     void clear_();
 
-    std::map<std::string, const Element *> names_;
+    std::map<std::string, const Element*> names_;
 
-    std::map<std::string, const Element *> symbols_;
+    std::map<std::string, const Element*> symbols_;
 
-    std::map<unsigned int, const Element *> atomic_numbers_;
+    std::map<unsigned int, const Element*> atomic_numbers_;
 
 private:
     ElementDB();

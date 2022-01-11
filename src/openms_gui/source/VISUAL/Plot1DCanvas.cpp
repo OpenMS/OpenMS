@@ -377,42 +377,31 @@ namespace OpenMS
       }
       else if (action_mode_ == AM_MEASURE)
       {
-        if (isMzToXAxis())
+        if (selected_peak_.isValid())
         {
-          if (selected_peak_.isValid())
+          measurement_start_ = selected_peak_;
+          const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
+          if (intensity_mode_ == IM_PERCENTAGE)
           {
-            measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
-            if (intensity_mode_ == IM_PERCENTAGE)
-            {
-              updatePercentageFactor_(getCurrentLayerIndex());
-            }
-            else
-            {
-              percentage_factor_ = 1.0;
-            }
-            dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
+            updatePercentageFactor_(getCurrentLayerIndex());
+          }
+          else
+          {
+            percentage_factor_ = 1.0;
+          }
+          dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
+          if (isMzToXAxis())
+          {
             measurement_start_point_.setY(last_mouse_pos_.y());
           }
           else
           {
-            measurement_start_.clear();
-          }
-        }
-        else         // !isMzToXAxis()
-        {
-          if (selected_peak_.isValid())
-          {
-            measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
-            updatePercentageFactor_(getCurrentLayerIndex());
-            dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
             measurement_start_point_.setX(last_mouse_pos_.x());
           }
-          else
-          {
-            measurement_start_.clear();
-          }
+        }
+        else
+        {
+          measurement_start_.clear();
         }
       }
     }
@@ -468,6 +457,7 @@ namespace OpenMS
           newHi = overall_data_range_.maxX();
           newLo = newHi - visible_area_.width();
         }
+
         // change data area
         changeVisibleArea_(newLo, newHi);
         last_mouse_pos_ = p;
@@ -623,7 +613,7 @@ namespace OpenMS
     PointType lt = widgetToData(p - QPoint(2, 2), true);
     PointType rb = widgetToData(p + QPoint(2, 2), true);
 
-    // get iterator on first peak with higher position than interval_start
+    // get iterator on first peak with lower position than interval_start
     PeakType temp;
     temp.setMZ(min(lt.getX(), rb.getX()));
     SpectrumConstIteratorType left_it = lower_bound(spectrum.begin(), spectrum.end(), temp, PeakType::PositionLess());
@@ -652,8 +642,7 @@ namespace OpenMS
     dataToWidget(0, overall_data_range_.maxY(), tmp, getCurrentLayer().flipped, true);
     double dest_interval_end = tmp.y();
 
-    int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
-                                                                    visible_area_.maxY(), dest_interval_start, dest_interval_end));
+    int nearest_intensity = std::numeric_limits<int>::lowest() + p.y();
     for (SpectrumConstIteratorType it = left_it; it != right_it; it++)
     {
       int current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
@@ -823,7 +812,7 @@ namespace OpenMS
             }
 
             // Warn if non-empty peak color array present but size doesn't match number of peaks
-            // This indicates a bug but we gracefuly just issue a warning
+            // This indicates a bug but we gracefully just issue a warning
             if (!layer.peak_colors_1d.empty() &&
                 layer.peak_colors_1d.size() < spectrum.size())
             {
@@ -996,7 +985,7 @@ namespace OpenMS
       if (peak.peak >= spec.size())
       {
         // somehow the peak is invalid. This happens from time to time and should be tracked down elsewhere
-        // but its hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
+        // but it's hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
         return;
       }
       const ExperimentType::PeakType& sel = spec[peak.peak];
@@ -1624,7 +1613,7 @@ namespace OpenMS
     }
   }
 
-  void Plot1DCanvas::addLabelAnnotation_(const QPoint& screen_position, QString text)
+  void Plot1DCanvas::addLabelAnnotation_(const QPoint& screen_position, const QString& text)
   {
     updatePercentageFactor_(getCurrentLayerIndex());
 
@@ -1747,21 +1736,12 @@ namespace OpenMS
     else
     {
       const PointType::CoordinateType zoom_factor = 0.8;
+      double factor = isMzToXAxis() ? (PointType::CoordinateType)x / width() : (PointType::CoordinateType)(height() - y) / height();
       AreaType new_area;
-      if (isMzToXAxis())
-      {
-        new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * (PointType::CoordinateType)x / width());
-        new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
-        new_area.setMinY(visible_area_.minY());
-        new_area.setMaxY(visible_area_.maxY());
-      }
-      else
-      {
-        new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * (PointType::CoordinateType)(height() - y) / height());
-        new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
-        new_area.setMinY(visible_area_.minY());
-        new_area.setMaxY(visible_area_.maxY());
-      }
+      new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * factor);
+      new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
+      new_area.setMinY(visible_area_.minY());
+      new_area.setMaxY(visible_area_.maxY());
 
       if (new_area != visible_area_)
       {
@@ -2111,6 +2091,7 @@ namespace OpenMS
     // be an in-memory representation in the peak data structure. Using
     // setCurrentSpectrumIndex will select the appropriate spectrum and load it
     // into memory.
+    
     if (index < getCurrentLayer().getPeakData()->size())
     {
       getCurrentLayer().setCurrentSpectrumIndex(index);

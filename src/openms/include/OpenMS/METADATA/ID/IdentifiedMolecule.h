@@ -37,75 +37,59 @@
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
-#include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
 #include <boost/variant.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    // @TODO: move "PeakAnnotation" out of "PeptideHit"
-    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
-    typedef std::map<std::optional<ProcessingStepRef>,
-                     PeakAnnotations> PeakAnnotationSteps;
-
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
-                           IdentifiedOligoRef> IdentifiedMoleculeRef;
+                           IdentifiedOligoRef> RefVariant;
 
-    /** @brief Meta data for a search hit (e.g. peptide-spectrum match).
-    */
-    struct MoleculeQueryMatch: public ScoredProcessingResult
+    struct IdentifiedMolecule: public RefVariant
     {
-      IdentifiedMoleculeRef identified_molecule_ref;
+      IdentifiedMolecule() = default;
 
-      DataQueryRef data_query_ref;
+      IdentifiedMolecule(IdentifiedPeptideRef ref): RefVariant(ref) {};
+      IdentifiedMolecule(IdentifiedCompoundRef ref): RefVariant(ref) {};
+      IdentifiedMolecule(IdentifiedOligoRef ref): RefVariant(ref) {};
 
-      Int charge;
+      IdentifiedMolecule(const IdentifiedMolecule&) = default;
 
-      // peak annotations (fragment ion matches), potentially from different
-      // data processing steps:
-      PeakAnnotationSteps peak_annotations;
-
-      explicit MoleculeQueryMatch(
-        IdentifiedMoleculeRef identified_molecule_ref,
-        DataQueryRef data_query_ref, Int m_charge = 0,
-        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
-        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()
-      )
-        : ScoredProcessingResult(steps_and_scores),
-          identified_molecule_ref(identified_molecule_ref),
-          data_query_ref(data_query_ref), charge(m_charge),
-          peak_annotations(peak_annotations)
+      bool operator==(const IdentifiedMolecule& other) const
       {
+        return RefVariant::operator==(static_cast<RefVariant>(other));
       }
 
-      MoleculeQueryMatch(const MoleculeQueryMatch&) = default;
+      bool operator!=(const IdentifiedMolecule& other) const
+      {
+        return !operator==(other);
+      }
+
+      bool operator<(const IdentifiedMolecule& other) const
+      {
+        return RefVariant::operator<(static_cast<RefVariant>(other));
+      }
 
       MoleculeType getMoleculeType() const
       {
-        if (boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
+        if (boost::get<IdentifiedPeptideRef>(this))
         {
           return MoleculeType::PROTEIN;
         }
-        if (boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
+        if (boost::get<IdentifiedCompoundRef>(this))
         {
           return MoleculeType::COMPOUND;
         }
-        if (boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
-        {
-          return MoleculeType::RNA;
-        }
-        return MoleculeType::SIZE_OF_MOLECULETYPE; // this shouldn't happen
+        // if (boost::get<IdentifiedOligoRef>(this))
+        return MoleculeType::RNA;
       }
 
       IdentifiedPeptideRef getIdentifiedPeptideRef() const
       {
         if (const IdentifiedPeptideRef* ref_ptr =
-            boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
+            boost::get<IdentifiedPeptideRef>(this))
         {
           return *ref_ptr;
         }
@@ -117,7 +101,7 @@ namespace OpenMS
       IdentifiedCompoundRef getIdentifiedCompoundRef() const
       {
         if (const IdentifiedCompoundRef* ref_ptr =
-            boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
+            boost::get<IdentifiedCompoundRef>(this))
         {
           return *ref_ptr;
         }
@@ -129,7 +113,7 @@ namespace OpenMS
       IdentifiedOligoRef getIdentifiedOligoRef() const
       {
         if (const IdentifiedOligoRef* ref_ptr =
-            boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
+            boost::get<IdentifiedOligoRef>(this))
         {
           return *ref_ptr;
         }
@@ -138,30 +122,46 @@ namespace OpenMS
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      MoleculeQueryMatch& operator+=(const MoleculeQueryMatch& other)
+      String toString() const
       {
-        ScoredProcessingResult::operator+=(other);
-        if (charge == 0) charge = other.charge;
-        peak_annotations.insert(other.peak_annotations.begin(),
-                                other.peak_annotations.end());
-        return *this;
+        switch (getMoleculeType())
+        {
+          case MoleculeType::PROTEIN:
+            return getIdentifiedPeptideRef()->sequence.toString();
+          case MoleculeType::COMPOUND:
+            return getIdentifiedCompoundRef()->identifier; // or use "name"?
+          case MoleculeType::RNA:
+            return getIdentifiedOligoRef()->sequence.toString();
+          default:
+            throw Exception::NotImplemented(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION);
+        }
+      }
+
+      EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const
+      {
+        switch (getMoleculeType())
+        {
+          case MoleculeType::PROTEIN:
+          {
+            auto type = static_cast<Residue::ResidueType>(fragment_type);
+            return getIdentifiedPeptideRef()->sequence.getFormula(type, charge);
+          }
+          case MoleculeType::COMPOUND:
+          {
+            // @TODO: what about fragment type and charge?
+            return getIdentifiedCompoundRef()->formula;
+          }
+          case MoleculeType::RNA:
+          {
+            auto type = static_cast<NASequence::NASFragmentType>(fragment_type);
+            return getIdentifiedOligoRef()->sequence.getFormula(type, charge);
+          }
+          default:
+            throw Exception::NotImplemented(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION);
+        }
       }
     };
-
-    // all matches for the same data query should be consecutive!
-    typedef boost::multi_index_container<
-      MoleculeQueryMatch,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::composite_key<
-            MoleculeQueryMatch,
-            boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
-                                       &MoleculeQueryMatch::data_query_ref>,
-            boost::multi_index::member<
-              MoleculeQueryMatch, IdentifiedMoleculeRef,
-              &MoleculeQueryMatch::identified_molecule_ref>>>>
-      > MoleculeQueryMatches;
-    typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
-
   }
 }

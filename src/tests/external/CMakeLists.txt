@@ -22,7 +22,7 @@ set(my_sources
 ## Currently this affects only Qt and since we do not build GUI stuff here, we only need to find QtCore and Network
 ## At some point we want IMPORTED targets only, since this will make it relocatable. Until then, CMake should find a way
 ## to automate adding the aforementioned find_dependency calls during export.
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 ## Same here. This should be made optional somehow. Figure out how to do that (probably just target_link_library OpenMP privately)
 ## Since CMake 3.17 OpenMP also auto-detects libomp from brew for AppleClang. 

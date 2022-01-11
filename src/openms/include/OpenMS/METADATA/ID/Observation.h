@@ -34,63 +34,65 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
+    /*!
+      @brief Representation of an observation, e.g. a spectrum or feature, in an input data file.
     */
-    struct DataProcessingStep: public MetaInfoInterface
+    struct Observation: public MetaInfoInterface
     {
-      ProcessingSoftwareRef software_ref;
+      /// Spectrum or feature ID (from the file referenced by @t input_file)
+      String data_id;
 
-      std::vector<InputFileRef> input_file_refs;
+      /// Reference to the input file
+      InputFileRef input_file;
 
-      std::vector<String> primary_files; // path(s) to primary MS data
+      double rt, mz; //< Position
 
-      DateTime date_time;
-
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
-
-      explicit DataProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now(),
-        std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        primary_files(primary_files), date_time(date_time), actions(actions)
+      /// Constructor
+      explicit Observation(
+        const String& data_id,
+        const InputFileRef& input_file,
+        double rt = std::numeric_limits<double>::quiet_NaN(),
+        double mz = std::numeric_limits<double>::quiet_NaN()):
+        data_id(data_id), input_file(input_file), rt(rt), mz(mz)
       {
       }
 
-      DataProcessingStep(const DataProcessingStep& other) = default;
-
-      // don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
+      /// Merge in data from another object
+      Observation& merge(const Observation& other)
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
-      }
-
-      // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+        // merge meta info - existing entries may be overwritten:
+        addMetaValues(other);
+        rt = other.rt;
+        mz = other.mz;
+        return *this;
       }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
-
+    // combination of input file and data ID must be unique:
+    typedef boost::multi_index_container<
+      Observation,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+          boost::multi_index::composite_key<
+            Observation,
+            boost::multi_index::member<Observation, InputFileRef,
+                                       &Observation::input_file>,
+            boost::multi_index::member<Observation, String,
+                                       &Observation::data_id>>>>
+      > Observations;
+    typedef IteratorWrapper<Observations::iterator> ObservationRef;
   }
 }

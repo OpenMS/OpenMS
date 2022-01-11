@@ -43,10 +43,9 @@ namespace OpenMS
   {
     /** @brief Information about software used for data processing.
 
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
+      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the software information only once.
     */
-    struct DataProcessingSoftware: public Software
+    struct ProcessingSoftware: public Software
     {
       /*!
         List of score types assigned by this software, ranked by importance.
@@ -56,7 +55,7 @@ namespace OpenMS
       // @TODO: make this a "list" for cheap "push_front"?
       std::vector<ScoreTypeRef> assigned_scores;
 
-      explicit DataProcessingSoftware(
+      explicit ProcessingSoftware(
         const String& name = "", const String& version = "",
         std::vector<ScoreTypeRef> assigned_scores =
         std::vector<ScoreTypeRef>()):
@@ -65,8 +64,9 @@ namespace OpenMS
       }
     };
 
-    typedef std::set<DataProcessingSoftware> DataProcessingSoftwares;
-    typedef IteratorWrapper<DataProcessingSoftwares::iterator> ProcessingSoftwareRef;
+    // ordering is done using "operator<" inherited from "Software":
+    typedef std::set<ProcessingSoftware> ProcessingSoftwares;
+    typedef IteratorWrapper<ProcessingSoftwares::iterator> ProcessingSoftwareRef;
 
   }
 }

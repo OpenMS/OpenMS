@@ -472,15 +472,13 @@ public:
         return;
       }
 
-      std::string::operator=(* first);
+      std::string::operator=(*first);
       for (StringIterator it = ++first; it != last; ++it)
       {
         std::string::operator+=(glue + (*it));
       }
     }
-
   };
-
   OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
 } // namespace OpenMS
 

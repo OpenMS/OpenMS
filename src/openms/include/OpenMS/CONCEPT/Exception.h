@@ -660,6 +660,18 @@ public:
     };
 
     /**
+      @brief A tool or algorithm which was called internally raised an exception
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InternalToolError :
+      public BaseException
+    {
+    public:
+      InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    };
+
+    /**
       @brief Element could not be found exception.
 
       The given element could not be found.

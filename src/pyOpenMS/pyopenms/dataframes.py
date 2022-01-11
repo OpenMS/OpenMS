@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File
+from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File, IonSource
 
 import pandas as pd
 import numpy as np
@@ -303,6 +303,102 @@ class MSExperimentDF(MSExperiment):
         cols = ["RT", "mzarray", "intarray"]
 
         return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+
+    def get_massql_df(self):
+        """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
+
+        The Python module massql allows queries in mass spectrometry data (MS1 and MS2
+        data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
+        
+        Both dataframes contain the columns:
+        'i': intensity of a peak
+        'i_norm': intensity normalized by the maximun intensity in the spectrum
+        'i_tic_norm': intensity normalized by the sum of intensities (TIC) in the spectrum
+        'mz': mass to charge of a peak
+        'scan': number of the spectrum
+        'rt': retention time of the spectrum
+        'polarity': ion mode of the spectrum as integer value (positive: 1, negative: 2)
+        
+        The MS2 dataframe contains additional columns:
+        'precmz': mass to charge of the precursor ion
+        'ms1scan': number of the corresponding MS1 spectrum
+        'charge': charge of the precursor ion
+
+        Returns:
+        ms1_df (pandas.DataFrame): peak data of MS1 spectra
+        ms2_df (pandas.DataFrame): peak data of MS2 spectra with precursor information
+        """
+        self.updateRanges()
+
+        def _get_polarity(spec):
+            '''Returns polarity as an integer value for the massql dataframe.
+            
+            According to massql positive polarity is represented by 1 and negative by 2.
+
+            Parameters:
+            spec (MSSpectrum): the spectrum to extract polarity
+
+            Returns:
+            int: polarity as int value according to massql specification
+            '''
+            polarity = spec.getInstrumentSettings().getPolarity()
+            if polarity == IonSource.Polarity.POLNULL:
+                return 0
+            elif polarity == IonSource.Polarity.POSITIVE:
+                return 1
+            elif polarity == IonSource.Polarity.NEGATIVE:
+                return 2
+
+        def _get_spec_arrays(mslevel):
+            '''Get spectrum data as a matrix.
+
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and 
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    mz, inty = spec.get_peaks()
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, inty/np.amax(inty), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    cols = 7
+                    if mslevel == 2:
+                        cols = 10
+                        # data for MS2 only: precmz, ms1scan, charge
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
+                    yield ndarr
+
+        # create DataFrame for MS1 and MS2 with according column names and data types
+        # if there are no spectra of given MS level return an empty DataFrame
+        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
+        if 1 in self.getMSLevels():
+            ms1_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms1_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
+        if 2 in self.getMSLevels():
+            ms2_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        return ms1_df, ms2_df
 
 MSExperiment = MSExperimentDF
 PeakMap = MSExperimentDF

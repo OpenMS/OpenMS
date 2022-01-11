@@ -140,10 +140,6 @@ namespace OpenMS
     
     populateRow(table, row_i, col_values);
 
-    std::pair<double, double> minmax =
-      std::visit(overload {
-      [&](auto&& stats) -> std::pair<double, double>{ return {stats.getMin(), stats.getMax()}; }, // for RangeStatsInt, RangeStatsDouble
-      }, row_data);
     if (enable_show_button)
     {
       auto button = new QPushButton(row_name.name.c_str(), table);
@@ -155,8 +151,7 @@ namespace OpenMS
     ++row_i;
   }
 
-  void addCountRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i,
-                   const QString& row_name, const StatsCounter& row_data)
+  void addCountRow(QTableWidget* table, int& row_i, const QString& row_name, const StatsCounter& row_data)
   {
     addEmptyRow(table, row_i, row_name);
 
@@ -180,8 +175,15 @@ namespace OpenMS
     const auto& stats_count = stats_->getCountStatistics();
     // add each row
     int row_i = 0;
+    RangeStatsSource old_category = RangeStatsSource::SIZE_OF_STATSSOURCE;
     for (const auto& item : stats_range)
     {
+      // add sections (relies on items being sorted!)
+      if (old_category != item.first.src)
+      {
+        addHeaderRow(ui_->table_, row_i, StatsSourceNames[(size_t)item.first.src]);
+        old_category = item.first.src;
+      }
       bool show_button = (item.first == RangeStatsType{RangeStatsSource::CORE, "intensity"}) || item.first.src == RangeStatsSource::METAINFO;
       addRangeRow(this, ui_->table_, row_i, item.first, item.second, show_button, stats_.get());
     }
@@ -191,7 +193,7 @@ namespace OpenMS
       addHeaderRow(ui_->table_, row_i, "Meta count values");
       for (const auto& item : stats_count)
       {
-        addCountRow(this, ui_->table_, row_i, QString(item.first.c_str()), item.second);
+        addCountRow(ui_->table_, row_i, QString(item.first.c_str()), item.second);
       }
     }
   }
