@@ -419,8 +419,6 @@ namespace OpenMS
       header.emplace_back(String("abundance_variation_study_variable[") + String(a.first) + String("]"));
     }
 
-    //TODO: opt_{identifier}_*
-
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
     n_columns = header.size();
     return ListUtils::concatenate(header, "\t");
@@ -459,8 +457,7 @@ namespace OpenMS
       s.emplace_back(variation_study_variable.second.toCellString());
     }
 
-    // TODO: add optional columns
-    // addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }
@@ -542,7 +539,6 @@ namespace OpenMS
     }
 
     header.emplace_back("rank");
-    // TODO: opt_{identifier}_*
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
     n_columns = header.size();
@@ -595,13 +591,10 @@ namespace OpenMS
     StringList out;
     generateMzTabMMetaDataSection_(mztab_m.getMetaData(), out);
 
-    // TODO: add opt_ to mztab-m summary
-    std::vector<String> optional_columns;
-
     size_t n_sml_header_columns = 0;
     out.emplace_back("");
     out.emplace_back(generateMzTabMSmallMoleculeHeader_(mztab_m.getMetaData(),
-                                                        optional_columns,
+                                                        mztab_m.getMSmallMoleculeOptionalColumnNames(),
                                                         n_sml_header_columns));
 
     size_t n_sml_section_columns = 0;
@@ -609,7 +602,7 @@ namespace OpenMS
     for (const auto& sms_row: sm_section)
     {
       out.emplace_back(generateMzTabMSmallMoleculeSectionRow_(sms_row,
-                                                              optional_columns,
+                                                              mztab_m.getMSmallMoleculeOptionalColumnNames(),
                                                               n_sml_section_columns));
 
       OPENMS_POSTCONDITION(n_sml_header_columns == n_sml_section_columns,
@@ -653,8 +646,6 @@ namespace OpenMS
                            "The number of columns in the small molecule evidence header do not assort to the number of columns of the small molecule evidence section row.")
     }
 
-
-    // TODO: add to later on - empty rows / comment rows
     TextFile tmp_out;
     for (TextFile::ConstIterator it = out.begin(); it != out.end(); ++it)
     {

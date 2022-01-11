@@ -123,7 +123,6 @@ namespace OpenMS
     MzTabParameter small_molecule_identification_reliability; ///< Reliability of identification (4-level schema)
     std::map<Size, MzTabParameter> id_confidence_measure; ///< Confidence measures / scores
     // https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6260-colunit-small_molecule_feature
-    // TODO: Not sure how that would be best encoded?
     // for a specific optional column?
     // Should be in optional column metadata?
     // e.g. opt_global_mass_error=[UO, UO:0000169, parts per million, ]
@@ -147,6 +146,7 @@ namespace OpenMS
     MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
     MzTabStringList adducts; ///< Adducts
     // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
+    // Where can that be added appropriately - for each identification method individually?
     MzTabString reliability; ///< Reliability of the given small molecule identification
     MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
     MzTabDouble best_id_confidence_value; ///< The best confidence measure
@@ -186,7 +186,7 @@ namespace OpenMS
     MzTabString inchi; ///< InChi of the potential compound identifications.
     MzTabString chemical_name; ///< Possible chemical/common names or general description
     MzTabString uri; ///< The source entry’s location.
-    MzTabParameter derivatized_form; ///< //TODO: What has to be added here?
+    MzTabParameter derivatized_form; ///< derivatized form.
     MzTabString adduct; ///< Adduct
     MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
     MzTabInteger charge; ///< Precursor ion’s charge.
@@ -254,7 +254,7 @@ namespace OpenMS
                                              const String& id, const MetaInfoInterface& meta);
 
   /**
-  * @brief Export metabolite identifications to MzTabM
+  * @brief Export FeatureMap with Identifications to MzTabM
   *
   * @return MzTabM object
   */

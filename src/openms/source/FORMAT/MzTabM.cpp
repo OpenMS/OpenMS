@@ -290,8 +290,6 @@ namespace OpenMS
 
     // ms_run[1-n]-scan_polarity[1-n] (mandatory)
     // assess scan polarity based on the first adduct
-    // TODO: Probably not correctly added
-    // TODO: Check what [1-n] is here
     auto adducts = id_data.getAdducts();
     if (!adducts.empty())
     {
@@ -414,10 +412,6 @@ namespace OpenMS
     }
 
     // derivatization_agent[1-n] (not mandatory)
-
-    // TODO: use quantification tools map!
-    // small_molecule-quantification_unit (mandatory)
-    // small_molecule_feature-quantification_unit (mandatory)
     MzTabParameter quantification_unit;
     quantification_unit.setNull(true);
     for (const auto& software : id_data.getProcessingSoftwares())
@@ -455,6 +449,8 @@ namespace OpenMS
       cvterm = cv.getTermByName("MS1 feature area");
       quantification_unit.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
+    // small_molecule-quantification_unit (mandatory)
+    // small_molecule_feature-quantification_unit (mandatory)
     m_meta_data.small_molecule_quantification_unit = quantification_unit;
     m_meta_data.small_molecule_feature_quantification_unit = quantification_unit;
 
@@ -494,8 +490,7 @@ namespace OpenMS
     MzTabMSmallMoleculeEvidenceSectionRows smes;
 
     // set identification method based on OpenMS Tool(s)
-    // TODO: Will only use last tool?!
-    // TODO: ISSUE: This maybe has to be set per Identification? Add to IdentifiedCompound?
+    // usually only one identification_method in one featureXML
     MzTabParameter identification_method;
     identification_method.setNull(true);
     MzTabParameter ms_level;
@@ -562,8 +557,8 @@ namespace OpenMS
         smf.exp_mass_to_charge = MzTabDouble(f.getMZ());
         smf.charge = MzTabInteger(f.getCharge());
         smf.retention_time = MzTabDouble(f.getRT());
-        smf.rt_start.setNull(true); // TODO: how to get that information in the future
-        smf.rt_end.setNull(true); // TODO: how to get that information in the future
+        smf.rt_start.setNull(true); // TODO: how to get that information
+        smf.rt_end.setNull(true); // TODO: how to get that information
         smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
         addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
@@ -598,22 +593,20 @@ namespace OpenMS
           sme.exp_mass_to_charge = MzTabDouble(f.getMZ());
           sme.charge = MzTabInteger(f.getCharge());
           sme.calc_mass_to_charge = MzTabDouble(compound_ref->formula.getMonoWeight());
-          // TODO: ISSUE: IdentificationData only one spectra_ref per identifiedmolecule?
-          // TODO: ISSUE: What about e.g. SIRIUS using multiple MS2 spectra for one identification?
-          // TODO: In the case of AMS it will reference to the feature instead of the spectra.
+          // For e.g. SIRIUS using multiple MS2 spectra for one identification
+          // use the with pipe concatenated native_ids as spectra ref
+          // this should  also be available match_ref
           MzTabSpectraRef sp_ref;
           sp_ref.setMSFile(1);
           sp_ref.setSpecRef(match_ref->observation_ref->data_id);
           sme.spectra_ref = sp_ref;
-          // TODO: Would make sense to have the identification method per ID
-          // TODO: That does work with the AppliedProcessingSteps per Compound!
           sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
           sme.ms_level = ms_level;
           int score_counter = 0;
           for (const auto& id_score_ref : id_score_refs) // vector of references based on the ProcessingStep
           {
             ++score_counter; //starts at 1 anyway
-            sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).second);
+            sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).first);
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
