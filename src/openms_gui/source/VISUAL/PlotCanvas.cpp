@@ -283,7 +283,7 @@ namespace OpenMS
     changeVisibleArea_(tmp, repaint, true);
   }
 
-  void PlotCanvas::setVisibleArea(AreaType area)
+  void PlotCanvas::setVisibleArea(const AreaType& area)
   {
     //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
@@ -418,8 +418,7 @@ namespace OpenMS
 
   bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    LayerDataBaseUPtr new_layer(new LayerDataConsensus);
-    new_layer->getConsensusMap() = map;
+    LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
@@ -477,140 +476,38 @@ namespace OpenMS
     }
   }
 
-  const DRange<3> & PlotCanvas::getDataRange()
+  const DRange<3>& PlotCanvas::getDataRange()
   {
     return overall_data_range_;
   }
 
   void PlotCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
   {
-    overall_data_range_ = DRange<3>::empty;
-    DRange<3>::PositionType m_min = overall_data_range_.minPosition();
-    DRange<3>::PositionType m_max = overall_data_range_.maxPosition();
+    RangeType layer_range; // temporary, until we switch overall_data_range_ to a RangeType
+    //overall_data_range_.clearRanges();
 
     for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)
     {
-      if (getLayer(layer_index).type == LayerDataBase::DT_PEAK || getLayer(layer_index).type == LayerDataBase::DT_CHROMATOGRAM)
-      {
-        const ExperimentType & map = *getLayer(layer_index).getPeakData();
-        if (map.getMinMZ() < m_min[mz_dim])
-        {
-          m_min[mz_dim] = map.getMinMZ();
-        }
-        if (map.getMaxMZ() > m_max[mz_dim])
-        {
-          m_max[mz_dim] = map.getMaxMZ();
-        }
-        if (map.getMinRT() < m_min[rt_dim])
-        {
-          m_min[rt_dim] = map.getMinRT();
-        }
-        if (map.getMaxRT() > m_max[rt_dim])
-        {
-          m_max[rt_dim] = map.getMaxRT();
-        }
-        if (map.getMinInt() < m_min[it_dim])
-        {
-          m_min[it_dim] = map.getMinInt();
-        }
-        if (map.getMaxInt() > m_max[it_dim])
-        {
-          m_max[it_dim] = map.getMaxInt();
-        }
-      }
-      else if (getLayer(layer_index).type == LayerDataBase::DT_FEATURE)
-      {
-        const FeatureMapType & map = *getLayer(layer_index).getFeatureMap();
-        if (map.getMin()[1] < m_min[mz_dim])
-        {
-          m_min[mz_dim] = map.getMin()[1];
-        }
-        if (map.getMax()[1] > m_max[mz_dim])
-        {
-          m_max[mz_dim] = map.getMax()[1];
-        }
-        if (map.getMin()[0] < m_min[rt_dim])
-        {
-          m_min[rt_dim] = map.getMin()[0];
-        }
-        if (map.getMax()[0] > m_max[rt_dim])
-        {
-          m_max[rt_dim] = map.getMax()[0];
-        }
-        if (map.getMinInt() < m_min[it_dim])
-        {
-          m_min[it_dim] = map.getMinInt();
-        }
-        if (map.getMaxInt() > m_max[it_dim])
-        {
-          m_max[it_dim] = map.getMaxInt();
-        }
-      }
-      else if (getLayer(layer_index).type == LayerDataBase::DT_CONSENSUS)
-      {
-        const ConsensusMapType & map = *getLayer(layer_index).getConsensusMap();
-        if (map.getMin()[1] < m_min[mz_dim])
-        {
-          m_min[mz_dim] = map.getMin()[1];
-        }
-        if (map.getMax()[1] > m_max[mz_dim])
-        {
-          m_max[mz_dim] = map.getMax()[1];
-        }
-        if (map.getMin()[0] < m_min[rt_dim])
-        {
-          m_min[rt_dim] = map.getMin()[0];
-        }
-        if (map.getMax()[0] > m_max[rt_dim])
-        {
-          m_max[rt_dim] = map.getMax()[0];
-        }
-        if (map.getMinInt() < m_min[it_dim])
-        {
-          m_min[it_dim] = map.getMinInt();
-        }
-        if (map.getMaxInt() > m_max[it_dim])
-        {
-          m_max[it_dim] = map.getMaxInt();
-        }
-      }
-      else if (getLayer(layer_index).type == LayerDataBase::DT_IDENT)
-      {
-        const vector<PeptideIdentification> & peptides =
-          dynamic_cast<IPeptideIds*>(&getLayer(layer_index))->getPeptideIds();
-        for (const PeptideIdentification& pep : peptides)
-        {
-          double rt = pep.getRT();
-          double mz = getIdentificationMZ_(layer_index, pep);
-          if (mz < m_min[mz_dim])
-          {
-            m_min[mz_dim] = mz;
-          }
-          if (mz > m_max[mz_dim])
-          {
-            m_max[mz_dim] = mz;
-          }
-          if (rt < m_min[rt_dim])
-          {
-            m_min[rt_dim] = rt;
-          }
-          if (rt > m_max[rt_dim])
-          {
-            m_max[rt_dim] = rt;
-          }
-        }
-      }
+      layer_range.extend(getLayer(layer_index).getRange());  
     }
-    overall_data_range_.setMin(m_min);
-    overall_data_range_.setMax(m_max);
 
     // add 4% margin (2% left, 2% right) to RT, m/z and intensity
-    overall_data_range_.extend(1.04);
+    layer_range.scaleBy(1.04);
 
     // set minimum intensity to 0
-    DRange<3>::PositionType new_min = overall_data_range_.minPosition();
-    new_min[it_dim] = 0;
-    overall_data_range_.setMin(new_min);
+    layer_range.extendIntensity(0);
+
+    overall_data_range_ = DRange<3>::empty;
+    DRange<3>::PositionType m_min = overall_data_range_.minPosition();
+    DRange<3>::PositionType m_max = overall_data_range_.maxPosition();
+    m_min[rt_dim] = layer_range.getMinRT();
+    m_min[mz_dim] = layer_range.getMinMZ();
+    m_min[it_dim] = layer_range.getMinIntensity();
+    m_max[rt_dim] = layer_range.getMaxRT();
+    m_max[mz_dim] = layer_range.getMaxMZ();
+    m_max[it_dim] = layer_range.getMaxIntensity();
+    overall_data_range_.setMin(m_min);
+    overall_data_range_.setMax(m_max);
   }
 
   double PlotCanvas::getSnapFactor()
@@ -1108,7 +1005,7 @@ namespace OpenMS
     }
     layers_.erase(layers_.begin() + layer_index);
 
-    // update current layer if it became invalid
+    // update current layer if it became invalid TODO dont you have to adjust the index to stay on the same layer??
     if (current_layer_ >= getLayerCount())
     {
       current_layer_ = getLayerCount() - 1; // overflow is intentional

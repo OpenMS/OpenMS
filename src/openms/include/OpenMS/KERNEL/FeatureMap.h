@@ -98,7 +98,7 @@ namespace OpenMS
   class FeatureMap :
     private std::vector<Feature>,
     public MetaInfoInterface,
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
     public UniqueIdInterface,
     public UniqueIdIndexer<FeatureMap>,
@@ -138,7 +138,8 @@ public:
     using Base::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef Base::iterator Iterator;
     typedef Base::const_iterator ConstIterator;
     typedef Base::reverse_iterator ReverseIterator;

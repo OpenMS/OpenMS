@@ -28,11 +28,44 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/RangeManager.h>
+
+#include <iostream>
+
+  
 namespace OpenMS
 {
-  // No default instance because it hast a pure virtual method
+  std::ostream& operator<<(std::ostream& out, const RangeBase& b)
+  {
+    out << "[" << b.getMin() << ", " << b.getMax() << "]";
+    return out;
+  }
+  
+  std::ostream& operator<<(std::ostream& out, const RangeRT& range)
+  {
+    out << "rt: " << (OpenMS::RangeBase) range << "\n";
+    return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const RangeMZ& range)
+  {
+    out << "mz: " << (RangeBase) range << "\n";
+    return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const RangeIntensity& range)
+  {
+    out << "intensity: " << (RangeBase) range << "\n";
+    return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const RangeMobility& range)
+  {
+    out << "mobility: " << (RangeBase) range << "\n";
+    return out;
+  }
 }

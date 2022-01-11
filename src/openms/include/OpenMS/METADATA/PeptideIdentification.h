@@ -113,6 +113,7 @@ public:
     void insertHit(PeptideHit&& hit);
     /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit>& hits);
+    void setHits(std::vector<PeptideHit>&& hits);
 
     /// returns the peptide significance threshold value
     double getSignificanceThreshold() const;

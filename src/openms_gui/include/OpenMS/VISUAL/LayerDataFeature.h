@@ -49,8 +49,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataFeature() :
-        LayerDataBase(LayerDataBase::DT_FEATURE){};
+    LayerDataFeature();
     /// no Copy-ctor (should not be needed)
     LayerDataFeature(const LayerDataFeature& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -65,15 +64,14 @@ namespace OpenMS
       features_->updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getFeatureMap()->getMinInt();
+      RangeAllType r;
+      r.assign(*getFeatureMap());
+      return r;
     }
 
-    float getMaxIntensity() const override
-    {
-      return getFeatureMap()->getMaxInt();
-    }
+    std::unique_ptr<LayerStatistics> getStats() const override;
 
     const PepIds& getPeptideIds() const override
     {

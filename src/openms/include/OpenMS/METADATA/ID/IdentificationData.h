@@ -93,6 +93,9 @@ namespace OpenMS
   {
   public:
 
+    // to be able to add overloads and still find the inherited ones
+    using MetaInfoInterface::setMetaValue;
+
     // type definitions:
     using MoleculeType = IdentificationDataInternal::MoleculeType;
     using MassType = IdentificationDataInternal::MassType;
@@ -258,6 +261,7 @@ namespace OpenMS
 
     /// Move constructor
     IdentificationData(IdentificationData&& other) noexcept :
+      MetaInfoInterface(std::move(other)),
       input_files_(std::move(other.input_files_)),
       processing_softwares_(std::move(other.processing_softwares_)),
       processing_steps_(std::move(other.processing_steps_)),

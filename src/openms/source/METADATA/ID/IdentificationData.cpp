@@ -1114,6 +1114,7 @@ namespace OpenMS
 
   void IdentificationData::swap(IdentificationData& other)
   {
+    MetaInfoInterface::swap(other);
     input_files_.swap(other.input_files_);
     processing_softwares_.swap(other.processing_softwares_);
     processing_steps_.swap(other.processing_steps_);

@@ -315,20 +315,20 @@ START_SECTION((virtual void updateRanges()))
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(s.getMaxInt(),2)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],10)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 2)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),10)
+  TEST_REAL_SIMILAR(s.getMinMZ(),2)
 
   //test with only one peak
 
   s.clear(true);
   s.push_back(p1);
   s.updateRanges();
-  TEST_REAL_SIMILAR(s.getMaxInt(),1)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],2)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),2)
+  TEST_REAL_SIMILAR(s.getMinMZ(),2)
 }
 END_SECTION
 

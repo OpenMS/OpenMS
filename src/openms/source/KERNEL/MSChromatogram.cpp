@@ -62,12 +62,12 @@ bool MSChromatogram::MZLess::operator()(const MSChromatogram &a, const MSChromat
 MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
 {
   if (&source == this)
-  { 
+  {
     return *this;
   }
 
   ContainerType::operator=(source);
-  RangeManager<1>::operator=(source);
+  RangeManagerType::operator=(source);
   ChromatogramSettings::operator=(source);
 
   name_ = source.name_;
@@ -82,7 +82,7 @@ bool MSChromatogram::operator==(const MSChromatogram &rhs) const
 {
   //name_ can differ => it is not checked
   return std::operator==(*this, rhs) &&
-         RangeManager<1>::operator==(rhs) &&
+         RangeManagerType::operator==(rhs) &&
          ChromatogramSettings::operator==(rhs)  &&
          float_data_arrays_ == rhs.float_data_arrays_ &&
          string_data_arrays_ == rhs.string_data_arrays_ &&
@@ -180,7 +180,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
       {
         mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
       }
-      float_data_arrays_[i].swap(mda_tmp);
+      mda_tmp.swap(float_data_arrays_[i]);
     }
 
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
@@ -190,7 +190,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
       {
         mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
       }
-      string_data_arrays_[i].swap(mda_tmp);
+      mda_tmp.swap(string_data_arrays_[i]);
     }
 
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
@@ -200,7 +200,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
       {
         mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
       }
-      integer_data_arrays_[i].swap(mda_tmp);
+      mda_tmp.swap(integer_data_arrays_[i]);
     }
   }
 }
@@ -452,20 +452,20 @@ OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iter
       return round(a->getRT() * 1000.0) < round(b->getRT() * 1000.0);
     };
 
-    if (smaller_RT(first1, first2)) 
-    { 
-      *result = *first1; ++first1; 
+    if (smaller_RT(first1, first2))
+    {
+      *result = *first1; ++first1;
     }
-    else if (smaller_RT(first2, first1)) 
-    { 
-      *result = *first2; ++first2; 
+    else if (smaller_RT(first2, first1))
+    {
+      *result = *first2; ++first2;
     }
-    else 
+    else
     { // approx. equal
-      *result = *first1; 
+      *result = *first1;
       result->setIntensity(result->getIntensity() + first2->getIntensity());
-      ++first1; 
-      ++first2; 
+      ++first1;
+      ++first2;
     }
     ++result;
   }

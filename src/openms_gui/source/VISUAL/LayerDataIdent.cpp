@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-}// namespace OpenMS
+  std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
+  {
+    return make_unique<LayerStatisticsIdent>(peptides_);
+  }
+} // namespace OpenMS

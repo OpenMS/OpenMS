@@ -350,6 +350,13 @@ public:
     bool is_prefix; ///< on success, was it a prefix or suffix
   };
 
+  // decoy strings
+  inline static const std::vector<std::string> affixes = { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+
+  // setup prefix- and suffix regex strings
+  inline static const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
+  inline static const std::string regexstr_suffix = std::string("(_") + ListUtils::concatenate<std::string>(affixes, "*|_") + ")$";
+
   /**
     @brief Heuristic to determine the decoy string given a set of protein names
 
@@ -362,16 +369,11 @@ public:
   {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
-    static const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
     // map case insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
-
-    // setup prefix- and suffix regex strings
-    const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
-    const std::string regexstr_suffix = std::string("(_") + ListUtils::concatenate<std::string>(affixes, "*|_") + ")$";
 
     // setup regexes
     const boost::regex pattern_prefix(regexstr_prefix);

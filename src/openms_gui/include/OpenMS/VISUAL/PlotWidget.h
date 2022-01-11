@@ -168,9 +168,9 @@ public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
     void showStatistics();
     /// Shows the intensity distribution of the current layer
-    void showIntensityDistribution();
+    void showIntensityDistribution(const Math::Histogram<>& dist);
     /// Shows the meta data distribution of value @p name of the current layer
-    void showMetaDistribution(const String & name);
+    void showMetaDistribution(const String& name, const Math::Histogram<>& dist);
     /// Updates the axes by setting the right labels and calling recalculateAxes_();
     void updateAxes();
     /**
@@ -211,10 +211,6 @@ protected:
     void setCanvas_(PlotCanvas * canvas, UInt row = 0, UInt col = 2);
     /// Switch between different intensity modes
     virtual void intensityModeChange_();
-    /// creates the intensity distribution of the current layer
-    virtual Math::Histogram<> createIntensityDistribution_() const = 0;
-    /// creates the meta data distribution of value @p name of the current layer
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const = 0;
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
     /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data

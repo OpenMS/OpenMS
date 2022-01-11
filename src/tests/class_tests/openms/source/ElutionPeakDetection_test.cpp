@@ -174,6 +174,17 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     // SavitzkyGolay
     TEST_EQUAL(maxes.size(), 4);
     TEST_EQUAL(mins.size(), 2);
+
+    // test window overlap
+    mt = output_mt[0];
+    test_epd.smoothData(mt, win_size);
+
+    // The two largest peaks in the elution profile are about 90 spectra appart
+    double distance_between_peaks = 90 - 20; // don't include other maximum but induce overlap 
+    test_epd.findLocalExtrema(mt, distance_between_peaks, maxes, mins);
+    TEST_EQUAL(maxes.size(), 2);
+    TEST_EQUAL(mins.size(), 1);
+
     // lowess with regression
     //TEST_EQUAL(maxes.size(), 10);
     //TEST_EQUAL(mins.size(), 6);

@@ -67,15 +67,14 @@ public:
       cached_spectrum_.updateRanges();
     }
 
-    float getMinIntensity() const override
+    RangeAllType getRange() const override
     {
-      return getPeakData()->getMinInt();
+      RangeAllType r;
+      r.assign(*getPeakData());
+      return r;
     }
 
-    float getMaxIntensity() const override
-    {
-      return getPeakData()->getMaxInt();
-    }
+    std::unique_ptr<LayerStatistics> getStats() const override;
 
   };
 

@@ -84,7 +84,7 @@ protected:
 
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
 
-    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.");
     setValidFormats_("mapping_file", ListUtils::create<String>("XML"));
 
     registerStringList_("ignore_cv", "<list>", ListUtils::create<String>("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
