@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include "OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h"
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 
 /**
   * @brief FLASHIda C++ to C# (or vice versa) bridge functions

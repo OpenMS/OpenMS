@@ -132,14 +132,13 @@ namespace OpenMS
     } QscoreComparator_;
 
     /// Maps that are necessary for mass exclusion
-    std::unordered_map<int, double> mz_rt_map_;
-    std::unordered_map<int, double> mass_rt_map_;
-    std::unordered_map<int, double> all_mass_rt_map_;
-    std::unordered_map<int, double> mass_qscore_map_;
+    std::unordered_map<int, double> tqscore_exceeding_mz_rt_map_; /// integer mz value vs. retention time with tqscore exceeding total qscore threshold
+    std::unordered_map<int, double> tqscore_exceeding_mass_rt_map_; /// integer mass value vs. retention time with tqscore exceeding total qscore threshold
+    std::unordered_map<int, double> all_mass_rt_map_; /// mz value vs. retention time for all acquired precursors
+    std::unordered_map<int, double> mass_qscore_map_; /// mass value vs. retention time for all acquired precursors
 
     /**
          @brief discard peak groups using mass exclusion
-         @param spec input spectrum
          @param ms_level MS level
          @param rt Retention time
     */
