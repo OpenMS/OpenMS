@@ -1060,7 +1060,7 @@ namespace OpenMS
       }
       for (const auto& pair : other_ref->peak_annotations)
       {
-        boost::optional<ProcessingStepRef> opt_ref;
+        std::optional<ProcessingStepRef> opt_ref;
         if (pair.first)
         {
           opt_ref = trans.processing_step_refs[*pair.first];

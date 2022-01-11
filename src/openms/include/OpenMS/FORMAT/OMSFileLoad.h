@@ -113,9 +113,9 @@ namespace OpenMS
       void loadFeatures_(FeatureMap& features);
 
       Feature loadFeatureAndSubordinates_(QSqlQuery& query_feat,
-                                          boost::optional<QSqlQuery>& query_meta,
-                                          boost::optional<QSqlQuery>& query_hull,
-                                          boost::optional<QSqlQuery>& query_match);
+                                          std::optional<QSqlQuery>& query_meta,
+                                          std::optional<QSqlQuery>& query_hull,
+                                          std::optional<QSqlQuery>& query_match);
 
       static DataValue makeDataValue_(const QSqlQuery& query);
 

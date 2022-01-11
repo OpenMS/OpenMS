@@ -184,7 +184,7 @@ namespace OpenMS
 
         @return A tuple: score (or NaN), score type reference (option), success indicator
         */
-      std::tuple<double, boost::optional<ScoreTypeRef>, bool>
+      std::tuple<double, std::optional<ScoreTypeRef>, bool>
       getMostRecentScore() const
       {
         // check steps starting with most recent:
@@ -198,7 +198,7 @@ namespace OpenMS
           }
         }
         return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
-                               boost::none, false); // no score available
+                               std::nullopt, false); // no score available
       }
 
       /// Return the number of scores associated with this result
