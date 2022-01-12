@@ -19,12 +19,12 @@
 			<VariableModification name="Q-17.0265" />
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type_protein" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
-				<UserParam type="string" name="dadada" value="dududu"/>
+			<ProteinHit id="PH_0" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
+				<UserParam type="string" name="dadada" value="doppeltsogut"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
-				<UserParam type="string" name="dadada" value="doppeltsogut"/>
+			<ProteinHit id="PH_1" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
+				<UserParam type="string" name="dadada" value="dududu"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 		</ProteinIdentification>
@@ -41,20 +41,34 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_2" >
-		<PeptideHit score="4324.433" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_1" >
+		<PeptideHit score="4324.455" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
 			<UserParam type="int" name="label" value="19"/>
 		</PeptideHit>
-		<PeptideHit score="4324.433" sequence="H" charge="23" aa_after="Y" protein_refs="PH_2">
+		<PeptideHit score="4324.456" sequence="H" charge="23" aa_after="Y" protein_refs="PH_2">
 		</PeptideHit>
 		<UserParam type="int" name="label" value="18"/>
 	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_1" >
-		<PeptideHit score="4324.433" sequence="F" charge="23" aa_after="Y" protein_refs="PH_1">
-		</PeptideHit>
-		<UserParam type="int" name="label" value="17"/>
-	</UnassignedPeptideIdentification>
 	<featureList count="2">
+		<feature id="f_1001">
+			<position dim="0">0.0</position>
+			<position dim="1">35.0</position>
+			<intensity>500.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="1.5" y="1.8" />
+				<pt x="2.5" y="2.8" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_3" >
+				<PeptideHit score="4324.435" sequence="E" charge="23" aa_after="Y" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="floatList" name="myDoubleList" value="[6.442]"/>
+			<UserParam type="float" name="FWHM" value="0.0"/>
+		</feature>
 		<feature id="f_1000">
 			<position dim="0">25.0</position>
 			<position dim="1">0.0</position>
@@ -85,16 +99,8 @@
 					<UserParam type="float" name="FWHM" value="0.0"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_4" >
-				<PeptideHit score="4324.433" sequence="D" charge="23" aa_after="Y" protein_refs="PH_2">
-				</PeptideHit>
-				<PeptideHit score="4324.433" sequence="C" charge="23" aa_after="Y" protein_refs="PH_2">
-					<UserParam type="int" name="label" value="19"/>
-				</PeptideHit>
-				<UserParam type="int" name="label" value="18"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_3" >
-				<PeptideHit score="4324.433" sequence="A" charge="23" aa_after="Y" protein_refs="PH_1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_2" >
+				<PeptideHit score="4324.434" sequence="A" charge="23" aa_after="Y" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="17"/>
 			</PeptideIdentification>
@@ -104,25 +110,6 @@
 			<UserParam type="intList" name="myIntList" value="[1, 10, 12]"/>
 			<UserParam type="floatList" name="myDoubleList" value="[1.111, 10.999000000000001, 12.449999999999999]"/>
 			<UserParam type="stringList" name="myStringList" value="[myABC1, Stuff, 12]"/>
-			<UserParam type="float" name="FWHM" value="0.0"/>
-		</feature>
-		<feature id="f_1001">
-			<position dim="0">0.0</position>
-			<position dim="1">35.0</position>
-			<intensity>500.0</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>0.0</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="1.5" y="1.8" />
-				<pt x="2.5" y="2.8" />
-			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_5" >
-				<PeptideHit score="4324.433" sequence="E" charge="23" aa_after="Y" protein_refs="PH_1">
-				</PeptideHit>
-			</PeptideIdentification>
-			<UserParam type="floatList" name="myDoubleList" value="[6.442]"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 		</feature>
 	</featureList>

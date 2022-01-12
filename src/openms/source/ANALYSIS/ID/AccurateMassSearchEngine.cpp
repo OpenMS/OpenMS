@@ -597,6 +597,13 @@ namespace OpenMS
       fmap.setIdentifier(File::basename(ms_run_paths[0]));
     }
 
+    // check ion_mode
+    String ion_mode_internal(ion_mode_);
+    if (ion_mode_ == "auto")
+    {
+      ion_mode_internal = resolveAutoMode_(fmap);
+    }
+
     if (!legacyID_)
     {
       // register input file
@@ -655,12 +662,6 @@ namespace OpenMS
       id.setCurrentProcessingStep(step_ref); // add the new step
     }
 
-    String ion_mode_internal(ion_mode_);
-    if (ion_mode_ == "auto")
-    {
-      ion_mode_internal = resolveAutoMode_(fmap);
-    }
-
     // corresponding file locations
     std::vector<String> file_locations;
     StringList paths;
@@ -714,8 +715,8 @@ namespace OpenMS
       }
     }
 
-    // filter FeatureMap to only have entries with PrimaryID attached
-    if (!keep_unidentified_masses_)
+    // filter FeatureMap to only have entries with PrimaryID attached mzTab-m
+    if (!legacyID_ && !keep_unidentified_masses_)
     {
       fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
     }
@@ -734,7 +735,7 @@ namespace OpenMS
       // to allow featureXML export (without the use of legacy_ID)
       // been transferred from the previous data stored within
       // the feature.
-      // IdentificationDataConverter::exportFeatureIDs(fmap, false);
+      IdentificationDataConverter::exportFeatureIDs(fmap, false);
     }
 
     if (fmap.empty())
@@ -1035,7 +1036,6 @@ namespace OpenMS
           // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
-          rt_temp.set((*tab_it)[hit_idx].getObservedRT());
           rt_temp.set((*tab_it)[hit_idx].getObservedRT());
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;

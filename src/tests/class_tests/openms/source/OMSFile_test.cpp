@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -54,7 +55,8 @@ START_TEST(OMSFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-String oms_path;
+String oms_tmp;
+String fxml_tmp;
 IdentificationData ids;
 
 START_SECTION(void store(const String& filename, const IdentificationData& id_data))
@@ -73,17 +75,16 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
   match.adduct_opt = adduct_ref;
   ids.registerObservationMatch(match);
 
-  NEW_TMP_FILE(oms_path);
-  // oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
-  OMSFile().store(oms_path, ids);
-  TEST_EQUAL(File::empty(oms_path), false);
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, ids);
+  TEST_EQUAL(File::empty(oms_tmp), false);
 }
 END_SECTION
 
 START_SECTION(void load(const String& filename, IdentificationData& id_data))
 {
   IdentificationData out;
-  OMSFile().load(oms_path, out);
+  OMSFile().load(oms_tmp, out);
 
   TEST_EQUAL(ids.getInputFiles().size(), out.getInputFiles().size());
   TEST_EQUAL(ids.getScoreTypes().size(), out.getScoreTypes().size());
@@ -139,24 +140,52 @@ START_SECTION(void store(const String& filename, const FeatureMap& features))
   }
   IdentificationDataConverter::importFeatureIDs(features);
 
-  oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.oms");
-  // NEW_TMP_FILE(oms_path);
-  OMSFile().store(oms_path, features);
-  TEST_EQUAL(File::empty(oms_path), false);
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, features);
+  TEST_EQUAL(File::empty(oms_tmp), false);
 }
 END_SECTION
 
 START_SECTION(void load(const String& filename, FeatureMap& features))
 {
   FeatureMap features;
-  OMSFile().load(oms_path, features);
+  OMSFile().load(oms_tmp, features);
 
   TEST_EQUAL(features.size(), 2);
   TEST_EQUAL(features[0].getSubordinates().size(), 2);
 
   IdentificationDataConverter::exportFeatureIDs(features);
-  FeatureXMLFile().store(OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML"),
-                         features);
+
+  features.sortByPosition();
+
+  // sort for reproducibility
+  auto proteins = features.getProteinIdentifications();
+  for (auto& protein : proteins)
+  {
+    protein.sort();
+  }
+  auto un_peptides = features.getUnassignedPeptideIdentifications();
+  for (auto& un_pep : un_peptides)
+  {
+    un_pep.sort();
+  }
+
+  features.setProteinIdentifications(proteins);
+  features.setUnassignedPeptideIdentifications(un_peptides);
+  features.sortByPosition();
+
+  NEW_TMP_FILE(fxml_tmp);
+  FeatureXMLFile().store(fxml_tmp, features);
+
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableRelative(1.001);
+  fsc.setAcceptableAbsolute(1);
+  StringList sl;
+  sl.push_back("xml-stylesheet");
+  sl.push_back("UnassignedPeptideIdentification");
+  fsc.setWhitelist(sl);
+
+  TEST_EQUAL(fsc.compareFiles(fxml_tmp, OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML")), true);
 }
 END_SECTION
 

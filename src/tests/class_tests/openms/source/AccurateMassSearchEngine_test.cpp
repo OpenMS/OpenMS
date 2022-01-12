@@ -1,4 +1,6 @@
 // --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
@@ -301,6 +303,7 @@ FuzzyStringComparator fsc;
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
+sl.push_back("featureMap");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 
@@ -382,14 +385,24 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   ams.init();
 
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' has no scan_polarity meta value
-  fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "something;somethingelse");
+  }
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' scan_polarity meta value wrong
 
-  fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "positive");
+  }
   ams.run(fm_p, mzt, mztm);
 
-  fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "negative");
+  }
   ams.run(fm_p, mzt, mztm);
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

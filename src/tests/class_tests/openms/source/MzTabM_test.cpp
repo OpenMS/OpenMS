@@ -339,21 +339,27 @@ START_TEST(MzTabM, "$Id$")
           TEST_EQUAL(mztabm.getMSmallMoleculeFeatureSectionRows().size(), 1)
           TEST_EQUAL(mztabm.getMSmallMoleculeFeatureSectionRows().size(), 1)
 
-          TEST_EQUAL(optional_sml_columns.size(),3)
-          TEST_EQUAL(optional_sme_columns.size(),3)
+          TEST_EQUAL(optional_sml_columns.size(), 3)
+          TEST_EQUAL(optional_sme_columns.size(), 3)
         }
     END_SECTION
 
-    // Identificationdata
     START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map))
         {
           FeatureMap feature_map;
           MzTabM mztabm;
-          // the feature map should have an identification data object attached!
-          OMSFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearch_MzTabM_in_1.oms"), feature_map);
-          IdentificationDataConverter::importFeatureIDs(feature_map);
-          mztabm.exportFeatureMapToMzTabM(feature_map);
-          // TODO: Test some of the fields!
+
+          OMSFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.oms"), feature_map);
+
+          mztabm = mztabm.exportFeatureMapToMzTabM(feature_map);
+
+          TEST_EQUAL(mztabm.getMSmallMoleculeSectionRows().size(), 83)
+          TEST_EQUAL(mztabm.getMSmallMoleculeFeatureSectionRows().size(), 83)
+          TEST_EQUAL(mztabm.getMSmallMoleculeEvidenceSectionRows().size(), 312)
+
+          TEST_EQUAL(mztabm.getMSmallMoleculeOptionalColumnNames().size(), 0)
+          TEST_EQUAL(mztabm.getMSmallMoleculeFeatureOptionalColumnNames().size(), 18)
+          TEST_EQUAL(mztabm.getMSmallMoleculeEvidenceOptionalColumnNames().size(), 6)
         }
     END_SECTION
 

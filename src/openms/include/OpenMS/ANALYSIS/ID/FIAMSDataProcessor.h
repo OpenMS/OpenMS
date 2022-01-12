@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -36,6 +36,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -151,7 +152,7 @@ public:
       @param input  Input a feature map
       @param output  [out] mzTab file with the accurate mass search results
     */
-    void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
+    void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output, OpenMS::MzTabM& output2);
 
     /**
       @brief Get mass-to-charge ratios to base the summing the spectra along the time axis upon
