@@ -5,7 +5,7 @@ from StringList cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FORNAT/GNPSMGFFile.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FORMAT/GNPSMGFFile.h>" namespace "OpenMS":
 
     cdef cppclass GNPSMGFFile:
         # wrap-inherits:
