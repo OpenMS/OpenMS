@@ -35,9 +35,10 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <ostream>
 #include <fstream>      // std::ofstream
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+#include <cmath>
 
 namespace OpenMS
 {
