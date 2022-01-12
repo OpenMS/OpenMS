@@ -38,6 +38,7 @@
 
 #include <ostream>
 #include <fstream>      // std::ofstream
+#include <sstream>
 #include <cmath>
 
 namespace OpenMS
