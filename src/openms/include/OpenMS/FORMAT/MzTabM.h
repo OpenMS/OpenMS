@@ -49,6 +49,14 @@ namespace OpenMS
       @ingroup FileIO
   */
 
+  struct CompareMzTabMMatchRef
+  {
+    bool operator() (const IdentificationDataInternal::ObservationMatchRef& lhs, const IdentificationDataInternal::ObservationMatchRef& rhs)  const
+    {
+      return lhs->identified_molecule_var.getIdentifiedCompoundRef()->identifier < rhs->identified_molecule_var.getIdentifiedCompoundRef()->identifier;
+    }
+  };
+
   class OPENMS_DLLAPI MzTabMAssayMetaData
   {
   public:

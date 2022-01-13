@@ -131,7 +131,7 @@ END_SECTION
 START_SECTION(void store(const String& filename, const FeatureMap& features))
 {
   FeatureMap features;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFileOMStest_1.featureXML"), features);
   // protein and peptide IDs use same score type (name) with different orientations;
   // IdentificationData doesn't allow this, so change it here:
   for (auto& run : features.getProteinIdentifications())

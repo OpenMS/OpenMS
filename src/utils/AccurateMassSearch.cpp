@@ -102,7 +102,8 @@ protected:
     setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
-    registerFlag_("mztabm", "Enable the flag to use the mztab-m (mztab-m is currently only available for single samples (feautreXML)");
+    registerStringOption_("mzTab_version", "<choice>", "mzTab-1.0.0", "mzTab version", false);
+    setValidStrings_("mzTab_version", ListUtils::create<String>("mzTab-1.0.0,mzTab-M-v1.0.0"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
     setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
@@ -142,7 +143,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String file_ann = getStringOption_("out_annotation");
-    bool mztabm = getFlag_("mztabm");
+    bool mztabm = getStringOption_("mzTab_version") == "mzTab-M-v1.0.0" ? true : false;
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm

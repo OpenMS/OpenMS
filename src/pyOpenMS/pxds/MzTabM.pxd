@@ -3,7 +3,7 @@ from FeatureMap import *
 
 cdef extern from "<OpenMS/FORMAT/MzTabM.h>" namespace "OpenMS":
 
-    cdef cppclass MzTab:
+    cdef cppclass MzTabM:
         # wrap-doc:
                 #   Data model of MzTabM files
                 #   -----

@@ -226,6 +226,8 @@ namespace OpenMS
                                   const std::map<String, Size>& map_run_to_num_sub
                                   );
 
+  private:
+    friend class MzTabMFile;
   };
 
 } // namespace OpenMS

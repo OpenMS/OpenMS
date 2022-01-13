@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTabMFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -457,7 +458,7 @@ namespace OpenMS
       s.emplace_back(variation_study_variable.second.toCellString());
     }
 
-    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    MzTabFile::addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }
@@ -507,7 +508,7 @@ namespace OpenMS
       s.emplace_back(feature_abundance.second.toCellString());
     }
 
-    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    MzTabFile::addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }
@@ -573,7 +574,7 @@ namespace OpenMS
 
     s.emplace_back(row.rank.toCellString());
 
-    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+    MzTabFile::addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
     n_columns = s.size();
     return ListUtils::concatenate(s, "\t");
   }
@@ -652,27 +653,6 @@ namespace OpenMS
       tmp_out.addLine(*it);
     }
     tmp_out.store(filename);
-  }
-
-  void MzTabMFile::addOptionalColumnsToSectionRow_(const std::vector<String>& column_names, const std::vector<MzTabOptionalColumnEntry>& column_entries, StringList& output) const
-  {
-    for (std::vector<String>::const_iterator it = column_names.begin(); it != column_names.end(); ++it)
-    {
-      bool found = false;
-      for (Size i = 0; i != column_entries.size(); ++i)
-      {
-        if (column_entries[i].first == *it)
-        {
-          output.push_back(column_entries[i].second.toCellString());
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        output.push_back(MzTabString("null").toCellString());
-      }
-    }
   }
 
 }

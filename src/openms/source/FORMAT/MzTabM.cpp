@@ -570,13 +570,16 @@ namespace OpenMS
       {
         // feature row based on number of individual identifications and adducts!
         std::map<String, std::vector<int>> evidence_id_ref_per_adduct;
-        for (const IdentificationDataInternal::ObservationMatchRef& match_ref : match_refs) // iterate over all identifications of a feature
+
+        std::set<IdentificationDataInternal::ObservationMatchRef, CompareMzTabMMatchRef> sorted_match_refs(match_refs.begin(), match_refs.end());
+
+        for (const auto& ref : sorted_match_refs) // iterate over all identifications of a feature
         {
           // evidence section
           MzTabMSmallMoleculeEvidenceSectionRow sme;
 
           // IdentifiedCompound
-          IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
+          IdentificationData::IdentifiedMolecule molecule = ref->identified_molecule_var;
           IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
 
           sme.sme_identifier = MzTabString(evidence_section_entry_counter);
@@ -588,7 +591,7 @@ namespace OpenMS
           sme.chemical_name = MzTabString(compound_ref->name);
           sme.uri.setNull(true);
           sme.derivatized_form.setNull(true);
-          String adduct = getAdductString_(match_ref);
+          String adduct = getAdductString_(ref);
           sme.adduct = MzTabString(adduct);
           sme.exp_mass_to_charge = MzTabDouble(f.getMZ());
           sme.charge = MzTabInteger(f.getCharge());
@@ -598,7 +601,7 @@ namespace OpenMS
           // this should  also be available match_ref
           MzTabSpectraRef sp_ref;
           sp_ref.setMSFile(1);
-          sp_ref.setSpecRef(match_ref->observation_ref->data_id);
+          sp_ref.setSpecRef(ref->observation_ref->data_id);
           sme.spectra_ref = sp_ref;
           sme.identification_method = identification_method; // based on tool used for identification (CV-Term)
           sme.ms_level = ms_level;
@@ -606,11 +609,11 @@ namespace OpenMS
           for (const auto& id_score_ref : id_score_refs) // vector of references based on the ProcessingStep
           {
             ++score_counter; //starts at 1 anyway
-            sme.id_confidence_measure[score_counter] = MzTabDouble(match_ref->getScore(id_score_ref).first);
+            sme.id_confidence_measure[score_counter] = MzTabDouble(ref->getScore(id_score_ref).first);
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
-          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, String("global"), *match_ref);
+          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, String("global"), *ref);
           addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_, String("global"), *compound_ref);
 
           evidence_id_ref_per_adduct[adduct].emplace_back(evidence_section_entry_counter);
