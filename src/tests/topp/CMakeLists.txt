@@ -2672,12 +2672,13 @@ set_tests_properties("UTILS_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "UTILS
 # mztab_m + oms (annotation)
 add_test("UTILS_AccurateMassSearch_5" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_5_output.tmp.mzTab -out_annotation AccurateMassSearch_5_output.tmp.oms -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID -mzTab_version mzTab-M-v1.0.0)
 add_test("UTILS_AccurateMassSearch_5_out1" ${DIFF} -in1 AccurateMassSearch_5_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_5_output.mzTab -whitelist "")
-set_tests_properties("UTILS_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_3")
+set_tests_properties("UTILS_AccurateMassSearch_5_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_5")
 # mztab_m + feautreXML (annotation)
 add_test("UTILS_AccurateMassSearch_6" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_6_output.tmp.mzTab -out_annotation AccurateMassSearch_6_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID -mzTab_version mzTab-M-v1.0.0)
 add_test("UTILS_AccurateMassSearch_6_out1" ${DIFF} -in1 AccurateMassSearch_6_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_6_output.mzTab -whitelist "")
 add_test("UTILS_AccurateMassSearch_6_out2" ${DIFF} -in1 AccurateMassSearch_6_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_6_output.featureXML -whitelist "")
-set_tests_properties("UTILS_AccurateMassSearch_5_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_5")
+set_tests_properties("UTILS_AccurateMassSearch_6_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_6")
+set_tests_properties("UTILS_AccurateMassSearch_6_out2" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_6")
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data

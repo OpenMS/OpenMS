@@ -1,5 +1,5 @@
 from Types cimport *
-from FeatureMap import *
+from FeatureMap cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzTabM.h>" namespace "OpenMS":
 
@@ -12,4 +12,4 @@ cdef extern from "<OpenMS/FORMAT/MzTabM.h>" namespace "OpenMS":
         MzTabM() nogil except +
         MzTabM(MzTabM &) nogil except + # compiler
 
-        MzTabM exportFeatureMapToMzTabM(FeatureMap feautre_map) # wrap-doc:Export FeautreMap with Identifications to MzTabM
+        MzTabM exportFeatureMapToMzTabM(FeatureMap feature_map) # wrap-doc:Export FeatureMap with Identifications to MzTabM

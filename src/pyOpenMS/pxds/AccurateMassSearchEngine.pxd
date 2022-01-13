@@ -1,5 +1,6 @@
 from Types cimport *
 from MassTrace cimport *
+from MzTabM cimport *
 from Feature cimport *
 from ConsensusFeature cimport *
 from ConsensusMap cimport *
