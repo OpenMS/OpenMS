@@ -1966,7 +1966,7 @@ namespace OpenMS
     return row;
   }
 
-  boost::optional<MzTabPSMSectionRow> MzTab::PSMSectionRowFromPeptideID_(
+  std::optional<MzTabPSMSectionRow> MzTab::PSMSectionRowFromPeptideID_(
      const PeptideIdentification& pid,
      const vector<const ProteinIdentification*>& prot_ids,
      map<String, size_t>& idrun_2_run_index,
@@ -1982,7 +1982,7 @@ namespace OpenMS
     // skip empty peptide identification objects, if they are not wanted
     if (pid.getHits().empty() && !export_empty_pep_ids)
     {
-      return boost::none;
+      return std::nullopt;
     }
 
     /////// Information that doesn't require a peptide hit ///////

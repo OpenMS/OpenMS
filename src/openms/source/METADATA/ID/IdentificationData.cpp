@@ -59,7 +59,7 @@ namespace OpenMS
   {
     for (const auto& step : steps_and_scores)
     {
-      if ((step.processing_step_opt != boost::none) &&
+      if ((step.processing_step_opt != std::nullopt) &&
           (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
         String msg = "invalid reference to a data processing step - register that first";
@@ -1060,7 +1060,7 @@ namespace OpenMS
       }
       for (const auto& pair : other_ref->peak_annotations)
       {
-        boost::optional<ProcessingStepRef> opt_ref;
+        std::optional<ProcessingStepRef> opt_ref;
         if (pair.first)
         {
           opt_ref = trans.processing_step_refs[*pair.first];
