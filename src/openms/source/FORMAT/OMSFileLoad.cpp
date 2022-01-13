@@ -770,7 +770,7 @@ namespace OpenMS::Internal
     while (query.next())
     {
       QVariant processing_step_id = query.value("processing_step_id");
-      boost::optional<ID::ProcessingStepRef> processing_step_opt = boost::none;
+      std::optional<ID::ProcessingStepRef> processing_step_opt = std::nullopt;
       if (!processing_step_id.isNull())
       {
         processing_step_opt =
@@ -981,8 +981,8 @@ namespace OpenMS::Internal
 
 
   Feature OMSFileLoad::loadFeatureAndSubordinates_(
-    QSqlQuery& query_feat, boost::optional<QSqlQuery>& query_meta,
-    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_match)
+    QSqlQuery& query_feat, std::optional<QSqlQuery>& query_meta,
+    std::optional<QSqlQuery>& query_hull, std::optional<QSqlQuery>& query_match)
   {
     Feature feature;
     int id = query_feat.value("id").toInt();
@@ -1078,19 +1078,19 @@ namespace OpenMS::Internal
                     "error reading from database");
     }
     // prepare sub-queries (optional - corresponding tables may not be present):
-    boost::optional<QSqlQuery> query_meta(db);
+    std::optional<QSqlQuery> query_meta(db);
     if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
     {
-      query_meta = boost::none;
+      query_meta = std::nullopt;
     }
-    boost::optional<QSqlQuery> query_hull;
+    std::optional<QSqlQuery> query_hull;
     if (tableExists_(db_name_, "FEAT_ConvexHull"))
     {
       query_hull = QSqlQuery(db);
       query_hull->prepare("SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    boost::optional<QSqlQuery> query_match;
+    std::optional<QSqlQuery> query_match;
     if (tableExists_(db_name_, "FEAT_ObservationMatch"))
     {
       query_match = QSqlQuery(db);
