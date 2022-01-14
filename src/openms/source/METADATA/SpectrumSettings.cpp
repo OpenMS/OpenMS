@@ -214,6 +214,7 @@ namespace OpenMS
     return os;
   }
 
+  /*
   const std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications() const
   {
     return identification_;
@@ -228,6 +229,7 @@ namespace OpenMS
   {
     identification_ = identification;
   }
+   */
 
   const String & SpectrumSettings::getNativeID() const
   {

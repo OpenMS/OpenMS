@@ -46,7 +46,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -137,7 +137,7 @@ protected:
     double error(exp_mz - theo_mz);
     if (use_ppm)
     {
-      error = error / theo_mz * (double)1e6;
+      error = error / theo_mz * (double) 1e6;
     }
     return error;
   }
@@ -150,7 +150,7 @@ protected:
 
     StringList id_in(getStringList_("id_in"));
     StringList in_raw(getStringList_("in"));
-    Size number_of_bins((UInt)getIntOption_("number_of_bins"));
+    Size number_of_bins((UInt) getIntOption_("number_of_bins"));
     bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
     bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
 
@@ -164,8 +164,8 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    vector<vector<PeptideIdentification> > pep_ids;
-    vector<vector<ProteinIdentification> > prot_ids;
+    vector<vector<PeptideIdentification>> pep_ids;
+    vector<vector<ProteinIdentification>> prot_ids;
     pep_ids.resize(id_in.size());
     prot_ids.resize(id_in.size());
 
@@ -189,16 +189,22 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-
+    std::vector<AnnotatedMSRawData> annotated_data;
+    annotated_data.reserve(maps_raw.size());
+    for (auto& map : maps_raw)
+    {
+      annotated_data.emplace_back(std::move(map));
+    }
     // mapping ids
     IDMapper mapper;
-    for (Size i = 0; i != maps_raw.size(); ++i)
+    for (Size i = 0; i != annotated_data.size(); ++i)
     {
-      mapper.annotate(maps_raw[i], pep_ids[i], prot_ids[i]);
+      mapper.annotate(annotated_data[i], pep_ids[i], prot_ids[i]);
     }
 
     // normalize the spectra
     Normalizer normalizer;
+    /*
     for (vector<PeakMap>::iterator it1 = maps_raw.begin(); it1 != maps_raw.end(); ++it1)
     {
       for (PeakMap::Iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
@@ -206,16 +212,25 @@ protected:
         normalizer.filterSpectrum(*it2);
       }
     }
+    */
+    for (auto& data : annotated_data)
+    {
+      for (MSSpectrum& spectrum : data.getMSExperiment())
+      {
+        normalizer.filterSpectrum(spectrum);
+      }
+    }
 
     // generate precursor statistics
     vector<MassDifference> precursor_diffs;
     if (!getStringOption_("out_precursor").empty() || !getStringOption_("out_precursor_fit").empty())
     {
+      /*
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
         for (Size j = 0; j != maps_raw[i].size(); ++j)
         {
-          if (maps_raw[i][j].getPeptideIdentifications().empty())
+          if (maps_raw[i].getPeptideIdentifications().empty())
           {
             continue;
           }
@@ -238,6 +253,30 @@ protected:
           }
         }
       }
+       */
+      for (auto& data : annotated_data)
+      {
+        for (auto[spectrum, peptide_ids] : data)
+        {
+          for (auto peptide_id : peptide_ids)
+          {
+            if (!peptide_id.getHits().empty())
+            {
+              PeptideHit hit = *peptide_id.getHits().begin();
+              MassDifference md;
+              int charge = hit.getCharge();
+              if (charge == 0)
+              {
+                charge = 1;
+              }
+              md.exp_mz = peptide_id.getMZ();
+              md.theo_mz = hit.getSequence().getMonoWeight(Residue::Full, charge);
+              md.charge = charge;
+              precursor_diffs.push_back(md);
+            }
+          }
+        }
+      }
     }
 
     // generate fragment ions statistics
@@ -251,6 +290,7 @@ protected:
 
     if (!getStringOption_("out_fragment").empty() || !getStringOption_("out_fragment_fit").empty())
     {
+      /*
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
         for (Size j = 0; j != maps_raw[i].size(); ++j)
@@ -286,6 +326,35 @@ protected:
           }
         }
       }
+      */
+      for (auto& data : annotated_data)
+      {
+        for (auto[spectrum, peptide_ids] : data)
+        {
+          for (auto peptide_id : peptide_ids)
+          {
+            if (!peptide_id.getHits().empty())
+            {
+              PeptideHit hit = *peptide_id.getHits().begin();
+
+              PeakSpectrum theo_spec;
+              tsg.getSpectrum(theo_spec, hit.getSequence(), 1, 1);
+
+              std::vector<std::pair<size_t, size_t>> pairs;
+              sa.getSpectrumAlignment(pairs, theo_spec, spectrum);
+              for (auto& p : pairs)
+              {
+                MassDifference md;
+                md.exp_mz = spectrum[p.second].getMZ();
+                md.theo_mz = theo_spec[p.first].getMZ();
+                md.intensity = spectrum[p.second].getIntensity();
+                md.charge = hit.getCharge();
+                fragment_diffs.push_back(md);
+              }
+            }
+          }
+        }
+      }
     }
 
     //-------------------------------------------------------------
@@ -296,11 +365,11 @@ protected:
     if (!precursor_out_file.empty() || !getStringOption_("out_precursor_fit").empty())
     {
       vector<double> errors;
-      
+
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
-      for (Size i = 0; i != precursor_diffs.size(); ++i)
+      for (auto& precursor_diff : precursor_diffs)
       {
-        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm); 
+        double diff = getMassDifference(precursor_diff.theo_mz, precursor_diff.exp_mz, precursor_error_ppm);
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -315,29 +384,31 @@ protected:
       if (!precursor_out_file.empty())
       {
         ofstream precursor_out(precursor_out_file.c_str());
-        for (Size i = 0; i != errors.size(); ++i)
+        for (double error : errors)
         {
-          precursor_out << errors[i] << "\n";
+          precursor_out << error << "\n";
         }
         precursor_out.close();
       }
 
       // fill histogram with the collected values
-      double bin_size = (max_diff - min_diff) / (double)number_of_bins;
+      double bin_size = (max_diff - min_diff) / (double) number_of_bins;
       Histogram<double, double> hist(min_diff, max_diff, bin_size);
-      for (Size i = 0; i != errors.size(); ++i)
+      for (double error : errors)
       {
-        hist.inc(errors[i], 1.0);
+        hist.inc(error, 1.0);
       }
 
-      writeDebug_("min_diff=" + String(min_diff) + ", max_diff=" + String(max_diff) + ", number_of_bins=" + String(number_of_bins), 1);
+      writeDebug_(
+      "min_diff=" + String(min_diff) + ", max_diff=" + String(max_diff) + ", number_of_bins=" + String(number_of_bins),
+      1);
 
       // transform the histogram into a vector<DPosition<2> > for the fitting
       vector<DPosition<2> > values;
       for (Size i = 0; i != hist.size(); ++i)
       {
         DPosition<2> p;
-        p.setX((double)i / (double)number_of_bins * (max_diff - min_diff) + min_diff);
+        p.setX((double) i / (double) number_of_bins * (max_diff - min_diff) + min_diff);
         p.setY(hist[i]);
         values.push_back(p);
       }
@@ -346,7 +417,7 @@ protected:
       double abs_dev = Math::absdev(errors.begin(), errors.end(), mean);
       double sdv = Math::sd(errors.begin(), errors.end(), mean);
       sort(errors.begin(), errors.end());
-      double median = errors[(Size)(errors.size() / 2.0)];
+      double median = errors[(Size) (errors.size() / 2.0)];
 
       writeDebug_("Precursor mean error: " + String(mean), 1);
       writeDebug_("Precursor abs. dev.:  " + String(abs_dev), 1);
@@ -356,7 +427,7 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv/500.0);
+      GaussFitter::GaussFitResult init_param(hist.maxValue(), median, sdv / 500.0);
       gf.setInitialParameters(init_param);
 
       try
@@ -378,9 +449,9 @@ protected:
           }
           fit_out << "\tfrequency\n";
 
-	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          for (const auto& value : values)
           {
-            fit_out << it->getX() << "\t" << it->getY() << "\n";
+            fit_out << value.getX() << "\t" << value.getY() << "\n";
           }
           fit_out.close();
         }
@@ -397,9 +468,9 @@ protected:
     {
       vector<double> errors;
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
-      for (Size i = 0; i != fragment_diffs.size(); ++i)
+      for (auto& fragment_diff : fragment_diffs)
       {
-        double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
+        double diff = getMassDifference(fragment_diff.theo_mz, fragment_diff.exp_mz, fragment_error_ppm);
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -414,21 +485,21 @@ protected:
       if (!fragment_out_file.empty())
       {
         ofstream fragment_out(fragment_out_file.c_str());
-        for (Size i = 0; i != errors.size(); ++i)
+        for (double error : errors)
         {
-          fragment_out << errors[i] << "\n";
+          fragment_out << error << "\n";
         }
         fragment_out.close();
       }
       // fill histogram with the collected values
       // here we use the intensities to scale the error
       // low intensity peaks are likely to be random matches
-      double bin_size = (max_diff - min_diff) / (double)number_of_bins;
+      double bin_size = (max_diff - min_diff) / (double) number_of_bins;
       Histogram<double, double> hist(min_diff, max_diff, bin_size);
-      for (Size i = 0; i != fragment_diffs.size(); ++i)
+      for (auto& fragment_diff : fragment_diffs)
       {
-        double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
-        hist.inc(diff, fragment_diffs[i].intensity);
+        double diff = getMassDifference(fragment_diff.theo_mz, fragment_diff.exp_mz, fragment_error_ppm);
+        hist.inc(diff, fragment_diff.intensity);
       }
 
       writeDebug_("min_diff=" + String(min_diff) + ", max_diff=" + String(max_diff) + ", number_of_bins=" + String(number_of_bins), 1);
@@ -438,7 +509,7 @@ protected:
       for (Size i = 0; i != hist.size(); ++i)
       {
         DPosition<2> p;
-        p.setX((double)i / (double)number_of_bins * (max_diff - min_diff) + min_diff);
+        p.setX((double) i / (double) number_of_bins * (max_diff - min_diff) + min_diff);
         p.setY(hist[i]);
         values.push_back(p);
       }
@@ -447,7 +518,7 @@ protected:
       double abs_dev = Math::absdev(errors.begin(), errors.end(), mean);
       double sdv = Math::sd(errors.begin(), errors.end(), mean);
       sort(errors.begin(), errors.end());
-      double median = errors[(Size)(errors.size() / 2.0)];
+      double median = errors[(Size) (errors.size() / 2.0)];
 
       writeDebug_("Fragment mean error:  " + String(mean), 1);
       writeDebug_("Fragment abs. dev.:   " + String(abs_dev), 1);
@@ -456,7 +527,7 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv / 100.0);
+      GaussFitter::GaussFitResult init_param(hist.maxValue(), median, sdv / 100.0);
       gf.setInitialParameters(init_param);
 
       try
@@ -478,9 +549,9 @@ protected:
           }
           fit_out << "\tfrequency\n";
 
-	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          for (const auto& value : values)
           {
-            fit_out << it->getX() << "\t" << it->getY() << "\n";
+            fit_out << value.getX() << "\t" << value.getY() << "\n";
           }
           fit_out.close();
         }
@@ -497,7 +568,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   TOPPIDMassAccuracy tool;
   return tool.main(argc, argv);

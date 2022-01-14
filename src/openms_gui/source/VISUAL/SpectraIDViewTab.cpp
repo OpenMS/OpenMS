@@ -418,7 +418,8 @@ namespace OpenMS
     emit spectrumDeselected(last_spectrum_index);
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-    const auto& exp = *layer_->getPeakData();
+    const auto& annotated_exp = *layer_->getPeakData();
+    const auto& exp = annotated_exp.getMSExperiment();
     const auto& spec2 = exp[current_spectrum_index];
 
     //
@@ -427,16 +428,16 @@ namespace OpenMS
     // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
-      const auto prec_it = exp.getPrecursorSpectrum(exp.begin() + current_spectrum_index);
-
-      if (prec_it != exp.end() && !spec2.getPrecursors().empty())
+      const auto prec_it = exp.getPrecursorSpectrum(exp.getSpectra().begin() + current_spectrum_index);
+      
+      if (prec_it != exp.getSpectra().end() && !spec2.getPrecursors().empty())
       {
         double precursor_mz = spec2.getPrecursors()[0].getMZ();
         // determine start and stop of isolation window
         double isolation_window_lower_mz = precursor_mz - spec2.getPrecursors()[0].getIsolationWindowLowerOffset();
         double isolation_window_upper_mz = precursor_mz + spec2.getPrecursors()[0].getIsolationWindowUpperOffset();
 
-        emit spectrumSelected(std::distance(exp.begin(), prec_it), -1, -1);// no identification or hit selected (-1)
+        emit spectrumSelected(std::distance(exp.getSpectra().begin(), prec_it), -1, -1); // no identification or hit selected (-1)
         // zoom into precursor area
         emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz + 50.0);
       }
@@ -467,9 +468,9 @@ namespace OpenMS
         int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
-        const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
-        const vector<PeptideHit>& pep_hits = peptide_ids[current_identification_index].getHits();
-        const PeptideHit& hit = pep_hits[current_peptide_hit_index];
+        const vector<PeptideIdentification>& peptide_ids = annotated_exp.getPeptideIdentifications(current_spectrum_index);
+        const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+        const PeptideHit& hit = phits[current_peptide_hit_index];
 
         // initialize window, when the table is requested for the first time
         // afterwards the size will stay at the manually resized window size
@@ -703,10 +704,9 @@ namespace OpenMS
     {
       std::vector<std::reference_wrapper<const PeptideHit>> all_hits;
 
-      for (const auto& spec : layer_->getPeakData()->getSpectra())
+      for (auto [spectrum, peptide_ids] : *layer_->getPeakData())
       {
-        UInt ms_level = spec.getMSLevel();
-        const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+        UInt ms_level = spectrum.getMSLevel();
 
         if (ms_level != 2 || peptide_ids.empty()) // skip non ms2 spectra and spectra with no identification
         {
@@ -752,12 +752,11 @@ namespace OpenMS
     // generate flat list
     int selected_row(-1);
     // index i is needed, so iterate the old way...
-    for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
+    for (Size i = 0; i < layer_->getPeakData()->getMSExperiment().size(); ++i)
     {
-      const MSSpectrum& spectrum = (*layer_->getPeakData())[i];
+      auto [spectrum, peptide_ids] = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
-      const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
-      const Size id_count = pi.size();
+      const Size id_count = peptide_ids.size();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
@@ -786,9 +785,9 @@ namespace OpenMS
       {
         for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
-          for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)
+          for (Size ph_idx = 0; ph_idx != peptide_ids[pi_idx].getHits().size(); ++ph_idx)
           {
-            const PeptideHit& ph = pi[pi_idx].getHits()[ph_idx];
+            const PeptideHit& ph = peptide_ids[pi_idx].getHits()[ph_idx];
 
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
@@ -951,7 +950,7 @@ namespace OpenMS
 
     QString selectedFilter;
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
-    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getMSExperiment().getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
@@ -970,7 +969,7 @@ namespace OpenMS
       added_spectra.insert(spectrum_index);
 
       // collect all PeptideIdentifications from this spectrum
-      const vector<PeptideIdentification>& pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+      const vector<PeptideIdentification>& pep_id = (*layer_->getPeakData())[spectrum_index].second;
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
 
@@ -1013,7 +1012,7 @@ namespace OpenMS
     // maintain sortability of our checkbox column
     TableView::updateCheckBoxItem(item);
 
-    vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
+    vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].second;
 
     // update "selected" value in the correct PeptideHits
     vector<PeptideHit>& hits = pep_id[num_id].getHits();

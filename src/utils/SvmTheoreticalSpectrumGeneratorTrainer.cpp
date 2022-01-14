@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 
 
 using namespace std;
@@ -131,6 +132,7 @@ protected:
     //-------------------------------------------------------------
     PeakMap map;
     MzMLFile().load(in_spectra, map);
+    AnnotatedMSRawData annotated_data(std::move(map));
 
     std::vector<PeptideIdentification> pep_ids;
     std::vector<ProteinIdentification> prot_ids;
@@ -142,14 +144,14 @@ protected:
     par.setValue("rt_tolerance", 0.001);
     par.setValue("mz_tolerance", 0.001);
     idmapper.setParameters(par);
-    idmapper.annotate(map, pep_ids, prot_ids);
+    idmapper.annotate(annotated_data, pep_ids, prot_ids);
 
     //generate vector of annotations
     std::vector<AASequence> annotations;
     PeakMap::iterator it;
-    for (it = map.begin(); it != map.end(); ++it)
+    for (const auto& spectrum_peptide_ids : annotated_data.getAllPeptideIdentifications())
     {
-      annotations.push_back(it->getPeptideIdentifications()[0].getHits()[0].getSequence());
+      annotations.push_back(spectrum_peptide_ids[0].getHits()[0].getSequence());
     }
 
     trainer.trainModel(map, annotations, outfile, precursor_charge);

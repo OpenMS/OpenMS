@@ -668,7 +668,7 @@ namespace OpenMS
       // copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
       // get begin / end of the range
-      ExperimentType::ConstIterator peak_start = layer.getPeakData()->begin();
+      ExperimentType::ConstIterator peak_start = layer.getPeakData()->getSpectra().begin();
       ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.minPosition()[1]);
       ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.maxPosition()[1]);
       Size begin_idx = std::distance(peak_start, begin);
@@ -819,7 +819,7 @@ namespace OpenMS
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
         if (getName() == "Plot1DCanvas")
         {
-          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
+          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()].first);
         }
       }
       else if (layer.type == LayerDataBase::DT_FEATURE)
@@ -843,7 +843,7 @@ namespace OpenMS
     {
       if (layer.type == LayerDataBase::DT_PEAK)
       {
-        dlg.add((*layer.getPeakDataMuteable())[index]);
+        dlg.add((*layer.getPeakDataMuteable())[index].first);
       }
       else if (layer.type == LayerDataBase::DT_FEATURE)
       {

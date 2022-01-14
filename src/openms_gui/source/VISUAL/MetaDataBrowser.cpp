@@ -945,9 +945,6 @@ namespace OpenMS
     //check for AcquisitionInfo
     visualize_(meta.getAcquisitionInfo(), item);
 
-    //check for PeptideIdentification
-    visualizeAll_(meta.getPeptideIdentifications(), item);
-
     connectVisualizer_(visualizer);
   }
 

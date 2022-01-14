@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 
 using namespace std;
 
@@ -121,16 +122,15 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (auto & peptide : peptides)
     {
-      if (!pep_it->getHits().empty())
+      if (!peptide.getHits().empty())
       {
-        pep_it->sort();
-        if (better_(pep_it->getHits()[0].getScore(), min_score_))
+        peptide.sort();
+        if (better_(peptide.getHits()[0].getScore(), min_score_))
         {
-          const String& seq = pep_it->getHits()[0].getSequence().toString();
-          rt_data[seq].push_back(pep_it->getRT());
+          const String& seq = peptide.getHits()[0].getSequence().toString();
+          rt_data[seq].push_back(peptide.getRT());
         }
       }
     }
@@ -206,12 +206,11 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      PeakMap& experiment, SeqToList& rt_data)
+      AnnotatedMSRawData& experiment, SeqToList& rt_data)
   {
-    for (PeakMap::Iterator exp_it = experiment.begin();
-         exp_it != experiment.end(); ++exp_it)
+    for (auto& peptide_identifications : experiment.getAllPeptideIdentifications())
     {
-      getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
+      getRetentionTimes_(peptide_identifications, rt_data);
     }
     // duplicate annotations should not be possible -> no need to remove them
     return false;

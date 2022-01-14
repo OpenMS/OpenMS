@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -55,6 +56,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Collection of functions for filtering peptide and protein identifications.
 
@@ -1126,56 +1128,48 @@ public:
  ///@}
 
 
-    /// @name Filter functions for MS/MS experiments
+    /// @name Filter functions for AnnotatedMSRawData
     ///@{
 
-    /// Filters an MS/MS experiment according to score thresholds
-    static void filterHitsByScore(PeakMap& experiment,
+    /// Filters AnnotatedMSRawData according to score thresholds
+    static void filterHitsByScore(AnnotatedMSRawData& annotated_data,
                                   double peptide_threshold_score,
                                   double protein_threshold_score)
     {
+      MSExperiment& exp = annotated_data.getMSExperiment();
       // filter protein hits:
-      filterHitsByScore(experiment.getProteinIdentifications(),
+      filterHitsByScore(exp.getProteinIdentifications(),
                         protein_threshold_score);
       // don't remove empty protein IDs - they contain search meta data and may
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
+      for (std::vector<PeptideIdentification>& peptide_ids : annotated_data.getAllPeptideIdentifications())
       {
-        filterHitsByScore(exp_it->getPeptideIdentifications(),
-                          peptide_threshold_score);
-        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(),
-                                experiment.getProteinIdentifications());
+        filterHitsByScore(peptide_ids, peptide_threshold_score);
+        removeEmptyIdentifications(peptide_ids);
+        updateProteinReferences(peptide_ids, exp.getProteinIdentifications());
       }
       // @TODO: remove proteins that aren't referenced by peptides any more?
     }
 
-    /// Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
-    static void keepNBestHits(PeakMap& experiment, Size n)
+    /// Filters AnnotatedMSRawData by keeping the N best peptide hits for every spectrum
+    static void keepNBestHits(AnnotatedMSRawData& annotated_data, Size n)
     {
       // don't filter the protein hits by "N best" here - filter the peptides
       // and update the protein hits!
       std::vector<PeptideIdentification> all_peptides; // IDs from all spectra
-
+      MSExperiment& experiment = annotated_data.getMSExperiment();
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
+      for (std::vector<PeptideIdentification>& peptide_ids : annotated_data.getAllPeptideIdentifications())
       {
-        std::vector<PeptideIdentification>& peptides =
-          exp_it->getPeptideIdentifications();
-        keepNBestHits(peptides, n);
-        removeEmptyIdentifications(peptides);
-        updateProteinReferences(peptides,
-                                experiment.getProteinIdentifications());
-        all_peptides.insert(all_peptides.end(), peptides.begin(),
-                            peptides.end());
+        keepNBestHits(peptide_ids, n);
+        removeEmptyIdentifications(peptide_ids);
+        updateProteinReferences(peptide_ids, experiment.getProteinIdentifications());
+        all_peptides.insert(all_peptides.end(), peptide_ids.begin(), peptide_ids.end());
       }
       // update protein hits:
-      removeUnreferencedProteins(experiment.getProteinIdentifications(),
-                                 all_peptides);
+      removeUnreferencedProteins(experiment.getProteinIdentifications(), all_peptides);
     }
 
     /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
@@ -1342,9 +1336,9 @@ public:
         }
     }
 
-    /// Filters an MS/MS experiment according to the given proteins
+    /// Filters AnnotatedMSRawData according to the given proteins.
     static void keepHitsMatchingProteins(
-      PeakMap& experiment,
+      AnnotatedMSRawData& experiment,
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;
@@ -1355,20 +1349,19 @@ public:
       }
 
       // filter protein hits:
-      keepHitsMatchingProteins(experiment.getProteinIdentifications(),
+      keepHitsMatchingProteins(experiment.getMSExperiment().getProteinIdentifications(),
                                accessions);
-      updateHitRanks(experiment.getProteinIdentifications());
+      updateHitRanks(experiment.getMSExperiment().getProteinIdentifications());
 
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
+      for (auto [spectrum, peptide_ids] : experiment)
       {
-        if (exp_it->getMSLevel() == 2)
+        if (spectrum.getMSLevel() == 2)
         {
-          keepHitsMatchingProteins(exp_it->getPeptideIdentifications(),
+          keepHitsMatchingProteins(peptide_ids,
                                    accessions);
-          removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-          updateHitRanks(exp_it->getPeptideIdentifications());
+          removeEmptyIdentifications(peptide_ids);
+          updateHitRanks(peptide_ids);
         }
       }
     }

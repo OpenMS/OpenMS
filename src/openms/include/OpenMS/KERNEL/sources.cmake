@@ -3,6 +3,7 @@ set(directory include/OpenMS/KERNEL)
 
 ### list all header files of the directory here
 set(sources_list_h
+AnnotatedMSRawData.h
 AreaIterator.h
 BaseFeature.h
 ChromatogramPeak.h

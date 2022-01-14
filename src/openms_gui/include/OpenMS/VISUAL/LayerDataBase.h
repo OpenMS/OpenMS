@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
@@ -63,6 +64,7 @@ namespace OpenMS
 {
   class LayerStatistics;
   class OnDiscMSExperiment;
+
   class OSWData;
 
   /**
@@ -154,7 +156,7 @@ namespace OpenMS
     typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
+    typedef AnnotatedMSRawData ExperimentType;
 
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
@@ -353,28 +355,28 @@ namespace OpenMS
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_ion_mobility") &&
-             this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
+      return this->getPeakData()->getMSExperiment().size() > 0 &&
+             this->getPeakData()->getMSExperiment().metaValueExists("is_ion_mobility") &&
+             this->getPeakData()->getMSExperiment().getMetaValue("is_ion_mobility").toBool();
     }
 
     void labelAsIonMobilityData() const
     {
-      peak_map_->setMetaValue("is_ion_mobility", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_ion_mobility", "true");
     }
 
     /// Check whether the current layer contains DIA (SWATH-MS) data
     bool isDIAData() const
     {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_dia_data") &&
-             this->getPeakData()->getMetaValue("is_dia_data").toBool();
+      return this->getPeakData()->getMSExperiment().size() > 0 &&
+             this->getPeakData()->getMSExperiment().metaValueExists("is_dia_data") &&
+             this->getPeakData()->getMSExperiment().getMetaValue("is_dia_data").toBool();
     }
 
     /// Label the current layer as DIA (SWATH-MS) data
     void labelAsDIAData()
     {
-      peak_map_->setMetaValue("is_dia_data", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_dia_data", "true");
     }
 
     /**
@@ -387,15 +389,15 @@ namespace OpenMS
     */
     bool chromatogram_flag_set() const
     {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_chromatogram") &&
-             this->getPeakData()->getMetaValue("is_chromatogram").toBool();
+      return this->getPeakData()->getMSExperiment().size() > 0 &&
+             this->getPeakData()->getMSExperiment().metaValueExists("is_chromatogram") &&
+             this->getPeakData()->getMSExperiment().getMetaValue("is_chromatogram").toBool();
     }
 
     /// set the chromatogram flag
     void set_chromatogram_flag()
     {
-      peak_map_->setMetaValue("is_chromatogram", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_chromatogram", "true");
     }
 
     /// remove the chromatogram flag
@@ -403,7 +405,7 @@ namespace OpenMS
     {
       if (this->chromatogram_flag_set())
       {
-        peak_map_->removeMetaValue("is_chromatogram");
+        peak_map_->getMSExperiment().removeMetaValue("is_chromatogram");
       }
     }
 
@@ -432,7 +434,7 @@ namespace OpenMS
     void synchronizePeakAnnotations();
 
     /// remove peak annotations in the given list from the currently active PeptideHit
-    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem *>& selected_annotations);
 
     /// if this layer is visible
     bool visible = true;
@@ -520,7 +522,7 @@ namespace OpenMS
     Size current_spectrum_idx_ = 0;
 
     /// Current cached spectrum
-    ExperimentType::SpectrumType cached_spectrum_;
+    MSExperiment::SpectrumType cached_spectrum_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data

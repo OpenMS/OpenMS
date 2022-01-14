@@ -51,6 +51,8 @@
 
 namespace OpenMS
 {
+  class AnnotatedMSRawData;
+
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
@@ -227,7 +229,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(AnnotatedMSRawData& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps

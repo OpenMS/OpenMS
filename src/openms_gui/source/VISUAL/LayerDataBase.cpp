@@ -87,9 +87,9 @@ namespace OpenMS
 
   void LayerDataBase::updateCache_()
   {
-    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].size() > 0)
+    if (peak_map_->getMSExperiment().getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].first.empty())
     {
-      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_];
+      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_].first;
     }
     else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
     {
@@ -161,15 +161,15 @@ namespace OpenMS
     {
       return cached_spectrum_;
     }
-    if ((*peak_map_)[spectrum_idx].size() > 0)
+    if (!(*peak_map_)[spectrum_idx].first.empty())
     {
-      return (*peak_map_)[spectrum_idx];
+      return (*peak_map_)[spectrum_idx].first;
     }
     else if (!on_disc_peaks->empty())
     {
       return on_disc_peaks->getSpectrum(spectrum_idx);
     }
-    return (*peak_map_)[spectrum_idx];
+    return (*peak_map_)[spectrum_idx].first;
   }
 
   float LayerDataBase::getMinIntensity() const
@@ -198,7 +198,8 @@ namespace OpenMS
     if (ms_level == 2)
     {
       // store user fragment annotations
-      vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+      //vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+      vector<PeptideIdentification>& pep_ids = peak_map_->getPeptideIdentifications(current_spectrum_idx_);
 
       // no ID selected
       if (peptide_id_index == -1 || peptide_hit_index == -1)
@@ -247,7 +248,7 @@ namespace OpenMS
         pep_id.setIdentifier("Unknown");
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getMSExperiment().getProteinIdentifications();
         if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
