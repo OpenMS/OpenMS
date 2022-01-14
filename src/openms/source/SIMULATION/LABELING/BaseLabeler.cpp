@@ -83,7 +83,7 @@ namespace OpenMS
     Size channel_index = 1;
     for (const FeatureMap& mapit : maps)
     {
-      if (mapit.getProteinIdentifications().size() == 0)
+      if (mapit.getProteinIdentifications().empty())
       {
         continue;
       }

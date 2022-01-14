@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_14811341817612382122" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/src/tests/topp/FeatureFinderMetaboIdent_1_input.mzML]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderMetaboIdent" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -356,7 +357,7 @@
 			<UserParam type="float" name="sn_ratio" value="52.151788236106981"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.954158471100629"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.995625585317612"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.038761996292178"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.038761996292179"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.999541022925046"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.098983228206635"/>
 			<UserParam type="float" name="var_massdev_score" value="1.169896037407535"/>
@@ -535,9 +536,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.982094666975042"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.989760413143404"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="3.074325059823961e-03"/>
+			<UserParam type="float" name="var_library_rmsd" value="3.074325059824003e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="3.787058379195961e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="3.074325059823961e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="3.074325059824003e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="6.21148653396919e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999987444406069"/>
 			<UserParam type="float" name="var_intensity_score" value="0.990803628077695"/>
@@ -750,15 +751,15 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H13N5O4"/>
 			<UserParam type="float" name="rt_deviation" value="1.298415608239225"/>
-			<UserParam type="float" name="model_height" value="1.025959073219155e08"/>
-			<UserParam type="float" name="model_FWHM" value="3.648883518683689"/>
-			<UserParam type="float" name="model_center" value="219.649686755299513"/>
-			<UserParam type="float" name="model_lower" value="215.775841282308278"/>
-			<UserParam type="float" name="model_upper" value="223.523532228290748"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="1.549538189196495"/>
-			<UserParam type="float" name="model_width" value="1.549538189196495"/>
-			<UserParam type="float" name="model_error" value="0.168211444749825"/>
-			<UserParam type="float" name="model_area" value="3.984943858867454e08"/>
+			<UserParam type="float" name="model_height" value="1.0259590732407e08"/>
+			<UserParam type="float" name="model_FWHM" value="3.64888351719068"/>
+			<UserParam type="float" name="model_center" value="219.649686755298859"/>
+			<UserParam type="float" name="model_lower" value="215.775841283892675"/>
+			<UserParam type="float" name="model_upper" value="223.523532226705044"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="1.549538188562472"/>
+			<UserParam type="float" name="model_width" value="1.549538188562472"/>
+			<UserParam type="float" name="model_error" value="0.16821144495884"/>
+			<UserParam type="float" name="model_area" value="3.984943857320621e08"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="1.420467328e09"/>
 		</feature>
@@ -1108,9 +1109,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999102440044555"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999464096074844"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="8.963039930977905e-03"/>
+			<UserParam type="float" name="var_library_rmsd" value="8.963039930977898e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="0.011093356278248"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="8.963039930977905e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="8.963039930977898e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.017863880175694"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999895370551017"/>
 			<UserParam type="float" name="var_intensity_score" value="0.990374217243135"/>

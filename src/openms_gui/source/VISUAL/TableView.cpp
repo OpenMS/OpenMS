@@ -138,13 +138,13 @@ namespace OpenMS
           {
             str_list << ti->data(Qt::UserRole).toString();
           }
+          else if (ti->data(Qt::CheckStateRole).isValid()) // Note: item with check box also has a display role, so this test needs to come first
+          {
+            str_list << ti->data(Qt::CheckStateRole).toString();
+          }
           else if (ti->data(Qt::DisplayRole).isValid())
           {
             str_list << ti->data(Qt::DisplayRole).toString();
-          }
-          else if (ti->data(Qt::CheckStateRole).isValid())
-          {
-            str_list << ti->data(Qt::CheckStateRole).toString();
           }
           else
           {
@@ -328,6 +328,25 @@ namespace OpenMS
 
   void TableView::resizeEvent(QResizeEvent* /*event*/)
   {
+    this->resizeColumnsToContents();
+
+    int widgetWidth = this->viewport()->size().width();
+    int tableWidth = 0;
+
+    for (int i = 0; i < this->columnCount(); ++i)
+    {
+      tableWidth += this->horizontalHeader()->sectionSize(i);
+    } //sections already resized to fit all data
+
+    double scale = (double) widgetWidth / tableWidth;
+    if (scale > 1.)
+    {
+      for (int i = 0; i < this->columnCount(); ++i)
+      {
+        this->setColumnWidth(i, this->horizontalHeader()->sectionSize(i) * scale);
+      }
+    }
+
     emit resized();
   }
 

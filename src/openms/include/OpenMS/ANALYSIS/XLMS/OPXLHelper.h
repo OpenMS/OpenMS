@@ -59,7 +59,7 @@ namespace OpenMS
       {
         bool operator() (const PeptideIdentification& a, const PeptideIdentification& b) const
         {
-          if (a.getHits().size() > 0 && b.getHits().size() > 0)
+          if (!a.getHits().empty() && !b.getHits().empty())
           {
             return a.getHits()[0].getScore() < b.getHits()[0].getScore();
           }
@@ -70,7 +70,7 @@ namespace OpenMS
         }
         bool operator() (const PeptideIdentification& a, const double& b) const
         {
-          if (a.getHits().size() > 0)
+          if (!a.getHits().empty())
           {
             return a.getHits()[0].getScore() < b;
           }
@@ -81,7 +81,7 @@ namespace OpenMS
         }
         bool operator() (const double& a, const PeptideIdentification& b) const
         {
-          if (b.getHits().size() > 0)
+          if (!b.getHits().empty())
           {
             return a < b.getHits()[0].getScore();
           }

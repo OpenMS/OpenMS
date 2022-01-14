@@ -43,14 +43,16 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         #       params[param_name] = new_value # e.g. params[b'extract:n_isotopes'] = 3
         #       ff.setParameters(params)
         #
-        #       ff.run(library, fm)
+        #       ff.run(library, fm, path_to_file)
 
         FeatureFinderAlgorithmMetaboIdent() nogil except +
 
         void setMSData(MSExperiment & input) nogil except + #wrap-doc:Sets spectra
         const MSExperiment& getMSData() nogil except + #wrap-doc:Returns spectra
 
-        void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
+        void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features, String spectra_path) nogil except +
+        # wrap-doc:
+        #    Run feature extraction. spectra_path get's annotated as primaryMSRunPath in the resulting feature map.
 
         MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieves chromatograms (empty if run was not executed)
 

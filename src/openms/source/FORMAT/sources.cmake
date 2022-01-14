@@ -23,6 +23,7 @@ FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMGFFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 HDF5Connector.cpp
@@ -53,6 +54,9 @@ MzQuantMLFile.cpp
 MzTab.cpp
 MzTabFile.cpp
 MzXMLFile.cpp
+OMSFile.cpp
+OMSFileLoad.cpp
+OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp

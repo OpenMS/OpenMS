@@ -221,7 +221,7 @@ namespace OpenMS
     return getInterpolation().getOffset();
   }
 
-  UInt ExtendedIsotopeModel::getCharge()
+  UInt ExtendedIsotopeModel::getCharge() const
   {
     return charge_;
   }

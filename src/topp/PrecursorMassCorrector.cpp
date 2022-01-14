@@ -136,7 +136,7 @@ protected:
     exp.sortSpectra();
 
     FeatureMap feature_map;
-    if (feature_in != "")
+    if (!feature_in.empty())
     {
       FeatureXMLFile().load(feature_in, feature_map);
     }
@@ -155,7 +155,7 @@ protected:
     exp2.clear(false);
     for (const MSSpectrum& ms : exp)
     {
-      if (ms.size() != 0)
+      if (!ms.empty())
       {
         exp2.addSpectrum(ms);
       }
@@ -186,7 +186,7 @@ protected:
         writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
       }
-      if (ms1_it->size() == 0)
+      if (ms1_it->empty())
       {
         writeDebug_("No peaks in scan at RT=" + String(ms1_it->getRT()) + String(", skipping"), 1);
         continue;

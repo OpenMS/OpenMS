@@ -306,9 +306,9 @@ protected:
         os << "Number of features: " << feat.size() << endl
            << endl
            << "Ranges:" << endl
-           << "  retention time:  " << String::number(feat.getMin()[Peak2D::RT], 2) << " : " << String::number(feat.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(feat.getMin()[Peak2D::MZ], 2) << " : " << String::number(feat.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(feat.getMinInt(), 2) << " : " << String::number(feat.getMaxInt(), 2) << endl
+           << "  retention time:  " << String::number(feat.getMinRT(), 2) << " : " << String::number(feat.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(feat.getMinMZ(), 2) << " : " << String::number(feat.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(feat.getMinIntensity(), 2) << " : " << String::number(feat.getMaxIntensity(), 2) << endl
            << endl;
 
         // Charge distribution
@@ -342,9 +342,9 @@ protected:
         os << "  total:      " << setw(6) << cons.size() << endl << endl;
 
         os << "Ranges:" << endl
-           << "  retention time:  " << String::number(cons.getMin()[Peak2D::RT], 2) << " : " << String::number(cons.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(cons.getMin()[Peak2D::MZ], 2) << " : " << String::number(cons.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
+           << "  retention time:  " << String::number(cons.getMinRT(), 2) << " : " << String::number(cons.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(cons.getMinMZ(), 2) << " : " << String::number(cons.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(cons.getMinIntensity(), 2) << " : " << String::number(cons.getMaxIntensity(), 2) << endl;
 
         // file descriptions
         const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();

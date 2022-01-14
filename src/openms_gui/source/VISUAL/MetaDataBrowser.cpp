@@ -142,7 +142,7 @@ namespace OpenMS
     connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string)));
   }
 
-  bool MetaDataBrowser::isEditable()
+  bool MetaDataBrowser::isEditable() const
   {
     return editable_;
   }

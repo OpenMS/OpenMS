@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -446,12 +448,12 @@ namespace OpenMS::Internal::ClassTest
         ratio = 0.;
         fuzzy_message.clear();
 
-        if (boost::math::isnan(number_1))
+        if (std::isnan(number_1))
         {
           fuzzy_message = "number_1 is nan";
           return false;
         }
-        if (boost::math::isnan(number_2))
+        if (std::isnan(number_2))
         {
           fuzzy_message = "number_2 is nan";
           return false;

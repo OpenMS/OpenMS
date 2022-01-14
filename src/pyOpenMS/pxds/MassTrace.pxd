@@ -1,15 +1,18 @@
 from Types cimport *
 from String cimport *
 from ConvexHull2D cimport *
+from Peak2D cimport *
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
+
 
 cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
 
     cdef cppclass Kernel_MassTrace "OpenMS::MassTrace":
 
-        Kernel_MassTrace()  nogil except +
+        Kernel_MassTrace() nogil except +
         Kernel_MassTrace(Kernel_MassTrace &) nogil except +
+        Kernel_MassTrace(const libcpp_vector[ Peak2D ] &trace_peaks) nogil except +
 
         # public members
         double fwhm_mz_avg

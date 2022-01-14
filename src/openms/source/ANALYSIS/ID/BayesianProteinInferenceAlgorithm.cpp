@@ -45,7 +45,6 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
@@ -768,7 +767,7 @@ namespace OpenMS
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
       bool greedy_group_resolution, // TODO probably better to add it as a Param
-      boost::optional<const ExperimentalDesign> exp_des)
+      std::optional<const ExperimentalDesign> exp_des)
   {
     IDScoreSwitcherAlgorithm switcher;
     Size counter(0);
@@ -1006,7 +1005,7 @@ namespace OpenMS
       std::vector<ProteinIdentification>& proteinIDs,
       std::vector<PeptideIdentification>& peptideIDs,
       bool greedy_group_resolution,
-      boost::optional<const ExperimentalDesign> exp_des)
+      std::optional<const ExperimentalDesign> exp_des)
   {
     //TODO The following is a sketch to think about how to include missing peptides
     // Requirement: Datastructures for peptides first

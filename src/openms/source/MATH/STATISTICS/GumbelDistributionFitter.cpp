@@ -79,7 +79,7 @@ namespace OpenMS::Math
         {
         }
 
-        int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+        int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
         {
           double a = x(0); //location
           double b = x(1); //scale
@@ -94,7 +94,7 @@ namespace OpenMS::Math
           return 0;
         }
         // compute Jacobian matrix for the different parameters
-        int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+        int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const
         {
           double a = x(0);
           double b = x(1);
@@ -119,7 +119,7 @@ namespace OpenMS::Math
       };
     }
 
-    GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input)
+    GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input) const
     {
 
       Eigen::VectorXd x_init (2);

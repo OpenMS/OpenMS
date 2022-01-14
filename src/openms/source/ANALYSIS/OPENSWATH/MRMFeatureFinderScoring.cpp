@@ -40,7 +40,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 // peak picking & noise estimation
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 // Helpers
@@ -225,7 +225,7 @@ namespace OpenMS
     int counter = 0;
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      if (trgroup_it->second.getChromatograms().size() > 0) {counter++; }
+      if (!trgroup_it->second.getChromatograms().empty()) {counter++; }
     }
     OPENMS_LOG_INFO << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
 
@@ -364,7 +364,7 @@ namespace OpenMS
     }
 
     OpenSwath_Ind_Scores idscores;
-    if (native_ids_identification.size() > 0)
+    if (!native_ids_identification.empty())
     {
       scorer.calculateChromatographicIdScores(idimrmfeature,
                                               native_ids_identification, 
@@ -447,7 +447,7 @@ namespace OpenMS
 
     // Compute DIA scores only on the identification transitions
     bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
-    if (swath_present && su_.use_dia_scores_ && native_ids_identification.size() > 0)
+    if (swath_present && su_.use_dia_scores_ && !native_ids_identification.empty())
     {
       std::vector<double> ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
@@ -727,14 +727,14 @@ namespace OpenMS
 
         ///////////////////////////////////
         // Unique Ion Signature (UIS) scores
-        if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
+        if (su_.use_uis_scores && !transition_group_identification.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
                                                                det_mi_ratio_score, swath_maps);
           mrmfeature.IDScoresAsMetaValue(false, idscores);
         }
-        if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
+        if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,

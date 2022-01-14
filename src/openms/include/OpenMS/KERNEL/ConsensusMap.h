@@ -82,7 +82,7 @@ namespace OpenMS
   class ConsensusMap : // no OPENMS_DLLAPI here, since the class is derived from an STL class - we do not want parts of the STL lib in OpenMS.lib, since it will cause linker errors
     private std::vector<ConsensusFeature>,
     public MetaInfoInterface,
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
     public UniqueIdInterface,
     public UniqueIdIndexer<ConsensusMap>,
@@ -119,7 +119,7 @@ public:
 
     enum class SplitMeta
     {
-      DISCARD,                 ///< do not copy any meta values
+      DISCARD,                ///< do not copy any meta values
       COPY_ALL,               ///< copy all meta values to all feature maps
       COPY_FIRST              ///< copy all meta values to first feature map
     };
@@ -139,11 +139,14 @@ public:
 
       /// File name of the mzML file
       String filename;
-      /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
+
+      /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation    
       String label;
+
       /// @brief Number of elements (features, peaks, ...).
       /// This is e.g. used to check for correct element indices when writing a consensus map TODO fix that
       Size size = 0;
+
       /// Unique id of the file
       UInt64 unique_id = UniqueIdInterface::INVALID;
 
@@ -154,7 +157,8 @@ public:
     //@{
     typedef ConsensusFeature FeatureType;
     typedef std::vector<ConsensusFeature> Base;
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
@@ -398,8 +402,6 @@ protected:
 
   ///Print the contents of a ConsensusMap to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
-
-
 
 } // namespace OpenMS
 

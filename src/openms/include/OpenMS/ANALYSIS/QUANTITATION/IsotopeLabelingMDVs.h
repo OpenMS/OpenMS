@@ -54,7 +54,7 @@ namespace OpenMS
     IsotopeLabelingMDVs();
 
     /// Destructor
-    ~IsotopeLabelingMDVs();
+    ~IsotopeLabelingMDVs() override;
     //@}
     
     enum class DerivatizationAgent

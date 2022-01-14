@@ -236,7 +236,7 @@ protected:
           }
           for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
-            if (it->getHits().size() > 0)
+            if (!it->getHits().empty())
             {
               PeptideHit hit = *it->getHits().begin();
               MassDifference md;
@@ -301,7 +301,7 @@ protected:
           }
           for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
-            if (it->getHits().size() > 0)
+            if (!it->getHits().empty())
             {
               PeptideHit hit = *it->getHits().begin();
 

@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <unordered_map>
 #include <QString>
@@ -152,7 +151,7 @@ namespace OpenMS
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
                                FeatureMapping::FeatureMappingInfo& fm_info,
-                               FeatureMapping::FeatureToMs2Indices& feature_mapping);
+                               FeatureMapping::FeatureToMs2Indices& feature_mapping) const;
 
       /**
       @brief logs number of features and spectra used
@@ -165,7 +164,7 @@ namespace OpenMS
       */
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                   const MSExperiment& spectra);
+                                   const MSExperiment& spectra) const;
 
       /**
       @brief Call SIRIUS with QProcess

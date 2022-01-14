@@ -250,7 +250,7 @@ protected:
     prot_ids[0].setSearchParameters(search_params);
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
-    // or maybe put it in a DataProcessingStep
+    // or maybe put it in a DataProcessing step
     //TODO actually this only makes sense if there was only one search engine. (see the alternative
     // setProteinIdentificationSettings_)
     // best, worst, average can also be used on PEP scores for different search engines. IDPEP does not
@@ -280,7 +280,7 @@ protected:
       String original_SE = "Unknown";
       String original_SE_ver = "0.0";
       vector<String> mvkeys;
-      
+
       old_sp.getKeys(mvkeys);
       for (const String & mvkey : mvkeys)
       {
@@ -428,7 +428,7 @@ protected:
       new_sp.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       new_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
       new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
-      
+
       const auto& chg_pair = sp.getChargeRange();
       if (chg_pair.first != 0 && chg_pair.first < min_chg)
       {
@@ -561,7 +561,7 @@ protected:
       new_sp.fragment_mass_tolerance = frag_tol_ppm;
       new_sp.fragment_mass_tolerance_ppm = true;
     }
-    
+
     new_sp.missed_cleavages = mc;
 
     prot_id.setDateTime(DateTime::now());
@@ -570,7 +570,7 @@ protected:
     prot_id.setSearchParameters(new_sp);
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
-    // or maybe put it in a DataProcessingStep
+    // or maybe put it in a DataProcessing step
     if (allsamese)
     {
       prot_id.setMetaValue("ConsensusIDBaseSearch", get<0>(se_ver_settings[0]) + String(":") + get<1>(se_ver_settings[0]));
@@ -836,7 +836,7 @@ protected:
           OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag expects a merged idXML file"
           "with multiple runs. Only one run found in the first file." << std::endl;
         }
-        
+
         // merge peptide IDs by precursor position - this is equivalent to a
         // feature linking problem (peptide IDs from different ID runs <->
         // features from different maps), so we bring the data into a format
@@ -896,7 +896,7 @@ protected:
         {
           auto& ids = cfeature.getPeptideIdentifications();
           consensus->apply(ids, runid_to_se, old_size);
-          
+
           if (!ids.empty())
           {
             PeptideIdentification& pep_id = ids[0];

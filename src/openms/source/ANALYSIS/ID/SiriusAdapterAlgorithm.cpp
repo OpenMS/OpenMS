@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -436,6 +436,7 @@ namespace OpenMS
                 indices.end(),
                 [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
 
+      sorted_subdirs.reserve(indices.size());
       for (const auto& index : indices)
       {
         sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
@@ -447,7 +448,7 @@ namespace OpenMS
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      FeatureMapping::FeatureMappingInfo& fm_info,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
+                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping) const
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -455,9 +456,8 @@ namespace OpenMS
         if (File::exists(featureinfo) && !File::empty(featureinfo))
         {
           // read featureXML          
-          FeatureXMLFile fxml;
           FeatureMap feature_map;
-          fxml.load(featureinfo, feature_map);
+          FileHandler().loadFeatures(featureinfo, feature_map);
 
           UInt num_masstrace_filter = getFilterByNumMassTraces();
           double precursor_mz_tol = getPrecursorMzTolerance();
@@ -500,7 +500,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
                                                          const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                                         const MSExperiment& spectra)
+                                                         const MSExperiment& spectra) const
     {
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())

@@ -35,9 +35,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <QDir>
@@ -118,7 +115,7 @@ namespace OpenMS
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
       //load should clear the map
-      ConsensusXMLFile().load(*file_it, map);
+      FileHandler().loadConsensusFeatures(*file_it, map);
       for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
       {
         it->setMetaValue("experiment", DataValue(experiment));
@@ -138,7 +135,7 @@ namespace OpenMS
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
     {
       // load should clear the vectors
-      IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
+      FileHandler().loadIdentifications(*file_it, additional_proteins, additional_peptides);
 
       for (vector<ProteinIdentification>::iterator prot_it =
              additional_proteins.begin(); prot_it !=

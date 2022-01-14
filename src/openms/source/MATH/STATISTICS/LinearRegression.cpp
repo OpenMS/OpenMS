@@ -44,7 +44,6 @@ using boost::math::detail::inverse_students_t;
 
 namespace OpenMS::Math
 {
-
     double LinearRegression::getIntercept() const
     {
       return intercept_;
@@ -198,7 +197,7 @@ namespace OpenMS::Math
       if (rsd_ < 0.0)
       {
         std::cout << "rsd < 0.0 " << std::endl;
-        std::cout <<   "Intercept                                " << intercept_
+        std::cout << "Intercept                                  " << intercept_
                   << "\nSlope                                    " << slope_
                   << "\nSquared pearson coefficient              " << r_squared_
                   << "\nValue of the t-distribution              " << t_star_

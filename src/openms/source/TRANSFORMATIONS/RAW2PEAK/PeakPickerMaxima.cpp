@@ -56,7 +56,7 @@ namespace OpenMS
 
   void PeakPickerMaxima::findMaxima(const std::vector<double>& mz_array, 
       const std::vector<double>& int_array, std::vector<PeakCandidate>& pc, 
-      bool check_spacings)
+      bool check_spacings) const
   {
     // don't pick a spectrum with less than 5 data points
     if (mz_array.size() < 5)

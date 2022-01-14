@@ -118,7 +118,7 @@ namespace OpenMS
 
   bool CVTerm::hasUnit() const
   {
-    return unit_.accession != "";
+    return !unit_.accession.empty();
   }
 
   bool CVTerm::hasValue() const

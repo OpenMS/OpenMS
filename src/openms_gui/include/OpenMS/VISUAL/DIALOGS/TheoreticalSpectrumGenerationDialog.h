@@ -63,7 +63,7 @@ public:
     /// Constructor
     TheoreticalSpectrumGenerationDialog();
     /// Destructor
-    ~TheoreticalSpectrumGenerationDialog();
+    ~TheoreticalSpectrumGenerationDialog() override;
 
     String getSequence() const;
 

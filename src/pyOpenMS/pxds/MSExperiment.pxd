@@ -13,10 +13,10 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManager2):
+    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
         # wrap-inherits:
         #   ExperimentalSettings
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #
         # wrap-doc:
         #   In-Memory representation of a mass spectrometry experiment.
@@ -75,11 +75,6 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +
 
-        double getMinMZ() nogil except + # wrap-doc:Returns the minimal m/z value
-        double getMaxMZ() nogil except + # wrap-doc:Returns the maximal m/z value
-        double getMinRT() nogil except + # wrap-doc:Returns the minimal retention time value
-        double getMaxRT() nogil except + # wrap-doc:Returns the maximal retention time value
-
         # Size of experiment
         UInt64 getSize() nogil except + # wrap-doc:Returns the total number of peaks
         int size() nogil except +
@@ -105,3 +100,5 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
 
+        int getPrecursorSpectrum(int zero_based_index) nogil except + # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+        

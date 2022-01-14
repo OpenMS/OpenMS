@@ -132,7 +132,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (target_file != "")
+    if (!target_file.empty())
     {
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
@@ -140,7 +140,7 @@ protected:
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    if (target_run == "")
+    if (target_run.empty())
     {
       //~ check if only one run in file
       std::vector<String> nas;

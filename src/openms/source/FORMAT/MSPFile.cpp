@@ -287,7 +287,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             Peak1D peak;
             float mz = String(iter->str()).toFloat();
@@ -296,7 +296,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             float ity = String(iter->str()).toFloat();
             peak.setIntensity(ity);

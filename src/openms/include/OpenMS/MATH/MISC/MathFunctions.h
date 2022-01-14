@@ -53,6 +53,32 @@ namespace OpenMS
   */
   namespace Math
   {
+
+    /**
+      @brief Given an interval/range and a new value, extend the range to include the new value if needed
+
+      @param min The current minimum of the range
+      @param max The current maximum of the range
+      @param value The new value which may extend the range
+      @return true if the range was modified
+    */
+    template<typename T>
+    bool extendRange(T& min, T& max, const T& value)
+    {
+      if (value < min)
+      {
+        min = value;
+        return true;
+      }
+      if (value > max)
+      {
+        max = value;
+        return true;
+      }
+      return false;
+    }
+
+
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow
 

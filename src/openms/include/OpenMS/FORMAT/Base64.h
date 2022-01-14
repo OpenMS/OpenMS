@@ -350,7 +350,7 @@ private:
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "") return;
+    if (in.empty()) return;
 
     const Size element_size = sizeof(ToType);
 
@@ -645,7 +645,7 @@ private:
   void Base64::decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+    if (in.empty())
       return;
 
     void * byte_buffer;

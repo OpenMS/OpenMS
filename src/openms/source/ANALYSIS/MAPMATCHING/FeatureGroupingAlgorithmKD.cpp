@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 using namespace std;
 

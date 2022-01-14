@@ -95,6 +95,15 @@ START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const String& seq))
 }
 END_SECTION
 
+START_SECTION(EmpiricalFormula getBaselossFormula())
+{
+  const Ribonucleotide* dna = ptr->getRibonucleotide("dT");
+  TEST_EQUAL(EmpiricalFormula("C5H10O4") == dna->getBaselossFormula(), true);
+  const Ribonucleotide* rnam = ptr->getRibonucleotide("Um");
+  TEST_EQUAL(EmpiricalFormula("C6H12O5") == rnam->getBaselossFormula(), true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

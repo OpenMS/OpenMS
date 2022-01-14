@@ -34,7 +34,7 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>

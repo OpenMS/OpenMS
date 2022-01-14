@@ -517,7 +517,7 @@ namespace OpenMS::Math
       }
     }
 
-    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density)
+    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density) const
     {
       double maxlike(0);
       auto incorrect = incorrect_density.cbegin();
@@ -530,7 +530,7 @@ namespace OpenMS::Math
 
     double PosteriorErrorProbabilityModel::computeLLAndIncorrectPosteriorsFromLogDensities(
         const vector<double>& incorrect_log_density, const vector<double>& correct_log_density,
-        vector<double>& incorrect_posterior)
+        vector<double>& incorrect_posterior) const
     {
       double loglikelihood = 0.0;
       double log_prior_pos = log(1. - negative_prior_);
@@ -705,14 +705,14 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double>& target, vector<double>& decoy)
     {
-      if (target.size() == 0 || decoy.size() == 0)
+      if (target.empty() || decoy.empty())
       {
         StringList empty;
-        if (target.size() == 0)
+        if (target.empty())
         {
           empty.push_back("target");
         }
-        if (decoy.size() == 0) 
+        if (decoy.empty()) 
         {
           empty.push_back("decoy");
         }

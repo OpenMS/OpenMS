@@ -228,6 +228,7 @@ set(format_executables_list
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
+  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
@@ -516,6 +517,7 @@ set(analysis_executables_list
   MRMFeaturePicker_test
   MRMFragmentSelection_test
   MRMMapping_test
+  MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test

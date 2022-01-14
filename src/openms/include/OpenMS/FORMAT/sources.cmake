@@ -36,6 +36,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+GNPSMGFFile.h
 GzipIfstream.h
 GzipInputStream.h
 HDF5Connector.h
@@ -64,6 +65,9 @@ MzQCFile.h
 MzTab.h
 MzTabFile.h
 MzXMLFile.h
+OMSFile.h
+OMSFileLoad.h
+OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h

@@ -597,7 +597,7 @@ namespace OpenMS
     // in the beginning:
     SignedSize offset(0);
 
-    if (map.size() > 0)
+    if (!map.empty())
     {
       // cout << "Setting up hash table..." << endl;
       offset = SignedSize(floor(min_rt));

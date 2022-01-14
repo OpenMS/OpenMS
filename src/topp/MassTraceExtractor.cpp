@@ -170,7 +170,7 @@ protected:
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
-    if (ms_peakmap.size() == 0)
+    if (ms_peakmap.empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -340,7 +340,7 @@ protected:
       }
 
       // print some stats about standard deviation of mass traces
-      if (stats_sd.size() > 0)
+      if (!stats_sd.empty())
       {
         std::sort(stats_sd.begin(), stats_sd.end());
         OPENMS_LOG_INFO << "Mass trace m/z s.d.\n"

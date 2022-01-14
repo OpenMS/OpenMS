@@ -68,7 +68,7 @@ namespace OpenMS
     String spectrum; // Spectrum identifier
     String search_engine; // Protein search engine and score
 
-    void toStringList(StringList& target_list)
+    void toStringList(StringList& target_list) const
     {
       target_list.push_back(accession);
       target_list.push_back(peptide);
@@ -184,7 +184,7 @@ namespace OpenMS
     {
       modif += ":" + aa_it->getModificationName();
     }
-    if (sequence.getCTerminalModificationName() != "")
+    if (!sequence.getCTerminalModificationName().empty())
     {
       modif += ":" + sequence.getCTerminalModificationName();
     }
@@ -212,7 +212,7 @@ namespace OpenMS
     // we need the protein identifications to reference the protein names
     ProteinIdentification protIdent;
     bool has_proteinIdentifications = false;
-    if (cm.getProteinIdentifications().size() > 0)
+    if (!cm.getProteinIdentifications().empty())
     {
       protIdent = cm.getProteinIdentifications()[0];
       has_proteinIdentifications = true;
@@ -230,7 +230,7 @@ namespace OpenMS
       std::vector<IdCSV> entries;
 
       /// 1st we extract the identification information from the consensus feature
-      if (cFeature.getPeptideIdentifications().size() == 0 || !has_proteinIdentifications)
+      if (cFeature.getPeptideIdentifications().empty() || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
         entries.push_back(IdCSV());

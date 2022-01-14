@@ -34,13 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -189,7 +184,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
-    
+
     if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");

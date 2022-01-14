@@ -125,8 +125,8 @@ END_SECTION
 START_SECTION("NEW_TMP_FILE()")
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
-	TEST::this_test = (tmp_filename != "");
-	TEST_EQUAL(tmp_filename != "", true);
+	TEST::this_test = (!tmp_filename.empty());
+	TEST_EQUAL(!tmp_filename.empty(), true);
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR()")
