@@ -154,7 +154,7 @@ protected:
 
     if (file_ann.hasSuffix("oms"))
     {
-      ams_param.setValue("id_format", "ID"); // enable novel ID data structure
+      ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
     }
 
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
