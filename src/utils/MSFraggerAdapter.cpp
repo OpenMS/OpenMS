@@ -237,7 +237,6 @@ protected:
     const std::vector< double > emptyDoubles;
 
     const StringList validUnits = ListUtils::create<String>("Da,ppm");
-    const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // License agreement
@@ -288,7 +287,7 @@ protected:
 
     // Isotope error
     registerStringOption_(TOPPMSFraggerAdapter::isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, isotope_error_and_enzyme_termini);
+    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, ListUtils::create<String>("0,1,2,0/1/2"));
 
     // TOPP digest
     registerTOPPSubsection_("digest", "In-Silico Digestion Parameters");
