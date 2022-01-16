@@ -28,51 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+using namespace std;
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+  std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
   {
-    /** @brief: Group of ambiguously identified parent molecules (e.g. protein group)
-    */
-    // @TODO: derive from MetaInfoInterface?
-    struct ParentMoleculeGroup
-    {
-      std::map<ScoreTypeRef, double> scores;
-      // @TODO: does this need a "leader" or some such?
-      std::set<ParentMoleculeRef> parent_molecule_refs;
-    };
-
-    typedef boost::multi_index_container<
-      ParentMoleculeGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-        boost::multi_index::member<
-          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
-          &ParentMoleculeGroup::parent_molecule_refs>>>
-      > ParentMoleculeGroups;
-    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
-
-    /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
-    */
-    struct ParentMoleculeGrouping: public ScoredProcessingResult
-    {
-      String label; // @TODO: use "label" as a uniqueness constraint?
-      ParentMoleculeGroups groups;
-    };
-
-    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
-
+    return make_unique<LayerStatisticsIdent>(peptides_);
   }
-}
+} // namespace OpenMS

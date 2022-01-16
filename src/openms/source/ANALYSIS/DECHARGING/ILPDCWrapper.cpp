@@ -511,7 +511,7 @@ namespace OpenMS
     String e;
     if (getenv("M") != nullptr)
       e = String(getenv("M"));
-    if (e == "")
+    if (e.empty())
     {
       //std::cout << "1";
       score = pair.getCompomer().getLogP();

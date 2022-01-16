@@ -216,7 +216,7 @@ namespace OpenMS
   {
     pos_col_.clear();
 
-    if (gradient == "")
+    if (gradient.empty())
     {
       pos_col_[0] = Qt::white;
       pos_col_[100] = Qt::black;

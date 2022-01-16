@@ -261,7 +261,7 @@ protected:
     String out = getStringOption_("out");
 
     TOPPBase::ExitCodes ret;
-    if (out != "")
+    if (!out.empty())
     {
       ofstream os(out.c_str());
       ret = outputTo_(os);

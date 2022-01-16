@@ -62,7 +62,7 @@ namespace OpenMS::Math
     /**
      * @brief returns the slope of the estimated regression line.
      */
-    double LinearRegressionWithoutIntercept::getSlope()
+    double LinearRegressionWithoutIntercept::getSlope() const
     {
       if (n_ < 2)
       {

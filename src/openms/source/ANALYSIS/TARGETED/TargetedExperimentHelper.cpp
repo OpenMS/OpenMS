@@ -38,9 +38,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-namespace OpenMS
-{
-  namespace TargetedExperimentHelper
+namespace OpenMS::TargetedExperimentHelper
   {
 
     void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
@@ -110,4 +108,3 @@ namespace OpenMS
     }
 
   }
-}

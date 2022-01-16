@@ -57,7 +57,7 @@ namespace OpenMS
 public:
       ///Constructor
       Plot2DPrefDialog(QWidget * parent);
-      ~Plot2DPrefDialog();
+      ~Plot2DPrefDialog() override;
 private:
       Ui::Plot2DPrefDialogTemplate* ui_;
     };

@@ -67,7 +67,7 @@ public:
     TOPPASInputFilesDialog(QWidget* parent)
      : TOPPASInputFilesDialog(QStringList(), "", parent) {}
     TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent = 0);
-    ~TOPPASInputFilesDialog();
+    ~TOPPASInputFilesDialog() override;
 
     void getFilenames(QStringList& files) const;
 

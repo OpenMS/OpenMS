@@ -28,45 +28,49 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/ID/ScoreType.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+
+  /**
+  @brief Class that stores the data for one layer of type ConsensusMap
+
+  @ingroup PlotWidgets
+  */
+  class OPENMS_GUI_DLLAPI LayerDataConsensus : public LayerDataBase
   {
-    /** @brief Information about software used for data processing.
+  public:
+    /// Default constructor
+    LayerDataConsensus(ConsensusMapSharedPtrType& map);
+    /// no Copy-ctor (should not be needed)
+    LayerDataConsensus(const LayerDataConsensus& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerDataConsensus& operator=(const LayerDataConsensus& ld) = delete;
+    /// move Ctor
+    LayerDataConsensus(LayerDataConsensus&& ld) = default;
+    /// move assignment
+    LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
-    */
-    struct DataProcessingSoftware: public Software
+    void updateRanges() override
     {
-      /*!
-        List of score types assigned by this software, ranked by importance.
+      consensus_map_->updateRanges();
+    }
 
-        The "primary" score should be the first in the list.
-      */
-      // @TODO: make this a "list" for cheap "push_front"?
-      std::vector<ScoreTypeRef> assigned_scores;
+    RangeAllType getRange() const override
+    {
+      RangeAllType r;
+      r.assign(*getConsensusMap());
+      return r;
+    }
 
-      explicit DataProcessingSoftware(
-        const String& name = "", const String& version = "",
-        std::vector<ScoreTypeRef> assigned_scores =
-        std::vector<ScoreTypeRef>()):
-        Software(name, version), assigned_scores(assigned_scores)
-      {
-      }
-    };
+    std::unique_ptr<LayerStatistics> getStats() const override;
+  };
 
-    typedef std::set<DataProcessingSoftware> DataProcessingSoftwares;
-    typedef IteratorWrapper<DataProcessingSoftwares::iterator> ProcessingSoftwareRef;
-
-  }
-}
+}// namespace OpenMS

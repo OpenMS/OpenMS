@@ -68,7 +68,7 @@ public:
     /// Constructor
     EmgGradientDescent();
     /// Destructor
-    ~EmgGradientDescent() = default;
+    ~EmgGradientDescent() override = default;
 
     void getDefaultParameters(Param& params);
 

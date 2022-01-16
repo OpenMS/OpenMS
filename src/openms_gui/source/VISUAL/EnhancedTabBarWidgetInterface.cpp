@@ -64,7 +64,7 @@ namespace OpenMS
     }
   }
 
-  Int EnhancedTabBarWidgetInterface::getWindowId()
+  Int EnhancedTabBarWidgetInterface::getWindowId() const
   {
     return window_id_;
   }

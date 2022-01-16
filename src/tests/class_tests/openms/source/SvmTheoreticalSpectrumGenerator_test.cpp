@@ -108,7 +108,7 @@ START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, b
 #endif
 
   TEST_EQUAL(exp.size(), 1);
-  if(exp.size())
+  if(!exp.empty())
   {
     TEST_EQUAL(spec.size(), exp[0].size());
     Size min_size = min(spec.size(), exp[0].size());

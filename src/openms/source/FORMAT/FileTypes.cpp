@@ -55,7 +55,7 @@ namespace OpenMS
     {
     }
   };
-  
+
   /// Maps the FileType::Type to the preferred extension.
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
@@ -102,7 +102,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XSD, "xsd", "XSD schema format"),
     TypeNameBinding(FileTypes::PSQ, "psq", "NCBI binary blast db"),
     TypeNameBinding(FileTypes::MRM, "mrm", "SpectraST MRM list"),
-    TypeNameBinding(FileTypes::SQMASS, "sqMass", "SqLite format for mass and chromatograms"),
+    TypeNameBinding(FileTypes::SQMASS, "sqMass", "SQLite format for mass and chromatograms"),
     TypeNameBinding(FileTypes::PQP, "pqp", "pqp file"),
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file"),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files"),
@@ -115,6 +115,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file"),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file"),
     TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file"),
+    TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file"),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable"),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file"),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file"),
@@ -200,7 +201,7 @@ namespace OpenMS
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String name_upper = String(name).toUpper();
-    
+
     for (const auto& t_info : type_with_annotation__)
     {
       if (String(t_info.name).toUpper() == name_upper)

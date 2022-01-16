@@ -256,7 +256,7 @@ namespace OpenMS::Internal
       else if (tag_ == "pep_res_before")
       {
         String temp_string = character_buffer_.trim();
-        if (temp_string != "")
+        if (!temp_string.empty())
         {
           actual_peptide_evidence_.setAABefore(temp_string[0]);
         }
@@ -264,7 +264,7 @@ namespace OpenMS::Internal
       else if (tag_ == "pep_res_after")
       {
         String temp_string = character_buffer_.trim();
-        if (temp_string != "")
+        if (!temp_string.empty())
         {
           actual_peptide_evidence_.setAAAfter(temp_string[0]);
         }

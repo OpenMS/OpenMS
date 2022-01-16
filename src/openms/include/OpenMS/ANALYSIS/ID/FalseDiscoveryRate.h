@@ -127,7 +127,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
     /**
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
      and the ROC-N value (AUC up to first N false positives).
@@ -137,7 +137,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
     /**
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
@@ -148,7 +148,7 @@ public:
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
     /// simpler reimplementation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
@@ -194,14 +194,14 @@ public:
     double rocN(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /**
-       @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
+       @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
        @param score_key Key of the score to use for FDR calculation
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_key) const;
+    IdentificationData::ScoreTypeRef applyToObservationMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs
@@ -238,14 +238,14 @@ private:
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
-    /// Helper function for applyToQueryMatches()
-    void handleQueryMatch_(
-        IdentificationData::QueryMatchRef match_ref,
+    /// Helper function for applyToObservationMatches()
+    void handleObservationMatch_(
+        IdentificationData::ObservationMatchRef match_ref,
         IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores,
         std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
-        std::map<IdentificationData::QueryMatchRef, double>& match_to_score) const;
+        std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
+        std::map<IdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR
@@ -269,4 +269,3 @@ private:
   };
 
 } // namespace OpenMS
-

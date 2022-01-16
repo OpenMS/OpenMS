@@ -354,7 +354,7 @@ namespace OpenMS::Internal
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
-        if (type == "")
+        if (type.empty())
         {
           //unknown/unset => do nothing here => no warning in the end
         }
@@ -426,7 +426,7 @@ namespace OpenMS::Internal
 
         tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_phone_);
-        if (tmp != "")
+        if (!tmp.empty())
         {
           exp_->getContacts().back().setMetaValue("#phone", tmp);
         }
@@ -498,7 +498,7 @@ namespace OpenMS::Internal
       {
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
-        if (name == "")
+        if (name.empty())
         {
           return;
         }
@@ -524,7 +524,7 @@ namespace OpenMS::Internal
       {
         String name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
-        if (name == "")
+        if (name.empty())
         {
           return;
         }
@@ -623,7 +623,7 @@ namespace OpenMS::Internal
         {
           spectrum_data_.back().spectrum.setComment(transcoded_chars);
         }
-        else if (transcoded_chars.trim() != "")
+        else if (!transcoded_chars.trim().empty())
         {
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
@@ -631,7 +631,7 @@ namespace OpenMS::Internal
       else
       {
         String transcoded_chars = sm_.convert(chars);
-        if (transcoded_chars.trim() != "")
+        if (!transcoded_chars.trim().empty())
         {
           warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
@@ -645,7 +645,7 @@ namespace OpenMS::Internal
       for (Size s = 0; s < cexp_->size(); s++)
       {
         const SpectrumType& spec = (*cexp_)[s];
-        if (spec.size() != 0)
+        if (!spec.empty())
         {
           ++count_tmp_;
         }
@@ -654,7 +654,7 @@ namespace OpenMS::Internal
 
       logger_.startProgress(0, cexp_->size(), "storing mzXML file");
       double min_rt(0), max_rt(0);
-      if (cexp_->size() > 0)
+      if (!cexp_->empty())
       {
         min_rt = cexp_->begin()->getRT();
         max_rt = (cexp_->end() - 1)->getRT();
@@ -705,7 +705,7 @@ namespace OpenMS::Internal
       //----------------------------------------------------------------------------------------
       //instrument
       //----------------------------------------------------------------------------------------
-      if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
+      if (cexp_->getInstrument() != Instrument() || !cexp_->getContacts().empty())
       {
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
@@ -754,18 +754,18 @@ namespace OpenMS::Internal
           os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
-        if (cexp_->getContacts().size() > 0)
+        if (!cexp_->getContacts().empty())
         {
           const ContactPerson& cont = cexp_->getContacts()[0];
 
           os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() << "\"";
 
-          if (cont.getEmail() != "")
+          if (!cont.getEmail().empty())
           {
             os << " email=\"" << cont.getEmail() << "\"";
           }
 
-          if (cont.getURL() != "")
+          if (!cont.getURL().empty())
           {
             os << " URI=\"" << cont.getURL() << "\"";
           }
@@ -790,7 +790,7 @@ namespace OpenMS::Internal
       //----------------------------------------------------------------------------------------
       // data processing (the information of the first spectrum is assigned to the whole file)
       //----------------------------------------------------------------------------------------
-      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if (cexp_->empty() || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
           << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
@@ -861,7 +861,7 @@ namespace OpenMS::Internal
         {
           all_numbers = false;
           all_prefixed_numbers = false;
-          if (native_id != "")
+          if (!native_id.empty())
           {
             all_empty = false;
           }
@@ -1065,7 +1065,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
+          s_peaks = R"(<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" )";
         }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
         { // internal check against inadvertently removing line breaks above!
@@ -1093,7 +1093,7 @@ namespace OpenMS::Internal
         }
 
         writeUserParam_(os, spec, ms_level + 2);
-        if (spec.getComment() != "")
+        if (!spec.getComment().empty())
         {
           os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
         }

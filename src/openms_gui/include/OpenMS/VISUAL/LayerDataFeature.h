@@ -28,66 +28,68 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/MetaData.h>
-
-#include <boost/optional.hpp>
+#include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+
+  /**
+  @brief Class that stores the data for one layer of type FeatureMap
+
+  @ingroup PlotWidgets
+  */
+  class OPENMS_GUI_DLLAPI LayerDataFeature : public LayerDataBase, public IPeptideIds
   {
-    /** @brief Search query, e.g. spectrum or feature.
-    */
-    struct DataQuery: public MetaInfoInterface
+  public:
+    /// Default constructor
+    LayerDataFeature();
+    /// no Copy-ctor (should not be needed)
+    LayerDataFeature(const LayerDataFeature& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
+    /// move Ctor
+    LayerDataFeature(LayerDataFeature&& ld) = default;
+    /// move assignment
+    LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
+
+    void updateRanges() override
     {
-      /// spectrum or feature ID (from the file referenced by "input_file_ref"):
-      String data_id;
+      features_->updateRanges();
+    }
 
-      // @TODO: make this non-optional (i.e. required)?
-      boost::optional<InputFileRef> input_file_opt;
+    RangeAllType getRange() const override
+    {
+      RangeAllType r;
+      r.assign(*getFeatureMap());
+      return r;
+    }
 
-      double rt, mz; // position
+    std::unique_ptr<LayerStatistics> getStats() const override;
 
-      explicit DataQuery(
-        const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
-        double rt = std::numeric_limits<double>::quiet_NaN(),
-        double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
-      {
-      }
+    const PepIds& getPeptideIds() const override
+    {
+      return getFeatureMap()->getUnassignedPeptideIdentifications();
+    }
+    PepIds& getPeptideIds() override
+    {
+      return getFeatureMap()->getUnassignedPeptideIdentifications();
+    }
 
-      DataQuery(const DataQuery& other) = default;
+    void setPeptideIds(const PepIds& ids) override
+    {
+      getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
+    }
+    void setPeptideIds(PepIds&& ids) override
+    {
+      getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
+    }
+  };
 
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator<(const DataQuery& other) const
-      {
-        // can't compare references directly, so compare addresses:
-        const String* sp = input_file_opt ? &(**input_file_opt) : nullptr;
-        const String* o_sp = other.input_file_opt ? &(**other.input_file_opt) :
-          nullptr;
-        return std::tie(sp, data_id) < std::tie(o_sp, other.data_id);
-      }
-
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator==(const DataQuery& other) const
-      {
-        return std::tie(input_file_opt, data_id) ==
-          std::tie(other.input_file_opt, other.data_id);
-      }
-
-      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
-      // if yes, should it be stored here or together with the input file?
-    };
-
-    typedef std::set<DataQuery> DataQueries;
-    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
-
-  }
-}
+}// namespace OpenMS

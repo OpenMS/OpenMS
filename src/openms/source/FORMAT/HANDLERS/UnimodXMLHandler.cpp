@@ -167,7 +167,7 @@ namespace OpenMS::Internal
         }
 
         String formula;
-        if (isotope != "")
+        if (!isotope.empty())
         {
           formula = '(' + isotope + ')' + tmp_symbol + String(num);
         }

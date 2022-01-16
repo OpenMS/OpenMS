@@ -16,6 +16,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ------------------------------------------------------------------------------------------
 
 - Deisotoping algorithm using KL
+- Resolve compatibility issues between IDRipper and IDMerger #4957
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.7                                        ----

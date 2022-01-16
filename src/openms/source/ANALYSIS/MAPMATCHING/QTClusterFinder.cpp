@@ -384,8 +384,8 @@ namespace OpenMS
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
          map_it != input_maps.end(); ++map_it)
     {
-      max_intensity = max(max_intensity, map_it->getMaxInt());
-      max_mz = max(max_mz, map_it->getMax().getY());
+      max_intensity = max(max_intensity, map_it->getMaxIntensity());
+      max_mz = max(max_mz, map_it->getMaxMZ());
     }
     setParameters_(max_intensity, max_mz);
 

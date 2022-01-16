@@ -57,7 +57,7 @@ namespace OpenMS
 public:
       ///Constructor
       Plot3DPrefDialog(QWidget * parent);
-      ~Plot3DPrefDialog();
+      ~Plot3DPrefDialog() override;
     private:
       Ui::Plot3DPrefDialogTemplate* ui_;
     };

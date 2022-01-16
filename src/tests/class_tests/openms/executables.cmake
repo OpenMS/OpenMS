@@ -227,6 +227,7 @@ set(format_executables_list
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
+  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test

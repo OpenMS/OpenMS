@@ -395,7 +395,7 @@ protected:
     parameters << "-FragmentMzTolerance" << String(getDoubleOption_("fragment_mass_tolerance")) + " " + fragment_mass_tolerance_unit;
 
     StringList slf = getStringList_("SpectrumListFilters");
-    if (slf.size() > 0) 
+    if (!slf.empty()) 
     {
       if (myrimatch_version_i.myrimatch_minor <= 1)
       { // use quotes around the slf arguments (will be added automatically by Qt during call), i.e. "-SpectrumListFilters" "peakPicking false 2-"

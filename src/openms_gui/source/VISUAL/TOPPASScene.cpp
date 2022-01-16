@@ -1382,7 +1382,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1404,7 +1404,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1426,7 +1426,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1448,7 +1448,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1627,7 +1627,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_ == "" ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)
@@ -1656,12 +1656,12 @@ namespace OpenMS
     }
   }
 
-  bool TOPPASScene::wasChanged()
+  bool TOPPASScene::wasChanged() const
   {
     return changed_;
   }
 
-  bool TOPPASScene::isPipelineRunning()
+  bool TOPPASScene::isPipelineRunning() const
   {
     return running_;
   }

@@ -217,7 +217,7 @@ public:
     void load();
 
     ///return the set of ion types that are modeled by the loaded SVMs
-    const std::vector<IonType> & getIonTypes()
+    const std::vector<IonType> & getIonTypes() const
     {
       return mp_.ion_types;
     }

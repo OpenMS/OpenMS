@@ -92,12 +92,12 @@ namespace OpenMS::Internal
     params_.clear();
   }
 
-  Size AcqusHandler::getSize()
+  Size AcqusHandler::getSize() const
   {
     return td_;
   }
 
-  double AcqusHandler::getPosition(const Size index)
+  double AcqusHandler::getPosition(const Size index) const
   {
     double sqrt_mz_;
     double tof_ = dw_ * index + delay_;

@@ -90,7 +90,7 @@ class Summator{
         sum = t;
     }
 
-    inline double get()
+    inline double get() const
     {
         return sum;
     }
@@ -108,7 +108,7 @@ class TSummator
     {
         sum += what;
     }
-    inline double get()
+    inline double get() const
     {
         return sum;
     }

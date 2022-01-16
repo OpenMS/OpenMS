@@ -33,11 +33,11 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <assert.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <cassert>
 
 using namespace OpenMS;
 

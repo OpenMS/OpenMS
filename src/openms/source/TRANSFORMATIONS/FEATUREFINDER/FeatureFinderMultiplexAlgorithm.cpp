@@ -236,7 +236,7 @@ namespace OpenMS
     return list;
   }
 
-  void FeatureFinderMultiplexAlgorithm::correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide)
+  void FeatureFinderMultiplexAlgorithm::correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const
   {
     // determine ratios through linear regression
     // (In most labelled mass spectrometry experiments, the fold change i.e. ratio and not the individual peptide intensities

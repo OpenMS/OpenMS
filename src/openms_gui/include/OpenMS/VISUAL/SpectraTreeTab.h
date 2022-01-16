@@ -38,7 +38,7 @@
 
 
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 class QLineEdit;
 class QComboBox;
@@ -63,13 +63,13 @@ public:
     SpectraTreeTab(QWidget * parent = nullptr);
 
     /// Destructor
-    ~SpectraTreeTab() = default;
+    ~SpectraTreeTab() override = default;
 
     /// docu in base class
-    bool hasData(const LayerData* layer) override;
+    bool hasData(const LayerDataBase* layer) override;
 
     /// refresh the table using data from @p cl
-    void updateEntries(LayerData* cl) override;
+    void updateEntries(LayerDataBase* cl) override;
     
     /// remove all visible data
     void clear() override;
@@ -78,7 +78,10 @@ public:
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
     /// If no spectrum/chrom is selected, false is returned and @p exp is empty
     /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
-    bool getSelectedScan(MSExperiment& exp, LayerData::DataType& current_type) const;
+    bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
+
+    /// received focus e.g. through tabswitching
+    void updateIndexFromCurrentLayer();
 
 signals:
     void spectrumSelected(int);
@@ -92,13 +95,15 @@ private:
     QLineEdit* spectra_search_box_ = nullptr;
     QComboBox* spectra_combo_box_ = nullptr;
     TreeView* spectra_treewidget_ = nullptr;
+    LayerDataBase* layer_ = nullptr;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
     /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
     const PeakMap* last_peakmap_ = nullptr;
 
 private slots:
-   /// fill the search-combo-box with current column header names
+
+    /// fill the search-combo-box with current column header names
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();

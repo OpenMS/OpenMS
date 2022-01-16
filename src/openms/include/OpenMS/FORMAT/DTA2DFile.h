@@ -73,7 +73,7 @@ public:
     /// Default constructor
     DTA2DFile();
     /// Destructor
-    ~DTA2DFile();
+    ~DTA2DFile() override;
     //@}
 
     /// Mutable access to the options for loading/storing

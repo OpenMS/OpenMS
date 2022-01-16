@@ -101,7 +101,7 @@ private:
        * order.
        *
        */
-      inline bool operator()(const std::pair<std::pair<Int, float>, float>& c1, const std::pair<std::pair<Int, float>, float>& c2)
+      inline bool operator()(const std::pair<std::pair<Int, float>, float>& c1, const std::pair<std::pair<Int, float>, float>& c2) const
       {
         if (!flag)
         {
@@ -120,7 +120,7 @@ private:
        * descending. The comparison is done by the first argument of the map.
        *
        */
-      inline bool operator()(const std::pair<float, float>& c1, const std::pair<float, float>& c2)
+      inline bool operator()(const std::pair<float, float>& c1, const std::pair<float, float>& c2) const
       {
         if (!flag)
         {

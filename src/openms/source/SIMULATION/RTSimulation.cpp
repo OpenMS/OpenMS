@@ -332,7 +332,7 @@ namespace OpenMS
     }
 
     // print invalid features:
-    if (deleted_features.size() > 0)
+    if (!deleted_features.empty())
     {
       OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)

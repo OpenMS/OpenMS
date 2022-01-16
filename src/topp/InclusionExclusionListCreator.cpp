@@ -172,13 +172,13 @@ protected:
     std::cout << "strategy " << strategy << std::endl;
     String pt_model_file(getStringOption_("pt_model"));
 
-    if (include == "" && exclude == "")
+    if (include.empty() && exclude.empty())
     {
       writeLog_("Error: No input file given.");
       return MISSING_PARAMETERS;
     }
     // currently we can handle only inclusion OR exclusion, will be possible with the traML output
-    if (include != "" && exclude != "")
+    if (!include.empty() && !exclude.empty())
     {
       writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
@@ -204,7 +204,7 @@ protected:
     //    std::cout << "\n\n\n\n" << iel_param.getValue("RT:unit") << "\n\n";
 
 
-    if (include != "")
+    if (!include.empty())
     {
       FileTypes::Type in_type = fh.getType(include);
 
@@ -372,7 +372,7 @@ protected:
     //-------------------------------------------------------------
     // loading input: exclusion list part
     //-------------------------------------------------------------
-    if (exclude != "")
+    if (!exclude.empty())
     {
       FileTypes::Type ex_type = fh.getType(exclude);
       //        std::vector<IncludeExcludeTarget> excl_targets;

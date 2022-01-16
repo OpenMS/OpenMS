@@ -67,7 +67,7 @@ public:
     TransformationModelLinear(const DataPoints& data, const Param& params);
 
     /// Destructor
-    ~TransformationModelLinear() override;
+    ~TransformationModelLinear() override = default;
 
     /// Evaluates the model at the given value
     double evaluate(double value) const override;

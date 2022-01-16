@@ -429,8 +429,6 @@ START_SECTION((AnnotationState getAnnotationState() const))
   hit.setSequence(AASequence::fromString("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
-
-
 END_SECTION
 
 START_SECTION((sortPeptideIdentifications()))

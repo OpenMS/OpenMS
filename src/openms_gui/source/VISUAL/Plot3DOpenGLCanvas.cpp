@@ -37,6 +37,9 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
+
 #include <QMouseEvent>
 #include <QKeyEvent>
 
@@ -539,7 +542,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); ++i)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerDataBase& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         if ((Int)layer.param.getValue("dot:shade_mode"))
@@ -623,7 +626,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      LayerData& layer = canvas_3d_.getLayer(i);
+      LayerDataBase& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         recalculateDotGradient_(layer);
@@ -1121,16 +1124,16 @@ namespace OpenMS
 
       for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {
-        for (auto it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it != spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
+        auto mz_end = spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]);
+        for (auto it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it != mz_end; ++it)
         {
-          if (int_scale_.min_[0] >= it->getIntensity()) { int_scale_.min_[0] = it->getIntensity(); }
-          if (int_scale_.max_[0] <= it->getIntensity()) { int_scale_.max_[0] = it->getIntensity(); }
+          Math::extendRange(int_scale_.min_[0], int_scale_.max_[0], (double)it->getIntensity());
         }
       }
     }
   }
 
-  void Plot3DOpenGLCanvas::recalculateDotGradient_(LayerData& layer)
+  void Plot3DOpenGLCanvas::recalculateDotGradient_(LayerDataBase& layer)
   {
     layer.gradient.fromString(layer.param.getValue("dot:gradient"));
     switch (canvas_3d_.intensity_mode_)

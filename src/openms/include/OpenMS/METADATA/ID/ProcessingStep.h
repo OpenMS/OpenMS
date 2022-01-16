@@ -35,7 +35,8 @@
 #pragma once
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
 
 namespace OpenMS
 {
@@ -43,54 +44,49 @@ namespace OpenMS
   {
     /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
     */
-    struct DataProcessingStep: public MetaInfoInterface
+    struct ProcessingStep: public MetaInfoInterface
     {
       ProcessingSoftwareRef software_ref;
 
       std::vector<InputFileRef> input_file_refs;
-
-      std::vector<String> primary_files; // path(s) to primary MS data
 
       DateTime date_time;
 
       // @TODO: add processing actions that are relevant for ID data
       std::set<DataProcessing::ProcessingAction> actions;
 
-      explicit DataProcessingStep(
+      explicit ProcessingStep(
         ProcessingSoftwareRef software_ref,
         const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now(),
-        std::set<DataProcessing::ProcessingAction> actions =
+        std::vector<InputFileRef>(), const DateTime& date_time =
+        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
         std::set<DataProcessing::ProcessingAction>()):
         software_ref(software_ref), input_file_refs(input_file_refs),
-        primary_files(primary_files), date_time(date_time), actions(actions)
+        date_time(date_time), actions(actions)
       {
       }
 
-      DataProcessingStep(const DataProcessingStep& other) = default;
+      ProcessingStep(const ProcessingStep& other) = default;
 
-      // don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
+      // order by date/time first, don't compare meta data (?):
+      bool operator<(const ProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+        return (std::tie(date_time, software_ref, input_file_refs, actions) <
+                std::tie(other.date_time, other.software_ref,
+                         other.input_file_refs, other.actions));
       }
 
       // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
+      bool operator==(const ProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) ==
+        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
                 std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+                         other.date_time, other.actions));
       }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
+    typedef std::set<ProcessingStep> ProcessingSteps;
+    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
 
   }
 }

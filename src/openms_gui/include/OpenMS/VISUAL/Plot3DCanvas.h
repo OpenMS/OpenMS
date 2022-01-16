@@ -85,7 +85,7 @@ public:
     };
 
     ///returns the Plot3DOpenGLcanvas
-    Plot3DOpenGLCanvas * openglwidget();
+    Plot3DOpenGLCanvas * openglwidget() const;
 
     ///@name Reimplemented Qt events
     //@{
