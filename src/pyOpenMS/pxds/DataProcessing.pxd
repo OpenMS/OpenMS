@@ -29,8 +29,6 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataProcessing":
 
     cdef enum ProcessingAction:
-        #wrap-attach:
-        #    DataProcessing
         DATA_PROCESSING,                #< General data processing (if no other term applies)
         CHARGE_DECONVOLUTION,           #< Charge deconvolution
         DEISOTOPING,                    #< Deisotoping
